@@ -173,11 +173,25 @@ pub fn handle_keys(key: KeyEvent, app: &mut App) {
                         app.submit_form.next_field();
                     }
                 }
+                KeyCode::Up => {
+                    app.submit_form.cycle_selector(false);
+                }
+                KeyCode::Down => {
+                    app.submit_form.cycle_selector(true);
+                }
                 KeyCode::Left => {
-                    app.submit_form.move_cursor_left();
+                    if app.submit_form.is_selector_active() {
+                        app.submit_form.cycle_selector(false);
+                    } else {
+                        app.submit_form.move_cursor_left();
+                    }
                 }
                 KeyCode::Right => {
-                    app.submit_form.move_cursor_right();
+                    if app.submit_form.is_selector_active() {
+                        app.submit_form.cycle_selector(true);
+                    } else {
+                        app.submit_form.move_cursor_right();
+                    }
                 }
                 KeyCode::Backspace => {
                     app.submit_form.backspace();
@@ -436,5 +450,120 @@ mod tests {
         assert_eq!(app.active_overlay, ActiveOverlay::SubmitForm);
         assert_eq!(app.submit_form.title, "XSS in search");
         assert!(!app.should_quit);
+    }
+
+    fn press(app: &mut App, code: KeyCode) {
+        handle_keys(KeyEvent::new(code, KeyModifiers::NONE), app);
+    }
+
+    fn form_app(field: FormField) -> App {
+        let mut app = App::new(None, "https://api.owaspblt.org".to_string());
+        app.active_overlay = ActiveOverlay::SubmitForm;
+        app.submit_form.active_field = field;
+        app
+    }
+
+    #[test]
+    fn test_arrows_cycle_severity_only_when_active() {
+        let mut app = form_app(FormField::Severity);
+        press(&mut app, KeyCode::Down);
+        assert_eq!(app.submit_form.severity, "Low");
+        press(&mut app, KeyCode::Right);
+        assert_eq!(app.submit_form.severity, "Critical");
+        press(&mut app, KeyCode::Up);
+        assert_eq!(app.submit_form.severity, "Low");
+        press(&mut app, KeyCode::Left);
+        assert_eq!(app.submit_form.severity, "Medium");
+        assert_eq!(app.submit_form.bug_type, "Other");
+    }
+
+    #[test]
+    fn test_arrows_cycle_bug_type_only_when_active() {
+        let mut app = form_app(FormField::BugType);
+        press(&mut app, KeyCode::Right);
+        assert_eq!(app.submit_form.bug_type, "XSS");
+        press(&mut app, KeyCode::Left);
+        assert_eq!(app.submit_form.bug_type, "Other");
+        press(&mut app, KeyCode::Up);
+        assert_eq!(app.submit_form.bug_type, "Information Disclosure");
+        press(&mut app, KeyCode::Down);
+        assert_eq!(app.submit_form.bug_type, "Other");
+        assert_eq!(app.submit_form.severity, "Medium");
+    }
+
+    #[test]
+    fn test_arrows_do_not_change_selectors_on_other_fields() {
+        for field in [
+            FormField::Title,
+            FormField::Url,
+            FormField::Description,
+            FormField::StepsToReproduce,
+            FormField::Screenshot,
+        ] {
+            let mut app = form_app(field);
+            for code in [KeyCode::Up, KeyCode::Down, KeyCode::Left, KeyCode::Right] {
+                press(&mut app, code);
+            }
+            assert_eq!(app.submit_form.severity, "Medium");
+            assert_eq!(app.submit_form.bug_type, "Other");
+        }
+    }
+
+    #[test]
+    fn test_left_right_still_move_text_cursor() {
+        let mut app = form_app(FormField::Title);
+        app.submit_form.title = "abc".to_string();
+        press(&mut app, KeyCode::Left);
+        assert_eq!(app.submit_form.cursor_pos(), 2);
+        press(&mut app, KeyCode::Right);
+        assert_eq!(app.submit_form.cursor_pos(), 3);
+    }
+
+    #[test]
+    fn test_typing_ignored_on_selectors() {
+        let mut app = form_app(FormField::Severity);
+        press(&mut app, KeyCode::Char('z'));
+        press(&mut app, KeyCode::Backspace);
+        assert_eq!(app.submit_form.severity, "Medium");
+    }
+
+    #[test]
+    fn test_tab_navigation_and_submit_shortcut_with_selectors() {
+        let mut app = form_app(FormField::Url);
+        press(&mut app, KeyCode::Tab);
+        assert_eq!(app.submit_form.active_field, FormField::Severity);
+        press(&mut app, KeyCode::Enter);
+        assert_eq!(app.submit_form.active_field, FormField::BugType);
+        press(&mut app, KeyCode::BackTab);
+        assert_eq!(app.submit_form.active_field, FormField::Severity);
+        assert_eq!(app.submit_form.severity, "Medium");
+
+        handle_keys(
+            KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL),
+            &mut app,
+        );
+        assert_eq!(app.active_overlay, ActiveOverlay::SubmitConfirm);
+    }
+
+    #[test]
+    fn test_selected_values_kept_exactly_for_submission() {
+        let mut app = form_app(FormField::BugType);
+        press(&mut app, KeyCode::Up); // Information Disclosure
+        assert_eq!(app.submit_form.bug_type, "Information Disclosure");
+        press(&mut app, KeyCode::Up); // Authentication Bypass
+        assert_eq!(app.submit_form.bug_type, "Authentication Bypass");
+        app.submit_form.prev_field();
+        press(&mut app, KeyCode::Up); // High
+        assert_eq!(app.submit_form.severity, "High");
+        // submit_issue_action sends these fields verbatim as `severity` / `bug_type`.
+    }
+
+    #[test]
+    fn test_new_form_restores_selector_defaults() {
+        let mut app = form_app(FormField::Severity);
+        press(&mut app, KeyCode::Up);
+        app.submit_form = VulnerabilityForm::default();
+        assert_eq!(app.submit_form.severity, "Medium");
+        assert_eq!(app.submit_form.bug_type, "Other");
     }
 }
