@@ -21,10 +21,18 @@ Safety / Confirmation Flow:
 
 import logging
 
-from blt_mcp.server_base import http_client, mcp
+from blt_mcp import server_base
+from blt_mcp.server_base import mcp
 from blt_mcp.tools import generate_ai_metadata
 
 logger = logging.getLogger("blt-mcp.v2_tools")
+
+
+def _client():
+    """Return the HTTP client the server creates at startup; it does not exist yet at import time."""
+    if server_base.http_client is None:
+        raise RuntimeError("HTTP client is not initialized; the server lifespan has not started.")
+    return server_base.http_client
 
 
 @mcp.tool()
@@ -53,7 +61,7 @@ async def auth_signup(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post(
+        response = await _client().post(
             "/v2/auth/signup", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -71,7 +79,7 @@ async def auth_signin(email: str, password: str) -> str:
     logger.info("Signing in user")
     payload = {"email": email, "password": password}
     try:
-        response = await http_client.post("/v2/auth/signin", json=payload)
+        response = await _client().post("/v2/auth/signin", json=payload)
         response.raise_for_status()
         return f"Successfully signed in: {response.text}"
     except Exception as e:
@@ -127,7 +135,7 @@ async def create_bug(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post("/v2/bugs", json=payload, headers=headers)
+        response = await _client().post("/v2/bugs", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully created bug: {title}"
     except Exception as e:
@@ -167,7 +175,7 @@ async def update_bug(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.patch(
+        response = await _client().patch(
             f"/v2/bugs/{id}", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -210,7 +218,7 @@ async def create_user(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post("/v2/users", json=payload, headers=headers)
+        response = await _client().post("/v2/users", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully created user: {username}"
     except Exception as e:
@@ -251,7 +259,7 @@ async def create_job(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post("/v2/jobs", json=payload, headers=headers)
+        response = await _client().post("/v2/jobs", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully created job: {title}"
     except Exception as e:
@@ -294,7 +302,7 @@ async def update_job(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.patch(
+        response = await _client().patch(
             f"/v2/jobs/{id}", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -323,7 +331,7 @@ async def record_job_view(id: str, confirmed: bool = False) -> str:
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post(
+        response = await _client().post(
             f"/v2/jobs/{id}/view", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -363,7 +371,7 @@ async def create_hackathon(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post(
+        response = await _client().post(
             "/v2/hackathons", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -402,7 +410,7 @@ async def update_hackathon(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.patch(
+        response = await _client().patch(
             f"/v2/hackathons/{id}", json=payload, headers=headers
         )
         response.raise_for_status()
@@ -433,7 +441,7 @@ async def register_hackathon_participant(
         "X-AI-Timestamp": ai_metadata["timestamp"],
     }
     try:
-        response = await http_client.post(
+        response = await _client().post(
             f"/v2/hackathons/{id}/register", json=payload, headers=headers
         )
         response.raise_for_status()
