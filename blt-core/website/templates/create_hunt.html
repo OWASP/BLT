@@ -57,10 +57,9 @@
                       <h4 class="modal-title">Create Hunt</h4>
                     </div>
                     <div class="modal-body">
-                      <input type="hidden" name="id" value="{{domain.pk}}" />
                       <div class="form-group">
                         <label for="name">Name:</label>
-                        <input type="text" name="name" required class="form-control" id="name" value="{{domain.name}}">
+                        <input type="text" name="name" required class="form-control" id="name" value="">
                       </div>
                       
                         {{hunt_form.media}}
@@ -83,7 +82,9 @@
                         </div>
                         <script type="text/javascript">
                             $(function () {
-                                $('#datetimepicker1').datetimepicker();
+                                $('#datetimepicker1').datetimepicker({
+                                    format: 'YYYY-MM-DD HH:MM:ss'
+                                });
                             });
                         </script>
                       </div>
@@ -97,7 +98,9 @@
                         </div>
                         <script type="text/javascript">
                             $(function () {
-                                $('#datetimepicker2').datetimepicker();
+                                $('#datetimepicker2').datetimepicker({
+                                    format: 'YYYY-MM-DD HH:MM:ss'
+                                });
                             });
                         </script>
                     </div>
