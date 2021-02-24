@@ -33,44 +33,8 @@
     font-weight: 300;
 }
 
-.header-title {
-    color: #DB4553;
-    margin: 0px;
-}
-
-
-.card-horizontal {
-    display: flex;
-    flex: 1 1 auto;
-}
-
-.container-fluid {
-    padding: 25px 35px;
-}
-
-.card-details {
-    margin-left: 20px
-}
-
 .navbar {
     -webkit-backface-visibility: hidden;
-    min-height: 166px;
-}
-
-.panel-header {
-    width: 100%;
-}
-.navbar-brand {
-  padding: 5px 5px;
-}
-
-.navbar-brand div span
-{
-    width: 100%;
-    display: block;
-    font-size: 80%;
-    font-weight: 200;
-    text-align: center;
 }
 
 .navbar-static-top {
@@ -87,7 +51,7 @@
 }
 
 .form-group textarea {
-    height: 80px;
+    height: 34px;
 }
 
 .screenshot-hash {
@@ -153,46 +117,6 @@
     background-color: #9c27b0;
 }
 
-.full {
-  padding: 0 !important;
-  margin: 0 auto !important;
-  background-size: cover;
-  overflow: hidden;
-}
-
-.wide {
-  width: 100%;
-  height: auto;
-}
-
-.logo {
-  color: #fff;
-  font-weight: 800;
-  font-size: 14pt;
-  padding: 25px;
-  text-align: center;
-}
-
-.line {
-  padding-top: 20px;
-  white-space: no-wrap;
-  overflow: hidden;
-  text-align: center;
-}
-
-@media (orientation: portrait) {
-  .full {
-    background-size: 200% auto;
-    background-position: top right;
-  }
-}
-
-.row-header {
-    margin-top: 5px;
-    margin-left: -10px;
-    transform: translateY(20%)
-}
-
 .panel-yellow {
     border-color: #f0ad4e;
 }
@@ -206,7 +130,6 @@
 .panel-heading .row .fa-5x {
     margin-top: 5px;
     margin-left: -10px;
-    transform: translateY(50%)
 }
 
 #issue-dp {
@@ -279,14 +202,9 @@ hr {
     width: 10%;
     color: #fff;
 }
-.p0 {
-    padding: 0px;
-}
-.pr0 {
-    padding-right: 0px;
-}
+
 .form-group {
-    margin: 15px 0px;
+    margin-bottom: 15px;
 }
 
 label {
