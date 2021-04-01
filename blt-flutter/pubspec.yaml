@@ -1,0 +1,25 @@
+name: bugheist
+description: The Bugheist App
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: ^0.9.0
+  http: ^0.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+flutter_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/logo.png"
