@@ -2,6 +2,13 @@
 
 Bugheist Mobile App
 
+ 
+Bitrise Build Status: ![bitrise](https://app.bitrise.io/app/213ecdbc0500c713.svg?token=aYXrqOS_REpDEVIp2sjfAQ)
+
+Download the Artifacts at Bitrise - https://app.bitrise.io/app/213ecdbc0500c713#/builds
+
+
+
 **Report issues and get points, companies are held accountable.**
 
 Live Site: [Bugheist](http://bugheist.com/)
