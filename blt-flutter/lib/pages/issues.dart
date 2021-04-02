@@ -80,8 +80,16 @@ class PaginatedClassState extends State<PaginatedClass>
           body: FutureBuilder(
             future: _getObj,
             builder: (context, snapshot) {
-              return snapshot.data != null
-                  ? ListView.builder(
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Something went wrong!',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  );
+                } else if (snapshot.hasData) {
+                  return ListView.builder(
                       itemCount:
                           (snapshot.data! as DataModel).results.length + 1,
                       controller: _scrollController,
@@ -188,17 +196,19 @@ class PaginatedClassState extends State<PaginatedClass>
                               ],
                             ),
                           );
-                      })
-                  : Center(
-                      child: CircularProgressIndicator(
-                        valueColor: animationController.drive(
-                          ColorTween(
-                            begin: Colors.blueAccent,
-                            end: Colors.red,
-                          ),
-                        ),
-                      ),
-                    );
+                      });
+                }
+              }
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor: animationController.drive(
+                    ColorTween(
+                      begin: Colors.blueAccent,
+                      end: Colors.red,
+                    ),
+                  ),
+                ),
+              );
             },
           )),
     );
