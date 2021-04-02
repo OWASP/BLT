@@ -4,7 +4,11 @@ class DataModel {
   final String previous;
   final List<Results> results;
 
-  DataModel({this.count, this.next, this.previous, this.results});
+  DataModel(
+      {required this.count,
+      required this.next,
+      required this.previous,
+      required this.results});
 
   factory DataModel.fromJson(Map<String, dynamic> parsedJson) {
     return DataModel(
@@ -25,7 +29,8 @@ class Results {
   final String id;
   final String description;
   final String screenshot;
-  Results({this.id, this.description, this.screenshot});
+  Results(
+      {required this.id, required this.description, required this.screenshot});
 
   factory Results.fromJson(Map<String, dynamic> parsedJson) {
     return Results(

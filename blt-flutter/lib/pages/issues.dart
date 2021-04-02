@@ -13,10 +13,10 @@ ScrollController _scrollController = new ScrollController();
 
 class PaginatedClassState extends State<PaginatedClass>
     with TickerProviderStateMixin {
-  AnimationController animationController;
-  bool _loading;
-  Future _getObj;
-  String paginatedUrl;
+  late AnimationController animationController;
+  bool _loading = true;
+  late Future _getObj;
+  late String paginatedUrl;
 
   @override
   void initState() {
@@ -82,10 +82,12 @@ class PaginatedClassState extends State<PaginatedClass>
             builder: (context, snapshot) {
               return snapshot.data != null
                   ? ListView.builder(
-                      itemCount: snapshot.data.results.length + 1,
+                      itemCount:
+                          (snapshot.data! as DataModel).results.length + 1,
                       controller: _scrollController,
                       itemBuilder: (context, index) {
-                        if (index == snapshot.data.results.length)
+                        if (index ==
+                            (snapshot.data! as DataModel).results.length)
                           return Center(
                             child: Opacity(
                               opacity: _loading ? 1.0 : 0.0,
@@ -106,7 +108,9 @@ class PaginatedClassState extends State<PaginatedClass>
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ArticleOnePage(
-                                      issue: snapshot.data.results[index]),
+                                    issue: (snapshot.data! as DataModel)
+                                        .results[index],
+                                  ),
                                 ),
                               )
                             },
@@ -129,13 +133,16 @@ class PaginatedClassState extends State<PaginatedClass>
                                           width: 200,
                                           height: 130,
                                           child: Hero(
-                                            tag: snapshot
-                                                .data.results[index].screenshot,
+                                            tag: (snapshot.data! as DataModel)
+                                                .results[index]
+                                                .screenshot,
                                             child: DecoratedBox(
                                               decoration: BoxDecoration(
                                                 image: DecorationImage(
                                                   image: NetworkImage(
-                                                    snapshot.data.results[index]
+                                                    (snapshot.data!
+                                                            as DataModel)
+                                                        .results[index]
                                                         .screenshot,
                                                   ),
                                                   fit: BoxFit.cover,
@@ -155,8 +162,8 @@ class PaginatedClassState extends State<PaginatedClass>
                                                   children: <Widget>[
                                                     Flexible(
                                                       child: Text(
-                                                        snapshot
-                                                            .data
+                                                        (snapshot.data!
+                                                                as DataModel)
                                                             .results[index]
                                                             .description,
                                                         overflow:

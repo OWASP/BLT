@@ -6,9 +6,8 @@ class ArticleOnePage extends StatelessWidget {
   final Results issue;
 
   ArticleOnePage({
-    @required this.issue,
-    Key key,
-  }) : super(key: key);
+    required this.issue,
+  });
 
   @override
   Widget build(BuildContext context) {
