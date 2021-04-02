@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/issues.dart';
+import 'pages/splash.dart';
 
 void main() {
   runApp(FlutterSearch());
@@ -14,7 +14,7 @@ class _FlutterSearchState extends State<FlutterSearch> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: PaginatedClass(),
+      home: Splash(),
     );
   }
 }
