@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bugheist/pages/issues.dart';
 import 'package:flutter/material.dart';
+import 'package:bugheist/pages/login_signup.dart';
 
 class Splash extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
+    LoginSignUp();
     Timer(
         Duration(seconds: 3),
         () => Navigator.pushReplacement(context,
