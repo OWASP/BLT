@@ -22,17 +22,17 @@ class LoginFreshUserAndPassword extends StatefulWidget {
   final LoginFreshWords loginFreshWords;
 
   LoginFreshUserAndPassword(
-      {@required this.callLogin,
-      this.backgroundColor,
-      this.loginFreshWords,
-      this.logo,
-      this.isFooter,
-      this.widgetFooter,
-      this.isResetPassword,
-      this.widgetResetPassword,
-      this.isSignUp,
-      this.signUp,
-      this.textColor});
+      {required this.callLogin,
+      required this.backgroundColor,
+      required this.loginFreshWords,
+      required this.logo,
+      required this.isFooter,
+      required this.widgetFooter,
+      required this.isResetPassword,
+      required this.widgetResetPassword,
+      required this.isSignUp,
+      required this.signUp,
+      required this.textColor});
 
   @override
   _LoginFreshUserAndPasswordState createState() =>
@@ -52,7 +52,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
 
   final bool isLoginRequest = false;
 
-  LoginFreshWords loginFreshWords;
+  LoginFreshWords loginFreshWords = LoginFreshWords();
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +63,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
     return Scaffold(
       appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
-          backgroundColor: widget.backgroundColor ?? Color(0xFFE7004C),
+          backgroundColor: widget.backgroundColor,
           centerTitle: true,
           elevation: 0,
           title: Text(
@@ -80,7 +80,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
             child: Container(
               height: MediaQuery.of(context).size.height * 0.7,
               width: MediaQuery.of(context).size.width,
-              color: widget.backgroundColor ?? Color(0xFFE7004C),
+              color: widget.backgroundColor,
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,9 +148,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                   child: TextField(
                       controller: this._textEditingControllerUser,
                       keyboardType: TextInputType.emailAddress,
-                      style: TextStyle(
-                          color: widget.textColor ?? Color(0xFF0F2E48),
-                          fontSize: 14),
+                      style: TextStyle(color: widget.textColor, fontSize: 14),
                       autofocus: false,
                       onSubmitted: (v) {
                         FocusScope.of(context).requestFocus(focus);
@@ -159,8 +157,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Image.asset(
-                              "assets/images_login_fresh_34_/icon_user.png",
-                              package: 'login_fresh',
+                              "assets/login_signup/icon_user.png",
                               width: 15,
                               height: 15,
                             ),
@@ -176,9 +173,8 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                               borderSide: BorderSide(color: Color(0xFFAAB5C3))),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide(
-                                  color: widget.backgroundColor ??
-                                      Color(0xFFE7004C))),
+                              borderSide:
+                                  BorderSide(color: widget.backgroundColor)),
                           hintText: this.loginFreshWords.hintLoginUser)),
                 ),
                 Padding(
@@ -188,9 +184,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                       focusNode: focus,
                       controller: this._textEditingControllerPassword,
                       obscureText: this.isNoVisiblePassword,
-                      style: TextStyle(
-                          color: widget.textColor ?? Color(0xFF0F2E48),
-                          fontSize: 14),
+                      style: TextStyle(color: widget.textColor, fontSize: 14),
                       onSubmitted: (value) {
                         widget.callLogin(
                             context,
@@ -202,8 +196,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Image.asset(
-                              "assets/images_login_fresh_34_/icon_password.png",
-                              package: 'login_fresh',
+                              "assets/login_signup/icon_password.png",
                               width: 15,
                               height: 15,
                             ),
@@ -221,7 +214,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                                   ? Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Image.asset(
-                                        "assets/images_login_fresh_34_/icon_eye_close.png",
+                                        "assets/login_signup/icon_eye_close.png",
                                         package: 'login_fresh',
                                         width: 15,
                                         height: 15,
@@ -230,7 +223,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                                   : Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Image.asset(
-                                        "assets/images_login_fresh_34_/icon_eye_open.png",
+                                        "assets/login_signup/icon_eye_open.png",
                                         package: 'login_fresh',
                                         width: 15,
                                         height: 15,
@@ -247,9 +240,8 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                               borderSide: BorderSide(color: Color(0xFFAAB5C3))),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide(
-                                  color: widget.backgroundColor ??
-                                      Color(0xFFE7004C))),
+                              borderSide:
+                                  BorderSide(color: widget.backgroundColor)),
                           hintText: this.loginFreshWords.hintLoginPassword)),
                 ),
                 (this.isRequest)
@@ -278,8 +270,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(40),
                                 ),
-                                color:
-                                    widget.backgroundColor ?? Color(0xFFE7004C),
+                                color: widget.backgroundColor,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10),
@@ -306,16 +297,14 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                               TextSpan(
                                   text: '',
                                   style: TextStyle(
-                                      color:
-                                          widget.textColor ?? Color(0xFF0F2E48),
+                                      color: widget.textColor,
                                       fontWeight: FontWeight.normal,
                                       fontSize: 15)),
                               TextSpan(
                                   text: this.loginFreshWords.recoverPassword,
                                   style: TextStyle(
                                       decoration: TextDecoration.underline,
-                                      color:
-                                          widget.textColor ?? Color(0xFF0F2E48),
+                                      color: widget.textColor,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16)),
                             ]),
@@ -337,14 +326,14 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                         TextSpan(
                             text: this.loginFreshWords.notAccount + ' \n',
                             style: TextStyle(
-                                color: widget.textColor ?? Color(0xFF0F2E48),
+                                color: widget.textColor,
                                 fontWeight: FontWeight.normal,
                                 fontSize: 15)),
                         TextSpan(
                             text: this.loginFreshWords.signUp,
                             style: TextStyle(
                                 decoration: TextDecoration.underline,
-                                color: widget.textColor ?? Color(0xFF0F2E48),
+                                color: widget.textColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16)),
                       ]),

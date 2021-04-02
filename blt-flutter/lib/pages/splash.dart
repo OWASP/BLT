@@ -12,11 +12,11 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    LoginSignUp();
     Timer(
         Duration(seconds: 3),
-        () => Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => PaginatedClass())));
+        () => Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => LoginSignUp())));
+    //MaterialPageRoute(builder: (context) => PaginatedClass())));
   }
 
   @override

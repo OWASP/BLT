@@ -9,5 +9,5 @@ class LoginFreshTypeLoginModel {
   Function callFunction;
   String logo;
 
-  LoginFreshTypeLoginModel({this.logo, this.callFunction});
+  LoginFreshTypeLoginModel({required this.logo, required this.callFunction});
 }

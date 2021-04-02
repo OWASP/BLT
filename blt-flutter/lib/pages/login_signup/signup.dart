@@ -19,13 +19,13 @@ class LoginFreshSignUp extends StatefulWidget {
   final String logo;
 
   LoginFreshSignUp(
-      {@required this.funSignUp,
-      @required this.logo,
-      this.isFooter,
-      this.widgetFooter,
-      this.textColor,
-      this.loginFreshWords,
-      this.backgroundColor});
+      {required this.funSignUp,
+      required this.logo,
+      required this.isFooter,
+      required this.widgetFooter,
+      required this.textColor,
+      required this.loginFreshWords,
+      required this.backgroundColor});
 
   @override
   _LoginFreshSignUpState createState() => _LoginFreshSignUpState();
@@ -38,7 +38,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
 
   bool isNoVisiblePassword = true;
 
-  LoginFreshWords loginFreshWords;
+  LoginFreshWords loginFreshWords = LoginFreshWords();
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
     return Scaffold(
       appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
-          backgroundColor: widget.backgroundColor ?? Color(0xFFE7004C),
+          backgroundColor: widget.backgroundColor,
           centerTitle: true,
           elevation: 0,
           title: Text(
@@ -65,7 +65,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
             child: Container(
               height: MediaQuery.of(context).size.height * 0.7,
               width: MediaQuery.of(context).size.width,
-              color: widget.backgroundColor ?? Color(0xFFE7004C),
+              color: widget.backgroundColor,
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,9 +129,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           this.signUpModel.email = value;
                         },
                         keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
-                            fontSize: 14),
+                        style: TextStyle(color: widget.textColor, fontSize: 14),
                         autofocus: false,
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
@@ -147,9 +145,8 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     BorderSide(color: Color(0xFFAAB5C3))),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(
-                                    color: widget.backgroundColor ??
-                                        Color(0xFFE7004C))),
+                                borderSide:
+                                    BorderSide(color: widget.backgroundColor)),
                             hintText: this.loginFreshWords.hintLoginUser)),
                   ),
                   Padding(
@@ -160,9 +157,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           this.signUpModel.name = value;
                         },
                         keyboardType: TextInputType.text,
-                        style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
-                            fontSize: 14),
+                        style: TextStyle(color: widget.textColor, fontSize: 14),
                         autofocus: false,
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
@@ -178,9 +173,8 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     BorderSide(color: Color(0xFFAAB5C3))),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(
-                                    color: widget.backgroundColor ??
-                                        Color(0xFFE7004C))),
+                                borderSide:
+                                    BorderSide(color: widget.backgroundColor)),
                             hintText: this.loginFreshWords.hintName)),
                   ),
                   Padding(
@@ -191,9 +185,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           this.signUpModel.surname = value;
                         },
                         keyboardType: TextInputType.text,
-                        style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
-                            fontSize: 14),
+                        style: TextStyle(color: widget.textColor, fontSize: 14),
                         autofocus: false,
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
@@ -209,9 +201,8 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     BorderSide(color: Color(0xFFAAB5C3))),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(
-                                    color: widget.backgroundColor ??
-                                        Color(0xFFE7004C))),
+                                borderSide:
+                                    BorderSide(color: widget.backgroundColor)),
                             hintText: this.loginFreshWords.hintSurname)),
                   ),
                   Padding(
@@ -222,9 +213,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           this.signUpModel.password = value;
                         },
                         obscureText: this.isNoVisiblePassword,
-                        style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
-                            fontSize: 14),
+                        style: TextStyle(color: widget.textColor, fontSize: 14),
                         decoration: InputDecoration(
                             suffixIcon: GestureDetector(
                                 onTap: () {
@@ -239,7 +228,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     ? Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Image.asset(
-                                          "assets/images_login_fresh_34_/icon_eye_close.png",
+                                          "assets/login_signup/icon_eye_close.png",
                                           package: 'login_fresh',
                                           width: 15,
                                           height: 15,
@@ -248,7 +237,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     : Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Image.asset(
-                                          "assets/images_login_fresh_34_/icon_eye_open.png",
+                                          "assets/login_signup/icon_eye_open.png",
                                           package: 'login_fresh',
                                           width: 15,
                                           height: 15,
@@ -267,9 +256,8 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     BorderSide(color: Color(0xFFAAB5C3))),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(
-                                    color: widget.backgroundColor ??
-                                        Color(0xFFE7004C))),
+                                borderSide:
+                                    BorderSide(color: widget.backgroundColor)),
                             hintText: this.loginFreshWords.hintLoginPassword)),
                   ),
                   Padding(
@@ -280,9 +268,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           this.signUpModel.repeatPassword = value;
                         },
                         obscureText: this.isNoVisiblePassword,
-                        style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
-                            fontSize: 14),
+                        style: TextStyle(color: widget.textColor, fontSize: 14),
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -297,9 +283,8 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                                     BorderSide(color: Color(0xFFAAB5C3))),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(
-                                    color: widget.backgroundColor ??
-                                        Color(0xFFE7004C))),
+                                borderSide:
+                                    BorderSide(color: widget.backgroundColor)),
                             hintText:
                                 this.loginFreshWords.hintSignUpRepeatPassword)),
                   )
@@ -330,7 +315,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(40),
                           ),
-                          color: widget.backgroundColor ?? Color(0xFFE7004C),
+                          color: widget.backgroundColor,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Center(

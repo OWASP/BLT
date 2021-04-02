@@ -43,18 +43,18 @@ class LoginFresh extends StatefulWidget {
   LoginFreshWords keyWord;
 
   LoginFresh(
-      {@required this.pathLogo,
-      this.typeLoginModel,
-      this.isExploreApp,
-      this.functionExploreApp,
-      this.isSignUp,
-      this.widgetSignUp,
-      this.isFooter,
-      this.widgetFooter,
-      this.backgroundColor,
-      this.cardColor,
-      this.textColor,
-      this.keyWord});
+      {required this.pathLogo,
+      required this.typeLoginModel,
+      required this.isExploreApp,
+      required this.functionExploreApp,
+      required this.isSignUp,
+      required this.widgetSignUp,
+      required this.isFooter,
+      required this.widgetFooter,
+      required this.backgroundColor,
+      required this.cardColor,
+      required this.textColor,
+      required this.keyWord});
 
   @override
   _LoginFreshState createState() => _LoginFreshState();
@@ -63,12 +63,12 @@ class LoginFresh extends StatefulWidget {
 class _LoginFreshState extends State<LoginFresh> {
   @override
   Widget build(BuildContext context) {
-    widget.keyWord = widget.keyWord ?? LoginFreshWords();
+    widget.keyWord = widget.keyWord;
 
     return Stack(
       children: [
         Container(
-          color: widget.backgroundColor ?? Color(0xFFE7004C),
+          color: widget.backgroundColor,
           child: Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -89,7 +89,7 @@ class _LoginFreshState extends State<LoginFresh> {
               height: MediaQuery.of(context).size.height * 0.55,
               width: MediaQuery.of(context).size.width,
               decoration: new BoxDecoration(
-                  color: widget.cardColor ?? Color(0xFFF3F3F5),
+                  color: widget.cardColor,
                   borderRadius: new BorderRadius.only(
                     topLeft: const Radius.circular(50.0),
                     topRight: const Radius.circular(50.0),
@@ -136,14 +136,14 @@ class _LoginFreshState extends State<LoginFresh> {
             TextSpan(
                 text: widget.keyWord.notAccount + '\n',
                 style: TextStyle(
-                    color: widget.textColor ?? Color(0xFF0F2E48),
+                    color: widget.textColor,
                     fontWeight: FontWeight.normal,
                     fontSize: 15)),
             TextSpan(
                 text: widget.keyWord.signUp,
                 style: TextStyle(
                     decoration: TextDecoration.underline,
-                    color: widget.textColor ?? Color(0xFF0F2E48),
+                    color: widget.textColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 16)),
           ]),
@@ -160,7 +160,7 @@ class _LoginFreshState extends State<LoginFresh> {
     return (widget.isExploreApp == null || widget.isExploreApp == false)
         ? SizedBox()
         : GestureDetector(
-            onTap: widget.functionExploreApp,
+            onTap: widget.functionExploreApp(),
             child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.07,
                 width: (widget.typeLoginModel.length > 3)
@@ -178,7 +178,7 @@ class _LoginFreshState extends State<LoginFresh> {
                           child: Text(
                         widget.keyWord.exploreApp,
                         style: TextStyle(
-                            color: widget.textColor ?? Color(0xFF0F2E48),
+                            color: widget.textColor,
                             fontSize: 15,
                             fontWeight: FontWeight.bold),
                       )),
@@ -215,7 +215,7 @@ class _LoginFreshState extends State<LoginFresh> {
       padding: const EdgeInsets.all(8.0),
       child: Text(widget.keyWord.loginWith,
           style: TextStyle(
-              color: widget.textColor ?? Color(0xFF0F2E48),
+              color: widget.textColor,
               fontSize: 16,
               fontWeight: FontWeight.bold)),
     );
@@ -231,9 +231,6 @@ class _LoginFreshState extends State<LoginFresh> {
           child: Image(
             image: ExactAssetImage(
               tlm.logo,
-              package: (tlm.logo.contains('assets/images_login_fresh_34_/'))
-                  ? 'login_fresh'
-                  : null,
             ),
           ),
         ),

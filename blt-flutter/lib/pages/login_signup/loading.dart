@@ -8,7 +8,10 @@ class LoadingLoginFresh extends StatelessWidget {
   final Color backgroundColor;
 
   LoadingLoginFresh(
-      {this.textLoading, this.colorText, this.backgroundColor, this.elevation});
+      {required this.textLoading,
+      required this.colorText,
+      required this.backgroundColor,
+      required this.elevation});
 
   @override
   Widget build(BuildContext context) {
