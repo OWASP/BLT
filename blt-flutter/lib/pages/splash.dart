@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bugheist/pages/issues.dart';
 import 'package:flutter/material.dart';
+import 'package:bugheist/pages/login_signup.dart';
 
 class Splash extends StatefulWidget {
   @override
@@ -13,8 +14,9 @@ class _SplashState extends State<Splash> {
     super.initState();
     Timer(
         Duration(seconds: 3),
-        () => Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => PaginatedClass())));
+        () => Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => LoginSignUp())));
+    //MaterialPageRoute(builder: (context) => PaginatedClass())));
   }
 
   @override
