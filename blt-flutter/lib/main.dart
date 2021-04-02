@@ -15,8 +15,8 @@ class _FlutterSearchState extends State<FlutterSearch> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      //home: LoginSignUp(),
-      home: Splash(),
+      debugShowCheckedModeBanner: false,
+      home: LoginSignUp(),
     );
   }
 }

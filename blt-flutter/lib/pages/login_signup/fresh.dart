@@ -4,6 +4,8 @@ import 'package:bugheist/data/login_model.dart';
 
 import 'package:bugheist/config/login_signup_structure.dart';
 
+import '../issues.dart';
+
 /// Widget main with social networks
 class LoginFresh extends StatefulWidget {
   /// color main login
@@ -151,7 +153,8 @@ class _LoginFreshState extends State<LoginFresh> {
       ),
       onTap: () {
         Navigator.of(context).push(
-            MaterialPageRoute(builder: (_buildContext) => widget.widgetSignUp));
+          MaterialPageRoute(builder: (_buildContext) => widget.widgetSignUp),
+        );
       },
     );
   }
@@ -160,7 +163,13 @@ class _LoginFreshState extends State<LoginFresh> {
     return (widget.isExploreApp == null || widget.isExploreApp == false)
         ? SizedBox()
         : GestureDetector(
-            onTap: widget.functionExploreApp(),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_buildContext) => PaginatedClass(),
+                ),
+              );
+            },
             child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.07,
                 width: (widget.typeLoginModel.length > 3)

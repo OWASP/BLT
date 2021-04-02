@@ -3,6 +3,7 @@ import '../pages/issue_detail.dart';
 
 import '../services/api.dart';
 import '../data/models.dart';
+import 'login_signup.dart';
 
 class PaginatedClass extends StatefulWidget {
   @override
@@ -75,7 +76,46 @@ class PaginatedClassState extends State<PaginatedClass>
       child: Scaffold(
           appBar: AppBar(
             title: Text('Bugheist Issues'),
-            automaticallyImplyLeading: false,
+          ),
+          drawer: Drawer(
+            // Add a ListView to the drawer. This ensures the user can scroll
+            // through the options in the drawer if there isn't enough vertical
+            // space to fit everything.
+            child: ListView(
+              // Important: Remove any padding from the ListView.
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  child: Text('Drawer Header'),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                ),
+                ListTile(
+                  title: Text('Login'),
+                  onTap: () {
+                    // Update the state of the app
+                    // ...
+                    // Then close the drawer
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginSignUp(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  title: Text('Item 2'),
+                  onTap: () {
+                    // Update the state of the app
+                    // ...
+                    // Then close the drawer
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
           body: FutureBuilder(
             future: _getObj,

@@ -19,6 +19,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'BugHeist',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -33,23 +34,26 @@ class _LoginSignUpState extends State<LoginSignUp> {
           callFunction: (BuildContext _buildContext) {},
           logo: TypeLogo.facebook),
       LoginFreshTypeLoginModel(
-          callFunction: (BuildContext _buildContext) {}, logo: TypeLogo.google),
+        callFunction: (BuildContext _buildContext) {},
+        logo: TypeLogo.google,
+      ),
       LoginFreshTypeLoginModel(
           callFunction: (BuildContext _buildContext) {
             print("APPLE");
           },
           logo: TypeLogo.apple),
       LoginFreshTypeLoginModel(
-          callFunction: (BuildContext _buildContext) {
-            Navigator.of(_buildContext).push(MaterialPageRoute(
-              builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
-            ));
-          },
-          logo: TypeLogo.userPassword),
+        callFunction: (BuildContext _buildContext) {
+          Navigator.of(_buildContext).push(MaterialPageRoute(
+            builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
+          ));
+        },
+        logo: TypeLogo.userPassword,
+      ),
     ];
 
     return LoginFresh(
-      pathLogo: 'assets/logo.png',
+      pathLogo: 'assets/logo_white.png',
       isExploreApp: true,
       functionExploreApp: () {},
       isFooter: true,
@@ -78,7 +82,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
           isRequest(false);
         });
       },
-      logo: 'assets/logo.png',
+      logo: 'assets/logo_white.png',
       loginFreshWords: LoginFreshWords(),
       isFooter: true,
       widgetFooter: this.widgetFooter(),
@@ -93,15 +97,12 @@ class _LoginSignUpState extends State<LoginSignUp> {
 
   Widget widgetResetPassword() {
     return LoginFreshResetPassword(
-      logo: 'assets/logo.png',
+      logo: 'assets/logo_white.png',
       funResetPassword:
           (BuildContext _context, Function isRequest, String email) {
         isRequest(true);
 
         Future.delayed(Duration(seconds: 2), () {
-          print('-------------- function call----------------');
-          print(email);
-          print('--------------   end call   ----------------');
           isRequest(false);
         });
       },
@@ -114,28 +115,19 @@ class _LoginSignUpState extends State<LoginSignUp> {
   }
 
   Widget widgetFooter() {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: LoginFreshFooter(
-            logo: 'assets/logo.png',
-            text: 'BugHeist',
-            textColor: Color(0xFF42A5F5),
-            funFooterLogin: () {},
-          ),
-        ),
-        Expanded(
-          child: TextButton(
-            style: ButtonStyle(
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-            ),
-            onPressed: () => Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => PaginatedClass())),
-            child: Text('Skip to get Issues List'),
-          ),
-        ),
-      ],
-    );
+    return Container();
+    // return Row(
+    //   children: <Widget>[
+    //     Expanded(
+    //       child: LoginFreshFooter(
+    //         logo: 'assets/logo.png',
+    //         text: 'BugHeist',
+    //         textColor: Color(0xFF42A5F5),
+    //         funFooterLogin: () {},
+    //       ),
+    //     ),
+    //   ],
+    // );
     // return LoginFreshFooter(
     //   logo: 'assets/logo.png',
     //   text: 'BugHeist',
@@ -149,7 +141,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       isFooter: true,
       widgetFooter: this.widgetFooter(),
       loginFreshWords: LoginFreshWords(),
-      logo: 'assets/logo.png',
+      logo: 'assets/logo_white.png',
       funSignUp:
           (BuildContext _context, Function isRequest, SignUpModel signUpModel) {
         isRequest(true);

@@ -13,9 +13,14 @@ class _SplashState extends State<Splash> {
   void initState() {
     super.initState();
     Timer(
-        Duration(seconds: 3),
-        () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => LoginSignUp())));
+      Duration(seconds: 3),
+      () => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginSignUp(),
+        ),
+      ),
+    );
     //MaterialPageRoute(builder: (context) => PaginatedClass())));
   }
 
