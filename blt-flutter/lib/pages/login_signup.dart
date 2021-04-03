@@ -68,7 +68,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       pathLogo: 'assets/logo_white.png',
       isExploreApp: true,
       functionExploreApp: () {},
-      isFooter: true,
+      isFooter: false,
       widgetFooter: this.widgetFooter(),
       typeLoginModel: listLogin,
       isSignUp: true,
