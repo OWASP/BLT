@@ -19,13 +19,25 @@ class _LoginSignUpState extends State<LoginSignUp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'BugHeist',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
+      debugShowCheckedModeBanner: false,
+      title: 'BugHeist',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        primaryColor: Colors.white,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        primaryTextTheme: TextTheme(
+          headline1: TextStyle(
+              fontSize: 72.0, fontWeight: FontWeight.bold, color: Colors.black),
+          headline6: TextStyle(color: Colors.black),
+          button: TextStyle(
+            color: Colors.black,
+          ),
         ),
-        home: Scaffold(body: buildLoginFresh()));
+      ),
+      home: Scaffold(
+        body: buildLoginFresh(),
+      ),
+    );
   }
 
   LoginFresh buildLoginFresh() {
@@ -61,7 +73,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       typeLoginModel: listLogin,
       isSignUp: true,
       widgetSignUp: this.widgetLoginFreshSignUp(),
-      backgroundColor: Color(0xFFE7004C),
+      backgroundColor: Color(0xFFDC4654),
       cardColor: Color(0xFFF3F3F5),
       keyWord: LoginFreshWords(),
       textColor: Color(0xFF0F2E48),
