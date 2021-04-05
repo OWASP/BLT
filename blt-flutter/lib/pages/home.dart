@@ -13,7 +13,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
   final List<Widget> _children = [
-    PaginatedClass(), ReportBug(), Feed(), LeaderBoard()
+    PaginatedClass(),
+    ReportBug(),
+    Feed(),
+    LeaderBoard()
   ];
   void _onItemTapped(int index) {
     setState(() {
@@ -60,10 +63,29 @@ class _HomeState extends State<Home> {
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              child: Text('Drawer Header'),
+            UserAccountsDrawerHeader(
               decoration: BoxDecoration(
                 color: Color(0xFFDC4654),
+              ),
+              accountName: Text(
+                "bugheist",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              accountEmail: Text(
+                "bugheist@gmail.com",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Text(
+                  "BH",
+                  style: TextStyle(fontSize: 40.0),
+                ),
+                foregroundColor: Color(0xFFDC4654),
               ),
             ),
             ListTile(
