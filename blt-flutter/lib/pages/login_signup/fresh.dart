@@ -107,19 +107,18 @@ class _LoginFreshState extends State<LoginFresh> {
                     children: [
                       buildLoginWith(),
                       buildTypeLogin(context),
-                      (widget.isExploreApp == null ||
-                              widget.isExploreApp == false)
+                      !widget.isExploreApp
                           ? SizedBox()
                           : SizedBox(
                               height: 20,
                             ),
                       buildExploreApp(context),
-                      (widget.isSignUp == null || widget.isSignUp == false)
+                      !widget.isSignUp
                           ? SizedBox()
                           : buildSignUp(),
                     ],
                   ),
-                  (widget.isFooter == null || widget.isFooter == false)
+                  !widget.isFooter
                       ? SizedBox()
                       : widget.widgetFooter
                 ],
@@ -161,7 +160,7 @@ class _LoginFreshState extends State<LoginFresh> {
   }
 
   Widget buildExploreApp(BuildContext context) {
-    return (widget.isExploreApp == null || widget.isExploreApp == false)
+    return !widget.isExploreApp
         ? SizedBox()
         : GestureDetector(
             onTap: () {
