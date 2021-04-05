@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
-import 'package:bugheist/pages/login_signup/footer.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
-import 'package:bugheist/pages/login_signup/loading.dart';
 import 'package:bugheist/pages/login_signup/reset_password.dart';
 import 'package:bugheist/pages/login_signup/signup.dart';
 import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/login_model.dart';
 import 'package:bugheist/data/signup_model.dart';
-import 'package:bugheist/pages/issues.dart';
 
 class LoginSignUp extends StatefulWidget {
   @override
@@ -51,7 +48,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       ),
       LoginFreshTypeLoginModel(
           callFunction: (BuildContext _buildContext) {
-            print("APPLE");
+          
           },
           logo: TypeLogo.apple),
       LoginFreshTypeLoginModel(
@@ -86,11 +83,6 @@ class _LoginSignUpState extends State<LoginSignUp> {
           String password) {
         isRequest(true);
         Future.delayed(Duration(seconds: 2), () {
-          print('-------------- function call----------------');
-          print(user);
-          print(password);
-          print('--------------   end call   ----------------');
-
           isRequest(false);
         });
       },
@@ -157,11 +149,6 @@ class _LoginSignUpState extends State<LoginSignUp> {
       funSignUp:
           (BuildContext _context, Function isRequest, SignUpModel signUpModel) {
         isRequest(true);
-        print(signUpModel.email);
-        print(signUpModel.password);
-        print(signUpModel.repeatPassword);
-        print(signUpModel.surname);
-        print(signUpModel.name);
         isRequest(false);
       },
       textColor: Color(0xFF0F2E48),
