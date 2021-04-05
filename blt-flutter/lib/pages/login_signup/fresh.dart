@@ -1,10 +1,11 @@
+import 'package:bugheist/pages/home.dart';
 import 'package:flutter/material.dart';
 
 import 'package:bugheist/data/login_model.dart';
 
 import 'package:bugheist/config/login_signup_structure.dart';
 
-import '../issues.dart';
+
 
 /// Widget main with social networks
 class LoginFresh extends StatefulWidget {
@@ -166,7 +167,7 @@ class _LoginFreshState extends State<LoginFresh> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_buildContext) => PaginatedClass(),
+                  builder: (_buildContext) => Home(),
                 ),
               );
             },
