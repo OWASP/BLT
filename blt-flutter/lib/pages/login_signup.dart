@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
@@ -6,6 +8,7 @@ import 'package:bugheist/pages/login_signup/signup.dart';
 import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/login_model.dart';
 import 'package:bugheist/data/signup_model.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 class LoginSignUp extends StatefulWidget {
   @override
@@ -13,6 +16,60 @@ class LoginSignUp extends StatefulWidget {
 }
 
 class _LoginSignUpState extends State<LoginSignUp> {
+  late StreamSubscription _intentDataStreamSubscription;
+  late List<SharedMediaFile> _sharedFiles;
+  late String _sharedText;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // For sharing images coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
+        .listen((List<SharedMediaFile> value) {
+      setState(() {
+        print(_sharedFiles);
+        _sharedFiles = value;
+      });
+    }, onError: (err) {
+      print("getIntentDataStream error: $err");
+    });
+
+    // For sharing images coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialMedia().then((List<SharedMediaFile> value) {
+      setState(() {
+        _sharedFiles = value;
+      });
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStream().listen((String value) {
+      setState(() {
+        print('detected a link here 1');
+        print(value);
+        _sharedText = value;
+      });
+    }, onError: (err) {
+      print("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((value) {
+      setState(() {
+        print('detected text here:');
+        print(value);
+        //_sharedText = value;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _intentDataStreamSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -47,10 +104,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
         logo: TypeLogo.google,
       ),
       LoginFreshTypeLoginModel(
-          callFunction: (BuildContext _buildContext) {
-          
-          },
-          logo: TypeLogo.apple),
+          callFunction: (BuildContext _buildContext) {}, logo: TypeLogo.apple),
       LoginFreshTypeLoginModel(
         callFunction: (BuildContext _buildContext) {
           Navigator.of(_buildContext).push(MaterialPageRoute(
