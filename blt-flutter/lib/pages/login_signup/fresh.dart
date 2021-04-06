@@ -1,10 +1,11 @@
+import 'package:bugheist/pages/home.dart';
 import 'package:flutter/material.dart';
 
 import 'package:bugheist/data/login_model.dart';
 
 import 'package:bugheist/config/login_signup_structure.dart';
 
-import '../issues.dart';
+
 
 /// Widget main with social networks
 class LoginFresh extends StatefulWidget {
@@ -106,19 +107,18 @@ class _LoginFreshState extends State<LoginFresh> {
                     children: [
                       buildLoginWith(),
                       buildTypeLogin(context),
-                      (widget.isExploreApp == null ||
-                              widget.isExploreApp == false)
+                      !widget.isExploreApp
                           ? SizedBox()
                           : SizedBox(
                               height: 20,
                             ),
                       buildExploreApp(context),
-                      (widget.isSignUp == null || widget.isSignUp == false)
+                      !widget.isSignUp
                           ? SizedBox()
                           : buildSignUp(),
                     ],
                   ),
-                  (widget.isFooter == null || widget.isFooter == false)
+                  !widget.isFooter
                       ? SizedBox()
                       : widget.widgetFooter
                 ],
@@ -160,13 +160,13 @@ class _LoginFreshState extends State<LoginFresh> {
   }
 
   Widget buildExploreApp(BuildContext context) {
-    return (widget.isExploreApp == null || widget.isExploreApp == false)
+    return !widget.isExploreApp
         ? SizedBox()
         : GestureDetector(
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_buildContext) => PaginatedClass(),
+                  builder: (_buildContext) => Home(),
                 ),
               );
             },
