@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:bugheist/config/login_signup_structure.dart';
-import 'package:bugheist/pages/login_signup/loading.dart';
+import '../../config/login_signup_structure.dart';
+import '../../pages/login_signup/loading.dart';
+import '../../util/validators.dart';
 
 class LoginFreshUserAndPassword extends StatefulWidget {
   final Color backgroundColor;
@@ -145,14 +146,15 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: TextField(
+                  child: TextFormField(
                       controller: this._textEditingControllerUser,
                       keyboardType: TextInputType.emailAddress,
                       style: TextStyle(color: widget.textColor, fontSize: 14),
                       autofocus: false,
-                      onSubmitted: (v) {
-                        FocusScope.of(context).requestFocus(focus);
-                      },
+                      validator: validateEmail,
+                      // onSubmitted: (v) {
+                      //   FocusScope.of(context).requestFocus(focus);
+                      // },
                       decoration: InputDecoration(
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -180,18 +182,18 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
-                  child: TextField(
+                  child: TextFormField(
                       focusNode: focus,
                       controller: this._textEditingControllerPassword,
                       obscureText: this.isNoVisiblePassword,
                       style: TextStyle(color: widget.textColor, fontSize: 14),
-                      onSubmitted: (value) {
-                        widget.callLogin(
-                            context,
-                            setIsRequest,
-                            this._textEditingControllerUser.text,
-                            this._textEditingControllerPassword.text);
-                      },
+                      // onSubmitted: (value) {
+                      //   widget.callLogin(
+                      //       context,
+                      //       setIsRequest,
+                      //       this._textEditingControllerUser.text,
+                      //       this._textEditingControllerPassword.text);
+                      // },
                       decoration: InputDecoration(
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(8.0),

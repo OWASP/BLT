@@ -1,5 +1,10 @@
 import 'dart:async';
 
+import 'package:bugheist/data/user.dart';
+import 'package:bugheist/pages/login.dart';
+import 'package:bugheist/providers/auth.dart';
+import 'package:bugheist/providers/user_provider.dart';
+import 'package:bugheist/util/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
@@ -8,7 +13,9 @@ import 'package:bugheist/pages/login_signup/signup.dart';
 import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/login_model.dart';
 import 'package:bugheist/data/signup_model.dart';
+import 'package:provider/provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import '../providers/auth.dart';
 
 class LoginSignUp extends StatefulWidget {
   @override
@@ -18,7 +25,7 @@ class LoginSignUp extends StatefulWidget {
 class _LoginSignUpState extends State<LoginSignUp> {
   late StreamSubscription _intentDataStreamSubscription;
   late List<SharedMediaFile> _sharedFiles;
-  late String _sharedText;
+  //late String _sharedText;
 
   @override
   void initState() {
@@ -48,7 +55,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       setState(() {
         print('detected a link here 1');
         print(value);
-        _sharedText = value;
+        //_sharedText = value;
       });
     }, onError: (err) {
       print("getLinkStream error: $err");
@@ -72,24 +79,35 @@ class _LoginSignUpState extends State<LoginSignUp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'BugHeist',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        primaryColor: Colors.white,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        primaryTextTheme: TextTheme(
-          headline1: TextStyle(
-              fontSize: 72.0, fontWeight: FontWeight.bold, color: Colors.black),
-          headline6: TextStyle(color: Colors.black),
-          button: TextStyle(
-            color: Colors.black,
+    Future<User> getUserData() => UserPreferences().getUser();
+    //AuthProvider auth = Provider.of<AuthProvider>(context);
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'BugHeist',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          primaryColor: Colors.white,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          primaryTextTheme: TextTheme(
+            headline1: TextStyle(
+                fontSize: 72.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black),
+            headline6: TextStyle(color: Colors.black),
+            button: TextStyle(
+              color: Colors.black,
+            ),
           ),
         ),
-      ),
-      home: Scaffold(
-        body: buildLoginFresh(),
+        home: Scaffold(
+          body: buildLoginFresh(),
+        ),
       ),
     );
   }
@@ -108,7 +126,8 @@ class _LoginSignUpState extends State<LoginSignUp> {
       LoginFreshTypeLoginModel(
         callFunction: (BuildContext _buildContext) {
           Navigator.of(_buildContext).push(MaterialPageRoute(
-            builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
+            //builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
+            builder: (_buildContext) => Login(),
           ));
         },
         logo: TypeLogo.userPassword,
@@ -132,9 +151,34 @@ class _LoginSignUpState extends State<LoginSignUp> {
   }
 
   Widget widgetLoginFreshUserAndPassword() {
+    AuthProvider auth = Provider.of<AuthProvider>(context);
+
     return LoginFreshUserAndPassword(
-      callLogin: (BuildContext _context, Function isRequest, String user,
-          String password) {
+      callLogin: (
+        BuildContext _context,
+        Function isRequest,
+        String user,
+        String password,
+      ) {
+        // final Future<Map<String, dynamic>> successfulMessage =
+        //     auth.login(user, password);
+
+        // successfulMessage.then((response) {
+        //   if (response['status']) {
+        //     User user = response['user'];
+        //     Provider.of<UserProvider>(context, listen: false).setUser(user);
+        //     Navigator.pushReplacementNamed(context, '/dashboard');
+        //   } else {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       SnackBar(
+        //         content: Text(response['message'][0]),
+        //       ),
+        //     );
+        //   }
+        // });
+
+        //////
+
         isRequest(true);
         Future.delayed(Duration(seconds: 2), () {
           isRequest(false);
