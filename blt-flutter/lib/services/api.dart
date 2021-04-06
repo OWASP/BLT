@@ -13,4 +13,17 @@ class ApiBackend {
       return data;
     });
   }
+
+  Future<List> getLeaderData(String paginatedUrl) async {
+    return http
+        .get(
+      Uri.parse(paginatedUrl),
+    )
+        .then((http.Response response) {
+      List<Leaders> leaders = (json.decode(response.body) as List)
+          .map((data) => Leaders.fromJson(data))
+          .toList();
+      return leaders;
+    });
+  }
 }
