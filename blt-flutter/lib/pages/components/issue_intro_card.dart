@@ -50,7 +50,7 @@ class IssueCard extends StatelessWidget {
                             Flexible(
                               child: Text(
                                 description,
-                                overflow: TextOverflow.fade,
+                                overflow: TextOverflow.ellipsis,
                                 softWrap: true,
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600, fontSize: 12),

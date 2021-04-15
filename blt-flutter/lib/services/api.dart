@@ -9,7 +9,8 @@ class ApiBackend {
       Uri.parse(paginatedUrl),
     )
         .then((http.Response response) {
-      final data = DataModel.fromJson(jsonDecode(response.body));
+      final data =
+          DataModel.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
       return data;
     });
   }
@@ -20,9 +21,10 @@ class ApiBackend {
       Uri.parse(paginatedUrl),
     )
         .then((http.Response response) {
-      List<Leaders> leaders = (json.decode(response.body) as List)
-          .map((data) => Leaders.fromJson(data))
-          .toList();
+      List<Leaders> leaders =
+          (json.decode(utf8.decode(response.bodyBytes)) as List)
+              .map((data) => Leaders.fromJson(data))
+              .toList();
       return leaders;
     });
   }
