@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:bugheist/data/user.dart';
+//import 'package:bugheist/data/user.dart';
 import 'package:bugheist/pages/login.dart';
 import 'package:bugheist/providers/auth.dart';
 import 'package:bugheist/providers/user_provider.dart';
-import 'package:bugheist/util/shared_preferences.dart';
+//import 'package:bugheist/util/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
@@ -79,7 +79,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
 
   @override
   Widget build(BuildContext context) {
-    Future<User> getUserData() => UserPreferences().getUser();
+    //Future<User> getUserData() => UserPreferences().getUser();
     //AuthProvider auth = Provider.of<AuthProvider>(context);
 
     return MultiProvider(
@@ -151,7 +151,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
   }
 
   Widget widgetLoginFreshUserAndPassword() {
-    AuthProvider auth = Provider.of<AuthProvider>(context);
+    //AuthProvider auth = Provider.of<AuthProvider>(context);
 
     return LoginFreshUserAndPassword(
       callLogin: (

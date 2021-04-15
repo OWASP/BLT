@@ -5,8 +5,6 @@ import 'package:bugheist/data/login_model.dart';
 
 import 'package:bugheist/config/login_signup_structure.dart';
 
-
-
 /// Widget main with social networks
 class LoginFresh extends StatefulWidget {
   /// color main login
@@ -113,14 +111,10 @@ class _LoginFreshState extends State<LoginFresh> {
                               height: 20,
                             ),
                       buildExploreApp(context),
-                      !widget.isSignUp
-                          ? SizedBox()
-                          : buildSignUp(),
+                      !widget.isSignUp ? SizedBox() : buildSignUp(),
                     ],
                   ),
-                  !widget.isFooter
-                      ? SizedBox()
-                      : widget.widgetFooter
+                  !widget.isFooter ? SizedBox() : widget.widgetFooter
                 ],
               ),
             ))

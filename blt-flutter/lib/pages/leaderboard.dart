@@ -26,17 +26,17 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
   @override
   Widget build(BuildContext context) {
-    var r = TextStyle(color: Colors.purpleAccent, fontSize: 34);
+    var r = TextStyle(fontSize: 34);
     return Stack(
       children: <Widget>[
         Scaffold(
             body: Container(
-          margin: EdgeInsets.only(top: 65.0),
+          margin: EdgeInsets.only(top: 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.only(left: 15.0),
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   'Global Leaderboard ',
                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -138,16 +138,21 @@ class _LeaderBoardState extends State<LeaderBoard> {
                                                           maxLines: 6,
                                                         ),
                                                       ),
-                                                      Text("Points: " +
-                                                          list[index]
-                                                              .score
-                                                              .toString()),
+                                                      Text(
+                                                        "Points: " +
+                                                            list[index]
+                                                                .score
+                                                                .toString(),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
                                                 Flexible(child: Container()),
                                                 title == 3
-                                                    ? Text("🥇", style: r)
+                                                    ? Text(
+                                                        "🥇",
+                                                        style: r,
+                                                      )
                                                     : title == 2
                                                         ? Text(
                                                             "🥈",
@@ -161,9 +166,10 @@ class _LeaderBoardState extends State<LeaderBoard> {
                                                             : Text(''),
                                                 Padding(
                                                   padding: EdgeInsets.only(
-                                                      left: 20.0,
-                                                      top: 13.0,
-                                                      right: 20.0),
+                                                    left: 20.0,
+                                                    top: 13.0,
+                                                    right: 20.0,
+                                                  ),
                                                 ),
                                               ],
                                             ),

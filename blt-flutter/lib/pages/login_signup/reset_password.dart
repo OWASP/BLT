@@ -42,9 +42,7 @@ class _LoginFreshResetPasswordState extends State<LoginFreshResetPassword> {
 
   @override
   Widget build(BuildContext context) {
-    loginFreshWords = (widget.loginFreshWords == null)
-        ? LoginFreshWords()
-        : widget.loginFreshWords;
+    loginFreshWords = LoginFreshWords();
     return Scaffold(
       appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
