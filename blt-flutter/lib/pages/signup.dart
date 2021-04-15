@@ -16,11 +16,12 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   final formKey = new GlobalKey<FormState>();
 
-  late String _username, _password, _confirmPassword;
-
   @override
   Widget build(BuildContext context) {
     AuthProvider auth = Provider.of<AuthProvider>(context);
+
+    // ignore: unused_local_variable
+    late String _username, _password, _confirmPassword;
 
     final usernameField = TextFormField(
       autofocus: false,

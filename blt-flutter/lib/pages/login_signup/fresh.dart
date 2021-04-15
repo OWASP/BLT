@@ -41,7 +41,7 @@ class LoginFresh extends StatefulWidget {
   final Widget widgetSignUp;
 
   //model of key words used in login
-  LoginFreshWords keyWord;
+  final LoginFreshWords keyWord;
 
   LoginFresh(
       {required this.pathLogo,
@@ -64,7 +64,7 @@ class LoginFresh extends StatefulWidget {
 class _LoginFreshState extends State<LoginFresh> {
   @override
   Widget build(BuildContext context) {
-    widget.keyWord = widget.keyWord;
+    //widget.keyWord = widget.keyWord;
 
     return Stack(
       children: [
