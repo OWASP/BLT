@@ -68,13 +68,13 @@ class _HomeState extends State<Home> {
                 color: Color(0xFFDC4654),
               ),
               accountName: Text(
-                "bugheist",
+                "anonymous",
                 style: TextStyle(
                   color: Colors.white,
                 ),
               ),
               accountEmail: Text(
-                "bugheist@gmail.com",
+                "anonymous@gmail.com",
                 style: TextStyle(
                   color: Colors.white,
                 ),
@@ -82,7 +82,7 @@ class _HomeState extends State<Home> {
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Text(
-                  "BH",
+                  "AN",
                   style: TextStyle(fontSize: 40.0),
                 ),
                 foregroundColor: Color(0xFFDC4654),
@@ -91,7 +91,7 @@ class _HomeState extends State<Home> {
             ListTile(
               title: Text('Login'),
               onTap: () {
-                // Update the state of the app
+                // Update trhe state of the app
                 // ...
                 // Then close the drawer
                 Navigator.pushReplacement(
@@ -102,8 +102,9 @@ class _HomeState extends State<Home> {
                 );
               },
             ),
+            Divider(),
             ListTile(
-              title: Text('Item 2'),
+              title: Text('Social'),
               onTap: () {
                 // Update the state of the app
                 // ...
@@ -111,6 +112,37 @@ class _HomeState extends State<Home> {
                 Navigator.pop(context);
               },
             ),
+            Divider(),
+            ListTile(
+              title: Text('Stats'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+            Divider(),
+            ListTile(
+              title: Text('Privacy Policy'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+            Divider(),
+            ListTile(
+              title: Text('Terms and Conditions'),
+              onTap: () {
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+                Navigator.pop(context);
+              },
+            ),
+            Divider(),
           ],
         ),
       ),
