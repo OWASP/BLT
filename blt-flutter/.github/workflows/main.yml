@@ -5,17 +5,13 @@ jobs:
 
   test:
     runs-on: macos-latest
-    #sequence of tasks called
     steps:
       - uses: actions/checkout@v1
-      # Setup a flutter environment.
-      # https://github.com/marketplace/actions/flutter-action
       - uses: subosito/flutter-action@v1
         with:
           flutter-version: '2.0.4'
           channel: 'stable'
       - run: flutter pub get
-      # run static analys code
       - run: flutter  analyze
 
 
@@ -23,15 +19,15 @@ jobs:
     strategy:
       matrix:
         device:
-          - "iPhone 8 (13.3)"
-          - "iPhone 11 Pro (13.3)"
+          - "iPhone 8 (14.4)"
+          - "iPhone 12 Pro Max (14.4)"
       fail-fast: false
     runs-on: macos-latest
     needs: test
     steps:
       - name: List all simulators
         run: xcrun instruments -s
-      # get UUID  simulator and boot a simulator on mac from  command line
+
       - name: Start Simulator
         run: |
           UDID=$(
@@ -47,7 +43,7 @@ jobs:
         with:
           flutter-version: '2.0.4'
           channel: 'stable'
-      # Run flutter integrate tests
+
       - name: Run Flutter Driver tests
         run: flutter drive --target=test_driver/app.dart
 
@@ -56,9 +52,9 @@ jobs:
 
   drive_android:
     runs-on: macos-latest
-    #creates a build matrix for your jobs
+
     strategy:
-      #set of different configurations of the virtual environment.
+
       matrix:
         api-level: [21, 29]
         target: [default]
