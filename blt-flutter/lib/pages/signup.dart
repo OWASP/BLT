@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../data/user.dart';
+//import '../data/user.dart';
 import '../providers/auth.dart';
-import '../providers/user_provider.dart';
+//import '../providers/user_provider.dart';
 import '../util/validators.dart';
 import '../util/widgets.dart';
 import 'package:provider/provider.dart';

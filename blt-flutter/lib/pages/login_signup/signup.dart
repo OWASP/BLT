@@ -324,9 +324,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                             )),
                           ))),
                 ),
-          (widget.isFooter == null || widget.isFooter == false)
-              ? SizedBox()
-              : widget.widgetFooter
+          widget.isFooter == false ? SizedBox() : widget.widgetFooter
         ]);
   }
 

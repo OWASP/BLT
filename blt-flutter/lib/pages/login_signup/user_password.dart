@@ -57,9 +57,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
 
   @override
   Widget build(BuildContext context) {
-    loginFreshWords = (widget.loginFreshWords == null)
-        ? LoginFreshWords()
-        : widget.loginFreshWords;
+    loginFreshWords = LoginFreshWords();
 
     return Scaffold(
       appBar: AppBar(
@@ -284,8 +282,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                                   )),
                                 ))),
                       ),
-                (widget.isResetPassword == null ||
-                        widget.isResetPassword == false)
+                widget.isResetPassword == false
                     ? SizedBox()
                     : GestureDetector(
                         child: Padding(
@@ -350,9 +347,7 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
         ),
         Align(
           alignment: Alignment.bottomCenter,
-          child: (widget.isFooter == null || widget.isFooter == false)
-              ? SizedBox()
-              : widget.widgetFooter,
+          child: widget.isFooter == false ? SizedBox() : widget.widgetFooter,
         ),
       ],
     );

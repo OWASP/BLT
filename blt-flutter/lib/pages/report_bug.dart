@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../services/api.dart';
+//import '../services/api.dart';
 
 class ReportBug extends StatefulWidget {
   @override
@@ -148,7 +148,7 @@ class _ReportBugState extends State<ReportBug> {
           SizedBox(
             height: 200,
             child: Center(
-              child: _image == null
+              child: _image.path == ""
                   ? Text('No image selected.')
                   : Image.file(_image),
             ),
@@ -169,7 +169,7 @@ class _ReportBugState extends State<ReportBug> {
   }
 
   void uploadIssue() async {
-    if (_image != null) {
+    if (_image.path != "") {
       setState(() {
         isLoading = true;
         isButtonDisable = true;
