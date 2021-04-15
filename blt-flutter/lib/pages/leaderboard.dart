@@ -60,6 +60,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                             return ListView.builder(
                                 itemCount: list.length,
                                 itemBuilder: (context, index) {
+                                  int title = list[index].title;
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 5.0, vertical: 5.0),
@@ -67,11 +68,11 @@ class _LeaderBoardState extends State<LeaderBoard> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                             border: Border.all(
-                                                color: i == 0
+                                                color: title == 3
                                                     ? Colors.amber
-                                                    : i == 1
+                                                    : title == 2
                                                         ? Colors.grey
-                                                        : i == 2
+                                                        : title == 1
                                                             ? Colors.brown
                                                             : Colors.white,
                                                 width: 3.0,
@@ -145,14 +146,14 @@ class _LeaderBoardState extends State<LeaderBoard> {
                                                   ),
                                                 ),
                                                 Flexible(child: Container()),
-                                                i == 0
+                                                title == 3
                                                     ? Text("🥇", style: r)
-                                                    : i == 1
+                                                    : title == 2
                                                         ? Text(
                                                             "🥈",
                                                             style: r,
                                                           )
-                                                        : i == 2
+                                                        : title == 1
                                                             ? Text(
                                                                 "🥉",
                                                                 style: r,
