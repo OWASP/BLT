@@ -5,7 +5,7 @@
 | Parameter    | Required | Description                                                                |
 | ------------ | -------- | -------------------------------------------------------------------------- |
 | `repo-token` | true     | The GITHUB_TOKEN, needed to update the Issue.                              |
-| `assignees`  | true     | Comma separated list of user names. Issue will be assigned to those users. |
+
 
 ## Example usage
 
@@ -23,15 +23,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: 'Auto-assign issue'
-              uses: pozil/auto-assign-issue@v1
+              uses: Bugheist/assign-issues-action@main
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
-                  assignees: octocat
+
 ```
 
-### Specifying a dynamic user
 
-Instead of hardcoding the user name in the workflow, you can use a secret:
-
--   create a GitHub secret named `DEFAULT_ISSUE_ASSIGNEE` with the name of the user
--   use this value `${{ secrets.DEFAULT_ISSUE_ASSIGNEE }}` instead of the username in the workflow.
