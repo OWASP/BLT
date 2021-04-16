@@ -41,7 +41,7 @@ const run = async () => {
             repo,
         }).then(({ data }) => {
             for (const event of data) {
-                if (event.event == "assigned") {
+                if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
 
                     var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
@@ -54,7 +54,7 @@ const run = async () => {
                         (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
                     );
 
-                    if ((last_event.issue.number != event.issue.number) && event.issue.state == "open") {
+                    if (last_event.issue.number != event.issue.number) {
 
 
 
