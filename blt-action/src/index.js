@@ -57,7 +57,7 @@ const run = async () => {
                         }
                     }
                 }
-                event_count++;
+
                 last_event = event;
             }
         });
