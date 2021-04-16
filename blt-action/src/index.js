@@ -40,7 +40,7 @@ const run = async () => {
         }).then(({ data }) => {
             for (const event of data) {
                 if (event.event == "assigned") {
-                    if (last_event.issue.number != event.issue.number) {
+                    if ((last_event.issue.number != event.issue.number) && event.issue.state == "open") {
                         var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
                         if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
