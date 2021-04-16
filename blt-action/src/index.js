@@ -9,6 +9,7 @@ const run = async () => {
     const [owner, repo] = repository.full_name.split('/');
 
     if (issue) {
+        console.log('processing issue');
         const assignees = comment.user.login.split(',').map((assigneeName) => assigneeName.trim());
 
         if (comment.body.toLowerCase().includes("/unassign")) {
@@ -29,6 +30,7 @@ const run = async () => {
         }
 
     } else {
+        console.log('removing assignees greater than 3 days');
         var last_event = new Object()
         last_event.issue = new Object()
         last_event.issue.number = "";
