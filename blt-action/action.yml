@@ -1,0 +1,14 @@
+name: 'Auto-assign Issue'
+description: 'Auto-assigns issues to users'
+inputs:
+    repo-token:
+        description: 'The GITHUB_TOKEN, needed to update the Issue'
+        required: true
+
+runs:
+    using: 'node12'
+    main: 'src/index.js'
+
+branding:
+    icon: 'alert-circle'
+    color: 'red'
