@@ -42,17 +42,22 @@ const run = async () => {
         }).then(({ data }) => {
             for (const event of data) {
                 if (event.event == "assigned") {
-                    if ((last_event.issue.number != event.issue.number) && event.issue.state == "open") {
-                        var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
-                        console.log(
-                            event.created_at + " " +
-                            event.issue.number + " " +
-                            event.assignee.login + " " +
-                            event.issue.assignee.login + " " +
-                            event.issue.state + " " +
-                            (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
-                        );
+                    var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
+
+                    console.log(
+                        event.created_at + " " +
+                        event.issue.number + " " +
+                        event.assignee.login + " " +
+                        event.issue.assignee.login + " " +
+                        event.issue.state + " " +
+                        (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
+                    );
+
+                    if ((last_event.issue.number != event.issue.number) && event.issue.state == "open") {
+
+
+
 
                         if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
 
