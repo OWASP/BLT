@@ -43,6 +43,15 @@ const run = async () => {
                     if ((last_event.issue.number != event.issue.number) && event.issue.state == "open") {
                         var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
+                        console.log(
+                            event.created_at + " " +
+                            event.issue.number + " " +
+                            event.assignee.login + " " +
+                            event.issue.assignee.login + " " +
+                            event.issue.state + " " +
+                            (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
+                        );
+
                         if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
 
                             var assignee = event.issue.assignee.login;
