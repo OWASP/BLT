@@ -7,15 +7,7 @@ const run = async () => {
     const octokit = github.getOctokit(gitHubToken);
 
 
-    //GITHUB_REPOSITORY
-
-    console.log("starting");
-
-    //console.log(github);
-
-
     const { issue, comment } = github.context.payload;
-
 
     const [owner, repo] = repository.full_name.split('/');
 
