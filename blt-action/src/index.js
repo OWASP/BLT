@@ -52,46 +52,44 @@ const run = async () => {
 
 
 
-        await octokit.paginate(
-            octokit.issues.listEventsForRepo({
-                owner,
-                repo,
-            }).then(({ data }) => {
-                for (const event of data) {
-                    console.log(event.event);
-                    if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
+        await octokit.paginate(octokit.issues.listEventsForRepo, {
+            owner,
+            repo,
+        }).then(({ data }) => {
+            for (const event of data) {
+                console.log(event.event);
+                if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
 
-                        var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
+                    var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
-                        console.log(
-                            event.created_at + " " +
-                            event.issue.number + " " +
-                            event.assignee.login + " " +
-                            event.issue.assignee.login + " " +
-                            event.issue.state + " " +
-                            (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
-                        );
+                    console.log(
+                        event.created_at + " " +
+                        event.issue.number + " " +
+                        event.assignee.login + " " +
+                        event.issue.assignee.login + " " +
+                        event.issue.state + " " +
+                        (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
+                    );
 
-                        if (last_event.issue.number != event.issue.number) {
+                    if (last_event.issue.number != event.issue.number) {
 
-                            if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
+                        if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
 
-                                var assignee = event.issue.assignee.login;
-                                var issue_number = event.issue.number;
+                            var assignee = event.issue.assignee.login;
+                            var issue_number = event.issue.number;
 
-                                octokit.issues.removeAssignees({
-                                    owner,
-                                    repo,
-                                    issue_number,
-                                    assignee,
-                                })
-                            }
+                            octokit.issues.removeAssignees({
+                                owner,
+                                repo,
+                                issue_number,
+                                assignee,
+                            })
                         }
                     }
-                    last_event = event;
                 }
-            })
-        );
+                last_event = event;
+            }
+        });
 
 
 
