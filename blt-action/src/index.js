@@ -2,9 +2,11 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 
 const run = async () => {
+    console.log("starting");
     const gitHubToken = core.getInput('repo-token', { required: true });
     const repository = core.getInput('repository', { required: true });
     const octokit = github.getOctokit(gitHubToken);
+    console.log(repository);
 
     const { issue, comment } = github.context.payload;
 
