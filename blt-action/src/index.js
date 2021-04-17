@@ -6,6 +6,10 @@ const run = async () => {
     const octokit = github.getOctokit(gitHubToken);
 
     console.log("starting");
+    console.log(octokit);
+    console.log(github);
+
+    console.log(github.context);
     console.log(github.context.payload);
 
     const { repository, issue, comment } = github.context.payload;
