@@ -59,7 +59,7 @@ const run = async () => {
         }, response => response.data.filter(r => r.event == "assigned")
         ).then((data) => {
             for (const event of data) {
-                console.log(event.event);
+
                 if (event.issue.assignee && event.issue.state == "open") {
 
                     var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
@@ -74,8 +74,11 @@ const run = async () => {
                     );
 
                     if (last_event.issue.number != event.issue.number) {
+                        console.log('first event');
+
 
                         if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
+                            console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
 
                             var assignee = event.issue.assignee.login;
                             var issue_number = event.issue.number;
