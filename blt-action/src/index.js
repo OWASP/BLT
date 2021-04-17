@@ -56,7 +56,7 @@ const run = async () => {
             owner,
             repo,
             per_page: 100,
-        }, response => response.data.filter(r => r.event.event == "assigned")
+        }, response => response.data.filter(r => r.event == "assigned")
         ).then((data) => {
             for (const event of data) {
                 console.log(event.event);
