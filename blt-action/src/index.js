@@ -6,10 +6,9 @@ const run = async () => {
     const repository = core.getInput('repository', { required: true });
     const octokit = github.getOctokit(gitHubToken);
 
-
     const { issue, comment } = github.context.payload;
 
-    const [owner, repo] = repository.full_name.split('/');
+    const [owner, repo] = repository.split('/');
 
     if (issue) {
         console.log('processing issue');
