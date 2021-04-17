@@ -39,6 +39,7 @@ const run = async () => {
         await octokit.issues.listEventsForRepo({
             owner,
             repo,
+            per_page: 100,
         }).then(({ data }) => {
             for (const event of data) {
                 console.log(event.event);
