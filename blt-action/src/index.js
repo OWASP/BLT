@@ -36,11 +36,13 @@ const run = async () => {
         last_event.issue.number = "";
         var present_date = new Date();
 
-        await octokit.issues.listEventsForRepo({
+        options = await octokit.issues.listEventsForRepo({
             owner,
             repo,
             per_page: 100,
-        }).then(({ data }) => {
+        });
+
+        await octokit.paginate(options).then(({ data }) => {
             for (const event of data) {
                 console.log(event.event);
                 if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
@@ -79,6 +81,9 @@ const run = async () => {
                 last_event = event;
             }
         });
+
+
+
     }
 }
 
