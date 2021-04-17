@@ -4,6 +4,9 @@ inputs:
     repo-token:
         description: 'The GITHUB_TOKEN, needed to update the Issue'
         required: true
+    repository:
+        description: 'The GITHUB_REPOSITORY, needed to update the Issue'
+        required: true
 
 runs:
     using: 'node12'
