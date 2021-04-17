@@ -9,9 +9,9 @@ const run = async () => {
     console.log(github.context.payload);
 
     const { repository, issue, comment } = github.context.payload;
-    print(repository);
-    print(issue);
-    print(comment);
+    console.log(repository);
+    console.log(issue);
+    console.log(comment);
 
     const [owner, repo] = repository.full_name.split('/');
 
