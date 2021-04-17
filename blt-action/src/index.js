@@ -77,9 +77,6 @@ const run = async () => {
 
                         if (last_event.issue.number != event.issue.number) {
 
-
-
-
                             if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
 
                                 var assignee = event.issue.assignee.login;
@@ -94,13 +91,10 @@ const run = async () => {
                             }
                         }
                     }
-
                     last_event = event;
                 }
-            });
-
-
-
+            })
+        );
     }
 }
 
