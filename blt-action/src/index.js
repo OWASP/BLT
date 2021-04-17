@@ -9,7 +9,7 @@ const run = async () => {
 
     const { issue, comment } = github.context.payload;
 
-    const [owner, repo] = github.repository.full_name.split('/');
+    const [owner, repo] = github.repository.split('/');
 
     if (issue) {
         console.log('processing issue');
