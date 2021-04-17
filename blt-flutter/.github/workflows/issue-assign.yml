@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  slash_assign:
+  assign_issues:
     if: >
       (github.event_name == 'issue_comment' && (
       startsWith(github.event.comment.body, '/assign') || 
