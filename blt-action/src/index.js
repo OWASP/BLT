@@ -3,13 +3,13 @@ const github = require('@actions/github');
 
 const run = async () => {
     const gitHubToken = core.getInput('repo-token', { required: true });
-    const repository = core.getInput('repository', { required: true });
+    //const repository = core.getInput('repository', { required: true });
     const octokit = github.getOctokit(gitHubToken);
 
 
     const { issue, comment } = github.context.payload;
 
-    const [owner, repo] = repository.full_name.split('/');
+    const [owner, repo] = github.repository.full_name.split('/');
 
     if (issue) {
         console.log('processing issue');
