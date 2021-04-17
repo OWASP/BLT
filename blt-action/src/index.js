@@ -50,19 +50,20 @@ const run = async () => {
         //     response => response.data
         // )
 
+
+
         await octokit.paginate(
 
             octokit.issues.listEventsForRepo({
                 owner,
                 repo,
-                per_page: 100,
             },
-                response => response.data
+                response => response.data.filter(r => r.event.event == "assigned")
 
-            ).then(({ data }) => {
+            ).then((data) => {
                 for (const event of data) {
                     console.log(event.event);
-                    if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
+                    if (event.issue.assignee && event.issue.state == "open") {
 
                         var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
@@ -95,6 +96,57 @@ const run = async () => {
                 }
             })
         );
+
+
+
+        // await octokit.paginate(
+
+        //     octokit.issues.listEventsForRepo({
+        //         owner,
+        //         repo,
+        //         per_page: 100,
+        //     },
+        //         response => response.data
+
+        //     ).then(({ data }) => {
+        //         for (const event of data) {
+        //             console.log(event.event);
+        //             if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
+
+        //                 var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
+
+        //                 console.log(
+        //                     event.created_at + " " +
+        //                     event.issue.number + " " +
+        //                     event.assignee.login + " " +
+        //                     event.issue.assignee.login + " " +
+        //                     event.issue.state + " " +
+        //                     (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
+        //                 );
+
+        //                 if (last_event.issue.number != event.issue.number) {
+
+        //                     if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
+
+        //                         var assignee = event.issue.assignee.login;
+        //                         var issue_number = event.issue.number;
+
+        //                         octokit.issues.removeAssignees({
+        //                             owner,
+        //                             repo,
+        //                             issue_number,
+        //                             assignee,
+        //                         })
+        //                     }
+        //                 }
+        //             }
+        //             last_event = event;
+        //         }
+        //     })
+        // );
+
+
+
     }
 }
 
