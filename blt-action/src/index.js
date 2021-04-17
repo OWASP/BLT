@@ -5,19 +5,20 @@ const run = async () => {
     const gitHubToken = core.getInput('repo-token', { required: true });
     const octokit = github.getOctokit(gitHubToken);
 
-    console.log("starting");
-    console.log(octokit);
-    console.log(github);
+    // console.log("starting");
+    // console.log(octokit);
+    // console.log(github);
+    // console.log(github.event.repository.name)
 
-    console.log(github.context);
-    console.log(github.context.payload);
+    // console.log(github.context);
+    // console.log(github.context.payload);
 
     const { repository, issue, comment } = github.context.payload;
-    console.log(repository);
-    console.log(issue);
-    console.log(comment);
+    // console.log(repository);
+    // console.log(issue);
+    // console.log(comment);
 
-    const [owner, repo] = repository.full_name.split('/');
+    const [owner, repo] = github.event.repository.full_name.split('/');
 
     if (issue) {
         console.log('processing issue');
