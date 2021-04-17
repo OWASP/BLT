@@ -60,7 +60,7 @@ const run = async () => {
             },
                 response => response.data.filter(r => r.event.event == "assigned")
 
-            ).then((data) => {
+            ).then(({ data }) => {
                 for (const event of data) {
                     console.log(event.event);
                     if (event.issue.assignee && event.issue.state == "open") {
