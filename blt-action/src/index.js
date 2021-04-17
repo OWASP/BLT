@@ -55,10 +55,12 @@ const run = async () => {
         await octokit.paginate(octokit.issues.listEventsForRepo, {
             owner,
             repo,
-        }).then((data) => {
+            per_page: 100,
+        }, response => response.data.filter(r => r.event.event == "assigned")
+        ).then((data) => {
             for (const event of data) {
                 console.log(event.event);
-                if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
+                if (event.issue.assignee && event.issue.state == "open") {
 
                     var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
 
