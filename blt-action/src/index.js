@@ -55,7 +55,7 @@ const run = async () => {
         await octokit.paginate(octokit.issues.listEventsForRepo, {
             owner,
             repo,
-        }).then(({ data }) => {
+        }).then((data) => {
             for (const event of data) {
                 console.log(event.event);
                 if (event.event == "assigned" && event.issue.assignee && event.issue.state == "open") {
