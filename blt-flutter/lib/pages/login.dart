@@ -16,7 +16,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final formKey = new GlobalKey<FormState>();
 
-  late String _username, _password;
+  late String _username, _password, _email;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +27,13 @@ class _LoginState extends State<Login> {
       validator: (value) => value!.isEmpty ? "Please enter username" : null,
       onSaved: (value) => _username = value!,
       decoration: buildInputDecoration("Confirm username", Icons.person),
+    );
+
+    final emailField = TextFormField(
+      autofocus: false,
+      validator: (value) => value!.isEmpty ? "Please enter email" : null,
+      onSaved: (value) => _email = value!,
+      decoration: buildInputDecoration("Confirm email", Icons.email),
     );
 
     final passwordField = TextFormField(
@@ -69,17 +76,13 @@ class _LoginState extends State<Login> {
 
       if (form != null && form.validate()) {
         form.save();
-
         final Future<Map<String, dynamic>> successfulMessage =
-            auth.login(_username, _password);
+            auth.login(_username, _password, _email);
 
         successfulMessage.then((response) {
           if (response['status']) {
-            User user = User(
-              username: _username,
-              id: response['id'],
-              token: response['token'],
-            );
+            User user = response['user'];
+            print(response['user']);
             Provider.of<UserProvider>(context, listen: false).setUser(user);
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -118,6 +121,9 @@ class _LoginState extends State<Login> {
                 label("Username"),
                 SizedBox(height: 5.0),
                 usernameField,
+                label("Email"),
+                SizedBox(height: 5.0),
+                emailField,
                 label("Password"),
                 SizedBox(height: 5.0),
                 passwordField,
