@@ -4,7 +4,8 @@ class AppUrl {
   static const String localBaseURL = "http://127.0.0.1:4000/api/v1";
 
   static const String baseURL = liveBaseURL;
-  static const String login = liveURL + "/authenticate/";
-  static const String register = baseURL + "/registration";
+  static const String login = liveURL + "/auth/login/";
+  static const String register = liveURL + "/auth/registration/";
   static const String forgotPassword = baseURL + "/forgot-password";
+  static const String user = liveURL + "/auth/user/";
 }
