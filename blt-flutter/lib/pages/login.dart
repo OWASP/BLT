@@ -5,7 +5,9 @@ import '../providers/user_provider.dart';
 //import '../util/validators.dart';
 import '../util/widgets.dart';
 import 'package:provider/provider.dart';
-
+import 'package:bugheist/pages/login_signup/signup.dart';
+import 'package:bugheist/data/signup_model.dart';
+import 'package:bugheist/config/login_signup_structure.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
@@ -58,15 +60,11 @@ class _LoginState extends State<Login> {
         TextButton(
           child: Text("Forgot password?",
               style: TextStyle(fontWeight: FontWeight.w300)),
-          onPressed: () {
-//            Navigator.pushReplacementNamed(context, '/reset-password');
-          },
+          onPressed: () {},
         ),
         TextButton(
           child: Text("Sign up", style: TextStyle(fontWeight: FontWeight.w300)),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/register');
-          },
+          onPressed: () {},
         ),
       ],
     );

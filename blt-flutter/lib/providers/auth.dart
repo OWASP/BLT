@@ -108,9 +108,8 @@ class AuthProvider with ChangeNotifier {
     var result;
     final Map<String, dynamic> responseData = json.decode(response.body);
 
-    print(response.statusCode);
     if (response.statusCode == 200 || response.statusCode == 201) {
-      var accessToken = responseData['key'];
+      final accessToken = responseData['key'];
       Response responseUser = await post(
         Uri.parse(AppUrl.user),
         headers: {
@@ -128,7 +127,6 @@ class AuthProvider with ChangeNotifier {
         'data': authUser
       };
     } else {
-//      if (response.statusCode == 401) Get.toNamed("/login");
       result = {
         'status': false,
         'message': 'Registration failed',

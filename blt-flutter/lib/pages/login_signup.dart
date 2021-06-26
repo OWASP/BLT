@@ -2,6 +2,8 @@ import 'dart:async';
 
 //import 'package:bugheist/data/user.dart';
 import 'package:bugheist/pages/login.dart';
+import 'package:bugheist/data/user.dart';
+import 'package:bugheist/pages/home.dart';
 import 'package:bugheist/providers/auth.dart';
 import 'package:bugheist/providers/user_provider.dart';
 //import 'package:bugheist/util/shared_preferences.dart';
@@ -26,7 +28,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
   late StreamSubscription _intentDataStreamSubscription;
   late List<SharedMediaFile> _sharedFiles;
   //late String _sharedText;
-
+  final _messangerKey = GlobalKey<ScaffoldMessengerState>();
   @override
   void initState() {
     super.initState();
@@ -88,6 +90,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
+        scaffoldMessengerKey: _messangerKey,
         debugShowCheckedModeBanner: false,
         title: 'BugHeist',
         theme: ThemeData(
@@ -126,8 +129,7 @@ class _LoginSignUpState extends State<LoginSignUp> {
       LoginFreshTypeLoginModel(
         callFunction: (BuildContext _buildContext) {
           Navigator.of(_buildContext).push(MaterialPageRoute(
-            //builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
-            builder: (_buildContext) => Login(),
+            builder: (_buildContext) => widgetLoginFreshUserAndPassword(),
           ));
         },
         logo: TypeLogo.userPassword,
@@ -157,32 +159,14 @@ class _LoginSignUpState extends State<LoginSignUp> {
       callLogin: (
         BuildContext _context,
         Function isRequest,
-        String user,
-        String password,
       ) {
-        // final Future<Map<String, dynamic>> successfulMessage =
-        //     auth.login(user, password);
-
-        // successfulMessage.then((response) {
-        //   if (response['status']) {
-        //     User user = response['user'];
-        //     Provider.of<UserProvider>(context, listen: false).setUser(user);
-        //     Navigator.pushReplacementNamed(context, '/dashboard');
-        //   } else {
-        //     ScaffoldMessenger.of(context).showSnackBar(
-        //       SnackBar(
-        //         content: Text(response['message'][0]),
-        //       ),
-        //     );
-        //   }
-        // });
-
-        //////
-
         isRequest(true);
-        Future.delayed(Duration(seconds: 2), () {
-          isRequest(false);
-        });
+        Future.delayed(
+          Duration(seconds: 2),
+          () {
+            isRequest(false);
+          },
+        );
       },
       logo: 'assets/logo_white.png',
       loginFreshWords: LoginFreshWords(),
@@ -244,10 +228,14 @@ class _LoginSignUpState extends State<LoginSignUp> {
       widgetFooter: this.widgetFooter(),
       loginFreshWords: LoginFreshWords(),
       logo: 'assets/logo_white.png',
-      funSignUp:
-          (BuildContext _context, Function isRequest, SignUpModel signUpModel) {
+      funSignUp: (BuildContext _context, Function isRequest) {
         isRequest(true);
-        isRequest(false);
+        Future.delayed(
+          Duration(seconds: 2),
+          () {
+            isRequest(false);
+          },
+        );
       },
       textColor: Color(0xFF0F2E48),
       backgroundColor: Color(0xFFE7004C),

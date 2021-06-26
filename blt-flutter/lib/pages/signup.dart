@@ -21,13 +21,20 @@ class _RegisterState extends State<Register> {
     AuthProvider auth = Provider.of<AuthProvider>(context);
 
     // ignore: unused_local_variable
-    late String _username, _password, _confirmPassword;
+    late String _username, _password, _confirmPassword, _email;
+
+    final emailField = TextFormField(
+      autofocus: false,
+      validator: (value) => value!.isEmpty ? "Please enter email" : null,
+      onSaved: (value) => _email = value!,
+      decoration: buildInputDecoration("Confirm email", Icons.email),
+    );
 
     final usernameField = TextFormField(
       autofocus: false,
       validator: validateEmail,
       onSaved: (value) => _username = value!,
-      decoration: buildInputDecoration("Confirm password", Icons.email),
+      decoration: buildInputDecoration("Confirm username", Icons.person),
     );
 
     final passwordField = TextFormField(
@@ -35,7 +42,7 @@ class _RegisterState extends State<Register> {
       obscureText: true,
       validator: (value) => value!.isEmpty ? "Please enter password" : null,
       onSaved: (value) => _password = value!,
-      decoration: buildInputDecoration("Confirm password", Icons.lock),
+      decoration: buildInputDecoration("Comfirm password", Icons.lock),
     );
 
     final confirmPassword = TextFormField(
@@ -43,7 +50,7 @@ class _RegisterState extends State<Register> {
       validator: (value) => value!.isEmpty ? "Your password is required" : null,
       onSaved: (value) => _confirmPassword = value!,
       obscureText: true,
-      decoration: buildInputDecoration("Confirm password", Icons.lock),
+      decoration: buildInputDecoration("Re Confirm password", Icons.lock),
     );
 
     var loading = Row(
