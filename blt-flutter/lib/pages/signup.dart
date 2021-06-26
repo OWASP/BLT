@@ -22,14 +22,6 @@ class _RegisterState extends State<Register> {
 
     // ignore: unused_local_variable
     late String _username, _password, _confirmPassword, _email;
-
-    final emailField = TextFormField(
-      autofocus: false,
-      validator: (value) => value!.isEmpty ? "Please enter email" : null,
-      onSaved: (value) => _email = value!,
-      decoration: buildInputDecoration("Confirm email", Icons.email),
-    );
-
     final usernameField = TextFormField(
       autofocus: false,
       validator: validateEmail,

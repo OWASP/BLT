@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:bugheist/pages/login_signup/loading.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
-import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/signup_model.dart';
 import 'package:bugheist/util/validators.dart';
 import '../../config/login_signup_structure.dart';
