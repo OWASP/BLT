@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:bugheist/pages/login_signup/loading.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
+import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/signup_model.dart';
 import 'package:bugheist/util/validators.dart';
 import '../../config/login_signup_structure.dart';
@@ -10,9 +11,7 @@ import '../../pages/login_signup/loading.dart';
 import '../../util/validators.dart';
 import 'package:bugheist/providers/auth.dart';
 import 'package:provider/provider.dart';
-import 'package:bugheist/data/user.dart';
-import 'package:bugheist/pages/home.dart';
-import 'package:bugheist/providers/user_provider.dart';
+import 'package:bugheist/pages/login_signup.dart';
 
 class LoginFreshSignUp extends StatefulWidget {
   final Color backgroundColor;
@@ -303,14 +302,23 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                       final password = this._textEditingControllerPassword.text;
                       final repeatPassword =
                           this._textEditingControllerRepeatPassword.text;
-                      final FutureOr<dynamic> response =
+                      final Future<Map<String, dynamic>> successfulMessage =
                           auth.register(email, user, password, repeatPassword);
 
-                      if (response != null) {
-                        if (response['status']??) {
+                      successfulMessage.then((response) {
+                        if (response['status']) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "Successfully Registered! Please Login in to continue"),
+                            ),
+                          );
+                          LoginSignUpState _loginSignup =
+                              new LoginSignUpState();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_buildContext) => Home(),
+                              builder: (_buildContext) => _loginSignup
+                                  .widgetLoginFreshUserAndPassword(),
                             ),
                           );
                         } else {

@@ -1,12 +1,7 @@
 import 'dart:async';
 
-//import 'package:bugheist/data/user.dart';
-import 'package:bugheist/pages/login.dart';
-import 'package:bugheist/data/user.dart';
-import 'package:bugheist/pages/home.dart';
 import 'package:bugheist/providers/auth.dart';
 import 'package:bugheist/providers/user_provider.dart';
-//import 'package:bugheist/util/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
@@ -14,17 +9,16 @@ import 'package:bugheist/pages/login_signup/reset_password.dart';
 import 'package:bugheist/pages/login_signup/signup.dart';
 import 'package:bugheist/pages/login_signup/user_password.dart';
 import 'package:bugheist/data/login_model.dart';
-import 'package:bugheist/data/signup_model.dart';
 import 'package:provider/provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../providers/auth.dart';
 
 class LoginSignUp extends StatefulWidget {
   @override
-  _LoginSignUpState createState() => _LoginSignUpState();
+  LoginSignUpState createState() => LoginSignUpState();
 }
 
-class _LoginSignUpState extends State<LoginSignUp> {
+class LoginSignUpState extends State<LoginSignUp> {
   late StreamSubscription _intentDataStreamSubscription;
   late List<SharedMediaFile> _sharedFiles;
   //late String _sharedText;
@@ -32,7 +26,6 @@ class _LoginSignUpState extends State<LoginSignUp> {
   @override
   void initState() {
     super.initState();
-
     // For sharing images coming from outside the app while the app is in the memory
     _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> value) {
