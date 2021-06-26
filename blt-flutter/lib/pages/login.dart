@@ -5,9 +5,6 @@ import '../providers/user_provider.dart';
 //import '../util/validators.dart';
 import '../util/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:bugheist/pages/login_signup/signup.dart';
-import 'package:bugheist/data/signup_model.dart';
-import 'package:bugheist/config/login_signup_structure.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
