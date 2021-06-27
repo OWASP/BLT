@@ -155,7 +155,7 @@ class LoginSignUpState extends State<LoginSignUp> {
       ) {
         isRequest(true);
         Future.delayed(
-          Duration(seconds: 2),
+          Duration(seconds: 4),
           () {
             isRequest(false);
           },
@@ -224,7 +224,7 @@ class LoginSignUpState extends State<LoginSignUp> {
       funSignUp: (BuildContext _context, Function isRequest) {
         isRequest(true);
         Future.delayed(
-          Duration(seconds: 2),
+          Duration(seconds: 4),
           () {
             isRequest(false);
           },

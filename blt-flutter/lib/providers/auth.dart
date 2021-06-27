@@ -111,7 +111,9 @@ class AuthProvider with ChangeNotifier {
     } else {
       result = {
         'status': false,
-        'message': json.decode(response.body)['non_field_errors'],
+        'message': "There is some problem with Registration!!",
+        'username': json.decode(response.body)['username'],
+        'email': json.decode(response.body)['email'],
       };
     }
     return result;
