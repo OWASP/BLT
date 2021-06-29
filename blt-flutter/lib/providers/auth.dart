@@ -25,12 +25,14 @@ class AuthProvider with ChangeNotifier {
   Status get loggedInStatus => _loggedInStatus;
   Status get registeredInStatus => _registeredInStatus;
 
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  Future<Map<String, dynamic>> login(
+      String username, String password, String email) async {
     var result;
 
     final Map<String, dynamic> loginData = {
       'username': username,
-      'password': password
+      'password': password,
+      'email': email,
     };
 
     _loggedInStatus = Status.Authenticating;
@@ -42,17 +44,20 @@ class AuthProvider with ChangeNotifier {
       headers: {'Content-Type': 'application/json'},
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-
-      User authUser = User(
-        username: username,
-        id: responseData['id'],
-        token: responseData['token'],
+      var accessToken = responseData['key'];
+      Response responseUser = await post(
+        Uri.parse(AppUrl.user),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token ' + accessToken,
+        },
       );
+      final Map<String, dynamic> userData = json.decode(responseUser.body);
+      User authUser = User.fromJson(userData, accessToken);
 
       UserPreferences().saveUser(authUser);
-
       _loggedInStatus = Status.LoggedIn;
       notifyListeners();
 
@@ -68,17 +73,29 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
+  Future<Map<String, dynamic>> user(String key) async {
+    Response response = await post(
+      Uri.parse(AppUrl.user),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Token ' + key,
+      },
+    );
+    final Map<String, dynamic> userData = json.decode(response.body);
+    return userData;
+  }
+
   FutureOr<dynamic> register(
     String email,
+    String username,
     String password,
     String passwordConfirmation,
   ) async {
     final Map<String, dynamic> registrationData = {
-      'user': {
-        'email': email,
-        'password': password,
-        'password_confirmation': passwordConfirmation
-      }
+      'email': email,
+      'username': username,
+      'password1': password,
+      'password2': passwordConfirmation
     };
     return await post(Uri.parse(AppUrl.register),
             body: json.encode(registrationData),
@@ -92,10 +109,17 @@ class AuthProvider with ChangeNotifier {
     final Map<String, dynamic> responseData = json.decode(response.body);
 
     print(response.statusCode);
-    if (response.statusCode == 200) {
-      var userData = responseData['data'];
-
-      User authUser = User.fromJson(userData);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      var accessToken = responseData['key'];
+      Response responseUser = await post(
+        Uri.parse(AppUrl.user),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token ' + accessToken,
+        },
+      );
+      final Map<String, dynamic> userData = json.decode(responseUser.body);
+      User authUser = User.fromJson(userData, accessToken);
 
       UserPreferences().saveUser(authUser);
       result = {
