@@ -10,7 +10,7 @@ class LoginFreshWords {
   String hintSignUpRepeatPassword;
   String hintName;
   String hintSurname;
-
+  String hintLoginEmail;
   String recoverPassword;
 
   String messageRecoverPassword;
@@ -24,7 +24,8 @@ class LoginFreshWords {
       this.recoverPassword = 'Recover Password',
       this.messageRecoverPassword =
           'To recover the password, enter the email and press send email, you will receive an email so you can update your password. Only available for accounts created by username and password',
-      this.hintLoginUser = 'Username or email',
+      this.hintLoginUser = 'Username',
+      this.hintLoginEmail = 'Email',
       this.login = 'Login',
       this.exploreApp = 'Explore Anonymously',
       this.notAccount = 'Need to create an account?',

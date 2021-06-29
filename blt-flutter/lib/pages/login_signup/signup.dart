@@ -1,7 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:bugheist/pages/login_signup/loading.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/data/signup_model.dart';
+import 'package:bugheist/util/validators.dart';
+import '../../config/login_signup_structure.dart';
+import '../../pages/login_signup/loading.dart';
+import '../../util/validators.dart';
+import 'package:bugheist/providers/auth.dart';
+import 'package:provider/provider.dart';
+import 'package:bugheist/pages/login_signup.dart';
 
 class LoginFreshSignUp extends StatefulWidget {
   final Color backgroundColor;
@@ -33,16 +42,23 @@ class LoginFreshSignUp extends StatefulWidget {
 
 class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
   SignUpModel signUpModel = SignUpModel();
+  final GlobalKey<FormState> formKey = new GlobalKey<FormState>();
 
   bool isRequest = false;
 
   bool isNoVisiblePassword = true;
 
   LoginFreshWords loginFreshWords = LoginFreshWords();
-
+  TextEditingController _textEditingControllerPassword =
+      TextEditingController();
+  TextEditingController _textEditingControllerRepeatPassword =
+      TextEditingController();
+  TextEditingController _textEditingControllerEmail = TextEditingController();
+  TextEditingController _textEditingControllerUser = TextEditingController();
   @override
   Widget build(BuildContext context) {
     loginFreshWords = LoginFreshWords();
+    AuthProvider auth = Provider.of<AuthProvider>(context);
     return Scaffold(
       appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
@@ -99,7 +115,7 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                     topLeft: const Radius.circular(50.0),
                     topRight: const Radius.circular(50.0),
                   )),
-              child: buildBody(),
+              child: buildBody(auth),
             ),
           ),
         ],
@@ -107,8 +123,20 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
     );
   }
 
-  Widget buildBody() {
-    return Column(
+  Widget buildBody(AuthProvider auth) {
+    String? validateRepeatPassword(String? value1) {
+      final value2 = _textEditingControllerPassword.text;
+      if (value1 == null || value1.isEmpty) {
+        return "Your Confirmation Password is required";
+      } else if (value1 != value2) {
+        return "Password Mismatch!\nConfirmation Password should match the above Password";
+      }
+      return null;
+    }
+
+    return Form(
+      key: formKey,
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
@@ -122,11 +150,11 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                   Padding(
                     padding: const EdgeInsets.only(
                         bottom: 5, left: 20, right: 20, top: 20),
-                    child: TextField(
+                    child: TextFormField(
+                        controller: this._textEditingControllerUser,
                         onChanged: (String value) {
-                          this.signUpModel.email = value;
+                          this.signUpModel.username = value;
                         },
-                        keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: widget.textColor, fontSize: 14),
                         autofocus: false,
                         decoration: InputDecoration(
@@ -148,65 +176,41 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                             hintText: this.loginFreshWords.hintLoginUser)),
                   ),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    child: TextField(
-                        onChanged: (String value) {
-                          this.signUpModel.name = value;
-                        },
-                        keyboardType: TextInputType.text,
-                        style: TextStyle(color: widget.textColor, fontSize: 14),
-                        autofocus: false,
-                        decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            filled: true,
-                            fillColor: Color(0xFFF3F3F5),
-                            focusColor: Color(0xFFF3F3F5),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: widget.backgroundColor)),
-                            hintText: this.loginFreshWords.hintName)),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    child: TextField(
-                        onChanged: (String value) {
-                          this.signUpModel.surname = value;
-                        },
-                        keyboardType: TextInputType.text,
-                        style: TextStyle(color: widget.textColor, fontSize: 14),
-                        autofocus: false,
-                        decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            filled: true,
-                            fillColor: Color(0xFFF3F3F5),
-                            focusColor: Color(0xFFF3F3F5),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: widget.backgroundColor)),
-                            hintText: this.loginFreshWords.hintSurname)),
+                    padding: const EdgeInsets.only(
+                        bottom: 5, left: 20, right: 20, top: 20),
+                    child: TextFormField(
+                      validator: validateEmail,
+                      controller: this._textEditingControllerEmail,
+                      onChanged: (String value) {
+                        this.signUpModel.email = value;
+                      },
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: widget.textColor, fontSize: 14),
+                      autofocus: false,
+                      decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(color: Color(0xFFAAB5C3))),
+                          filled: true,
+                          fillColor: Color(0xFFF3F3F5),
+                          focusColor: Color(0xFFF3F3F5),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(color: Color(0xFFAAB5C3))),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide:
+                                BorderSide(color: widget.backgroundColor),
+                          ),
+                          hintText: this.loginFreshWords.hintLoginEmail),
+                    ),
                   ),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
-                    child: TextField(
+                    child: TextFormField(
+                        controller: this._textEditingControllerPassword,
+                        validator: validatePassword,
                         onChanged: (String value) {
                           this.signUpModel.password = value;
                         },
@@ -259,30 +263,35 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
-                    child: TextField(
-                        onChanged: (String value) {
-                          this.signUpModel.repeatPassword = value;
-                        },
-                        obscureText: this.isNoVisiblePassword,
-                        style: TextStyle(color: widget.textColor, fontSize: 14),
-                        decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            filled: true,
-                            fillColor: Color(0xFFF3F3F5),
-                            focusColor: Color(0xFFF3F3F5),
-                            focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Color(0xFFAAB5C3))),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: widget.backgroundColor)),
-                            hintText:
-                                this.loginFreshWords.hintSignUpRepeatPassword)),
+                    child: TextFormField(
+                      controller: this._textEditingControllerRepeatPassword,
+                      validator: validateRepeatPassword,
+                      onChanged: (String value) {
+                        this.signUpModel.repeatPassword = value;
+                      },
+                      obscureText: this.isNoVisiblePassword,
+                      style: TextStyle(color: widget.textColor, fontSize: 14),
+                      decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(color: Color(0xFFAAB5C3))),
+                          filled: true,
+                          fillColor: Color(0xFFF3F3F5),
+                          focusColor: Color(0xFFF3F3F5),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(
+                              color: Color(0xFFAAB5C3),
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide:
+                                BorderSide(color: widget.backgroundColor),
+                          ),
+                          hintText:
+                              this.loginFreshWords.hintSignUpRepeatPassword),
+                    ),
                   )
                 ],
               ),
@@ -300,8 +309,78 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                 )
               : GestureDetector(
                   onTap: () {
-                    widget.funSignUp(
-                        context, this.setIsRequest, this.signUpModel);
+                    var form = formKey.currentState;
+                    if (form != null && form.validate()) {
+                      final user = this._textEditingControllerUser.text;
+                      final email = this._textEditingControllerEmail.text;
+                      final password = this._textEditingControllerPassword.text;
+                      final repeatPassword =
+                          this._textEditingControllerRepeatPassword.text;
+                      final Future<Map<String, dynamic>> successfulMessage =
+                          auth.register(email, user, password, repeatPassword);
+
+                      successfulMessage.then((response) {
+                        if (response['status']) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "Successfully Registered! Please Login in to continue"),
+                            ),
+                          );
+                          LoginSignUpState _loginSignup =
+                              new LoginSignUpState();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_buildContext) => _loginSignup
+                                  .widgetLoginFreshUserAndPassword(),
+                            ),
+                          );
+                        } else {
+                          if (response['username'] != null &&
+                              response['email'] != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  response['message'] +
+                                      '\n' +
+                                      'A user with that username and email already exists.',
+                                ),
+                              ),
+                            );
+                          } else if (response['username'] != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  response['message'] +
+                                      '\n' +
+                                      response['username'][0],
+                                ),
+                              ),
+                            );
+                          } else if (response['email'] != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  response['message'] +
+                                      '\n' +
+                                      response['email'][0],
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      });
+                      widget.funSignUp(
+                        context,
+                        setIsRequest,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Invalid Form"),
+                        ),
+                      );
+                    }
                   },
                   child: SizedBox(
                       height: MediaQuery.of(context).size.height * 0.07,
@@ -325,7 +404,9 @@ class _LoginFreshSignUpState extends State<LoginFreshSignUp> {
                           ))),
                 ),
           widget.isFooter == false ? SizedBox() : widget.widgetFooter
-        ]);
+        ],
+      ),
+    );
   }
 
   void setIsRequest(bool isRequest) {
