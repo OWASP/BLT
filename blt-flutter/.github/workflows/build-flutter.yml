@@ -1,5 +1,5 @@
 name:  Build and Test Flutter App
-on: [push,pull_request]
+on: [push]
 
 jobs:
 
