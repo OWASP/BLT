@@ -12,7 +12,7 @@ import Photos
 
 class ShareViewController: SLComposeServiceViewController {
     // This should be your host app bundle identifier
-    let hostAppBundleIdentifier = "com.example.flutterBugheist"
+    let hostAppBundleIdentifier = "com.apps.bugheist"
     let sharedKey = "ShareKey"
     var sharedMedia: [SharedMediaFile] = []
     var sharedText: [String] = []
