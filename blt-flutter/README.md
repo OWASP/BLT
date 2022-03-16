@@ -3,7 +3,7 @@
 Bugheist Mobile App
 
  
-Bitrise Build Status: ![bitrise](https://app.bitrise.io/app/213ecdbc0500c713.svg?token=aYXrqOS_REpDEVIp2sjfAQ)
+Codemagic Build Status: ![codemagic](https://api.codemagic.io/apps/62313f4cc7f7cf30b70c778b/62313f4cc7f7cf30b70c778a/status_badge.svg)
 
 Download the Artifacts at Bitrise - https://app.bitrise.io/app/213ecdbc0500c713#/builds
 
