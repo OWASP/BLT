@@ -1,0 +1,57 @@
+.button-pencil {
+    background-image: -webkit-image-set( url(toolbar_res/draw_pencil.png) 1x, url(toolbar_res/draw_pencil@2x.png) 2x);
+}
+.button-pencil:hover, .button-pencil.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_pencil_hover.png) 1x, url(toolbar_res/draw_pencil_hover@2x.png) 2x);
+}
+
+.button-line {
+    background-image: -webkit-image-set( url(toolbar_res/draw_line.png) 1x, url(toolbar_res/draw_line@2x.png) 2x);
+}
+.button-line:hover, .button-line.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_line_hover.png) 1x, url(toolbar_res/draw_line_hover@2x.png) 2x);
+}
+
+.button-arrow {
+    background-image: -webkit-image-set( url(toolbar_res/draw_arrow.png) 1x, url(toolbar_res/draw_arrow@2x.png) 2x);
+}
+.button-arrow:hover, .button-arrow.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_arrow_hover.png) 1x, url(toolbar_res/draw_arrow_hover@2x.png) 2x);
+}
+
+.button-rectangle {
+    background-image: -webkit-image-set( url(toolbar_res/draw_rectangle.png) 1x, url(toolbar_res/draw_rectangle@2x.png) 2x);
+}
+.button-rectangle:hover, .button-rectangle.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_rectangle_hover.png) 1x, url(toolbar_res/draw_rectangle_hover@2x.png) 2x);
+}
+
+.button-marker {
+    background-image: -webkit-image-set( url(toolbar_res/draw_marker.png) 1x, url(toolbar_res/draw_marker@2x.png) 2x);
+}
+.button-marker:hover, .button-marker.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_marker_hover.png) 1x, url(toolbar_res/draw_marker_hover@2x.png) 2x);
+}
+
+.button-text {
+    background-image: -webkit-image-set( url(toolbar_res/draw_text.png) 1x, url(toolbar_res/draw_text@2x.png) 2x);
+}
+.button-text:hover, .button-text.active {
+    background-image: -webkit-image-set( url(toolbar_res/draw_text_hover.png) 1x, url(toolbar_res/draw_text_hover@2x.png) 2x);
+}
+
+/*
+.button-color {
+    background-image: -webkit-image-set( url(toolbar_res/draw_color.png) 1x, url(toolbar_res/draw_color@2x.png) 2x);
+}
+.button-color:hover {
+    background-image: -webkit-image-set( url(toolbar_res/draw_color_hover.png) 1x, url(toolbar_res/draw_color_hover@2x.png) 2x);
+}
+*/
+
+.button-undo {
+    background-image: -webkit-image-set( url(toolbar_res/draw_undo.png) 1x, url(toolbar_res/draw_undo@2x.png) 2x);
+}
+.button-undo:hover {
+    background-image: -webkit-image-set( url(toolbar_res/draw_undo_hover.png) 1x, url(toolbar_res/draw_undo_hover@2x.png) 2x);
+}

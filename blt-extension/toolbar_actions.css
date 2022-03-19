@@ -1,0 +1,48 @@
+.button-upload {
+    background-image: -webkit-image-set( url(toolbar_res/hor_upload.png) 1x, url(toolbar_res/hor_upload@2x.png) 2x);
+}
+.button-upload:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_upload_hover.png) 1x, url(toolbar_res/hor_upload_hover@2x.png) 2x);
+}
+
+.button-share {
+    background-image: -webkit-image-set( url(toolbar_res/hor_share.png) 1x, url(toolbar_res/hor_share@2x.png) 2x);
+}
+.button-share:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_share_hover.png) 1x, url(toolbar_res/hor_share_hover@2x.png) 2x);
+}
+
+.button-search-google {
+    background-image: -webkit-image-set( url(toolbar_res/hor_search.png) 1x, url(toolbar_res/hor_search@2x.png) 2x);
+}
+.button-search-google:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_search_hover.png) 1x, url(toolbar_res/hor_search_hover@2x.png) 2x);
+}
+
+.button-print {
+    background-image: -webkit-image-set( url(toolbar_res/hor_print.png) 1x, url(toolbar_res/hor_print@2x.png) 2x);
+}
+.button-print:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_print_hover.png) 1x, url(toolbar_res/hor_print_hover@2x.png) 2x);
+}
+
+.button-copy {
+    background-image: -webkit-image-set( url(toolbar_res/hor_copy.png) 1x, url(toolbar_res/hor_copy@2x.png) 2x);
+}
+.button-copy:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_copy_hover.png) 1x, url(toolbar_res/hor_copy_hover@2x.png) 2x);
+}
+
+.button-save {
+    background-image: -webkit-image-set( url(toolbar_res/hor_save.png) 1x, url(toolbar_res/hor_save@2x.png) 2x);
+}
+.button-save:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_save_hover.png) 1x, url(toolbar_res/hor_save_hover@2x.png) 2x);
+}
+
+.button-close {
+    background-image: -webkit-image-set( url(toolbar_res/hor_close.png) 1x, url(toolbar_res/hor_close@2x.png) 2x);
+}
+.button-close:hover {
+    background-image: -webkit-image-set( url(toolbar_res/hor_close_hover.png) 1x, url(toolbar_res/hor_close_hover@2x.png) 2x);
+}

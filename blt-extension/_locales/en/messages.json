@@ -1,0 +1,332 @@
+{
+   "screenshot_app_about": {
+      "message": "About"
+   },
+   "screenshot_app_copyright": {
+      "message": "%company% All rights reserved."
+   },
+   "screenshot_app_exit": {
+      "message": "Exit"
+   },
+   "screenshot_app_help": {
+      "message": "Help"
+   },
+   "screenshot_app_hotkey_failtoregister1": {
+      "message": "Failed to register a hotkey:"
+   },
+   "screenshot_app_hotkey_failtoregister2": {
+      "message": "Likely another application is already using it. Click on this message to open the options dialog box."
+   },
+   "screenshot_app_language_code": {
+      "message": "EN"
+   },
+   "screenshot_app_language_name": {
+      "message": "English"
+   },
+   "screenshot_app_language_name_eng": {
+      "message": "English"
+   },
+   "screenshot_app_menu_gallery": {
+      "message": "My gallery (%username%)"
+   },
+   "screenshot_app_menu_sign_in": {
+      "message": "Sign In..."
+   },
+   "screenshot_app_menu_sign_out": {
+      "message": "Sign Out"
+   },
+   "screenshot_app_options": {
+      "message": "Options"
+   },
+   "screenshot_app_options_autoclose": {
+      "message": "Automatically close the upload window"
+   },
+   "screenshot_app_options_autocopy": {
+      "message": "Automatically copy a link after uploading"
+   },
+   "screenshot_app_options_capturecursor": {
+      "message": "Capture a cursor on a screenshot"
+   },
+   "screenshot_app_options_configure_system_proxy": {
+      "message": "Configure"
+   },
+   "screenshot_app_options_current_system_proxy": {
+      "message": "System proxy"
+   },
+   "screenshot_app_options_error_hotkeyequal": {
+      "message": "You can not set the same hotkeys for different functions. Please change one of the hotkeys."
+   },
+   "screenshot_app_options_error_hotkeyinvalid": {
+      "message": "One of your hotkeys is invalid. If you want to disable that hotkey, please uncheck a corresponding checkbox."
+   },
+   "screenshot_app_options_formats": {
+      "message": "Formats"
+   },
+   "screenshot_app_options_general": {
+      "message": "General"
+   },
+   "screenshot_app_options_hotkeygeneral": {
+      "message": "General hotkey"
+   },
+   "screenshot_app_options_hotkeys": {
+      "message": "Hotkeys"
+   },
+   "screenshot_app_options_hotkeysavefullscreen": {
+      "message": "Instant save of the fullscreen"
+   },
+   "screenshot_app_options_hotkeyuploadfullscreen": {
+      "message": "Instant upload of the fullscreen"
+   },
+   "screenshot_app_options_httpsproxy": {
+      "message": "HTTP(S) proxy"
+   },
+   "screenshot_app_options_jpegquality": {
+      "message": "JPEG quality"
+   },
+   "screenshot_app_options_keepselection": {
+      "message": "Keep the selected area position"
+   },
+   "screenshot_app_options_language": {
+      "message": "Language"
+   },
+   "screenshot_app_options_manualproxy": {
+      "message": "Manual proxy configuration"
+   },
+   "screenshot_app_options_noproxy": {
+      "message": "No proxy"
+   },
+   "screenshot_app_options_optimize_always": {
+      "message": "Always"
+   },
+   "screenshot_app_options_optimize_never": {
+      "message": "Never"
+   },
+   "screenshot_app_options_optimize_screenshots": {
+      "message": "Optimize screenshots (OptiPNG)"
+   },
+   "screenshot_app_options_optimize_uploadonly": {
+      "message": "Only when uploading"
+   },
+   "screenshot_app_options_proxy": {
+      "message": "Proxy"
+   },
+   "screenshot_app_options_proxyport": {
+      "message": "Port"
+   },
+   "screenshot_app_options_showbubbles": {
+      "message": "Show notifications about copying and saving"
+   },
+   "screenshot_app_options_system_proxy_not_set": {
+      "message": "Not set (direct connection)"
+   },
+   "screenshot_app_options_systemproxy": {
+      "message": "Use the system proxy settings"
+   },
+   "screenshot_app_options_uploadformat": {
+      "message": "Upload using the format"
+   },
+   "screenshot_app_signed_in_as": {
+      "message": "Signed in as"
+   },
+   "screenshot_app_signin_dialog_caption": {
+      "message": "Sign In"
+   },
+   "screenshot_app_signin_error_caption": {
+      "message": "Bugheist sign in error"
+   },
+   "screenshot_app_signin_error_text": {
+      "message": "Bugheist: An error occurred while signing in. Please retry."
+   },
+   "screenshot_app_take_screenshot": {
+      "message": "Report a Bug"
+   },
+   "screenshot_app_terms": {
+      "message": "Bugheist Terms of Service"
+   },
+   "screenshot_app_tray_tooltip": {
+      "message": "Press the \"%hotkey_main%\" on your keyboard to take a screenshot"
+   },
+   "screenshot_plugin_announce_do_not_show": {
+      "message": "Do not show this message again"
+   },
+   "screenshot_plugin_cancel": {
+      "message": "Cancel"
+   },
+   "screenshot_plugin_chrome_38_retina_bug": {
+      "message": "Google Chrome bug... "
+   },
+   "screenshot_plugin_chrome_bug_copy": {
+      "message": "Google Chrome bug..."
+   },
+   "screenshot_plugin_clear": {
+      "message": "Clear selection"
+   },
+   "screenshot_plugin_close": {
+      "message": "Close"
+   },
+   "screenshot_plugin_copy": {
+      "message": "Copy"
+   },
+   "screenshot_plugin_ctypes_error": {
+      "message": "Firefox bug... "
+   },
+   "screenshot_plugin_edit_arrow": {
+      "message": "Arrow"
+   },
+   "screenshot_plugin_edit_blur": {
+      "message": "Blur"
+   },
+   "screenshot_plugin_edit_circle": {
+      "message": "Circle"
+   },
+   "screenshot_plugin_edit_color": {
+      "message": "Color"
+   },
+   "screenshot_plugin_edit_line": {
+      "message": "Line"
+   },
+   "screenshot_plugin_edit_marker": {
+      "message": "Marker"
+   },
+   "screenshot_plugin_edit_pencil": {
+      "message": "Pen"
+   },
+   "screenshot_plugin_edit_rect": {
+      "message": "Rectangle"
+   },
+   "screenshot_plugin_edit_text": {
+      "message": "Text"
+   },
+   "screenshot_plugin_edit_undo": {
+      "message": "Undo"
+   },
+   "screenshot_plugin_editonline": {
+      "message": "Edit a screenshot online"
+   },
+   "screenshot_plugin_error_capt": {
+      "message": "Error"
+   },
+   "screenshot_plugin_fullscreen": {
+      "message": "Select full screen"
+   },
+   "screenshot_plugin_go_to_mac_store": {
+      "message": "Only on Windows computers."
+   },
+   "screenshot_plugin_image_hosting_incorrect_response": {
+      "message": "Incorrect JSON structure in response from the image hosting server"
+   },
+   "screenshot_plugin_incorrect_size": {
+      "message": "Wrong size"
+   },
+   "screenshot_plugin_npapi_deprecated_message": {
+      "message": "Old version"
+   },
+   "screenshot_plugin_npapi_not_found": {
+      "message": "NPAPI plugin is not found. Try to reload your browser. "
+   },
+   "screenshot_plugin_open": {
+      "message": "Open"
+   },
+   "screenshot_plugin_optimize_dialog_capt": {
+      "message": "Optimizing a screenshot"
+   },
+   "screenshot_plugin_other_os": {
+      "message": " only on Windows "
+   },
+   "screenshot_plugin_print": {
+      "message": "Print"
+   },
+   "screenshot_plugin_retry": {
+      "message": "Retry"
+   },
+   "screenshot_plugin_save": {
+      "message": "Save"
+   },
+   "screenshot_plugin_screenshot_copied_to_clipboard": {
+      "message": "Your screenshot is copied to clipboard"
+   },
+   "screenshot_plugin_screenshot_error_reload_browser": {
+      "message": "Error: unable to take a screenshot. Try to reload your browser."
+   },
+   "screenshot_plugin_screenshot_saved": {
+      "message": "Screenshot is saved to %filename%. Click here to open in the folder."
+   },
+   "screenshot_plugin_screenshot_uploaded_link_copied": {
+      "message": "Screenshot is uploaded. Link is copied to your clipboard."
+   },
+   "screenshot_plugin_share": {
+      "message": "Share on social networks"
+   },
+   "screenshot_plugin_share_facebook": {
+      "message": "Share on Facebook"
+   },
+   "screenshot_plugin_share_googlesearch": {
+      "message": "Search similar images on Google"
+   },
+   "screenshot_plugin_share_pinterest": {
+      "message": "Share on Pinterest"
+   },
+   "screenshot_plugin_share_sendmail": {
+      "message": "Send via email"
+   },
+   "screenshot_plugin_share_tineyesearch": {
+      "message": "Search similar images on Tineye"
+   },
+   "screenshot_plugin_share_twitter": {
+      "message": "Share on Twitter"
+   },
+   "screenshot_plugin_share_vk": {
+      "message": "Share on VK"
+   },
+   "screenshot_plugin_tooltip": {
+      "message": "Select area"
+   },
+   "screenshot_plugin_upl_fail_cancel_uploading_screenshot": {
+      "message": "Cancel - cancel uploading a screenshot"
+   },
+   "screenshot_plugin_upl_fail_check_proxy_settings": {
+      "message": "Please make sure the configuration is correct and the proxy does not block Bugheist requests."
+   },
+   "screenshot_plugin_upl_fail_continue_open_lightshot_proxy": {
+      "message": "Continue - open the Bugheist proxy configuration"
+   },
+   "screenshot_plugin_upl_fail_continue_open_system_proxy": {
+      "message": "Continue - open the system proxy configuration"
+   },
+   "screenshot_plugin_upl_fail_lightshot_uses_proxy": {
+      "message": "Currently Bugheist is configured to use this proxy: %proxy%"
+   },
+   "screenshot_plugin_upl_fail_lightshot_uses_system_proxy": {
+      "message": "Bugheist uses the current system proxy settings: %proxy%"
+   },
+   "screenshot_plugin_upl_fail_try_again_with_current_settings": {
+      "message": "Try Again - retry using the current settings"
+   },
+   "screenshot_plugin_upload": {
+      "message": "Upload to Bugheist"
+   },
+   "screenshot_plugin_upload_error_capt": {
+      "message": "Upload error"
+   },
+   "screenshot_plugin_upload_error_detailed_info": {
+      "message": "Detailed information"
+   },
+   "screenshot_plugin_upload_failed": {
+      "message": "Uploading failed."
+   },
+   "screenshot_plugin_upload_failed_retry": {
+      "message": "Upload failed. Please login and retry."
+   },
+   "screenshot_plugin_uploading_window_capt": {
+      "message": "Uploading image"
+   },
+   "screenshotplugin_default_title": {
+      "message": "Take a Screenshot"
+   },
+   "screenshotplugin_name": {
+      "message": "Bugheist"
+   },
+   "screenshotplugin_short_description": {
+      "message": "Simple and convenient screenshot tool. Select an area, edit your screenshot and upload it to the server."
+   }
+}

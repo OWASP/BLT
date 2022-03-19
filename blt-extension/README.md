@@ -1,1 +1,1 @@
-# chrome-extension
+# extension
