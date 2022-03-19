@@ -227,7 +227,6 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                     child: TextFormField(
                         focusNode: focus,
                         controller: this._textEditingControllerPassword,
-                        validator: validatePassword,
                         obscureText: this.isNoVisiblePassword,
                         style: TextStyle(color: widget.textColor, fontSize: 14),
                         decoration: InputDecoration(
