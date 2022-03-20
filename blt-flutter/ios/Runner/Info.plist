@@ -55,5 +55,11 @@
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>To upload photos, please allow permission to access your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>To upload photos, please allow permission to access your photo library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>To upload photos, please allow permission to access your photo library.</string>
+
+
 </dict>
 </plist>

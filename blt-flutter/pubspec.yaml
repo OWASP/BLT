@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_launcher_icons: ^0.9.0
   http: ^0.13.1
   image_picker: ^0.7.4
   provider: ^5.0.0
@@ -18,6 +17,7 @@ dependencies:
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.9.0
   flutter_test:
     sdk: flutter
 
@@ -31,3 +31,4 @@ flutter_icons:
   android: "ic_launcher"
   ios: true
   image_path: "assets/logo.png"
+  remove_alpha_ios: true
