@@ -7,4 +7,8 @@
         <string>applinks:bugheist.com</string>
     </array>
 </dict>
+<dict>
+    <key>aps-environment</key>
+    <string>development</string>
+</dict>
 </plist>
