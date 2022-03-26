@@ -112,7 +112,7 @@ class GetClipper extends CustomClipper<Path> {
     path.close();
     return path;
   }
-
+ 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) {
     return true;
