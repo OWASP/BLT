@@ -2,8 +2,11 @@ import 'package:bugheist/pages/feed.dart';
 import 'package:bugheist/pages/issues.dart';
 import 'package:bugheist/pages/leaderboard.dart';
 import 'package:bugheist/pages/login_signup.dart';
+import 'package:bugheist/pages/profile.dart';
 import 'package:bugheist/pages/report_bug.dart';
 import 'package:flutter/material.dart';
+
+import 'components/appbar.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -27,34 +30,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Image.asset(
-          'assets/bugheist_logo.png',
-          fit: BoxFit.cover,
-          height: 30,
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.search,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              // do something
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.portrait_rounded,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              // do something
-            },
-          )
-        ],
-      ),
+      appBar: buildAppBar(),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
         // through the options in the drawer if there isn't enough vertical
@@ -64,6 +40,14 @@ class _HomeState extends State<Home> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
+              onDetailsPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserProfile(),
+                  ),
+                );
+              },
               decoration: BoxDecoration(
                 color: Color(0xFFDC4654),
               ),
