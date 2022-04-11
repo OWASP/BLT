@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'components/appbar.dart';
-
 class UserProfile extends StatefulWidget {
   @override
   _UserProfileState createState() => new _UserProfileState();
@@ -11,7 +9,17 @@ class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: buildAppBar(),
+      // appBar: buildAppBar(),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: new Stack(
         children: <Widget>[
           ClipPath(
@@ -112,7 +120,7 @@ class GetClipper extends CustomClipper<Path> {
     path.close();
     return path;
   }
- 
+
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) {
     return true;
