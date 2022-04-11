@@ -44,6 +44,7 @@ class IssueCard extends StatelessWidget {
                       horizontal: 10,
                     ),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Row(
                           children: <Widget>[

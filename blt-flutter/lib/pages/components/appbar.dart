@@ -1,6 +1,7 @@
+import 'package:bugheist/pages/profile.dart';
 import 'package:flutter/material.dart';
 
-AppBar buildAppBar() {
+AppBar buildAppBar({required BuildContext context}) {
   return AppBar(
     centerTitle: true,
     title: Image.asset(
@@ -24,6 +25,12 @@ AppBar buildAppBar() {
           color: Colors.black,
         ),
         onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserProfile(),
+            ),
+          );
           // do something
         },
       )
