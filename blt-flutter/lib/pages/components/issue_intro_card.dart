@@ -4,7 +4,11 @@ class IssueCard extends StatelessWidget {
   final String description;
   final String imageSrc;
 
-  IssueCard({required this.description, required this.imageSrc});
+  const IssueCard({
+    Key? key,
+    required this.description,
+    required this.imageSrc,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

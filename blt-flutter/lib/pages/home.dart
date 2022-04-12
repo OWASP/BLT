@@ -1,9 +1,8 @@
 import 'package:bugheist/pages/feed.dart';
 import 'package:bugheist/pages/issues.dart';
 import 'package:bugheist/pages/leaderboard.dart';
-import 'package:bugheist/pages/login_signup.dart';
-import 'package:bugheist/pages/profile.dart';
 import 'package:bugheist/pages/report_bug.dart';
+import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 
 import 'components/appbar.dart';
@@ -15,6 +14,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
+  late PageController _pageController;
+
   final List<Widget> _children = [
     PaginatedClass(),
     ReportBug(),
@@ -22,17 +23,31 @@ class _HomeState extends State<Home> {
     LeaderBoard()
   ];
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(
+      () {
+        _selectedIndex = index;
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    _pageController = PageController(
+      initialPage: 0,
+      keepPage: true,
+    );
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppBar(
-        context: context,
-      ),
+      appBar: buildAppBar(context: context),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
         // through the options in the drawer if there isn't enough vertical
@@ -43,12 +58,7 @@ class _HomeState extends State<Home> {
           children: <Widget>[
             UserAccountsDrawerHeader(
               onDetailsPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserProfile(),
-                  ),
-                );
+                RouteManager.navigateToProfile(context);
               },
               decoration: BoxDecoration(
                 color: Color(0xFFDC4654),
@@ -80,11 +90,9 @@ class _HomeState extends State<Home> {
                 // Update trhe state of the app
                 // ...
                 // Then close the drawer
-                Navigator.pushReplacement(
+                Navigator.pushReplacementNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginSignUp(),
-                  ),
+                  RouteManager.loginSignupPage,
                 );
               },
             ),
@@ -132,7 +140,12 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      body: _children[_selectedIndex],
+      body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() => _selectedIndex = index);
+          },
+          children: _children),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
@@ -158,5 +171,11 @@ class _HomeState extends State<Home> {
         onTap: _onItemTapped,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 }

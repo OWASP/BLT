@@ -8,11 +8,13 @@ class LoginFreshFooter extends StatelessWidget {
 
   final Function funFooterLogin;
 
-  LoginFreshFooter(
-      {required this.text,
-      required this.logo,
-      required this.funFooterLogin,
-      required this.textColor});
+  LoginFreshFooter({
+    Key? key,
+    required this.text,
+    required this.logo,
+    required this.funFooterLogin,
+    required this.textColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

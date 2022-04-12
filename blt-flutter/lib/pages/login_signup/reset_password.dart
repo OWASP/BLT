@@ -19,13 +19,15 @@ class LoginFreshResetPassword extends StatefulWidget {
   final Widget widgetFooter;
 
   LoginFreshResetPassword(
-      {required this.funResetPassword,
+      {Key? key,
+      required this.funResetPassword,
       required this.isFooter,
       required this.widgetFooter,
       required this.backgroundColor,
       required this.textColor,
       required this.loginFreshWords,
-      required this.logo});
+      required this.logo})
+      : super(key: key);
 
   @override
   _LoginFreshResetPasswordState createState() =>

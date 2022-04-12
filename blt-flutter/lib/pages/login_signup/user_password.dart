@@ -29,8 +29,9 @@ class LoginFreshUserAndPassword extends StatefulWidget {
 
   final LoginFreshWords loginFreshWords;
 
-  LoginFreshUserAndPassword(
-      {required this.callLogin,
+  const LoginFreshUserAndPassword(
+      {Key? key,
+      required this.callLogin,
       required this.backgroundColor,
       required this.loginFreshWords,
       required this.logo,
@@ -40,7 +41,8 @@ class LoginFreshUserAndPassword extends StatefulWidget {
       required this.widgetResetPassword,
       required this.isSignUp,
       required this.signUp,
-      required this.textColor});
+      required this.textColor})
+      : super(key: key);
 
   @override
   _LoginFreshUserAndPasswordState createState() =>

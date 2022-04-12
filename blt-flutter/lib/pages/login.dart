@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
+
   @override
   _LoginState createState() => _LoginState();
 }

@@ -6,6 +6,8 @@ import '../services/api.dart';
 import '../data/models.dart';
 
 class PaginatedClass extends StatefulWidget {
+  const PaginatedClass({Key? key}) : super(key: key);
+
   @override
   PaginatedClassState createState() => PaginatedClassState();
 }

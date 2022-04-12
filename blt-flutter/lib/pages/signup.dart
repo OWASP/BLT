@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 // https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
 //
 class Register extends StatefulWidget {
+  const Register({Key? key}) : super(key: key);
+
   @override
   _RegisterState createState() => _RegisterState();
 }
