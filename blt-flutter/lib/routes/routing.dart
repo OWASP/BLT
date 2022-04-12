@@ -1,7 +1,7 @@
-import 'package:bugheist/pages/login.dart';
+// import 'package:bugheist/pages/login.dart';
 import 'package:bugheist/pages/login_signup.dart';
 import 'package:bugheist/pages/profile.dart';
-import 'package:bugheist/pages/signup.dart';
+// import 'package:bugheist/pages/signup.dart';
 import 'package:flutter/material.dart';
 
 class RouteManager {
@@ -11,7 +11,7 @@ class RouteManager {
   static const String signupPage = "/signup";
   static String currentRoute = "/loginSignup";
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    final arguments = settings.arguments;
+    // final arguments = settings.arguments;
     switch (settings.name) {
       case profilePage:
         return PageRouteBuilder(
