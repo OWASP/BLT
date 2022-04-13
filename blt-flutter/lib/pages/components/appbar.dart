@@ -1,4 +1,4 @@
-import 'package:bugheist/pages/profile.dart';
+import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 
 AppBar buildAppBar({required BuildContext context}) {
@@ -25,12 +25,7 @@ AppBar buildAppBar({required BuildContext context}) {
           color: Colors.black,
         ),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => UserProfile(),
-            ),
-          );
+          RouteManager.navigateToProfile(context);
           // do something
         },
       )

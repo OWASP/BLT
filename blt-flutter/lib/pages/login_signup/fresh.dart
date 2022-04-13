@@ -43,8 +43,9 @@ class LoginFresh extends StatefulWidget {
   //model of key words used in login
   final LoginFreshWords keyWord;
 
-  LoginFresh(
-      {required this.pathLogo,
+  const LoginFresh(
+      {Key? key,
+      required this.pathLogo,
       required this.typeLoginModel,
       required this.isExploreApp,
       required this.functionExploreApp,
@@ -55,7 +56,8 @@ class LoginFresh extends StatefulWidget {
       required this.backgroundColor,
       required this.cardColor,
       required this.textColor,
-      required this.keyWord});
+      required this.keyWord})
+      : super(key: key);
 
   @override
   _LoginFreshState createState() => _LoginFreshState();

@@ -5,9 +5,10 @@ class ArticleOnePage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";
   final Results issue;
 
-  ArticleOnePage({
+  const ArticleOnePage({
+    Key? key,
     required this.issue,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

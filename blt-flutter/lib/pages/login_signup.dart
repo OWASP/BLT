@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bugheist/providers/auth.dart';
 import 'package:bugheist/providers/user_provider.dart';
+import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 import 'package:bugheist/pages/login_signup/fresh.dart';
@@ -14,6 +15,8 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../providers/auth.dart';
 
 class LoginSignUp extends StatefulWidget {
+  const LoginSignUp({Key? key}) : super(key: key);
+
   @override
   LoginSignUpState createState() => LoginSignUpState();
 }
@@ -85,6 +88,7 @@ class LoginSignUpState extends State<LoginSignUp> {
       child: MaterialApp(
         scaffoldMessengerKey: _messangerKey,
         debugShowCheckedModeBanner: false,
+        onGenerateRoute: RouteManager.generateRoute,
         title: 'BugHeist',
         theme: ThemeData(
           primarySwatch: Colors.green,

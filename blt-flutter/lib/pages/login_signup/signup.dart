@@ -27,14 +27,16 @@ class LoginFreshSignUp extends StatefulWidget {
 
   final String logo;
 
-  LoginFreshSignUp(
-      {required this.funSignUp,
+  const LoginFreshSignUp(
+      {Key? key,
+      required this.funSignUp,
       required this.logo,
       required this.isFooter,
       required this.widgetFooter,
       required this.textColor,
       required this.loginFreshWords,
-      required this.backgroundColor});
+      required this.backgroundColor})
+      : super(key: key);
 
   @override
   _LoginFreshSignUpState createState() => _LoginFreshSignUpState();

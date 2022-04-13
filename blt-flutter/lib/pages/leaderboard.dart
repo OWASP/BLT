@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class LeaderBoard extends StatefulWidget {
+  const LeaderBoard({Key? key}) : super(key: key);
+
   @override
   _LeaderBoardState createState() => _LeaderBoardState();
 }

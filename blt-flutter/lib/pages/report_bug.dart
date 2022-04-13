@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 //import '../services/api.dart';
 
 class ReportBug extends StatefulWidget {
+  const ReportBug({Key? key}) : super(key: key);
+
   @override
   _ReportBugState createState() => _ReportBugState();
 }
