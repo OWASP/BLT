@@ -2,6 +2,7 @@ import 'dart:io';
 
 //import 'package:../state_container.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 //import '../services/api.dart';
@@ -69,91 +70,216 @@ class _ReportBugState extends State<ReportBug> {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
     return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              controller: _messageTitleTextController,
-              decoration: InputDecoration(
-                hintText: "Enter the URL or app name of the issue",
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.grey),
+          Container(
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Report Issue",
+              style: GoogleFonts.ubuntu(
+                textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
+              ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "App name/ url",
+                  style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                      color: Color(0xFFDC4654),
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.grey),
+                SizedBox(
+                  height: 12,
+                ),
+                SizedBox(
+                  height: 40,
+                  child: TextField(
+                    controller: _messageTitleTextController,
+                    decoration: InputDecoration(
+                      hintText: "Enter the URL or app name of the issue ...",
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    cursorColor: Color(0xFFDC4654),
+                    style: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                    onChanged: (String value) {
+                      setState(() {
+                        _messageValue = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Description",
+                  style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                      color: Color(0xFFDC4654),
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 12,
+                ),
+                SizedBox(
+                  height: 80,
+                  child: TextField(
+                    controller: _messageTextController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: "Enter a description of the issue here ...",
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    style: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                    onChanged: (String value) {
+                      setState(() {
+                        _messageValue = value;
+                      });
+                    },
+                    cursorColor: Color(0xFFDC4654),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            child: TextButton(
+              child: Text(
+                "Choose Image",
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                  ),
                 ),
               ),
-              onChanged: (String value) {
+              onPressed: () {
+                _pickImageFromGallery();
                 setState(() {
-                  _messageValue = value;
+                  _messageTextController.text = _messageValue;
                 });
               },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  Color(0xFFDC4654),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            height: 280,
+            width: size.width,
+            child: _image.path == ""
+                ? Center(
+                    child: Text(
+                      'No image selected.',
+                      style: GoogleFonts.aBeeZee(
+                        textStyle: TextStyle(
+                          color: Color(0xFF737373),
+                        ),
+                      ),
+                    ),
+                  )
+                : Image.file(
+                    _image,
+                    fit: BoxFit.cover,
+                  ),
+            decoration: BoxDecoration(
+              border: _image.path == ""
+                  ? Border.all(
+                      color: Color(0xFFDC4654),
+                      width: 0.5,
+                    )
+                  : null,
+              borderRadius:
+                  _image.path == "" ? BorderRadius.circular(15) : null,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              controller: _messageTextController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: "Enter a description of the issue here",
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.grey),
+            padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+            child: Text(
+              "Note: Adding an issue gives you 3 points!",
+              style: GoogleFonts.aBeeZee(
+                textStyle: TextStyle(
+                  color: Color(0xFF737373),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-              onChanged: (String value) {
-                setState(() {
-                  _messageValue = value;
-                });
-              },
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                child: ElevatedButton(
-                  child: Text("Choose Image"),
-                  onPressed: () {
-                    _pickImageFromGallery();
-                    setState(() {
-                      _messageTextController.text = _messageValue;
-                    });
-                  },
+          Container(
+            width: size.width,
+            height: 50,
+            child: TextButton(
+              child: Text(
+                "Add Issue",
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
                 ),
               ),
-              SizedBox(
-                width: 20.0,
-              ),
-              SizedBox(
-                child: ElevatedButton(
-                  child: Text("Add Issue +3pts"),
-                  onPressed: () {
-                    uploadBtnPress();
-                  },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  Color(0xFFDC4654),
                 ),
               ),
-            ],
+              onPressed: () {
+                uploadBtnPress();
+              },
+            ),
           ),
           SizedBox(
             height: 20.0,
-          ),
-          SizedBox(
-            height: 200,
-            child: Center(
-              child: _image.path == ""
-                  ? Text('No image selected.')
-                  : Image.file(_image),
-            ),
           ),
         ],
       ),

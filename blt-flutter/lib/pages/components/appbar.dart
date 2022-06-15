@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 AppBar buildAppBar({required BuildContext context}) {
   return AppBar(
-    centerTitle: true,
     title: Image.asset(
       'assets/bugheist_logo.png',
       fit: BoxFit.cover,
@@ -13,7 +12,6 @@ AppBar buildAppBar({required BuildContext context}) {
       IconButton(
         icon: Icon(
           Icons.search,
-          color: Colors.black,
         ),
         onPressed: () {
           // do something
@@ -22,7 +20,6 @@ AppBar buildAppBar({required BuildContext context}) {
       IconButton(
         icon: Icon(
           Icons.account_circle,
-          color: Colors.black,
         ),
         onPressed: () {
           RouteManager.navigateToProfile(context);
@@ -30,5 +27,8 @@ AppBar buildAppBar({required BuildContext context}) {
         },
       )
     ],
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    iconTheme: IconThemeData(color: Color(0xFFDC4654)),
   );
 }

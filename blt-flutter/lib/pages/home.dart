@@ -118,22 +118,16 @@ class _HomeState extends State<Home> {
             ),
             Divider(),
             ListTile(
-              title: Text('Privacy Policy'),
+              title: Text('Terms of Service'),
               onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  RouteManager.legalPage,
+                );
+
                 // Update the state of the app
                 // ...
                 // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-            Divider(),
-            ListTile(
-              title: Text('Terms and Conditions'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
               },
             ),
             Divider(),
