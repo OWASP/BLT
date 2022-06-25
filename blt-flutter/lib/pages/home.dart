@@ -8,12 +8,18 @@ import 'package:flutter/material.dart';
 import 'components/appbar.dart';
 
 class Home extends StatefulWidget {
+  final int? startingIndex;
+  const Home({
+    Key? key,
+    this.startingIndex,
+  }) : super(key: key);
+
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   late PageController _pageController;
 
   final List<Widget> _children = [
@@ -37,8 +43,9 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    _selectedIndex = widget.startingIndex ?? 0;
     _pageController = PageController(
-      initialPage: 0,
+      initialPage: _selectedIndex,
       keepPage: true,
     );
     super.initState();
@@ -96,7 +103,6 @@ class _HomeState extends State<Home> {
                 );
               },
             ),
-            Divider(),
             ListTile(
               title: Text('Social'),
               onTap: () {
@@ -106,7 +112,6 @@ class _HomeState extends State<Home> {
                 Navigator.pop(context);
               },
             ),
-            Divider(),
             ListTile(
               title: Text('Stats'),
               onTap: () {
@@ -116,7 +121,6 @@ class _HomeState extends State<Home> {
                 Navigator.pop(context);
               },
             ),
-            Divider(),
             ListTile(
               title: Text('Terms of Service'),
               onTap: () {
@@ -130,7 +134,19 @@ class _HomeState extends State<Home> {
                 // Then close the drawer
               },
             ),
-            Divider(),
+            ListTile(
+              title: Text('About Us'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  RouteManager.aboutPage,
+                );
+
+                // Update the state of the app
+                // ...
+                // Then close the drawer
+              },
+            ),
           ],
         ),
       ),

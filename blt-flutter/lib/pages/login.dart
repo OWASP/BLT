@@ -3,9 +3,9 @@ import '../data/user.dart';
 import '../providers/auth.dart';
 import '../providers/user_provider.dart';
 //import '../util/validators.dart';
+import '../routes/routing.dart';
 import '../util/widgets.dart';
 import 'package:provider/provider.dart';
-import 'home.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -81,12 +81,9 @@ class _LoginState extends State<Login> {
             User user = response['user'];
             print(response['user']);
             Provider.of<UserProvider>(context, listen: false).setUser(user);
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_buildContext) => Home(),
-              ),
-            );
-            //Navigator.pushReplacementNamed(context, '/dashboard');
+            Navigator.of(context).pushNamed(
+              RouteManager.homePage,
+            ); //Navigator.pushReplacementNamed(context, '/dashboard');
             //
           } else {
             ScaffoldMessenger.of(context).showSnackBar(

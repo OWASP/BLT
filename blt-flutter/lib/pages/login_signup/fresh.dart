@@ -1,4 +1,4 @@
-import 'package:bugheist/pages/home.dart';
+import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 
 import 'package:bugheist/data/login_model.dart';
@@ -160,10 +160,8 @@ class _LoginFreshState extends State<LoginFresh> {
         ? SizedBox()
         : GestureDetector(
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_buildContext) => Home(),
-                ),
+              Navigator.of(context).pushNamed(
+                RouteManager.homePage,
               );
             },
             child: SizedBox(

@@ -16,7 +16,7 @@ class LoginFreshWords {
   String messageRecoverPassword;
 
   LoginFreshWords(
-      {this.loginWith = 'Login With',
+      {this.loginWith = '',
       this.hintName = 'Name',
       this.hintSurname = 'Surname',
       this.hintSignUpRepeatPassword = 'Repeat Password',

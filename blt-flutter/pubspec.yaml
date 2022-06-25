@@ -16,6 +16,7 @@ dependencies:
   provider: ^5.0.0
   receive_sharing_intent: ^1.4.5
   shared_preferences: ^2.0.5
+  flutter_svg: ^1.0.3
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
