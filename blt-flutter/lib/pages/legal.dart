@@ -1,3 +1,4 @@
+import 'package:bugheist/constants/legal_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +21,6 @@ class LegalPage extends StatelessWidget {
         ),
         title: Text("Terms of Service"),
         backgroundColor: Color(0xFFDC4654),
-        // toolbarHeight: 0.1 * size.width,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -90,11 +90,6 @@ class LegalPage extends StatelessWidget {
                     );
                   }),
             ),
-            // child: Text(
-            //   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam imperdiet libero sit amet eros dictum porta. Mauris eget enim id justo mollis suscipit. Mauris nisl leo, pulvinar sed lobortis vel, dapibus quis ligula. In et diam tellus. Vestibulum ut convallis orci. Sed nec sapien at lectus ultricies tristique. Fusce sit amet congue felis. In varius pellentesque nulla, dignissim consequat ante hendrerit non. Proin sed vehicula turpis. Praesent ac libero vel urna efficitur interdum. Nam tristique placerat lorem eget condimentum. Pellentesque pellentesque lacinia pretium. Vestibulum sagittis urna ut eros eleifend rhoncus. Proin vel metus orci. Sed pellentesque nisi lacus. ",
-            //   style: GoogleFonts.aBeeZee(),
-            // ),
-
             Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
               alignment: Alignment.centerLeft,
@@ -111,7 +106,7 @@ class LegalPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 36),
               child: Text(
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam imperdiet libero sit amet eros dictum porta. Mauris eget enim id justo mollis suscipit. Mauris nisl leo, pulvinar sed lobortis vel, dapibus quis ligula. In et diam tellus. Vestibulum ut convallis orci. Sed nec sapien at lectus ultricies tristique. Fusce sit amet congue felis. In varius pellentesque nulla, dignissim consequat ante hendrerit non. Proin sed vehicula turpis. Praesent ac libero vel urna efficitur interdum. Nam tristique placerat lorem eget condimentum. Pellentesque pellentesque lacinia pretium. Vestibulum sagittis urna ut eros eleifend rhoncus. Proin vel metus orci. Sed pellentesque nisi lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam imperdiet libero sit amet eros dictum porta. Mauris eget enim id justo mollis suscipit. Mauris nisl leo, pulvinar sed lobortis vel, dapibus quis ligula. In et diam tellus. Vestibulum ut convallis orci. Sed nec sapien at lectus ultricies tristique. Fusce sit amet congue felis. In varius pellentesque nulla, dignissim consequat ante hendrerit non. Proin sed vehicula turpis. Praesent ac libero vel urna efficitur interdum. Nam tristique placerat lorem eget condimentum. Pellentesque pellentesque lacinia pretium. Vestibulum sagittis urna ut eros eleifend rhoncus. Proin vel metus orci. Sed pellentesque nisi lacus. ",
+                privacyPolicy,
                 style: GoogleFonts.aBeeZee(
                   textStyle: TextStyle(
                     color: Color(0xFF737373),

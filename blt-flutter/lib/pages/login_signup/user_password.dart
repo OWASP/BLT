@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../config/login_signup_structure.dart';
 import '../../pages/login_signup/loading.dart';
+import '../../routes/routing.dart';
 import '../../util/validators.dart';
 import 'package:bugheist/providers/auth.dart';
 import 'package:provider/provider.dart';
@@ -312,10 +313,8 @@ class _LoginFreshUserAndPasswordState extends State<LoginFreshUserAndPassword> {
                                   Provider.of<UserProvider>(context,
                                           listen: false)
                                       .setUser(user);
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_buildContext) => Home(),
-                                    ),
+                                  Navigator.of(context).pushNamed(
+                                    RouteManager.homePage,
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(

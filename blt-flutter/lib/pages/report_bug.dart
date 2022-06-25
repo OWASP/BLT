@@ -269,6 +269,11 @@ class _ReportBugState extends State<ReportBug> {
                 ),
               ),
               style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
                 backgroundColor: MaterialStateProperty.all(
                   Color(0xFFDC4654),
                 ),
