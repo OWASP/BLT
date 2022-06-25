@@ -35,7 +35,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
-            color: Colors.green,
+            color: Color(0xFFDC4654),
             size: 40,
           ),
         );
@@ -78,7 +78,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           Icons.public,
-                          color: Colors.green,
+                          color: Color(0xFFDC4654),
                         ),
                       ),
                       Text(
@@ -86,7 +86,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 25,
-                          color: Colors.green,
+                          color: Color(0xFFDC4654),
                         ),
                       ),
                     ],

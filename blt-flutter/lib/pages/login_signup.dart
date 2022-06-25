@@ -91,7 +91,7 @@ class LoginSignUpState extends State<LoginSignUp> {
         onGenerateRoute: RouteManager.generateRoute,
         title: 'BugHeist',
         theme: ThemeData(
-          primarySwatch: Colors.green,
+          primarySwatch: Colors.red,
           primaryColor: Colors.white,
           visualDensity: VisualDensity.adaptivePlatformDensity,
           primaryTextTheme: TextTheme(
