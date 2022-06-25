@@ -6,7 +6,6 @@ import '../providers/user_provider.dart';
 import '../routes/routing.dart';
 import '../util/widgets.dart';
 import 'package:provider/provider.dart';
-import 'home.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);

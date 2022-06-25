@@ -8,7 +8,6 @@ import 'package:bugheist/providers/auth.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:bugheist/data/user.dart';
-import 'package:bugheist/pages/home.dart';
 import 'package:bugheist/providers/user_provider.dart';
 import 'package:bugheist/config/login_signup_structure.dart';
 

@@ -1,4 +1,3 @@
-import 'package:bugheist/pages/home.dart';
 import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 
