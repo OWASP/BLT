@@ -1,126 +1,133 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../data/models.dart';
 
-class ArticleOnePage extends StatelessWidget {
+class IssueDetailPage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";
   final Results issue;
 
-  const ArticleOnePage({
+  const IssueDetailPage({
     Key? key,
     required this.issue,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Text("Issue #" + issue.id),
+        backgroundColor: Color(0xFFDC4654),
+      ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Stack(
-              children: <Widget>[
-                SafeArea(
-                  child: Container(
-                    height: 300,
-                    width: double.infinity,
-                    child: Hero(
-                      tag: issue.screenshot,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              issue.screenshot,
-                            ),
-                            fit: BoxFit.fitWidth,
-                          ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              width: size.width,
+              color: Theme.of(context).canvasColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+                    child: Text(
+                      "Issue #" + issue.id,
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          color: Color(0xFF737373),
+                          fontSize: 25,
                         ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 15,
-                  child: SafeArea(
-                    child: RawMaterialButton(
-                      onPressed: () => Navigator.pop(context),
-                      elevation: 5,
-                      fillColor: Colors.white,
-                      child: Icon(
-                        Icons.arrow_left_rounded,
-                        size: 50,
-                      ),
-                      shape: CircleBorder(),
+                  Container(
+                    // padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Text(
+                          "Created On " +
+                              issue.createdOn.toLocal().day.toString() +
+                              "/" +
+                              issue.createdOn.toLocal().month.toString() +
+                              "/" +
+                              issue.createdOn.toLocal().year.toString(),
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFA3A3A3),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Chip(
+                          label: Text(
+                            (issue.isOpen) ? "Open" : "Closed",
+                            style: GoogleFonts.aBeeZee(
+                              textStyle: TextStyle(
+                                fontSize: 10,
+                                color: (issue.isOpen)
+                                    ? Color(0xFFA3A3A3)
+                                    : Color(0xFFDC4654),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                ),
-                // Positioned(
-                //   bottom: 20.0,
-                //   left: 20.0,
-                //   right: 20.0,
-                //   child: Row(
-                //     children: <Widget>[
-                //       Icon(
-                //         Icons.slideshow,
-                //         color: Colors.white,
-                //       ),
-                //       SizedBox(width: 10.0),
-                //       Text(
-                //         "Technology",
-                //         style: TextStyle(color: Colors.white),
-                //       )
-                //     ],
-                //   ),
-                // )
-              ],
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  // Row(
-                  //   children: <Widget>[
-                  //     Expanded(
-                  //       child: Text("Oct 21, 2017"),
-                  //     ),
-                  //     IconButton(
-                  //       icon: Icon(Icons.share),
-                  //       onPressed: () {},
-                  //     )
-                  //   ],
-                  // ),
-                  // Text(
-                  //   "testing",
-                  // ),
-                  Divider(),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  // Row(
-                  //   children: <Widget>[
-                  //     Icon(Icons.favorite_border),
-                  //     SizedBox(
-                  //       width: 5.0,
-                  //     ),
-                  //     Text("20.2k"),
-                  //     SizedBox(
-                  //       width: 16.0,
-                  //     ),
-                  //     Icon(Icons.comment),
-                  //     SizedBox(
-                  //       width: 5.0,
-                  //     ),
-                  //     Text("2.2k"),
-                  //   ],
-                  // ),
-                  // SizedBox(
-                  //   height: 10.0,
-                  // ),
-                  Text(
-                    issue.description,
-                    textAlign: TextAlign.justify,
-                  )
                 ],
+              ),
+            ),
+            Container(
+              height: 0.334 * size.height,
+              width: size.width,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      issue.screenshot,
+                    ),
+                    fit: BoxFit.fill,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Text(
+                "Description",
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Color(0xFFDC4654),
+                    fontSize: 17.5,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                issue.description,
               ),
             ),
           ],

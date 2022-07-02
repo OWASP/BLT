@@ -1,6 +1,7 @@
+import 'package:google_fonts/google_fonts.dart';
+
 import './components/issue_intro_card.dart';
 import 'package:flutter/material.dart';
-import '../pages/issue_detail.dart';
 
 import '../services/api.dart';
 import '../data/models.dart';
@@ -77,74 +78,104 @@ class PaginatedClassState extends State<PaginatedClass>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: FutureBuilder(
-          future: _getObj,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                    'Something went wrong!',
-                    style: TextStyle(fontSize: 18),
+    final Size size = MediaQuery.of(context).size;
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              width: size.width,
+              color: Theme.of(context).canvasColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+                    child: Text(
+                      'Issues',
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          color: Color(0xFF737373),
+                          fontSize: 25,
+                        ),
+                      ),
+                    ),
                   ),
-                );
-              } else if (snapshot.hasData) {
-                return ListView.builder(
-                    itemCount: (snapshot.data! as DataModel).results.length + 1,
-                    controller: _scrollController,
-                    itemBuilder: (context, index) {
-                      if (index == (snapshot.data! as DataModel).results.length)
-                        return Center(
-                          child: Opacity(
-                            opacity: _loading ? 1.0 : 0.0,
-                            child: CircularProgressIndicator(
-                              valueColor: animationController.drive(
-                                ColorTween(
-                                  begin: Colors.blueAccent,
-                                  end: Colors.red,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      else
-                        return new GestureDetector(
-                          onTap: () => {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ArticleOnePage(
-                                  issue: (snapshot.data! as DataModel)
-                                      .results[index],
-                                ),
-                              ),
-                            )
-                          },
-                          child: IssueCard(
-                            description: (snapshot.data! as DataModel)
-                                .results[index]
-                                .description,
-                            imageSrc: (snapshot.data! as DataModel)
-                                .results[index]
-                                .screenshot,
-                          ),
-                        );
-                    });
-              }
-            }
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor: animationController.drive(
-                  ColorTween(
-                    begin: Colors.blueAccent,
-                    end: Colors.red,
+                  Container(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+                    child: Text(
+                      "Check out the latest issues found and reported, maybe find a fix too?",
+                      style: GoogleFonts.aBeeZee(
+                        textStyle: TextStyle(
+                          color: Color(0xFF737373),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            );
-          },
+            ),
+            Container(
+              height: size.height * 0.8,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: FutureBuilder(
+                future: _getObj,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Something went wrong!',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      );
+                    } else if (snapshot.hasData) {
+                      return ListView.builder(
+                        itemCount:
+                            (snapshot.data! as DataModel).results.length + 1,
+                        controller: _scrollController,
+                        itemBuilder: (context, index) {
+                          if (index ==
+                              (snapshot.data! as DataModel).results.length)
+                            return Center(
+                              child: Opacity(
+                                opacity: _loading ? 1.0 : 0.0,
+                                child: CircularProgressIndicator(
+                                  valueColor: animationController.drive(
+                                    ColorTween(
+                                      begin: Colors.blueAccent,
+                                      end: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          else
+                            return IssueCard(
+                              result:
+                                  (snapshot.data! as DataModel).results[index],
+                            );
+                        },
+                      );
+                    }
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: animationController.drive(
+                        ColorTween(
+                          begin: Colors.blueAccent,
+                          end: Colors.red,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

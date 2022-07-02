@@ -28,7 +28,7 @@ AppBar buildAppBar({required BuildContext context}) {
       )
     ],
     elevation: 0,
-    backgroundColor: Colors.transparent,
+    backgroundColor: Theme.of(context).canvasColor,
     iconTheme: IconThemeData(color: Color(0xFFDC4654)),
   );
 }

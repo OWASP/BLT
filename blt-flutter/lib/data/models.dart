@@ -29,14 +29,24 @@ class Results {
   final String id;
   final String description;
   final String screenshot;
-  Results(
-      {required this.id, required this.description, required this.screenshot});
+  final bool isOpen;
+  final DateTime createdOn;
+  Results({
+    required this.id,
+    required this.description,
+    required this.screenshot,
+    required this.isOpen,
+    required this.createdOn,
+  });
 
   factory Results.fromJson(Map<String, dynamic> parsedJson) {
     return Results(
-        id: parsedJson['id'].toString(),
-        description: parsedJson['description'],
-        screenshot: parsedJson['screenshot']);
+      id: parsedJson['id'].toString(),
+      description: parsedJson['description'],
+      screenshot: parsedJson['screenshot'],
+      isOpen: (parsedJson["status"] == "open") ? true : false,
+      createdOn: DateTime.parse(parsedJson["created"]),
+    );
   }
 }
 

@@ -23,9 +23,9 @@ class _HomeState extends State<Home> {
   late PageController _pageController;
 
   final List<Widget> _children = [
-    PaginatedClass(),
-    ReportBug(),
     Feed(),
+    ReportBug(),
+    PaginatedClass(),
     LeaderBoard()
   ];
   void _onItemTapped(int index) {
