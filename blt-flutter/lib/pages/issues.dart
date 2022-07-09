@@ -1,9 +1,9 @@
 import 'package:google_fonts/google_fonts.dart';
 
-import './components/issue_intro_card.dart';
+import '../components/issue_intro_card.dart';
 import 'package:flutter/material.dart';
 
-import '../services/api.dart';
+import '../util/api/api.dart';
 import '../data/models.dart';
 
 class PaginatedClass extends StatefulWidget {

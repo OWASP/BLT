@@ -4,9 +4,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import '../data/user.dart';
+import '../models/user_model.dart';
 import '../util/app_url.dart';
-import '../util/shared_preferences.dart';
+import '../util/services/shared_preferences.dart';
 
 enum Status {
   NotLoggedIn,

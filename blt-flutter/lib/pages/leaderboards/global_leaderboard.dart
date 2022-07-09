@@ -1,17 +1,32 @@
+import 'package:bugheist/util/api/api.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:google_fonts/google_fonts.dart';
 
-import '../services/api.dart';
-
-class MonthlyLeaderBoardPage extends StatefulWidget {
-  const MonthlyLeaderBoardPage({Key? key}) : super(key: key);
+class GlobalLeaderBoardPage extends StatefulWidget {
+  const GlobalLeaderBoardPage({Key? key}) : super(key: key);
 
   @override
-  State<MonthlyLeaderBoardPage> createState() => _MonthlyLeaderBoardPageState();
+  _GlobalLeaderBoardPageState createState() => _GlobalLeaderBoardPageState();
 }
 
-class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
+class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
+  int i = 0;
+  Color my = Colors.brown;
   late Future _getObj;
+
+  @override
+  void initState() {
+    var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
+    _getObj = ApiBackend().getLeaderData(paginatedUrl);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   CircleAvatar buildAvatar(String partUrl) {
     try {
@@ -46,13 +61,6 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
   }
 
   @override
-  void initState() {
-    var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
-    _getObj = ApiBackend().getLeaderData(paginatedUrl);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
 
@@ -66,12 +74,13 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("Monthly Leaderboard"),
+        title: Text("Global Leaderboard"),
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
         child: Column(
-          children: [
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
             Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
               width: size.width,
@@ -82,7 +91,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                     child: Text(
-                      'Monthly Leaderboards',
+                      'Global Leaderboards',
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -94,7 +103,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the most active users on BugHeist this month.",
+                      "These are the all time best bug finders on BugHeist.",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -121,6 +130,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                       );
                     } else if (snapshot.hasData) {
                       final list = snapshot.data as List;
+                      i = 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 0.0,
@@ -131,6 +141,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                           child: ListView.builder(
                             itemCount: list.length,
                             itemBuilder: (context, index) {
+                              int title = list[index].title;
                               return ListTile(
                                 onTap: () {},
                                 shape: RoundedRectangleBorder(
@@ -148,7 +159,14 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                                               topLeft: Radius.circular(0),
                                             ),
                                 ),
-                                tileColor: Color(0xFFECECEC).withOpacity(0.42),
+                                tileColor: title == 1
+                                    ? Color(0xFFC9AE5D).withOpacity(0.42)
+                                    : title == 2
+                                        ? Color(0xFFADD8E6).withOpacity(0.42)
+                                        : title == 3
+                                            ? Color(0xFFFFD700)
+                                                .withOpacity(0.42)
+                                            : Colors.white,
                                 leading: buildAvatar(list[index].image),
                                 title: Text(
                                   list[index].user,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../data/models.dart';
+import '../../data/models.dart';
 
 class IssueDetailPage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";

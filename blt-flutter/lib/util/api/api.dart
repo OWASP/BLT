@@ -1,7 +1,7 @@
 import 'package:bugheist/models/company_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../data/models.dart';
+import '../../data/models.dart';
 
 class ApiBackend {
   Future<DataModel> getApiData(String paginatedUrl) async {

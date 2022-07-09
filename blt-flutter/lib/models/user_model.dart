@@ -20,3 +20,9 @@ class User {
     );
   }
 }
+
+User guestUser = User(
+  id: 1234567890,
+  username: "Anonymous",
+  email: "anonymous@gmail.com",
+);
