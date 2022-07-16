@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:bugheist/pages/login_signup.dart';
+import 'app.dart';
 
 void main() {
-  runApp(LoginSignUp());
+  runApp(BugHeist());
 }

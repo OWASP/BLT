@@ -1,4 +1,3 @@
-import 'package:bugheist/constants/legal_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -68,6 +67,7 @@ class LegalPage extends StatelessWidget {
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
                     if (snapshot.hasData) {
                       return Markdown(
+                        physics: const NeverScrollableScrollPhysics(),
                         data: snapshot.data!,
                         padding: EdgeInsets.all(0),
                         styleSheet: MarkdownStyleSheet.fromTheme(
@@ -104,15 +104,35 @@ class LegalPage extends StatelessWidget {
               ),
             ),
             Container(
+              height: 800,
               padding: EdgeInsets.fromLTRB(0, 0, 0, 36),
-              child: Text(
-                privacyPolicy,
-                style: GoogleFonts.aBeeZee(
-                  textStyle: TextStyle(
-                    color: Color(0xFF737373),
-                  ),
-                ),
-              ),
+              child: FutureBuilder(
+                  future: rootBundle.loadString("assets/privacy_policy.md"),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    if (snapshot.hasData) {
+                      return Markdown(
+                        data: snapshot.data!,
+                        padding: EdgeInsets.all(0),
+                        styleSheet: MarkdownStyleSheet.fromTheme(
+                          ThemeData(
+                            textTheme: TextTheme(
+                              bodyText2: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF737373),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }),
             ),
           ],
         ),
