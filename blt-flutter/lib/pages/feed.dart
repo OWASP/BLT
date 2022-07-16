@@ -1,3 +1,5 @@
+import 'package:bugheist/global/variables.dart';
+import 'package:bugheist/util/api/user_api.dart';
 import 'package:flutter/material.dart';
 
 class Feed extends StatefulWidget {
@@ -12,7 +14,12 @@ class _FeedState extends State<Feed> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('Feed Page'),
+        child: InkWell(
+          onTap: () {
+            UserApiClient.getUserInfo(currentUser!);
+          },
+          child: Text('Feed Page'),
+        ),
       ),
     );
   }

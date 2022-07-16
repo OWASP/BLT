@@ -1,10 +1,11 @@
+import 'package:bugheist/components/issuechip.dart';
+import 'package:bugheist/models/issue_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models.dart';
 
 class IssueDetailPage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";
-  final Results issue;
+  final Issue issue;
 
   const IssueDetailPage({
     Key? key,
@@ -25,7 +26,7 @@ class IssueDetailPage extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("Issue #" + issue.id),
+        title: Text("Issue #${issue.id}"),
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
@@ -42,7 +43,7 @@ class IssueDetailPage extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
                     child: Text(
-                      "Issue #" + issue.id,
+                      "Issue #${issue.id}",
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -52,16 +53,10 @@ class IssueDetailPage extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    // padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
                       children: [
                         Text(
-                          "Created On " +
-                              issue.createdOn.toLocal().day.toString() +
-                              "/" +
-                              issue.createdOn.toLocal().month.toString() +
-                              "/" +
-                              issue.createdOn.toLocal().year.toString(),
+                          "Created On ${issue.created_date}",
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
                           style: GoogleFonts.aBeeZee(
@@ -74,19 +69,7 @@ class IssueDetailPage extends StatelessWidget {
                         SizedBox(
                           width: 10,
                         ),
-                        Chip(
-                          label: Text(
-                            (issue.isOpen) ? "Open" : "Closed",
-                            style: GoogleFonts.aBeeZee(
-                              textStyle: TextStyle(
-                                fontSize: 10,
-                                color: (issue.isOpen)
-                                    ? Color(0xFFA3A3A3)
-                                    : Color(0xFFDC4654),
-                              ),
-                            ),
-                          ),
-                        )
+                        IssueStatusChip(issue: issue),
                       ],
                     ),
                   ),
@@ -102,7 +85,7 @@ class IssueDetailPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   image: DecorationImage(
                     image: NetworkImage(
-                      issue.screenshot,
+                      issue.screenshotLink,
                     ),
                     fit: BoxFit.fill,
                   ),

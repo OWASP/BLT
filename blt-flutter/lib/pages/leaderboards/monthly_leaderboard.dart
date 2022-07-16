@@ -18,7 +18,6 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
       if (partUrl == "")
         return CircleAvatar(
           foregroundColor: Colors.transparent,
-          // backgroundColor: Colors.transparent,
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,

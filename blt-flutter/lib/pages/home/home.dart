@@ -1,8 +1,8 @@
 import 'package:bugheist/global/variables.dart';
 import 'package:bugheist/pages/feed.dart';
-import 'package:bugheist/pages/issues.dart';
-import 'package:bugheist/pages/leaderboard.dart';
-import 'package:bugheist/pages/report_bug.dart';
+import 'package:bugheist/pages/home/issues.dart';
+import 'package:bugheist/pages/home/leaderboard.dart';
+import 'package:bugheist/pages/home/report_bug.dart';
 import 'package:bugheist/providers/authstate_provider.dart';
 import 'package:bugheist/providers/login_provider.dart';
 import 'package:bugheist/routes/routing.dart';
@@ -10,7 +10,7 @@ import 'package:bugheist/util/enums/login_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../components/appbar.dart';
+import '../../components/appbar.dart';
 
 class Home extends ConsumerStatefulWidget {
   final int? startingIndex;
@@ -50,6 +50,38 @@ class _HomeState extends ConsumerState<Home> {
     LoginType loginState = ref.watch(loginProvider);
 
     return loginState == LoginType.guest ? "Logout (Guest)" : "Logout";
+  }
+
+  Widget buildReferralOption() {
+    LoginType loginState = ref.watch(loginProvider);
+
+    return loginState == LoginType.user
+        ? ListTile(
+            title: Text('Invite'),
+            onTap: () {
+              // Update the state of the app
+              // ...
+              // Then close the drawer
+              Navigator.pushNamed(
+                context,
+                RouteManager.referralPage,
+              );
+              // Navigator.pop(context);
+            },
+          )
+        : SizedBox();
+  }
+
+  NetworkImage? buildAvatar() {
+    LoginType loginState = ref.watch(loginProvider);
+
+    return loginState != LoginType.guest
+        ? (currentUser!.pfpLink != null)
+            ? NetworkImage(currentUser!.pfpLink!)
+            : null
+        : NetworkImage(
+            currentUser!.pfpLink!,
+          );
   }
 
   Future<void> logout() async {
@@ -104,6 +136,7 @@ class _HomeState extends ConsumerState<Home> {
                 ),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
+                  foregroundImage: buildAvatar(),
                   child: Text(
                     currentUser!.username!.substring(0, 2),
                     style: TextStyle(fontSize: 40.0),
@@ -119,22 +152,13 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                   Navigator.pushReplacementNamed(
                     context,
-                    RouteManager.loginSignupPage,
+                    RouteManager.welcomePage,
                   );
                   await logout();
                 },
               ),
               ListTile(
                 title: Text('Social'),
-                onTap: () {
-                  // Update the state of the app
-                  // ...
-                  // Then close the drawer
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: Text('Stats'),
                 onTap: () {
                   // Update the state of the app
                   // ...
@@ -168,6 +192,7 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                 },
               ),
+              buildReferralOption(),
             ],
           ),
         ),

@@ -12,8 +12,6 @@ class GlobalLeaderBoardPage extends StatefulWidget {
 }
 
 class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
-  int i = 0;
-  Color my = Colors.brown;
   late Future _getObj;
 
   @override
@@ -33,7 +31,6 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
       if (partUrl == "")
         return CircleAvatar(
           foregroundColor: Colors.transparent,
-          // backgroundColor: Colors.transparent,
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
@@ -130,7 +127,6 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                       );
                     } else if (snapshot.hasData) {
                       final list = snapshot.data as List;
-                      i = 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 0.0,

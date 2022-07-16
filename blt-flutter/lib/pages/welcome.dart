@@ -150,40 +150,6 @@ class WelcomePage extends StatelessWidget {
                             ),
                           );
                         },
-                        // child: TextButton(
-                        //   onPressed: () {
-                        //     Navigator.of(context).pushNamed(
-                        //       RouteManager.homePage,
-                        //     );
-                        //   },
-                        //   child: Text(
-                        //     "Explore Anonymously",
-                        //     style: GoogleFonts.ubuntu(
-                        //       textStyle: TextStyle(
-                        //         color: Color(0xFF737373),
-                        //         fontSize: 20,
-                        //       ),
-                        //     ),
-                        //   ),
-                        //   style: ButtonStyle(
-                        //     elevation: MaterialStateProperty.all(12),
-                        //     shadowColor: MaterialStateProperty.all(
-                        //       Colors.black.withOpacity(0.5),
-                        //     ),
-                        //     shape: MaterialStateProperty.all<
-                        //         RoundedRectangleBorder>(
-                        //       RoundedRectangleBorder(
-                        //         borderRadius: BorderRadius.circular(15.0),
-                        //         side: BorderSide(
-                        //           color: Color(0xFF737373),
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     backgroundColor: MaterialStateProperty.all(
-                        //       Theme.of(context).canvasColor,
-                        //     ),
-                        //   ),
-                        // ),
                       ),
                     ),
                     Row(

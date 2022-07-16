@@ -1,3 +1,4 @@
+import 'package:bugheist/util/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,15 +33,31 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
   Future<void> userLogin(
       Map<String, String?> userCreds, BuildContext parentContext) async {
     state = AsyncValue.data(AuthState.authenticating);
+    SnackBar authSnack = SnackBar(
+      content: Text("Authenticating ..."),
+      duration: Duration(minutes: 1),
+    );
+    ScaffoldMessenger.of(parentContext).showSnackBar(authSnack);
     try {
-      currentUser = await AuthApiClient.login(userCreds);
+      User? authenticatedUser = await AuthApiClient.login(userCreds);
+      if (authenticatedUser != null) {
+        currentUser = authenticatedUser;
+        await UserApiClient.getUserInfo(currentUser!);
 
-      state = AsyncValue.data(AuthState.loggedIn);
-      read(loginProvider.notifier).setUserLogin();
+        state = AsyncValue.data(AuthState.loggedIn);
+        read(loginProvider.notifier).setUserLogin();
 
-      Navigator.of(parentContext).pushNamed(
-        RouteManager.homePage,
-      );
+        ScaffoldMessenger.of(parentContext).clearSnackBars();
+        Navigator.of(parentContext).pushReplacementNamed(
+          RouteManager.homePage,
+        );
+      } else {
+        ScaffoldMessenger.of(parentContext).clearSnackBars();
+        SnackBar errorSnack = SnackBar(
+          content: Text("There was some error, please try again!"),
+        );
+        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
+      }
     } catch (e) {}
   }
 

@@ -1,3 +1,4 @@
+import 'package:bugheist/components/searchbar.dart';
 import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,10 @@ AppBar buildAppBar({required BuildContext context}) {
           Icons.search,
         ),
         onPressed: () {
+          showSearch(
+            context: context,
+            delegate: BugHeistSearchDelegate(),
+          );
           // do something
         },
       ),

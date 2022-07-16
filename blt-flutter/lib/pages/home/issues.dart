@@ -1,10 +1,11 @@
+import 'package:bugheist/util/api/issues_api.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../components/issue_intro_card.dart';
+import '../../components/issue_intro_card.dart';
 import 'package:flutter/material.dart';
 
-import '../util/api/api.dart';
-import '../data/models.dart';
+import '../../models/issuedata_model.dart';
+import '../../util/endpoints/issue_endpoints.dart';
 
 class PaginatedClass extends StatefulWidget {
   const PaginatedClass({Key? key}) : super(key: key);
@@ -27,14 +28,14 @@ class PaginatedClassState extends State<PaginatedClass>
 
   @override
   void initState() {
-    paginatedUrl = 'https://www.bugheist.com/api/v1/issues/';
+    paginatedUrl = IssueEndPoints.issues;
     _loading = false;
 
     animationController =
         AnimationController(duration: new Duration(seconds: 2), vsync: this);
     animationController.repeat();
 
-    _getObj = ApiBackend().getApiData(paginatedUrl);
+    _getObj = IssueApiClient.getAllIssues(paginatedUrl);
 
     _scrollController.addListener(() async {
       if (_scrollController.position.pixels ==
@@ -46,15 +47,16 @@ class PaginatedClassState extends State<PaginatedClass>
         }
 
         _getObj.then((value) async {
-          if (value.next != 'null') {
-            DataModel _paginatedData =
-                await ApiBackend().getApiData(value.next);
+          if (value.nextQuery != null) {
+            IssueData? paginatedData =
+                await IssueApiClient.getAllIssues(value.nextQuery);
+
             if (mounted) {
               setState(() {
-                for (var i = 0; i < _paginatedData.results.length; i++) {
-                  value.results.add(_paginatedData.results[i]);
+                for (var i = 0; i < paginatedData!.issueList!.length; i++) {
+                  value.issueList.add(paginatedData.issueList![i]);
                 }
-                value.next = _paginatedData.next;
+                value.nextQuery = paginatedData.nextQuery;
               });
             }
           } else {}
@@ -135,11 +137,11 @@ class PaginatedClassState extends State<PaginatedClass>
                     } else if (snapshot.hasData) {
                       return ListView.builder(
                         itemCount:
-                            (snapshot.data! as DataModel).results.length + 1,
+                            (snapshot.data! as IssueData).issueList!.length + 1,
                         controller: _scrollController,
                         itemBuilder: (context, index) {
                           if (index ==
-                              (snapshot.data! as DataModel).results.length)
+                              (snapshot.data! as IssueData).issueList!.length)
                             return Center(
                               child: Opacity(
                                 opacity: _loading ? 1.0 : 0.0,
@@ -155,8 +157,8 @@ class PaginatedClassState extends State<PaginatedClass>
                             );
                           else
                             return IssueCard(
-                              result:
-                                  (snapshot.data! as DataModel).results[index],
+                              issue: (snapshot.data! as IssueData)
+                                  .issueList![index],
                             );
                         },
                       );

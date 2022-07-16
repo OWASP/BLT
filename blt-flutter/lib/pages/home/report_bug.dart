@@ -1,11 +1,8 @@
 import 'dart:io';
 
-//import 'package:../state_container.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-
-//import '../services/api.dart';
 
 class ReportBug extends StatefulWidget {
   const ReportBug({Key? key}) : super(key: key);

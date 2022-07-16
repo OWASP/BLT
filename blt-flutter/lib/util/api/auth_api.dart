@@ -16,12 +16,14 @@ class AuthApiClient {
         Uri.parse(AuthEndPoints.emailpasswordLogin),
         body: userCreds,
       );
-      var decodedResponse = jsonDecode(response.body);
-      authenticatedUser = User(
-        email: userCreds["email"],
-        username: userCreds["username"],
-        token: decodedResponse["token"],
-      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(response.body);
+        authenticatedUser = User(
+          email: userCreds["email"],
+          username: userCreds["username"],
+          token: decodedResponse["token"],
+        );
+      }
     } catch (e) {
       print(e);
     }

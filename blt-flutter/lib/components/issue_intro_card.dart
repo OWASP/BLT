@@ -1,12 +1,13 @@
-import 'package:bugheist/data/models.dart';
 import 'package:bugheist/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class IssueCard extends StatelessWidget {
-  final Results result;
+import '../models/issue_model.dart';
 
-  const IssueCard({Key? key, required this.result}) : super(key: key);
+class IssueCard extends StatelessWidget {
+  final Issue issue;
+
+  const IssueCard({Key? key, required this.issue}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class IssueCard extends StatelessWidget {
           Navigator.pushNamed(
             context,
             RouteManager.issueDetailPage,
-            arguments: result,
+            arguments: issue,
           );
         },
         child: Container(
@@ -37,7 +38,7 @@ class IssueCard extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(result.screenshot),
+                      image: NetworkImage(issue.screenshotLink),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -52,7 +53,7 @@ class IssueCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.only(top: 12),
                       child: Text(
-                        "Issue #" + result.id,
+                        "Issue #${issue.id}",
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
                         style: GoogleFonts.ubuntu(
@@ -67,7 +68,7 @@ class IssueCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.only(top: 8, bottom: 12),
                       child: Text(
-                        result.description.replaceAll("\n", " "),
+                        issue.description.replaceAll("\n", " "),
                         overflow: TextOverflow.ellipsis,
                         softWrap: true,
                         style: GoogleFonts.aBeeZee(
@@ -83,11 +84,7 @@ class IssueCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
-                            result.createdOn.toLocal().day.toString() +
-                                "/" +
-                                result.createdOn.toLocal().month.toString() +
-                                "/" +
-                                result.createdOn.toLocal().year.toString(),
+                            issue.created_date,
                             overflow: TextOverflow.ellipsis,
                             softWrap: true,
                             style: GoogleFonts.aBeeZee(

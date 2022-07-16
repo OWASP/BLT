@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
 
-import '../routes/routing.dart';
+import '../../routes/routing.dart';
 
 class LeaderBoard extends StatefulWidget {
   const LeaderBoard({Key? key}) : super(key: key);
@@ -39,7 +39,6 @@ class _LeaderBoardState extends State<LeaderBoard> {
       if (partUrl == "")
         return CircleAvatar(
           foregroundColor: Colors.transparent,
-          // backgroundColor: Colors.transparent,
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
@@ -71,7 +70,6 @@ class _LeaderBoardState extends State<LeaderBoard> {
       if (partUrl == "")
         return CircleAvatar(
           foregroundColor: Colors.transparent,
-          // backgroundColor: Colors.transparent,
           radius: 20,
           child: Icon(
             Icons.account_circle_outlined,
@@ -135,10 +133,6 @@ class _LeaderBoardState extends State<LeaderBoard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  // leading: Icon(
-                  //   Icons.public,
-                  //   color: Color(0xFFDC4654),
-                  // ),
                   title: Text(
                     "Global Leaderboard",
                     style: GoogleFonts.ubuntu(
