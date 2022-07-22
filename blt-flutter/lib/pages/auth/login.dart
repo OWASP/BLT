@@ -16,6 +16,20 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -94,6 +108,7 @@ class LoginForm extends ConsumerStatefulWidget {
 class _LoginFormState extends ConsumerState<LoginForm> {
   bool showPassword = false;
   bool isShowVisible = false;
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _userController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
@@ -114,7 +129,15 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     );
   }
 
-  buildAuthenticating() {}
+  String? validateEmail(String? value) {
+    RegExp regex = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+    );
+    if (value == null || value.isEmpty || !regex.hasMatch(value))
+      return 'Enter a valid email address';
+    else
+      return null;
+  }
 
   @override
   void initState() {
@@ -128,6 +151,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return Form(
+      key: _formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -135,6 +159,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             width: 0.8 * widget.size.width,
             child: TextFormField(
               controller: _userController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return "This field is required";
+                }
+                return null;
+              },
               decoration: InputDecoration(
                 hintText: "Username",
                 prefixIcon: Icon(Icons.person),
@@ -153,6 +183,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             width: 0.8 * widget.size.width,
             child: TextFormField(
               controller: _emailController,
+              validator: validateEmail,
               decoration: InputDecoration(
                 hintText: "Email",
                 prefixIcon: Icon(Icons.mail),
@@ -171,6 +202,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             width: 0.8 * widget.size.width,
             child: TextFormField(
               controller: _passwordController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return "This field is required";
+                }
+                return null;
+              },
               onChanged: (val) {
                 if (!val.isEmpty) {
                   setState(() {
@@ -205,12 +242,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             height: 50,
             child: TextButton(
               onPressed: () async {
-                await login(
-                  _userController.text,
-                  _emailController.text,
-                  _passwordController.text,
-                  context,
-                );
+                if (_formKey.currentState!.validate()) {
+                  await login(
+                    _userController.text,
+                    _emailController.text,
+                    _passwordController.text,
+                    context,
+                  );
+                }
               },
               child: Text(
                 "Login",

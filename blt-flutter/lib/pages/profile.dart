@@ -43,9 +43,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Color(0xFF737373),
-          ),
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: ClipRRect(
@@ -86,9 +84,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         width: size.width,
         height: 0.3 * size.height,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Color(0xFF737373),
-          ),
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
@@ -110,9 +106,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Color(0xFF737373),
-          ),
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: ClipRRect(
@@ -153,9 +147,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         width: size.width,
         height: 0.3 * size.height,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Color(0xFF737373),
-          ),
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
@@ -188,7 +180,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    return new Scaffold(
+    return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -304,11 +296,16 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             )
                           : null,
                     ),
+                    Divider(
+                      thickness: 2,
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

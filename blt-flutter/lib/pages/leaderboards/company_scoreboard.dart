@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../routes/routing.dart';
 import '../../util/api/api.dart';
+import '../../util/api/company_api.dart';
 
 class CompanyScoreBoardPage extends StatefulWidget {
   const CompanyScoreBoardPage({Key? key}) : super(key: key);
@@ -132,7 +134,17 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
                             itemCount: list.length,
                             itemBuilder: (context, index) {
                               return ListTile(
-                                onTap: () {},
+                                onTap: () async {
+                                  await CompanyApiClient.getCompanyByKeyWord(
+                                    list[index],
+                                    list[index].companyName,
+                                  );
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteManager.companyDetailPage,
+                                    arguments: list[index],
+                                  );
+                                },
                                 shape: RoundedRectangleBorder(
                                   borderRadius: index == 0
                                       ? BorderRadius.only(

@@ -38,7 +38,7 @@ class IssueCard extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(issue.screenshotLink),
+                      image: NetworkImage(issue.screenshotLink!),
                       fit: BoxFit.cover,
                     ),
                   ),

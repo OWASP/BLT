@@ -85,7 +85,7 @@ class IssueDetailPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   image: DecorationImage(
                     image: NetworkImage(
-                      issue.screenshotLink,
+                      issue.screenshotLink!,
                     ),
                     fit: BoxFit.fill,
                   ),

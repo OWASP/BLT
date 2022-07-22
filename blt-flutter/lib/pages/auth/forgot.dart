@@ -1,3 +1,4 @@
+import 'package:bugheist/util/api/auth_api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,11 +10,44 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  late TextEditingController _emailController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+  }
+
+  String? validateEmail(String? value) {
+    RegExp regex = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+    );
+    if (value == null || value.isEmpty || !regex.hasMatch(value))
+      return 'Enter a valid email address';
+    else
+      return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           Container(
@@ -77,58 +111,74 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    SizedBox(
-                      height: 0.025 * size.height,
-                    ),
-                    SizedBox(
-                      width: 0.8 * size.width,
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: "Registered Email",
-                          prefixIcon: Icon(Icons.mail),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide(
-                              color: Color(0xFF737373),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 0.025 * size.height,
+                          ),
+                          SizedBox(
+                            width: 0.8 * size.width,
+                            child: TextFormField(
+                              controller: _emailController,
+                              validator: validateEmail,
+                              decoration: InputDecoration(
+                                hintText: "Registered Email",
+                                prefixIcon: Icon(Icons.mail),
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(
+                                    color: Color(0xFF737373),
+                                  ),
+                                ),
+                                fillColor: Colors.white.withOpacity(0.35),
+                              ),
                             ),
                           ),
-                          fillColor: Colors.white.withOpacity(0.35),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 0.025 * size.height,
-                    ),
-                    SizedBox(
-                      width: 0.8 * size.width,
-                      height: 50,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Login",
-                          style: GoogleFonts.ubuntu(
-                            textStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17.5,
+                          SizedBox(
+                            height: 0.025 * size.height,
+                          ),
+                          SizedBox(
+                            width: 0.8 * size.width,
+                            height: 50,
+                            child: TextButton(
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  await AuthApiClient.resetPassword(
+                                    _emailController.text,
+                                    context,
+                                  );
+                                }
+                              },
+                              child: Text(
+                                "Reset Password",
+                                style: GoogleFonts.ubuntu(
+                                  textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 17.5,
+                                  ),
+                                ),
+                              ),
+                              style: ButtonStyle(
+                                elevation: MaterialStateProperty.all(8),
+                                shadowColor: MaterialStateProperty.all(
+                                  Colors.black.withOpacity(0.5),
+                                ),
+                                shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                  ),
+                                ),
+                                backgroundColor: MaterialStateProperty.all(
+                                  Color(0xFFDC4654),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        style: ButtonStyle(
-                          elevation: MaterialStateProperty.all(8),
-                          shadowColor: MaterialStateProperty.all(
-                            Colors.black.withOpacity(0.5),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all(
-                            Color(0xFFDC4654),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -139,5 +189,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 }
