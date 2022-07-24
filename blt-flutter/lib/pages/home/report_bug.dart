@@ -143,7 +143,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     if (imageFile != null) {
       var image = File(imageFile.path);
       var imageBytes = await image.readAsBytes();
-      WidgetsBinding.instance!.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (timeStamp) => setState(
           () {
             _image = image;
