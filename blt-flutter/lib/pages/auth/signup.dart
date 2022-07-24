@@ -1,3 +1,4 @@
+import 'package:bugheist/util/api/auth_api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -15,7 +16,21 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           Container(
@@ -93,16 +108,49 @@ class SignUpForm extends StatefulWidget {
 class _SignUpFormState extends State<SignUpForm> {
   bool showPassword = false;
   bool isShowVisible = false;
+  final _formKey = GlobalKey<FormState>();
+
+  late TextEditingController _usernameController,
+      _emailController,
+      _passwordController,
+      _cpasswordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _cpasswordController = TextEditingController();
+  }
+
+  String? validateEmail(String? value) {
+    RegExp regex = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+    );
+    if (value == null || value.isEmpty || !regex.hasMatch(value))
+      return 'Enter a valid email address';
+    else
+      return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Form(
+      key: _formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             width: 0.8 * widget.size.width,
             child: TextFormField(
+              controller: _usernameController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return "This field is required";
+                }
+                return null;
+              },
               decoration: InputDecoration(
                 hintText: "Username",
                 prefixIcon: Icon(Icons.person),
@@ -120,6 +168,8 @@ class _SignUpFormState extends State<SignUpForm> {
           SizedBox(
             width: 0.8 * widget.size.width,
             child: TextFormField(
+              controller: _emailController,
+              validator: validateEmail,
               decoration: InputDecoration(
                 hintText: "Email",
                 prefixIcon: Icon(Icons.mail),
@@ -137,6 +187,13 @@ class _SignUpFormState extends State<SignUpForm> {
           SizedBox(
             width: 0.8 * widget.size.width,
             child: TextFormField(
+              controller: _passwordController,
+              validator: (value) {
+                if (value == null || value.length < 8) {
+                  return "This field is required";
+                }
+                return null;
+              },
               onChanged: (val) {
                 if (!val.isEmpty) {
                   setState(() {
@@ -169,6 +226,17 @@ class _SignUpFormState extends State<SignUpForm> {
           SizedBox(
             width: 0.8 * widget.size.width,
             child: TextFormField(
+              controller: _cpasswordController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return "This field is required";
+                } else {
+                  if (_passwordController.text != _cpasswordController.text) {
+                    return "Passwords don't match";
+                  }
+                  return null;
+                }
+              },
               decoration: InputDecoration(
                 hintText: "Confirm Password",
                 prefixIcon: Icon(Icons.password),
@@ -191,7 +259,16 @@ class _SignUpFormState extends State<SignUpForm> {
             width: 0.8 * widget.size.width,
             height: 50,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  await AuthApiClient.signup(
+                    _usernameController.text,
+                    _emailController.text,
+                    _passwordController.text,
+                    context,
+                  );
+                }
+              },
               child: Text(
                 "Sign Up",
                 style: GoogleFonts.ubuntu(
@@ -236,5 +313,14 @@ class _SignUpFormState extends State<SignUpForm> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _cpasswordController.dispose();
+    super.dispose();
   }
 }

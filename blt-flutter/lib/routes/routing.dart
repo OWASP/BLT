@@ -10,6 +10,8 @@ import 'package:bugheist/pages/profile.dart';
 // import 'package:bugheist/pages/signup.dart';
 import 'package:flutter/material.dart';
 
+import '../models/company_model.dart';
+import '../pages/company_details.dart';
 import '../pages/referral.dart';
 import '../pages/welcome.dart';
 import '../pages/about.dart';
@@ -32,6 +34,7 @@ class RouteManager {
   static const String globalLeaderboardPage = "/globalBoard";
   static const String monthlyLeaderboardPage = "/monthlyBoard";
   static const String companyScoreboardPage = "/companyBoard";
+  static const String companyDetailPage = "/companyDetail";
   static const String issueDetailPage = "/issueDetail";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -238,6 +241,27 @@ class RouteManager {
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               const CompanyScoreBoardPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+      case companyDetailPage:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              CompanyDetailPage(
+            company: arguments as Company,
+          ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

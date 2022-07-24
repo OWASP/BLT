@@ -1,68 +1,103 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:bugheist/global/variables.dart';
+import 'package:bugheist/pages/home/start_hunt.dart';
+import 'package:bugheist/providers/login_provider.dart';
+import 'package:bugheist/util/api/issues_api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ReportBug extends StatefulWidget {
+import '../../models/issue_model.dart';
+import '../../util/enums/login_type.dart';
+
+class ReportBug extends ConsumerStatefulWidget {
   const ReportBug({Key? key}) : super(key: key);
 
   @override
-  _ReportBugState createState() => _ReportBugState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
 
-class _ReportBugState extends State<ReportBug> {
-  final _messageTextController = TextEditingController();
-  final _messageTitleTextController = TextEditingController();
-  String _messageValue = '';
-  late String token;
+class _ReportBugState extends ConsumerState<ReportBug> {
+  String selectedWidgetName = "Report Issue";
 
-  File _image = File("");
+  Widget bodyWidget = SizedBox();
 
-  bool isLoading = false;
-  bool isButtonDisable = false;
-  final picker = ImagePicker();
-
-  Future _pickImageFromGallery() async {
-    final imageFile = await picker.getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (imageFile != null) {
-        _image = File(imageFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  Future<void> _showThankYouDialog(BuildContext context) {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Thank you for reporting an issue.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Ok'),
-              onPressed: () {
-                _messageTextController.clear();
-                setState(() {
-                  _messageValue = _messageTextController.text;
-                  //_image = null;
-                  //file = null;
-                });
-                Navigator.of(context).pop();
-              },
+  List<DropdownMenuItem<String>> _dropDownItem() {
+    List<String> ddl = [
+      "Report Issue",
+      "Start Bug Hunt",
+    ];
+    return ddl.map(
+      (value) {
+        return DropdownMenuItem(
+          value: value,
+          child: Text(
+            value,
+            style: GoogleFonts.ubuntu(
+              textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
             ),
-          ],
+          ),
         );
       },
-    );
+    ).toList();
+  }
+
+  buildPageSwitcher(Size size) {
+    LoginType loginType = ref.watch(loginProvider.notifier).loginType;
+
+    return (loginType == LoginType.guest)
+        ? Container(
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Report Issue",
+              style: GoogleFonts.ubuntu(
+                textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
+              ),
+            ),
+          )
+        : DropdownButton(
+            items: _dropDownItem(),
+            value: selectedWidgetName,
+            onChanged: (val) {
+              selectedWidgetName = val.toString();
+              switch (val) {
+                case "Report Issue":
+                  setState(() {
+                    bodyWidget = ReportForm(
+                      size: size,
+                      parentContext: context,
+                    );
+                  });
+                  break;
+                case "Start Bug Hunt":
+                  setState(() {
+                    bodyWidget = StartHuntPage();
+                  });
+                  break;
+                default:
+                  setState(() {
+                    bodyWidget = ReportForm(
+                      size: size,
+                      parentContext: context,
+                    );
+                  });
+              }
+            },
+          );
   }
 
   @override
   void initState() {
     super.initState();
+    bodyWidget = ReportForm(
+      size: window.physicalSize / window.devicePixelRatio,
+      parentContext: context,
+    );
   }
 
   @override
@@ -73,16 +108,63 @@ class _ReportBugState extends State<ReportBug> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Report Issue",
-              style: GoogleFonts.ubuntu(
-                textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
-              ),
-            ),
-          ),
+          buildPageSwitcher(size),
+          bodyWidget,
+        ],
+      ),
+    );
+  }
+}
+
+class ReportForm extends ConsumerStatefulWidget {
+  final Size size;
+  final BuildContext parentContext;
+
+  const ReportForm({
+    Key? key,
+    required this.size,
+    required this.parentContext,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _ReportFormState();
+}
+
+class _ReportFormState extends ConsumerState<ReportForm> {
+  final _descriptionController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  String? base64image;
+  File _image = File("");
+  final picker = ImagePicker();
+
+  Future<void> _pickImageFromGallery() async {
+    final imageFile = await picker.getImage(source: ImageSource.gallery);
+    if (imageFile != null) {
+      var image = File(imageFile.path);
+      var imageBytes = await image.readAsBytes();
+      WidgetsBinding.instance!.addPostFrameCallback(
+        (timeStamp) => setState(
+          () {
+            _image = image;
+            base64image = base64Encode(imageBytes);
+            print(base64image);
+          },
+        ),
+      );
+    } else {
+      print('No image selected.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size size = widget.size;
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Container(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
             child: Column(
@@ -102,8 +184,14 @@ class _ReportBugState extends State<ReportBug> {
                 ),
                 SizedBox(
                   height: 40,
-                  child: TextField(
-                    controller: _messageTitleTextController,
+                  child: TextFormField(
+                    controller: _titleController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "This field is required";
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       hintText: "Enter the URL or app name of the issue ...",
                       enabledBorder: OutlineInputBorder(
@@ -122,15 +210,9 @@ class _ReportBugState extends State<ReportBug> {
                     cursorColor: Color(0xFFDC4654),
                     style: GoogleFonts.aBeeZee(
                       textStyle: TextStyle(
-                        color: Colors.white,
                         fontSize: 12,
                       ),
                     ),
-                    onChanged: (String value) {
-                      setState(() {
-                        _messageValue = value;
-                      });
-                    },
                   ),
                 ),
               ],
@@ -155,31 +237,27 @@ class _ReportBugState extends State<ReportBug> {
                 ),
                 SizedBox(
                   height: 80,
-                  child: TextField(
-                    controller: _messageTextController,
+                  child: TextFormField(
+                    controller: _descriptionController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "This field is required";
+                      }
+                      return null;
+                    },
                     maxLines: 5,
                     decoration: InputDecoration(
                       hintText: "Enter a description of the issue here ...",
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10.0)),
                         borderSide: BorderSide(color: Colors.grey),
                       ),
                     ),
                     style: GoogleFonts.aBeeZee(
                       textStyle: TextStyle(
-                        color: Colors.white,
                         fontSize: 12,
                       ),
                     ),
-                    onChanged: (String value) {
-                      setState(() {
-                        _messageValue = value;
-                      });
-                    },
                     cursorColor: Color(0xFFDC4654),
                   ),
                 ),
@@ -199,9 +277,6 @@ class _ReportBugState extends State<ReportBug> {
               ),
               onPressed: () {
                 _pickImageFromGallery();
-                setState(() {
-                  _messageTextController.text = _messageValue;
-                });
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(
@@ -275,8 +350,33 @@ class _ReportBugState extends State<ReportBug> {
                   Color(0xFFDC4654),
                 ),
               ),
-              onPressed: () {
-                uploadBtnPress();
+              onPressed: () async {
+                LoginType loginType =
+                    ref.watch(loginProvider.notifier).loginType;
+                if (loginType == LoginType.user) {
+                  if (_formKey.currentState!.validate()) {
+                    if (base64image != null) {
+                      print(base64image);
+                      Issue issue = Issue(
+                        user: currentUser!,
+                        url: _titleController.text,
+                        description: _descriptionController.text,
+                        isVerified: false,
+                        isOpen: false,
+                        ocr: base64image!,
+                      );
+                      await IssueApiClient.postIssue(
+                          issue, widget.parentContext);
+                    }
+                  }
+                } else {
+                  SnackBar cantSnak = SnackBar(
+                    content: Text("You need to login to report issues!"),
+                  );
+                  ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                    cantSnak,
+                  );
+                }
               },
             ),
           ),
@@ -286,33 +386,5 @@ class _ReportBugState extends State<ReportBug> {
         ],
       ),
     );
-  }
-
-  Function? uploadBtnPress() {
-    if (isButtonDisable) {
-      return null;
-    } else {
-      print('return upload issue');
-      uploadIssue();
-      return null;
-    }
-  }
-
-  void uploadIssue() async {
-    if (_image.path != "") {
-      setState(() {
-        isLoading = true;
-        isButtonDisable = true;
-      });
-      // await RestDatasource().reportIssue(
-      //     _image, _messageValue, StateContainer.of(context).loggedInUser.token);
-
-      _showThankYouDialog(context);
-
-      setState(() {
-        isLoading = false;
-        isButtonDisable = false;
-      });
-    }
   }
 }

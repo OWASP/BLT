@@ -3,20 +3,20 @@ import 'package:intl/intl.dart';
 import './user_model.dart';
 
 class Issue {
-  final int id;
+  final int? id;
   final User? user;
   final String url;
   final String description;
-  final String label;
+  final String? label;
   final bool isVerified;
   final int? score;
   final bool isOpen;
-  final String userAgent;
+  final String? userAgent;
   final String ocr;
-  final String screenshotLink;
+  final String? screenshotLink;
   final DateTime? closedDate;
-  final String githubUrl;
-  final DateTime created;
+  final String? githubUrl;
+  final DateTime? created;
   final DateTime? lastModified;
   final int? hunt;
   final int? domain;
@@ -30,7 +30,7 @@ class Issue {
         : null;
   }
 
-  String get created_date => dateFormatter.format(created.toLocal());
+  String get created_date => dateFormatter.format(created!.toLocal());
 
   String? get last_modified_date {
     return (lastModified != null)
@@ -39,20 +39,20 @@ class Issue {
   }
 
   Issue({
-    required this.id,
+    this.id,
     this.user,
     required this.url,
     required this.description,
-    required this.label,
+    this.label,
     required this.isVerified,
     this.score,
     required this.isOpen,
-    required this.userAgent,
+    this.userAgent,
     required this.ocr,
-    required this.screenshotLink,
+    this.screenshotLink,
     this.closedDate,
-    required this.githubUrl,
-    required this.created,
+    this.githubUrl,
+    this.created,
     this.lastModified,
     this.hunt,
     this.domain,
@@ -87,5 +87,19 @@ class Issue {
       domain: responseData["domain"],
       closedBy: responseData["closed_by"],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "user": {
+        "username": user!.username!,
+      },
+      "url": url,
+      "verified": isVerified,
+      "score": 0,
+      "status": isOpen ? "open" : "closed",
+      "description": description,
+      "ocr": ocr,
+    };
   }
 }
