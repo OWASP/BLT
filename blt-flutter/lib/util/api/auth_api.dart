@@ -20,7 +20,6 @@ class AuthApiClient {
       if (response.statusCode == 200) {
         var decodedResponse = jsonDecode(response.body);
         authenticatedUser = User(
-          email: userCreds["email"],
           username: userCreds["username"],
           token: decodedResponse["token"],
         );
@@ -64,7 +63,6 @@ class AuthApiClient {
           "password2": password,
         },
       );
-      print(response.statusCode);
       if (response.statusCode == 200 || response.statusCode == 201) {
         SnackBar sentSnack = SnackBar(
           duration: const Duration(seconds: 6),
@@ -75,6 +73,18 @@ class AuthApiClient {
         ScaffoldMessenger.of(parentContext).showSnackBar(sentSnack);
         await Future.delayed(const Duration(seconds: 6));
         Navigator.of(parentContext).pop();
+      } else {
+        ScaffoldMessenger.of(parentContext).clearSnackBars();
+        Map responseMap = jsonDecode(utf8.decode(response.bodyBytes));
+        String errorString = "";
+        responseMap.forEach((key, value) {
+          errorString +=
+              "$key : ${value.toString().substring(1, value.toString().length - 1)} \n";
+        });
+        SnackBar errorSnack = SnackBar(
+          content: Text("Error!\n ${errorString}"),
+        );
+        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
       }
     } catch (e) {
       print(e);

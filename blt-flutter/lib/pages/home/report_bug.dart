@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
@@ -134,16 +134,19 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   final _descriptionController = TextEditingController();
   final _titleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String? base64image;
-  File _image = File("");
+  File? _image;
   final picker = ImagePicker();
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.getImage(source: ImageSource.gallery);
     if (imageFile != null) {
       var image = File(imageFile.path);
-      var imageBytes = await image.readAsBytes();
-     
+      setState(() {
+        _image = image;
+      });
+      // WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
+      //       _image = image;
+      //     }));
     } else {
       print('No image selected.');
     }
@@ -280,7 +283,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
           Container(
             height: 280,
             width: size.width,
-            child: _image.path == ""
+            child: _image == null
                 ? Center(
                     child: Text(
                       'No image selected.',
@@ -292,18 +295,17 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     ),
                   )
                 : Image.file(
-                    _image,
+                    _image!,
                     fit: BoxFit.cover,
                   ),
             decoration: BoxDecoration(
-              border: _image.path == ""
+              border: _image != null
                   ? Border.all(
                       color: Color(0xFFDC4654),
                       width: 0.5,
                     )
                   : null,
-              borderRadius:
-                  _image.path == "" ? BorderRadius.circular(15) : null,
+              borderRadius: _image != null ? BorderRadius.circular(15) : null,
             ),
           ),
           Padding(
@@ -347,18 +349,25 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     ref.watch(loginProvider.notifier).loginType;
                 if (loginType == LoginType.user) {
                   if (_formKey.currentState!.validate()) {
-                    if (base64image != null) {
-                      print(base64image);
+                    if (_image != null) {
                       Issue issue = Issue(
                         user: currentUser!,
                         url: _titleController.text,
                         description: _descriptionController.text,
                         isVerified: false,
                         isOpen: false,
-                        ocr: base64image!,
+                        ocr: _image!.path,
                       );
                       await IssueApiClient.postIssue(
                           issue, widget.parentContext);
+                    } else {
+                      SnackBar cantSnak = SnackBar(
+                        content:
+                            Text("You need to upload a screenshot of issue!"),
+                      );
+                      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                        cantSnak,
+                      );
                     }
                   }
                 } else {

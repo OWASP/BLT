@@ -1,4 +1,5 @@
 import 'dart:convert';
+// import 'dart:io';
 
 import 'package:bugheist/routes/routing.dart';
 import 'package:bugheist/util/endpoints/issue_endpoints.dart';
@@ -78,13 +79,43 @@ class IssueApiClient {
 
   static Future<void> postIssue(Issue issue, BuildContext parentContext) async {
     http.Response? response;
+    // HttpClient httpClient = HttpClient();
     try {
-      response = await http.post(
+      // HttpClientRequest req = await httpClient.postUrl(
+      //   Uri.parse(IssueEndPoints.issues),
+      // );
+      // req.headers.set('content-type', 'application/json');
+      // req.headers.set('Accept', 'application/json');
+      // req.add(utf8.encode(jsonEncode(issue.toJson())));
+      // req.
+      var request = http.MultipartRequest(
+        "POST",
         Uri.parse(IssueEndPoints.issues),
-        body: jsonEncode(issue.toJson()),
       );
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          "screenshot",
+          issue.ocr,
+        ),
+      );
+      request.headers.addAll({
+        "accept": "application/json",
+        "Content-Type": "application/json",
+      });
+      issue.toJson().forEach((key, value) {
+        request.fields[key] = jsonEncode(value);
+      });
+      print(request.fields);
+
+      var streamedresponse = await request.send();
+
+      print(streamedresponse);
+      response = await http.Response.fromStream(streamedresponse);
+
       print(response.body);
-      if (response.statusCode == 200) {
+
+      if (streamedresponse.statusCode == 200) {
+        response = await http.Response.fromStream(streamedresponse);
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         issue = Issue.fromJson(decodedResponse);
 
