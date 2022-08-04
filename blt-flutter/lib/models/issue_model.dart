@@ -7,7 +7,7 @@ class Issue {
   final User? user;
   final String url;
   final String description;
-  final String? label;
+  final int? label;
   final bool isVerified;
   final int? score;
   final bool isOpen;
@@ -70,7 +70,7 @@ class Issue {
           : null,
       url: responseData["url"],
       description: responseData["description"],
-      label: responseData["label"].toString(),
+      label: responseData["label"],
       isVerified: responseData["verified"],
       score: responseData["score"],
       isOpen: (responseData["status"] == "open") ? true : false,
@@ -92,14 +92,16 @@ class Issue {
   Map<String, dynamic> toJson() {
     return {
       "user": {
-        "username": user!.username!,
+        "username": user!.username!.trim(),
       },
-      "url": url,
+      "url": url.trim(),
       "verified": isVerified,
       "score": 0,
       "status": isOpen ? "open" : "closed",
       "description": description,
-      "ocr": ocr,
+      // "hunt": null,
+      // "domain": null,
+      // "closed_by": null,
     };
   }
 }

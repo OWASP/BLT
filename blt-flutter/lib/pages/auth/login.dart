@@ -110,19 +110,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   bool isShowVisible = false;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _userController;
-  late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
   Future<void> login(
     String username,
-    String email,
     String password,
     BuildContext parentContext,
   ) async {
     await ref.read(authStateNotifier.notifier).userLogin(
       {
         "username": username,
-        "email": email,
         "password": password,
       },
       parentContext,
@@ -144,7 +141,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     super.initState();
 
     _userController = TextEditingController();
-    _emailController = TextEditingController();
     _passwordController = TextEditingController();
   }
 
@@ -168,25 +164,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               decoration: InputDecoration(
                 hintText: "Username",
                 prefixIcon: Icon(Icons.person),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                fillColor: Colors.white.withOpacity(0.35),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 0.025 * widget.size.height,
-          ),
-          SizedBox(
-            width: 0.8 * widget.size.width,
-            child: TextFormField(
-              controller: _emailController,
-              validator: validateEmail,
-              decoration: InputDecoration(
-                hintText: "Email",
-                prefixIcon: Icon(Icons.mail),
                 filled: true,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -245,7 +222,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 if (_formKey.currentState!.validate()) {
                   await login(
                     _userController.text,
-                    _emailController.text,
                     _passwordController.text,
                     context,
                   );
@@ -308,7 +284,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   @override
   void dispose() {
     _userController.dispose();
-    _emailController.dispose();
     _passwordController.dispose();
 
     super.dispose();

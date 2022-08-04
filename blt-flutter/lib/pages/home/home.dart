@@ -1,5 +1,5 @@
 import 'package:bugheist/global/variables.dart';
-import 'package:bugheist/pages/feed.dart';
+// import 'package:bugheist/pages/feed.dart';
 import 'package:bugheist/pages/home/issues.dart';
 import 'package:bugheist/pages/home/leaderboard.dart';
 import 'package:bugheist/pages/home/report_bug.dart';
@@ -28,9 +28,9 @@ class _HomeState extends ConsumerState<Home> {
   late PageController _pageController;
 
   final List<Widget> _children = [
-    Feed(),
-    ReportBug(),
+    // Feed(),
     PaginatedClass(),
+    ReportBug(),
     LeaderBoard()
   ];
   void _onItemTapped(int index) {
@@ -108,28 +108,48 @@ class _HomeState extends ConsumerState<Home> {
       child: Scaffold(
         appBar: buildAppBar(context: context),
         drawer: Drawer(
-          // Add a ListView to the drawer. This ensures the user can scroll
-          // through the options in the drawer if there isn't enough vertical
-          // space to fit everything.
           child: ListView(
-            // Important: Remove any padding from the ListView.
             padding: EdgeInsets.zero,
             children: <Widget>[
+              // Container(
+              //   height: 0.25 * size.height,
+              //   child: Stack(
+              //     children: [
+              //       Image.network(currentUser!.pfpLink!),
+              //       Positioned(
+              //         left: 20,
+              //         top: 0.125 * size.height,
+              //         child: Text(
+              //           currentUser!.username!,
+              //           style: TextStyle(
+              //             color: Colors.white,
+              //           ),
+              //         ),
+              //       ),
+              //       Column(
+              //         mainAxisAlignment: MainAxisAlignment.end,
+              //         children: [
+              //           Text(
+              //             currentUser!.username!,
+              //             style: TextStyle(
+              //               color: Colors.white,
+              //             ),
+              //           ),
+              //         ],
+              //       )
+              //     ],
+              //   ),
+              // ),
               UserAccountsDrawerHeader(
-                onDetailsPressed: () {
-                  RouteManager.navigateToProfile(context);
-                },
                 decoration: BoxDecoration(
                   color: Color(0xFFDC4654),
                 ),
                 accountName: Text(
                   currentUser!.username!,
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
                 accountEmail: Text(
-                  currentUser!.email!,
+                  "",
                   style: TextStyle(
                     color: Colors.white,
                   ),
@@ -205,17 +225,17 @@ class _HomeState extends ConsumerState<Home> {
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem>[
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.home),
+            //   label: 'Home',
+            // ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
+              icon: Icon(Icons.list),
+              label: 'Issues',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.bug_report),
               label: 'Report',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list),
-              label: 'Issues',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.leaderboard),
