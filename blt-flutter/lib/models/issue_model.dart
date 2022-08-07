@@ -91,14 +91,14 @@ class Issue {
 
   Map<String, dynamic> toJson() {
     return {
-      "user": {
-        "username": user!.username!.trim(),
+      'user': {
+        'username': user!.username!.trim(),
       },
-      "url": url.trim(),
-      "verified": isVerified,
-      "score": 0,
-      "status": isOpen ? "open" : "closed",
-      "description": description,
+      'url': url.trim(),
+      'verified': isVerified,
+      'score': 0,
+      'status': isOpen ? "open" : "closed",
+      'description': description,
       // "hunt": null,
       // "domain": null,
       // "closed_by": null,

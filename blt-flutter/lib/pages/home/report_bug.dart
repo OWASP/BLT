@@ -144,9 +144,6 @@ class _ReportFormState extends ConsumerState<ReportForm> {
       setState(() {
         _image = image;
       });
-      // WidgetsBinding.instance.addPostFrameCallback((timeStamp) => setState(() {
-      //       _image = image;
-      //     }));
     } else {
       print('No image selected.');
     }
@@ -355,8 +352,10 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                         url: _titleController.text,
                         description: _descriptionController.text,
                         isVerified: false,
-                        isOpen: false,
+                        isOpen: true,
                         ocr: _image!.path,
+                        userAgent:
+                            "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
                       );
                       await IssueApiClient.postIssue(
                           issue, widget.parentContext);

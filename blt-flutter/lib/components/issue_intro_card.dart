@@ -35,12 +35,11 @@ class IssueCard extends StatelessWidget {
               Container(
                 width: size.width,
                 height: 0.2 * size.height,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(issue.screenshotLink!),
-                      fit: BoxFit.cover,
-                    ),
+                child: InteractiveViewer(
+                  minScale: 0.05,
+                  child: Image.network(
+                    issue.screenshotLink!,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),

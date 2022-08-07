@@ -1,6 +1,4 @@
 import 'dart:convert';
-// import 'dart:io';
-
 import 'package:bugheist/routes/routing.dart';
 import 'package:bugheist/util/endpoints/issue_endpoints.dart';
 import 'package:flutter/material.dart';
@@ -79,15 +77,7 @@ class IssueApiClient {
 
   static Future<void> postIssue(Issue issue, BuildContext parentContext) async {
     http.Response? response;
-    // HttpClient httpClient = HttpClient();
     try {
-      // HttpClientRequest req = await httpClient.postUrl(
-      //   Uri.parse(IssueEndPoints.issues),
-      // );
-      // req.headers.set('content-type', 'application/json');
-      // req.headers.set('Accept', 'application/json');
-      // req.add(utf8.encode(jsonEncode(issue.toJson())));
-      // req.
       var request = http.MultipartRequest(
         "POST",
         Uri.parse(IssueEndPoints.issues),
@@ -98,14 +88,18 @@ class IssueApiClient {
           issue.ocr,
         ),
       );
+      var issueMap = issue.toJson();
       request.headers.addAll({
-        "accept": "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
+        "user_agent": issue.userAgent!
       });
       issue.toJson().forEach((key, value) {
         request.fields[key] = jsonEncode(value);
       });
-      print(request.fields);
+
+      request.fields["url"] = issueMap["url"];
+      request.fields["status"] = issueMap["status"];
+      request.fields["description"] = issueMap["description"];
 
       var streamedresponse = await request.send();
 
