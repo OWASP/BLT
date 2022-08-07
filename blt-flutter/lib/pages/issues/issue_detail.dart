@@ -79,16 +79,16 @@ class IssueDetailPage extends StatelessWidget {
             Container(
               height: 0.334 * size.height,
               width: size.width,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  image: DecorationImage(
-                    image: NetworkImage(
-                      issue.screenshotLink!,
-                    ),
-                    fit: BoxFit.fill,
-                  ),
+              child: InteractiveViewer(
+                constrained: false,
+                minScale: 0.05,
+                child: Image.network(
+                  issue.screenshotLink!,
+                  fit: BoxFit.fill,
                 ),
               ),
             ),
