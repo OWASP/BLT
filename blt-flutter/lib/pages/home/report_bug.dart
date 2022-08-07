@@ -342,40 +342,28 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 ),
               ),
               onPressed: () async {
-                LoginType loginType =
-                    ref.watch(loginProvider.notifier).loginType;
-                if (loginType == LoginType.user) {
-                  if (_formKey.currentState!.validate()) {
-                    if (_image != null) {
-                      Issue issue = Issue(
-                        user: currentUser!,
-                        url: _titleController.text,
-                        description: _descriptionController.text,
-                        isVerified: false,
-                        isOpen: true,
-                        ocr: _image!.path,
-                        userAgent:
-                            "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
-                      );
-                      await IssueApiClient.postIssue(
-                          issue, widget.parentContext);
-                    } else {
-                      SnackBar cantSnak = SnackBar(
-                        content:
-                            Text("You need to upload a screenshot of issue!"),
-                      );
-                      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                        cantSnak,
-                      );
-                    }
+                if (_formKey.currentState!.validate()) {
+                  if (_image != null) {
+                    Issue issue = Issue(
+                      user: currentUser!,
+                      url: _titleController.text,
+                      description: _descriptionController.text,
+                      isVerified: false,
+                      isOpen: true,
+                      ocr: _image!.path,
+                      userAgent:
+                          "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
+                    );
+                    await IssueApiClient.postIssue(issue, widget.parentContext);
+                  } else {
+                    SnackBar cantSnak = SnackBar(
+                      content:
+                          Text("You need to upload a screenshot of issue!"),
+                    );
+                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                      cantSnak,
+                    );
                   }
-                } else {
-                  SnackBar cantSnak = SnackBar(
-                    content: Text("You need to login to report issues!"),
-                  );
-                  ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                    cantSnak,
-                  );
                 }
               },
             ),
