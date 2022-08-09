@@ -125,7 +125,7 @@ class IssueApiClient {
       } else {
         ScaffoldMessenger.of(parentContext).clearSnackBars();
         SnackBar errorSnack = SnackBar(
-          content: Text("There was some error, please try again!"),
+          content: Text("There was some error, please try again!" + response.body),
         );
         ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
       }
