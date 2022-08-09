@@ -109,7 +109,6 @@ class IssueApiClient {
       print(response.body);
 
       if (streamedresponse.statusCode == 201) {
-        response = await http.Response.fromStream(streamedresponse);
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         issue = Issue.fromJson(decodedResponse);
 
