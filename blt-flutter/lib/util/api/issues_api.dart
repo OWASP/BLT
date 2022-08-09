@@ -129,6 +129,14 @@ class IssueApiClient {
         ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
       }
     } catch (e) {
+
+ScaffoldMessenger.of(parentContext).clearSnackBars();
+        SnackBar errorSnack = SnackBar(
+          content: Text("There was some error, please try again!" + e.toString()),
+        );
+        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
+      
+
       print(e);
     }
   }
