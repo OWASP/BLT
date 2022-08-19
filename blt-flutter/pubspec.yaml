@@ -12,7 +12,7 @@ dependencies:
   flutter_markdown: ^0.6.10
   google_fonts: ^3.0.1
   http: ^0.13.1
-  image_picker: ^0.8.5
+  image_picker: ^0.8.4+4
   provider: ">=5.0.0 <7.0.0"
   receive_sharing_intent: ^1.4.5
   shared_preferences: ^2.0.5
