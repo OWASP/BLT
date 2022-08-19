@@ -70,27 +70,35 @@ class BugHeistState extends State<BugHeist> {
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
-      child: MaterialApp(
-        scaffoldMessengerKey: _messangerKey,
-        debugShowCheckedModeBanner: false,
-        onGenerateRoute: RouteManager.generateRoute,
-        title: 'BugHeist',
-        theme: ThemeData(
-          primarySwatch: Colors.red,
-          primaryColor: Colors.white,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          primaryTextTheme: TextTheme(
-            headline1: TextStyle(
-                fontSize: 72.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
-            headline6: TextStyle(color: Colors.black),
-            button: TextStyle(
-              color: Colors.black,
+      child: GestureDetector(
+        onTap: () {
+          FocusScopeNode currentScope = FocusScope.of(context);
+          if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
+            FocusManager.instance.primaryFocus!.unfocus();
+          }
+        },
+        child: MaterialApp(
+          scaffoldMessengerKey: _messangerKey,
+          debugShowCheckedModeBanner: false,
+          onGenerateRoute: RouteManager.generateRoute,
+          title: 'BugHeist',
+          theme: ThemeData(
+            primarySwatch: Colors.red,
+            primaryColor: Colors.white,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            primaryTextTheme: TextTheme(
+              headline1: TextStyle(
+                  fontSize: 72.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+              headline6: TextStyle(color: Colors.black),
+              button: TextStyle(
+                color: Colors.black,
+              ),
             ),
           ),
+          home: WelcomePage(),
         ),
-        home: WelcomePage(),
       ),
     );
   }

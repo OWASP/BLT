@@ -138,7 +138,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   final picker = ImagePicker();
 
   Future<void> _pickImageFromGallery() async {
-    final imageFile = await picker.getImage(source: ImageSource.gallery);
+    final imageFile = await picker.pickImage(source: ImageSource.gallery);
     if (imageFile != null) {
       var image = File(imageFile.path);
       setState(() {

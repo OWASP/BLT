@@ -102,7 +102,7 @@ class _ReferralPageState extends State<ReferralPage> {
                       child: TextButton(
                         onPressed: () async {},
                         child: Text(
-                          "Login",
+                          "Invite",
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Colors.white,

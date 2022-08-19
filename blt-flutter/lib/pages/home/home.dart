@@ -1,5 +1,5 @@
 import 'package:bugheist/global/variables.dart';
-// import 'package:bugheist/pages/feed.dart';
+// import 'package:bugheist/pages/home/feed.dart';
 import 'package:bugheist/pages/home/issues.dart';
 import 'package:bugheist/pages/home/leaderboard.dart';
 import 'package:bugheist/pages/home/report_bug.dart';
@@ -27,7 +27,7 @@ class _HomeState extends ConsumerState<Home> {
   late int _selectedIndex;
   late PageController _pageController;
 
-  final List<Widget> _children = [
+  final List<ConsumerStatefulWidget> _children = [
     // Feed(),
     PaginatedClass(),
     ReportBug(),
