@@ -36,7 +36,7 @@ class _HuntFormState extends State<HuntForm> {
   int prizeMoney = 100;
 
   Future _pickImageFromGallery() async {
-    final imageFile = await picker.getImage(source: ImageSource.gallery);
+    final imageFile = await picker.pickImage(source: ImageSource.gallery);
 
     setState(() {
       if (imageFile != null) {

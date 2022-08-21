@@ -1,19 +1,20 @@
 import 'package:bugheist/util/api/api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../routes/routing.dart';
 
-class LeaderBoard extends StatefulWidget {
+class LeaderBoard extends ConsumerStatefulWidget {
   const LeaderBoard({Key? key}) : super(key: key);
 
   @override
   _LeaderBoardState createState() => _LeaderBoardState();
 }
 
-class _LeaderBoardState extends State<LeaderBoard> {
+class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   int i = 0;
   Color my = Colors.brown;
   late Future _getObj;

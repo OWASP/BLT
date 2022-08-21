@@ -6,11 +6,15 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../components/issuechip.dart';
 import '../models/issue_model.dart';
+import '../models/user_model.dart';
 import '../providers/authstate_provider.dart';
 import '../routes/routing.dart';
 
 class UserProfile extends ConsumerStatefulWidget {
-  const UserProfile({Key? key}) : super(key: key);
+  const UserProfile({
+    Key? key,
+    User? user,
+  }) : super(key: key);
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _UserProfileState();
