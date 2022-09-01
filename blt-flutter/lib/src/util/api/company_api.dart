@@ -5,9 +5,12 @@ import 'package:http/http.dart' as http;
 
 import '../../models/company_model.dart';
 
+/// CLass for accessing the company client.
 class CompanyApiClient {
   CompanyApiClient._();
 
+  /// Search a company by keyword,
+  /// returns the first matching result.
   static Future<void> getCompanyByKeyWord(
     Company company,
     String keyword,

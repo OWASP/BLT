@@ -38,6 +38,8 @@ class RouteManager {
   static const String companyDetailPage = "/companyDetail";
   static const String issueDetailPage = "/issueDetail";
 
+  /// Route generator, finds a requested route or throws the
+  /// error page in case of route not found.
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final arguments = settings.arguments;
     switch (settings.name) {

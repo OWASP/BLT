@@ -113,35 +113,6 @@ class _HomeState extends ConsumerState<Home> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              // Container(
-              //   height: 0.25 * size.height,
-              //   child: Stack(
-              //     children: [
-              //       Image.network(currentUser!.pfpLink!),
-              //       Positioned(
-              //         left: 20,
-              //         top: 0.125 * size.height,
-              //         child: Text(
-              //           currentUser!.username!,
-              //           style: TextStyle(
-              //             color: Colors.white,
-              //           ),
-              //         ),
-              //       ),
-              //       Column(
-              //         mainAxisAlignment: MainAxisAlignment.end,
-              //         children: [
-              //           Text(
-              //             currentUser!.username!,
-              //             style: TextStyle(
-              //               color: Colors.white,
-              //             ),
-              //           ),
-              //         ],
-              //       )
-              //     ],
-              //   ),
-              // ),
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
                   color: Color(0xFFDC4654),

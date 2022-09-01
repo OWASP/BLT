@@ -18,7 +18,7 @@ class BugHeistState extends State<BugHeist> {
   late StreamSubscription _intentDataStreamSubscription;
   late List<SharedMediaFile> _sharedFiles;
   //late String _sharedText;
-  final _messangerKey = GlobalKey<ScaffoldMessengerState>();
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   @override
   void initState() {
     super.initState();
@@ -82,7 +82,7 @@ class BugHeistState extends State<BugHeist> {
           }
         },
         child: MaterialApp(
-          scaffoldMessengerKey: _messangerKey,
+          scaffoldMessengerKey: _messengerKey,
           debugShowCheckedModeBanner: false,
           onGenerateRoute: RouteManager.generateRoute,
           title: 'BugHeist',
@@ -90,16 +90,6 @@ class BugHeistState extends State<BugHeist> {
             primarySwatch: Colors.red,
             primaryColor: Colors.white,
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            primaryTextTheme: TextTheme(
-              headline1: TextStyle(
-                  fontSize: 72.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-              headline6: TextStyle(color: Colors.black),
-              button: TextStyle(
-                color: Colors.black,
-              ),
-            ),
           ),
           home: WelcomePage(),
         ),

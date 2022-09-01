@@ -15,7 +15,6 @@ class IssueData {
   });
 
   factory IssueData.fromJson(Map<String, dynamic> responseData) {
-    print(responseData["next"]);
     return IssueData(
       count: responseData["count"],
       nextQuery: responseData["next"],

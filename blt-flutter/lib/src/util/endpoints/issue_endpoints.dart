@@ -1,3 +1,4 @@
+/// Class for API endpoints to access issues on BugHeist.
 class IssueEndPoints {
   IssueEndPoints._();
 

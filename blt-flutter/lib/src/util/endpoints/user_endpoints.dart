@@ -1,3 +1,4 @@
+/// Class for API endpoints needed to access users data on BugHeist.
 class UserEndPoints {
   UserEndPoints._();
 

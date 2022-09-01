@@ -25,12 +25,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
           authstate ?? const AsyncValue.data(AuthState.loggedOut),
         );
 
+  /// Do a guest type authentication.
   void guestLogin() {
     state = AsyncValue.data(AuthState.loggedIn);
     currentUser = guestUser;
     read(loginProvider.notifier).setGuestLogin();
   }
 
+  /// Do a user type authentication.
   Future<void> userLogin(
       Map<String, String?> userCreds, BuildContext parentContext) async {
     state = AsyncValue.data(AuthState.authenticating);
@@ -62,6 +64,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     } catch (e) {}
   }
 
+  /// Do a logout for both guest and user type authentications.
   Future<void> logout() async {
     LoginType loginType = read(loginProvider.notifier).loginType;
     if (loginType == LoginType.guest) {

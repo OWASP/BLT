@@ -51,7 +51,6 @@ class IssuesPageState extends ConsumerState<IssuesPage>
 
   void loadMoreIssues() {
     paginatedUrl = ref.watch(issueListProvider.notifier).nxtUrl!;
-    print(paginatedUrl);
     ref.watch(issueListProvider.notifier).getMoreIssues(paginatedUrl);
   }
 
