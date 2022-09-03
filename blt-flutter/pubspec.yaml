@@ -18,7 +18,7 @@ dependencies:
   flutter_svg: ^1.0.3
   flutter_riverpod: ^1.0.3
   intl: ^0.17.0
-  flutter_secure_storage: ^6.0.0
+  flutter_secure_storage: ^5.0.2
   #flutter_lints: ^1.0.4
 
 dev_dependencies:

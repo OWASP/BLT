@@ -116,8 +116,9 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                     color: companyColor.withOpacity(0.5),
                     image: DecorationImage(
                       image: NetworkImage(
-                          "https://storage.googleapis.com/bhfiles/" +
-                              widget.company.logoLink),
+                        "https://storage.googleapis.com/bhfiles/" +
+                            widget.company.logoLink,
+                      ),
                       fit: BoxFit.cover,
                     ),
                     boxShadow: [

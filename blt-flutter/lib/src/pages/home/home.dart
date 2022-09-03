@@ -185,6 +185,19 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                 },
               ),
+              ListTile(
+                title: Text('Company Dashboard'),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.companyDashboardPage,
+                  );
+
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
               buildReferralOption(),
             ],
           ),

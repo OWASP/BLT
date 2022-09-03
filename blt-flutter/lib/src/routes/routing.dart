@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 import '../models/company_model.dart';
 import '../pages/company_details.dart';
+import '../pages/drawer/company_dashboard.dart';
 import '../pages/drawer/referral.dart';
 import '../pages/welcome.dart';
 import '../pages/drawer/about.dart';
@@ -31,6 +32,7 @@ class RouteManager {
   static String currentRoute = "/loginSignup";
   static const String legalPage = "/legal";
   static const String aboutPage = "/about";
+  static const String companyDashboardPage = "/companyDashboard";
   static const String referralPage = "/refer";
   static const String globalLeaderboardPage = "/globalBoard";
   static const String monthlyLeaderboardPage = "/monthlyBoard";
@@ -160,6 +162,26 @@ class RouteManager {
           },
           transitionDuration: const Duration(milliseconds: 500),
         );
+      case companyDashboardPage:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const CompanyDashBoardPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        );
+
       case referralPage:
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
