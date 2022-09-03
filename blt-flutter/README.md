@@ -33,7 +33,7 @@ BugHeist is a bug-hunting & logging tool which allows you, the user or company t
 ## Contributing
 We welcome any contributions big or small. To start contributing, start with anything like opening an issue, pull request, suggesting a documentation etc.
 
-__If you want to see a complete Contribution Guide, check it out [here.](https://github.com/OWASP/BLT/discussions/942)__
+__If you want to see a complete Contribution Guide, check it out [here.](./CONTRIBUTING.md)__
 
 _Please make sure `flutter analyze` works before submitting the pull request._
 
