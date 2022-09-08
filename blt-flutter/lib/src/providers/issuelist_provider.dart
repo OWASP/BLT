@@ -22,6 +22,8 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     _retrieveIssueList();
   }
 
+  /// Default call for getting first page of issues
+  /// when the provider is initialized.
   Future<void> _retrieveIssueList() async {
     try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
@@ -34,14 +36,15 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     }
   }
 
+  /// Function call for lazy loading next issues.
   Future<void> getMoreIssues(String nextUrl) async {
     _cacheState();
     try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
         nextUrl,
       );
-      print(issueData!.issueList);
-      nxtUrl = issueData.nextQuery;
+
+      nxtUrl = issueData!.nextQuery;
       state = state!.whenData((issueList) {
         issueList!.addAll(issueData.issueList!);
         return issueList;
@@ -51,10 +54,12 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     }
   }
 
+  /// Caches the current state to prevent errors.
   void _cacheState() {
     previousState = state;
   }
 
+  /// Resets the state to previous stored state.
   void _resetState() {
     if (previousState != null) {
       state = previousState;
@@ -62,6 +67,8 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     }
   }
 
+  /// Exception handler for state exception,
+  /// resets to last state on error.
   void _handleException(e) {
     print(e);
     _resetState();

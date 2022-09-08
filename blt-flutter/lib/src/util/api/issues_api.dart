@@ -6,9 +6,11 @@ import 'package:http/http.dart' as http;
 import '../../models/issuedata_model.dart';
 import '../../models/issue_model.dart';
 
+/// Class for accessing the issue client.
 class IssueApiClient {
   IssueApiClient._();
 
+  /// Get all the issues relating to the [paginatedUrl].
   static Future<IssueData?> getAllIssues(String paginatedUrl) async {
     http.Response? response;
     IssueData? issueData;
@@ -34,6 +36,7 @@ class IssueApiClient {
     return issueData;
   }
 
+  /// Get an issue by its [id].
   static Future<Issue?> getIssueById(int id) async {
     http.Response? response;
     Issue? issue;
@@ -49,6 +52,7 @@ class IssueApiClient {
     return issue;
   }
 
+  /// Get issues with matching keyword.
   static Future<IssueData?> searchIssueByKeyWord(query) async {
     http.Response? response;
     IssueData? issueData;
@@ -75,6 +79,7 @@ class IssueApiClient {
     return issueData;
   }
 
+  /// Create a new issue, [parentContext] is needed to show the snackbars.
   static Future<void> postIssue(Issue issue, BuildContext parentContext) async {
     http.Response? response;
     try {

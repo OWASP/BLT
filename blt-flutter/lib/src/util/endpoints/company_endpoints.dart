@@ -1,3 +1,4 @@
+/// Class for API endpoints needed to access companies/domains on bugheist.
 class CompanyEndpoints {
   CompanyEndpoints._();
 

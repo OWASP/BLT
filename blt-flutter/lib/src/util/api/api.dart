@@ -1,7 +1,7 @@
 import 'package:bugheist/src/models/company_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../data/models.dart';
+import '../../models/leader_model.dart';
 
 class ApiBackend {
   Future<List> getLeaderData(String paginatedUrl) async {

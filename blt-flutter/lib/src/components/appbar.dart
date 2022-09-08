@@ -28,7 +28,9 @@ AppBar buildAppBar({required BuildContext context}) {
           Icons.account_circle,
         ),
         onPressed: () {
-          RouteManager.navigateToProfile(context);
+          Navigator.of(context).pushNamed(
+            RouteManager.profilePage,
+          );
           // do something
         },
       )

@@ -61,7 +61,6 @@ class Issue {
   });
 
   factory Issue.fromJson(Map<String, dynamic> responseData) {
-    print(responseData["user"]);
     return Issue(
       id: responseData["id"],
       user: (responseData["user"] != null)

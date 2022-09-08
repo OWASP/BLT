@@ -1,3 +1,4 @@
+/// Class to access the API's authentication endpoints.
 class AuthEndPoints {
   AuthEndPoints._();
 

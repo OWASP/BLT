@@ -5,9 +5,11 @@ import 'package:bugheist/src/util/endpoints/auth_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+/// Class for accessing the auth client.
 class AuthApiClient {
   AuthApiClient._();
 
+  /// Send login creds and get back the user token.
   static Future<User?> login(Map<String, String?> userCreds) async {
     http.Response? response;
     User? authenticatedUser;
@@ -30,6 +32,7 @@ class AuthApiClient {
     return authenticatedUser;
   }
 
+  /// Send a request for logging out the current session.
   static Future<bool> logout() async {
     http.Response? response;
     bool isLoggedOut = false;
@@ -45,6 +48,7 @@ class AuthApiClient {
     return isLoggedOut;
   }
 
+  /// Request a new user signup on BugHeist.
   static Future<void> signup(
     String username,
     String email,
@@ -91,6 +95,7 @@ class AuthApiClient {
     }
   }
 
+  /// Send a email for a user to reset their password.
   static Future<void> resetPassword(String email, BuildContext context) async {
     http.Response? response;
     try {
