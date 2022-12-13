@@ -235,7 +235,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 decoration: BoxDecoration(
                   color: Color(0xFFDC4654),
                   image: DecorationImage(
-                    image: NetworkImage(currentUser!.pfpLink!),
+                    image: NetworkImage(currentUser!.pfpLink ?? "https://i.imgur.com/grVOgUA.png"),
                     fit: BoxFit.cover,
                   ),
                   boxShadow: [BoxShadow(blurRadius: 7.0, color: Colors.black)],
