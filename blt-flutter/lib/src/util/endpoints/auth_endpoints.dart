@@ -2,13 +2,15 @@
 class AuthEndPoints {
   AuthEndPoints._();
 
-  static const String baseUrl = "https://www.bugheist.com/auth/";
+  static const String baseUrl = "https://www.bugheist.com/";
 
-  static const String emailpasswordLogin = baseUrl + "login/";
+  static const String baseUrl2 = "https://www.bugheist.com/auth/";
 
-  static const String logout = baseUrl + "logout/";
+  static const String emailpasswordLogin = baseUrl + "authenticate/";
 
-  static const String register = baseUrl + "registration/";
+  static const String logout = baseUrl2 + "logout/";
 
-  static const String reset = baseUrl + "password/reset/";
+  static const String register = baseUrl2 + "registration/";
+
+  static const String reset = baseUrl2 + "password/reset/";
 }

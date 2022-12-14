@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bugheist/src/global/variables.dart';
 import 'package:bugheist/src/routes/routing.dart';
 import 'package:bugheist/src/util/endpoints/issue_endpoints.dart';
 import 'package:flutter/material.dart';
@@ -143,6 +144,94 @@ class IssueApiClient {
 
       print(e);
     }
+  }
+
+  static Future<int?> getIssueLikes(int id) async {
+    http.Response? response;
+    int? likeCount;
+    try {
+      response = await http.get(
+        Uri.parse(IssueEndPoints.likeIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        likeCount = decodedResponse["likes"];
+      }
+    } catch (e) {
+      print(e);
+    }
+    return likeCount;
+  }
+
+  static Future<bool?> toggleIssueLikes(int id) async {
+    http.Response? response;
+    bool? liked;
+    try {
+      response = await http.post(
+        Uri.parse(IssueEndPoints.likeIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse["issue"] == "liked") {
+          liked = true;
+        } else if (decodedResponse["issue"] == "unliked") {
+          liked = false;
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return liked;
+  }
+
+  static Future getIssueFlag(int id) async {
+    http.Response? response;
+    int? flagCount;
+    try {
+      response = await http.get(
+        Uri.parse(IssueEndPoints.flagIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        flagCount = decodedResponse["flags"];
+      }
+    } catch (e) {
+      print("e");
+    }
+    return flagCount;
+  }
+
+  static Future toggleIssueFlag(int id) async {
+    http.Response? response;
+    bool? flagged;
+    try {
+      response = await http.post(
+        Uri.parse(IssueEndPoints.flagIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse["issue"] == "liked") {
+          flagged = true;
+        } else if (decodedResponse["issue"] == "unliked") {
+          flagged = false;
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return flagged;
   }
 
   static Future getAllUserIssues() async {}
