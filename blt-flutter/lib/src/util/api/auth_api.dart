@@ -5,6 +5,8 @@ import 'package:bugheist/src/util/endpoints/auth_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../../global/variables.dart';
+
 /// Class for accessing the auth client.
 class AuthApiClient {
   AuthApiClient._();
@@ -39,6 +41,9 @@ class AuthApiClient {
     try {
       response = await http.post(
         Uri.parse(AuthEndPoints.logout),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
       );
       print(response.statusCode);
       if (response.statusCode == 200) isLoggedOut = true;

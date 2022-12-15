@@ -15,5 +15,5 @@ jobs:
       with:
         flutter-version: '2.10.4'
     - run: flutter pub get
-    - run: flutter analyze
+    - run: flutter analyze --no-fatal-infos
     - run: flutter build apk

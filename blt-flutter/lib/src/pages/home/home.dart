@@ -6,6 +6,7 @@ import 'package:bugheist/src/pages/home/report_bug.dart';
 import 'package:bugheist/src/providers/authstate_provider.dart';
 import 'package:bugheist/src/providers/login_provider.dart';
 import 'package:bugheist/src/routes/routing.dart';
+import 'package:bugheist/src/util/api/issues_api.dart';
 import 'package:bugheist/src/util/enums/login_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -152,10 +153,11 @@ class _HomeState extends ConsumerState<Home> {
               ),
               ListTile(
                 title: Text('Social'),
-                onTap: () {
+                onTap: () async {
                   // Update the state of the app
                   // ...
                   // Then close the drawer
+                  await IssueApiClient.toggleIssueFlag(2046);
                   Navigator.pop(context);
                 },
               ),
