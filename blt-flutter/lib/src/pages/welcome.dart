@@ -7,8 +7,23 @@ import '../routes/routing.dart';
 
 /// The Landing page for unauthenticated users, or if a
 /// user wants to try the guest mode of the app.
-class WelcomePage extends StatelessWidget {
+class WelcomePage extends ConsumerStatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<WelcomePage> createState() => _WelcomePageState();
+}
+
+class _WelcomePageState extends ConsumerState<WelcomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(authStateNotifier.notifier).loadUserIfRemembered(context);
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {

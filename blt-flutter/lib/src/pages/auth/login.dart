@@ -109,6 +109,7 @@ class LoginForm extends ConsumerStatefulWidget {
 class _LoginFormState extends ConsumerState<LoginForm> {
   bool showPassword = false;
   bool isShowVisible = false;
+  bool rememberMe = false;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _userController;
   late TextEditingController _passwordController;
@@ -123,6 +124,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         "username": username,
         "password": password,
       },
+      rememberMe,
       parentContext,
     );
   }
@@ -210,6 +212,27 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 fillColor: Colors.white.withOpacity(0.35),
               ),
               obscureText: !showPassword,
+            ),
+          ),
+          SizedBox(
+            height: 0.005 * widget.size.height,
+          ),
+          SizedBox(
+            width: 0.8 * widget.size.width,
+            child: Row(
+              children: [
+                Checkbox(
+                  value: rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      rememberMe = !rememberMe;
+                    });
+                  },
+                ),
+                Text(
+                  "Remember me",
+                ),
+              ],
             ),
           ),
           SizedBox(

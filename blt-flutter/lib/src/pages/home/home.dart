@@ -143,11 +143,11 @@ class _HomeState extends ConsumerState<Home> {
                   // Update trhe state of the app
                   // ...
                   // Then close the drawer
+                  await logout();
                   Navigator.pushReplacementNamed(
                     context,
                     RouteManager.welcomePage,
                   );
-                  await logout();
                 },
               ),
               ListTile(

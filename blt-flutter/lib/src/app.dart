@@ -91,7 +91,7 @@ class BugHeistState extends State<BugHeist> {
             primaryColor: Colors.white,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-          home: WelcomePage(),
+          home: Scaffold(body: WelcomePage()),
         ),
       ),
     );
