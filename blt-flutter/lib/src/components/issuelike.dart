@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/issue_model.dart';
+import '../util/api/issues_api.dart';
+import '../util/enums/login_type.dart';
+import '../providers/login_provider.dart';
+
+/// Issue likes show and toggle component.
 class IssueLikeButton extends ConsumerStatefulWidget {
-  const IssueLikeButton({Key? key}) : super(key: key);
+  final Issue issue;
+  final Color? color;
+
+  const IssueLikeButton({
+    Key? key,
+    required this.issue,
+    this.color,
+  }) : super(key: key);
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -10,20 +23,65 @@ class IssueLikeButton extends ConsumerStatefulWidget {
 }
 
 class _IssueLikeButtonState extends ConsumerState<IssueLikeButton> {
+  late int likes;
+  late bool liked;
+
+  Future<void> toggleIssueLike() async {
+    setState(() {
+      if (liked) {
+        likes = likes - 1;
+      } else {
+        likes = likes + 1;
+      }
+      liked = !liked;
+    });
+
+    try {
+      bool status = await IssueApiClient.toggleIssueLikes(widget.issue.id!);
+      if (!status) {
+        setState(() {
+          likes = widget.issue.likes!;
+          liked = widget.issue.liked!;
+        });
+      } else {
+        widget.issue.likes = likes;
+        widget.issue.liked = liked;
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    liked = widget.issue.liked!;
+    likes = widget.issue.likes!;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 25,
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.favorite,
+    return TextButton.icon(
+      onPressed: () async {
+        if (ref.read(loginProvider.notifier).loginType == LoginType.guest) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Login to like and flag issues!"),
             ),
-          ),
-          Text(""),
-        ],
+          );
+        } else {
+          await toggleIssueLike();
+        }
+      },
+      icon: Icon(
+        (liked) ? Icons.favorite : Icons.favorite_border_rounded,
+        color: widget.color,
+      ),
+      label: Text(
+        "$likes",
+        style: TextStyle(
+          color: widget.color,
+        ),
       ),
     );
   }

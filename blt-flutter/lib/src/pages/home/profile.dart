@@ -1,14 +1,14 @@
-import 'package:bugheist/src/global/variables.dart';
-import 'package:bugheist/src/util/api/issues_api.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../components/issuechip.dart';
-import '../../models/issue_model.dart';
-import '../../models/user_model.dart';
-import '../../providers/authstate_provider.dart';
 import '../../routes/routing.dart';
+import '../../global/variables.dart';
+import '../../models/user_model.dart';
+import '../../models/issue_model.dart';
+import '../../util/api/issues_api.dart';
+import '../../components/issuechip.dart';
+import '../../providers/authstate_provider.dart';
 
 /// Page that displays the stats of a user registered on BugHeist,
 /// shows dummy data for Guest login.
