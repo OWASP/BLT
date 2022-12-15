@@ -1,8 +1,8 @@
-import 'package:bugheist/src/global/variables.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import '../../providers/issuelist_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../global/variables.dart';
 
 /// Page for showing social activity of BugHeist, new issues,
 /// top premium subscribers.

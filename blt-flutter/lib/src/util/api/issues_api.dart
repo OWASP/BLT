@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bugheist/src/global/variables.dart';
+import 'package:bugheist/src/models/user_model.dart';
 import 'package:bugheist/src/routes/routing.dart';
 import 'package:bugheist/src/util/endpoints/issue_endpoints.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +17,16 @@ class IssueApiClient {
     http.Response? response;
     IssueData? issueData;
     List<Issue>? issueList;
+    Map<String, String>? headers = (currentUser != guestUser)
+        ? {
+            "Authorization": "Token ${currentUser!.token!}",
+          }
+        : null;
     try {
-      response = await http.get(Uri.parse(paginatedUrl));
+      response = await http.get(
+        Uri.parse(paginatedUrl),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         issueList = [];
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
@@ -166,9 +175,9 @@ class IssueApiClient {
     return likeCount;
   }
 
-  static Future<bool?> toggleIssueLikes(int id) async {
+  static Future<bool> toggleIssueLikes(int id) async {
     http.Response? response;
-    bool? liked;
+    bool toggleSuccess = false;
     try {
       response = await http.post(
         Uri.parse(IssueEndPoints.likeIssues + "$id/"),
@@ -176,21 +185,17 @@ class IssueApiClient {
           "Authorization": "Token ${currentUser!.token!}",
         },
       );
+      print(response.statusCode);
       if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        if (decodedResponse["issue"] == "liked") {
-          liked = true;
-        } else if (decodedResponse["issue"] == "unliked") {
-          liked = false;
-        }
+        toggleSuccess = true;
       }
     } catch (e) {
       print(e);
     }
-    return liked;
+    return toggleSuccess;
   }
 
-  static Future getIssueFlag(int id) async {
+  static Future<int?> getIssueFlag(int id) async {
     http.Response? response;
     int? flagCount;
     try {
@@ -210,9 +215,9 @@ class IssueApiClient {
     return flagCount;
   }
 
-  static Future toggleIssueFlag(int id) async {
+  static Future<bool> toggleIssueFlag(int id) async {
     http.Response? response;
-    bool? flagged;
+    bool toggleSuccess = false;
     try {
       response = await http.post(
         Uri.parse(IssueEndPoints.flagIssues + "$id/"),
@@ -220,18 +225,14 @@ class IssueApiClient {
           "Authorization": "Token ${currentUser!.token!}",
         },
       );
+      print(response.statusCode);
       if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        if (decodedResponse["issue"] == "liked") {
-          flagged = true;
-        } else if (decodedResponse["issue"] == "unliked") {
-          flagged = false;
-        }
+        toggleSuccess = true;
       }
     } catch (e) {
       print(e);
     }
-    return flagged;
+    return toggleSuccess;
   }
 
   static Future getAllUserIssues() async {}

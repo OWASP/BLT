@@ -1,7 +1,10 @@
-import 'package:bugheist/src/components/issuechip.dart';
-import 'package:bugheist/src/models/issue_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../models/issue_model.dart';
+import '../../components/issuechip.dart';
+import '../../components/issueflag.dart';
+import '../../components/issuelike.dart';
 
 /// Popup page when an issue is clicked to be viewed.
 class IssueDetailPage extends StatelessWidget {
@@ -28,21 +31,30 @@ class IssueDetailPage extends StatelessWidget {
           },
         ),
         title: Text("Issue #${issue.id}"),
+        actions: [
+          IssueLikeButton(
+            issue: issue,
+            color: Colors.white,
+          ),
+          IssueFlagButton(
+            issue: issue,
+            color: Colors.white,
+          ),
+        ],
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
               width: size.width,
               color: Theme.of(context).canvasColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
                     child: Text(
                       "Issue #${issue.id}",
                       style: GoogleFonts.ubuntu(
@@ -78,19 +90,18 @@ class IssueDetailPage extends StatelessWidget {
               ),
             ),
             Container(
-              height: 0.334 * size.height,
               width: size.width,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Image.network(
-                issue.screenshotLink!,
+                issue.screenshotsLink![0],
                 fit: BoxFit.fill,
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
                 "Description",
                 overflow: TextOverflow.ellipsis,
@@ -105,7 +116,6 @@ class IssueDetailPage extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 issue.description,
               ),
