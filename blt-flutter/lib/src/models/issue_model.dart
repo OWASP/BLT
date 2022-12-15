@@ -14,7 +14,11 @@ class Issue {
   final bool isOpen;
   final String? userAgent;
   final String ocr;
-  final String? screenshotLink;
+  int? likes;
+  int? flags;
+  bool? liked;
+  bool? flagged;
+  final List<String>? screenshotsLink;
   final DateTime? closedDate;
   final String? githubUrl;
   final DateTime? created;
@@ -50,7 +54,11 @@ class Issue {
     required this.isOpen,
     this.userAgent,
     required this.ocr,
-    this.screenshotLink,
+    this.likes,
+    this.flags,
+    this.liked,
+    this.flagged,
+    this.screenshotsLink,
     this.closedDate,
     this.githubUrl,
     this.created,
@@ -77,7 +85,11 @@ class Issue {
       isOpen: (responseData["status"] == "open") ? true : false,
       userAgent: responseData["user_agent"],
       ocr: responseData["ocr"],
-      screenshotLink: responseData["screenshot"],
+      likes: responseData["upvotes"],
+      flags: responseData["flags"],
+      liked: responseData["upvotted"],
+      flagged: responseData["flagged"],
+      screenshotsLink: responseData["screenshots"].cast<String>(),
       closedDate: (responseData["closed_date"].runtimeType != Null)
           ? DateTime.parse(responseData["closed_date"])
           : null,

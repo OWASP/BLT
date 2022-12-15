@@ -1,6 +1,7 @@
-import 'package:bugheist/src/components/searchbar.dart';
-import 'package:bugheist/src/routes/routing.dart';
 import 'package:flutter/material.dart';
+
+import '../routes/routing.dart';
+import '../components/searchbar.dart';
 
 /// The app's main Appbar
 AppBar buildAppBar({required BuildContext context}) {

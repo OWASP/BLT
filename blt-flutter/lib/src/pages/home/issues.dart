@@ -62,7 +62,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.refresh(issueListProvider);
+          ref.read(issueListProvider.notifier).refreshIssueList();
         },
         child: SingleChildScrollView(
           child: Column(
@@ -109,7 +109,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                     if (issueList!.isEmpty) {
                       return Center(
                         child: Text(
-                          "Looks like you don't have any todos :) \n Yay!",
+                          "Looks like there aren't many bugs :) \n Yay!",
                           textAlign: TextAlign.center,
                         ),
                       );
