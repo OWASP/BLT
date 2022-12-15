@@ -34,13 +34,19 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     read(loginProvider.notifier).setGuestLogin();
   }
 
-  Future<bool> loadUserIfRemembered() async {
+  Future<bool> loadUserIfRemembered(BuildContext context) async {
     String? username = await storage.read(key: "username");
     String? password = await storage.read(key: "password");
 
     if (username == null || password == null) {
       return false;
     }
+
+    SnackBar authSnack = SnackBar(
+      content: Text("Authenticating ..."),
+      duration: Duration(minutes: 1),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(authSnack);
 
     Map<String, String?> userCreds = {
       "username": username,
@@ -55,6 +61,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
 
         state = AsyncValue.data(AuthState.loggedIn);
         read(loginProvider.notifier).setUserLogin();
+        Navigator.of(context).pushNamed(
+            RouteManager.homePage,
+        );
+        ScaffoldMessenger.of(context).clearSnackBars();
       }
     } catch (e) {}
     return true;
@@ -120,8 +130,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
         await Future.delayed(const Duration(seconds: 1));
         state = AsyncValue.data(AuthState.loggedOut);
         read(loginProvider.notifier).logout();
-        await storage.delete(key: "username");
-        await storage.delete(key: "password");
         currentUser = null;
       }
     }

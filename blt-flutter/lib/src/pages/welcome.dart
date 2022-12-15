@@ -20,12 +20,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      bool isRemembered = await ref.read(authStateNotifier.notifier).loadUserIfRemembered();
-      if (isRemembered) {
-          Navigator.of(context).pushNamed(
-            RouteManager.homePage,
-          );
-      }
+      await ref.read(authStateNotifier.notifier).loadUserIfRemembered(context);
     });
   }
 
