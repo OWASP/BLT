@@ -2,6 +2,7 @@ import 'package:bugheist/src/providers/authstate_provider.dart';
 import 'package:bugheist/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// The login page for the app.
@@ -49,9 +50,10 @@ class _LoginPageState extends State<LoginPage> {
                       vertical: 0.075 * size.height,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        'assets/logo_white.png',
+                      child: SvgPicture.asset(
+                        'assets/logo_white.svg',
                         fit: BoxFit.contain,
+                        height: 192.0,
                       ),
                     ),
                   ),

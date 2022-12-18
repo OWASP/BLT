@@ -9,6 +9,7 @@ import 'package:bugheist/src/routes/routing.dart';
 import 'package:bugheist/src/util/enums/login_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../components/appbar.dart';
 
@@ -90,6 +91,10 @@ class _HomeState extends ConsumerState<Home> {
     await ref.read(authStateNotifier.notifier).logout();
   }
 
+  Future<void> forgetUser() async {
+    await ref.read(authStateNotifier.notifier).forgetUser();
+  }
+
   @override
   void initState() {
     _selectedIndex = widget.startingIndex ?? 0;
@@ -143,11 +148,12 @@ class _HomeState extends ConsumerState<Home> {
                   // Update trhe state of the app
                   // ...
                   // Then close the drawer
-                  await logout();
+                  await forgetUser();
                   Navigator.pushReplacementNamed(
                     context,
                     RouteManager.welcomePage,
                   );
+                  await logout();
                 },
               ),
               ListTile(

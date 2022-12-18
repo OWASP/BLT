@@ -1,5 +1,6 @@
 import 'package:bugheist/src/providers/authstate_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,9 +48,10 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                       vertical: 0.1 * size.height,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        'assets/logo_white.png',
+                      child: SvgPicture.asset(
+                        'assets/logo_white.svg',
                         fit: BoxFit.contain,
+                        height: 192.0,
                       ),
                     ),
                   ),
