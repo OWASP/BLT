@@ -83,6 +83,11 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     );
   }
 
+  Future<void> forgetUser() async {
+    await storage.delete(key: "username");
+    await storage.delete(key: "password");
+  }
+
   /// Do a user type authentication.
   Future<void> userLogin(
       Map<String, String?> userCreds, bool rememberMe, BuildContext parentContext) async {

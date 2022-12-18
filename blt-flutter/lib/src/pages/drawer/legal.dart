@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -30,8 +31,8 @@ class LegalPage extends StatelessWidget {
           children: [
             Container(
               padding: EdgeInsets.fromLTRB(0, 36, 0, 24),
-              child: Image.asset(
-                'assets/bugheist_logo.png',
+              child: SvgPicture.asset(
+                'assets/bugheist_logo.svg',
                 width: 169.42,
               ),
             ),
