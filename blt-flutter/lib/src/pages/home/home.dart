@@ -9,7 +9,6 @@ import 'package:bugheist/src/routes/routing.dart';
 import 'package:bugheist/src/util/enums/login_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../components/appbar.dart';
 
