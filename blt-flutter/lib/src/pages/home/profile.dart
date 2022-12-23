@@ -26,6 +26,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   late Future<List<Issue>?> getUpvoteList;
   late Future<List<Issue>?> getSavedList;
 
+  ImageProvider<Object> getProfilePicture() {
+    if (currentUser!.pfpLink == null) {
+      return AssetImage("assets/default_profile.png");
+    } else {
+      return NetworkImage(currentUser!.pfpLink!);
+    }
+  }
+
   Future<List<Issue>?> getIssueList(List<int>? idList) async {
     List<Issue>? issueList = null;
     try {
@@ -235,7 +243,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 decoration: BoxDecoration(
                   color: Color(0xFFDC4654),
                   image: DecorationImage(
-                    image: NetworkImage(currentUser!.pfpLink!),
+                    image: getProfilePicture(),
                     fit: BoxFit.cover,
                   ),
                   boxShadow: [BoxShadow(blurRadius: 7.0, color: Colors.black)],
