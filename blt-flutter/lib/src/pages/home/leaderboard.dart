@@ -1,10 +1,10 @@
-import 'package:bugheist/src/util/api/api.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../util/api/api.dart';
 import '../../routes/routing.dart';
 
 /// The Leaderboards dashboard page, contains the Global,

@@ -42,6 +42,7 @@ class User {
   }
 }
 
+/// The [User] instance used for anonymous login.
 User guestUser = User(
   id: 1234567890,
   username: "Anonymous",

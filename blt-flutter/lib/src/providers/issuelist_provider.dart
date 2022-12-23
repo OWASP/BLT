@@ -54,6 +54,20 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     }
   }
 
+  /// Function call for refreshing state.
+  Future<void> refreshIssueList() async {
+    state = AsyncValue.loading();
+    try {
+      final IssueData? issueData = await IssueApiClient.getAllIssues(
+        IssueEndPoints.issues,
+      );
+      nxtUrl = issueData!.nextQuery;
+      state = AsyncValue.data(issueData.issueList);
+    } catch (e) {
+      AsyncValue.error(e);
+    }
+  }
+
   /// Caches the current state to prevent errors.
   void _cacheState() {
     previousState = state;

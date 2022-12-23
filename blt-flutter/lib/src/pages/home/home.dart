@@ -90,6 +90,10 @@ class _HomeState extends ConsumerState<Home> {
     await ref.read(authStateNotifier.notifier).logout();
   }
 
+  Future<void> forgetUser() async {
+    await ref.read(authStateNotifier.notifier).forgetUser();
+  }
+
   @override
   void initState() {
     _selectedIndex = widget.startingIndex ?? 0;
@@ -143,6 +147,7 @@ class _HomeState extends ConsumerState<Home> {
                   // Update trhe state of the app
                   // ...
                   // Then close the drawer
+                  await forgetUser();
                   Navigator.pushReplacementNamed(
                     context,
                     RouteManager.welcomePage,

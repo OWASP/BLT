@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:bugheist/src/global/variables.dart';
+import 'package:bugheist/src/models/user_model.dart';
 import 'package:bugheist/src/routes/routing.dart';
 import 'package:bugheist/src/util/endpoints/issue_endpoints.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +17,16 @@ class IssueApiClient {
     http.Response? response;
     IssueData? issueData;
     List<Issue>? issueList;
+    Map<String, String>? headers = (currentUser != guestUser)
+        ? {
+            "Authorization": "Token ${currentUser!.token!}",
+          }
+        : null;
     try {
-      response = await http.get(Uri.parse(paginatedUrl));
+      response = await http.get(
+        Uri.parse(paginatedUrl),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         issueList = [];
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
@@ -143,6 +153,86 @@ class IssueApiClient {
 
       print(e);
     }
+  }
+
+  static Future<int?> getIssueLikes(int id) async {
+    http.Response? response;
+    int? likeCount;
+    try {
+      response = await http.get(
+        Uri.parse(IssueEndPoints.likeIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        likeCount = decodedResponse["likes"];
+      }
+    } catch (e) {
+      print(e);
+    }
+    return likeCount;
+  }
+
+  static Future<bool> toggleIssueLikes(int id) async {
+    http.Response? response;
+    bool toggleSuccess = false;
+    try {
+      response = await http.post(
+        Uri.parse(IssueEndPoints.likeIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        toggleSuccess = true;
+      }
+    } catch (e) {
+      print(e);
+    }
+    return toggleSuccess;
+  }
+
+  static Future<int?> getIssueFlag(int id) async {
+    http.Response? response;
+    int? flagCount;
+    try {
+      response = await http.get(
+        Uri.parse(IssueEndPoints.flagIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        flagCount = decodedResponse["flags"];
+      }
+    } catch (e) {
+      print("e");
+    }
+    return flagCount;
+  }
+
+  static Future<bool> toggleIssueFlag(int id) async {
+    http.Response? response;
+    bool toggleSuccess = false;
+    try {
+      response = await http.post(
+        Uri.parse(IssueEndPoints.flagIssues + "$id/"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        toggleSuccess = true;
+      }
+    } catch (e) {
+      print(e);
+    }
+    return toggleSuccess;
   }
 
   static Future getAllUserIssues() async {}

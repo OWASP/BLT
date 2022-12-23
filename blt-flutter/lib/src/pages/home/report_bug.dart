@@ -2,15 +2,15 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:bugheist/src/global/variables.dart';
-import 'package:bugheist/src/pages/home/start_hunt.dart';
-import 'package:bugheist/src/providers/login_provider.dart';
-import 'package:bugheist/src/util/api/issues_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../pages/home/start_hunt.dart';
+import '../../global/variables.dart';
+import '../../providers/login_provider.dart';
+import '../../util/api/issues_api.dart';
 import '../../models/issue_model.dart';
 import '../../util/enums/login_type.dart';
 
