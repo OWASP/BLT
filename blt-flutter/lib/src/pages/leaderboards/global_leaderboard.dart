@@ -1,8 +1,8 @@
-import 'package:bugheist/src/util/api/api.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../util/api/leaderboard_api.dart';
 
 /// Page showing the all time top contributing users.
 class GlobalLeaderBoardPage extends StatefulWidget {
@@ -18,7 +18,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
   @override
   void initState() {
     var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
-    _getObj = ApiBackend().getLeaderData(paginatedUrl);
+    _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
     super.initState();
   }
 

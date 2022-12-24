@@ -346,24 +346,4 @@ class RouteManager {
         );
     }
   }
-
-  static void navigateToProfile(BuildContext context) {
-    Navigator.of(context).pushNamed(RouteManager.profilePage);
-    RouteManager.currentRoute = RouteManager.profilePage;
-  }
-
-  static void navigateToLoginSignUp(BuildContext context) {
-    Navigator.of(context).pushNamed(RouteManager.welcomePage);
-    RouteManager.currentRoute = RouteManager.welcomePage;
-  }
-
-  // static void navigateToLogin(BuildContext context) {
-  //   Navigator.of(context).pushNamed(RouteManager.loginPage);
-  //   RouteManager.currentRoute = RouteManager.loginPage;
-  // }
-
-  // static void navigateToSignup(BuildContext context) {
-  //   Navigator.of(context).pushNamed(RouteManager.signupPage);
-  //   RouteManager.currentRoute = RouteManager.signupPage;
-  // }
 }

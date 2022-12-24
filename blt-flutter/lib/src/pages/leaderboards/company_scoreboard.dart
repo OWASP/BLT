@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../routes/routing.dart';
-import '../../util/api/api.dart';
 import '../../util/api/company_api.dart';
+import '../../util/api/leaderboard_api.dart';
 
 /// Page showing the top contributing companies on BugHeist.
 class CompanyScoreBoardPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
   @override
   void initState() {
     var paginatedUrl = 'https://www.bugheist.com/api/v1/scoreboard/';
-    _getObj = ApiBackend().getScoreBoardData(paginatedUrl);
+    _getObj = LeaderboardApiClient.getScoreBoardData(paginatedUrl);
     super.initState();
   }
 
