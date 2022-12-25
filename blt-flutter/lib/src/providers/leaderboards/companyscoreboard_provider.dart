@@ -46,22 +46,22 @@ class CompanyScoreboardNotifier
   }
 
   /// Caches the current state to prevent errors.
-  void _cacheState() {
-    previousState = state;
-  }
+  // void _cacheState() {
+  //   previousState = state;
+  // }
 
   /// Resets the state to previous stored state.
-  void _resetState() {
-    if (previousState != null) {
-      state = previousState;
-      previousState = null;
-    }
-  }
+  // void _resetState() {
+  //   if (previousState != null) {
+  //     state = previousState;
+  //     previousState = null;
+  //   }
+  // }
 
   /// Exception handler for state exception,
   /// resets to last state on error.
-  void _handleException(e) {
-    print(e);
-    _resetState();
-  }
+  // void _handleException(e) {
+  //   print(e);
+  //   _resetState();
+  // }
 }
