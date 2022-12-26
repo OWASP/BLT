@@ -19,6 +19,7 @@ dependencies:
   flutter_riverpod: ^1.0.3
   intl: ^0.17.0
   flutter_secure_storage: ^5.0.2
+  smooth_page_indicator: ^1.0.0+2
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
@@ -31,6 +32,7 @@ flutter:
   assets:
     - assets/
     - assets/login_signup/
+    - assets/onboarding/
 
 flutter_icons:
   android: "ic_launcher"
