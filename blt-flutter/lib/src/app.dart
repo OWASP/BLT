@@ -87,6 +87,7 @@ class BugHeistState extends State<BugHeist> {
           onGenerateRoute: RouteManager.generateRoute,
           title: 'BugHeist',
           theme: ThemeData(
+            // useMaterial3: true,
             primarySwatch: Colors.red,
             primaryColor: Colors.white,
             visualDensity: VisualDensity.adaptivePlatformDensity,

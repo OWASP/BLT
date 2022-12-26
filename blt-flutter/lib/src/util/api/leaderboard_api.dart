@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/leader_model.dart';
 
-class ApiBackend {
-  Future<List> getLeaderData(String paginatedUrl) async {
+class LeaderboardApiClient {
+  LeaderboardApiClient._();
+
+  static Future<List<Leaders>> getLeaderData(String paginatedUrl) async {
     return http
         .get(
       Uri.parse(paginatedUrl),
@@ -18,7 +20,7 @@ class ApiBackend {
     });
   }
 
-  Future<List> getScoreBoardData(String paginatedUrl) async {
+  static Future<List<Company>> getScoreBoardData(String paginatedUrl) async {
     return http
         .get(
       Uri.parse(paginatedUrl),

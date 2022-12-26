@@ -1,11 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../util/api/api.dart';
 import '../../routes/routing.dart';
+import '../../providers/leaderboards/globalleaderboard_povider.dart';
+import '../../providers/leaderboards/companyscoreboard_provider.dart';
 
 /// The Leaderboards dashboard page, contains the Global,
 /// Monthly leaderboard, and Company Scoreboard.
@@ -17,18 +16,8 @@ class LeaderBoard extends ConsumerStatefulWidget {
 }
 
 class _LeaderBoardState extends ConsumerState<LeaderBoard> {
-  int i = 0;
-  Color my = Colors.brown;
-  late Future _getObj;
-  late Future _getCompany;
-
   @override
   void initState() {
-    var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
-    _getObj = ApiBackend().getLeaderData(paginatedUrl);
-    var companyPaginatedUrl = 'https://www.bugheist.com/api/v1/scoreboard/';
-    _getCompany = ApiBackend().getScoreBoardData(companyPaginatedUrl);
-
     super.initState();
   }
 
@@ -105,6 +94,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
     final Size size = MediaQuery.of(context).size;
 
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,20 +160,13 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 Container(
                   height: 0.3 * size.height,
                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                  child: FutureBuilder(
-                    future: _getObj,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Something went wrong!',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          final list = snapshot.data as List;
-                          i = 0;
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final globalLeaderboardList = ref.watch(
+                        globalLeaderBoardProvider,
+                      );
+                      return globalLeaderboardList!.when(
+                        data: (leaderList) {
                           return InkWell(
                             onTap: () {
                               Navigator.pushNamed(
@@ -221,9 +204,10 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                               ? Color(0xFFFFD700)
                                                   .withOpacity(0.42)
                                               : Colors.white,
-                                  leading: buildAvatar(list[index].image),
+                                  leading:
+                                      buildAvatar(leaderList![index].image),
                                   title: Text(
-                                    list[index].user,
+                                    leaderList[index].user,
                                     style: GoogleFonts.ubuntu(
                                       textStyle: TextStyle(
                                         color: Color(0xFFDC4654),
@@ -232,7 +216,8 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                     maxLines: 6,
                                   ),
                                   subtitle: Text(
-                                    list[index].score.toString() + " points",
+                                    leaderList[index].score.toString() +
+                                        " points",
                                     style: GoogleFonts.aBeeZee(
                                       textStyle: TextStyle(
                                         color: Color(0xFF737373),
@@ -254,10 +239,20 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                               },
                             ),
                           );
-                        }
-                      }
-                      return Center(
-                        child: CircularProgressIndicator(),
+                        },
+                        error: (error, stackTr) {
+                          return Center(
+                            child: Text(
+                              'Something went wrong!',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          );
+                        },
+                        loading: () {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
                       );
                     },
                   ),
@@ -306,20 +301,13 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 Container(
                   height: 0.3 * size.height,
                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                  child: FutureBuilder(
-                    future: _getObj,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Something went wrong!',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          final list = snapshot.data as List;
-                          i = 0;
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final monthlyLeaderboardList = ref.watch(
+                        globalLeaderBoardProvider,
+                      );
+                      return monthlyLeaderboardList!.when(
+                        data: (leaderList) {
                           return InkWell(
                             onTap: () {
                               Navigator.pushNamed(
@@ -327,71 +315,85 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                 RouteManager.monthlyLeaderboardPage,
                               );
                             },
-                            child: Material(
-                              color: Colors.transparent,
-                              child: ListView.builder(
-                                padding: EdgeInsets.zero,
-                                itemCount: 3,
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  return ListTile(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: index == 0
-                                          ? BorderRadius.only(
-                                              topLeft: Radius.circular(10),
-                                              topRight: Radius.circular(15),
-                                            )
-                                          : index == 2
-                                              ? BorderRadius.only(
-                                                  bottomLeft:
-                                                      Radius.circular(10),
-                                                  bottomRight:
-                                                      Radius.circular(10),
-                                                )
-                                              : BorderRadius.only(
-                                                  topLeft: Radius.circular(0),
-                                                ),
-                                    ),
-                                    tileColor:
-                                        Color(0xFFECECEC).withOpacity(0.42),
-                                    leading: buildAvatar(list[index].image),
-                                    title: Text(
-                                      list[index].user,
-                                      style: GoogleFonts.ubuntu(
-                                        textStyle: TextStyle(
-                                          color: Color(0xFFDC4654),
-                                        ),
-                                      ),
-                                      maxLines: 6,
-                                    ),
-                                    subtitle: Text(
-                                      list[index].score.toString() + " points",
-                                      style: GoogleFonts.aBeeZee(
-                                        textStyle: TextStyle(
-                                          color: Color(0xFF737373),
-                                          fontSize: 12,
-                                        ),
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: 3,
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: index == 0
+                                        ? BorderRadius.only(
+                                            topLeft: Radius.circular(10),
+                                            topRight: Radius.circular(15),
+                                          )
+                                        : index == 2
+                                            ? BorderRadius.only(
+                                                bottomLeft: Radius.circular(10),
+                                                bottomRight:
+                                                    Radius.circular(10),
+                                              )
+                                            : BorderRadius.only(
+                                                topLeft: Radius.circular(0),
+                                              ),
+                                  ),
+                                  tileColor: index == 2
+                                      ? Color(0xFFC9AE5D).withOpacity(0.42)
+                                      : index == 1
+                                          ? Color(0xFFADD8E6).withOpacity(0.42)
+                                          : index == 0
+                                              ? Color(0xFFFFD700)
+                                                  .withOpacity(0.42)
+                                              : Colors.white,
+                                  leading:
+                                      buildAvatar(leaderList![index].image),
+                                  title: Text(
+                                    leaderList[index].user,
+                                    style: GoogleFonts.ubuntu(
+                                      textStyle: TextStyle(
+                                        color: Color(0xFFDC4654),
                                       ),
                                     ),
-                                    trailing: Text(
-                                      "# " + (index + 1).toString(),
-                                      style: GoogleFonts.ubuntu(
-                                        textStyle: TextStyle(
-                                          color: Color(0xFF737373),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    maxLines: 6,
+                                  ),
+                                  subtitle: Text(
+                                    leaderList[index].score.toString() +
+                                        " points",
+                                    style: GoogleFonts.aBeeZee(
+                                      textStyle: TextStyle(
+                                        color: Color(0xFF737373),
+                                        fontSize: 12,
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                  trailing: Text(
+                                    "# " + (index + 1).toString(),
+                                    style: GoogleFonts.ubuntu(
+                                      textStyle: TextStyle(
+                                        color: Color(0xFF737373),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           );
-                        }
-                      }
-                      return Center(
-                        child: CircularProgressIndicator(),
+                        },
+                        error: (error, stackTr) {
+                          return const Center(
+                            child: Text(
+                              'Something went wrong!',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          );
+                        },
+                        loading: () {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
                       );
                     },
                   ),
@@ -440,19 +442,11 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                 Container(
                   height: 0.3 * size.height,
                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                  child: FutureBuilder(
-                    future: _getCompany,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Something went wrong!',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          );
-                        } else if (snapshot.hasData) {
-                          final list = snapshot.data as List;
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final companyList = ref.watch(companyScoreboardProvider);
+                      return companyList!.when(
+                        data: (companyData) {
                           return InkWell(
                             onTap: () {
                               Navigator.pushNamed(
@@ -484,9 +478,11 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                                 ),
                                     ),
                                     tileColor: Color(0xFFE0E0E0),
-                                    leading: buildLogo(list[index].logoLink),
+                                    leading: buildLogo(
+                                      companyData![index].logoLink,
+                                    ),
                                     title: Text(
-                                      list[index].companyName,
+                                      companyData[index].companyName,
                                       style: GoogleFonts.ubuntu(
                                         textStyle: TextStyle(
                                           color: Color(0xFFDC4654),
@@ -496,9 +492,13 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                     ),
                                     subtitle: Text(
                                       "Open: " +
-                                          list[index].openIssues.toString() +
+                                          companyData[index]
+                                              .openIssues
+                                              .toString() +
                                           "| Closed: " +
-                                          list[index].closedIssues.toString(),
+                                          companyData[index]
+                                              .closedIssues
+                                              .toString(),
                                       style: GoogleFonts.aBeeZee(
                                         textStyle: TextStyle(
                                           color: Color(0xFF737373),
@@ -507,7 +507,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                       ),
                                     ),
                                     trailing: Text(
-                                      list[index].topTester.toString(),
+                                      companyData[index].topTester.toString(),
                                       style: GoogleFonts.ubuntu(
                                         textStyle: TextStyle(
                                           color: Color(0xFF737373),
@@ -521,10 +521,20 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                               ),
                             ),
                           );
-                        }
-                      }
-                      return Center(
-                        child: CircularProgressIndicator(),
+                        },
+                        error: (error, stackTr) {
+                          return const Center(
+                            child: Text(
+                              'Something went wrong!',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          );
+                        },
+                        loading: () {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
                       );
                     },
                   ),

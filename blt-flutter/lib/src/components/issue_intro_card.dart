@@ -37,9 +37,12 @@ class IssueCard extends StatelessWidget {
               Container(
                 width: size.width,
                 height: 0.214 * size.height,
-                child: Image.network(
-                  issue.screenshotsLink![0],
-                  fit: BoxFit.fill,
+                child: AspectRatio(
+                  aspectRatio: size.width / 0.214 * size.height,
+                  child: Image.network(
+                    issue.screenshotsLink![0],
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               Container(

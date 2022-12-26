@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../util/api/api.dart';
+import '../../util/api/leaderboard_api.dart';
 
 /// Page showing the top contributing users for the current month.
 class MonthlyLeaderBoardPage extends StatefulWidget {
@@ -48,7 +48,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
   @override
   void initState() {
     var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
-    _getObj = ApiBackend().getLeaderData(paginatedUrl);
+    _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
     super.initState();
   }
 

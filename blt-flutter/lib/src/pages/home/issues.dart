@@ -65,6 +65,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
           ref.read(issueListProvider.notifier).refreshIssueList();
         },
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
