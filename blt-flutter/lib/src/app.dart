@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bugheist/src/pages/onboarding_main_page.dart';
-import 'package:bugheist/src/pages/welcome.dart';
 import 'package:bugheist/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
