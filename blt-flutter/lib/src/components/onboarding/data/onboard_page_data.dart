@@ -28,7 +28,7 @@ List<OnboardPageModel> onboardData = [
     Colors.white,
     Color(0xFFE6E6E6),
     2,
-    'assets/onboarding/flutter_onboarding_3.svg',
+    'assets/onboarding/flutter_onboarding_1.svg',
     'CURRENT',
     'STATISTICS',
     '1200+ Bugs\n790+ Users\n3 Hunts\n590+ Domains',
