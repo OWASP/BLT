@@ -29,7 +29,12 @@ class UserApiClient {
     http.Response? response;
     try {
       String searchUrl = UserEndPoints.userInfo + "?search=${user.username}";
-      response = await http.get(Uri.parse(searchUrl));
+      response = await http.get(
+        Uri.parse(searchUrl),
+        headers: {
+          "Authorization": "Token ${user.token}",
+        },
+      );
       var decodedResponse =
           jsonDecode(utf8.decode(response.bodyBytes))["results"][0];
       user.id = decodedResponse["user"]["id"];
