@@ -6,6 +6,9 @@ import 'data/onboard_page_data.dart';
 import 'models/onboard_page_model.dart';
 
 class Onboarding extends StatefulWidget {
+  final Map<String, String> stats;
+
+  const Onboarding({Key? key, required this.stats}) : super(key: key);
   @override
   State<Onboarding> createState() => _OnboardingState();
 }
@@ -13,6 +16,12 @@ class Onboarding extends StatefulWidget {
 class _OnboardingState extends State<Onboarding> {
   final PageController pageController = PageController();
   late OnboardPageModel pageModel;
+
+  @override
+  void initState() {
+    super.initState();
+    onboardData[2].description = '${widget.stats["bugs"]} Bugs\n${widget.stats["users"]} Users\n${widget.stats["hunts"]} Hunts\n${widget.stats["domains"]} Domains';
+  }
 
   @override
   Widget build(BuildContext context) {
