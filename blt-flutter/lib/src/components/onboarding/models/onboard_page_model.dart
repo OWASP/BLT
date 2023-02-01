@@ -8,7 +8,7 @@ class OnboardPageModel {
   final String imagePath;
   final String caption;
   final String subhead;
-  final String description;
+  String description;
 
   OnboardPageModel(
       this.primeColor,
