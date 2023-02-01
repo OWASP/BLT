@@ -76,7 +76,7 @@ class LegalPage extends StatelessWidget {
                         styleSheet: MarkdownStyleSheet.fromTheme(
                           ThemeData(
                             textTheme: TextTheme(
-                              bodyText2: GoogleFonts.aBeeZee(
+                              bodyMedium: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF737373),
@@ -120,7 +120,7 @@ class LegalPage extends StatelessWidget {
                         styleSheet: MarkdownStyleSheet.fromTheme(
                           ThemeData(
                             textTheme: TextTheme(
-                              bodyText2: GoogleFonts.aBeeZee(
+                              bodyMedium: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF737373),
