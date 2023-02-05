@@ -217,9 +217,17 @@ class _UserProfileState extends ConsumerState<UserProfile> {
               if (image == null) {
                 return;
               }
+              SnackBar updatingSnack = SnackBar(
+                duration: const Duration(seconds: 6),
+                content: Text(
+                  "Updating profile picture",
+                ),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(updatingSnack);
               await UserApiClient.updatePfp(image, currentUser!);
+              setState(() {});
             },
-            icon: Icon(Icons.file_upload),
+            icon: Icon(Icons.account_circle_outlined),
           ),
           IconButton(
             onPressed: () {

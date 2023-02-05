@@ -55,37 +55,22 @@ class UserApiClient {
 
   static Future<void> updatePfp(XFile image, User user) async {
     try {
-      // String updateUrl = "${UserEndPoints.userInfo}${user.id}";
-      String updateUrl = "https://www.bugheist.com/api/v1/profile/1144";
+      String updateUrl = "${UserEndPoints.userInfo}${user.id}/";
 
       final uri = Uri.parse(updateUrl);
-      var response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": "Token ${user.token}"
+      var request = new http.MultipartRequest('PUT', uri);
+      final httpImage = await http.MultipartFile.fromPath('user_avatar', image.path,
+          filename: image.name);
+      request.files.add(httpImage);
+      request.headers.addAll(
+        {
+          "Authorization": "Token ${user.token}",
         },
-        body: {
-          "description": "helllloooo",
-        }
       );
-      print(response.statusCode);
-      print(response.reasonPhrase);
-      // var request = new http.MultipartRequest('PUT', uri);
-      // final httpImage = await http.MultipartFile.fromPath('user_avatar', image.path,
-      //     filename: image.name);
-      // // request.files.add(httpImage);
-      // request.fields['description'] = "helloooooo";
-      // request.headers.addAll(
-      //   {
-      //     "Authorization": "Token ${user.token}",
-      //   },
-      // );
-      // var response = await request.send();
-      // // final respStr = await response.stream.bytesToString();
-      // print("====================== REASON PHRASE ======================");
-      // print(response.reasonPhrase);
-      // print(updateUrl);
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      user.pfpLink = decodedResponse["user_avatar"];
     } catch (e) {
       print(e);
     }
