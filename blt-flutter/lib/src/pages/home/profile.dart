@@ -1,6 +1,8 @@
+import 'package:bugheist/src/util/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../routes/routing.dart';
 import '../../global/variables.dart';
@@ -208,6 +210,25 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         title: Text(currentUser!.username!),
         actions: [
+          IconButton(
+            onPressed: () async {
+              final ImagePicker _picker = ImagePicker();
+              final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+              if (image == null) {
+                return;
+              }
+              SnackBar updatingSnack = SnackBar(
+                duration: const Duration(seconds: 6),
+                content: Text(
+                  "Updating profile picture",
+                ),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(updatingSnack);
+              await UserApiClient.updatePfp(image, currentUser!);
+              setState(() {});
+            },
+            icon: Icon(Icons.account_circle_outlined),
+          ),
           IconButton(
             onPressed: () {
               Navigator.pushReplacementNamed(
