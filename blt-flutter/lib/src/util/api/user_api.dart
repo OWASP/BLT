@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bugheist/src/util/endpoints/user_endpoints.dart';
 import 'package:http/http.dart' as http;
 import 'package:bugheist/src/models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:async/async.dart';
 
 class UserApiClient {
   UserApiClient._();
