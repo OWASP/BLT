@@ -11,6 +11,7 @@ class User {
   List<int>? following;
   List<int>? upvotedIssueId;
   List<int>? savedIssueId;
+  int? totalScore;
 
   User({
     this.id,
@@ -24,6 +25,7 @@ class User {
     this.following,
     this.upvotedIssueId,
     this.savedIssueId,
+    this.totalScore,
   });
 
   factory User.fromJson(Map<String, dynamic> responseData, String accessToken) {
@@ -38,6 +40,7 @@ class User {
       following: responseData["follows"],
       upvotedIssueId: responseData["issue_upvoted"],
       savedIssueId: responseData["issue_saved"],
+      totalScore: responseData["total_score"] ?? 0,
     );
   }
 }

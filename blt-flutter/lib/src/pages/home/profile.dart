@@ -48,7 +48,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       }
     } catch (e) {}
     return issueList;
-  }
+  }  
 
   Future<void> logout() async {
     await ref.read(authStateNotifier.notifier).logout();
@@ -321,6 +321,27 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               child: Text(
                                 currentUser!.following!.length.toString() +
                                     " following",
+                                style: GoogleFonts.aBeeZee(
+                                  textStyle: TextStyle(
+                                    color: Color(0xFFDC4654),
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
+                    Divider(
+                      thickness: 2,
+                    ),
+                    SizedBox(
+                      child: (currentUser!.following != null)
+                          ? TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                (currentUser!.totalScore != null) ? 
+                                "Score : ${currentUser!.totalScore!} " :
+                                "Score : 0 " ,
                                 style: GoogleFonts.aBeeZee(
                                   textStyle: TextStyle(
                                     color: Color(0xFFDC4654),
