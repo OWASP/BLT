@@ -11,6 +11,8 @@ import '../../models/issue_model.dart';
 import '../../util/api/issues_api.dart';
 import '../../components/issuechip.dart';
 import '../../providers/authstate_provider.dart';
+import '../../models/issuedata_model.dart';
+import '../../util/endpoints/issue_endpoints.dart';
 
 /// Page that displays the stats of a user registered on BugHeist,
 /// shows dummy data for Guest login.
@@ -35,7 +37,16 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return NetworkImage(currentUser!.pfpLink!);
     }
   }
-
+  Future<List<Issue>?> getAnonymousUserIssueList() async{
+    List<Issue>? issueList = null;
+    try{
+      final IssueData? issueData = await IssueApiClient.getAllIssues(
+        IssueEndPoints.issues,
+      );
+      issueList = issueData!.issueList;
+    } catch(e){}
+    return issueList;
+  }
   Future<List<Issue>?> getIssueList(List<int>? idList) async {
     List<Issue>? issueList = null;
     try {
@@ -76,6 +87,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
+                    (issue.description.length< 24)? issue.description:
                     issue.description.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
@@ -139,6 +151,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
+                    (issue.description.length< 24)? issue.description:
                     issue.description.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
@@ -182,12 +195,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
   @override
   void initState() {
-    getUpvoteList = getIssueList(
+    getUpvoteList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
       currentUser!.upvotedIssueId!.length > 0
           ? currentUser!.upvotedIssueId!
           : null,
     );
-    getSavedList = getIssueList(
+    getSavedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
       currentUser!.savedIssueId!.length > 0 ? currentUser!.savedIssueId! : null,
     );
     super.initState();
