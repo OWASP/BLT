@@ -27,8 +27,9 @@ class UserProfile extends ConsumerStatefulWidget {
 }
 
 class _UserProfileState extends ConsumerState<UserProfile> {
-  late Future<List<Issue>?> getUpvoteList;
+  late Future<List<Issue>?> getLikedList;
   late Future<List<Issue>?> getSavedList;
+  late Future<List<Issue>?> getFlaggedList;
 
   ImageProvider<Object> getProfilePicture() {
     if (currentUser!.pfpLink == null) {
@@ -69,7 +70,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     await ref.read(authStateNotifier.notifier).logout();
   }
 
-  Widget buildUpvotedIssues(Size size, List<Issue>? issueList) {
+  Widget buildLikedIssues(Size size, List<Issue>? issueList) {
     if (issueList != null && issueList.length > 0) {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
@@ -122,6 +123,70 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         child: Center(
           child: Text(
             "No issues Upvoted",
+            style: GoogleFonts.aBeeZee(
+              textStyle: TextStyle(
+                color: Color(0xFF737373),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget buildFlaggedIssues(Size size, List<Issue>? issueList) {
+    if (issueList != null && issueList.length > 0) {
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                minWidth: size.width, maxHeight: 0.75 * size.height),
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: issueList.length,
+              itemBuilder: (context, index) {
+                Issue issue = issueList[index];
+                return ListTile(
+                  leading: Text("#${issue.id}"),
+                  title: Text(
+                    (issue.description.length< 24)? issue.description:
+                    issue.description.substring(0, 24) + "...",
+                  ),
+                  trailing: IssueStatusChip(
+                    issue: issue,
+                  ),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteManager.issueDetailPage,
+                      arguments: issue,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 20),
+        width: size.width,
+        height: 0.3 * size.height,
+        decoration: BoxDecoration(
+          border: Border.all(color: Color(0xFF737373), width: 0.5),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Center(
+          child: Text(
+            "No issues Flagged",
             style: GoogleFonts.aBeeZee(
               textStyle: TextStyle(
                 color: Color(0xFF737373),
@@ -199,13 +264,14 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
   @override
   void initState() {
-    getUpvoteList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
-      currentUser!.upvotedIssueId!.length > 0
-          ? currentUser!.upvotedIssueId!
-          : null,
+    getLikedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
+      currentUser!.likedIssueId !=null ? (currentUser!.likedIssueId!.length > 0 ? currentUser!.likedIssueId! : null) : null,
     );
     getSavedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
-      currentUser!.savedIssueId!.length > 0 ? currentUser!.savedIssueId! : null,
+      currentUser!.savedIssueId !=null ? (currentUser!.savedIssueId!.length > 0 ? currentUser!.savedIssueId! : null) : null,
+    );
+    getFlaggedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
+      currentUser!.flaggedIssueId !=null ? (currentUser!.flaggedIssueId!.length > 0 ? currentUser!.flaggedIssueId! : null) : null,
     );
     super.initState();
   }
@@ -412,12 +478,12 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: Icon(
-                            Icons.report_problem_rounded,
+                            Icons.favorite,
                             color: Color(0xFFDC4654),
                           ),
                         ),
                         Text(
-                          "Upvoted Issues",
+                          "Liked Issues",
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Color(0xFFDC4654),
@@ -432,7 +498,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                       thickness: 2,
                     ),
                     FutureBuilder<List<Issue>?>(
-                      future: getUpvoteList,
+                      future: getLikedList,
                       builder: ((context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -451,7 +517,55 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             ),
                           );
                         } else {
-                          return buildUpvotedIssues(size, snapshot.data);
+                          return buildLikedIssues(size, snapshot.data);
+                        }
+                      }),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Icon(
+                            Icons.flag,
+                            color: Color(0xFFDC4654),
+                          ),
+                        ),
+                        Text(
+                          "Flagged Issues",
+                          style: GoogleFonts.ubuntu(
+                            textStyle: TextStyle(
+                              color: Color(0xFFDC4654),
+                              fontSize: 17.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      color: Color(0xFFDC4654),
+                      thickness: 2,
+                    ),
+                    FutureBuilder<List<Issue>?>(
+                      future: getFlaggedList,
+                      builder: ((context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Container(
+                            margin: EdgeInsets.symmetric(vertical: 20),
+                            width: size.width,
+                            height: 0.3 * size.height,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Color(0xFF737373),
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        } else {
+                          return buildFlaggedIssues(size, snapshot.data);
                         }
                       }),
                     ),
