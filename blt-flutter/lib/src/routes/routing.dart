@@ -88,7 +88,9 @@ class RouteManager {
       case welcomePage:
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const WelcomePage(),
+              WelcomePage(
+                snackBarMessage: arguments as String?,
+              ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;
