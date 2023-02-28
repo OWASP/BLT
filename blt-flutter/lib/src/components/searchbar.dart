@@ -12,7 +12,7 @@ class BugHeistSearchDelegate extends SearchDelegate {
     return [
       IconButton(
         onPressed: () {
-          query = '';
+          query != '' ? (query = '') : Navigator.of(context).pop();
         },
         icon: Icon(
           Icons.clear,
