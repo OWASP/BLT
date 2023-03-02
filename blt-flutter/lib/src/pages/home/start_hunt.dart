@@ -1,8 +1,10 @@
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pasteboard/pasteboard.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Sub page which adds "start bug hunt" functionality to the Report Bug page.
 class StartHuntPage extends StatefulWidget {
@@ -46,6 +48,31 @@ class _HuntFormState extends State<HuntForm> {
         print('No image selected.');
       }
     });
+  }
+
+    Future<File> _convertToImage(Uint8List imageBytes) async{
+    String tempPath = (await getTemporaryDirectory()).path;
+    File file = File('$tempPath/profile.png');
+    await file.writeAsBytes(
+      imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+    return file;
+  }
+
+  Future<void> _pasteImageFromClipBoard() async{
+    try {
+    final imageBytes = await Pasteboard.image;
+    late File? image ;
+    if(imageBytes != null){
+     image = await _convertToImage(imageBytes);
+    }
+    setState(() {
+      _image = image! ;
+    });
+    }
+    catch(e){
+      print('No Image Found On Clipboard');
+    }
+
   }
 
   @override
@@ -105,25 +132,55 @@ class _HuntFormState extends State<HuntForm> {
           ),
           Container(
             margin: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextButton(
-              child: Text(
-                "Choose Image",
-                style: GoogleFonts.ubuntu(
-                  textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
+            child:Row(
+              children: [
+              SizedBox(
+                child: TextButton(
+                  child: Text(
+                    "Choose Image",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    _pickImageFromGallery();
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                      Color(0xFFDC4654),
+                    ),
                   ),
                 ),
               ),
-              onPressed: () {
-                _pickImageFromGallery();
-              },
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                  Color(0xFFDC4654),
+              SizedBox(
+                width: 10,
+              ),
+              SizedBox(
+                child: TextButton(
+                  child: Text(
+                    "Choose From Clipboard",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    _pasteImageFromClipBoard();
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                      Color(0xFFDC4654),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
+          ),
           ),
           Container(
             height: 280,

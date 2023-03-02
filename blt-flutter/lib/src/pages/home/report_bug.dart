@@ -1,11 +1,16 @@
 // import 'dart:convert';
+// import 'dart:u';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pasteboard/pasteboard.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 import '../../pages/home/start_hunt.dart';
 import '../../global/variables.dart';
@@ -151,6 +156,31 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     }
   }
 
+  Future<File> _coverToImage(Uint8List imageBytes) async{
+    String tempPath = (await getTemporaryDirectory()).path;
+    File file = File('$tempPath/profile.png');
+    await file.writeAsBytes(
+      imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+    return file;
+  }
+
+  Future<void> _pasteImageFromClipBoard() async{
+    try {
+    final imageBytes = await Pasteboard.image;
+    late File? image ;
+    if(imageBytes != null){
+     image = await _coverToImage(imageBytes);
+    }
+    setState(() {
+      _image = image ;
+    });
+    }
+    catch(e){
+      print('No Image Found On Clipboard');
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = widget.size;
@@ -281,30 +311,30 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                   ),
                 ),
               ),
-              // SizedBox(
-              //   width: 10,
-              // ),
-              // SizedBox(
-              //   child: TextButton(
-              //     child: Text(
-              //       "Choose From Clipboard",
-              //       style: GoogleFonts.ubuntu(
-              //         textStyle: TextStyle(
-              //           color: Colors.white,
-              //           fontSize: 15,
-              //         ),
-              //       ),
-              //     ),
-              //     onPressed: () {
-              //       _pickImageFromGallery();
-              //     },
-              //     style: ButtonStyle(
-              //       backgroundColor: MaterialStateProperty.all(
-              //         Color(0xFFDC4654),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              SizedBox(
+                width: 10,
+              ),
+              SizedBox(
+                child: TextButton(
+                  child: Text(
+                    "Choose From Clipboard",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    _pasteImageFromClipBoard();
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                      Color(0xFFDC4654),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           Container(
