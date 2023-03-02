@@ -28,14 +28,15 @@ class Home extends ConsumerStatefulWidget {
 
 class _HomeState extends ConsumerState<Home> {
   late int _selectedIndex;
+  String _reportBugState = "Report Issue";
   late PageController _pageController;
 
-  final List<ConsumerStatefulWidget> _children = [
-    // Feed(),
-    IssuesPage(),
-    ReportBug(),
-    LeaderBoard()
-  ];
+  // final List<ConsumerStatefulWidget> _children = [
+  //   // Feed(),
+  //   IssuesPage(),
+  //   ReportBug(selectedWidgetName: ""),
+  //   LeaderBoard()
+  // ];
   void _onItemTapped(int index) {
     setState(
       () {
@@ -67,6 +68,7 @@ class _HomeState extends ConsumerState<Home> {
       );
       await logout();
     } else {
+        _reportBugState="Start Bug Hunt";
       _onItemTapped(1);
       Navigator.pop(context);
     }
@@ -265,7 +267,12 @@ class _HomeState extends ConsumerState<Home> {
             onPageChanged: (index) {
               setState(() => _selectedIndex = index);
             },
-            children: _children),
+            children: [
+              // Feed(),
+              IssuesPage(),
+              ReportBug(selectedWidgetName: _reportBugState,),
+              LeaderBoard(),
+            ]),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem>[

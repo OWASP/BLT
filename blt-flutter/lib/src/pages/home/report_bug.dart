@@ -18,15 +18,14 @@ import '../../util/enums/login_type.dart';
 /// posting bugs, companies and individuals
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
-  const ReportBug({Key? key}) : super(key: key);
-
+  const ReportBug({Key? key, required this.selectedWidgetName}) : super(key: key);
+  final String? selectedWidgetName;
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
 
 class _ReportBugState extends ConsumerState<ReportBug> {
-  String selectedWidgetName = "Report Issue";
-
+  String? selectedWidgetName ;
   Widget bodyWidget = SizedBox();
 
   List<DropdownMenuItem<String>> _dropDownItem() {
@@ -51,7 +50,6 @@ class _ReportBugState extends ConsumerState<ReportBug> {
 
   buildPageSwitcher(Size size) {
     LoginType loginType = ref.watch(loginProvider.notifier).loginType;
-
     return (loginType == LoginType.guest)
         ? Container(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
@@ -68,7 +66,7 @@ class _ReportBugState extends ConsumerState<ReportBug> {
             value: selectedWidgetName,
             onChanged: (val) {
               selectedWidgetName = val.toString();
-              switch (val) {
+              switch (selectedWidgetName) {
                 case "Report Issue":
                   setState(() {
                     bodyWidget = ReportForm(
@@ -97,10 +95,11 @@ class _ReportBugState extends ConsumerState<ReportBug> {
   @override
   void initState() {
     super.initState();
-    bodyWidget = ReportForm(
+    selectedWidgetName = widget.selectedWidgetName;
+    bodyWidget = (widget.selectedWidgetName == "Start Bug Hunt") ? StartHuntPage():ReportForm(
       size: window.physicalSize / window.devicePixelRatio,
       parentContext: context,
-    );
+    ) ;
   }
 
   @override
