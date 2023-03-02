@@ -56,9 +56,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     }
 
     String? username = await storage.read(key: "username");
-    String? password = await storage.read(key: "password");
+    String? accessToken = await storage.read(key: "token");
 
-    if (username == null || password == null) {
+    if (username == null || accessToken == null) {
       return false;
     }
 
@@ -68,54 +68,48 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     );
     ScaffoldMessenger.of(context).showSnackBar(authSnack);
 
-    Map<String, String?> userCreds = {
-      "username": username,
-      "password": password
-    };
     state = AsyncValue.data(AuthState.authenticating);
     try {
-      User? authenticatedUser = await AuthApiClient.login(userCreds);
-      if (authenticatedUser != null) {
-        currentUser = authenticatedUser;
-        await UserApiClient.getUserInfo(currentUser!);
+      currentUser = User(
+        username: username,
+        token: accessToken,
+      );
+      UserApiClient.getUserInfo(currentUser!);
 
-        state = AsyncValue.data(AuthState.loggedIn);
-        read(loginProvider.notifier).setUserLogin();
-        Navigator.of(context).pushNamed(
-            RouteManager.homePage,
-        );
-        ScaffoldMessenger.of(context).clearSnackBars();
-      }
+      state = AsyncValue.data(AuthState.loggedIn);
+      read(loginProvider.notifier).setUserLogin();
+      Navigator.of(context).pushNamed(
+        RouteManager.homePage,
+      );
+      ScaffoldMessenger.of(context).clearSnackBars();
     } catch (e) {}
     return true;
   }
 
-  Future<void> rememberUser(
-    Map<String, String?> userCreds
-  ) async {
+  Future<void> rememberUser(String username, String token) async {
     await storage.write(
       key: "remember",
       value: "user",
     );
     await storage.write(
       key: "username",
-      value: userCreds["username"],
+      value: username,
     );
     await storage.write(
-      key: "password",
-      value: userCreds["password"],
+      key: "token",
+      value: token,
     );
   }
 
   Future<void> forgetUser() async {
     await storage.delete(key: "remember");
     await storage.delete(key: "username");
-    await storage.delete(key: "password");
+    await storage.delete(key: "token");
   }
 
   /// Do a user type authentication.
-  Future<void> userLogin(
-      Map<String, String?> userCreds, bool rememberMe, BuildContext parentContext) async {
+  Future<void> userLogin(Map<String, String?> userCreds, bool rememberMe,
+      BuildContext parentContext) async {
     state = AsyncValue.data(AuthState.authenticating);
     SnackBar authSnack = SnackBar(
       content: Text("Authenticating ..."),
@@ -126,13 +120,13 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
       User? authenticatedUser = await AuthApiClient.login(userCreds);
       if (authenticatedUser != null) {
         currentUser = authenticatedUser;
+        if (rememberMe) {
+          rememberUser(currentUser!.username!, currentUser!.token!);
+        }
         await UserApiClient.getUserInfo(currentUser!);
 
         state = AsyncValue.data(AuthState.loggedIn);
         read(loginProvider.notifier).setUserLogin();
-        if (rememberMe) {
-          rememberUser(userCreds);
-        }
         ScaffoldMessenger.of(parentContext).clearSnackBars();
         Navigator.of(parentContext).pushReplacementNamed(
           RouteManager.homePage,
