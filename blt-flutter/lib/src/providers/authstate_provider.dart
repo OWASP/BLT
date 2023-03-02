@@ -28,13 +28,33 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
         );
 
   /// Do a guest type authentication.
-  void guestLogin() {
+  void guestLogin() async {
+    await storage.write(
+      key: "remember",
+      value: "guest",
+    );
     state = AsyncValue.data(AuthState.loggedIn);
     currentUser = guestUser;
     read(loginProvider.notifier).setGuestLogin();
   }
 
   Future<bool> loadUserIfRemembered(BuildContext context) async {
+    String? remember = await storage.read(key: "remember");
+
+    if (remember == null) {
+      return false;
+    }
+
+    if (remember == "guest") {
+      state = AsyncValue.data(AuthState.loggedIn);
+      currentUser = guestUser;
+      read(loginProvider.notifier).setGuestLogin();
+      Navigator.of(context).pushNamed(
+        RouteManager.homePage,
+      );
+      return true;
+    }
+
     String? username = await storage.read(key: "username");
     String? password = await storage.read(key: "password");
 
@@ -74,6 +94,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     Map<String, String?> userCreds
   ) async {
     await storage.write(
+      key: "remember",
+      value: "user",
+    );
+    await storage.write(
       key: "username",
       value: userCreds["username"],
     );
@@ -84,6 +108,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
   }
 
   Future<void> forgetUser() async {
+    await storage.delete(key: "remember");
     await storage.delete(key: "username");
     await storage.delete(key: "password");
   }

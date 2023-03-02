@@ -59,7 +59,11 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       }
     } catch (e) {}
     return issueList;
-  }  
+  }
+
+  Future<void> forgetUser() async {
+    await ref.read(authStateNotifier.notifier).forgetUser();
+  }
 
   Future<void> logout() async {
     await ref.read(authStateNotifier.notifier).logout();
@@ -244,6 +248,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
           IconButton(
             onPressed: () {
+              forgetUser();
               Navigator.pushReplacementNamed(
                 context,
                 RouteManager.welcomePage,
