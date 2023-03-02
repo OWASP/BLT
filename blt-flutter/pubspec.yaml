@@ -20,6 +20,7 @@ dependencies:
   intl: ^0.17.0
   flutter_secure_storage: ^5.0.2
   smooth_page_indicator: ^1.0.0+2
+  url_launcher: ^6.1.10
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
