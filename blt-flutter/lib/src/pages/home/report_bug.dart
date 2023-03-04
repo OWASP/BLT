@@ -4,13 +4,15 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:bugheist/src/util/api/general_api.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../pages/home/start_hunt.dart';
 import '../../global/variables.dart';
@@ -23,14 +25,15 @@ import '../../util/enums/login_type.dart';
 /// posting bugs, companies and individuals
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
-  const ReportBug({Key? key, required this.selectedWidgetName}) : super(key: key);
+  const ReportBug({Key? key, required this.selectedWidgetName})
+      : super(key: key);
   final String? selectedWidgetName;
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
 
 class _ReportBugState extends ConsumerState<ReportBug> {
-  String? selectedWidgetName ;
+  String? selectedWidgetName;
   Widget bodyWidget = SizedBox();
 
   List<DropdownMenuItem<String>> _dropDownItem() {
@@ -101,10 +104,12 @@ class _ReportBugState extends ConsumerState<ReportBug> {
   void initState() {
     super.initState();
     selectedWidgetName = widget.selectedWidgetName;
-    bodyWidget = (widget.selectedWidgetName == "Start Bug Hunt") ? StartHuntPage():ReportForm(
-      size: window.physicalSize / window.devicePixelRatio,
-      parentContext: context,
-    ) ;
+    bodyWidget = (widget.selectedWidgetName == "Start Bug Hunt")
+        ? StartHuntPage()
+        : ReportForm(
+            size: window.physicalSize / window.devicePixelRatio,
+            parentContext: context,
+          );
   }
 
   @override
@@ -156,29 +161,172 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     }
   }
 
-  Future<File> _coverToImage(Uint8List imageBytes) async{
+  Future<File> _coverToImage(Uint8List imageBytes) async {
     String tempPath = (await getTemporaryDirectory()).path;
     File file = File('$tempPath/profile.png');
-    await file.writeAsBytes(
-      imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+    await file.writeAsBytes(imageBytes.buffer
+        .asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
     return file;
   }
 
-  Future<void> _pasteImageFromClipBoard() async{
+  Future<void> _pasteImageFromClipBoard() async {
     try {
-    final imageBytes = await Pasteboard.image;
-    late File? image ;
-    if(imageBytes != null){
-     image = await _coverToImage(imageBytes);
-    }
-    setState(() {
-      _image = image ;
-    });
-    }
-    catch(e){
+      final imageBytes = await Pasteboard.image;
+      late File? image;
+      if (imageBytes != null) {
+        image = await _coverToImage(imageBytes);
+      }
+      setState(() {
+        _image = image;
+      });
+    } catch (e) {
       print('No Image Found On Clipboard');
     }
+  }
 
+  void showDuplicateDialog(BuildContext context) {
+    if (_titleController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("URL field is required"),
+        ),
+      );
+      return;
+    }
+    showGeneralDialog(
+      context: context,
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: Duration(milliseconds: 400),
+      pageBuilder: (_, __, ___) {
+        return FutureBuilder<Map<String, String>?>(
+          future: GeneralApiClient.checkForDuplicate(_titleController.text),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              Map<String, String>? m = snapshot.data;
+              if (m == null) {
+                return AlertDialog(
+                  title: Text(
+                    'Sweet!',
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFFDC4654),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  content: Text(
+                    "We haven't got any bug from this URL till now.",
+                    style: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        color: Color(0xFF737373),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return AlertDialog(
+                  title: Text(
+                    'A bug with same URL already exists!',
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFFDC4654),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              color: Color(0xFF737373),
+                            ),
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: "Description: ",
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  color: Color(0xFF737373),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            TextSpan(text: m["description"])
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16.0,
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              color: Color(0xFF737373),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text:
+                                  "Ensure you are not submitting a duplicate bug by ",
+                            ),
+                            TextSpan(
+                              text: "checking here",
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  color: Color(0xFF737373),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  Uri site = Uri.parse(
+                                      "https://www.bugheist.com/issue/${m["id"]}");
+                                  try {
+                                    await launchUrl(site,
+                                        mode: LaunchMode.externalApplication);
+                                  } catch (e) {}
+                                },
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+      },
+      transitionBuilder: (_, anim, __, child) {
+        Tween<Offset> tween;
+        if (anim.status == AnimationStatus.reverse) {
+          tween = Tween(begin: Offset(-1, 0), end: Offset.zero);
+        } else {
+          tween = Tween(begin: Offset(1, 0), end: Offset.zero);
+        }
+
+        return SlideTransition(
+          position: tween.animate(anim),
+          child: FadeTransition(
+            opacity: anim,
+            child: child,
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -239,8 +387,28 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     ),
                   ),
                 ),
+                Builder(builder: (context) {
+                  return TextButton(
+                    onPressed: () {
+                      showDuplicateDialog(context);
+                    },
+                    child: Text(
+                      "Check for duplicates",
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          color: Color(0xFFDC4654),
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
+          ),
+          SizedBox(
+            height: 12,
           ),
           Container(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
