@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:bugheist/src/util/endpoints/general_endpoints.dart';
 import 'package:http/http.dart' as http;
 
-import '../../models/issue_model.dart';
-
 /// Class for accessing the general client.
 class GeneralApiClient {
   GeneralApiClient._();
