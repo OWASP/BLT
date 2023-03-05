@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../components/appbar.dart';
+import '../../pages/welcome.dart';
+
 
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
@@ -61,11 +63,8 @@ class _HomeState extends ConsumerState<Home> {
 
     if (loginState == LoginType.guest) {
       await forgetUser();
-      Navigator.pushReplacementNamed(
-        context,
-        RouteManager.welcomePage,
-        arguments: "You need to login in order to start bug hunt."
-      );
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+              builder: (context) => WelcomePage(snackBarMessage:"Only Logged in users can start a Bug Hunt")), (Route route) => false);
       await logout();
     } else {
         _reportBugState="Start Bug Hunt";
@@ -169,10 +168,8 @@ class _HomeState extends ConsumerState<Home> {
                   // ...
                   // Then close the drawer
                   await forgetUser();
-                  Navigator.pushReplacementNamed(
-                    context,
-                    RouteManager.welcomePage,
-                  );
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+              builder: (context) => WelcomePage()), (Route route) => false);
                   await logout();
                 },
               ),

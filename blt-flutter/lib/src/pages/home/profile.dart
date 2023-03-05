@@ -13,6 +13,8 @@ import '../../components/issuechip.dart';
 import '../../providers/authstate_provider.dart';
 import '../../models/issuedata_model.dart';
 import '../../util/endpoints/issue_endpoints.dart';
+import '../../pages/welcome.dart';
+
 
 /// Page that displays the stats of a user registered on BugHeist,
 /// shows dummy data for Guest login.
@@ -314,11 +316,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
           IconButton(
             onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+              builder: (context) => WelcomePage()), (Route route) => false);
               forgetUser();
-              Navigator.pushReplacementNamed(
-                context,
-                RouteManager.welcomePage,
-              );
               logout();
             },
             icon: Icon(Icons.power_settings_new_rounded),
