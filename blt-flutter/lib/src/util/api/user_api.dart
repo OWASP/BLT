@@ -46,7 +46,7 @@ class UserApiClient {
       user.following = decodedResponse["follows"].cast<int>();
       user.upvotedIssueId = decodedResponse["issue_upvoted"].cast<int>();
       user.savedIssueId = decodedResponse["issue_saved"].cast<int>();
-      user.totalScore = int.parse(decodedResponse["total_score"]);
+      user.totalScore = decodedResponse["total_score"];
     } catch (e) {
       print(e);
     }
