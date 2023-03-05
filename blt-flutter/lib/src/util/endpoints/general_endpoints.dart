@@ -2,7 +2,9 @@
 class GeneralEndPoints {
   GeneralEndPoints._();
 
-  static const String baseUrl = "https://www.bugheist.com/";
+  static const String baseUrl = "https://www.bugheist.com/api/v1/";
 
-  static const String stats = baseUrl + "api/v1/stats/";
+  static const String stats = baseUrl + "stats/";
+
+  static const String duplicateURL = baseUrl + "urlcheck/";
 }
