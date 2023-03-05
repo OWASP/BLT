@@ -139,10 +139,10 @@ class _WelcomePageState extends State<WelcomePage> {
                           builder: (BuildContext context, ref, Widget? child) {
                             return TextButton(
                               onPressed: () {
-                                Navigator.of(context).pushNamed(
+                                ref.read(authStateNotifier.notifier).guestLogin();
+                                 Navigator.of(context).pushNamed(
                                   RouteManager.homePage,
                                 );
-                                ref.read(authStateNotifier.notifier).guestLogin();
                               },
                               child: Text(
                                 "Explore Anonymously",

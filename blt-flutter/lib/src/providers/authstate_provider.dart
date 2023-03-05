@@ -28,7 +28,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
         );
 
   /// Do a guest type authentication.
-  void guestLogin() async {
+  Future<void> guestLogin() async {
     await storage.write(
       key: "remember",
       value: "guest",
