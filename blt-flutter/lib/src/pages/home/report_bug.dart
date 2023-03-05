@@ -279,10 +279,10 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   "Ensure you are not submitting a duplicate bug by checking here: ",
                             ),
                             TextSpan(
-                              text: "https://www.bugheist.com/issue/${m["id"]}",
+                              text: "bugheist.com/issue/${m["id"]}",
                               style: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
-                                  color: Color(0xFF737373),
+                                  color: Color(0xFF4A93F8),
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
