@@ -45,10 +45,10 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(siteSnack);
       }
       else{
-        String siteUrl = Uri.encodeComponent(company.url!);
+        String siteUrl = company.url!;
         Uri site = Uri.parse(siteUrl);
           try {
-            await launchUrl(site);
+            await launchUrl(site,mode: LaunchMode.externalApplication,webOnlyWindowName: company.companyName);
           }
           catch(e){}
 
