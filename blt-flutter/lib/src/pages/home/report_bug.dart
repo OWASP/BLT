@@ -276,10 +276,10 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                           children: <TextSpan>[
                             TextSpan(
                               text:
-                                  "Ensure you are not submitting a duplicate bug by ",
+                                  "Ensure you are not submitting a duplicate bug by checking here: ",
                             ),
                             TextSpan(
-                              text: "checking here",
+                              text: "https://www.bugheist.com/issue/${m["id"]}",
                               style: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   color: Color(0xFF737373),
