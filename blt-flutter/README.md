@@ -18,7 +18,7 @@
     <br/><br/>
 </div>
 
-### Check exiting issues
+### Check exiting issues.
 Find the bugs and issues in current websites, maybe help fixing 'em too?
 
 ### Report Bugs
