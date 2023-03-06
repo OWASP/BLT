@@ -9,6 +9,8 @@ workflows:
         distribution_type: app_store
         bundle_identifier: $PRODUCT_BUNDLE_IDENTIFIER
       flutter: stable
+      groups:
+        - main
     scripts:
       - name: Set up code signing settings on Xcode project
         script: | 
