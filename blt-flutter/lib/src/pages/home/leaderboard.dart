@@ -432,7 +432,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   ),
                 ),
                 Text(
-                  "Take a look at the most active companies on BugHeist!",
+                  "Take a look at the most active companies on BLT!",
                   style: GoogleFonts.aBeeZee(
                     textStyle: TextStyle(
                       color: Color(0xFF737373),

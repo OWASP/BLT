@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../util/api/leaderboard_api.dart';
+import '../../util/endpoints/leaderboard_endpoints.dart';
 
 /// Page showing the all time top contributing users.
 class GlobalLeaderBoardPage extends StatefulWidget {
@@ -17,7 +18,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
 
   @override
   void initState() {
-    var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
+    var paginatedUrl = LeaderboardEndpoints.globalLeaderboard;
     _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
     super.initState();
   }
@@ -101,7 +102,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the all time best bug finders on BugHeist.",
+                      "These are the all time best bug finders on BLT.",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),

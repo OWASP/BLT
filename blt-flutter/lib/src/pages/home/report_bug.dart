@@ -4,7 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:bugheist/src/util/api/general_api.dart';
+import 'package:blt/src/util/api/general_api.dart';
+import 'package:blt/src/util/endpoints/general_endpoints.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -279,7 +280,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   "Ensure you are not submitting a duplicate bug by checking here: ",
                             ),
                             TextSpan(
-                              text: "bugheist.com/issue/${m["id"]}",
+                              text: "${GeneralEndPoints.domain}issue/${m["id"]}",
                               style: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   color: Color(0xFF4A93F8),
@@ -289,7 +290,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () async {
                                   Uri site = Uri.parse(
-                                      "https://www.bugheist.com/issue/${m["id"]}");
+                                      "${GeneralEndPoints.baseUrl}issue/${m["id"]}");
                                   try {
                                     await launchUrl(site,
                                         mode: LaunchMode.externalApplication);

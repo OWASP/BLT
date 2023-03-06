@@ -1,13 +1,11 @@
-// import 'package:bugheist/pages/login.dart';
-import 'package:bugheist/src/models/issue_model.dart';
-import 'package:bugheist/src/pages/auth/forgot.dart';
-import 'package:bugheist/src/pages/auth/signup.dart';
-import 'package:bugheist/src/pages/error.dart';
-import 'package:bugheist/src/pages/home/home.dart';
-import 'package:bugheist/src/pages/drawer/legal.dart';
-import 'package:bugheist/src/pages/auth/login.dart';
-import 'package:bugheist/src/pages/home/profile.dart';
-// import 'package:bugheist/src/pages/signup.dart';
+import 'package:blt/src/models/issue_model.dart';
+import 'package:blt/src/pages/auth/forgot.dart';
+import 'package:blt/src/pages/auth/signup.dart';
+import 'package:blt/src/pages/error.dart';
+import 'package:blt/src/pages/home/home.dart';
+import 'package:blt/src/pages/drawer/legal.dart';
+import 'package:blt/src/pages/auth/login.dart';
+import 'package:blt/src/pages/home/profile.dart';
 import 'package:flutter/material.dart';
 
 import '../models/company_model.dart';

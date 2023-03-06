@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Assign Issues
-        uses: Bugheist/assign-issues-action@main
+        uses: OWASP/BLT-Action@main
         with:
             repo-token: ${{ secrets.GITHUB_TOKEN }}
             repository: ${{ github.repository }}

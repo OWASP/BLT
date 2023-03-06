@@ -1,4 +1,4 @@
-import 'package:bugheist/src/util/api/user_api.dart';
+import 'package:blt/src/util/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +16,7 @@ import '../../util/endpoints/issue_endpoints.dart';
 import '../../pages/welcome.dart';
 
 
-/// Page that displays the stats of a user registered on BugHeist,
+/// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.
 class UserProfile extends ConsumerStatefulWidget {
   const UserProfile({

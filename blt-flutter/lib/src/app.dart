@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:bugheist/src/pages/onboarding_main_page.dart';
-import 'package:bugheist/src/routes/routing.dart';
+import 'package:blt/src/pages/onboarding_main_page.dart';
+import 'package:blt/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
-/// ### The BugHeist app's root widget
-class BugHeist extends StatefulWidget {
-  const BugHeist({Key? key}) : super(key: key);
+/// ### The BLT app's root widget
+class BLT extends StatefulWidget {
+  const BLT({Key? key}) : super(key: key);
 
   @override
-  BugHeistState createState() => BugHeistState();
+  BLTState createState() => BLTState();
 }
 
-class BugHeistState extends State<BugHeist> {
+class BLTState extends State<BLT> {
   late StreamSubscription _intentDataStreamSubscription;
   late List<SharedMediaFile> _sharedFiles;
   //late String _sharedText;
@@ -85,7 +85,7 @@ class BugHeistState extends State<BugHeist> {
           scaffoldMessengerKey: _messengerKey,
           debugShowCheckedModeBanner: false,
           onGenerateRoute: RouteManager.generateRoute,
-          title: 'BugHeist',
+          title: 'BLT',
           theme: ThemeData(
             // useMaterial3: true,
             primarySwatch: Colors.red,

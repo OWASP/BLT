@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.apps.bugheist">
+    package="com.apps.blt">
    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
    <application
-        android:label="bugheist"
+        android:label="blt"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

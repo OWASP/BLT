@@ -2,9 +2,13 @@
 class GeneralEndPoints {
   GeneralEndPoints._();
 
-  static const String baseUrl = "https://www.bugheist.com/api/v1/";
+  static const String domain = "www.owasp.org/BLT/";
 
-  static const String stats = baseUrl + "stats/";
+  static const String baseUrl = "https://www.owasp.org/BLT/";
 
-  static const String duplicateURL = baseUrl + "urlcheck/";
+  static const String apiBaseUrl = baseUrl + "api/v1/";
+
+  static const String stats = apiBaseUrl + "stats/";
+
+  static const String duplicateURL = apiBaseUrl + "urlcheck/";
 }

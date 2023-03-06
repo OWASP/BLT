@@ -5,6 +5,6 @@
 
     <!-- You can insert your own image assets here -->
     <item
-        android:drawable="@drawable/bugheist_logo"
+        android:drawable="@drawable/blt_logo"
         android:gravity="center"/>
 </layer-list>

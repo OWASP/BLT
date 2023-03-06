@@ -1,4 +1,4 @@
-import 'package:bugheist/src/providers/authstate_provider.dart';
+import 'package:blt/src/providers/authstate_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';

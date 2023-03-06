@@ -1,3 +1,4 @@
+import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -5,7 +6,7 @@ import '../../routes/routing.dart';
 import '../../util/api/company_api.dart';
 import '../../util/api/leaderboard_api.dart';
 
-/// Page showing the top contributing companies on BugHeist.
+/// Page showing the top contributing companies on BLT.
 class CompanyScoreBoardPage extends StatefulWidget {
   const CompanyScoreBoardPage({Key? key}) : super(key: key);
 
@@ -50,7 +51,7 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
 
   @override
   void initState() {
-    var paginatedUrl = 'https://www.bugheist.com/api/v1/scoreboard/';
+    var paginatedUrl = LeaderboardEndpoints.companyScoreboard;
     _getObj = LeaderboardApiClient.getScoreBoardData(paginatedUrl);
     super.initState();
   }
@@ -97,7 +98,7 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the most active companies that are on BugHeist.",
+                      "These are the most active companies that are on BLT.",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),

@@ -1,4 +1,4 @@
-/// Model class for a user signed up on BugHeist.
+/// Model class for a user signed up on BLT.
 class User {
   int? id;
   String? username;

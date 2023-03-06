@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:bugheist/src/models/user_model.dart';
-import 'package:bugheist/src/util/endpoints/auth_endpoints.dart';
+import 'package:blt/src/models/user_model.dart';
+import 'package:blt/src/util/endpoints/auth_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -53,7 +53,7 @@ class AuthApiClient {
     return isLoggedOut;
   }
 
-  /// Request a new user signup on BugHeist.
+  /// Request a new user signup on BLT.
   static Future<void> signup(
     String username,
     String email,

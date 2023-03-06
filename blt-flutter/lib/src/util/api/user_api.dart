@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:bugheist/src/util/endpoints/user_endpoints.dart';
+import 'package:blt/src/util/endpoints/user_endpoints.dart';
 import 'package:http/http.dart' as http;
-import 'package:bugheist/src/models/user_model.dart';
+import 'package:blt/src/models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UserApiClient {

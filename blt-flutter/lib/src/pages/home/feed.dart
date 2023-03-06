@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../global/variables.dart';
 
-/// Page for showing social activity of BugHeist, new issues,
+/// Page for showing social activity of BLT, new issues,
 /// top premium subscribers.
 class Feed extends ConsumerStatefulWidget {
   const Feed({Key? key}) : super(key: key);
@@ -40,7 +40,7 @@ class _FeedState extends ConsumerState<Feed> {
             height: 10,
           ),
           Text(
-            "Check the latest happenings in the world of BugHeist!",
+            "Check the latest happenings in the world of BLT!",
             style: GoogleFonts.aBeeZee(
               textStyle: TextStyle(
                 color: Color(0xFF737373),

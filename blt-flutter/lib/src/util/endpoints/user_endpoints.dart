@@ -1,10 +1,10 @@
-/// Class for API endpoints needed to access users data on BugHeist.
+import 'general_endpoints.dart';
+
+/// Class for API endpoints needed to access users data on BLT.
 class UserEndPoints {
   UserEndPoints._();
 
-  static const String baseUrl = "https://www.bugheist.com/";
+  static const String userInfo = GeneralEndPoints.apiBaseUrl + "profile/";
 
-  static const String userInfo = baseUrl + "api/v1/profile/";
-
-  static const String userData = baseUrl + "api/v1/profile/auth/user/";
+  static const String userData = GeneralEndPoints.apiBaseUrl + "profile/auth/user/";
 }

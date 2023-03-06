@@ -1,8 +1,8 @@
-/// Class for API endpoints needed to access companies/domains on bugheist.
+import 'package:blt/src/util/endpoints/general_endpoints.dart';
+
+/// Class for API endpoints needed to access companies/domains on BLT.
 class CompanyEndpoints {
   CompanyEndpoints._();
 
-  static const String baseUrl = "https://www.bugheist.com/api/v1/";
-
-  static const String domain = baseUrl + "domain/";
+  static const String domain = GeneralEndPoints.apiBaseUrl + "domain/";
 }
