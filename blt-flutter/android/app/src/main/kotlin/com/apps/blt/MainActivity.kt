@@ -1,4 +1,4 @@
-package com.apps.bugheist
+package com.apps.blt
 
 import io.flutter.embedding.android.FlutterActivity
 

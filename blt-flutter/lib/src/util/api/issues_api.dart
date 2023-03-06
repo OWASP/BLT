@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:bugheist/src/global/variables.dart';
-import 'package:bugheist/src/models/user_model.dart';
-import 'package:bugheist/src/routes/routing.dart';
-import 'package:bugheist/src/util/endpoints/issue_endpoints.dart';
+import 'package:blt/src/global/variables.dart';
+import 'package:blt/src/models/user_model.dart';
+import 'package:blt/src/routes/routing.dart';
+import 'package:blt/src/util/endpoints/issue_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../models/issuedata_model.dart';

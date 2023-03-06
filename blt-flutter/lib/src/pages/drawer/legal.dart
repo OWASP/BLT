@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 /// Page stating the legal Terms and Conditions and Privacy
-/// Policy applying to the BugHeist project.
+/// Policy applying to the BLT project.
 class LegalPage extends StatelessWidget {
   const LegalPage({Key? key}) : super(key: key);
 
@@ -32,14 +32,14 @@ class LegalPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(0, 36, 0, 24),
               child: SvgPicture.asset(
-                'assets/bugheist_logo.svg',
+                'assets/blt_logo.svg',
                 width: 169.42,
               ),
             ),
             Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 24),
               child: Text(
-                "By using the BugHeist app, you agree to the following terms and conditions and privacy policy. ",
+                "By using the BLT app, you agree to the following terms and conditions and privacy policy. ",
                 style: GoogleFonts.aBeeZee(
                   textStyle: TextStyle(
                     color: Color(0xFF737373),

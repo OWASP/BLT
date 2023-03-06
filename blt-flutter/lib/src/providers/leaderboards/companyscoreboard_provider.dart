@@ -1,6 +1,6 @@
-import 'package:bugheist/src/models/company_model.dart';
-import 'package:bugheist/src/util/api/leaderboard_api.dart';
-import 'package:bugheist/src/util/endpoints/leaderboard_endpoints.dart';
+import 'package:blt/src/models/company_model.dart';
+import 'package:blt/src/util/api/leaderboard_api.dart';
+import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The provider which exposes the state management

@@ -8,7 +8,7 @@ import '../components/searchbar.dart';
 AppBar buildAppBar({required BuildContext context}) {
   return AppBar(
     title: SvgPicture.asset(
-      'assets/bugheist_logo.svg',
+      'assets/blt_logo.svg',
       fit: BoxFit.cover,
       height: 30,
     ),
@@ -20,7 +20,7 @@ AppBar buildAppBar({required BuildContext context}) {
         onPressed: () {
           showSearch(
             context: context,
-            delegate: BugHeistSearchDelegate(),
+            delegate: BLTSearchDelegate(),
           );
           // do something
         },

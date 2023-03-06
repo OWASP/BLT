@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-/// Model class for a company/domain on BugHeist
+/// Model class for a company/domain on BLT
 class Company {
   int? id;
   final String companyName;

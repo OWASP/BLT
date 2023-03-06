@@ -1,5 +1,5 @@
-import 'package:bugheist/src/providers/authstate_provider.dart';
-import 'package:bugheist/src/routes/routing.dart';
+import 'package:blt/src/providers/authstate_provider.dart';
+import 'package:blt/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';

@@ -1,4 +1,4 @@
-import 'package:bugheist/src/models/company_model.dart';
+import 'package:blt/src/models/company_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/leader_model.dart';

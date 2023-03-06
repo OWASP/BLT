@@ -1,4 +1,4 @@
-import 'package:bugheist/src/models/issue_model.dart';
+import 'package:blt/src/models/issue_model.dart';
 
 /// Model class for the paginated data sent on requesting issues.
 class IssueData {

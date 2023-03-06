@@ -1,3 +1,4 @@
+import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -47,7 +48,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
 
   @override
   void initState() {
-    var paginatedUrl = 'https://www.bugheist.com/api/v1/userscore/';
+    var paginatedUrl = LeaderboardEndpoints.globalLeaderboard;
     _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
     super.initState();
   }
@@ -94,7 +95,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the most active users on BugHeist this month.",
+                      "These are the most active users on BLT this month.",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),

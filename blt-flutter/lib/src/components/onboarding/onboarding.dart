@@ -75,7 +75,7 @@ class _OnboardingState extends State<Onboarding> {
                   Padding(
                     padding: const EdgeInsets.only(left: 20.0),
                     child: Text(
-                      'Explore BugHeist',
+                      'Explore BLT',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

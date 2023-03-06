@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/onboarding/onboarding.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bugheist/src/providers/authstate_provider.dart';
+import 'package:blt/src/providers/authstate_provider.dart';
 
 import '../util/api/general_api.dart';
 

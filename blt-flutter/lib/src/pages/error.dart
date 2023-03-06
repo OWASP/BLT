@@ -1,4 +1,4 @@
-import 'package:bugheist/src/routes/routing.dart';
+import 'package:blt/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -49,7 +49,7 @@ class ErrorPage extends StatelessWidget {
               height: 12,
             ),
             Text(
-              "You have found a bug on BugHeist!\nFeel free to report it or go to home",
+              "You have found a bug on BLT!\nFeel free to report it or go to home",
               style: GoogleFonts.aBeeZee(
                 textStyle: TextStyle(
                   color: Color(0xFF737373),

@@ -6,7 +6,7 @@ import '../models/issuedata_model.dart';
 import '../components/issue_intro_card.dart';
 
 /// The search bar of app for searching issues based on keyword.
-class BugHeistSearchDelegate extends SearchDelegate {
+class BLTSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
