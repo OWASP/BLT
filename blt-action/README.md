@@ -23,7 +23,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: 'Auto-assign issue'
-              uses: Bugheist/assign-issues-action@main
+              uses: BLT-Action/assign-issues-action@main
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
 
