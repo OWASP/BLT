@@ -45,14 +45,10 @@ workflows:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
       - flutter_drive.log
-#     publishing:
-#       app_store_connect:
-#         auth: integration
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
 
-#         # Configuration related to TestFlight (optional)
-#         # Note: This action is performed during post-processing.
-#         submit_to_testflight: true
-
-#         # Configuration related to App Store (optional)
-#         # Note: This action is performed during post-processing.
-#         submit_to_app_store: false
