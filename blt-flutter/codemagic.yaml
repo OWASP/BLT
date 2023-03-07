@@ -12,7 +12,7 @@ workflows:
       groups:
         - main
     scripts:
-      - name: Run setup
+      - name: Run setups
         script: | 
           chmod +x setup.sh
           ./setup.sh
