@@ -5,7 +5,7 @@
       "scripts": [ "libs/jquery-1.11.1.min.js", "event.js" ]
    },
     "scripts": {
-    "build": "npm run build:client && npm run build:server"
+    "build": "npm run build"
   },
    "browser_action": {
       "default_icon": {
