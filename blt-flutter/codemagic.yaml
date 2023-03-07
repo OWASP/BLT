@@ -1,11 +1,11 @@
 workflows:
   ios-workflow:
     triggering:
-    events:
-      - push
-    branch_patterns: 
-      - pattern: *
-    cancel_previous_builds: true
+      events:
+        - push
+      branch_patterns: 
+        - pattern: *
+      cancel_previous_builds: true
     name: iOS Workflow
     max_build_duration: 120
     integrations:
