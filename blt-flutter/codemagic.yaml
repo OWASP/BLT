@@ -12,16 +12,16 @@ workflows:
       groups:
         - main
     scripts:
+      - name: Run setup
+        script: | 
+          chmod +x setup.sh
+          ./setup.sh
       - name: Set up code signing settings on Xcode project
         script: | 
           xcode-project use-profiles
       - name: Get Flutter packages
         script: | 
           flutter packages pub 
-      - name: Run setup
-        script: | 
-          chmod +x setup.sh
-          ./setup.sh
       - name: Install pods
         script: | 
           find . -name "Podfile" -execdir pod install \;
