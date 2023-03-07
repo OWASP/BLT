@@ -1,0 +1,5 @@
+geth  --datadir . --port 30302 --http --authrpc.port 8546 --http.addr 'localhost'  --bootnodes 'enode://2b48ee105d65499921c179d7b74f749ea4675111c347cc3ade60a1df1ee9228864bb534488cabe91a8a31e2319982e60af0c0441f4bfd09b18e2ed131d0b115d@127.0.0.1:0?discport=30301' --networkid 6969 --allow-insecure-unlock --unlock  0x00B3c52405e441C44a79D74e5bBc0095ab3e1661 --password password.txt --miner.etherbase 0x00B3c52405e441C44a79D74e5bBc0095ab3e1661 --mine console   --syncmode full --miner.gasprice 0 --rpc.txfeecap 0
+
+geth  --datadir . --port 30303 --http --http.port 8547 --http.addr 'localhost'  --bootnodes 'enode://2b48ee105d65499921c179d7b74f749ea4675111c347cc3ade60a1df1ee9228864bb534488cabe91a8a31e2319982e60af0c0441f4bfd09b18e2ed131d0b115d@127.0.0.1:0?discport=30301' --networkid 6969 --allow-insecure-unlock --unlock  0xEaDEE04F258B043DAB2aE8F5c3B86C2A2B1eeaAB --password password.txt --miner.etherbase 0xEaDEE04F258B043DAB2aE8F5c3B86C2A2B1eeaAB --mine console   --syncmode full --miner.gasprice 0 --rpc.txfeecap 0
+
+bootnode -nodekey "boot.key" -verbosity 7 -addr "127.0.0.1:30301"
