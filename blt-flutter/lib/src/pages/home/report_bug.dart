@@ -1,5 +1,3 @@
-// import 'dart:convert';
-// import 'dart:u';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -15,115 +13,28 @@ import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../pages/home/start_hunt.dart';
 import '../../global/variables.dart';
-import '../../providers/login_provider.dart';
 import '../../util/api/issues_api.dart';
 import '../../models/issue_model.dart';
-import '../../util/enums/login_type.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
-  const ReportBug({Key? key, required this.selectedWidgetName})
-      : super(key: key);
-  final String? selectedWidgetName;
+  const ReportBug({Key? key}) : super(key: key);
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
 
 class _ReportBugState extends ConsumerState<ReportBug> {
-  String? selectedWidgetName;
-  Widget bodyWidget = SizedBox();
-
-  List<DropdownMenuItem<String>> _dropDownItem() {
-    List<String> ddl = [
-      "Report Issue",
-      "Start Bug Hunt",
-    ];
-    return ddl.map(
-      (value) {
-        return DropdownMenuItem(
-          value: value,
-          child: Text(
-            value,
-            style: GoogleFonts.ubuntu(
-              textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
-            ),
-          ),
-        );
-      },
-    ).toList();
-  }
-
-  buildPageSwitcher(Size size) {
-    LoginType loginType = ref.watch(loginProvider.notifier).loginType;
-    return (loginType == LoginType.guest)
-        ? Container(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Report Issue",
-              style: GoogleFonts.ubuntu(
-                textStyle: TextStyle(color: Color(0xFF737373), fontSize: 30),
-              ),
-            ),
-          )
-        : DropdownButton(
-            items: _dropDownItem(),
-            value: selectedWidgetName,
-            onChanged: (val) {
-              selectedWidgetName = val.toString();
-              switch (selectedWidgetName) {
-                case "Report Issue":
-                  setState(() {
-                    bodyWidget = ReportForm(
-                      size: size,
-                      parentContext: context,
-                    );
-                  });
-                  break;
-                case "Start Bug Hunt":
-                  setState(() {
-                    bodyWidget = StartHuntPage();
-                  });
-                  break;
-                default:
-                  setState(() {
-                    bodyWidget = ReportForm(
-                      size: size,
-                      parentContext: context,
-                    );
-                  });
-              }
-            },
-          );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    selectedWidgetName = widget.selectedWidgetName;
-    bodyWidget = (widget.selectedWidgetName == "Start Bug Hunt")
-        ? StartHuntPage()
-        : ReportForm(
-            size: window.physicalSize / window.devicePixelRatio,
-            parentContext: context,
-          );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          buildPageSwitcher(size),
-          bodyWidget,
-        ],
+      child: ReportForm(
+        size: window.physicalSize / window.devicePixelRatio,
+        parentContext: context,
       ),
     );
   }
@@ -280,7 +191,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   "Ensure you are not submitting a duplicate bug by checking here: ",
                             ),
                             TextSpan(
-                              text: "${GeneralEndPoints.domain}issue/${m["id"]}",
+                              text:
+                                  "${GeneralEndPoints.domain}issue/${m["id"]}",
                               style: GoogleFonts.aBeeZee(
                                 textStyle: TextStyle(
                                   color: Color(0xFF4A93F8),

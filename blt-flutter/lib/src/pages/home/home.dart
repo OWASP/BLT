@@ -1,8 +1,8 @@
 import 'package:blt/src/global/variables.dart';
-// import 'package:blt/src/pages/home/feed.dart';
 import 'package:blt/src/pages/home/issues.dart';
 import 'package:blt/src/pages/home/leaderboard.dart';
 import 'package:blt/src/pages/home/report_bug.dart';
+import 'package:blt/src/pages/home/start_hunt.dart';
 import 'package:blt/src/providers/authstate_provider.dart';
 import 'package:blt/src/providers/login_provider.dart';
 import 'package:blt/src/routes/routing.dart';
@@ -30,7 +30,6 @@ class Home extends ConsumerStatefulWidget {
 
 class _HomeState extends ConsumerState<Home> {
   late int _selectedIndex;
-  String _reportBugState = "Report Issue";
   late PageController _pageController;
 
   // final List<ConsumerStatefulWidget> _children = [
@@ -67,8 +66,7 @@ class _HomeState extends ConsumerState<Home> {
               builder: (context) => WelcomePage(snackBarMessage:"Only Logged in users can start a Bug Hunt")), (Route route) => false);
       await logout();
     } else {
-        _reportBugState="Start Bug Hunt";
-      _onItemTapped(1);
+      _onItemTapped(2);
       Navigator.pop(context);
     }
   }
@@ -267,7 +265,8 @@ class _HomeState extends ConsumerState<Home> {
             children: [
               // Feed(),
               IssuesPage(),
-              ReportBug(selectedWidgetName: _reportBugState,),
+              ReportBug(),
+              StartHuntPage(),
               LeaderBoard(),
             ]),
         bottomNavigationBar: BottomNavigationBar(
@@ -284,6 +283,10 @@ class _HomeState extends ConsumerState<Home> {
             BottomNavigationBarItem(
               icon: Icon(Icons.bug_report),
               label: 'Report',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.location_searching),
+              label: 'Bug Hunt',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.leaderboard),

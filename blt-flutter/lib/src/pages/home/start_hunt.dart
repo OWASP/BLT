@@ -1,25 +1,32 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Sub page which adds "start bug hunt" functionality to the Report Bug page.
-class StartHuntPage extends StatefulWidget {
+/// Start Bug Hunt Page
+/// companies and individuals
+/// should be able to start bughunts.
+class StartHuntPage extends ConsumerStatefulWidget {
   const StartHuntPage({Key? key}) : super(key: key);
 
   @override
-  State<StartHuntPage> createState() => _StartHuntPageState();
+  ConsumerState<StartHuntPage> createState() => _StartHuntPageState();
 }
 
-class _StartHuntPageState extends State<StartHuntPage> {
+class _StartHuntPageState extends ConsumerState<StartHuntPage> {
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    return HuntForm(
-      size: size,
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: HuntForm(
+        size: window.physicalSize / window.devicePixelRatio,
+      ),
     );
   }
 }
@@ -50,24 +57,24 @@ class _HuntFormState extends State<HuntForm> {
     });
   }
 
-    Future<File> _convertToImage(Uint8List imageBytes) async{
+  Future<File> _convertToImage(Uint8List imageBytes) async{
     String tempPath = (await getTemporaryDirectory()).path;
     File file = File('$tempPath/profile.png');
     await file.writeAsBytes(
-      imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+        imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
     return file;
   }
 
   Future<void> _pasteImageFromClipBoard() async{
     try {
-    final imageBytes = await Pasteboard.image;
-    late File? image ;
-    if(imageBytes != null){
-     image = await _convertToImage(imageBytes);
-    }
-    setState(() {
-      _image = image! ;
-    });
+      final imageBytes = await Pasteboard.image;
+      late File? image ;
+      if(imageBytes != null){
+        image = await _convertToImage(imageBytes);
+      }
+      setState(() {
+        _image = image! ;
+      });
     }
     catch(e){
       print('No Image Found On Clipboard');
@@ -134,53 +141,53 @@ class _HuntFormState extends State<HuntForm> {
             margin: const EdgeInsets.symmetric(vertical: 8.0),
             child:Row(
               children: [
-              SizedBox(
-                child: TextButton(
-                  child: Text(
-                    "Choose Image",
-                    style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                SizedBox(
+                  child: TextButton(
+                    child: Text(
+                      "Choose Image",
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      _pickImageFromGallery();
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                        Color(0xFFDC4654),
                       ),
                     ),
                   ),
-                  onPressed: () {
-                    _pickImageFromGallery();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                      Color(0xFFDC4654),
-                    ),
-                  ),
                 ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              SizedBox(
-                child: TextButton(
-                  child: Text(
-                    "Choose From Clipboard",
-                    style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                SizedBox(
+                  width: 10,
+                ),
+                SizedBox(
+                  child: TextButton(
+                    child: Text(
+                      "Choose From Clipboard",
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      _pasteImageFromClipBoard();
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                        Color(0xFFDC4654),
                       ),
                     ),
                   ),
-                  onPressed: () {
-                    _pasteImageFromClipBoard();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                      Color(0xFFDC4654),
-                    ),
-                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
           Container(
             height: 280,
@@ -188,28 +195,28 @@ class _HuntFormState extends State<HuntForm> {
             margin: const EdgeInsets.only(bottom: 12.0),
             child: _image.path == ""
                 ? Center(
-                    child: Text(
-                      'No image selected.',
-                      style: GoogleFonts.aBeeZee(
-                        textStyle: TextStyle(
-                          color: Color(0xFF737373),
-                        ),
-                      ),
-                    ),
-                  )
-                : Image.file(
-                    _image,
-                    fit: BoxFit.cover,
+              child: Text(
+                'No image selected.',
+                style: GoogleFonts.aBeeZee(
+                  textStyle: TextStyle(
+                    color: Color(0xFF737373),
                   ),
+                ),
+              ),
+            )
+                : Image.file(
+              _image,
+              fit: BoxFit.cover,
+            ),
             decoration: BoxDecoration(
               border: _image.path == ""
                   ? Border.all(
-                      color: Color(0xFFDC4654),
-                      width: 0.5,
-                    )
+                color: Color(0xFFDC4654),
+                width: 0.5,
+              )
                   : null,
               borderRadius:
-                  _image.path == "" ? BorderRadius.circular(15) : null,
+              _image.path == "" ? BorderRadius.circular(15) : null,
             ),
           ),
           Container(
