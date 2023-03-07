@@ -132,16 +132,16 @@
       "message": "Sign In"
    },
    "screenshot_app_signin_error_caption": {
-      "message": "Bugheist sign in error"
+      "message": "OWASP BLT sign in error"
    },
    "screenshot_app_signin_error_text": {
-      "message": "Bugheist: An error occurred while signing in. Please retry."
+      "message": "OWASP BLT: An error occurred while signing in. Please retry."
    },
    "screenshot_app_take_screenshot": {
       "message": "Report a Bug"
    },
    "screenshot_app_terms": {
-      "message": "Bugheist Terms of Service"
+      "message": "OWASP BLT Terms of Service"
    },
    "screenshot_app_tray_tooltip": {
       "message": "Press the \"%hotkey_main%\" on your keyboard to take a screenshot"
@@ -285,25 +285,25 @@
       "message": "Cancel - cancel uploading a screenshot"
    },
    "screenshot_plugin_upl_fail_check_proxy_settings": {
-      "message": "Please make sure the configuration is correct and the proxy does not block Bugheist requests."
+      "message": "Please make sure the configuration is correct and the proxy does not block BLT requests."
    },
    "screenshot_plugin_upl_fail_continue_open_lightshot_proxy": {
-      "message": "Continue - open the Bugheist proxy configuration"
+      "message": "Continue - open the BLT proxy configuration"
    },
    "screenshot_plugin_upl_fail_continue_open_system_proxy": {
       "message": "Continue - open the system proxy configuration"
    },
    "screenshot_plugin_upl_fail_lightshot_uses_proxy": {
-      "message": "Currently Bugheist is configured to use this proxy: %proxy%"
+      "message": "Currently BLT is configured to use this proxy: %proxy%"
    },
    "screenshot_plugin_upl_fail_lightshot_uses_system_proxy": {
-      "message": "Bugheist uses the current system proxy settings: %proxy%"
+      "message": "OWASP BLT uses the current system proxy settings: %proxy%"
    },
    "screenshot_plugin_upl_fail_try_again_with_current_settings": {
       "message": "Try Again - retry using the current settings"
    },
    "screenshot_plugin_upload": {
-      "message": "Upload to Bugheist"
+      "message": "Upload to OWSSP BLT"
    },
    "screenshot_plugin_upload_error_capt": {
       "message": "Upload error"
@@ -324,7 +324,7 @@
       "message": "Take a Screenshot"
    },
    "screenshotplugin_name": {
-      "message": "Bugheist"
+      "message": "OWASP BLT-Extension"
    },
    "screenshotplugin_short_description": {
       "message": "Simple and convenient screenshot tool. Select an area, edit your screenshot and upload it to the server."

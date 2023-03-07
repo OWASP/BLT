@@ -63,7 +63,7 @@ function w(a) {
 }
 s.extend(w, Notification);
 w.prototype.create = function() {
-  var a = this, b = {type:"progress", title:"Bugheist", message:v.c("screenshot_plugin_uploading_window_capt"), iconUrl:"img/icon256.png", buttons:[{title:v.c("screenshot_plugin_cancel")}], isClickable:!0, progress:0};
+  var a = this, b = {type:"progress", title:"OWASP BLT-Extension", message:v.c("screenshot_plugin_uploading_window_capt"), iconUrl:"img/icon256.png", buttons:[{title:v.c("screenshot_plugin_cancel")}], isClickable:!0, progress:0};
   50 <= n().da && (b.requireInteraction = !0);
   chrome.notifications.create(this.b, b, function() {
     a.k = "uploading";
@@ -101,7 +101,7 @@ function x() {
   }, u:a};
 }
 ;var E = {save:function(a, b) {
-  a && "undefined" != typeof a && "undefined" != typeof a.img_url && $.ajax({type:"POST", url:"http://bugheist/v1/", data:JSON.stringify({jsonrpc:"2.0", id:1, method:"save", params:a}), dataType:"json", beforeSend:function(a) {
+  a && "undefined" != typeof a && "undefined" != typeof a.img_url && $.ajax({type:"POST", url:"http://www.bugheist.com/v1/", data:JSON.stringify({jsonrpc:"2.0", id:1, method:"save", params:a}), dataType:"json", beforeSend:function(a) {
     a.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   }, complete:function(a) {
     a.responseJSON && "undefined" != typeof a.responseJSON && "undefined" != typeof a.responseJSON.result ? b(a.responseJSON.result) : b(null);
@@ -438,7 +438,7 @@ var Q = function(a) {
             chrome.tabs.create({url:"http://www.google.com/searchbyimage?image_url=" + b});
             break;
           case "share_twitter":
-            chrome.tabs.create({url:"http://twitter.com/home?source=Bugheist&status=" + b + "%20"});
+            chrome.tabs.create({url:"http://twitter.com/home?source=OWASP_BLT&status=" + b + "%20"});
             break;
           case "share_facebook":
             chrome.tabs.create({url:"https://www.facebook.com/dialog/share?app_id=585941498129307&display=page&href=" + b + "&redirect_uri=" + b});

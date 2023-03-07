@@ -1,5 +1,5 @@
 {
-   "author": "Bugheist Team",
+   "author": "OWASP BLT",
    "background": {
       "persistent": false,
       "scripts": [ "libs/jquery-1.11.1.min.js", "event.js" ]
@@ -9,12 +9,12 @@
          "19": "img/icon19.png",
          "38": "img/icon38.png"
       },
-      "default_title": "Bugheist"
+      "default_title": "OWASP BLT-Extension"
    },
    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
    "default_locale": "en",
-   "description": "Bugheist let's you get points for testing and finding issues!",
-   "homepage_url": "http://bugheist.com",
+   "description": "OWASP BLT let's you get points for testing and finding issues!",
+   "homepage_url": "https://www.owasp.org/BLT/",
    "icons": {
       "128": "img/icon128.png",
       "19": "img/icon19.png",
@@ -24,8 +24,8 @@
       "38": "img/icon38.png"
    },
    "manifest_version": 2,
-   "name": "Bugheist",
-   "short_name": "Bugheist",
+   "name": "OWASP BLT-Extension",
+   "short_name": "BLT-Extension",
    "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "1.4"
