@@ -41,7 +41,7 @@ class IssueApiClient {
         );
       }
     } catch (e) {
-      print(e);
+      print(e); //show error to user
     }
     return issueData;
   }
@@ -122,8 +122,7 @@ class IssueApiClient {
       response = await http.Response.fromStream(streamedresponse);
 
       print(response.body);
-
-      if (streamedresponse.statusCode == 201) {
+      if (streamedresponse.statusCode == 201 || streamedresponse.statusCode == 200) {
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         issue = Issue.fromJson(decodedResponse);
 
