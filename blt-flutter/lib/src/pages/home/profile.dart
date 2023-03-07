@@ -15,7 +15,6 @@ import '../../models/issuedata_model.dart';
 import '../../util/endpoints/issue_endpoints.dart';
 import '../../pages/welcome.dart';
 
-
 /// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.
 class UserProfile extends ConsumerStatefulWidget {
@@ -40,16 +39,18 @@ class _UserProfileState extends ConsumerState<UserProfile> {
       return NetworkImage(currentUser!.pfpLink!);
     }
   }
-  Future<List<Issue>?> getAnonymousUserIssueList() async{
+
+  Future<List<Issue>?> getAnonymousUserIssueList() async {
     List<Issue>? issueList = null;
-    try{
+    try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
         IssueEndPoints.issues,
       );
       issueList = issueData!.issueList;
-    } catch(e){}
+    } catch (e) {}
     return issueList;
   }
+
   Future<List<Issue>?> getIssueList(List<int>? idList) async {
     List<Issue>? issueList = null;
     try {
@@ -94,8 +95,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length< 24)? issue.description:
-                    issue.description.substring(0, 24) + "...",
+                    (issue.description.length < 24)
+                        ? issue.description
+                        : issue.description.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -158,8 +160,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length< 24)? issue.description:
-                    issue.description.substring(0, 24) + "...",
+                    (issue.description.length < 24)
+                        ? issue.description
+                        : issue.description.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -222,8 +225,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length< 24)? issue.description:
-                    issue.description.substring(0, 24) + "...",
+                    (issue.description.length < 24)
+                        ? issue.description
+                        : issue.description.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -266,15 +270,33 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
   @override
   void initState() {
-    getLikedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
-      currentUser!.likedIssueId !=null ? (currentUser!.likedIssueId!.length > 0 ? currentUser!.likedIssueId! : null) : null,
-    );
-    getSavedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
-      currentUser!.savedIssueId !=null ? (currentUser!.savedIssueId!.length > 0 ? currentUser!.savedIssueId! : null) : null,
-    );
-    getFlaggedList = (currentUser! == guestUser)? getAnonymousUserIssueList():getIssueList(
-      currentUser!.flaggedIssueId !=null ? (currentUser!.flaggedIssueId!.length > 0 ? currentUser!.flaggedIssueId! : null) : null,
-    );
+    getLikedList = (currentUser! == guestUser)
+        ? getAnonymousUserIssueList()
+        : getIssueList(
+            currentUser!.likedIssueId != null
+                ? (currentUser!.likedIssueId!.length > 0
+                    ? currentUser!.likedIssueId!
+                    : null)
+                : null,
+          );
+    getSavedList = (currentUser! == guestUser)
+        ? getAnonymousUserIssueList()
+        : getIssueList(
+            currentUser!.savedIssueId != null
+                ? (currentUser!.savedIssueId!.length > 0
+                    ? currentUser!.savedIssueId!
+                    : null)
+                : null,
+          );
+    getFlaggedList = (currentUser! == guestUser)
+        ? getAnonymousUserIssueList()
+        : getIssueList(
+            currentUser!.flaggedIssueId != null
+                ? (currentUser!.flaggedIssueId!.length > 0
+                    ? currentUser!.flaggedIssueId!
+                    : null)
+                : null,
+          );
     super.initState();
   }
 
@@ -298,7 +320,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           IconButton(
             onPressed: () async {
               final ImagePicker _picker = ImagePicker();
-              final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+              final XFile? image =
+                  await _picker.pickImage(source: ImageSource.gallery);
               if (image == null) {
                 return;
               }
@@ -315,11 +338,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
             icon: Icon(Icons.account_circle_outlined),
           ),
           IconButton(
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-              builder: (context) => WelcomePage()), (Route route) => false);
-              forgetUser();
-              logout();
+            onPressed: () async {
+              await forgetUser();
+              await Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => WelcomePage(),
+                ),
+                (Route route) => false,
+              );
+              await logout();
             },
             icon: Icon(Icons.power_settings_new_rounded),
           )
@@ -423,9 +450,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ? TextButton(
                               onPressed: () {},
                               child: Text(
-                                (currentUser!.totalScore != null) ? 
-                                "Score : ${currentUser!.totalScore!} " :
-                                "Score : 0 " ,
+                                (currentUser!.totalScore != null)
+                                    ? "Score : ${currentUser!.totalScore!} "
+                                    : "Score : 0 ",
                                 style: GoogleFonts.aBeeZee(
                                   textStyle: TextStyle(
                                     color: Color(0xFFDC4654),

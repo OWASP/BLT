@@ -145,13 +145,11 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
   Future<void> logout() async {
     LoginType loginType = read(loginProvider.notifier).loginType;
     if (loginType == LoginType.guest) {
-      await Future.delayed(const Duration(seconds: 1));
       state = AsyncValue.data(AuthState.loggedOut);
       read(loginProvider.notifier).logout();
       currentUser = null;
     } else if (loginType == LoginType.user) {
       if (await AuthApiClient.logout()) {
-        await Future.delayed(const Duration(seconds: 1));
         state = AsyncValue.data(AuthState.loggedOut);
         read(loginProvider.notifier).logout();
         currentUser = null;

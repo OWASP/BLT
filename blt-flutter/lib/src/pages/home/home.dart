@@ -14,7 +14,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../components/appbar.dart';
 import '../../pages/welcome.dart';
 
-
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
 class Home extends ConsumerStatefulWidget {
@@ -32,12 +31,6 @@ class _HomeState extends ConsumerState<Home> {
   late int _selectedIndex;
   late PageController _pageController;
 
-  // final List<ConsumerStatefulWidget> _children = [
-  //   // Feed(),
-  //   IssuesPage(),
-  //   ReportBug(selectedWidgetName: ""),
-  //   LeaderBoard()
-  // ];
   void _onItemTapped(int index) {
     setState(
       () {
@@ -62,8 +55,14 @@ class _HomeState extends ConsumerState<Home> {
 
     if (loginState == LoginType.guest) {
       await forgetUser();
-              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-              builder: (context) => WelcomePage(snackBarMessage:"Only Logged in users can start a Bug Hunt")), (Route route) => false);
+      await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => WelcomePage(
+            snackBarMessage: "Only Logged in users can start a Bug Hunt",
+          ),
+        ),
+        (Route route) => false,
+      );
       await logout();
     } else {
       _onItemTapped(2);
@@ -107,11 +106,11 @@ class _HomeState extends ConsumerState<Home> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      TextButton(onPressed: (){
-                          forgetUser(); 
+                      TextButton(onPressed: () async {
+                          await forgetUser();
+                          await Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                              builder: (context) => WelcomePage()), (Route route) => false);
                           logout();
-                          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                          builder: (context) => WelcomePage()), (Route route) => false);
                       },
                       style: ButtonStyle(
                         alignment: Alignment.center,
@@ -234,8 +233,9 @@ class _HomeState extends ConsumerState<Home> {
                   // ...
                   // Then close the drawer
                   await forgetUser();
-              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-              builder: (context) => WelcomePage()), (Route route) => false);
+                  await Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => WelcomePage()),
+                      (Route route) => false);
                   await logout();
                 },
               ),
@@ -292,34 +292,33 @@ class _HomeState extends ConsumerState<Home> {
                 title: Container(
                   width: double.infinity,
                   height: 50,
-                  child: Builder(
-                    builder: (context) {
-                      return TextButton(
-                        child: Text(
-                          "Start Bug Hunt",
-                          style: GoogleFonts.ubuntu(
-                            textStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                            ),
+                  child: Builder(builder: (context) {
+                    return TextButton(
+                      child: Text(
+                        "Start Bug Hunt",
+                        style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
                           ),
                         ),
-                        style: ButtonStyle(
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all(
-                            Color(0xFFDC4654),
+                      ),
+                      style: ButtonStyle(
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        onPressed: () async {
-                          startBugHunt(context);
-                        },
-                      );
-                    }
-                  ),
+                        backgroundColor: MaterialStateProperty.all(
+                          Color(0xFFDC4654),
+                        ),
+                      ),
+                      onPressed: () async {
+                        startBugHunt(context);
+                      },
+                    );
+                  }),
                 ),
               ),
             ],
