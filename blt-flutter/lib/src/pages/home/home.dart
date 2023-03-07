@@ -91,6 +91,66 @@ class _HomeState extends ConsumerState<Home> {
         : SizedBox();
   }
 
+  Widget buildLogOUtDialog(){
+    return AlertDialog(
+                title: Text(
+                  'You will be logged out of the app !',
+                   style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFFDC4654),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ),
+                content: Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(onPressed: (){
+                          forgetUser(); 
+                          logout();
+                          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                          builder: (context) => WelcomePage()), (Route route) => false);
+                      },
+                      style: ButtonStyle(
+                        alignment: Alignment.center,
+                        backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
+                      ),
+                      child : Text(
+                        "Logout",
+                          style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                          color: Color.fromRGBO(255, 255, 255, 1),
+                          fontSize: 15,
+                          ),
+                        ),
+                      )
+                      ),
+                      TextButton(
+                        onPressed: (){
+                        Navigator.pop(context);
+                      },
+                      style: ButtonStyle(
+                        alignment: Alignment.center,
+                        backgroundColor: MaterialStateProperty.all(Color(0xFF737373)),
+                      ),
+                      child : Text(
+                        "Cancel",
+                          style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Color.fromRGBO(255, 255, 255, 1),
+                            fontSize: 15,
+                          ),
+                        ),
+                      )
+                      ),
+                    ],
+                  ),
+                ),
+            );
+  }
+
   NetworkImage? buildAvatar() {
     LoginType loginState = ref.watch(loginProvider);
 
@@ -125,9 +185,17 @@ class _HomeState extends ConsumerState<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        forgetUser(); 
-        logout();
-        return true;
+        showGeneralDialog(
+          context: context,
+          barrierLabel: "Barrier",
+          barrierDismissible: true,
+          barrierColor: Colors.black.withOpacity(0.5),
+          transitionDuration: Duration(milliseconds: 400),
+          pageBuilder: (_, __, ___){
+            return buildLogOUtDialog();
+          },
+         );
+        return false;
       },
       child: Scaffold(
         appBar: buildAppBar(context: context),
