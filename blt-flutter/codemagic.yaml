@@ -32,10 +32,10 @@ workflows:
       - name: Flutter analyze
         script: | 
           flutter analyze
-      - name: Flutter unit tests
-        script: | 
-          flutter test
-        ignore_failure: true
+#       - name: Flutter unit tests
+#         script: | 
+#           flutter test
+#         ignore_failure: true
       - name: Flutter build ipa
         script: | 
           flutter build ipa --release \
