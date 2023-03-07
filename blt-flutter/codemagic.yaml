@@ -3,10 +3,6 @@ workflows:
     triggering:
       events:
         - push
-      branch_patterns: 
-        - pattern: *
-        - pattern: develop
-          include: false
       cancel_previous_builds: true
     name: iOS Workflow
     max_build_duration: 120
