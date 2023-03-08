@@ -1,3 +1,4 @@
+import 'package:blt/src/pages/welcome.dart';
 import 'package:blt/src/util/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,10 +39,21 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     read(loginProvider.notifier).setGuestLogin();
   }
 
+  Future<void> checkFirstLogin(BuildContext context) async{
+    String? firstLogin = await storage.read(key: "firstLogin");
+    if(firstLogin == null) {
+      await storage.write(key: "firstLogin", value: "false");
+    }else if(firstLogin == "false"){
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+              builder: (context) => WelcomePage()), (Route route) => false);
+    }
+  }
+
   Future<bool> loadUserIfRemembered(BuildContext context) async {
     String? remember = await storage.read(key: "remember");
 
     if (remember == null) {
+      checkFirstLogin(context);
       return false;
     }
 
