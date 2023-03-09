@@ -2,7 +2,7 @@ By using the blt.owasp.org web site ("Service"), or any services of BLT ("BLT"),
 
 Please note that if you are accessing any BLT service in your capacity as a government entity, there are special terms that may apply to you.
 
-If BLT makes material changes to these Terms, we will notify you by email or by posting a notice on our site before the changes are effective. Any new features that augment or enhance the current Service, including the release of new tools and resources, shall be subject to the Terms of Service. Continued use of the Service after any such changes shall constitute your consent to such changes. You can review the most current version of the Terms of Service at any time at: https://www.blt.owasp.org//terms
+If BLT makes material changes to these Terms, we will notify you by email or by posting a notice on our site before the changes are effective. Any new features that augment or enhance the current Service, including the release of new tools and resources, shall be subject to the Terms of Service. Continued use of the Service after any such changes shall constitute your consent to such changes. You can review the most current version of the Terms of Service at any time at: https://www.blt.owasp.org/terms
 
 Violation of any of the terms below will result in the termination of your Account. While BLT prohibits such conduct and Content on the Service, you understand and agree that BLT cannot be responsible for the Content posted on the Service and you nonetheless may be exposed to such materials. You agree to use the Service at your own risk.
 

@@ -1,4 +1,4 @@
-<img src="https://user-images.githubusercontent.com/76696648/187176986-3d026a93-5a96-4575-b1ae-21f5358b8376.png" width=100%>
+<img src="assets/github/contri1.png" width=100%>
 
 # Contribution Guide
 Thinking of contributing to BLT's mobile app? Here's a comprehensive guide to let you join in the fun of the open source world!
@@ -12,7 +12,7 @@ Open Source FTW!
 All of the BLT app's code is in this repository.
 
 ### The BLT repository repository
-To keep things mantaibale, the website's frontend, backend, and the API's code is in The [BLT repository.](https://github.com/OWASP/BLT)
+To keep things maintainable, the website's frontend, backend, and the API's code is in The [BLT repository.](https://github.com/OWASP/BLT)
 
 ### Time to contribute!
 Too much talkin', let's get to the business, yes? We welcome both developers and designers, so we have something for both of you!
@@ -31,7 +31,7 @@ We value a good user experience empowered by good design practices. You can view
 
 <br/>
 <div align=center>
-<img src="https://user-images.githubusercontent.com/76696648/187176196-a97bd27e-f17e-4d6f-8c4a-b9e047dc9e4e.png" width=50% height=50%>
+<img src="assets/github/contri2.png" width=50% height=50%>
 </div>
 <br/>
 
