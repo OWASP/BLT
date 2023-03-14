@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import '../../constants/monthname_constants.dart';
 import '../../routes/routing.dart';
 import '../../providers/leaderboards/globalleaderboard_povider.dart';
+import '../../providers/leaderboards/monthlyleaderboard_provider.dart';
 import '../../providers/leaderboards/companyscoreboard_provider.dart';
 
 /// The Leaderboards dashboard page, contains the Global,
@@ -291,7 +292,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   ),
                 ),
                 Text(
-                  "Check the best bug hunters of this month.!",
+                  "Check the best bug hunters in ${monthsInYear[DateTime.now().month]}.!",
                   style: GoogleFonts.aBeeZee(
                     textStyle: TextStyle(
                       color: Color(0xFF737373),
@@ -304,7 +305,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                   child: Consumer(
                     builder: (context, ref, child) {
                       final monthlyLeaderboardList = ref.watch(
-                        globalLeaderBoardProvider,
+                        monthlyLeaderBoardProvider,
                       );
                       return monthlyLeaderboardList!.when(
                         data: (leaderList) {
@@ -317,7 +318,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                             },
                             child: ListView.builder(
                               padding: EdgeInsets.zero,
-                              itemCount: 3,
+                              itemCount: (leaderList!.length < 3 ? leaderList.length : 3),
                               shrinkWrap: true,
                               itemBuilder: (context, index) {
                                 return ListTile(

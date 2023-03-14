@@ -1,4 +1,5 @@
 import 'package:blt/src/models/company_model.dart';
+import 'package:blt/src/models/leaderdata_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/leader_model.dart';
@@ -17,6 +18,53 @@ class LeaderboardApiClient {
               .map((data) => Leaders.fromJson(data))
               .toList();
       return leaders;
+    });
+  }
+
+  static Future<LeaderData> getMonthlyLeaderData(String paginatedUrl,int? year , int? month) async{
+    final queryParams = {
+      "filter" : '1',
+      "year" : year.toString() ?? DateTime.now().year.toString(),
+      "month" : month.toString() ?? DateTime.now().month.toString(),
+    };
+    print(Uri.parse(paginatedUrl).replace(queryParameters: queryParams));
+    return http
+    .get(
+      Uri.parse(paginatedUrl).replace(queryParameters: queryParams),
+    )
+    .then((http.Response response){
+        List<Leaders> leaderList = [];
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        decodedResponse["results"].forEach((element) {
+          leaderList.add(Leaders.fromJson(element));
+        });
+        LeaderData leaderData = LeaderData(
+          count: decodedResponse["count"],
+          nextQuery: decodedResponse["next"],
+          previousQuery: decodedResponse["previous"],
+          leaderList: leaderList,
+        );
+        print(leaderList);
+      return leaderData;
+    });
+  }
+
+  static Future<LeaderData> getMoreMonthlyLeaders (String? nextUrl) async{
+    return http.get(
+      Uri.parse(nextUrl!),
+    ).then((http.Response response){
+        List<Leaders> leaderList = [];
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        decodedResponse["results"].forEach((element) {
+        leaderList.add(Leaders.fromJson(element));
+        });
+        LeaderData leaderData = LeaderData(
+          count: decodedResponse["count"],
+          nextQuery: decodedResponse["next"],
+          previousQuery: decodedResponse["previous"],
+          leaderList: leaderList,
+        );
+      return leaderData;
     });
   }
 

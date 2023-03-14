@@ -5,5 +5,7 @@ class LeaderboardEndpoints {
 
   static const String globalLeaderboard = GeneralEndPoints.apiBaseUrl + "userscore/";
 
+  static const String monthly_leaderboard = GeneralEndPoints.apiBaseUrl + "leaderboard/";
+
   static const String companyScoreboard = GeneralEndPoints.apiBaseUrl + "scoreboard/";
 }

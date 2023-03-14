@@ -1,19 +1,21 @@
-import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
+import 'package:blt/src/providers/leaderboards/monthlyleaderboard_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../../util/api/leaderboard_api.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/leader_model.dart';
+import '../../constants/monthname_constants.dart';
 /// Page showing the top contributing users for the current month.
-class MonthlyLeaderBoardPage extends StatefulWidget {
+class MonthlyLeaderBoardPage extends ConsumerStatefulWidget {
   const MonthlyLeaderBoardPage({Key? key}) : super(key: key);
 
   @override
-  State<MonthlyLeaderBoardPage> createState() => _MonthlyLeaderBoardPageState();
+  _MonthlyLeaderBoardPageState createState() => _MonthlyLeaderBoardPageState();
 }
 
-class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
-  late Future _getObj;
+ScrollController _scrollController = new ScrollController();
+
+class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage> {
+  late String? paginatedUrl;
 
   CircleAvatar buildAvatar(String partUrl) {
     try {
@@ -48,15 +50,27 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
 
   @override
   void initState() {
-    var paginatedUrl = LeaderboardEndpoints.globalLeaderboard;
-    _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
+    _scrollController.addListener(() async {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        loadMoreLeaders();
+      }
+    });
     super.initState();
+
+  }
+
+  void loadMoreLeaders() {
+    paginatedUrl = ref.watch(monthlyLeaderBoardProvider.notifier).nextUrl;
+    if(paginatedUrl!.isNotEmpty){
+      ref.watch(monthlyLeaderBoardProvider.notifier).getMoreMontlyLeaders();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-
+    final monthlyLeadersState = ref.watch(monthlyLeaderBoardProvider);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -95,7 +109,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the most active users on BLT this month.",
+                      "These are the most active users on BLT in ${monthsInYear[DateTime.now().month]}",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -109,19 +123,17 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
             Container(
               height: size.height * 0.8,
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: FutureBuilder(
-                future: _getObj,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Something went wrong!',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      );
-                    } else if (snapshot.hasData) {
-                      final list = snapshot.data as List;
+              child: monthlyLeadersState!.when(
+                data: (List<Leaders>? leaderList){
+                    if(leaderList!.isEmpty){
+                    return Center(
+                    child: Text(
+                      "Looks Like There aren't any active users this month .",
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                    }else{
+                      final list = leaderList;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 0.0,
@@ -130,6 +142,7 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                         child: Material(
                           color: Colors.transparent,
                           child: ListView.builder(
+                            controller: _scrollController,
                             itemCount: list.length,
                             itemBuilder: (context, index) {
                               return ListTile(
@@ -185,12 +198,21 @@ class _MonthlyLeaderBoardPageState extends State<MonthlyLeaderBoardPage> {
                         ),
                       );
                     }
-                  }
-                  return Center(
+                },
+                error: (Object error, StackTrace? stackTrace) {
+                    return Center(
+                      child: Text(
+                        'Something went wrong!',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    );
+                  },
+                loading: (){
+                    return Center(
                     child: CircularProgressIndicator(),
                   );
-                },
-              ),
+                }
+              )
             )
           ],
         ),
