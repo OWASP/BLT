@@ -347,7 +347,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                                   .withOpacity(0.42)
                                               : Colors.white,
                                   leading:
-                                      buildAvatar(leaderList![index].image),
+                                      buildAvatar(leaderList[index].image),
                                   title: Text(
                                     leaderList[index].user,
                                     style: GoogleFonts.ubuntu(

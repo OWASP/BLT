@@ -24,8 +24,8 @@ class LeaderboardApiClient {
   static Future<LeaderData> getMonthlyLeaderData(String paginatedUrl,int? year , int? month) async{
     final queryParams = {
       "filter" : '1',
-      "year" : year.toString() ?? DateTime.now().year.toString(),
-      "month" : month.toString() ?? DateTime.now().month.toString(),
+      "year" : year.toString() ,
+      "month" : month.toString() ,
     };
     print(Uri.parse(paginatedUrl).replace(queryParameters: queryParams));
     return http
@@ -44,7 +44,6 @@ class LeaderboardApiClient {
           previousQuery: decodedResponse["previous"],
           leaderList: leaderList,
         );
-        print(leaderList);
       return leaderData;
     });
   }

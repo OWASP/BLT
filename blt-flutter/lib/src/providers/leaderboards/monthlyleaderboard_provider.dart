@@ -40,7 +40,7 @@ class MonthlyLeaderBoardNotifier
     _cacheState();
     try{
     final LeaderData leaderData = await LeaderboardApiClient.getMoreMonthlyLeaders(nextUrl);
-    nextUrl = leaderData!.nextQuery;
+    nextUrl = leaderData.nextQuery;
     state = state!.whenData((leaderList){
       leaderList!.addAll(leaderData.leaderList!);
       return leaderList;

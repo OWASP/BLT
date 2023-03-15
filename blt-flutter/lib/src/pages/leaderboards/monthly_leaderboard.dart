@@ -16,7 +16,7 @@ ScrollController _scrollController = new ScrollController();
 
 class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage> {
   late String? paginatedUrl;
-
+  late int monthActive ;
   CircleAvatar buildAvatar(String partUrl) {
     try {
       if (partUrl == "")
@@ -56,6 +56,7 @@ class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage>
         loadMoreLeaders();
       }
     });
+    monthActive = DateTime.now().month;
     super.initState();
 
   }
@@ -67,11 +68,17 @@ class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage>
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final monthlyLeadersState = ref.watch(monthlyLeaderBoardProvider);
-    return Scaffold(
+    return WillPopScope(
+    onWillPop: () async{
+      ref.watch(monthlyLeaderBoardProvider.notifier).refreshMonthlyLeaderList(DateTime.now().year,DateTime.now().month);
+      return true;
+    },
+      child : Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(
@@ -108,15 +115,78 @@ class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage>
                   ),
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
-                    child: Text(
-                      "These are the most active users on BLT in ${monthsInYear[DateTime.now().month]}",
+                    child: Column( 
+                      
+                      children: [ Text(
+                      "These are the most active users on BLT in",
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
                         ),
                       ),
                     ),
-                  ),
+                    TextButton.icon(
+                      onPressed: (){
+                        showModalBottomSheet(
+                          context: context, 
+                          isScrollControlled: true,
+                          constraints: BoxConstraints(
+                            maxHeight: 250,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10),
+                            )
+                          ),
+                          builder: (BuildContext context){
+                            return  
+                              Container(
+                                height: 250,
+                                alignment: Alignment.bottomCenter,
+                                child : ListView.builder(
+                            itemCount: DateTime.now().month,
+                            itemBuilder: (context,index){
+                              return ListTile(
+                                onTap: (){
+                                  ref.watch(monthlyLeaderBoardProvider.notifier).refreshMonthlyLeaderList(DateTime.now().year,index+1);
+                                    setState(() {
+                                    monthActive = index+1;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                                tileColor: Color(0xFFECECEC).withOpacity(0.42),
+                                title: Text(
+                                "${monthsInYear[index+1]}",
+                                style: GoogleFonts.ubuntu(
+                                  textStyle: TextStyle(
+                                    color: Color(0xFF737373),
+                                  ),
+                                ),
+                              ));
+                            },));
+                          },
+                          );
+                      },
+                      icon: Icon(
+                        Icons.calendar_month,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        "${monthsInYear[monthActive]}",
+                        style: GoogleFonts.aBeeZee(
+                          textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                                ),
+                              ),
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
+                      ),
+                    ),
+                    ]
+                  ),)
                 ],
               ),
             ),
@@ -128,7 +198,7 @@ class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage>
                     if(leaderList!.isEmpty){
                     return Center(
                     child: Text(
-                      "Looks Like There aren't any active users this month .",
+                      "Looks Like There isn't any activity in this month .",
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -217,6 +287,6 @@ class _MonthlyLeaderBoardPageState extends ConsumerState<MonthlyLeaderBoardPage>
           ],
         ),
       ),
-    );
+    ));
   }
 }
