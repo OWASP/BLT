@@ -18,6 +18,7 @@ import '../pages/leaderboards/company_scoreboard.dart';
 import '../pages/leaderboards/global_leaderboard.dart';
 import '../pages/issues/issue_detail.dart';
 import '../pages/leaderboards/monthly_leaderboard.dart';
+import '../pages/drawer/social.dart';
 
 /// The managing class for App Navigation, also adds custom page transitions.
 class RouteManager {
@@ -27,6 +28,7 @@ class RouteManager {
   static const String signupPage = "/signup";
   static const String forgotPage = "/forgot";
   static const String homePage = "/home";
+  static const String socialPage = "/social";
   static String currentRoute = "/loginSignup";
   static const String legalPage = "/legal";
   static const String aboutPage = "/about";
@@ -147,6 +149,25 @@ class RouteManager {
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               const AboutPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        );
+      case socialPage:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const SocialPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

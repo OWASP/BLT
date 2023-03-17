@@ -23,6 +23,7 @@ dependencies:
   pasteboard: ^0.2.0
   path_provider: ^2.0.13
   url_launcher: ^6.1.10
+  flutter_inappwebview: ^5.7.2+3
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
