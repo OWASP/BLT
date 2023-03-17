@@ -1,6 +1,7 @@
 import 'package:blt/src/models/issue_model.dart';
 import 'package:blt/src/pages/auth/forgot.dart';
 import 'package:blt/src/pages/auth/signup.dart';
+import 'package:blt/src/pages/drawer/change_password.dart';
 import 'package:blt/src/pages/error.dart';
 import 'package:blt/src/pages/home/home.dart';
 import 'package:blt/src/pages/drawer/legal.dart';
@@ -39,6 +40,7 @@ class RouteManager {
   static const String companyScoreboardPage = "/companyBoard";
   static const String companyDetailPage = "/companyDetail";
   static const String issueDetailPage = "/issueDetail";
+  static const String changePassword = "/changePassword";
 
   /// Route generator, finds a requested route or throws the
   /// error page in case of route not found.
@@ -360,6 +362,27 @@ class RouteManager {
           },
           transitionDuration: const Duration(milliseconds: 750),
         );
+
+      case changePassword:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+          const ChangePasswordPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
 
       default:
         return PageRouteBuilder(

@@ -13,4 +13,6 @@ class AuthEndPoints {
   static const String register = authBaseUrl + "registration/";
 
   static const String reset = authBaseUrl + "password/reset/";
+
+  static const String change = authBaseUrl + "password/change/";
 }

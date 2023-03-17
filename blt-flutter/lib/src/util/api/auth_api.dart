@@ -121,4 +121,50 @@ class AuthApiClient {
       }
     } catch (e) {}
   }
+
+  static Future<bool> checkPassword(String password) async {
+    http.Response? response;
+    try {
+      response = await http.post(
+        Uri.parse(AuthEndPoints.emailpasswordLogin),
+        body: {
+          "username": currentUser!.username,
+          "password": password
+        },
+      );
+      print(response.body);
+      return response.statusCode == 200;
+    } catch (e) {}
+    return false;
+  }
+
+  /// Change the password of the logged in user.
+  static Future<void> changePassword(String newPassword1, String newPassword2, BuildContext context) async {
+    http.Response? response;
+    try {
+      response = await http.post(
+        Uri.parse(AuthEndPoints.change),
+        body: {
+          "new_password1": newPassword1,
+          "new_password2": newPassword2
+        },
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      print(response.body);
+      if (response.statusCode == 200) {
+        SnackBar sentSnack = SnackBar(
+          content: Text("Password changed successfully"),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(sentSnack);
+      } else {
+        var decodedResponse = jsonDecode(response.body);
+        SnackBar sentSnack = SnackBar(
+          content: Text(decodedResponse["new_password2"][0]),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(sentSnack);
+      }
+    } catch (e) {}
+  }
 }
