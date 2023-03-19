@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../global/variables.dart';
@@ -21,7 +22,8 @@ import '../../models/issue_model.dart';
 /// posting bugs, companies and individuals
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
-  const ReportBug({Key? key}) : super(key: key);
+  final ReportPageDefaults reportPageDefaults;
+  const ReportBug({Key? key, required this.reportPageDefaults}) : super(key: key);
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
@@ -35,6 +37,7 @@ class _ReportBugState extends ConsumerState<ReportBug> {
       child: ReportForm(
         size: window.physicalSize / window.devicePixelRatio,
         parentContext: context,
+        reportPageDefaults: widget.reportPageDefaults,
       ),
     );
   }
@@ -43,11 +46,13 @@ class _ReportBugState extends ConsumerState<ReportBug> {
 class ReportForm extends ConsumerStatefulWidget {
   final Size size;
   final BuildContext parentContext;
+  final ReportPageDefaults reportPageDefaults;
 
   const ReportForm({
     Key? key,
     required this.size,
     required this.parentContext,
+    required this.reportPageDefaults,
   }) : super(key: key);
 
   @override
@@ -282,10 +287,17 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     );
   }
 
-@override
-void initState(){
-  _categoryController.text = _issueCategories[_selectedIssueCategoriesIndex];
-}
+  @override
+  void initState(){
+    super.initState();
+    _categoryController.text = _issueCategories[_selectedIssueCategoriesIndex];
+    if (widget.reportPageDefaults.sharedMediaFile != null) {
+      _image = File(widget.reportPageDefaults.sharedMediaFile!.path);
+    }
+    if (widget.reportPageDefaults.text != null) {
+      _titleController.text = widget.reportPageDefaults.text!;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -615,4 +627,11 @@ void initState(){
       ),
     );
   }
+}
+
+class ReportPageDefaults {
+  final SharedMediaFile? sharedMediaFile;
+  final String? text;
+
+  ReportPageDefaults({this.sharedMediaFile, this.text});
 }
