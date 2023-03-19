@@ -150,24 +150,6 @@ class _HomeState extends ConsumerState<Home> {
             );
   }
 
-  Widget changePasswordListTile() {
-    LoginType loginState = ref.watch(loginProvider);
-
-    if (loginState == LoginType.guest) {
-      return Container();
-    } else {
-      return ListTile(
-        title: Text('Change password'),
-        onTap: () {
-          Navigator.pushNamed(
-              context,
-              RouteManager.changePassword
-          );
-        },
-      );
-    }
-  }
-
   NetworkImage? buildAvatar() {
     LoginType loginState = ref.watch(loginProvider);
 
@@ -257,7 +239,6 @@ class _HomeState extends ConsumerState<Home> {
                   await logout();
                 },
               ),
-              changePasswordListTile(),
               ListTile(
                 title: Text('Social'),
                 onTap: () {

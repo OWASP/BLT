@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../providers/login_provider.dart';
 import '../../routes/routing.dart';
 import '../../global/variables.dart';
 import '../../models/user_model.dart';
@@ -14,6 +15,7 @@ import '../../providers/authstate_provider.dart';
 import '../../models/issuedata_model.dart';
 import '../../util/endpoints/issue_endpoints.dart';
 import '../../pages/welcome.dart';
+import '../../util/enums/login_type.dart';
 
 /// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.
@@ -319,26 +321,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         actions: [
           IconButton(
             onPressed: () async {
-              final ImagePicker _picker = ImagePicker();
-              final XFile? image =
-                  await _picker.pickImage(source: ImageSource.gallery);
-              if (image == null) {
-                return;
-              }
-              SnackBar updatingSnack = SnackBar(
-                duration: const Duration(seconds: 6),
-                content: Text(
-                  "Updating profile picture",
-                ),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(updatingSnack);
-              await UserApiClient.updatePfp(image, currentUser!);
-              setState(() {});
-            },
-            icon: Icon(Icons.account_circle_outlined),
-          ),
-          IconButton(
-            onPressed: () async {
               await forgetUser();
               await Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
@@ -349,7 +331,49 @@ class _UserProfileState extends ConsumerState<UserProfile> {
               await logout();
             },
             icon: Icon(Icons.power_settings_new_rounded),
-          )
+          ),
+          PopupMenuButton<String>(
+            onSelected: (String value) async {
+              switch(value) {
+                case 'Change picture':
+                  final ImagePicker _picker = ImagePicker();
+                  final XFile? image =
+                      await _picker.pickImage(source: ImageSource.gallery);
+                  if (image == null) {
+                    return;
+                  }
+                  SnackBar updatingSnack = SnackBar(
+                    duration: const Duration(seconds: 6),
+                    content: Text(
+                      "Updating profile picture",
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(updatingSnack);
+                  await UserApiClient.updatePfp(image, currentUser!);
+                  setState(() {});
+                  break;
+
+                case 'Change password':
+                  Navigator.pushNamed(
+                      context,
+                      RouteManager.changePassword
+                  );
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              List<String> optionsList = ['Change picture'];
+              LoginType loginState = ref.watch(loginProvider);
+              if (loginState != LoginType.guest) {
+                optionsList.add('Change password');
+              }
+              return optionsList.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
         ],
       ),
       body: Container(
