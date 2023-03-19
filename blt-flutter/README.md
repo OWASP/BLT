@@ -9,8 +9,6 @@
 <img src="./assets/github/gh_screen3.png" width=150> &emsp;
 <img src="./assets/github/gh_screen4.png" width=150> &emsp;
 
----
-
 ### Check exiting issues.
 Find the bugs and issues in current websites, maybe help fixing 'em too?
 
@@ -42,7 +40,7 @@ _Please make sure `flutter analyze` works before submitting the pull request._
 
 - ### Are you a designer?
     We got your back! If you want to help up with the UI mockups, design and prototyping refer the below links:
-    - Coming soon!
+    - https://www.figma.com/file/NYD5WZzJywnO338lchnece/Bug-Logging-Tool?node-id=0%3A1&t=xoiHqMIJfdK61MPA-1
 
 ### Documentation
 Check the API documentation for BLT below:
@@ -63,7 +61,7 @@ Also check out other BLT projects!
 - [OWASP/BLT-Action](https://www.github.com/OWASP/BLT-Action)  
 
 ### License
-The BLT code is released under [GNU Affero General Public License v3.0 (AGPL-3.0)](https://github.com/OWASP/BLT/blob/master/LICENSE).
+The BLT-Flutter code is released under [BSD 3-Clause "New" or "Revised" License](https://github.com/OWASP/BLT-Flutter/blob/main/LICENSE).
 
 ## Notes
 - If you find a bug or have an improvement, use BLT to report it!
