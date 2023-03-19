@@ -115,13 +115,10 @@ class IssueApiClient {
       request.fields["url"] = issueMap["url"];
       request.fields["status"] = issueMap["status"];
       request.fields["description"] = issueMap["description"];
-
       var streamedresponse = await request.send();
-
-      print(streamedresponse);
+      print(request.fields);
       response = await http.Response.fromStream(streamedresponse);
 
-      print(response.body);
       if (streamedresponse.statusCode == 201 || streamedresponse.statusCode == 200) {
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         issue = Issue.fromJson(decodedResponse);

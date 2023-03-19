@@ -57,9 +57,12 @@ class ReportForm extends ConsumerStatefulWidget {
 class _ReportFormState extends ConsumerState<ReportForm> {
   final _descriptionController = TextEditingController();
   final _titleController = TextEditingController();
+  final _categoryController = TextEditingController();
+  int _selectedIssueCategoriesIndex = 0;
   final _formKey = GlobalKey<FormState>();
   File? _image;
   final picker = ImagePicker();
+  List<String> _issueCategories = ["General","Number error","Functional","Performance","Security","Typo","Design","Server down"];
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.pickImage(source: ImageSource.gallery);
@@ -94,6 +97,43 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     } catch (e) {
       print('No Image Found On Clipboard');
     }
+  }
+
+  void showIssueCategories(BuildContext context) {
+    showModalBottomSheet(context: context, 
+    builder: (context){
+      return Container(
+        padding: EdgeInsets.fromLTRB(0,20,0,0),
+        child: ListView.builder(
+          itemCount: 8,
+          itemBuilder: (BuildContext context,index){
+            return ListTile(
+              onTap: (){
+                setState(() {
+                  _selectedIssueCategoriesIndex = index;
+                });
+                _categoryController.text = _issueCategories[index];
+                Navigator.of(context).pop();
+              },
+              title: Text(
+                _issueCategories[index],
+                style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+              ),
+            );
+          }),
+      );
+    },
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical( 
+            top: Radius.circular(25.0),
+          ),
+    )
+    );
   }
 
   void showDuplicateDialog(BuildContext context) {
@@ -242,6 +282,11 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     );
   }
 
+@override
+void initState(){
+  _categoryController.text = _issueCategories[_selectedIssueCategoriesIndex];
+}
+
   @override
   Widget build(BuildContext context) {
     final Size size = widget.size;
@@ -317,6 +362,59 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     ),
                   );
                 }),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                TextButton.icon(
+                  label: Text(
+                  "Category",
+                  style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                      color: Color(0xFFDC4654),
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                ),
+                onPressed: (){
+                  showIssueCategories(context);
+                },
+                ),
+                
+                  ],),
+                SizedBox(
+                  height: 12,
+                ),
+                SizedBox(
+                  height: 40,
+                  child: TextFormField(
+                    controller: _categoryController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ),
@@ -494,6 +592,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       ocr: _image!.path,
                       userAgent:
                           "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
+                      label: _selectedIssueCategoriesIndex,
                     );
                     await IssueApiClient.postIssue(issue, widget.parentContext);
                   } else {

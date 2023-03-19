@@ -115,6 +115,7 @@ class LegalPage extends StatelessWidget {
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
                     if (snapshot.hasData) {
                       return Markdown(
+                        physics: const NeverScrollableScrollPhysics(),
                         data: snapshot.data!,
                         padding: EdgeInsets.all(0),
                         styleSheet: MarkdownStyleSheet.fromTheme(

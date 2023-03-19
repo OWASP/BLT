@@ -112,6 +112,7 @@ class Issue {
       'score': 0,
       'status': isOpen ? "open" : "closed",
       'description': description,
+      'label': label,
       // "hunt": null,
       // "domain": null,
       // "closed_by": null,
