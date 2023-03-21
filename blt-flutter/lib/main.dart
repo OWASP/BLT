@@ -11,7 +11,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]).then((value) => runApp(BLT()));
 
-  const SENTRY_DSN = String.fromEnvironment('SENTRY_DSN');
+  const SENTRY_DSN = "https://example-234234324.com/4504877879197696";
   await SentryFlutter.init(
     (options) {
       options.dsn = SENTRY_DSN;
