@@ -25,6 +25,7 @@ dependencies:
   url_launcher: ^6.1.10
   flutter_inappwebview: ^5.7.2+3
   font_awesome_flutter: ^10.4.0
+  sentry_flutter: ^7.2.0
   #flutter_lints: ^1.0.4
 
 dev_dependencies:
