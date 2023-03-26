@@ -65,7 +65,7 @@ const run = async () => {
         }
 
     } else {
-        console.log('removing assignees greater than 3 days');
+        console.log('removing assignees greater than 5 days');
         var last_event = new Object()
         last_event.issue = new Object()
         last_event.issue.number = "";
@@ -94,7 +94,7 @@ const run = async () => {
                             (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
                         );
 
-                        if (Difference_In_Time / (1000 * 3600 * 24) > 3) {
+                        if ((Difference_In_Time / (1000 * 3600 * 24)) > 5) {
                             console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
 
                             const assignees = event.issue.assignee.login.split(',').map((assigneeName) => assigneeName.trim());
