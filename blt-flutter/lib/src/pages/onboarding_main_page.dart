@@ -19,6 +19,9 @@ class _OnboardingMainPageState extends ConsumerState<OnboardingMainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(authStateNotifier.notifier).loadUserIfRemembered(context);
       Map<String, String> new_stats = await GeneralApiClient.getStats();
+      if (!mounted) {
+        return;
+      }
       setState(() {
         stats = new_stats;
       });
