@@ -10,6 +10,7 @@ import 'package:blt/src/util/enums/login_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../../components/appbar.dart';
 import '../../pages/welcome.dart';
@@ -30,6 +31,7 @@ class Home extends ConsumerStatefulWidget {
 class _HomeState extends ConsumerState<Home> {
   late int _selectedIndex;
   late PageController _pageController;
+  ReportPageDefaults reportPageDefaults = ReportPageDefaults();
 
   void _onItemTapped(int index) {
     setState(
@@ -90,64 +92,64 @@ class _HomeState extends ConsumerState<Home> {
         : SizedBox();
   }
 
-  Widget buildLogOUtDialog(){
+  Widget buildLogOUtDialog() {
     return AlertDialog(
-                title: Text(
-                  'You will be logged out of the app !',
-                   style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+      title: Text(
+        'You will be logged out of the app !',
+        style: GoogleFonts.ubuntu(
+          textStyle: TextStyle(
+            color: Color(0xFFDC4654),
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      content: Container(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TextButton(
+                onPressed: () async {
+                  await forgetUser();
+                  await Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => WelcomePage()),
+                      (Route route) => false);
+                  logout();
+                },
+                style: ButtonStyle(
+                  alignment: Alignment.center,
+                  backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
+                ),
+                child: Text(
+                  "Logout",
+                  style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                      fontSize: 15,
                     ),
-                ),
-                content: Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton(onPressed: () async {
-                          await forgetUser();
-                          await Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                              builder: (context) => WelcomePage()), (Route route) => false);
-                          logout();
-                      },
-                      style: ButtonStyle(
-                        alignment: Alignment.center,
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
-                      ),
-                      child : Text(
-                        "Logout",
-                          style: GoogleFonts.ubuntu(
-                          textStyle: TextStyle(
-                          color: Color.fromRGBO(255, 255, 255, 1),
-                          fontSize: 15,
-                          ),
-                        ),
-                      )
-                      ),
-                      TextButton(
-                        onPressed: (){
-                        Navigator.pop(context);
-                      },
-                      style: ButtonStyle(
-                        alignment: Alignment.center,
-                        backgroundColor: MaterialStateProperty.all(Color(0xFF737373)),
-                      ),
-                      child : Text(
-                        "Cancel",
-                          style: GoogleFonts.ubuntu(
-                          textStyle: TextStyle(
-                            color: Color.fromRGBO(255, 255, 255, 1),
-                            fontSize: 15,
-                          ),
-                        ),
-                      )
-                      ),
-                    ],
                   ),
+                )),
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ButtonStyle(
+                  alignment: Alignment.center,
+                  backgroundColor: MaterialStateProperty.all(Color(0xFF737373)),
                 ),
-            );
+                child: Text(
+                  "Cancel",
+                  style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                      fontSize: 15,
+                    ),
+                  ),
+                )),
+          ],
+        ),
+      ),
+    );
   }
 
   NetworkImage? buildAvatar() {
@@ -178,10 +180,33 @@ class _HomeState extends ConsumerState<Home> {
       keepPage: true,
     );
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ReportPageDefaults defaults = await receiveSharedIntent();
+      if (defaults.sharedMediaFile != null || defaults.text != null) {
+        setState(() {
+          reportPageDefaults = defaults;
+          _onItemTapped(1);
+        });
+      }
+    });
+  }
+
+  Future<ReportPageDefaults> receiveSharedIntent() async {
+    print("getting");
+    String? sharedValue = await ReceiveSharingIntent.getInitialText();
+    print(sharedValue);
+    List<SharedMediaFile> sharedMedia =
+        await ReceiveSharingIntent.getInitialMedia();
+    return ReportPageDefaults(
+      text: sharedValue,
+      sharedMediaFile: (sharedMedia.length > 0) ? sharedMedia[0] : null,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+
     return WillPopScope(
       onWillPop: () async {
         showGeneralDialog(
@@ -190,10 +215,10 @@ class _HomeState extends ConsumerState<Home> {
           barrierDismissible: true,
           barrierColor: Colors.black.withOpacity(0.5),
           transitionDuration: Duration(milliseconds: 400),
-          pageBuilder: (_, __, ___){
+          pageBuilder: (_, __, ___) {
             return buildLogOUtDialog();
           },
-         );
+        );
         return false;
       },
       child: Scaffold(
@@ -234,8 +259,9 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                   await forgetUser();
                   await Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => WelcomePage()),
-                      (Route route) => false);
+                      MaterialPageRoute(
+                          builder: (context) => WelcomePage()),
+                          (Route route) => false);
                   await logout();
                 },
               ),
@@ -245,10 +271,7 @@ class _HomeState extends ConsumerState<Home> {
                   // Update the state of the app
                   // ...
                   // Then close the drawer
-                  Navigator.pushNamed(
-                    context,
-                    RouteManager.socialPage
-                  );
+                  Navigator.pushNamed(context, RouteManager.socialPage);
                 },
               ),
               ListTile(
@@ -307,8 +330,8 @@ class _HomeState extends ConsumerState<Home> {
                         ),
                       ),
                       style: ButtonStyle(
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                        shape: MaterialStateProperty.all<
+                            RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
@@ -335,7 +358,9 @@ class _HomeState extends ConsumerState<Home> {
             children: [
               // Feed(),
               IssuesPage(),
-              ReportBug(),
+              ReportBug(
+                reportPageDefaults: reportPageDefaults,
+              ),
               StartHuntPage(),
               LeaderBoard(),
             ]),
