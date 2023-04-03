@@ -11,4 +11,6 @@ class GeneralEndPoints {
   static const String stats = apiBaseUrl + "stats/";
 
   static const String duplicateURL = apiBaseUrl + "urlcheck/";
+
+  static const String contributors = apiBaseUrl + "contributors/";
 }

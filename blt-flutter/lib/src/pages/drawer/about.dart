@@ -1,4 +1,6 @@
+import 'package:blt/src/components/contributor_card.dart';
 import 'package:blt/src/constants/about_constants.dart';
+import 'package:blt/src/util/api/general_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,7 +126,7 @@ class AboutPage extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 36),
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 24),
               child: Text(
                 forOrgs,
                 style: GoogleFonts.aBeeZee(
@@ -133,6 +135,88 @@ class AboutPage extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 32),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Contributors",
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Color(0xFFDC4654),
+                    fontSize: 20,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            FutureBuilder(
+              future: GeneralApiClient.getContributors(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<Map<String, String>>> snapshot) {
+                if (snapshot.hasData) {
+                  List<Widget> contributors = [];
+                  for (var contributor in snapshot.data!) {
+                    contributors.add(InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                            new PageRouteBuilder(
+                                opaque: false,
+                                barrierDismissible:true,
+                                pageBuilder: (BuildContext context, _, __) {
+                                  return ContributorCard(contributor: contributor);
+                                }
+                            )
+                        );
+                      },
+                      child: Ink(
+                        child: Column(
+                          children: [
+                            Hero(
+                              tag: "image${contributor["id"]}",
+                              child: CircleAvatar(
+                                radius: 32,
+                                backgroundImage: NetworkImage(contributor["img"]!),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 8.0,
+                            ),
+                            Hero(
+                              tag: "name${contributor["id"]}",
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Text(
+                                  contributor["name"]!.replaceAll(" ", "\n"),
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.aBeeZee(
+                                    textStyle: TextStyle(
+                                      color: Color(0xFF737373),
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ));
+                  }
+                  return Wrap(
+                    runSpacing: 32.0,
+                    spacing: 32.0,
+                    alignment: WrapAlignment.spaceEvenly,
+                    children: contributors,
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            ),
+            SizedBox(
+              height: 48.0,
             ),
           ],
         ),

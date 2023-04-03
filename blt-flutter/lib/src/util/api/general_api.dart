@@ -54,4 +54,36 @@ class GeneralApiClient {
     }
     return m;
   }
+
+  /// Get contributors data.
+  static Future<List<Map<String, String>>> getContributors() async {
+    http.Response? response;
+    List<Map<String, String>> m = [];
+    try {
+      response = await http.get(
+        Uri.parse(GeneralEndPoints.contributors),
+      );
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(response.body);
+        for (var contributor in decodedResponse["contributors"]) {
+          m.add({
+            "id": contributor["id"].toString(),
+            "img": contributor["img"],
+            "name": contributor["name"],
+            "repository": contributor["repository"],
+            "short_description": contributor["short_description"],
+            "long_description": contributor["long_description"],
+            "location": contributor["location"],
+            "twitter": contributor["twitter"],
+            "linkedin": contributor["linkedin"],
+            "website": contributor["website"],
+            "bch_addr": contributor["bch_addr"]
+          });
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return m;
+  }
 }
