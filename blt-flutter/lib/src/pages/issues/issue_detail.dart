@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../models/issue_model.dart';
 import '../../components/issuechip.dart';
@@ -116,9 +117,26 @@ class IssueDetailPage extends StatelessWidget {
               ),
             ),
             Container(
-              child: Text(
-                issue.description,
-              ),
+              height: 50,
+              child: Markdown(
+                        physics: const NeverScrollableScrollPhysics(),
+                        data: issue.description,
+                        padding: EdgeInsets.all(0),
+                        selectable: true,
+                        styleSheet: MarkdownStyleSheet.fromTheme(
+                          ThemeData(
+                            fontFamily: GoogleFonts.aBeeZee().fontFamily,
+                            textTheme: TextTheme(
+                              bodyMedium: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF737373),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      )
             ),
           ],
         ),

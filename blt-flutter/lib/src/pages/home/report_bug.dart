@@ -13,6 +13,8 @@ import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../global/variables.dart';
 import '../../util/api/issues_api.dart';
@@ -64,6 +66,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   final _titleController = TextEditingController();
   final _categoryController = TextEditingController();
   int _selectedIssueCategoriesIndex = 0;
+  ValueNotifier<int> _selectedDescriptionLabelIndex = ValueNotifier(0) ;
   final _formKey = GlobalKey<FormState>();
   File? _image;
   final picker = ImagePicker();
@@ -302,6 +305,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   @override
   Widget build(BuildContext context) {
     final Size size = widget.size;
+    final Size size_ = MediaQuery.of(context).size;
     return Form(
       key: _formKey,
       child: Column(
@@ -402,6 +406,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 },
                 ),
                 
+                
                   ],),
                 SizedBox(
                   height: 12,
@@ -438,7 +443,10 @@ class _ReportFormState extends ConsumerState<ReportForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children:[
+                  Text(
                   "Description",
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
@@ -447,12 +455,34 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     ),
                   ),
                 ),
+                ToggleSwitch(
+              minHeight: 20,
+              minWidth: 70,
+              initialLabelIndex: _selectedDescriptionLabelIndex.value,
+              totalSwitches: 2,
+              labels: ['Write', 'Preview'],
+              onToggle: (index){
+                setState(() {
+                  _selectedDescriptionLabelIndex.value = index!;
+                });
+              },
+              activeBgColor: [Color(0xFFDC4654)],
+              activeFgColor: Colors.white,
+              inactiveBgColor: Colors.white,
+              inactiveFgColor: Color(0xFFDC4654),
+              borderColor: [Color(0xFFDC4654)],
+            ),
+                ]),
                 SizedBox(
                   height: 12,
                 ),
                 SizedBox(
                   height: 80,
-                  child: TextFormField(
+                  child:  ValueListenableBuilder(
+              valueListenable: _selectedDescriptionLabelIndex,
+              builder: (context, value, widget){
+                if(value == 0){
+                  return TextFormField(
                     controller: _descriptionController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -474,7 +504,33 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       ),
                     ),
                     cursorColor: Color(0xFFDC4654),
-                  ),
+                  );
+                }
+                  return Container(
+                    height: 40,
+                    child: Markdown(
+                      data: _descriptionController.text,
+                          styleSheet: MarkdownStyleSheet.fromTheme(
+                          ThemeData(
+                            fontFamily: GoogleFonts.aBeeZee().fontFamily,
+                            textTheme: TextTheme(
+                              bodyMedium: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF737373),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.all(Radius.circular(10.0))
+                    ),
+                    );
+              },
+            ),
                 ),
               ],
             ),
