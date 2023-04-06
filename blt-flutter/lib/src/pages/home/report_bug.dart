@@ -7,6 +7,7 @@ import 'package:blt/src/util/endpoints/general_endpoints.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
@@ -14,7 +15,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../global/variables.dart';
 import '../../util/api/issues_api.dart';
@@ -25,13 +25,13 @@ import '../../models/issue_model.dart';
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
   final ReportPageDefaults reportPageDefaults;
-  const ReportBug({Key? key, required this.reportPageDefaults}) : super(key: key);
+  const ReportBug({Key? key, required this.reportPageDefaults})
+      : super(key: key);
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
 
 class _ReportBugState extends ConsumerState<ReportBug> {
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -64,13 +64,23 @@ class ReportForm extends ConsumerStatefulWidget {
 class _ReportFormState extends ConsumerState<ReportForm> {
   final _descriptionController = TextEditingController();
   final _titleController = TextEditingController();
-  final _categoryController = TextEditingController();
   int _selectedIssueCategoriesIndex = 0;
-  ValueNotifier<int> _selectedDescriptionLabelIndex = ValueNotifier(0) ;
+  ValueNotifier<int> _selectedDescriptionLabelIndex = ValueNotifier(0);
+  bool duplicateVerified = false;
+  bool reportingAnonymously = false;
   final _formKey = GlobalKey<FormState>();
   File? _image;
   final picker = ImagePicker();
-  List<String> _issueCategories = ["General","Number error","Functional","Performance","Security","Typo","Design","Server down"];
+  List<String> _issueCategories = [
+    "General",
+    "Number error",
+    "Functional",
+    "Performance",
+    "Security",
+    "Typo",
+    "Design",
+    "Server down"
+  ];
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.pickImage(source: ImageSource.gallery);
@@ -108,40 +118,39 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   }
 
   void showIssueCategories(BuildContext context) {
-    showModalBottomSheet(context: context, 
-    builder: (context){
-      return Container(
-        padding: EdgeInsets.fromLTRB(0,20,0,0),
-        child: ListView.builder(
-          itemCount: 8,
-          itemBuilder: (BuildContext context,index){
-            return ListTile(
-              onTap: (){
-                setState(() {
-                  _selectedIssueCategoriesIndex = index;
-                });
-                _categoryController.text = _issueCategories[index];
-                Navigator.of(context).pop();
-              },
-              title: Text(
-                _issueCategories[index],
-                style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+            child: ListView.builder(
+                itemCount: 8,
+                itemBuilder: (BuildContext context, index) {
+                  return ListTile(
+                    onTap: () {
+                      setState(() {
+                        _selectedIssueCategoriesIndex = index;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    title: Text(
+                      _issueCategories[index],
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-              ),
-            );
-          }),
-      );
-    },
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical( 
+                  );
+                }),
+          );
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
             top: Radius.circular(25.0),
           ),
-    )
-    );
+        ));
   }
 
   void showDuplicateDialog(BuildContext context) {
@@ -165,6 +174,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               Map<String, String>? m = snapshot.data;
+
+              duplicateVerified = true;
               if (m == null) {
                 return AlertDialog(
                   title: Text(
@@ -291,9 +302,8 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    _categoryController.text = _issueCategories[_selectedIssueCategoriesIndex];
     if (widget.reportPageDefaults.sharedMediaFile != null) {
       _image = File(widget.reportPageDefaults.sharedMediaFile!.path);
     }
@@ -305,7 +315,6 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   @override
   Widget build(BuildContext context) {
     final Size size = widget.size;
-    final Size size_ = MediaQuery.of(context).size;
     return Form(
       key: _formKey,
       child: Column(
@@ -317,303 +326,448 @@ class _ReportFormState extends ConsumerState<ReportForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "App name/ url",
+                  "Report issue",
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Color(0xFFDC4654),
-                      fontSize: 15,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 SizedBox(
-                  height: 12,
+                  height: 32,
                 ),
-                SizedBox(
-                  height: 40,
-                  child: TextFormField(
-                    controller: _titleController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "This field is required";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Enter the URL or app name of the issue ...",
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
-                        ),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
-                        ),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    cursorColor: Color(0xFFDC4654),
-                    style: GoogleFonts.aBeeZee(
-                      textStyle: TextStyle(
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                Builder(builder: (context) {
-                  return TextButton(
-                    onPressed: () {
-                      showDuplicateDialog(context);
-                    },
-                    child: Text(
-                      "Check for duplicates",
-                      style: GoogleFonts.ubuntu(
-                        textStyle: TextStyle(
-                          color: Color(0xFFDC4654),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
                 Row(
                   children: [
-                TextButton.icon(
-                  label: Text(
-                  "Category",
-                  style: GoogleFonts.ubuntu(
-                    textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                icon: Icon(
-                  Icons.arrow_drop_down,
-                ),
-                onPressed: (){
-                  showIssueCategories(context);
-                },
-                ),
-                
-                
-                  ],),
-                SizedBox(
-                  height: 12,
-                ),
-                SizedBox(
-                  height: 40,
-                  child: TextFormField(
-                    controller: _categoryController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: TextFormField(
+                          controller: _titleController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "This field is required";
+                            }
+                            return null;
+                          },
+                          onChanged: (v) {
+                            if (duplicateVerified) {
+                              setState(() {
+                                duplicateVerified = false;
+                              });
+                            }
+                          },
+                          decoration: InputDecoration(
+                            hintText: "App name / URL",
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8.0),
+                              ),
+                              borderSide: BorderSide(color: Colors.grey),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8.0),
+                              ),
+                              borderSide: BorderSide(color: Colors.grey),
+                            ),
+                            contentPadding: EdgeInsets.only(
+                                top: 8.0, left: 16.0, right: 16.0),
+                          ),
+                          cursorColor: Color(0xFFDC4654),
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
-                        ),
-                        borderSide: BorderSide(color: Colors.grey),
                       ),
                     ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Container(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children:[
-                  Text(
-                  "Description",
-                  style: GoogleFonts.ubuntu(
-                    textStyle: TextStyle(
-                      color: Color(0xFFDC4654),
-                      fontSize: 15,
+                    SizedBox(
+                      width: 16.0,
                     ),
-                  ),
-                ),
-                ToggleSwitch(
-              minHeight: 20,
-              minWidth: 70,
-              initialLabelIndex: _selectedDescriptionLabelIndex.value,
-              totalSwitches: 2,
-              labels: ['Write', 'Preview'],
-              onToggle: (index){
-                setState(() {
-                  _selectedDescriptionLabelIndex.value = index!;
-                });
-              },
-              activeBgColor: [Color(0xFFDC4654)],
-              activeFgColor: Colors.white,
-              inactiveBgColor: Colors.white,
-              inactiveFgColor: Color(0xFFDC4654),
-              borderColor: [Color(0xFFDC4654)],
-            ),
-                ]),
-                SizedBox(
-                  height: 12,
-                ),
-                SizedBox(
-                  height: 80,
-                  child:  ValueListenableBuilder(
-              valueListenable: _selectedDescriptionLabelIndex,
-              builder: (context, value, widget){
-                if(value == 0){
-                  return TextFormField(
-                    controller: _descriptionController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "This field is required";
-                      }
-                      return null;
-                    },
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText: "Enter a description of the issue here ...",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    style: GoogleFonts.aBeeZee(
-                      textStyle: TextStyle(
-                        fontSize: 12,
-                      ),
-                    ),
-                    cursorColor: Color(0xFFDC4654),
-                  );
-                }
-                  return Container(
-                    height: 40,
-                    child: Markdown(
-                      data: _descriptionController.text,
-                          styleSheet: MarkdownStyleSheet.fromTheme(
-                          ThemeData(
-                            fontFamily: GoogleFonts.aBeeZee().fontFamily,
-                            textTheme: TextTheme(
-                              bodyMedium: GoogleFonts.aBeeZee(
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        child: Builder(builder: (context) {
+                          return TextButton(
+                            child: Text(
+                              "Check for Duplicates",
+                              style: GoogleFonts.ubuntu(
                                 textStyle: TextStyle(
+                                  color: Colors.white,
                                   fontSize: 12,
-                                  color: Color(0xFF737373),
                                 ),
                               ),
                             ),
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                              ),
+                              backgroundColor: MaterialStateProperty.all(
+                                duplicateVerified
+                                    ? Color(0xFF50C878)
+                                    : Color(0xFFDC4654),
+                              ),
+                            ),
+                            onPressed: () async {
+                              showDuplicateDialog(context);
+                              setState(() {
+                                duplicateVerified = true;
+                              });
+                            },
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 16.0,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8),
                           ),
-                        )
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 16.0,
+                            ),
+                            Text(
+                              _issueCategories[_selectedIssueCategoriesIndex],
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              height: 27.0,
+                              width: 27.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                color: Color(0xFFDC4654),
+                              ),
+                              child: Center(
+                                child: Builder(builder: (context) {
+                                  return IconButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {
+                                      showIssueCategories(context);
+                                    },
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: Colors.white,
+                                      size: 20.0,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 6.5,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.all(Radius.circular(10.0))
+                    SizedBox(
+                      width: 16.0,
                     ),
-                    );
-              },
-            ),
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        child: TextButton(
+                          child: Text(
+                            reportingAnonymously
+                                ? "Reporting Anonymously"
+                                : "Report Anonymously?",
+                            style: GoogleFonts.ubuntu(
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          style: ButtonStyle(
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            backgroundColor: MaterialStateProperty.all(
+                              reportingAnonymously
+                                  ? Color(0xFF50C878)
+                                  : Color(0xFFDC4654),
+                            ),
+                          ),
+                          onPressed: () async {
+                            setState(() {
+                              reportingAnonymously = !reportingAnonymously;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 16.0,
+                ),
+                Container(
+                  height: 160.0,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: ValueListenableBuilder(
+                            valueListenable: _selectedDescriptionLabelIndex,
+                            builder: (context, value, widget) {
+                              if (value == 0) {
+                                return TextFormField(
+                                  controller: _descriptionController,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "This field is required";
+                                    }
+                                    return null;
+                                  },
+                                  keyboardType: TextInputType.multiline,
+                                  maxLines: null,
+                                  decoration: InputDecoration(
+                                    hintText: "Description",
+                                    border: InputBorder.none,
+                                  ),
+                                  style: GoogleFonts.aBeeZee(
+                                    textStyle: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  cursorColor: Color(0xFFDC4654),
+                                );
+                              }
+                              return Container(
+                                child: Markdown(
+                                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                                  data: _descriptionController.text,
+                                  styleSheet: MarkdownStyleSheet.fromTheme(
+                                    ThemeData(
+                                      fontFamily:
+                                          GoogleFonts.aBeeZee().fontFamily,
+                                      textTheme: TextTheme(
+                                        bodyMedium: GoogleFonts.aBeeZee(
+                                          textStyle: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF737373),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: Colors.grey,
+                      ),
+                      Container(
+                        height: 40.0,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_bold.svg",
+                                      width: 15.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_italic.svg",
+                                      height: 16.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_link.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_image.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_list.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_task.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {},
+                                    icon: SvgPicture.asset(
+                                      "assets/input_heading.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              width: 1.0,
+                              color: Colors.grey,
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedDescriptionLabelIndex.value =
+                                      1 - _selectedDescriptionLabelIndex.value;
+                                });
+                              },
+                              child: Ink(
+                                child: Container(
+                                  width: 100,
+                                  child: Center(
+                                    child: Text(
+                                      _selectedDescriptionLabelIndex.value == 1
+                                          ? "Edit"
+                                          : "Preview",
+                                      style: GoogleFonts.ubuntu(
+                                        textStyle: TextStyle(
+                                          color: Color(0xFFDC4654),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: InkWell(
+                    onTap: () {
+                      _pickImageFromGallery();
+                    },
+                    child: Ink(
+                      child: (_image == null)
+                          ? Container(
+                              height: 280.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                color: Color(0xFFF8D2CD),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Spacer(),
+                                    SvgPicture.asset("assets/select_image.svg"),
+                                    SizedBox(
+                                      height: 8.0,
+                                    ),
+                                    Text(
+                                      "Select image",
+                                      style: GoogleFonts.ubuntu(
+                                        textStyle: TextStyle(
+                                          color: Color(0xFFDC4654),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Spacer(),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Container(
+                              height: 280.0,
+                              width: size.width,
+                              child: Image.file(
+                                _image!,
+                                fit: BoxFit.cover,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Row(
-            children: [
-              SizedBox(
-                child: TextButton(
-                  child: Text(
-                    "Choose Image",
-                    style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    _pickImageFromGallery();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                      Color(0xFFDC4654),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              SizedBox(
-                child: TextButton(
-                  child: Text(
-                    "Choose From Clipboard",
-                    style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    _pasteImageFromClipBoard();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                      Color(0xFFDC4654),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Container(
-            height: 280,
-            width: size.width,
-            child: _image == null
-                ? Center(
-                    child: Text(
-                      'No image selected.',
-                      style: GoogleFonts.aBeeZee(
-                        textStyle: TextStyle(
-                          color: Color(0xFF737373),
-                        ),
-                      ),
-                    ),
-                  )
-                : Image.file(
-                    _image!,
-                    fit: BoxFit.cover,
-                  ),
-            decoration: BoxDecoration(
-              border: _image != null
-                  ? Border.all(
-                      color: Color(0xFFDC4654),
-                      width: 0.5,
-                    )
-                  : null,
-              borderRadius: _image != null ? BorderRadius.circular(15) : null,
-            ),
-          ),
           Padding(
-            padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+            padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
             child: Text(
               "Note: Adding an issue gives you 3 points!",
               style: GoogleFonts.aBeeZee(
