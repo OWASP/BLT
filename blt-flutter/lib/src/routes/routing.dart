@@ -21,6 +21,7 @@ import '../pages/issues/issue_detail.dart';
 import '../pages/leaderboards/monthly_leaderboard.dart';
 import '../pages/drawer/social.dart';
 
+
 /// The managing class for App Navigation, also adds custom page transitions.
 class RouteManager {
   static const String profilePage = "/profile";
@@ -70,8 +71,9 @@ class RouteManager {
 
       case profilePage:
         return PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const UserProfile(),
+          pageBuilder: (context, animation, secondaryAnimation) {
+              return UserProfile();
+          },
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(-1.0, 0);
             const end = Offset.zero;
