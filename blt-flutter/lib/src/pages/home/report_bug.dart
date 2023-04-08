@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pasteboard/pasteboard.dart';
+//import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -94,13 +94,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     }
   }
 
-  Future<File> _coverToImage(Uint8List imageBytes) async {
-    String tempPath = (await getTemporaryDirectory()).path;
-    File file = File('$tempPath/profile.png');
-    await file.writeAsBytes(imageBytes.buffer
-        .asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
-    return file;
-  }
+  // Future<File> _coverToImage(Uint8List imageBytes) async {
+  //   String tempPath = (await getTemporaryDirectory()).path;
+  //   File file = File('$tempPath/profile.png');
+  //   await file.writeAsBytes(imageBytes.buffer
+  //       .asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+  //   return file;
+  // }
 
   // Future<void> _pasteImageFromClipBoard() async {
   //   try {
