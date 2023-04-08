@@ -102,20 +102,20 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     return file;
   }
 
-  Future<void> _pasteImageFromClipBoard() async {
-    try {
-      final imageBytes = await Pasteboard.image;
-      late File? image;
-      if (imageBytes != null) {
-        image = await _coverToImage(imageBytes);
-      }
-      setState(() {
-        _image = image;
-      });
-    } catch (e) {
-      print('No Image Found On Clipboard');
-    }
-  }
+  // Future<void> _pasteImageFromClipBoard() async {
+  //   try {
+  //     final imageBytes = await Pasteboard.image;
+  //     late File? image;
+  //     if (imageBytes != null) {
+  //       image = await _coverToImage(imageBytes);
+  //     }
+  //     setState(() {
+  //       _image = image;
+  //     });
+  //   } catch (e) {
+  //     print('No Image Found On Clipboard');
+  //   }
+  // }
 
   void showIssueCategories(BuildContext context) {
     showModalBottomSheet(

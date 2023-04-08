@@ -1,10 +1,10 @@
-import 'dart:async';
+//import 'dart:async';
 
 import 'package:blt/src/pages/onboarding_main_page.dart';
 import 'package:blt/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+//import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 /// ### The BLT app's root widget
 class BLT extends StatefulWidget {
