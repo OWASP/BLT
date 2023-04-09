@@ -97,12 +97,9 @@ class IssueApiClient {
         "POST",
         Uri.parse(IssueEndPoints.issues),
       );
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          "screenshot",
-          issue.ocr,
-        ),
-      );
+      await Future.forEach(issue.screenshotsLink!, (path) async => {
+        request.files.add(await http.MultipartFile.fromPath("screenshots", path as String))
+      });
       var issueMap = issue.toJson();
       request.headers.addAll({
         "Content-Type": "multipart/form-data",

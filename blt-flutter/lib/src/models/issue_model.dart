@@ -13,7 +13,7 @@ class Issue {
   final int? score;
   final bool isOpen;
   final String? userAgent;
-  final String ocr;
+  String? ocr;
   int? likes;
   int? flags;
   bool? liked;
@@ -53,7 +53,7 @@ class Issue {
     this.score,
     required this.isOpen,
     this.userAgent,
-    required this.ocr,
+    this.ocr,
     this.likes,
     this.flags,
     this.liked,
