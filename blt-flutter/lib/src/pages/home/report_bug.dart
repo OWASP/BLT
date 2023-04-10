@@ -120,6 +120,54 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   //   }
   // }
 
+  void markdownFormatting(String formatter) {
+    int start = _descriptionController.selection.baseOffset;
+    int end = _descriptionController.selection.extentOffset;
+    String text = _descriptionController.text;
+
+    if (end < start) {
+      int temp = start;
+      start = end;
+      end = temp;
+    }
+
+    text = text.substring(0, start) + formatter + text.substring(start, end) + formatter + text.substring(end);
+    _descriptionController.text = text;
+    _descriptionController.selection = TextSelection(baseOffset: start+formatter.length, extentOffset: end+formatter.length);
+  }
+
+  void markdownLink() {
+    int start = _descriptionController.selection.baseOffset;
+    int end = _descriptionController.selection.extentOffset;
+    String text = _descriptionController.text;
+
+    if (end < start) {
+      int temp = start;
+      start = end;
+      end = temp;
+    }
+
+    text = text.substring(0, start) + "[" + text.substring(start, end) + "]()" + text.substring(end);
+    _descriptionController.text = text;
+    _descriptionController.selection = TextSelection(baseOffset: start+1, extentOffset: end+1);
+  }
+
+  void markdownNewLine(String newLineText) {
+    int start = _descriptionController.selection.baseOffset;
+    int end = _descriptionController.selection.extentOffset;
+    String text = _descriptionController.text;
+
+    if (end < start) {
+      int temp = start;
+      start = end;
+      end = temp;
+    }
+
+    text = text.substring(0, start) + "\n" + newLineText + text.substring(start, end) + "\n" + text.substring(end);
+    _descriptionController.text = text;
+    _descriptionController.selection = TextSelection(baseOffset: start+newLineText.length+1, extentOffset: end+newLineText.length+1);
+  }
+
   void showIssueCategories(BuildContext context) {
     showModalBottomSheet(
         context: context,
@@ -567,7 +615,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownFormatting("**");
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_bold.svg",
                                       width: 15.0,
@@ -576,7 +626,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownFormatting("*");
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_italic.svg",
                                       height: 16.0,
@@ -585,7 +637,20 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownFormatting("~~");
+                                    },
+                                    icon: SvgPicture.asset(
+                                      "assets/input_strikethrough.svg",
+                                      height: 17.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {
+                                      markdownLink();
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_link.svg",
                                       height: 15.0,
@@ -594,16 +659,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
-                                    icon: SvgPicture.asset(
-                                      "assets/input_image.svg",
-                                      height: 15.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownNewLine("- ");
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_list.svg",
                                       height: 15.0,
@@ -612,7 +670,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownNewLine("- [ ] ");
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_task.svg",
                                       height: 15.0,
@@ -621,7 +681,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      markdownNewLine("# ");
+                                    },
                                     icon: SvgPicture.asset(
                                       "assets/input_heading.svg",
                                       height: 15.0,
