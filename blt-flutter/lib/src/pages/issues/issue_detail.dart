@@ -12,14 +12,44 @@ class IssueDetailPage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";
   final Issue issue;
 
-  const IssueDetailPage({
+  List<int> validScreenshotIndexes = [];
+
+  IssueDetailPage({
     Key? key,
     required this.issue,
   }) : super(key: key);
 
+  String replaceImageTags(String text) {
+    var rx = RegExp(r"\[\$img[0-9]+]");
+    var found = rx.allMatches(text);
+
+    while (found.isNotEmpty) {
+      var match = found.first.group(0);
+      var start = found.first.start;
+      var end = found.first.end;
+      var number = match!.split("[\$img")[1].split("]")[0];
+      var intNumber = int.parse(number);
+
+      if (intNumber >= 1 && intNumber <= issue.screenshotsLink!.length) {
+        validScreenshotIndexes.removeWhere((element) => element == intNumber);
+        text = text.substring(0, start) +
+            "\n\n![$number](${issue.screenshotsLink![intNumber - 1]})\n\n" +
+            text.substring(end);
+      } else {
+        text =
+            text.substring(0, start) + "[\$img $number]" + text.substring(end);
+      }
+      found = rx.allMatches(text);
+    }
+    return text;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
+    validScreenshotIndexes = [];
+    for (var i = 1; i <= issue.screenshotsLink!.length; i++) {
+      validScreenshotIndexes.add(i);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -44,61 +74,40 @@ class IssueDetailPage extends StatelessWidget {
         ],
         backgroundColor: Color(0xFFDC4654),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
           children: <Widget>[
             Container(
-              width: size.width,
-              color: Theme.of(context).canvasColor,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    child: Text(
-                      "Issue #${issue.id}",
-                      style: GoogleFonts.ubuntu(
-                        textStyle: TextStyle(
-                          color: Color(0xFF737373),
-                          fontSize: 25,
-                        ),
-                      ),
-                    ),
+              child: Text(
+                "Issue #${issue.id}",
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Color(0xFF737373),
+                    fontSize: 25,
                   ),
-                  Container(
-                    child: Row(
-                      children: [
-                        Text(
-                          "Created On ${issue.created_date}",
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                          style: GoogleFonts.aBeeZee(
-                            textStyle: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFA3A3A3),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        IssueStatusChip(issue: issue),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             Container(
-              width: size.width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Image.network(
-                issue.screenshotsLink![0],
-                fit: BoxFit.fill,
+              child: Row(
+                children: [
+                  Text(
+                    "Created On ${issue.created_date}",
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    style: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFA3A3A3),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  IssueStatusChip(issue: issue),
+                ],
               ),
             ),
             Container(
@@ -116,27 +125,60 @@ class IssueDetailPage extends StatelessWidget {
                 ),
               ),
             ),
+            Markdown(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              data: replaceImageTags(issue.description),
+              padding: EdgeInsets.all(0),
+              selectable: true,
+              styleSheet: MarkdownStyleSheet.fromTheme(
+                ThemeData(
+                  fontFamily: GoogleFonts.aBeeZee().fontFamily,
+                  textTheme: TextTheme(
+                    bodyMedium: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF737373),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Container(
-              height: 50,
-              child: Markdown(
-                        physics: const NeverScrollableScrollPhysics(),
-                        data: issue.description,
-                        padding: EdgeInsets.all(0),
-                        selectable: true,
-                        styleSheet: MarkdownStyleSheet.fromTheme(
-                          ThemeData(
-                            fontFamily: GoogleFonts.aBeeZee().fontFamily,
-                            textTheme: TextTheme(
-                              bodyMedium: GoogleFonts.aBeeZee(
-                                textStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF737373),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      )
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                "Screenshots",
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Color(0xFFDC4654),
+                    fontSize: 17.5,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: validScreenshotIndexes.length,
+              itemBuilder: (_, i) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(8),
+                      ),
+                    ),
+                    child: Image.network(
+                      issue.screenshotsLink![validScreenshotIndexes[i] - 1],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
