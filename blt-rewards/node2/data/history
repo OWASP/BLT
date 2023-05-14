@@ -1,0 +1,4 @@
+eth.getBalance(eth.coinbase)
+eth.sendTransaction({from: eth.coinbase, to: "0xTargetAddress", value: web3.toWei(1, "ether")})
+eth.sendTransaction({from: eth.coinbase, to: "0xDF2b85e90F4Aa7bDC724dE4aF08B45cDc7458593", value: web3.toWei(1, "ether")})
+eth.sendTransaction({from: eth.coinbase, to: "0xDF2b85e90F4Aa7bDC724dE4aF08B45cDc7458593", value: web3.toWei(1000, "ether")})
