@@ -12,7 +12,7 @@ class IssueDetailPage extends StatelessWidget {
   static final String path = "lib/src/pages/blog/article1.dart";
   final Issue issue;
 
-  List<int> validScreenshotIndexes = [];
+  final List<int> validScreenshotIndexes = [];
 
   IssueDetailPage({
     Key? key,
@@ -46,7 +46,7 @@ class IssueDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    validScreenshotIndexes = [];
+    validScreenshotIndexes.clear();
     for (var i = 1; i <= issue.screenshotsLink!.length; i++) {
       validScreenshotIndexes.add(i);
     }

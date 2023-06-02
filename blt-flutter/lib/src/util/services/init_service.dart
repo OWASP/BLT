@@ -10,7 +10,7 @@ class InitService {
 
   static void _setOrientation() {
     final shortestSide =
-        MediaQueryData.fromWindow(WidgetsBinding.instance.window)
+        MediaQueryData.fromView(WidgetsBinding.instance.platformDispatcher.views.first)
             .size
             .shortestSide;
     if (shortestSide > 600) {

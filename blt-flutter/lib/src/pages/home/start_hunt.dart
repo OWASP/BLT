@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,16 +23,13 @@ class _StartHuntPageState extends ConsumerState<StartHuntPage> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: HuntForm(
-        size: window.physicalSize / window.devicePixelRatio,
-      ),
+      child: HuntForm(),
     );
   }
 }
 
 class HuntForm extends StatefulWidget {
-  final Size size;
-  const HuntForm({Key? key, required this.size}) : super(key: key);
+  const HuntForm({Key? key}) : super(key: key);
 
   @override
   State<HuntForm> createState() => _HuntFormState();
@@ -90,7 +86,6 @@ class _HuntFormState extends State<HuntForm> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = widget.size;
     return Form(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +186,7 @@ class _HuntFormState extends State<HuntForm> {
           ),
           Container(
             height: 280,
-            width: size.width,
+            width: double.infinity,
             margin: const EdgeInsets.only(bottom: 12.0),
             child: _image.path == ""
                 ? Center(
@@ -255,7 +250,6 @@ class _HuntFormState extends State<HuntForm> {
                       ),
                     ),
                     Container(
-                      width: 0.6 * size.width,
                       child: Slider.adaptive(
                         value: prizeMoney.toDouble(),
                         max: 10000,
@@ -274,7 +268,7 @@ class _HuntFormState extends State<HuntForm> {
             ),
           ),
           Container(
-            width: size.width,
+            width: double.infinity,
             height: 50,
             child: TextButton(
               child: Text(

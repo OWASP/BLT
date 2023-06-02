@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'dart:math';
 //import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:blt/src/util/api/general_api.dart';
 import 'package:blt/src/util/endpoints/general_endpoints.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +37,6 @@ class _ReportBugState extends ConsumerState<ReportBug> {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: ReportForm(
-        size: window.physicalSize / window.devicePixelRatio,
         parentContext: context,
         reportPageDefaults: widget.reportPageDefaults,
       ),
@@ -48,13 +45,11 @@ class _ReportBugState extends ConsumerState<ReportBug> {
 }
 
 class ReportForm extends ConsumerStatefulWidget {
-  final Size size;
   final BuildContext parentContext;
   final ReportPageDefaults reportPageDefaults;
 
   const ReportForm({
     Key? key,
-    required this.size,
     required this.parentContext,
     required this.reportPageDefaults,
   }) : super(key: key);
@@ -365,7 +360,6 @@ class _ReportFormState extends ConsumerState<ReportForm> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = widget.size;
     return Form(
       key: _formKey,
       child: Column(
@@ -864,7 +858,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
             ),
           ),
           Container(
-            width: size.width,
+            width: double.infinity,
             height: 50,
             child: TextButton(
               child: Text(
