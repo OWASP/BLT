@@ -138,8 +138,8 @@ class _WelcomePageState extends State<WelcomePage> {
                         child: Consumer(
                           builder: (BuildContext context, ref, Widget? child) {
                             return TextButton(
-                              onPressed: () {
-                                ref.read(authStateNotifier.notifier).guestLogin();
+                              onPressed: () async {
+                                await ref.read(authStateNotifier.notifier).guestLogin();
                                  Navigator.of(context).pushNamed(
                                   RouteManager.homePage,
                                 );
