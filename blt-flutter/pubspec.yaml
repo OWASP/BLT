@@ -2,6 +2,7 @@ name: blt
 description: The BLT-Flutter App
 
 version: 1.0.3+1
+publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -13,7 +14,9 @@ dependencies:
   google_fonts: ">=3.0.1 <5.0.0"
   http: ^0.13.1
   image_picker: ^0.8.4+4
-  receive_sharing_intent: ^1.4.5
+  receive_sharing_intent:
+    git:
+      url: https://github.com/Thogsit/receive_sharing_intent
   shared_preferences: ^2.0.5
   flutter_svg: ">=1.0.3 <3.0.0"
   flutter_riverpod: ^1.0.3
