@@ -65,5 +65,5 @@ The BLT-Flutter code is released under [BSD 3-Clause "New" or "Revised" License]
 
 ## Notes
 - If you find a bug or have an improvement, use BLT to report it!
-- For each new issue, create a new branch with `issue-#issueNo`, when you commit add `fixes #issueNo` to link the issue to the pull request
+- For each new issue, create a new branch through Github on the issue page
 - To take a github issue type a comment that says "assign to me" or /assign and it will assign it to you.
