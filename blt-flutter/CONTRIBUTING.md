@@ -21,7 +21,7 @@ Too much talkin', let's get to the business, yes? We welcome both developers and
 
 Follow the steps below, and you'll be able to set up the dev environment in no time!
 - Go to the [OWASP/BLT-Flutter](https://github.com/OWASP/BLT-Flutter) repository.
-- Clone the repository, run `git clone https://github.com/OWASP/BLT-Flutter` (you can use any way of your choice).
+- Clone the repository, run `git clone https://github.com/OWASP/BLT-Flutter`.
 - Open the project in an editor of your choice, and then run `flutter run` from the current working directory. ([Haven't installed flutter?](https://docs.flutter.dev/get-started/install) or are [new to flutter?](https://docs.flutter.dev/get-started/codelab))
 
 If you were able to build the app, then you're all set! Check the next section on what to do next.
