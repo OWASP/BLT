@@ -42,5 +42,5 @@ If you have set up the dev environment, what are you waiting for? You can do so 
 
 #### _Looking forward to what you do!_
 
-<h3 align=right>- The BLT Contributors</h3>
+<h3 align=right>- The BLT Contributors.</h3>
 
