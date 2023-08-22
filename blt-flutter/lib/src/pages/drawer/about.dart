@@ -1,6 +1,7 @@
 import 'package:blt/src/components/contributor_card.dart';
 import 'package:blt/src/constants/about_constants.dart';
 import 'package:blt/src/util/api/general_api.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -176,7 +177,7 @@ class AboutPage extends StatelessWidget {
                               tag: "image${contributor["id"]}",
                               child: CircleAvatar(
                                 radius: 32,
-                                backgroundImage: NetworkImage(contributor["img"]!),
+                                backgroundImage: CachedNetworkImageProvider(contributor["img"]!),
                               ),
                             ),
                             SizedBox(

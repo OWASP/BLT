@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/company_model.dart';
@@ -152,7 +153,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                   decoration: BoxDecoration(
                     color: companyColor.withOpacity(0.5),
                     image: DecorationImage(
-                      image: NetworkImage(
+                      image: CachedNetworkImageProvider(
                         "https://storage.googleapis.com/bhfiles/" +
                             widget.company.logoLink,
                       ),

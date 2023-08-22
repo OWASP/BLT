@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -39,8 +40,8 @@ class IssueCard extends StatelessWidget {
                 height: 0.214 * size.height,
                 child: AspectRatio(
                   aspectRatio: size.width / 0.214 * size.height,
-                  child: Image.network(
-                    issue.screenshotsLink![0],
+                  child: CachedNetworkImage(
+                    imageUrl: issue.screenshotsLink![0],
                     fit: BoxFit.cover,
                   ),
                 ),

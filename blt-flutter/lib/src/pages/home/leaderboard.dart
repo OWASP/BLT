@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,7 +43,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
       else
         return CircleAvatar(
           foregroundImage:
-              NetworkImage("https://bhfiles.storage.googleapis.com/" + partUrl),
+          CachedNetworkImageProvider("https://bhfiles.storage.googleapis.com/" + partUrl),
           radius: 20,
         );
     } on Exception {
@@ -72,7 +73,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
         );
       else
         return CircleAvatar(
-          foregroundImage: NetworkImage(
+          foregroundImage: CachedNetworkImageProvider(
             "https://storage.googleapis.com/bhfiles/" + partUrl,
           ),
           radius: 20,

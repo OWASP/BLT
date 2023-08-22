@@ -29,7 +29,7 @@ dependencies:
   flutter_inappwebview: ^5.7.2+3
   font_awesome_flutter: ^10.4.0
   sentry_flutter: ^7.2.0
-  #flutter_lints: ^1.0.4
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_launcher_icons: ">=0.9.0 <0.13.0"

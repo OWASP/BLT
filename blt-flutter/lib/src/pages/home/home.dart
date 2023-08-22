@@ -7,6 +7,7 @@ import 'package:blt/src/providers/authstate_provider.dart';
 import 'package:blt/src/providers/login_provider.dart';
 import 'package:blt/src/routes/routing.dart';
 import 'package:blt/src/util/enums/login_type.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -152,14 +153,14 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
-  NetworkImage? buildAvatar() {
+  CachedNetworkImageProvider? buildAvatar() {
     LoginType loginState = ref.watch(loginProvider);
 
     return loginState != LoginType.guest
         ? (currentUser!.pfpLink != null)
-            ? NetworkImage(currentUser!.pfpLink!)
+            ? CachedNetworkImageProvider(currentUser!.pfpLink!)
             : null
-        : NetworkImage(
+        : CachedNetworkImageProvider(
             currentUser!.pfpLink!,
           );
   }

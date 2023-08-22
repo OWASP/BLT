@@ -1,4 +1,5 @@
 import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -31,7 +32,7 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
         );
       else
         return CircleAvatar(
-          foregroundImage: NetworkImage(
+          foregroundImage: CachedNetworkImageProvider(
             "https://storage.googleapis.com/bhfiles/" + partUrl,
           ),
           radius: 20,
