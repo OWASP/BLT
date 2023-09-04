@@ -26,7 +26,7 @@ dependencies:
   pasteboard: ^0.2.0
   path_provider: ^2.0.13
   url_launcher: ^6.1.10
-  flutter_inappwebview: ^5.7.2+3
+  #flutter_inappwebview: ^5.7.2+3
   font_awesome_flutter: ^10.4.0
   sentry_flutter: ^7.2.0
   cached_network_image: ^3.2.3
