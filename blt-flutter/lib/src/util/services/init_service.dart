@@ -2,17 +2,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class InitService {
-  static void init() {
+  static void init(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setOrientation();
+      _setOrientation(context);
     });
   }
 
-  static void _setOrientation() {
-    final shortestSide =
-        MediaQueryData.fromView(WidgetsBinding.instance.platformDispatcher.views.first)
-            .size
-            .shortestSide;
+  static void _setOrientation(BuildContext context) {
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
     if (shortestSide > 600) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
