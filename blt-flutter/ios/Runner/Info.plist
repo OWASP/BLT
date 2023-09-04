@@ -65,5 +65,9 @@
 	<string>To upload photos, please allow permission to access your photo library.</string>
 
 
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

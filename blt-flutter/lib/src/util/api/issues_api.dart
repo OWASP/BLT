@@ -98,7 +98,7 @@ class IssueApiClient {
         Uri.parse(IssueEndPoints.issues),
       );
       await Future.forEach(issue.screenshotsLink!, (path) async => {
-        request.files.add(await http.MultipartFile.fromPath("screenshots", path as String))
+        request.files.add(await http.MultipartFile.fromPath("screenshots", path))
       });
       var issueMap = issue.toJson();
       request.headers.addAll({
