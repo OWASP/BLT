@@ -10,10 +10,11 @@
     </button>
 {% endif %}
 
-{% if likes %}
+{% if likers %}
     <a href="#likedBy" class="btn btn-xs btn-default liked-by" data-toggle="modal">Liked By</a>
 {% endif %}
 
+{% if likers %}
 <div id="likedBy" class="modal" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -33,3 +34,4 @@
         </div>
     </div>
 </div>
+{% endif %}
