@@ -12,20 +12,35 @@
 Here's an example flow that auto-assigns all new issues to the `octocat` user:
 
 ```yml
-name: Issue assignment
+name: Auto Assign Issues
 
 on:
-    issues:
-        types: [opened]
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
-    auto-assign:
-        runs-on: ubuntu-latest
-        steps:
-            - name: 'Auto-assign issue'
-              uses: BLT-Action/assign-issues-action@main
-              with:
-                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+  slash_assign:
+    if: >
+      (github.event_name == 'issue_comment' && (
+      contains(github.event.comment.body, '/assign') || 
+      startsWith(github.event.comment.body, '/unassign') || 
+      contains(github.event.comment.body, 'assign to me') || 
+      contains(github.event.comment.body, 'assign this to me') || 
+      contains(github.event.comment.body, 'please assign me this')  || 
+      contains(github.event.comment.body, 'assign this to me')  || 
+      contains(github.event.comment.body, 'I can try fixing this')  || 
+      contains(github.event.comment.body, 'i am interested in doing this')  || 
+      contains(github.event.comment.body, 'I am interested in contributing'))) || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign Issues
+        uses: OWASP/BLT-Action@main
+        with:
+            repo-token: ${{ secrets.GITHUB_TOKEN }}
+            repository: ${{ github.repository }}
 
 ```
 
