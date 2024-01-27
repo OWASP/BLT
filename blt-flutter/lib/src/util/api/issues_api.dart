@@ -97,9 +97,12 @@ class IssueApiClient {
         "POST",
         Uri.parse(IssueEndPoints.issues),
       );
-      await Future.forEach(issue.screenshotsLink!, (path) async => {
-        request.files.add(await http.MultipartFile.fromPath("screenshots", path))
-      });
+      await Future.forEach(
+          issue.screenshotsLink!,
+          (path) async => {
+                request.files
+                    .add(await http.MultipartFile.fromPath("screenshots", path))
+              });
       var issueMap = issue.toJson();
       request.headers.addAll({
         "Content-Type": "multipart/form-data",
@@ -116,7 +119,8 @@ class IssueApiClient {
       print(request.fields);
       response = await http.Response.fromStream(streamedresponse);
 
-      if (streamedresponse.statusCode == 201 || streamedresponse.statusCode == 200) {
+      if (streamedresponse.statusCode == 201 ||
+          streamedresponse.statusCode == 200) {
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         issue = Issue.fromJson(decodedResponse);
 

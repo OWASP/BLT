@@ -74,12 +74,13 @@ class IssueCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.only(top: 8, bottom: 12),
                         child: Text(
-                          issue.description.replaceAll("\n", " "),
+                          issue.title.replaceAll("\n", " "),
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
                           style: GoogleFonts.aBeeZee(
                             textStyle: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF737373),
                             ),
                           ),

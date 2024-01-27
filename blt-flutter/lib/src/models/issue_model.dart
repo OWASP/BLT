@@ -7,7 +7,8 @@ class Issue {
   final int? id;
   final User? user;
   final String url;
-  final String description;
+  final String title;
+  final String? description;
   final int? label;
   final bool isVerified;
   final int? score;
@@ -47,6 +48,7 @@ class Issue {
     this.id,
     this.user,
     required this.url,
+    required this.title,
     required this.description,
     this.label,
     required this.isVerified,
@@ -78,7 +80,8 @@ class Issue {
             )
           : null,
       url: responseData["url"],
-      description: responseData["description"],
+      title: responseData["description"],
+      description: responseData["markdown_description"] ?? "",
       label: responseData["label"],
       isVerified: responseData["verified"],
       score: responseData["score"],
@@ -119,4 +122,3 @@ class Issue {
     };
   }
 }
-

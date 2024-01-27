@@ -97,9 +97,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length < 24)
-                        ? issue.description
-                        : issue.description.substring(0, 24) + "...",
+                    (issue.title.length < 24)
+                        ? issue.title
+                        : issue.title.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -162,9 +162,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length < 24)
-                        ? issue.description
-                        : issue.description.substring(0, 24) + "...",
+                    (issue.title.length < 24)
+                        ? issue.title
+                        : issue.title.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -227,9 +227,9 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 return ListTile(
                   leading: Text("#${issue.id}"),
                   title: Text(
-                    (issue.description.length < 24)
-                        ? issue.description
-                        : issue.description.substring(0, 24) + "...",
+                    (issue.title.length < 24)
+                        ? issue.title
+                        : issue.title.substring(0, 24) + "...",
                   ),
                   trailing: IssueStatusChip(
                     issue: issue,
@@ -334,7 +334,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
           ),
           PopupMenuButton<String>(
             onSelected: (String value) async {
-              switch(value) {
+              switch (value) {
                 case 'Change picture':
                   final ImagePicker _picker = ImagePicker();
                   final XFile? image =
@@ -354,10 +354,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   break;
 
                 case 'Change password':
-                  Navigator.pushNamed(
-                      context,
-                      RouteManager.changePassword
-                  );
+                  Navigator.pushNamed(context, RouteManager.changePassword);
               }
             },
             itemBuilder: (BuildContext context) {

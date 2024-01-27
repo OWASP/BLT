@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math';
-//import 'dart:typed_data';
 
 import 'package:blt/src/util/api/general_api.dart';
 import 'package:blt/src/util/endpoints/general_endpoints.dart';
@@ -126,9 +125,15 @@ class _ReportFormState extends ConsumerState<ReportForm> {
       end = temp;
     }
 
-    text = text.substring(0, start) + formatter + text.substring(start, end) + formatter + text.substring(end);
+    text = text.substring(0, start) +
+        formatter +
+        text.substring(start, end) +
+        formatter +
+        text.substring(end);
     _descriptionController.text = text;
-    _descriptionController.selection = TextSelection(baseOffset: start+formatter.length, extentOffset: end+formatter.length);
+    _descriptionController.selection = TextSelection(
+        baseOffset: start + formatter.length,
+        extentOffset: end + formatter.length);
   }
 
   void markdownLink() {
@@ -142,9 +147,14 @@ class _ReportFormState extends ConsumerState<ReportForm> {
       end = temp;
     }
 
-    text = text.substring(0, start) + "[" + text.substring(start, end) + "]()" + text.substring(end);
+    text = text.substring(0, start) +
+        "[" +
+        text.substring(start, end) +
+        "]()" +
+        text.substring(end);
     _descriptionController.text = text;
-    _descriptionController.selection = TextSelection(baseOffset: start+1, extentOffset: end+1);
+    _descriptionController.selection =
+        TextSelection(baseOffset: start + 1, extentOffset: end + 1);
   }
 
   void markdownNewLine(String newLineText) {
@@ -158,9 +168,16 @@ class _ReportFormState extends ConsumerState<ReportForm> {
       end = temp;
     }
 
-    text = text.substring(0, start) + "\n" + newLineText + text.substring(start, end) + "\n" + text.substring(end);
+    text = text.substring(0, start) +
+        "\n" +
+        newLineText +
+        text.substring(start, end) +
+        "\n" +
+        text.substring(end);
     _descriptionController.text = text;
-    _descriptionController.selection = TextSelection(baseOffset: start+newLineText.length+1, extentOffset: end+newLineText.length+1);
+    _descriptionController.selection = TextSelection(
+        baseOffset: start + newLineText.length + 1,
+        extentOffset: end + newLineText.length + 1);
   }
 
   void showIssueCategories(BuildContext context) {
@@ -886,6 +903,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     Issue issue = Issue(
                       user: currentUser!,
                       url: _titleController.text,
+                      title: _titleController.text,
                       description: _descriptionController.text,
                       isVerified: false,
                       isOpen: true,
