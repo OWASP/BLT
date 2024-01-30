@@ -9,7 +9,7 @@ inputs:
         required: true
 
 runs:
-    using: 'node16'
+    using: 'node20'
     main: 'src/index.js'
 
 branding:
