@@ -17,6 +17,7 @@ const run = async () => {
         const assigneeLogin = comment.user.login;
         const assignees = assigneeLogin.split(',').map(assigneeName => assigneeName.trim());
         var addAssignee = true;
+        var issuesWithoutPR = [];
     
         // Retrieve all open issues assigned to the user
         const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
@@ -25,7 +26,7 @@ const run = async () => {
             state: 'open',
             assignee: assigneeLogin
         });
-    
+    console.log(assignedIssues);
         for (const assignedIssue of assignedIssues) {
             // Skip if it's the same issue
             if (assignedIssue.number === issue.number) {
@@ -37,20 +38,22 @@ const run = async () => {
                 q: `is:pr is:open repo:${owner}/${repo} linked:issue ${assignedIssue.number}`
             });
     
-            // If there are no linked pull requests, do not allow assignment
+            // If there are no linked pull requests for this issue, add it to the list
             if (pullRequests.total_count === 0) {
-                addAssignee = false;
-                await octokit.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    body: "You are already assigned to another issue without an open pull request. Please submit a pull request for that issue before getting assigned to a new one."
-                });
-                return;
+                issuesWithoutPR.push(assignedIssue.number);
             }
         }
     
-        if (addAssignee) {
+        if (issuesWithoutPR.length > 0) {
+            addAssignee = false;
+            const issueList = issuesWithoutPR.join(', #');
+            await octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
+            });
+        } else if (addAssignee) {
             await octokit.issues.addAssignees({
                 owner,
                 repo,
