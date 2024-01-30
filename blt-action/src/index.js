@@ -15,46 +15,52 @@ const run = async () => {
     if (issue) {
         console.log('processing issue');
         const assignees = comment.user.login.split(',').map(assigneeName => assigneeName.trim());
-        var canBeAssigned = true;
+        var addAssignee = true;
     
-        await octokit.paginate(octokit.issues.listEventsForRepo, {
+        // Check if the user is already assigned to any issues
+        await octokit.paginate(octokit.issues.listForRepo, {
             owner,
             repo,
-            per_page: 100,
-        }, response => response.data.filter(r => r.event == "assigned")
-        ).then(async (data) => {
-            for (const event of data) {
-                if (event.issue.assignees.some(assignee => assignee.login === comment.user.login)) {
-                    // Check if the issue the user is assigned to has a linked pull request
-                    const pullRequests = await octokit.issues.listPullRequestsAssociatedWithIssue({
+            state: 'open',
+            assignee: comment.user.login
+        }).then(async assignedIssues => {
+            for (const assignedIssue of assignedIssues) {
+                // Skip if it's the same issue
+                if (assignedIssue.number === issue.number) {
+                    continue;
+                }
+    
+                // Check for pull requests in other issues the user is assigned to
+                const pullRequests = await octokit.paginate(octokit.pulls.list, {
+                    owner,
+                    repo,
+                    state: 'open',
+                    head: `${owner}:${comment.user.login}`
+                });
+    
+                // If there are no pull requests, do not allow assignment
+                if (pullRequests.length === 0) {
+                    addAssignee = false;
+                    await octokit.issues.createComment({
                         owner,
                         repo,
-                        issue_number: event.issue.number,
+                        issue_number: issue.number,
+                        body: "You are already assigned to another issue without an open pull request. Please submit a pull request for that issue before getting assigned to a new one."
                     });
-                    if (pullRequests.data.length === 0) {
-                        // If there are no linked pull requests, user cannot be assigned to a new issue
-                        await octokit.issues.createComment({
-                            owner,
-                            repo,
-                            issue_number: issue.number,
-                            body: "You are already assigned to an [issue](" + event.issue.html_url + ") without a linked pull request. Please resolve it before taking on a new issue."
-                        });
-                        canBeAssigned = false;
-                        break;
-                    }
+                    return;
                 }
             }
         });
     
-        if (canBeAssigned) {
+        if (addAssignee) {
             await octokit.issues.addAssignees({
                 owner,
                 repo,
                 issue_number: issue.number,
-                assignees,
+                assignees
             });
         }
-    } else {
+    }  else {
         console.log('removing assignees greater than 5 days');
         var last_event = new Object()
         last_event.issue = new Object()
