@@ -14,56 +14,46 @@ const run = async () => {
 
     if (issue) {
         console.log('processing issue');
-        const assignees = comment.user.login.split(',').map((assigneeName) => assigneeName.trim());
-        var addAssignee = true;
-
-        if (comment.body.toLowerCase().includes("/unassign")) {
-            var issue_number = issue.number;
-            octokit.issues.removeAssignees({
-                owner,
-                repo,
-                issue_number,
-                assignees,
-            })
-        } else {
-            await octokit.paginate(octokit.issues.listEventsForRepo, {
-                owner,
-                repo,
-                per_page: 100,
-            }, response => response.data.filter(r => r.event == "assigned")
-            ).then(async (data) => {
-                for (const event of data) {
-                    // console.log(event.issue);
-                    if (event.issue.assignee && event.issue.state == "open") {
-                        if (event.issue.id == issue.id) {
-                            addAssignee = false;
-                            return;
-                        }
-                        for (var assignedUser of event.issue.assignees) {
-                            if (assignedUser.login == comment.user.login) {
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo,
-                                    issue_number: issue.number,
-                                    body: "You are already assigned to another [open issue](" + event.issue.html_url + "), please wait until until it's closed or remove your assignment to get assigned to this issue."
-                                });
-                                addAssignee = false;
-                                return;
-                            }
-                        }
+        const assignees = comment.user.login.split(',').map(assigneeName => assigneeName.trim());
+        var canBeAssigned = true;
+    
+        await octokit.paginate(octokit.issues.listEventsForRepo, {
+            owner,
+            repo,
+            per_page: 100,
+        }, response => response.data.filter(r => r.event == "assigned")
+        ).then(async (data) => {
+            for (const event of data) {
+                if (event.issue.assignees.some(assignee => assignee.login === comment.user.login)) {
+                    // Check if the issue the user is assigned to has a linked pull request
+                    const pullRequests = await octokit.issues.listPullRequestsAssociatedWithIssue({
+                        owner,
+                        repo,
+                        issue_number: event.issue.number,
+                    });
+                    if (pullRequests.data.length === 0) {
+                        // If there are no linked pull requests, user cannot be assigned to a new issue
+                        await octokit.issues.createComment({
+                            owner,
+                            repo,
+                            issue_number: issue.number,
+                            body: "You are already assigned to an [issue](" + event.issue.html_url + ") without a linked pull request. Please resolve it before taking on a new issue."
+                        });
+                        canBeAssigned = false;
+                        break;
                     }
                 }
-            });
-            if (addAssignee) {
-                await octokit.issues.addAssignees({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    assignees,
-                });
             }
+        });
+    
+        if (canBeAssigned) {
+            await octokit.issues.addAssignees({
+                owner,
+                repo,
+                issue_number: issue.number,
+                assignees,
+            });
         }
-
     } else {
         console.log('removing assignees greater than 5 days');
         var last_event = new Object()
