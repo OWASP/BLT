@@ -26,8 +26,8 @@
     },
     "homepage": "https://github.com/pozil/auto-assign-issue#readme",
     "dependencies": {
-        "@actions/core": "^1.2.6",
-        "@actions/github": "^4.0.0"
+        "@actions/core": "latest",
+        "@actions/github": "latest"
     },
     "devDependencies": {
         "eslint": "^7.10.0",
