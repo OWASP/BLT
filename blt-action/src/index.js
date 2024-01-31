@@ -14,56 +14,53 @@ const run = async () => {
 
     if (issue) {
         console.log('processing issue');
-        const assignees = comment.user.login.split(',').map((assigneeName) => assigneeName.trim());
+        const assigneeLogin = comment.user.login;
+        const assignees = assigneeLogin.split(',').map(assigneeName => assigneeName.trim());
         var addAssignee = true;
+        var issuesWithoutPR = [];
+    
+        // Retrieve all open issues assigned to the user
+        const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+            owner,
+            repo,
+            state: 'open',
+            assignee: assigneeLogin
+        });
+        for (const assignedIssue of assignedIssues) {
+            // Skip if it's the same issue
+            if (assignedIssue.number === issue.number) {
+                continue;
+            }
 
-        if (comment.body.toLowerCase().includes("/unassign")) {
-            var issue_number = issue.number;
-            octokit.issues.removeAssignees({
-                owner,
-                repo,
-                issue_number,
-                assignees,
-            })
-        } else {
-            await octokit.paginate(octokit.issues.listEventsForRepo, {
-                owner,
-                repo,
-                per_page: 100,
-            }, response => response.data.filter(r => r.event == "assigned")
-            ).then(async (data) => {
-                for (const event of data) {
-                    // console.log(event.issue);
-                    if (event.issue.assignee && event.issue.state == "open") {
-                        if (event.issue.id == issue.id) {
-                            addAssignee = false;
-                            return;
-                        }
-                        for (var assignedUser of event.issue.assignees) {
-                            if (assignedUser.login == comment.user.login) {
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo,
-                                    issue_number: issue.number,
-                                    body: "You are already assigned to another [open issue](" + event.issue.html_url + "), please wait until until it's closed or remove your assignment to get assigned to this issue."
-                                });
-                                addAssignee = false;
-                                return;
-                            }
-                        }
-                    }
-                }
+            // Construct a search query to find pull requests that mention the assigned issue
+            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
+            const pullRequests = await octokit.search.issuesAndPullRequests({
+                q: query
             });
-            if (addAssignee) {
-                await octokit.issues.addAssignees({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    assignees,
-                });
+
+            // If there are no pull requests mentioning the issue number in their body, add it to the list
+            if (pullRequests.data.total_count === 0) {
+                issuesWithoutPR.push(assignedIssue.number);
+                break;
             }
         }
-
+        if (issuesWithoutPR.length > 0) {
+            addAssignee = false;
+            const issueList = issuesWithoutPR.join(', #');
+            await octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
+            });
+        } else if (addAssignee) {
+            await octokit.issues.addAssignees({
+                owner,
+                repo,
+                issue_number: issue.number,
+                assignees
+            });
+        }
     } else {
         console.log('removing assignees greater than 5 days');
         var last_event = new Object()
