@@ -36,14 +36,8 @@ const run = async () => {
                 q: `is:pr is:open repo:${owner}/${repo} linked:issue ${assignedIssue.number}`
             });
             console.log("pullRequests", pullRequests);
-            console.log("pullRequests.total_count", pullRequests.total_count);
-            // Check for pull requests that mention the assigned issue
-            // const pullRequests = await octokit.paginate(octokit.search.issuesAndPullRequests, {
-            //     q: `is:pr is:open repo:${owner}/${repo} linked:issue ${assignedIssue.number}`
-            // });
-            // console.log(pullRequests);
-            // If there are no linked pull requests for this issue, add it to the list
-            if (pullRequests.total_count === 0) {
+            console.log("pullRequests.total_count", pullRequests.length);
+            if (pullRequests.length === 0) {
                 issuesWithoutPR.push(assignedIssue.number);
             }
         }
