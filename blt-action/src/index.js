@@ -32,13 +32,17 @@ const run = async () => {
             if (assignedIssue.number === issue.number) {
                 continue;
             }
-            pullRequests = await octokit.paginate(octokit.search.issuesAndPullRequests, {
-                q: `is:pr is:open repo:${owner}/${repo} linked:issue ${assignedIssue.number}`
+
+            // Construct a search query to find pull requests that mention the assigned issue
+            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
+            const pullRequests = await octokit.search.issuesAndPullRequests({
+                q: query
             });
-            console.log("pullRequests", pullRequests);
-            console.log("pullRequests.total_count", pullRequests.length);
-            if (pullRequests.length === 0) {
+
+            // If there are no pull requests mentioning the issue number in their body, add it to the list
+            if (pullRequests.data.total_count === 0) {
                 issuesWithoutPR.push(assignedIssue.number);
+                break;
             }
         }
         console.log(issuesWithoutPR);
