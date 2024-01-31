@@ -37,13 +37,13 @@ const run = async () => {
             const pullRequests = await octokit.paginate(octokit.search.issuesAndPullRequests, {
                 q: `is:pr is:open repo:${owner}/${repo} linked:issue ${assignedIssue.number}`
             });
-    
+            console.log(pullRequests);
             // If there are no linked pull requests for this issue, add it to the list
             if (pullRequests.total_count === 0) {
                 issuesWithoutPR.push(assignedIssue.number);
             }
         }
-    
+        console.log(issuesWithoutPR);
         if (issuesWithoutPR.length > 0) {
             addAssignee = false;
             const issueList = issuesWithoutPR.join(', #');
