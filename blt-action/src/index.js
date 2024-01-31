@@ -40,7 +40,6 @@ const run = async () => {
 
             // If there are no pull requests mentioning the issue number in their body, add it to the list
             if (pullRequests.data.total_count === 0) {
-                console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
                 issuesWithoutPR.push(assignedIssue.number);
                 break;
             }
