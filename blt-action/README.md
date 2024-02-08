@@ -44,7 +44,6 @@
             uses: OWASP/BLT-Action@main
             with:
                 repo-token: ${{ secrets.GITHUB_TOKEN }}
-                repository: ${{ github.repository }}
     
     ```
 
@@ -52,6 +51,7 @@
 ### Usage
 
 - To assign yourself to an issue, comment `/assign` on the issue.
+- To unassign yourself to an issue, comment `/unassign` on the issue.
 - The action will automatically check for your current assignments and assign you to the issue if you are eligible.
 
 ## Contributing
