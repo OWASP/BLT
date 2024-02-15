@@ -39,8 +39,8 @@ const run = async () => {
     }
 
 
-    if (issue && proceedWithIssueProcessing) {
-        if (issue) {
+    
+        if (issue && proceedWithIssueProcessing) {
             console.log('processing issue');
             const assigneeLogin = comment.user.login;
             const assignees = assigneeLogin.split(',').map(assigneeName => assigneeName.trim());
