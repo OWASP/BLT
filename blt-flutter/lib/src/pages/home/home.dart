@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../components/appbar.dart';
 import '../../pages/welcome.dart';
@@ -50,7 +51,9 @@ class _HomeState extends ConsumerState<Home> {
   String buildLogoutText() {
     LoginType loginState = ref.watch(loginProvider);
 
-    return loginState == LoginType.guest ? "Logout (Guest)" : "Logout";
+    return loginState == LoginType.guest
+        ? AppLocalizations.of(context)!.logoutGuest
+        : AppLocalizations.of(context)!.logout;
   }
 
   void startBugHunt(BuildContext context) async {
@@ -61,7 +64,8 @@ class _HomeState extends ConsumerState<Home> {
       await Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => WelcomePage(
-            snackBarMessage: "Only Logged in users can start a Bug Hunt",
+            snackBarMessage:
+                AppLocalizations.of(context)!.onlyLoggedInUsersStartHunt,
           ),
         ),
         (Route route) => false,
@@ -78,7 +82,7 @@ class _HomeState extends ConsumerState<Home> {
 
     return loginState == LoginType.user
         ? ListTile(
-            title: Text('Invite'),
+            title: Text(AppLocalizations.of(context)!.invite),
             onTap: () {
               // Update the state of the app
               // ...
@@ -96,7 +100,7 @@ class _HomeState extends ConsumerState<Home> {
   Widget buildLogOUtDialog() {
     return AlertDialog(
       title: Text(
-        'You will be logged out of the app !',
+        AppLocalizations.of(context)!.youWillBeLoggedOut,
         style: GoogleFonts.ubuntu(
           textStyle: TextStyle(
             color: Color(0xFFDC4654),
@@ -122,7 +126,7 @@ class _HomeState extends ConsumerState<Home> {
                   backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
                 ),
                 child: Text(
-                  "Logout",
+                  AppLocalizations.of(context)!.logout,
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Color.fromRGBO(255, 255, 255, 1),
@@ -139,7 +143,7 @@ class _HomeState extends ConsumerState<Home> {
                   backgroundColor: MaterialStateProperty.all(Color(0xFF737373)),
                 ),
                 child: Text(
-                  "Cancel",
+                  AppLocalizations.of(context)!.cancel,
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Color.fromRGBO(255, 255, 255, 1),
@@ -207,7 +211,6 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-
     return WillPopScope(
       onWillPop: () async {
         showGeneralDialog(
@@ -260,14 +263,13 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                   await forgetUser();
                   await Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (context) => WelcomePage()),
-                          (Route route) => false);
+                      MaterialPageRoute(builder: (context) => WelcomePage()),
+                      (Route route) => false);
                   await logout();
                 },
               ),
               ListTile(
-                title: Text('Social'),
+                title: Text(AppLocalizations.of(context)!.social),
                 onTap: () {
                   // Update the state of the app
                   // ...
@@ -276,7 +278,7 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               ListTile(
-                title: Text('Terms of Service'),
+                title: Text(AppLocalizations.of(context)!.termsOfService),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -289,7 +291,7 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               ListTile(
-                title: Text('About Us'),
+                title: Text(AppLocalizations.of(context)!.aboutUs),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -302,7 +304,7 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               ListTile(
-                title: Text('Company Dashboard'),
+                title: Text(AppLocalizations.of(context)!.companyDashboard),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -322,7 +324,7 @@ class _HomeState extends ConsumerState<Home> {
                   child: Builder(builder: (context) {
                     return TextButton(
                       child: Text(
-                        "Start Bug Hunt",
+                        AppLocalizations.of(context)!.startBugHunt,
                         style: GoogleFonts.ubuntu(
                           textStyle: TextStyle(
                             color: Colors.white,
@@ -331,8 +333,8 @@ class _HomeState extends ConsumerState<Home> {
                         ),
                       ),
                       style: ButtonStyle(
-                        shape: MaterialStateProperty.all<
-                            RoundedRectangleBorder>(
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
@@ -367,26 +369,26 @@ class _HomeState extends ConsumerState<Home> {
             ]),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          items: const <BottomNavigationBarItem>[
+          items: <BottomNavigationBarItem>[
             // BottomNavigationBarItem(
             //   icon: Icon(Icons.home),
             //   label: 'Home',
             // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.list),
-              label: 'Issues',
+              label: AppLocalizations.of(context)!.issues,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.bug_report),
-              label: 'Report',
+              label: AppLocalizations.of(context)!.report,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.location_searching),
-              label: 'Bug Hunt',
+              label: AppLocalizations.of(context)!.bugHunt,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.leaderboard),
-              label: 'Leaderboard',
+              label: AppLocalizations.of(context)!.leaderboard,
             ),
           ],
           currentIndex: _selectedIndex,

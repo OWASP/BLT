@@ -2,6 +2,7 @@ import 'package:blt/src/routes/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// This page is thrown in case when a Navigation exception occurs.
 class ErrorPage extends StatelessWidget {
@@ -19,7 +20,7 @@ class ErrorPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Error",
+              AppLocalizations.of(context)!.error,
               style: GoogleFonts.aBeeZee(
                 textStyle: TextStyle(
                   color: Color(0xFFDC4654),
@@ -36,7 +37,7 @@ class ErrorPage extends StatelessWidget {
               height: 16,
             ),
             Text(
-              "Yikes!",
+              AppLocalizations.of(context)!.yikes,
               style: GoogleFonts.aBeeZee(
                 textStyle: TextStyle(
                   color: Color(0xFF737373),
@@ -49,7 +50,7 @@ class ErrorPage extends StatelessWidget {
               height: 12,
             ),
             Text(
-              "You have found a bug on BLT!\nFeel free to report it or go to home",
+              "${AppLocalizations.of(context)!.foundBugOnBLT}\n${AppLocalizations.of(context)!.reportItOrGoHome}",
               style: GoogleFonts.aBeeZee(
                 textStyle: TextStyle(
                   color: Color(0xFF737373),
@@ -64,7 +65,7 @@ class ErrorPage extends StatelessWidget {
               height: 50,
               child: TextButton(
                 child: Text(
-                  "Add Issue",
+                  AppLocalizations.of(context)!.addIssue,
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Colors.white,
@@ -99,7 +100,7 @@ class ErrorPage extends StatelessWidget {
               height: 50,
               child: TextButton(
                 child: Text(
-                  "Home",
+                  AppLocalizations.of(context)!.home,
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Color(0xFFDC4654),

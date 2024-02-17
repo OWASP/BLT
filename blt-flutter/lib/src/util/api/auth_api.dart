@@ -72,6 +72,8 @@ class AuthApiClient {
           "password2": password,
         },
       );
+      print(response.statusCode);
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
         SnackBar sentSnack = SnackBar(
           duration: const Duration(seconds: 6),
@@ -129,7 +131,7 @@ class AuthApiClient {
         Uri.parse(AuthEndPoints.emailpasswordLogin),
         body: {
           "username": currentUser!.username,
-          "password": password
+          "password": password,
         },
       );
       print(response.body);
@@ -139,14 +141,15 @@ class AuthApiClient {
   }
 
   /// Change the password of the logged in user.
-  static Future<void> changePassword(String newPassword1, String newPassword2, BuildContext context) async {
+  static Future<void> changePassword(
+      String newPassword1, String newPassword2, BuildContext context) async {
     http.Response? response;
     try {
       response = await http.post(
         Uri.parse(AuthEndPoints.change),
         body: {
           "new_password1": newPassword1,
-          "new_password2": newPassword2
+          "new_password2": newPassword2,
         },
         headers: {
           "Authorization": "Token ${currentUser!.token!}",

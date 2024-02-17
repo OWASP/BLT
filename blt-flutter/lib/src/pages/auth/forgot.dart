@@ -2,6 +2,7 @@ import 'package:blt/src/util/api/auth_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Page for initiating the process for recovering
 /// a user's account password.
@@ -27,7 +28,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
     );
     if (value == null || value.isEmpty || !regex.hasMatch(value))
-      return 'Enter a valid email address';
+      return AppLocalizations.of(context)!.validEmail;
     else
       return null;
   }
@@ -111,7 +112,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         horizontal: 0.1 * size.width,
                       ),
                       child: Text(
-                        "On entering the email, you'll receive an email to update password. Available only for accounts created with username and password",
+                        AppLocalizations.of(context)!.emailUpdatePasswordInfo,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -128,7 +129,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               controller: _emailController,
                               validator: validateEmail,
                               decoration: InputDecoration(
-                                hintText: "Registered Email",
+                                hintText: AppLocalizations.of(context)!
+                                    .registeredEmail,
                                 prefixIcon: Icon(Icons.mail),
                                 filled: true,
                                 border: OutlineInputBorder(
@@ -157,7 +159,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 }
                               },
                               child: Text(
-                                "Reset Password",
+                                AppLocalizations.of(context)!.resetPassword,
                                 style: GoogleFonts.ubuntu(
                                   textStyle: TextStyle(
                                     color: Colors.white,

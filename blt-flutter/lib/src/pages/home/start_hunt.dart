@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Start Bug Hunt Page
 /// companies and individuals
@@ -53,29 +54,27 @@ class _HuntFormState extends State<HuntForm> {
     });
   }
 
-  Future<File> _convertToImage(Uint8List imageBytes) async{
+  Future<File> _convertToImage(Uint8List imageBytes) async {
     String tempPath = (await getTemporaryDirectory()).path;
     File file = File('$tempPath/profile.png');
-    await file.writeAsBytes(
-        imageBytes.buffer.asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
+    await file.writeAsBytes(imageBytes.buffer
+        .asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
     return file;
   }
 
-  Future<void> _pasteImageFromClipBoard() async{
+  Future<void> _pasteImageFromClipBoard() async {
     try {
       final imageBytes = await Pasteboard.image;
-      late File? image ;
-      if(imageBytes != null){
+      late File? image;
+      if (imageBytes != null) {
         image = await _convertToImage(imageBytes);
       }
       setState(() {
-        _image = image! ;
+        _image = image!;
       });
-    }
-    catch(e){
+    } catch (e) {
       print('No Image Found On Clipboard');
     }
-
   }
 
   @override
@@ -93,7 +92,7 @@ class _HuntFormState extends State<HuntForm> {
           Padding(
             padding: const EdgeInsets.only(top: 12.0),
             child: Text(
-              "App name/ url",
+              AppLocalizations.of(context)!.appNameOrURL,
               style: GoogleFonts.ubuntu(
                 textStyle: TextStyle(
                   color: Color(0xFFDC4654),
@@ -110,7 +109,7 @@ class _HuntFormState extends State<HuntForm> {
             child: TextFormField(
               controller: _websiteController,
               decoration: InputDecoration(
-                hintText: "Enter the URL or app name for the hunt ...",
+                hintText: AppLocalizations.of(context)!.enterURLorAppName,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(
                     Radius.circular(8.0),
@@ -134,12 +133,12 @@ class _HuntFormState extends State<HuntForm> {
           ),
           Container(
             margin: const EdgeInsets.symmetric(vertical: 8.0),
-            child:Row(
+            child: Row(
               children: [
                 SizedBox(
                   child: TextButton(
                     child: Text(
-                      "Choose Image",
+                      AppLocalizations.of(context)!.chooseImage,
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Colors.white,
@@ -163,7 +162,7 @@ class _HuntFormState extends State<HuntForm> {
                 SizedBox(
                   child: TextButton(
                     child: Text(
-                      "Choose From Clipboard",
+                      AppLocalizations.of(context)!.chooseFromClipboard,
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Colors.white,
@@ -190,28 +189,28 @@ class _HuntFormState extends State<HuntForm> {
             margin: const EdgeInsets.only(bottom: 12.0),
             child: _image.path == ""
                 ? Center(
-              child: Text(
-                'No image selected.',
-                style: GoogleFonts.aBeeZee(
-                  textStyle: TextStyle(
-                    color: Color(0xFF737373),
-                  ),
-                ),
-              ),
-            )
+                    child: Text(
+                      AppLocalizations.of(context)!.noImageSelected,
+                      style: GoogleFonts.aBeeZee(
+                        textStyle: TextStyle(
+                          color: Color(0xFF737373),
+                        ),
+                      ),
+                    ),
+                  )
                 : Image.file(
-              _image,
-              fit: BoxFit.cover,
-            ),
+                    _image,
+                    fit: BoxFit.cover,
+                  ),
             decoration: BoxDecoration(
               border: _image.path == ""
                   ? Border.all(
-                color: Color(0xFFDC4654),
-                width: 0.5,
-              )
+                      color: Color(0xFFDC4654),
+                      width: 0.5,
+                    )
                   : null,
               borderRadius:
-              _image.path == "" ? BorderRadius.circular(15) : null,
+                  _image.path == "" ? BorderRadius.circular(15) : null,
             ),
           ),
           Container(
@@ -220,7 +219,7 @@ class _HuntFormState extends State<HuntForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Set Prize Money",
+                  AppLocalizations.of(context)!.setPrizeMoney,
                   style: GoogleFonts.ubuntu(
                     textStyle: TextStyle(
                       color: Color(0xFFDC4654),
@@ -231,7 +230,7 @@ class _HuntFormState extends State<HuntForm> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Text(
-                    "This amount will be rewarded to the users who hunt bugs succesfully for your app/website",
+                    AppLocalizations.of(context)!.rewardToUsersHuntingBugs,
                     style: GoogleFonts.aBeeZee(
                       textStyle: TextStyle(
                         color: Color(0xFF737373),
@@ -272,7 +271,7 @@ class _HuntFormState extends State<HuntForm> {
             height: 50,
             child: TextButton(
               child: Text(
-                "Start Hunt!",
+                AppLocalizations.of(context)!.startHunt,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Colors.white,

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/leader_model.dart';
 import '../../constants/monthname_constants.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Page showing the top contributing users for the current month.
 class MonthlyLeaderBoardPage extends ConsumerStatefulWidget {
@@ -92,7 +93,7 @@ class _MonthlyLeaderBoardPageState
                 Navigator.of(context).pop();
               },
             ),
-            title: Text("Monthly Leaderboard"),
+            title: Text(AppLocalizations.of(context)!.monthlyLeaderboard),
             backgroundColor: Color(0xFFDC4654),
           ),
           body: SingleChildScrollView(
@@ -108,7 +109,7 @@ class _MonthlyLeaderBoardPageState
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                         child: Text(
-                          'Monthly Leaderboards',
+                          AppLocalizations.of(context)!.monthlyLeaderboard,
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Color(0xFF737373),
@@ -119,90 +120,84 @@ class _MonthlyLeaderBoardPageState
                       ),
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "These are the most active users on BLT in",
-                                style: GoogleFonts.aBeeZee(
-                                  textStyle: TextStyle(
-                                    color: Color(0xFF737373),
-                                  ),
-                                ),
+                        child: Column(children: [
+                          Text(
+                            AppLocalizations.of(context)!
+                                .theseAreMostActiveUsers,
+                            style: GoogleFonts.aBeeZee(
+                              textStyle: TextStyle(
+                                color: Color(0xFF737373),
                               ),
-                              SizedBox(height: 10),
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      constraints: BoxConstraints(
-                                        maxHeight: 250,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(10),
-                                        topRight: Radius.circular(10),
-                                      )),
-                                      builder: (BuildContext context) {
-                                        return Container(
-                                            height: 250,
-                                            alignment: Alignment.bottomCenter,
-                                            child: ListView.builder(
-                                              itemCount: DateTime.now().month,
-                                              itemBuilder: (context, index) {
-                                                return ListTile(
-                                                    onTap: () {
-                                                      ref
-                                                          .watch(
-                                                              monthlyLeaderBoardProvider
-                                                                  .notifier)
-                                                          .refreshMonthlyLeaderList(
-                                                              DateTime.now()
-                                                                  .year,
-                                                              index + 1);
-                                                      setState(() {
-                                                        monthActive = index + 1;
-                                                      });
-                                                      Navigator.pop(context);
-                                                    },
-                                                    tileColor: Color(0xFFECECEC)
-                                                        .withOpacity(0.42),
-                                                    title: Text(
-                                                      "${monthsInYear[index + 1]}",
-                                                      style: GoogleFonts.ubuntu(
-                                                        textStyle: TextStyle(
-                                                          color:
-                                                              Color(0xFF737373),
-                                                        ),
-                                                      ),
-                                                    ));
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                constraints: BoxConstraints(
+                                  maxHeight: 250,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                )),
+                                builder: (BuildContext context) {
+                                  return Container(
+                                      height: 250,
+                                      alignment: Alignment.bottomCenter,
+                                      child: ListView.builder(
+                                        itemCount: DateTime.now().month,
+                                        itemBuilder: (context, index) {
+                                          return ListTile(
+                                              onTap: () {
+                                                ref
+                                                    .watch(
+                                                        monthlyLeaderBoardProvider
+                                                            .notifier)
+                                                    .refreshMonthlyLeaderList(
+                                                        DateTime.now().year,
+                                                        index + 1);
+                                                setState(() {
+                                                  monthActive = index + 1;
+                                                });
+                                                Navigator.pop(context);
                                               },
-                                            ));
-                                      },
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.calendar_month,
-                                    color: Colors.white,
-                                  ),
-                                  label: Text(
-                                    "${monthsInYear[monthActive]}",
-                                    style: GoogleFonts.aBeeZee(
-                                      textStyle: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ),
-                                  style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(
-                                        Color(0xFFDC4654)),
-                                  ),
+                                              tileColor: Color(0xFFECECEC)
+                                                  .withOpacity(0.42),
+                                              title: Text(
+                                                "${monthsInYear[index + 1]}",
+                                                style: GoogleFonts.ubuntu(
+                                                  textStyle: TextStyle(
+                                                    color: Color(0xFF737373),
+                                                  ),
+                                                ),
+                                              ));
+                                        },
+                                      ));
+                                },
+                              );
+                            },
+                            icon: Icon(
+                              Icons.calendar_month,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              "${monthsInYear[monthActive]}",
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
                                 ),
                               ),
-                            ]),
+                            ),
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Color(0xFFDC4654)),
+                            ),
+                          ),
+                        ]),
                       )
                     ],
                   ),
@@ -215,7 +210,7 @@ class _MonthlyLeaderBoardPageState
                       if (leaderList!.isEmpty) {
                         return Center(
                           child: Text(
-                            "Looks Like There isn't any activity in this month .",
+                            AppLocalizations.of(context)!.noActivity,
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -263,13 +258,15 @@ class _MonthlyLeaderBoardPageState
                                     maxLines: 6,
                                   ),
                                   subtitle: Text(
-                                    list[index].score.toString() + " points",
+                                    list[index].score.toString() +
+                                        AppLocalizations.of(context)!.points,
                                     style: GoogleFonts.aBeeZee(
                                       textStyle: TextStyle(
                                         color: Color(0xFF737373),
                                         fontSize: 12,
                                       ),
                                     ),
+                                    maxLines: 6,
                                   ),
                                   trailing: Text(
                                     "# " + (index + 1).toString(),
@@ -290,7 +287,7 @@ class _MonthlyLeaderBoardPageState
                     }, error: (Object error, StackTrace? stackTrace) {
                       return Center(
                         child: Text(
-                          'Something went wrong!',
+                          AppLocalizations.of(context)!.somethingWentWrong,
                           style: TextStyle(fontSize: 18),
                         ),
                       );

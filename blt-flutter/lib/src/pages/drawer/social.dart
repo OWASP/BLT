@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../constants/socialurls_constants.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SocialPage extends ConsumerStatefulWidget {
   const SocialPage({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Social"),
+          title: Text(AppLocalizations.of(context)!.social),
           backgroundColor: Color(0xFFDC4654),
         ),
         body: Column(
@@ -51,7 +52,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         top: 10,
                       ),
                       child: Text(
-                        "Join us On :",
+                        AppLocalizations.of(context)!.joinUsOn,
                         style: GoogleFonts.aBeeZee(
                           textStyle: TextStyle(
                             fontSize: 20,
@@ -65,7 +66,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          redirectSocial(socialUrls["twitter"]);
+                          redirectSocial(socialUrls["X"]);
                         },
                         icon: FaIcon(FontAwesomeIcons.twitter),
                       ),

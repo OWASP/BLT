@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Page for describing the BLT project.
 class AboutPage extends StatelessWidget {
@@ -22,7 +23,7 @@ class AboutPage extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("About Us"),
+        title: Text(AppLocalizations.of(context)!.aboutUs),
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
@@ -52,7 +53,7 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
               alignment: Alignment.centerLeft,
               child: Text(
-                "What's in it for you?",
+                AppLocalizations.of(context)!.whatsInItForYou,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Color(0xFFDC4654),
@@ -77,7 +78,7 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
               alignment: Alignment.centerLeft,
               child: Text(
-                "How it works?",
+                AppLocalizations.of(context)!.howItWorks,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Color(0xFFDC4654),
@@ -91,7 +92,7 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 12),
               alignment: Alignment.centerLeft,
               child: Text(
-                "For Testers",
+                AppLocalizations.of(context)!.forTesters,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Color(0xFF737373),
@@ -116,7 +117,7 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 12),
               alignment: Alignment.centerLeft,
               child: Text(
-                "For Organizations",
+                AppLocalizations.of(context)!.forOrganizations,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Color(0xFF737373),
@@ -141,7 +142,7 @@ class AboutPage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 0, 32),
               alignment: Alignment.centerLeft,
               child: Text(
-                "Contributors",
+                AppLocalizations.of(context)!.contributors,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Color(0xFFDC4654),
@@ -160,15 +161,12 @@ class AboutPage extends StatelessWidget {
                   for (var contributor in snapshot.data!) {
                     contributors.add(InkWell(
                       onTap: () {
-                        Navigator.of(context).push(
-                            new PageRouteBuilder(
-                                opaque: false,
-                                barrierDismissible:true,
-                                pageBuilder: (BuildContext context, _, __) {
-                                  return ContributorCard(contributor: contributor);
-                                }
-                            )
-                        );
+                        Navigator.of(context).push(new PageRouteBuilder(
+                            opaque: false,
+                            barrierDismissible: true,
+                            pageBuilder: (BuildContext context, _, __) {
+                              return ContributorCard(contributor: contributor);
+                            }));
                       },
                       child: Ink(
                         child: Column(
@@ -177,7 +175,8 @@ class AboutPage extends StatelessWidget {
                               tag: "image${contributor["id"]}",
                               child: CircleAvatar(
                                 radius: 32,
-                                backgroundImage: CachedNetworkImageProvider(contributor["img"]!),
+                                backgroundImage: CachedNetworkImageProvider(
+                                    contributor["img"]!),
                               ),
                             ),
                             SizedBox(

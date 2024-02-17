@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CompanyDashBoardPage extends ConsumerStatefulWidget {
   const CompanyDashBoardPage({Key? key}) : super(key: key);
@@ -24,7 +25,9 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
       ),
       child: Center(
         child: Text(
-          1 > 0 ? "Unable to get info" : "No open issues!",
+          1 > 0
+              ? AppLocalizations.of(context)!.unableToGetInfo
+              : AppLocalizations.of(context)!.noOpenIssues,
           style: GoogleFonts.aBeeZee(
             textStyle: TextStyle(
               color: Color(0xFF737373),
@@ -155,7 +158,8 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                                           ),
                                         ),
                                         Text(
-                                          "Active Hunts",
+                                          AppLocalizations.of(context)!
+                                              .activeHunts,
                                           style: GoogleFonts.ubuntu(
                                             textStyle: TextStyle(
                                               fontSize: 17.5,
@@ -197,7 +201,7 @@ class _CompanyDashBoardPageState extends ConsumerState<CompanyDashBoardPage> {
                                           ),
                                         ),
                                         Text(
-                                          "Payouts",
+                                          AppLocalizations.of(context)!.payouts,
                                           style: GoogleFonts.ubuntu(
                                             textStyle: TextStyle(
                                               fontSize: 17.5,

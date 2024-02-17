@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Page for allowing users to send referrals to their friends.
 class ReferralPage extends StatefulWidget {
@@ -32,7 +33,7 @@ class _ReferralPageState extends State<ReferralPage> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("Invite"),
+        title: Text(AppLocalizations.of(context)!.invite),
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
@@ -49,7 +50,7 @@ class _ReferralPageState extends State<ReferralPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                     child: Text(
-                      'Invite your Friends!',
+                      AppLocalizations.of(context)!.inviteYourFriends,
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -61,7 +62,7 @@ class _ReferralPageState extends State<ReferralPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "Invite your friends, hunt and find bugs together and, also win prizes together!",
+                      AppLocalizations.of(context)!.inviteFriendsDescription,
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -86,7 +87,7 @@ class _ReferralPageState extends State<ReferralPage> {
                       child: TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          hintText: "Email",
+                          hintText: AppLocalizations.of(context)!.email,
                           prefixIcon: Icon(Icons.mail),
                           filled: true,
                           border: OutlineInputBorder(
@@ -103,7 +104,7 @@ class _ReferralPageState extends State<ReferralPage> {
                       child: TextButton(
                         onPressed: () async {},
                         child: Text(
-                          "Invite",
+                          AppLocalizations.of(context)!.invite,
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Colors.white,

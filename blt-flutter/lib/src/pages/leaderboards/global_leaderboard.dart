@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../util/api/leaderboard_api.dart';
 import '../../util/endpoints/leaderboard_endpoints.dart';
@@ -43,8 +44,8 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
         );
       else
         return CircleAvatar(
-          foregroundImage:
-              CachedNetworkImageProvider("https://bhfiles.storage.googleapis.com/" + partUrl),
+          foregroundImage: CachedNetworkImageProvider(
+              "https://bhfiles.storage.googleapis.com/" + partUrl),
           radius: 20,
         );
     } on Exception {
@@ -74,7 +75,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("Global Leaderboard"),
+        title: Text(AppLocalizations.of(context)!.globalLeaderboard),
         backgroundColor: Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
@@ -91,7 +92,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                     child: Text(
-                      'Global Leaderboards',
+                      AppLocalizations.of(context)!.globalLeaderboard,
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -103,7 +104,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                   Container(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
                     child: Text(
-                      "These are the all time best bug finders on BLT.",
+                      AppLocalizations.of(context)!.theseAreBestFinders,
                       style: GoogleFonts.aBeeZee(
                         textStyle: TextStyle(
                           color: Color(0xFF737373),
@@ -124,7 +125,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                     if (snapshot.hasError) {
                       return Center(
                         child: Text(
-                          'Something went wrong!',
+                          AppLocalizations.of(context)!.somethingWentWrong,
                           style: TextStyle(fontSize: 18),
                         ),
                       );
@@ -177,7 +178,8 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
                                   maxLines: 6,
                                 ),
                                 subtitle: Text(
-                                  list[index].score.toString() + " points",
+                                  list[index].score.toString() +
+                                      AppLocalizations.of(context)!.points,
                                   style: GoogleFonts.aBeeZee(
                                     textStyle: TextStyle(
                                       color: Color(0xFF737373),

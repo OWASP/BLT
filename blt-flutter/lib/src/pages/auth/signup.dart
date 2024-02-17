@@ -2,6 +2,7 @@ import 'package:blt/src/util/api/auth_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../routes/routing.dart';
 
@@ -132,7 +133,7 @@ class _SignUpFormState extends State<SignUpForm> {
       r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
     );
     if (value == null || value.isEmpty || !regex.hasMatch(value))
-      return 'Enter a valid email address';
+      return AppLocalizations.of(context)!.validEmail;
     else
       return null;
   }
@@ -150,12 +151,12 @@ class _SignUpFormState extends State<SignUpForm> {
               controller: _usernameController,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return "This field is required";
+                  return AppLocalizations.of(context)!.requiredField;
                 }
                 return null;
               },
               decoration: InputDecoration(
-                hintText: "Username",
+                hintText: AppLocalizations.of(context)!.username,
                 prefixIcon: Icon(Icons.person),
                 filled: true,
                 border: OutlineInputBorder(
@@ -174,7 +175,7 @@ class _SignUpFormState extends State<SignUpForm> {
               controller: _emailController,
               validator: validateEmail,
               decoration: InputDecoration(
-                hintText: "Email",
+                hintText: AppLocalizations.of(context)!.email,
                 prefixIcon: Icon(Icons.mail),
                 filled: true,
                 border: OutlineInputBorder(
@@ -193,7 +194,7 @@ class _SignUpFormState extends State<SignUpForm> {
               controller: _passwordController,
               validator: (value) {
                 if (value == null || value.length < 8) {
-                  return "This field is required";
+                  return AppLocalizations.of(context)!.requiredField;
                 }
                 return null;
               },
@@ -209,7 +210,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 }
               },
               decoration: InputDecoration(
-                hintText: "Password",
+                hintText: AppLocalizations.of(context)!.password,
                 prefixIcon: Icon(Icons.key_rounded),
                 filled: true,
                 border: OutlineInputBorder(
@@ -232,16 +233,16 @@ class _SignUpFormState extends State<SignUpForm> {
               controller: _cpasswordController,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return "This field is required";
+                  return AppLocalizations.of(context)!.requiredField;
                 } else {
                   if (_passwordController.text != _cpasswordController.text) {
-                    return "Passwords don't match";
+                    return AppLocalizations.of(context)!.passwordsDoNotMatch;
                   }
                   return null;
                 }
               },
               decoration: InputDecoration(
-                hintText: "Confirm Password",
+                hintText: AppLocalizations.of(context)!.confirmPassword,
                 prefixIcon: Icon(Icons.password),
                 filled: true,
                 border: OutlineInputBorder(
@@ -273,7 +274,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 }
               },
               child: Text(
-                "Sign Up",
+                AppLocalizations.of(context)!.signUp,
                 style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(
                     color: Colors.white,
@@ -301,7 +302,7 @@ class _SignUpFormState extends State<SignUpForm> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Existing User?",
+                AppLocalizations.of(context)!.existingUser,
               ),
               TextButton(
                 onPressed: () {
@@ -309,7 +310,7 @@ class _SignUpFormState extends State<SignUpForm> {
                     RouteManager.loginPage,
                   );
                 },
-                child: Text("Login"),
+                child: Text(AppLocalizations.of(context)!.login),
               )
             ],
           )

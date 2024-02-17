@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../providers/login_provider.dart';
 import '../../routes/routing.dart';
@@ -128,7 +129,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         child: Center(
           child: Text(
-            "No issues Upvoted",
+            AppLocalizations.of(context)!.noIssuesUpvoted,
             style: GoogleFonts.aBeeZee(
               textStyle: TextStyle(
                 color: Color(0xFF737373),
@@ -193,7 +194,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         child: Center(
           child: Text(
-            "No issues Flagged",
+            AppLocalizations.of(context)!.noIssuesFlagged,
             style: GoogleFonts.aBeeZee(
               textStyle: TextStyle(
                 color: Color(0xFF737373),
@@ -258,7 +259,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         ),
         child: Center(
           child: Text(
-            "No issues Saved",
+            AppLocalizations.of(context)!.noIssuesSaved,
             style: GoogleFonts.aBeeZee(
               textStyle: TextStyle(
                 color: Color(0xFF737373),
@@ -345,8 +346,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   SnackBar updatingSnack = SnackBar(
                     duration: const Duration(seconds: 6),
                     content: Text(
-                      "Updating profile picture",
-                    ),
+                        AppLocalizations.of(context)!.updatingProfilePicture),
                   );
                   ScaffoldMessenger.of(context).showSnackBar(updatingSnack);
                   await UserApiClient.updatePfp(image, currentUser!);
@@ -436,7 +436,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         child: Text(
                           (currentUser!.description != null)
                               ? currentUser!.description!
-                              : "No description, write one!",
+                              : AppLocalizations.of(context)!
+                                  .noDescriptionWriteOne,
                           style: GoogleFonts.aBeeZee(
                             textStyle: TextStyle(
                               color: Color(0xFF737373),
@@ -452,7 +453,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               onPressed: () {},
                               child: Text(
                                 currentUser!.following!.length.toString() +
-                                    " following",
+                                    AppLocalizations.of(context)!.following,
                                 style: GoogleFonts.aBeeZee(
                                   textStyle: TextStyle(
                                     color: Color(0xFFDC4654),
@@ -472,8 +473,8 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                               onPressed: () {},
                               child: Text(
                                 (currentUser!.totalScore != null)
-                                    ? "Score : ${currentUser!.totalScore!} "
-                                    : "Score : 0 ",
+                                    ? "${AppLocalizations.of(context)!.score} : ${currentUser!.totalScore!} "
+                                    : "${AppLocalizations.of(context)!.score} : 0 ",
                                 style: GoogleFonts.aBeeZee(
                                   textStyle: TextStyle(
                                     color: Color(0xFFDC4654),
@@ -509,7 +510,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             horizontal: 8,
                           ),
                           child: Text(
-                            "Recent Activity",
+                            AppLocalizations.of(context)!.recentActivity,
                             style: GoogleFonts.ubuntu(
                               textStyle: TextStyle(
                                 color: Color(0xFF737373),
@@ -531,7 +532,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                         ),
                         Text(
-                          "Liked Issues",
+                          AppLocalizations.of(context)!.likedIssues,
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Color(0xFFDC4654),
@@ -579,7 +580,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                         ),
                         Text(
-                          "Flagged Issues",
+                          AppLocalizations.of(context)!.flaggedIssues,
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Color(0xFFDC4654),
@@ -627,7 +628,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                           ),
                         ),
                         Text(
-                          "Saved Issues",
+                          AppLocalizations.of(context)!.savedIssues,
                           style: GoogleFonts.ubuntu(
                             textStyle: TextStyle(
                               color: Color(0xFFDC4654),

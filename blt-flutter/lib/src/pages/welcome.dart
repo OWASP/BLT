@@ -1,9 +1,11 @@
 import 'package:blt/src/providers/authstate_provider.dart';
+import 'package:blt/src/providers/language_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../routes/routing.dart';
 
@@ -24,173 +26,52 @@ class _WelcomePageState extends State<WelcomePage> {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (widget.snackBarMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.snackBarMessage!),
-          ),
+          SnackBar(content: Text(widget.snackBarMessage!)),
         );
         widget.snackBarMessage = null;
       }
     });
+
     final Size size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Material(
         color: Colors.transparent,
         child: Stack(
           children: [
-            Container(
-              width: size.width,
-              height: size.height,
-              color: Color(0xFFDC4654),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: size.width,
-                    height: size.height * 0.4,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 0.15 * size.width,
-                        vertical: 0.1 * size.height,
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset(
-                          'assets/logo_white.svg',
-                          fit: BoxFit.contain,
-                          height: 192.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: size.width,
-                    height: size.height * 0.6,
-                  ),
-                ],
-              ),
-            ),
+            buildBackground(size),
             Positioned(
               bottom: 0,
               child: Container(
+                height: size.height * 0.5,
                 width: size.width,
-                height: size.height * 0.6,
                 decoration: BoxDecoration(
                   color: Theme.of(context).canvasColor,
                   boxShadow: [
                     BoxShadow(
-                      spreadRadius: 10,
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 50,
-                    )
+                        spreadRadius: 10,
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 50)
                   ],
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(50),
-                    topRight: Radius.circular(50.0),
-                  ),
+                      topLeft: Radius.circular(50),
+                      topRight: Radius.circular(50)),
                 ),
-                child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
-                        height: 60,
-                        width: 0.8 * size.width,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(
-                              RouteManager.loginPage,
-                            );
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            "Login",
-                            style: GoogleFonts.ubuntu(
-                              textStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                          style: ButtonStyle(
-                            elevation: MaterialStateProperty.all(12),
-                            shadowColor: MaterialStateProperty.all(
-                              Colors.black.withOpacity(0.5),
-                            ),
-                            shape:
-                                MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15.0),
-                              ),
-                            ),
-                            backgroundColor: MaterialStateProperty.all(
-                              Color(0xFFDC4654),
-                            ),
-                          ),
-                        ),
+                        height: size.height * 0.03,
                       ),
+                      buildLoginButton(size),
+                      buildExploreButton(size),
+                      buildSignUpRow(),
                       SizedBox(
-                        height: 0.025 * size.height,
+                        height: size.height * 0.12,
                       ),
-                      SizedBox(
-                        height: 60,
-                        width: 0.8 * size.width,
-                        child: Consumer(
-                          builder: (BuildContext context, ref, Widget? child) {
-                            return TextButton(
-                              onPressed: () async {
-                                await ref.read(authStateNotifier.notifier).guestLogin();
-                                 Navigator.of(context).pushNamed(
-                                  RouteManager.homePage,
-                                );
-                              },
-                              child: Text(
-                                "Explore Anonymously",
-                                style: GoogleFonts.ubuntu(
-                                  textStyle: TextStyle(
-                                    color: Color(0xFF737373),
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                              style: ButtonStyle(
-                                elevation: MaterialStateProperty.all(12),
-                                shadowColor: MaterialStateProperty.all(
-                                  Colors.black.withOpacity(0.5),
-                                ),
-                                shape: MaterialStateProperty.all<
-                                    RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    side: BorderSide(
-                                      color: Color(0xFF737373),
-                                    ),
-                                  ),
-                                ),
-                                backgroundColor: MaterialStateProperty.all(
-                                  Theme.of(context).canvasColor,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "New User?",
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                RouteManager.signupPage,
-                              );
-                            },
-                            child: Text("Sign Up"),
-                          )
-                        ],
-                      )
+                      buildLanguageDropdown(context),
                     ],
                   ),
                 ),
@@ -199,6 +80,188 @@ class _WelcomePageState extends State<WelcomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildBackground(Size size) {
+    return Container(
+      width: size.width,
+      height: size.height,
+      color: Color(0xFFDC4654),
+      child: Column(
+        children: [
+          SizedBox(
+            width: size.width,
+            height: size.height * 0.4,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: 0.15 * size.width, vertical: 0.1 * size.height),
+              child: Center(
+                child: SvgPicture.asset('assets/logo_white.svg',
+                    fit: BoxFit.contain, height: 192.0),
+              ),
+            ),
+          ),
+          SizedBox(width: size.width, height: size.height * 0.6),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLoginButton(Size size) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: SizedBox(
+        height: 60,
+        width: 0.8 * size.width,
+        child: TextButton.icon(
+          onPressed: () =>
+              Navigator.of(context).pushNamed(RouteManager.loginPage),
+          icon: Icon(Icons.person, color: Colors.white),
+          label: Text(AppLocalizations.of(context)!.login,
+              style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(color: Colors.white, fontSize: 20))),
+          style: ButtonStyle(
+            elevation: MaterialStateProperty.all(12),
+            shadowColor:
+                MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0))),
+            backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildExploreButton(Size size) {
+    return Consumer(
+      builder: (BuildContext context, ref, Widget? child) {
+        return SizedBox(
+          height: 60,
+          width: 0.8 * size.width,
+          child: TextButton(
+            onPressed: () async {
+              await ref.read(authStateNotifier.notifier).guestLogin();
+              Navigator.of(context).pushNamed(RouteManager.homePage);
+            },
+            child: Text(AppLocalizations.of(context)!.exploreAnonymously,
+                style: GoogleFonts.ubuntu(
+                    textStyle:
+                        TextStyle(color: Color(0xFF737373), fontSize: 20))),
+            style: ButtonStyle(
+              elevation: MaterialStateProperty.all(12),
+              shadowColor:
+                  MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                    side: BorderSide(color: Color(0xFF737373))),
+              ),
+              backgroundColor:
+                  MaterialStateProperty.all(Theme.of(context).canvasColor),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget buildSignUpRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(AppLocalizations.of(context)!.newUserQuestion),
+        TextButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(RouteManager.signupPage),
+            child: Text(AppLocalizations.of(context)!.signUp)),
+      ],
+    );
+  }
+
+  Widget buildLanguageDropdown(BuildContext context) {
+    return Consumer(
+      builder: (BuildContext context, WidgetRef ref, Widget? child) {
+        final currentLanguage = ref.watch(languageProvider);
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          decoration: BoxDecoration(
+            color: Theme.of(context).canvasColor.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: currentLanguage,
+              icon: Icon(Icons.language, color: Colors.grey.shade600),
+              items: [
+                DropdownMenuItem(
+                    value: 'en',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('English')
+                    ])),
+                DropdownMenuItem(
+                    value: 'es',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('Español')
+                    ])),
+                DropdownMenuItem(
+                    value: 'de',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('German')
+                    ])),
+                DropdownMenuItem(
+                    value: 'hi',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('Hindi')
+                    ])),
+                DropdownMenuItem(
+                    value: 'pt',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('Portuguese')
+                    ])),
+                DropdownMenuItem(
+                    value: 'fr',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('french')
+                    ])),
+                DropdownMenuItem(
+                    value: 'ja',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('Japanese')
+                    ])),
+                DropdownMenuItem(
+                    value: 'zh',
+                    child: Row(children: [
+                      Icon(Icons.flag, color: Colors.grey.shade600),
+                      SizedBox(width: 8),
+                      Text('Chinese')
+                    ])),
+              ],
+              onChanged: (newValue) =>
+                  ref.read(languageProvider.notifier).changeLanguage(newValue!),
+              dropdownColor: Theme.of(context).canvasColor,
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -2,9 +2,9 @@
 class GeneralEndPoints {
   GeneralEndPoints._();
 
-  static const String domain = "www.owasp.org/BLT/";
+  static const String domain = "blt.owasp.org/api/";
 
-  static const String baseUrl = "https://www.owasp.org/BLT/";
+  static const String baseUrl = "https://blt.owasp.org/";
 
   static const String apiBaseUrl = baseUrl + "api/v1/";
 
