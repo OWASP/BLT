@@ -120,8 +120,12 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                         controller: _scrollController,
                         itemCount: issueList.length,
                         itemBuilder: (context, index) {
+                          final currentIssue = issueList[index];
+                          if (currentIssue.screenshotsLink!.isEmpty) {
+                            return Container();
+                          }
                           return IssueCard(
-                            issue: issueList[index],
+                            issue: currentIssue,
                           );
                         },
                       );
