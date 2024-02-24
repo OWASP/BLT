@@ -1,7 +1,7 @@
 name: blt
 description: The BLT-Flutter App
 
-version: 1.0.4+1
+version: 1.0.5+1
 publish_to: none
 
 environment:
