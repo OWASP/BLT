@@ -16,7 +16,7 @@ jobs:
           channel: 'stable'
           architecture: x64
       - run: flutter pub get
-      - run: flutter analyze --no-fatal-infos
+      - run: flutter analyze
       - run: flutter build apk
 
       # Upload APK as a build artifact
