@@ -211,8 +211,9 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         showGeneralDialog(
           context: context,
           barrierLabel: "Barrier",
@@ -223,7 +224,6 @@ class _HomeState extends ConsumerState<Home> {
             return buildLogOUtDialog();
           },
         );
-        return false;
       },
       child: Scaffold(
         appBar: buildAppBar(context: context),

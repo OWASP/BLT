@@ -75,13 +75,12 @@ class _MonthlyLeaderBoardPageState
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final monthlyLeadersState = ref.watch(monthlyLeaderBoardProvider);
-    return WillPopScope(
-        onWillPop: () async {
+    return PopScope(
+        onPopInvoked: (_) async {
           ref
               .watch(monthlyLeaderBoardProvider.notifier)
               .refreshMonthlyLeaderList(
                   DateTime.now().year, DateTime.now().month);
-          return true;
         },
         child: Scaffold(
           appBar: AppBar(
