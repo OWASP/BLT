@@ -40,7 +40,7 @@ _Please make sure `flutter analyze` works before submitting the pull request._
 
 - ### Are you a designer?
     We got your back! If you want to help up with the UI mockups, design and prototyping refer the below links:
-    - https://www.figma.com/file/NYD5WZzJywnO338lchnece/Bug-Logging-Tool?node-id=0%3A1&t=xoiHqMIJfdK61MPA-1
+    - https://www.figma.com/file/uCd2HxU2Hvbcl01Gv2vUU1/Bug-Logging-Tool-(with-dark-theme)?type=design&node-id=0-1&mode=design&t=B9IH20nofZPfNpaM-0
 
 ### Documentation
 Check the API documentation for BLT below:

@@ -681,17 +681,17 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                       height: 15.0,
                                     ),
                                   ),
-                                  // IconButton(
-                                  //   padding: EdgeInsets.zero,
-                                  //   constraints: BoxConstraints(),
-                                  //   onPressed: () {
-                                  //     markdownNewLine("- [ ] ");
-                                  //   },
-                                  //   icon: SvgPicture.asset(
-                                  //     "assets/input_task.svg",
-                                  //     height: 15.0,
-                                  //   ),
-                                  // ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {
+                                      markdownNewLine("- [ ] ");
+                                    },
+                                    icon: SvgPicture.asset(
+                                      "assets/input_task.svg",
+                                      height: 15.0,
+                                    ),
+                                  ),
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
