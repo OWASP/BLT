@@ -1,8 +1,10 @@
 //import 'dart:async';
 
 import 'package:blt/src/pages/onboarding_main_page.dart';
+import 'package:blt/src/providers/dark_mode_provider.dart';
 import 'package:blt/src/providers/language_provider.dart';
 import 'package:blt/src/routes/routing.dart';
+import 'package:blt/src/util/theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -33,6 +35,7 @@ class BLTState extends State<BLT> {
         child: Consumer(
           builder: (context, ref, _) {
             final currentLanguage = ref.watch(languageProvider);
+            final themeMode = ref.watch(darkModeProvider);
 
             return MaterialApp(
               localizationsDelegates: [
@@ -47,11 +50,10 @@ class BLTState extends State<BLT> {
               debugShowCheckedModeBanner: false,
               onGenerateRoute: RouteManager.generateRoute,
               title: 'BLT',
-              theme: ThemeData(
-                primarySwatch: Colors.red,
-                primaryColor: Colors.white,
-                visualDensity: VisualDensity.adaptivePlatformDensity,
-              ),
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode:
+                  themeMode.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               home: Scaffold(body: OnboardingMainPage()),
             );
           },

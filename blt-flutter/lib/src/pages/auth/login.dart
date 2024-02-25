@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -39,7 +40,8 @@ class _LoginPageState extends State<LoginPage> {
           Container(
             width: size.width,
             height: size.height,
-            color: Color(0xFFDC4654),
+            color:
+                isDarkMode ? Color.fromRGBO(34, 22, 23, 1) : Color(0xFFDC4654),
             child: Column(
               children: [
                 SizedBox(
@@ -72,7 +74,9 @@ class _LoginPageState extends State<LoginPage> {
               width: size.width,
               height: size.height * 0.65,
               decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor,
+                color: isDarkMode
+                    ? Color.fromRGBO(42, 38, 38, 1)
+                    : Theme.of(context).canvasColor,
                 boxShadow: [
                   BoxShadow(
                     spreadRadius: 10,

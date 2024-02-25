@@ -4,6 +4,7 @@ import 'package:blt/src/pages/home/leaderboard.dart';
 import 'package:blt/src/pages/home/report_bug.dart';
 import 'package:blt/src/pages/home/start_hunt.dart';
 import 'package:blt/src/providers/authstate_provider.dart';
+import 'package:blt/src/providers/dark_mode_provider.dart';
 import 'package:blt/src/providers/login_provider.dart';
 import 'package:blt/src/routes/routing.dart';
 import 'package:blt/src/util/enums/login_type.dart';
@@ -211,6 +212,7 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(darkModeProvider);
     return PopScope(
       canPop: false,
       onPopInvoked: (_) async {
@@ -226,6 +228,9 @@ class _HomeState extends ConsumerState<Home> {
         );
       },
       child: Scaffold(
+        backgroundColor: isDarkMode.isDarkMode
+            ? Color.fromRGBO(34, 22, 23, 1)
+            : Theme.of(context).canvasColor,
         appBar: buildAppBar(context: context),
         drawer: Drawer(
           child: ListView(
@@ -316,6 +321,13 @@ class _HomeState extends ConsumerState<Home> {
                   // Then close the drawer
                 },
               ),
+              SwitchListTile(
+                title: Text("Dark Mode"),
+                value: isDarkMode.isDarkMode,
+                onChanged: (value) {
+                  ref.read(darkModeProvider).toggleDarkMode();
+                },
+              ),
               buildReferralOption(),
               ListTile(
                 title: Container(
@@ -368,6 +380,9 @@ class _HomeState extends ConsumerState<Home> {
               LeaderBoard(),
             ]),
         bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: isDarkMode.isDarkMode
+              ? Color.fromRGBO(58, 21, 31, 1)
+              : Colors.grey[300],
           type: BottomNavigationBarType.fixed,
           items: <BottomNavigationBarItem>[
             // BottomNavigationBarItem(

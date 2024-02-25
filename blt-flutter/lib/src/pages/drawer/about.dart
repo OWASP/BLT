@@ -13,6 +13,7 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -34,7 +35,7 @@ class AboutPage extends StatelessWidget {
             Container(
               padding: EdgeInsets.fromLTRB(0, 36, 0, 24),
               child: SvgPicture.asset(
-                'assets/blt_logo.svg',
+                isDarkMode ? 'assets/blt_logo_dark.svg' : 'assets/blt_logo.svg',
                 width: 169.42,
               ),
             ),

@@ -23,6 +23,8 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (widget.snackBarMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,7 +48,9 @@ class _WelcomePageState extends State<WelcomePage> {
                 height: size.height * 0.5,
                 width: size.width,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
+                  color: isDarkMode
+                      ? Color.fromRGBO(42, 38, 38, 1)
+                      : Theme.of(context).canvasColor,
                   boxShadow: [
                     BoxShadow(
                         spreadRadius: 10,
@@ -84,10 +88,11 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget buildBackground(Size size) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: size.width,
       height: size.height,
-      color: Color(0xFFDC4654),
+      color: isDarkMode ? Color.fromRGBO(34, 22, 23, 1) : Color(0xFFDC4654),
       child: Column(
         children: [
           SizedBox(
@@ -136,6 +141,7 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget buildExploreButton(Size size) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Consumer(
       builder: (BuildContext context, ref, Widget? child) {
         return SizedBox(
@@ -159,8 +165,11 @@ class _WelcomePageState extends State<WelcomePage> {
                     borderRadius: BorderRadius.circular(15.0),
                     side: BorderSide(color: Color(0xFF737373))),
               ),
-              backgroundColor:
-                  MaterialStateProperty.all(Theme.of(context).canvasColor),
+              backgroundColor: MaterialStateProperty.all(
+                isDarkMode
+                    ? Color.fromRGBO(43, 42, 42, 1)
+                    : Theme.of(context).canvasColor,
+              ),
             ),
           ),
         );
@@ -182,13 +191,16 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget buildLanguageDropdown(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Consumer(
       builder: (BuildContext context, WidgetRef ref, Widget? child) {
         final currentLanguage = ref.watch(languageProvider);
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor.withOpacity(0.8),
+            color: isDarkMode
+                ? Color.fromRGBO(43, 42, 42, 1)
+                : Theme.of(context).canvasColor.withOpacity(0.8),
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: Colors.grey.shade300),
           ),
@@ -202,56 +214,88 @@ class _WelcomePageState extends State<WelcomePage> {
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('English')
+                      Text(
+                        'English',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'es',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('Español')
+                      Text(
+                        'Español',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'de',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('German')
+                      Text(
+                        'German',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'hi',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('Hindi')
+                      Text(
+                        'Hindi',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'pt',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('Portuguese')
+                      Text(
+                        'Portuguese',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'fr',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('french')
+                      Text(
+                        'french',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'ja',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('Japanese')
+                      Text(
+                        'Japanese',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
                 DropdownMenuItem(
                     value: 'zh',
                     child: Row(children: [
                       Icon(Icons.flag, color: Colors.grey.shade600),
                       SizedBox(width: 8),
-                      Text('Chinese')
+                      Text(
+                        'Chinese',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      )
                     ])),
               ],
               onChanged: (newValue) =>
