@@ -1,16 +1,4 @@
-import 'package:blt/src/pages/welcome.dart';
-import 'package:blt/src/util/api/user_api.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-import './login_provider.dart';
-import '../models/user_model.dart';
-import '../routes/routing.dart';
-import '../global/variables.dart';
-import '../util/api/auth_api.dart';
-import '../util/enums/authstate_type.dart';
-import '../util/enums/login_type.dart';
+import 'package:blt/src/providers/providers_imports.dart';
 
 /// The provider which exposes the state management for user authentication.
 final authStateNotifier =
@@ -39,13 +27,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
     read(loginProvider.notifier).setGuestLogin();
   }
 
-  Future<void> checkFirstLogin(BuildContext context) async{
+  Future<void> checkFirstLogin(BuildContext context) async {
     String? firstLogin = await storage.read(key: "firstLogin");
-    if(firstLogin == null) {
+    if (firstLogin == null) {
       await storage.write(key: "firstLogin", value: "false");
-    }else if(firstLogin == "false"){
-      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-              builder: (context) => WelcomePage()), (Route route) => false);
+    } else if (firstLogin == "false") {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => WelcomePage()),
+          (Route route) => false);
     }
   }
 

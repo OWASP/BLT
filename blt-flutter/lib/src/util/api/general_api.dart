@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:blt/src/util/endpoints/general_endpoints.dart';
+import 'package:blt/src/util/util_import.dart';
 import 'package:http/http.dart' as http;
 
 /// Class for accessing the general client.

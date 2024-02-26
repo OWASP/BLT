@@ -1,9 +1,6 @@
 import 'dart:convert';
-
-import 'package:blt/src/util/endpoints/user_endpoints.dart';
+import 'package:blt/src/util/util_import.dart';
 import 'package:http/http.dart' as http;
-import 'package:blt/src/models/user_model.dart';
-import 'package:image_picker/image_picker.dart';
 
 class UserApiClient {
   UserApiClient._();
@@ -58,7 +55,8 @@ class UserApiClient {
 
       final uri = Uri.parse(updateUrl);
       var request = new http.MultipartRequest('PUT', uri);
-      final httpImage = await http.MultipartFile.fromPath('user_avatar', image.path,
+      final httpImage = await http.MultipartFile.fromPath(
+          'user_avatar', image.path,
           filename: image.name);
       request.files.add(httpImage);
       request.headers.addAll(

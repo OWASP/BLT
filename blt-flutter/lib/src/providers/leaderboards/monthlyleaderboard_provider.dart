@@ -1,14 +1,11 @@
-import 'package:blt/src/models/leader_model.dart';
-import 'package:blt/src/util/api/leaderboard_api.dart';
-import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/leaderdata_model.dart';
+import 'package:blt/src/models/leaderdata_model.dart';
+import 'package:blt/src/providers/providers_imports.dart';
 
 final monthlyLeaderBoardProvider = StateNotifierProvider<
-  MonthlyLeaderBoardNotifier, AsyncValue<List<Leaders>?>?>((ref){
-    return MonthlyLeaderBoardNotifier(ref.read);
-    });
-  
+    MonthlyLeaderBoardNotifier, AsyncValue<List<Leaders>?>?>((ref) {
+  return MonthlyLeaderBoardNotifier(ref.read);
+});
+
 class MonthlyLeaderBoardNotifier
     extends StateNotifier<AsyncValue<List<Leaders>?>?> {
   final Reader read;
@@ -17,45 +14,44 @@ class MonthlyLeaderBoardNotifier
 
   MonthlyLeaderBoardNotifier(this.read, [AsyncValue<List<Leaders>>? leaderList])
       : super(leaderList ?? const AsyncValue.loading()) {
-     _retrieveMonthlyLeaderList(DateTime.now().year,DateTime.now().month);
+    _retrieveMonthlyLeaderList(DateTime.now().year, DateTime.now().month);
   }
-  
 
-  Future<void> _retrieveMonthlyLeaderList(int? year , int? month) async{
+  Future<void> _retrieveMonthlyLeaderList(int? year, int? month) async {
     try {
-      final LeaderData? monthlyLeaderData = 
-        await LeaderboardApiClient.getMonthlyLeaderData(
-          LeaderboardEndpoints.monthly_leaderboard,
-          year,
-          month,
-        );
-        nextUrl = monthlyLeaderData!.nextQuery;
-        state = AsyncValue.data(monthlyLeaderData.leaderList);
-    } catch(e) {
+      final LeaderData? monthlyLeaderData =
+          await LeaderboardApiClient.getMonthlyLeaderData(
+        LeaderboardEndpoints.monthly_leaderboard,
+        year,
+        month,
+      );
+      nextUrl = monthlyLeaderData!.nextQuery;
+      state = AsyncValue.data(monthlyLeaderData.leaderList);
+    } catch (e) {
       AsyncValue.error(e);
     }
   }
 
-  Future<void> getMoreMontlyLeaders () async{
+  Future<void> getMoreMontlyLeaders() async {
     _cacheState();
-    try{
-    final LeaderData leaderData = await LeaderboardApiClient.getMoreMonthlyLeaders(nextUrl);
-    nextUrl = leaderData.nextQuery;
-    state = state!.whenData((leaderList){
-      leaderList!.addAll(leaderData.leaderList!);
-      return leaderList;
-    });
-    }
-    catch(e){
+    try {
+      final LeaderData leaderData =
+          await LeaderboardApiClient.getMoreMonthlyLeaders(nextUrl);
+      nextUrl = leaderData.nextQuery;
+      state = state!.whenData((leaderList) {
+        leaderList!.addAll(leaderData.leaderList!);
+        return leaderList;
+      });
+    } catch (e) {
       _handleException(e);
     }
   }
 
-  Future<void> refreshMonthlyLeaderList(int? year , int? month) async{
+  Future<void> refreshMonthlyLeaderList(int? year, int? month) async {
     state = const AsyncValue.loading();
-    try{
+    try {
       await _retrieveMonthlyLeaderList(year, month);
-    }catch(e){
+    } catch (e) {
       AsyncValue.error(e);
     }
   }
@@ -65,7 +61,7 @@ class MonthlyLeaderBoardNotifier
     previousState = state;
   }
 
-    void _resetState() {
+  void _resetState() {
     if (previousState != null) {
       state = previousState;
       previousState = null;
@@ -76,4 +72,4 @@ class MonthlyLeaderBoardNotifier
     print(e);
     _resetState();
   }
-  }
+}

@@ -1,13 +1,6 @@
-import 'package:blt/src/providers/authstate_provider.dart';
-import 'package:blt/src/providers/language_provider.dart';
+import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../routes/routing.dart';
 
 /// The Landing page for unauthenticated users, or if a
 /// user wants to try the guest mode of the app.

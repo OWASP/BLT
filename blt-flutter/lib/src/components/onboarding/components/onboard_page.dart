@@ -1,8 +1,6 @@
+import 'package:blt/src/components/components_import.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import '../../../pages/welcome.dart';
-import '../models/onboard_page_model.dart';
-import 'drawer_paint.dart';
 
 class OnboardPage extends StatefulWidget {
   final PageController pageController;

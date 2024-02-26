@@ -1,24 +1,5 @@
-import 'dart:io';
-import 'dart:math';
-
-import 'package:blt/src/util/api/general_api.dart';
-import 'package:blt/src/util/endpoints/general_endpoints.dart';
-import 'package:flutter/gestures.dart';
+import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-//import 'package:pasteboard/pasteboard.dart';
-//import 'package:path_provider/path_provider.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../../global/variables.dart';
-import '../../util/api/issues_api.dart';
-import '../../models/issue_model.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals

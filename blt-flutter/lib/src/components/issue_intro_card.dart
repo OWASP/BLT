@@ -1,10 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../routes/routing.dart';
-import '../models/issue_model.dart';
-import '../components/issuelike.dart';
+import 'package:blt/src/components/components_import.dart';
 
 /// The card used to display issues in the list of issues on the Issue Page.
 class IssueCard extends StatelessWidget {

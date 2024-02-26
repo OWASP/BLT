@@ -1,10 +1,5 @@
-import 'package:blt/src/util/api/auth_api.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-//import '../../routes/routing.dart';
+import '../pages_import.dart';
 
 /// The change password page for the app.
 class ChangePasswordPage extends StatefulWidget {

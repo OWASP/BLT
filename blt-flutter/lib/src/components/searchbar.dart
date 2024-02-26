@@ -1,9 +1,5 @@
+import 'package:blt/src/components/components_import.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../util/api/issues_api.dart';
-import '../models/issuedata_model.dart';
-import '../components/issue_intro_card.dart';
 
 /// The search bar of app for searching issues based on keyword.
 class BLTSearchDelegate extends SearchDelegate {

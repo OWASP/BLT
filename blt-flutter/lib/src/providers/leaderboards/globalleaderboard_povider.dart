@@ -1,7 +1,4 @@
-import 'package:blt/src/models/leader_model.dart';
-import 'package:blt/src/util/api/leaderboard_api.dart';
-import 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:blt/src/providers/providers_imports.dart';
 
 /// The provider which exposes the state management
 /// for users in the global leaderboard list.

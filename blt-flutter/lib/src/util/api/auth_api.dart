@@ -1,11 +1,7 @@
 import 'dart:convert';
-
-import 'package:blt/src/models/user_model.dart';
-import 'package:blt/src/util/endpoints/auth_endpoints.dart';
+import 'package:blt/src/util/util_import.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-import '../../global/variables.dart';
 
 /// Class for accessing the auth client.
 class AuthApiClient {

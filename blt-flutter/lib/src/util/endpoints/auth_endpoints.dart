@@ -6,7 +6,8 @@ class AuthEndPoints {
 
   static const String authBaseUrl = GeneralEndPoints.baseUrl + "auth/";
 
-  static const String emailpasswordLogin = GeneralEndPoints.baseUrl + "authenticate/";
+  static const String emailpasswordLogin =
+      GeneralEndPoints.baseUrl + "authenticate/";
 
   static const String logout = authBaseUrl + "logout/";
 

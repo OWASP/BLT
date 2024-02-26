@@ -1,9 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:blt/src/components/components_import.dart';
 
 class ContributorCard extends StatelessWidget {
   final Map<String, String> contributor;
@@ -78,8 +74,8 @@ class ContributorCard extends StatelessWidget {
                                 tag: "image${contributor["id"]}",
                                 child: CircleAvatar(
                                   radius: 32,
-                                  backgroundImage:
-                                  CachedNetworkImageProvider(contributor["img"]!),
+                                  backgroundImage: CachedNetworkImageProvider(
+                                      contributor["img"]!),
                                 ),
                               ),
                             ),
@@ -233,10 +229,12 @@ class ContributorCard extends StatelessWidget {
                             ),
                             IconButton(
                               onPressed: () async {
-                                await Clipboard.setData(ClipboardData(text: contributor["bch_addr"]!));
+                                await Clipboard.setData(ClipboardData(
+                                    text: contributor["bch_addr"]!));
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text("Bitcoin cash address copied to clipboard!"),
+                                    content: Text(
+                                        "Bitcoin cash address copied to clipboard!"),
                                   ),
                                 );
                               },

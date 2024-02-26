@@ -1,26 +1,4 @@
-import 'package:blt/src/models/issue_model.dart';
-import 'package:blt/src/pages/auth/forgot.dart';
-import 'package:blt/src/pages/auth/signup.dart';
-import 'package:blt/src/pages/drawer/change_password.dart';
-import 'package:blt/src/pages/error.dart';
-import 'package:blt/src/pages/home/home.dart';
-import 'package:blt/src/pages/drawer/legal.dart';
-import 'package:blt/src/pages/auth/login.dart';
-import 'package:blt/src/pages/home/profile.dart';
-import 'package:flutter/material.dart';
-
-import '../models/company_model.dart';
-import '../pages/company_details.dart';
-import '../pages/drawer/company_dashboard.dart';
-import '../pages/drawer/referral.dart';
-import '../pages/welcome.dart';
-import '../pages/drawer/about.dart';
-import '../pages/leaderboards/company_scoreboard.dart';
-import '../pages/leaderboards/global_leaderboard.dart';
-import '../pages/issues/issue_detail.dart';
-import '../pages/leaderboards/monthly_leaderboard.dart';
-import '../pages/drawer/social.dart';
-
+import 'package:blt/src/routes/routes_import.dart';
 
 /// The managing class for App Navigation, also adds custom page transitions.
 class RouteManager {
@@ -72,7 +50,7 @@ class RouteManager {
       case profilePage:
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) {
-              return UserProfile();
+            return UserProfile();
           },
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(-1.0, 0);
@@ -91,10 +69,9 @@ class RouteManager {
         );
       case welcomePage:
         return PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              WelcomePage(
-                snackBarMessage: arguments as String?,
-              ),
+          pageBuilder: (context, animation, secondaryAnimation) => WelcomePage(
+            snackBarMessage: arguments as String?,
+          ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;
@@ -368,14 +345,14 @@ class RouteManager {
       case changePassword:
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-          const ChangePasswordPage(),
+              const ChangePasswordPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;
             const curve = Curves.ease;
 
             var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
             return SlideTransition(
               position: animation.drive(tween),
@@ -384,7 +361,6 @@ class RouteManager {
           },
           transitionDuration: const Duration(milliseconds: 750),
         );
-
 
       default:
         return PageRouteBuilder(

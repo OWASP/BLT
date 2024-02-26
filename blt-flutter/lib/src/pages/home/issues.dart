@@ -1,14 +1,5 @@
-import 'package:blt/src/providers/dark_mode_provider.dart';
-import 'package:blt/src/providers/issuelist_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../../components/issue_intro_card.dart';
+import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/issue_model.dart';
-import '../../util/endpoints/issue_endpoints.dart';
 
 /// Issues page for viewing all the issues posted via the website and app.
 class IssuesPage extends ConsumerStatefulWidget {

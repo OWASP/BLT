@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../../util/api/leaderboard_api.dart';
-import '../../util/endpoints/leaderboard_endpoints.dart';
+import 'dart:async';
 
 /// Page showing the all time top contributing users.
 class GlobalLeaderBoardPage extends StatefulWidget {

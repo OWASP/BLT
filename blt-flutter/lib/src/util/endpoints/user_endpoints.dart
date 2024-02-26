@@ -6,5 +6,6 @@ class UserEndPoints {
 
   static const String userInfo = GeneralEndPoints.apiBaseUrl + "profile/";
 
-  static const String userData = GeneralEndPoints.apiBaseUrl + "profile/auth/user/";
+  static const String userData =
+      GeneralEndPoints.apiBaseUrl + "profile/auth/user/";
 }

@@ -1,6 +1,5 @@
+import 'package:blt/src/components/components_import.dart';
 import 'package:flutter/material.dart';
-
-import '../models/onboard_page_model.dart';
 
 List<OnboardPageModel> onboardData = [
   OnboardPageModel(

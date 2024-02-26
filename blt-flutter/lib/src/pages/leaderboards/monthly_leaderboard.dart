@@ -1,11 +1,5 @@
-import 'package:blt/src/providers/leaderboards/monthlyleaderboard_provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/leader_model.dart';
-import '../../constants/monthname_constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Page showing the top contributing users for the current month.
 class MonthlyLeaderBoardPage extends ConsumerStatefulWidget {

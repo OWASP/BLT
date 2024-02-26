@@ -1,11 +1,5 @@
-import 'package:blt/src/components/contributor_card.dart';
-import 'package:blt/src/constants/about_constants.dart';
-import 'package:blt/src/util/api/general_api.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:blt/src/pages/pages_import.dart';
 
 /// Page for describing the BLT project.
 class AboutPage extends StatelessWidget {

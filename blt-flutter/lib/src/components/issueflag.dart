@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../models/issue_model.dart';
-import '../providers/login_provider.dart';
-import '../util/api/issues_api.dart';
-import '../util/enums/login_type.dart';
+import 'package:blt/src/components/components_import.dart';
 
 /// Issue flags show and toggle component.
 class IssueFlagButton extends ConsumerStatefulWidget {

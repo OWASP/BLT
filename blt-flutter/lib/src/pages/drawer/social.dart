@@ -1,11 +1,7 @@
+import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../constants/socialurls_constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class SocialPage extends ConsumerStatefulWidget {
   const SocialPage({Key? key}) : super(key: key);

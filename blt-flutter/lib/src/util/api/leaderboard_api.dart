@@ -1,8 +1,6 @@
-import 'package:blt/src/models/company_model.dart';
-import 'package:blt/src/models/leaderdata_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../models/leader_model.dart';
+import 'package:blt/src/util/util_import.dart';
 
 class LeaderboardApiClient {
   LeaderboardApiClient._();
@@ -21,48 +19,51 @@ class LeaderboardApiClient {
     });
   }
 
-  static Future<LeaderData> getMonthlyLeaderData(String paginatedUrl,int? year , int? month) async{
+  static Future<LeaderData> getMonthlyLeaderData(
+      String paginatedUrl, int? year, int? month) async {
     final queryParams = {
-      "filter" : '1',
-      "year" : year.toString() ,
-      "month" : month.toString() ,
+      "filter": '1',
+      "year": year.toString(),
+      "month": month.toString(),
     };
     print(Uri.parse(paginatedUrl).replace(queryParameters: queryParams));
     return http
-    .get(
+        .get(
       Uri.parse(paginatedUrl).replace(queryParameters: queryParams),
     )
-    .then((http.Response response){
-        List<Leaders> leaderList = [];
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        decodedResponse["results"].forEach((element) {
-          leaderList.add(Leaders.fromJson(element));
-        });
-        LeaderData leaderData = LeaderData(
-          count: decodedResponse["count"],
-          nextQuery: decodedResponse["next"],
-          previousQuery: decodedResponse["previous"],
-          leaderList: leaderList,
-        );
+        .then((http.Response response) {
+      List<Leaders> leaderList = [];
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      decodedResponse["results"].forEach((element) {
+        leaderList.add(Leaders.fromJson(element));
+      });
+      LeaderData leaderData = LeaderData(
+        count: decodedResponse["count"],
+        nextQuery: decodedResponse["next"],
+        previousQuery: decodedResponse["previous"],
+        leaderList: leaderList,
+      );
       return leaderData;
     });
   }
 
-  static Future<LeaderData> getMoreMonthlyLeaders (String? nextUrl) async{
-    return http.get(
+  static Future<LeaderData> getMoreMonthlyLeaders(String? nextUrl) async {
+    return http
+        .get(
       Uri.parse(nextUrl!),
-    ).then((http.Response response){
-        List<Leaders> leaderList = [];
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        decodedResponse["results"].forEach((element) {
+    )
+        .then((http.Response response) {
+      List<Leaders> leaderList = [];
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      decodedResponse["results"].forEach((element) {
         leaderList.add(Leaders.fromJson(element));
-        });
-        LeaderData leaderData = LeaderData(
-          count: decodedResponse["count"],
-          nextQuery: decodedResponse["next"],
-          previousQuery: decodedResponse["previous"],
-          leaderList: leaderList,
-        );
+      });
+      LeaderData leaderData = LeaderData(
+        count: decodedResponse["count"],
+        nextQuery: decodedResponse["next"],
+        previousQuery: decodedResponse["previous"],
+        leaderList: leaderList,
+      );
       return leaderData;
     });
   }

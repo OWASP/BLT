@@ -1,9 +1,6 @@
+import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../global/variables.dart';
 
 /// Page for showing social activity of BLT, new issues,
 /// top premium subscribers.

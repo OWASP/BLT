@@ -1,6 +1,7 @@
-import '../../models/user_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+
+import 'package:blt/src/util/util_import.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPreferences {
   Future<bool> saveUser(User user) async {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../models/issue_model.dart';
+import 'package:blt/src/components/components_import.dart';
 
 /// Chip that shows the open/close status of an issue.
 class IssueStatusChip extends StatelessWidget {

@@ -1,5 +1,4 @@
-import 'package:blt/src/util/enums/login_type.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:blt/src/providers/providers_imports.dart';
 
 /// The provider which exposes the state management for
 /// the type of login (guest or user or logged out).

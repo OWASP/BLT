@@ -1,9 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/issue_model.dart';
-import '../models/issuedata_model.dart';
-
-import '../util/api/issues_api.dart';
-import '../util/endpoints/issue_endpoints.dart';
+import 'package:blt/src/providers/providers_imports.dart';
 
 /// The provider which exposes the state management
 /// for issues in the issue list.

@@ -1,10 +1,5 @@
-import 'package:blt/src/providers/authstate_provider.dart';
-import 'package:blt/src/routes/routing.dart';
+import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// The login page for the app.
 class LoginPage extends StatefulWidget {

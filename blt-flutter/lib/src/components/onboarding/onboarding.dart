@@ -1,9 +1,5 @@
+import 'package:blt/src/components/components_import.dart';
 import 'package:flutter/material.dart';
-import '../../pages/welcome.dart';
-import 'components/onboard_page.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'data/onboard_page_data.dart';
-import 'models/onboard_page_model.dart';
 
 class Onboarding extends StatefulWidget {
   final Map<String, String> stats;
@@ -20,7 +16,8 @@ class _OnboardingState extends State<Onboarding> {
   @override
   void initState() {
     super.initState();
-    onboardData[2].description = '${widget.stats["bugs"]} Bugs\n${widget.stats["users"]} Users\n${widget.stats["hunts"]} Hunts\n${widget.stats["domains"]} Domains';
+    onboardData[2].description =
+        '${widget.stats["bugs"]} Bugs\n${widget.stats["users"]} Users\n${widget.stats["hunts"]} Hunts\n${widget.stats["domains"]} Domains';
   }
 
   @override

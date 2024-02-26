@@ -1,9 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../models/company_model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 /// Popup page for viewing company details when a company
 /// is clicked on the Company Scoreboard page.

@@ -1,9 +1,6 @@
 import 'dart:convert';
-
-import 'package:blt/src/util/endpoints/company_endpoints.dart';
+import 'package:blt/src/util/util_import.dart';
 import 'package:http/http.dart' as http;
-
-import '../../models/company_model.dart';
 
 /// CLass for accessing the company client.
 class CompanyApiClient {
