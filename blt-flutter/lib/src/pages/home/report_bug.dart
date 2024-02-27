@@ -599,124 +599,131 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                         color: Colors.grey,
                       ),
                       Container(
-                        height: 40.0,
-                        child: Row(
+                        height: 93.0,
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownFormatting("**");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_bold.svg",
-                                      width: 15.0,
-                                    ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownFormatting("**");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_bold.svg",
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownFormatting("*");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_italic.svg",
+                                          height: 16.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownFormatting("~~");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_strikethrough.svg",
+                                          height: 17.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownLink();
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_link.svg",
+                                          height: 15.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownNewLine("- ");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_list.svg",
+                                          height: 15.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownNewLine("- [ ] ");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_task.svg",
+                                          height: 15.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        onPressed: () {
+                                          markdownNewLine("# ");
+                                        },
+                                        icon: SvgPicture.asset(
+                                          "assets/input_heading.svg",
+                                          height: 15.0,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownFormatting("*");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_italic.svg",
-                                      height: 16.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownFormatting("~~");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_strikethrough.svg",
-                                      height: 17.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownLink();
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_link.svg",
-                                      height: 15.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownNewLine("- ");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_list.svg",
-                                      height: 15.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownNewLine("- [ ] ");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_task.svg",
-                                      height: 15.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      markdownNewLine("# ");
-                                    },
-                                    icon: SvgPicture.asset(
-                                      "assets/input_heading.svg",
-                                      height: 15.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                             Container(
-                              width: 1.0,
-                              color: Colors.grey,
-                            ),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedDescriptionLabelIndex.value =
-                                      1 - _selectedDescriptionLabelIndex.value;
-                                });
-                              },
-                              child: Ink(
-                                child: Container(
-                                  width: 100,
-                                  child: Center(
-                                    child: Text(
-                                      _selectedDescriptionLabelIndex.value == 1
-                                          ? AppLocalizations.of(context)!.edit
-                                          : AppLocalizations.of(context)!
-                                              .preview,
-                                      style: GoogleFonts.ubuntu(
-                                        textStyle: TextStyle(
-                                          color: Color(0xFFDC4654),
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                              width: 350,
+                              height: 40,
+                              child: TextButton(
+                                child: Center(
+                                  child: Text(
+                                    _selectedDescriptionLabelIndex.value == 1
+                                        ? AppLocalizations.of(context)!.edit
+                                        : AppLocalizations.of(context)!.preview,
+                                    style: GoogleFonts.ubuntu(
+                                      textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
                                       ),
                                     ),
                                   ),
                                 ),
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  backgroundColor: MaterialStateProperty.all(
+                                    Color(0xFFDC4654),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  setState(() {
+                                    _selectedDescriptionLabelIndex.value = 1 -
+                                        _selectedDescriptionLabelIndex.value;
+                                  });
+                                },
                               ),
                             ),
                           ],
