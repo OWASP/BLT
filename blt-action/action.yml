@@ -1,4 +1,4 @@
-name: 'Auto-assign Issue'
+name: 'OWASP BLT-Action Auto-assign Issue and unassign after 5 days'
 description: 'Auto-assigns issues to users'
 inputs:
     repo-token:
