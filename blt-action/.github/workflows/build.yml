@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+        with:
+          # This ensures the action uses a token with push access
+          token: ${{ secrets.GITHUB_TOKEN }} # Use the built-in GITHUB_TOKEN for authentication
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -27,4 +30,4 @@ jobs:
           git config --global user.name "DonnieBLT"
           git add node_modules
           git commit -m "Update node_modules" || echo "No changes to commit"
-          git push
+          git push origin HEAD:main
