@@ -1,0 +1,32 @@
+name: Commit node_modules
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  commit-node-modules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Commit node_modules
+        run: |
+          git config --global user.email "128622481+DonnieBLT@users.noreply.github.com"
+          git config --global user.name "DonnieBLT"
+          git add node_modules
+          git commit -m "Update node_modules" || echo "No changes to commit"
+          git push origin HEAD:main
