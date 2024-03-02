@@ -13,8 +13,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          # This ensures the action uses a token with push access
-          token: ${{ secrets.GITHUB_TOKEN }} # Use the built-in GITHUB_TOKEN for authentication
+          token: ${{ secrets.PAT }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
