@@ -1,0 +1,30 @@
+name: Commit node_modules
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  commit-node-modules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Commit node_modules
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Actions"
+          git add node_modules
+          git commit -m "Update node_modules" || echo "No changes to commit"
+          git push
