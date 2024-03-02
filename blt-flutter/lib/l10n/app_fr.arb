@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "Assurez-vous de ne pas soumettre de bug en double en vérifiant ici : ",
   "reportIssue": "Signaler un problème",
   "appNameOrURL": "Nom de l'application / URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "Vérifier les doublons",
   "edit": "Modifier",
   "preview": "Aperçu",

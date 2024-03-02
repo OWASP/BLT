@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "यह सुनिश्चित करें कि आप यहां एक डुप्लिकेट बग सबमिट नहीं कर रहे हैं: ",
   "reportIssue": "मुद्दा रिपोर्ट करें",
   "appNameOrURL": "ऐप का नाम / URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "डुप्लिकेट की जाँच करें",
   "edit": "संपादित करें",
   "preview": "पूर्वावलोकन",

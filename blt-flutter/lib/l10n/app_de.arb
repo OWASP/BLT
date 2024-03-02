@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "Stellen Sie sicher, dass Sie keinen doppelten Bug melden, indem Sie hier überprüfen: ",
   "reportIssue": "Issue melden",
   "appNameOrURL": "App-Name / URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "Auf Duplikate überprüfen",
   "edit": "Bearbeiten",
   "preview": "Vorschau",

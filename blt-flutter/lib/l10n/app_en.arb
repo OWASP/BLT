@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "Ensure you are not submitting a duplicate bug by checking here: ",
   "reportIssue": "Report issue",
   "appNameOrURL": "App name / URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "Check for Duplicates",
   "edit": "Edit",
   "preview": "Preview",

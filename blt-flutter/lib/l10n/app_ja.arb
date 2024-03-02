@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "こちらで重複したバグを提出していないか確認してください：",
   "reportIssue": "問題を報告",
   "appNameOrURL": "アプリ名/URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "重複を確認",
   "edit": "編集",
   "preview": "プレビュー",

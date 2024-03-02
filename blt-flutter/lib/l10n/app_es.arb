@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "Asegúrate de no enviar un error duplicado revisando aquí: ",
   "reportIssue": "Reportar problema",
   "appNameOrURL": "Nombre de la aplicación / URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "Verificar duplicados",
   "edit": "Editar",
   "preview": "Vista previa",

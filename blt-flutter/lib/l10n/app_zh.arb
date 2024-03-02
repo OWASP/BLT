@@ -99,6 +99,8 @@
   "ensureNotSubmittingDuplicate": "确保通过此处检查未提交重复的漏洞：",
   "reportIssue": "报告问题",
   "appNameOrURL": "应用名称/URL",
+  "url": "URL",
+  "exampleURL": "https://www.example.com",
   "checkForDuplicates": "检查重复项",
   "edit": "编辑",
   "preview": "预览",

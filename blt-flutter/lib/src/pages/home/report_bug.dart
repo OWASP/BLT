@@ -42,6 +42,7 @@ class ReportForm extends ConsumerStatefulWidget {
 class _ReportFormState extends ConsumerState<ReportForm> {
   final _descriptionController = TextEditingController();
   final _titleController = TextEditingController();
+  final _titleFocusNode = FocusNode();
   int _selectedIssueCategoriesIndex = 0;
   ValueNotifier<int> _selectedDescriptionLabelIndex = ValueNotifier(0);
   bool duplicateVerified = false;
@@ -346,6 +347,12 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     );
   }
 
+  void addFocusListener() {
+    _titleFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -355,6 +362,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     if (widget.reportPageDefaults.text != null) {
       _titleController.text = widget.reportPageDefaults.text!;
     }
+    addFocusListener();
   }
 
   @override
@@ -386,6 +394,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                   height: 40,
                   child: TextFormField(
                     controller: _titleController,
+                    focusNode: _titleFocusNode,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return AppLocalizations.of(context)!.requiredField;
@@ -400,7 +409,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.appNameOrURL,
+                      hintText: (_titleFocusNode.hasFocus) ? AppLocalizations.of(context)!.exampleURL : AppLocalizations.of(context)!.url,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(8.0),
