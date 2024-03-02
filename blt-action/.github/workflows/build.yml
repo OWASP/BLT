@@ -23,8 +23,8 @@ jobs:
 
       - name: Commit node_modules
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "GitHub Actions"
+          git config --global user.email "128622481+DonnieBLT@users.noreply.github.com"
+          git config --global user.name "DonnieBLT"
           git add node_modules
           git commit -m "Update node_modules" || echo "No changes to commit"
           git push
