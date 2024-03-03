@@ -57,32 +57,128 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       )),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Column(
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          redirectSocial(socialUrls["X"]);
+                      GestureDetector(
+                        onTap: () {
+                          redirectSocial(socialUrls["twitter"]);
                         },
-                        icon: FaIcon(FontAwesomeIcons.twitter),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          redirectSocial(socialUrls["github"]);
-                        },
-                        icon: FaIcon(FontAwesomeIcons.github),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          redirectSocial(socialUrls["slack"]);
-                        },
-                        icon: FaIcon(FontAwesomeIcons.slack),
+                        child: Container(
+                          padding: EdgeInsets.only(
+                              top: 10, bottom: 10, left: 20, right: 20),
+                          decoration: BoxDecoration(
+                              color: Color(0xFFDC4654),
+                              borderRadius: BorderRadius.circular(10)),
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(FontAwesomeIcons.xTwitter,
+                                  color: Colors.white),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              Text(
+                                "X",
+                                style: GoogleFonts.aBeeZee(
+                                  textStyle: TextStyle(
+                                    fontSize: 20,
+                                  ),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       )
                     ],
                   )
                 ],
               ),
             ),
+            SizedBox(
+              height: 20,
+            ),
+            Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    redirectSocial(socialUrls["slack"]);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(
+                        top: 10, bottom: 10, left: 20, right: 20),
+                    decoration: BoxDecoration(
+                        color: Color(0xFFDC4654),
+                        borderRadius: BorderRadius.circular(10)),
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(FontAwesomeIcons.slack, color: Colors.white),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Text(
+                          "Slack",
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              fontSize: 20,
+                            ),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    redirectSocial(socialUrls["github"]);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(
+                        top: 10, bottom: 10, left: 20, right: 20),
+                    decoration: BoxDecoration(
+                        color: Color(0xFFDC4654),
+                        borderRadius: BorderRadius.circular(10)),
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(FontAwesomeIcons.github, color: Colors.white),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Text(
+                          "GitHub",
+                          style: GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              fontSize: 20,
+                            ),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+
 //             Expanded(
 //               child: InAppWebView(
 //                 initialOptions: InAppWebViewGroupOptions(
