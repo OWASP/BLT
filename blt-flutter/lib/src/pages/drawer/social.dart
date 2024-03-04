@@ -2,7 +2,6 @@ import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-
 class SocialPage extends ConsumerStatefulWidget {
   const SocialPage({Key? key}) : super(key: key);
 
@@ -23,6 +22,7 @@ class _SocialPageState extends ConsumerState<SocialPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -34,7 +34,8 @@ class _SocialPageState extends ConsumerState<SocialPage> {
             },
           ),
           title: Text(AppLocalizations.of(context)!.social),
-          backgroundColor: Color(0xFFDC4654),
+          backgroundColor:
+              isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -52,7 +53,8 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                         style: GoogleFonts.aBeeZee(
                           textStyle: TextStyle(
                             fontSize: 20,
-                            color: Color(0xFFDC4654),
+                            color:
+                                isDarkMode ? Colors.white : Color(0xFFDC4654),
                           ),
                           fontWeight: FontWeight.bold,
                         ),
@@ -70,7 +72,9 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                           padding: EdgeInsets.only(
                               top: 10, bottom: 10, left: 20, right: 20),
                           decoration: BoxDecoration(
-                              color: Color(0xFFDC4654),
+                              color: isDarkMode
+                                  ? Color.fromRGBO(82, 30, 44, 1)
+                                  : Color(0xFFDC4654),
                               borderRadius: BorderRadius.circular(10)),
                           width: MediaQuery.of(context).size.width * 0.85,
                           child: Row(
@@ -113,7 +117,9 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                     padding: EdgeInsets.only(
                         top: 10, bottom: 10, left: 20, right: 20),
                     decoration: BoxDecoration(
-                        color: Color(0xFFDC4654),
+                        color: isDarkMode
+                            ? Color.fromRGBO(82, 30, 44, 1)
+                            : Color(0xFFDC4654),
                         borderRadius: BorderRadius.circular(10)),
                     width: MediaQuery.of(context).size.width * 0.85,
                     child: Row(
@@ -152,7 +158,9 @@ class _SocialPageState extends ConsumerState<SocialPage> {
                     padding: EdgeInsets.only(
                         top: 10, bottom: 10, left: 20, right: 20),
                     decoration: BoxDecoration(
-                        color: Color(0xFFDC4654),
+                        color: isDarkMode
+                            ? Color.fromRGBO(82, 30, 44, 1)
+                            : Color(0xFFDC4654),
                         borderRadius: BorderRadius.circular(10)),
                     width: MediaQuery.of(context).size.width * 0.85,
                     child: Row(

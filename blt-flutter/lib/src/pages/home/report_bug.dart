@@ -367,6 +367,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Form(
       key: _formKey,
       child: Column(
@@ -409,7 +410,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: (_titleFocusNode.hasFocus) ? AppLocalizations.of(context)!.exampleURL : AppLocalizations.of(context)!.url,
+                      hintText: (_titleFocusNode.hasFocus)
+                          ? AppLocalizations.of(context)!.exampleURL
+                          : AppLocalizations.of(context)!.url,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(8.0),
@@ -468,7 +471,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(8),
                                 ),
-                                color: Color(0xFFDC4654),
+                                color: isDarkMode
+                                    ? Color.fromRGBO(126, 33, 58, 1)
+                                    : Color(0xFFDC4654),
                               ),
                               child: Center(
                                 child: Builder(builder: (context) {
@@ -520,7 +525,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                               backgroundColor: MaterialStateProperty.all(
                                 duplicateVerified
                                     ? Color(0xFF50C878)
-                                    : Color(0xFFDC4654),
+                                    : isDarkMode
+                                        ? Color.fromRGBO(126, 33, 58, 1)
+                                        : Color(0xFFDC4654),
                               ),
                             ),
                             onPressed: () async {
@@ -724,7 +731,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                     ),
                                   ),
                                   backgroundColor: MaterialStateProperty.all(
-                                    Color(0xFFDC4654),
+                                    isDarkMode
+                                        ? Color.fromRGBO(126, 33, 58, 1)
+                                        : Color(0xFFDC4654),
                                   ),
                                 ),
                                 onPressed: () async {
@@ -896,7 +905,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                   ),
                 ),
                 backgroundColor: MaterialStateProperty.all(
-                  Color(0xFFDC4654),
+                  isDarkMode
+                      ? Color.fromRGBO(126, 33, 58, 1)
+                      : Color(0xFFDC4654),
                 ),
               ),
               onPressed: () async {

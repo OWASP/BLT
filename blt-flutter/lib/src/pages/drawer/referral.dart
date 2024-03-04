@@ -1,7 +1,6 @@
 import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 
-
 /// Page for allowing users to send referrals to their friends.
 class ReferralPage extends StatefulWidget {
   const ReferralPage({Key? key}) : super(key: key);
@@ -22,6 +21,7 @@ class _ReferralPageState extends State<ReferralPage> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -34,7 +34,8 @@ class _ReferralPageState extends State<ReferralPage> {
           },
         ),
         title: Text(AppLocalizations.of(context)!.invite),
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor:
+            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -78,7 +79,9 @@ class _ReferralPageState extends State<ReferralPage> {
                   children: [
                     Icon(
                       Icons.group,
-                      color: Color(0xFFDC4654),
+                      color: isDarkMode
+                          ? Color.fromRGBO(126, 33, 58, 1)
+                          : Color(0xFFDC4654),
                       size: 250,
                     ),
                     Container(
@@ -124,7 +127,9 @@ class _ReferralPageState extends State<ReferralPage> {
                             ),
                           ),
                           backgroundColor: MaterialStateProperty.all(
-                            Color(0xFFDC4654),
+                            isDarkMode
+                                ? Color.fromRGBO(126, 33, 58, 1)
+                                : Color(0xFFDC4654),
                           ),
                         ),
                       ),

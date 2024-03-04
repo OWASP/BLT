@@ -79,6 +79,7 @@ class _HuntFormState extends State<HuntForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Form(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +146,9 @@ class _HuntFormState extends State<HuntForm> {
                     },
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(
-                        Color(0xFFDC4654),
+                        isDarkMode
+                            ? Color.fromRGBO(126, 33, 58, 1)
+                            : Color(0xFFDC4654),
                       ),
                     ),
                   ),
@@ -169,7 +172,9 @@ class _HuntFormState extends State<HuntForm> {
                     },
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(
-                        Color(0xFFDC4654),
+                        isDarkMode
+                            ? Color.fromRGBO(126, 33, 58, 1)
+                            : Color(0xFFDC4654),
                       ),
                     ),
                   ),
@@ -199,7 +204,9 @@ class _HuntFormState extends State<HuntForm> {
             decoration: BoxDecoration(
               border: _image.path == ""
                   ? Border.all(
-                      color: Color(0xFFDC4654),
+                      color: isDarkMode
+                          ? Color.fromRGBO(126, 33, 58, 1)
+                          : Color(0xFFDC4654),
                       width: 0.5,
                     )
                   : null,
@@ -280,7 +287,9 @@ class _HuntFormState extends State<HuntForm> {
                   ),
                 ),
                 backgroundColor: MaterialStateProperty.all(
-                  Color(0xFFDC4654),
+                  isDarkMode
+                      ? Color.fromRGBO(126, 33, 58, 1)
+                      : Color(0xFFDC4654),
                 ),
               ),
               onPressed: () {},

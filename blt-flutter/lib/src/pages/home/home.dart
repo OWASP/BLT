@@ -233,12 +233,17 @@ class _HomeState extends ConsumerState<Home> {
             : Theme.of(context).canvasColor,
         appBar: buildAppBar(context: context),
         drawer: Drawer(
+          backgroundColor: isDarkMode.isDarkMode
+              ? Color.fromRGBO(58, 21, 31, 1)
+              : Theme.of(context).canvasColor,
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
-                  color: Color(0xFFDC4654),
+                  color: isDarkMode.isDarkMode
+                      ? Color.fromRGBO(58, 21, 31, 1)
+                      : Color(0xFFDC4654),
                 ),
                 accountName: Text(
                   currentUser!.username!,
@@ -352,7 +357,9 @@ class _HomeState extends ConsumerState<Home> {
                           ),
                         ),
                         backgroundColor: MaterialStateProperty.all(
-                          Color(0xFFDC4654),
+                          isDarkMode.isDarkMode
+                              ? Color.fromRGBO(126, 33, 58, 1)
+                              : Color(0xFFDC4654),
                         ),
                       ),
                       onPressed: () async {

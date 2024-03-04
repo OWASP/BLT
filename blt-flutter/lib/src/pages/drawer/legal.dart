@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../pages_import.dart';
 
-
 /// Page stating the legal Terms and Conditions and Privacy
 /// Policy applying to the BLT project.
 class LegalPage extends StatelessWidget {
@@ -9,6 +8,7 @@ class LegalPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -20,7 +20,8 @@ class LegalPage extends StatelessWidget {
           },
         ),
         title: Text(AppLocalizations.of(context)!.termsOfService),
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor:
+            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20),

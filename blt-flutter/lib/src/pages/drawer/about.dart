@@ -19,7 +19,8 @@ class AboutPage extends StatelessWidget {
           },
         ),
         title: Text(AppLocalizations.of(context)!.aboutUs),
-        backgroundColor: Color(0xFFDC4654),
+        backgroundColor:
+            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20),
