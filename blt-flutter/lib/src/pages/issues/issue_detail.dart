@@ -1,3 +1,4 @@
+import 'package:blt/src/components/components_import.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
 import 'package:flutter/material.dart';
 
@@ -40,6 +41,17 @@ class IssueDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> _launchUrl(String link) async {
+      final uri = Uri.parse(link);
+      if (!await launchUrl(uri)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Unable to launch the url."),
+          ),
+        );
+      }
+    }
+
     validScreenshotIndexes.clear();
     for (var i = 1; i <= issue.screenshotsLink!.length; i++) {
       validScreenshotIndexes.add(i);
@@ -163,6 +175,9 @@ class IssueDetailPage extends StatelessWidget {
                 data: replaceImageTags('${issue.description}'),
                 padding: EdgeInsets.all(0),
                 selectable: true,
+                onTapLink: (text, href, title) {
+                  _launchUrl(href!);
+                },
                 styleSheet: MarkdownStyleSheet.fromTheme(
                   ThemeData(
                     fontFamily: GoogleFonts.aBeeZee().fontFamily,
