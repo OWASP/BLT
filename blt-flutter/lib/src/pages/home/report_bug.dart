@@ -145,6 +145,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     int end = _descriptionController.selection.extentOffset;
     String text = _descriptionController.text;
 
+    if (start < 0) start = 0;
+    if (end < 0) end = text.length;
+
     if (end < start) {
       int temp = start;
       start = end;
