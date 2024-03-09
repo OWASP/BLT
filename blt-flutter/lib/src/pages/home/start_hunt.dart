@@ -36,16 +36,23 @@ class _HuntFormState extends State<HuntForm> {
   final picker = ImagePicker();
   int prizeMoney = 100;
 
-  Future _pickImageFromGallery() async {
-    final imageFile = await picker.pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (imageFile != null) {
-        _image = File(imageFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final imageFile = await picker.pickImage(source: ImageSource.gallery);
+      setState(() {
+        if (imageFile != null) {
+          if (mounted) {
+            setState(() {
+              _image = File(imageFile.path);
+            });
+          }
+        } else {
+          print('No image selected.');
+        }
+      });
+    } catch (e) {
+      print('Failed to pick image: $e');
+    }
   }
 
   Future<File> _convertToImage(Uint8List imageBytes) async {
