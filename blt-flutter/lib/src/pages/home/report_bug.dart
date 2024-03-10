@@ -102,6 +102,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     int end = _descriptionController.selection.extentOffset;
     String text = _descriptionController.text;
 
+    if (start < 0) {
+      start = text.length;
+    }
+    if (end < 0 || end < start) {
+      end = start;
+    }
+
     if (end < start) {
       int temp = start;
       start = end;
@@ -124,6 +131,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     int end = _descriptionController.selection.extentOffset;
     String text = _descriptionController.text;
 
+    if (start < 0) {
+      start = text.length;
+    }
+    if (end < 0 || end < start) {
+      end = start;
+    }
+
     if (end < start) {
       int temp = start;
       start = end;
@@ -137,7 +151,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
         text.substring(end);
     _descriptionController.text = text;
     _descriptionController.selection =
-        TextSelection(baseOffset: start + 1, extentOffset: end + 1);
+        TextSelection(baseOffset: end + 3, extentOffset: end + 3);
   }
 
   void markdownNewLine(String newLineText) {
