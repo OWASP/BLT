@@ -252,6 +252,7 @@ class Issue(models.Model):
     modified = models.DateTimeField(auto_now=True)
     is_hidden = models.BooleanField(default=False)
     rewarded = models.PositiveIntegerField(default=0)  # money rewarded by the company
+    viewer = models.ManyToManyField(User, null=True, blank=True, related_name="viewer")
     reporter_ip_address = models.GenericIPAddressField(null=True, blank=True)
     cve_id = models.CharField(max_length=16, null=True, blank=True)
 
@@ -314,6 +315,12 @@ class Issue(models.Model):
 
     class Meta:
         ordering = ["-created"]
+
+
+class RequestIssueAccess(models.Model):
+    issue = models.ForeignKey(Issue, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    message = models.CharField(max_length=100, null=True, blank=True)
 
 
 class IssueScreenshot(models.Model):

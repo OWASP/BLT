@@ -15,6 +15,7 @@ from website.models import (
     IssueScreenshot,
     Payment,
     Points,
+    RequestIssueAccess,
     Subscription,
     UserProfile,
     Wallet,
@@ -241,3 +242,4 @@ admin.site.register(Winner, WinnerAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(IssueScreenshot)
 admin.site.register(HuntPrize)
+admin.site.register(RequestIssueAccess)

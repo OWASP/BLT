@@ -474,6 +474,22 @@ urlpatterns = [
     re_path(r"^contributors/$", contributors_view, name="contributors"),
     path("company/", include("company.urls")),
     path("sponsor/", website.views.sponsor_view, name="sponsor"),
+    path(
+        "issue/<int:issue_pk>/request_access/",
+        website.views.request_access,
+        name="issue_request_access",
+    ),
+    path(
+        "issue2/<int:issue_pk>/request_access/",
+        website.views.request_access,
+        name="issue_request_access",
+    ),
+    path("private/<int:user_pk>/issue/", website.views.private_issue, name="private_issue"),
+    path(
+        "private/<int:user_pk>/issue/<int:issue_pk>/grant_access/",
+        website.views.grant_access,
+        name="grant_access",
+    ),
     path("companies/", DomainListView.as_view(), name="domain_lists"),
     path("trademarks/", website.views.trademark_search, name="trademark_search"),
     re_path(
