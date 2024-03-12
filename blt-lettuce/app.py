@@ -17,13 +17,13 @@ def handle_team_join(event_data):
     client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the team!")
 
 @slack_events_adapter.on("message")
-def handle_message(event_data):
-    message = event_data["event"]
-    if message.get("subtype") is None and any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"]):
-        user = message["user"]
-        user = message["user"]
-        channel = message["channel"]
-        client.chat_postMessage(channel='#trying_bot', text=f"Hello <@{user}>! please check this channel <#{channel}>")
+def handle_message(payload):
+    message = payload.get("event",{})
+    if message.get("subtype") is None and not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"]):
+        user = message.get("user")
+        channel = message.get("channel")
+        channel_id="C04DH8HEPTR"
+        client.chat_postMessage(channel='#trying_bot', text=f"Hello <@{user}>! please check this channel <#{channel_id}>")
 
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
