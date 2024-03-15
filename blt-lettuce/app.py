@@ -12,10 +12,13 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
-@slack_events_adapter.on("team_join")
-def handle_team_join(event_data):
-    user_id = event_data["event"]["user"]["id"]
-    client.chat_postEphemeral(channel=user_id, text=f"Welcome <@{user_id}> to the team! This message is visible only to you.")
+@slack_events_adapter.on("member_joined_channel")
+def handle_member_joined_channel(event_data):
+    event = event_data["event"]
+    user_id = event["user"]
+    channel_id = event["channel"]
+    client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the channel!")
+
 
 @slack_events_adapter.on("message")
 def handle_message(payload):
