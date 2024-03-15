@@ -7,11 +7,10 @@ import os
 
 load_dotenv()  # Load environment variables from .env file
 
-logging.basicConfig(filename='slack_message.log', level=logging.INFO)
+logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
-
 
 @slack_events_adapter.on("member_joined_channel")
 def handle_member_joined_channel(event_data):
