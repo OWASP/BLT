@@ -2,11 +2,12 @@ from flask import Flask, request,jsonify
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 from dotenv import load_dotenv
+import logging
 import os
-
 
 load_dotenv()  # Load environment variables from .env file
 
+logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
@@ -14,7 +15,7 @@ client = WebClient(token=os.environ['SLACK_TOKEN'])
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the team!")
+    client.chat_postEphemeral(channel=user_id, text=f"Welcome <@{user_id}> to the team! This message is visible only to you.")
 
 @slack_events_adapter.on("message")
 def handle_message(payload):
