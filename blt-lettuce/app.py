@@ -50,7 +50,7 @@ def handle_member_joined_channel(event_data):
     event = event_data["event"]
     user_id = event["user"]
     channel_id = event["channel"]
-    client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!")
+    client.chat_postMessage(channel=channel_id, text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!")
 
 
 @slack_events_adapter.on("message")
