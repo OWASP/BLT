@@ -24,6 +24,7 @@ def webhook():
         
         logging.info("Updating server from directory", current_directory)
         repo = git.Repo(current_directory)
+        repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.2")
