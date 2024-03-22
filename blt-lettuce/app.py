@@ -101,7 +101,10 @@ def handle_message(payload):
 def slack_events():
     # Verify the request came from Slack
     if request.headers.get('X-Slack-Signature') and request.headers.get('X-Slack-Request-Timestamp'):
+        logging.info(f"slack data:")
+        logging.info(request.data())
         slack_events_adapter.handle(request.data.decode('utf-8'), request.headers.get('X-Slack-Signature'), request.headers.get('X-Slack-Request-Timestamp'))
+       
         return jsonify({"status": "ok"}), 200
     else:
         return jsonify({"error": "invalid request"}), 400
