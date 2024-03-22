@@ -16,7 +16,6 @@ slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/e
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
 
-    
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
