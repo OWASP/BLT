@@ -43,7 +43,6 @@ def handle_team_join(event_data):
     response = client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
     if not response["ok"]:
         logging.error(f"Error sending message: {response['error']}")
-    #client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
 
 @slack_events_adapter.on("member_joined_channel")
 def handle_member_joined_channel(event_data):
@@ -65,8 +64,6 @@ def handle_message(payload):
         bot_user_id = None
         print(f"Error fetching bot user ID: {e}")
 
-
-
     # Check if the message was not sent by the bot itself
     if message.get("user") != bot_user_id:
         if (message.get("subtype") is None and
@@ -75,41 +72,18 @@ def handle_message(payload):
             
             user = message.get("user")
             channel = message.get("channel")
-            # Use the `channel` variable to send back to the same channel
             logging.info(f"detected contribute sending to channel: {channel}")
             response = client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
             if not response["ok"]:
                 logging.error(f"Error sending message: {response['error']}")
 
 
-# # respond to contribute and not #contribute
-# @slack_events_adapter.on("message")
-# def handle_message(payload):
-#     message = payload.get("event", {})
-#     if (message.get("subtype") is None and
-#         not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
-#         any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
-#         user = message.get("user")
-#         channel = message.get("channel")
-#         # Use the `channel` variable to send back to the same channel
-#         client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
-
-
-# @slack_events_adapter.on("message")
-# def handle_message(payload):
-#     message = payload.get("event",{})
-#     if message.get("subtype") is None and not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"]):
-#         user = message.get("user")
-#         channel = message.get("channel")
-#         channel_id="C04DH8HEPTR"
-#         client.chat_postMessage(channel='#trying_bot', text=f"Hello <@{user}>! please check this channel <#{channel_id}>")
-
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
     # Verify the request came from Slack
     if request.headers.get('X-Slack-Signature') and request.headers.get('X-Slack-Request-Timestamp'):
-        logging.info(f"slack data:")
-        logging.info(request.data())
+        logging.info("slack data:")
+        logging.info(request)
         slack_events_adapter.handle(request.data.decode('utf-8'), request.headers.get('X-Slack-Signature'), request.headers.get('X-Slack-Request-Timestamp'))
        
         return jsonify({"status": "ok"}), 200
