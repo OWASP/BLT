@@ -29,7 +29,7 @@ def webhook():
         latest_commit = repo.head.commit
         latest_commit_message = latest_commit.message.strip()
 
-        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"Deployed the latest version 1.6. Latest commit: {latest_commit_message}")
+        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"Deployed the latest version 1.7. Latest commit: {latest_commit_message}")
         return 'Updated bot successfully', 200
     else:
         return 'Wrong event type', 400
