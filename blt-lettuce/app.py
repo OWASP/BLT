@@ -81,6 +81,8 @@ def handle_message(payload):
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
     # Verify the request came from Slack
+    print('/slack/events was called')
+    print(request)
     if request.headers.get('X-Slack-Signature') and request.headers.get('X-Slack-Request-Timestamp'):
         print("slack data:")
         print(request)
@@ -91,4 +93,5 @@ def slack_events():
         return jsonify({"error": "invalid request"}), 400
 
 if __name__ == "__main__":
+    print('bot has started')
     app.run(port=3000)
