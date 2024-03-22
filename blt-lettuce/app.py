@@ -19,7 +19,7 @@ client = WebClient(token=os.environ['SLACK_TOKEN'])
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        current_directory = os.getcwd()
+        current_directory = os.path.dirname(os.path.abspath(__file__))
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"about to deploy {current_directory}")
         logging.info("getting directory")
         
