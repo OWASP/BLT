@@ -34,7 +34,9 @@ def webhook():
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
+    response = client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
+    if not response["ok"]:
+        print(f"Error sending message: {response['error']}")
     #client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
 
 @slack_events_adapter.on("member_joined_channel")
