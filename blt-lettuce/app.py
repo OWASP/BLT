@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import git
+from slack_sdk.errors import SlackApiError
 
 load_dotenv()
 
@@ -14,6 +15,13 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
+try:
+    response = client.auth_test()
+    bot_user_id = response["user_id"]
+    print("Your bot's user ID is:", bot_user_id)
+except SlackApiError as e:
+    print(f"Error fetching bot user ID: {e}")
+    
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
@@ -38,6 +46,25 @@ def handle_member_joined_channel(event_data):
     user_id = event["user"]
     channel_id = event["channel"]
     client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the <@{channel_id}> channel!")
+
+@slack_events_adapter.on("message")
+def handle_message(payload):
+    message = payload.get("event", {})
+
+    # Assuming `bot_user_id` is your bot's user ID.
+    # You should replace 'YOUR_BOT_USER_ID' with your actual bot's user ID.
+    bot_user_id = bot_user_id
+
+    # Check if the message was not sent by the bot itself
+    if message.get("user") != bot_user_id:
+        if (message.get("subtype") is None and
+            not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
+            any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
+            user = message.get("user")
+            channel = message.get("channel")
+            # Use the `channel` variable to send back to the same channel
+            client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
+
 
 # # respond to contribute and not #contribute
 # @slack_events_adapter.on("message")
