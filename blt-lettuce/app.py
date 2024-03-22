@@ -15,12 +15,7 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
-try:
-    response = client.auth_test()
-    bot_user_id = response["user_id"]
-    print("Your bot's user ID is:", bot_user_id)
-except SlackApiError as e:
-    print(f"Error fetching bot user ID: {e}")
+
     
 @app.route('/update_server', methods=['POST'])
 def webhook():
@@ -51,9 +46,15 @@ def handle_member_joined_channel(event_data):
 def handle_message(payload):
     message = payload.get("event", {})
 
-    # Assuming `bot_user_id` is your bot's user ID.
-    # You should replace 'YOUR_BOT_USER_ID' with your actual bot's user ID.
-    bot_user_id = bot_user_id
+    try:
+        response = client.auth_test()
+        bot_user_id = response["user_id"]
+        print("Your bot's user ID is:", bot_user_id)
+    except SlackApiError as e:
+        bot_user_id = None
+        print(f"Error fetching bot user ID: {e}")
+
+
 
     # Check if the message was not sent by the bot itself
     if message.get("user") != bot_user_id:
