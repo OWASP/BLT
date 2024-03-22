@@ -11,7 +11,7 @@ load_dotenv()
 
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
-#test22
+#test223
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
  
@@ -25,7 +25,13 @@ def webhook():
         #repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
-        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.3")
+
+        # Get the latest commit message after pulling
+        latest_commit = repo.head.commit
+        latest_commit_message = latest_commit.message.strip()  # .strip() removes any leading/trailing whitespace
+
+        # Notify Slack with the latest commit message
+        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"Deployed the latest version 1.4. Latest commit: {latest_commit_message}")
         return 'Updated bot successfully', 200
     else:
         return 'Wrong event type', 400
