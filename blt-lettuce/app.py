@@ -96,5 +96,6 @@ def slack_events():
         return jsonify({"error": "invalid request"}), 400
 
 if __name__ == "__main__":
+    client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"bot started v1.7")
     print('bot has started')
     app.run(port=3000)
