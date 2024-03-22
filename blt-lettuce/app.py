@@ -20,7 +20,8 @@ client = WebClient(token=os.environ['SLACK_TOKEN'])
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
+        current_directory = os.getcwd()
+        repo = git.Repo(current_directory)
         origin = repo.remotes.origin
         origin.pull()
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.2")
