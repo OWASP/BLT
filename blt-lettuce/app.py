@@ -82,6 +82,7 @@ def handle_message(payload):
 
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
+    logging.info('/slack/events was called!!!!!!!!!!')
     # Verify the request came from Slack
     print('/slack/events was called')
     print(request)
