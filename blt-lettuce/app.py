@@ -21,7 +21,7 @@ def webhook():
         origin = repo.remotes.origin
         origin.pull()
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version")
-        #client.chat_postMessage(channel='#trying_bot', text=f"deployed the latest version 1.0")
+        #client.chat_postMessage(channel='#trying_bot', text=f"deployed the latest version 1.1")
         return 'Updated bot successfully', 200
     else:
         return 'Wrong event type', 400
