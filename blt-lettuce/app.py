@@ -36,7 +36,7 @@ def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
     response = client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
     if not response["ok"]:
-        print(f"Error sending message: {response['error']}")
+        logger.error(f"Error sending message: {response['error']}")
     #client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
 
 @slack_events_adapter.on("member_joined_channel")
@@ -65,6 +65,7 @@ def handle_message(payload):
         if (message.get("subtype") is None and
             not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
             any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
+            logger.info(f"detected contribute")
             user = message.get("user")
             channel = message.get("channel")
             # Use the `channel` variable to send back to the same channel
