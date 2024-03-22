@@ -20,11 +20,9 @@ def webhook():
     if request.method == 'POST':
         current_directory = os.path.dirname(os.path.abspath(__file__))
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"about to deploy {current_directory}")
-        logging.info("getting directory")
-        
-        logging.info("Updating server from directory", current_directory)
+
         repo = git.Repo(current_directory)
-        repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
+        #repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.2")
