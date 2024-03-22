@@ -19,8 +19,9 @@ client = WebClient(token=os.environ['SLACK_TOKEN'])
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
+        logging.info("getting directory")
         current_directory = os.getcwd()
-        print("Updating server from directory", current_directory)
+        logging.info("Updating server from directory", current_directory)
         repo = git.Repo(current_directory)
         origin = repo.remotes.origin
         origin.pull()
