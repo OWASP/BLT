@@ -25,7 +25,7 @@ def webhook():
         #repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
-        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.2")
+        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version 1.3")
         return 'Updated bot successfully', 200
     else:
         return 'Wrong event type', 400
@@ -65,11 +65,14 @@ def handle_message(payload):
         if (message.get("subtype") is None and
             not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
             any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
-            logging.info(f"detected contribute")
+            
             user = message.get("user")
             channel = message.get("channel")
             # Use the `channel` variable to send back to the same channel
-            client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
+            logging.info(f"detected contribute sending to channel: {channel}")
+            response = client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
+            if not response["ok"]:
+                logging.error(f"Error sending message: {response['error']}")
 
 
 # # respond to contribute and not #contribute
