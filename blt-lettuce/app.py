@@ -9,7 +9,6 @@ from slack_sdk.errors import SlackApiError
 
 load_dotenv()
 
-#logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
@@ -24,15 +23,12 @@ def webhook():
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"about to deploy {current_directory}")
 
         repo = git.Repo(current_directory)
-        #repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
 
-        # Get the latest commit message after pulling
         latest_commit = repo.head.commit
-        latest_commit_message = latest_commit.message.strip()  # .strip() removes any leading/trailing whitespace
+        latest_commit_message = latest_commit.message.strip()
 
-        # Notify Slack with the latest commit message
         client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"Deployed the latest version 1.6. Latest commit: {latest_commit_message}")
         return 'Updated bot successfully', 200
     else:
@@ -42,7 +38,7 @@ def webhook():
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    response = client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
+    response = client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
     if not response["ok"]:
         logging.error(f"Error sending message: {response['error']}")
 
@@ -81,20 +77,20 @@ def handle_message(payload):
                 logging.error(f"Error sending message: {response['error']}")
 
 
-@app.route("/slack/events", methods=["POST"])
-def slack_events():
-    logging.info('/slack/events was called!!!!!!!!!!')
-    # Verify the request came from Slack
-    print('/slack/events was called')
-    print(request)
-    if request.headers.get('X-Slack-Signature') and request.headers.get('X-Slack-Request-Timestamp'):
-        print("slack data:")
-        print(request)
-        slack_events_adapter.handle(request.data.decode('utf-8'), request.headers.get('X-Slack-Signature'), request.headers.get('X-Slack-Request-Timestamp'))
+# @app.route("/slack/events", methods=["POST"])
+# def slack_events():
+#     logging.info('/slack/events was called!!!!!!!!!!')
+#     # Verify the request came from Slack
+#     print('/slack/events was called')
+#     print(request)
+#     if request.headers.get('X-Slack-Signature') and request.headers.get('X-Slack-Request-Timestamp'):
+#         print("slack data:")
+#         print(request)
+#         slack_events_adapter.handle(request.data.decode('utf-8'), request.headers.get('X-Slack-Signature'), request.headers.get('X-Slack-Request-Timestamp'))
        
-        return jsonify({"status": "ok"}), 200
-    else:
-        return jsonify({"error": "invalid request"}), 400
+#         return jsonify({"status": "ok"}), 200
+#     else:
+#         return jsonify({"error": "invalid request"}), 400
 
 if __name__ == "__main__":
     client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"bot started v1.7")
