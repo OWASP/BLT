@@ -11,7 +11,7 @@ load_dotenv()
 
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
-#test2
+#test22
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
  
