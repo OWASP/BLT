@@ -39,17 +39,17 @@ def handle_member_joined_channel(event_data):
     channel_id = event["channel"]
     client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the <@{channel_id}> channel!")
 
-# respond to contribute and not #contribute
-@slack_events_adapter.on("message")
-def handle_message(payload):
-    message = payload.get("event", {})
-    if (message.get("subtype") is None and
-        not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
-        any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
-        user = message.get("user")
-        channel = message.get("channel")
-        # Use the `channel` variable to send back to the same channel
-        client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
+# # respond to contribute and not #contribute
+# @slack_events_adapter.on("message")
+# def handle_message(payload):
+#     message = payload.get("event", {})
+#     if (message.get("subtype") is None and
+#         not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"]) and
+#         any(keyword in message.get("text", "").lower() for keyword in ["contribute", "contributing", "contributes"])):
+#         user = message.get("user")
+#         channel = message.get("channel")
+#         # Use the `channel` variable to send back to the same channel
+#         client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
 
 
 # @slack_events_adapter.on("message")
