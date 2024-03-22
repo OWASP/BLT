@@ -6,7 +6,7 @@ import logging
 import os
 import git
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
