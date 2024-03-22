@@ -11,18 +11,25 @@ load_dotenv()  # Load environment variables from .env file
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
 
+slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
+client = WebClient(token=os.environ['SLACK_TOKEN'])
+
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
         repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
+        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version")
         return 'Updated PythonAnywhere successfully', 200
     else:
         return 'Wrong event type', 400
 
-slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
-client = WebClient(token=os.environ['SLACK_TOKEN'])
+
+@slack_events_adapter.on("team_join")
+def handle_team_join(event_data):
+    user_id = event_data["event"]["user"]["id"]
+    client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
 
 @slack_events_adapter.on("member_joined_channel")
 def handle_member_joined_channel(event_data):
