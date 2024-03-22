@@ -4,11 +4,23 @@ from slackeventsapi import SlackEventAdapter
 from dotenv import load_dotenv
 import logging
 import os
+import git
 
 load_dotenv()  # Load environment variables from .env file
 
 logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
 app = Flask(__name__)
+
+@app.route('/update_server', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
+        origin = repo.remotes.origin
+        origin.pull()
+        return 'Updated PythonAnywhere successfully', 200
+    else:
+        return 'Wrong event type', 400
+
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 
