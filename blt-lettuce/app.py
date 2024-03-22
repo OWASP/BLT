@@ -9,7 +9,9 @@ from slack_sdk.errors import SlackApiError
 
 load_dotenv()
 
-logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
+#logging.basicConfig(filename='slack_messages.log', level=logging.INFO)
+logging.basicConfig(filename='slack_messages.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 app = Flask(__name__)
 
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
