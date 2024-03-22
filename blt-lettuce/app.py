@@ -62,6 +62,7 @@ def handle_message(payload):
         response = client.auth_test()
         bot_user_id = response["user_id"]
         print("Your bot's user ID is:", bot_user_id)
+        print("The message is:", message)
     except SlackApiError as e:
         bot_user_id = None
         print(f"Error fetching bot user ID: {e}")
