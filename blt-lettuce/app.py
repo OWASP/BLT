@@ -20,8 +20,8 @@ def webhook():
         repo = git.Repo('/home/DonnieBLT/BLT-Lettuce')
         origin = repo.remotes.origin
         origin.pull()
-        #client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version")
-        client.chat_postMessage(channel='#trying_bot', text=f"deployed the latest version")
+        client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"deployed the latest version")
+        #client.chat_postMessage(channel='#trying_bot', text=f"deployed the latest version")
         return 'Updated PythonAnywhere successfully', 200
     else:
         return 'Wrong event type', 400
@@ -30,15 +30,15 @@ def webhook():
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    #client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
-    client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
+    client.chat_postMessage(channel='#project-blt-lettuce-joins', text=f"<@{user_id}> joined the team.")
+    #client.chat_postMessage(channel='#trying_bot', text=f"<@{user_id}> joined the team.")
 
 @slack_events_adapter.on("member_joined_channel")
 def handle_member_joined_channel(event_data):
     event = event_data["event"]
     user_id = event["user"]
     channel_id = event["channel"]
-    client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the channel!")
+    client.chat_postMessage(channel='#trying_bot', text=f"Welcome <@{user_id}> to the <@{channel_id}> channel!")
 
 
 @slack_events_adapter.on("message")
