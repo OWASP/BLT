@@ -14,7 +14,6 @@ app = Flask(__name__)
 
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
-#testtttttt
  
 @app.route('/update_server', methods=['POST'])
 def webhook():
