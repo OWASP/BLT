@@ -16,7 +16,14 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", app)
 client = WebClient(token=os.environ['SLACK_TOKEN'])
 client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"bot started v1.7 top")
- 
+
+@app.before_request
+def log_request():
+    if request.path == '/slack/events' and request.method == 'POST':
+        # Log the request headers and body
+        logging.info(f"Headers: {request.headers}")
+        logging.info(f"Body: {request.get_data(as_text=True)}")
+     
 @app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
