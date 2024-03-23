@@ -73,7 +73,7 @@ def handle_message(payload):
             user = message.get("user")
             channel = message.get("channel")
             logging.info(f"detected contribute sending to channel: {channel}")
-            response = client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines.")
+            response = client.chat_postMessage(channel=channel, text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines!")
             if not response["ok"]:
                 logging.error(f"Error sending message: {response['error']}")
 
