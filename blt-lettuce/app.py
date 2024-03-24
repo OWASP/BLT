@@ -90,7 +90,8 @@ def handle_message(payload):
         text = message.get('text', '')  # The text of the message
         
         try:
-            #client.chat_postMessage(channel='C06RMMRMGHE', text=f"<@{user}> said {text}")
+            if message.get("user") != bot_user_id:
+                client.chat_postMessage(channel='C06RMMRMGHE', text=f"<@{user}> said {text}")
             # Respond to the direct message
             client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
         except SlackApiError as e:
