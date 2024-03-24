@@ -84,3 +84,14 @@ def handle_message(payload):
             if not response["ok"]:
                 client.chat_postMessage(channel='#project-blt-lettuce-deploys', text=f"Error sending message: {response['error']}")
                 logging.error(f"Error sending message: {response['error']}")
+
+    if message.get('channel_type') == 'im':
+        user = message['user']  # The user ID of the person who sent the message
+        text = message.get('text', '')  # The text of the message
+        
+        try:
+            # Respond to the direct message
+            client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
+        except SlackApiError as e:
+            print(f"Error sending response: {e.response['error']}")
+
