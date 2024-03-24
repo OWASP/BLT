@@ -64,6 +64,7 @@ def handle_member_joined_channel(event_data):
 @slack_events_adapter.on("message")
 def handle_message(payload):
     message = payload.get("event", {})
+    client.chat_postMessage(channel='#project-blt-github', text=f"test")
 
     try:
         response = client.auth_test()
