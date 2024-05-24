@@ -13,7 +13,7 @@ dependencies:
   flutter_markdown: ^0.6.14
   google_fonts: ">=3.0.1 <5.0.0"
   http: ^1.1.0
-  image_picker: ^0.8.4+4
+  image_picker: ^1.1.1
   receive_sharing_intent:
     git:
       url: https://github.com/Thogsit/receive_sharing_intent
