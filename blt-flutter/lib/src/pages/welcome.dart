@@ -120,13 +120,12 @@ class _WelcomePageState extends State<WelcomePage> {
               style: GoogleFonts.ubuntu(
                   textStyle: TextStyle(color: Colors.white, fontSize: 20))),
           style: ButtonStyle(
-            elevation: MaterialStateProperty.all(12),
-            shadowColor:
-                MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            elevation: WidgetStateProperty.all(12),
+            shadowColor: WidgetStateProperty.all(Colors.black.withOpacity(0.5)),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0))),
-            backgroundColor: MaterialStateProperty.all(Color(0xFFDC4654)),
+            backgroundColor: WidgetStateProperty.all(Color(0xFFDC4654)),
           ),
         ),
       ),
@@ -150,15 +149,15 @@ class _WelcomePageState extends State<WelcomePage> {
                     textStyle:
                         TextStyle(color: Color(0xFF737373), fontSize: 20))),
             style: ButtonStyle(
-              elevation: MaterialStateProperty.all(12),
+              elevation: WidgetStateProperty.all(12),
               shadowColor:
-                  MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  WidgetStateProperty.all(Colors.black.withOpacity(0.5)),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                     side: BorderSide(color: Color(0xFF737373))),
               ),
-              backgroundColor: MaterialStateProperty.all(
+              backgroundColor: WidgetStateProperty.all(
                 isDarkMode
                     ? Color.fromRGBO(43, 42, 42, 1)
                     : Theme.of(context).canvasColor,

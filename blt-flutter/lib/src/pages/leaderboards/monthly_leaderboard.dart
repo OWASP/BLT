@@ -187,7 +187,7 @@ class _MonthlyLeaderBoardPageState
                             ),
                             style: ButtonStyle(
                               backgroundColor:
-                                  MaterialStateProperty.all(Color(0xFFDC4654)),
+                                  WidgetStateProperty.all(Color(0xFFDC4654)),
                             ),
                           ),
                         ]),

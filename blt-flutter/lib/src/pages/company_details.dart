@@ -1,7 +1,6 @@
 import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 
-
 /// Popup page for viewing company details when a company
 /// is clicked on the Company Scoreboard page.
 class CompanyDetailPage extends StatefulWidget {
@@ -227,7 +226,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                               ),
                             ),
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                 companyColor,
                               ),
                             ),
@@ -250,7 +249,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                               ),
                             ),
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                 companyColor,
                               ),
                             ),

@@ -1,7 +1,6 @@
 import 'package:blt/src/pages/pages_import.dart';
 import 'package:flutter/material.dart';
 
-
 /// The signup page for the app.
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -283,16 +282,16 @@ class _SignUpFormState extends State<SignUpForm> {
                 ),
               ),
               style: ButtonStyle(
-                elevation: MaterialStateProperty.all(8),
-                shadowColor: MaterialStateProperty.all(
+                elevation: WidgetStateProperty.all(8),
+                shadowColor: WidgetStateProperty.all(
                   Colors.black.withOpacity(0.5),
                 ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
                 ),
-                backgroundColor: MaterialStateProperty.all(
+                backgroundColor: WidgetStateProperty.all(
                   Color(0xFFDC4654),
                 ),
               ),

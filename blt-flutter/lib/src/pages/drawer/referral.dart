@@ -116,17 +116,17 @@ class _ReferralPageState extends State<ReferralPage> {
                           ),
                         ),
                         style: ButtonStyle(
-                          elevation: MaterialStateProperty.all(8),
-                          shadowColor: MaterialStateProperty.all(
+                          elevation: WidgetStateProperty.all(8),
+                          shadowColor: WidgetStateProperty.all(
                             Colors.black.withOpacity(0.5),
                           ),
                           shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
                           ),
-                          backgroundColor: MaterialStateProperty.all(
+                          backgroundColor: WidgetStateProperty.all(
                             isDarkMode
                                 ? Color.fromRGBO(126, 33, 58, 1)
                                 : Color(0xFFDC4654),

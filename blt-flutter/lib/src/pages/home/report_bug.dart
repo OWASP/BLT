@@ -533,13 +533,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                               ),
                             ),
                             style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
+                              shape: WidgetStateProperty.all<
                                   RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                               ),
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                 duplicateVerified
                                     ? Color(0xFF50C878)
                                     : isDarkMode
@@ -741,13 +741,13 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                   ),
                                 ),
                                 style: ButtonStyle(
-                                  shape: MaterialStateProperty.all<
+                                  shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
-                                  backgroundColor: MaterialStateProperty.all(
+                                  backgroundColor: WidgetStateProperty.all(
                                     isDarkMode
                                         ? Color.fromRGBO(126, 33, 58, 1)
                                         : Color(0xFFDC4654),
@@ -916,12 +916,12 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 ),
               ),
               style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                backgroundColor: MaterialStateProperty.all(
+                backgroundColor: WidgetStateProperty.all(
                   isDarkMode
                       ? Color.fromRGBO(126, 33, 58, 1)
                       : Color(0xFFDC4654),

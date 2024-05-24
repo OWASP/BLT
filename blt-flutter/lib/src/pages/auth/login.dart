@@ -261,16 +261,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 ),
               ),
               style: ButtonStyle(
-                elevation: MaterialStateProperty.all(8),
-                shadowColor: MaterialStateProperty.all(
+                elevation: WidgetStateProperty.all(8),
+                shadowColor: WidgetStateProperty.all(
                   Colors.black.withOpacity(0.5),
                 ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
                 ),
-                backgroundColor: MaterialStateProperty.all(
+                backgroundColor: WidgetStateProperty.all(
                   Color(0xFFDC4654),
                 ),
               ),
