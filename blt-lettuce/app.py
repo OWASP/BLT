@@ -9,6 +9,10 @@ from slack import WebClient
 from slack_sdk.errors import SlackApiError
 from slackeventsapi import SlackEventAdapter
 
+DEPLOYS_CHANNEL_NAME = "#project-blt-lettuce-deploys"
+JOINS_CHANNEL_ID = "C06RMMRMGHE"
+
+
 load_dotenv()
 
 logging.basicConfig(
@@ -23,9 +27,7 @@ slack_events_adapter = SlackEventAdapter(
     os.environ["SIGNING_SECRET"], "/slack/events", app
 )
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(
-    channel="#project-blt-lettuce-deploys", text="bot started v1.7 top"
-)
+client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.7 top")
 
 # keep for debugging purposes
 # @app.before_request
@@ -38,22 +40,19 @@ client.chat_postMessage(
 
 @app.route("/update_server", methods=["POST"])
 def webhook():
-    # check if there is an API key -
-
     if request.method == "POST":
         current_directory = os.path.dirname(os.path.abspath(__file__))
         repo = git.Repo(current_directory)
         origin = repo.remotes.origin
         origin.pull()
-        latest_commit = repo.head.commit
-        latest_commit_message = latest_commit.message.strip()
+        latest_commit_message = repo.head.commit.message.strip()
         client.chat_postMessage(
-            channel="#project-blt-lettuce-deploys",
+            channel=DEPLOYS_CHANNEL_NAME,
             text=f"Deployed the latest version 1.8. Latest commit: {latest_commit_message}",
         )
         return "OK", 200
-    else:
-        return "Error", 400
+
+    return "Error", 400
 
 
 @slack_events_adapter.on("team_join")
@@ -61,11 +60,11 @@ def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
     # private channel for joins so it does not get noisy
     response = client.chat_postMessage(
-        channel="C06RMMRMGHE", text=f"<@{user_id}> joined the team."
+        channel=JOINS_CHANNEL_ID, text=f"<@{user_id}> joined the team."
     )
     if not response["ok"]:
         client.chat_postMessage(
-            channel="#project-blt-lettuce-deploys",
+            channel=DEPLOYS_CHANNEL_NAME,
             text=f"Error sending message: {response['error']}",
         )
         logging.error(f"Error sending message: {response['error']}")
@@ -131,7 +130,7 @@ def handle_message(payload):
             )
             and any(
                 keyword in message.get("text", "").lower()
-                for keyword in ["contribute", "contributing", "contributes"]
+                for keyword in ("contribute", "contributing", "contributes")
             )
         ):
             user = message.get("user")
@@ -139,11 +138,11 @@ def handle_message(payload):
             logging.info(f"detected contribute sending to channel: {channel}")
             response = client.chat_postMessage(
                 channel=channel,
-                text=f"Hello <@{user}>! Please check this channel <#C04DH8HEPTR> for contributing guidelines today!",
+                text=f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> for contributing guidelines today!",
             )
             if not response["ok"]:
                 client.chat_postMessage(
-                    channel="#project-blt-lettuce-deploys",
+                    channel=DEPLOYS_CHANNEL_NAME,
                     text=f"Error sending message: {response['error']}",
                 )
                 logging.error(f"Error sending message: {response['error']}")
@@ -155,7 +154,7 @@ def handle_message(payload):
         try:
             if message.get("user") != bot_user_id:
                 client.chat_postMessage(
-                    channel="C06RMMRMGHE", text=f"<@{user}> said {text}"
+                    channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}"
                 )
             # Respond to the direct message
             client.chat_postMessage(
@@ -172,32 +171,34 @@ def list_repo():
     user_name = data.get("user_name")
     tech_name = text.strip().lower()
 
-    if tech_name == "django":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-        (https://github.com/OWASP-BLT/BLT)"""
-    elif tech_name == "python":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-        (https://github.com/OWASP-BLT/BLT)
-        https://github.com/OWASP-BLT/BLT-Flutter) 
-        (https://github.com/OWASP-BLT/BLT-Lettuce)"""
-    elif tech_name == "flutter" or tech_name == "dart":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here: 
-        (https://github.com/OWASP-BLT/BLT-Flutter) 
-        (https://github.com/OWASP-BLT/BLT-Lettuce)"""
-    elif tech_name == "blockchain" or tech_name == "cryptography":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-        (https://github.com/OWASP-BLT/BLT-Bacon)"""
-    elif tech_name == "javascript":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-        (https://github.com/OWASP-BLT/BLT-Action)  
-        (https://github.com/OWASP-BLT/BLT-Extension)  
-        (https://github.com/OWASP-BLT/BLT)"""
-    elif tech_name == "html" or tech_name == "css":
-        message = f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-        (https://github.com/OWASP-BLT/BLT-Extension)  
-        (https://github.com/OWASP-BLT/BLT)"""
-    else:
-        message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+    repos = None
+    if tech_name in {"django"}:
+        repos = "(https://github.com/OWASP-BLT/BLT)"
+    elif tech_name in {"python"}:
+        repos = "(https://github.com/OWASP-BLT/BLT)"
+        "(https://github.com/OWASP-BLT/BLT-Flutter)"
+        "(https://github.com/OWASP-BLT/BLT-Lettuce)"
+    elif tech_name in {"dart", "flutter"}:
+        repos = "(https://github.com/OWASP-BLT/BLT-Flutter)"
+        "(https://github.com/OWASP-BLT/BLT-Lettuce)"
+    elif tech_name in {"blockchain", "cryptography"}:
+        repos = "(https://github.com/OWASP-BLT/BLT-Bacon)"
+    elif tech_name in {"javascript"}:
+        repos = "(https://github.com/OWASP-BLT/BLT-Action)"
+        "(https://github.com/OWASP-BLT/BLT-Extension)"
+        "(https://github.com/OWASP-BLT/BLT)"
+    elif tech_name in {"css", "html"}:
+        repos = "(https://github.com/OWASP-BLT/BLT-Extension)"
+        "(https://github.com/OWASP-BLT/BLT)"
+
+    message = (
+        f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+    {repos}
+    """
+        if repos
+        else f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+    )
+
     return jsonify(
         {
             "response_type": "in_channel",
