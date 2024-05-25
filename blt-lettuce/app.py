@@ -9,8 +9,9 @@ from slack import WebClient
 from slack_sdk.errors import SlackApiError
 from slackeventsapi import SlackEventAdapter
 
-PRIVATE_JOINS_CHANNEL = "C06RMMRMGHE"
-PROJECT_BLT_LETTUCE_DEPLOYS_CHANNEL = "#project-blt-lettuce-deploys"
+DEPLOYS_CHANNEL_NAME = "#project-blt-lettuce-deploys"
+JOINS_CHANNEL_ID = "C06RMMRMGHE"
+
 
 load_dotenv()
 
@@ -26,9 +27,7 @@ slack_events_adapter = SlackEventAdapter(
     os.environ["SIGNING_SECRET"], "/slack/events", app
 )
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(
-    channel=PROJECT_BLT_LETTUCE_DEPLOYS_CHANNEL, text="bot started v1.7 top"
-)
+client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.7 top")
 
 # keep for debugging purposes
 # @app.before_request
@@ -48,7 +47,7 @@ def webhook():
         origin.pull()
         latest_commit_message = repo.head.commit.message.strip()
         client.chat_postMessage(
-            channel=PROJECT_BLT_LETTUCE_DEPLOYS_CHANNEL,
+            channel=DEPLOYS_CHANNEL_NAME,
             text=f"Deployed the latest version 1.8. Latest commit: {latest_commit_message}",
         )
         return "OK", 200
@@ -61,11 +60,11 @@ def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
     # private channel for joins so it does not get noisy
     response = client.chat_postMessage(
-        channel=PRIVATE_JOINS_CHANNEL, text=f"<@{user_id}> joined the team."
+        channel=JOINS_CHANNEL_ID, text=f"<@{user_id}> joined the team."
     )
     if not response["ok"]:
         client.chat_postMessage(
-            channel=PROJECT_BLT_LETTUCE_DEPLOYS_CHANNEL,
+            channel=DEPLOYS_CHANNEL_NAME,
             text=f"Error sending message: {response['error']}",
         )
         logging.error(f"Error sending message: {response['error']}")
@@ -139,11 +138,11 @@ def handle_message(payload):
             logging.info(f"detected contribute sending to channel: {channel}")
             response = client.chat_postMessage(
                 channel=channel,
-                text=f"Hello <@{user}>! Please check this channel <#{PRIVATE_JOINS_CHANNEL}> for contributing guidelines today!",
+                text=f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> for contributing guidelines today!",
             )
             if not response["ok"]:
                 client.chat_postMessage(
-                    channel=PROJECT_BLT_LETTUCE_DEPLOYS_CHANNEL,
+                    channel=DEPLOYS_CHANNEL_NAME,
                     text=f"Error sending message: {response['error']}",
                 )
                 logging.error(f"Error sending message: {response['error']}")
@@ -155,7 +154,7 @@ def handle_message(payload):
         try:
             if message.get("user") != bot_user_id:
                 client.chat_postMessage(
-                    channel=PRIVATE_JOINS_CHANNEL, text=f"<@{user}> said {text}"
+                    channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}"
                 )
             # Respond to the direct message
             client.chat_postMessage(
