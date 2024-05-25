@@ -6,6 +6,8 @@ import logging
 import os
 import git
 from slack_sdk.errors import SlackApiError
+from slack_bolt import App
+import sqlite3
 
 load_dotenv()
 
@@ -60,6 +62,27 @@ def handle_member_joined_channel(event_data):
     
     client.chat_postMessage(channel=channel_id, text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!")
 
+@app.command("/setcrypto")
+def set_crypto_command(ack, say, command):
+    ack()
+    user_id = command["user_id"]
+    crypto_name, address = command["text"].split()
+
+    # Connect to the SQLite database
+    conn = sqlite3.connect('crypto_addresses.db')
+    cursor = conn.cursor()
+
+    # Insert the user's data into the database
+    cursor.execute("INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)", (user_id, crypto_name, address))
+    conn.commit()
+    conn.close()
+
+    say(f"Your cryptocurrency address for {crypto_name} has been saved.")
+
+    return jsonify({
+        "response_type": "in_channel",
+        "text": f"Your cryptocurrency address for {crypto_name} has been saved."
+    })
 
 @slack_events_adapter.on("message")
 def handle_message(payload):
