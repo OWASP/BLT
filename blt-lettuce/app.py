@@ -120,3 +120,42 @@ def handle_message(payload):
         except SlackApiError as e:
             print(f"Error sending response: {e.response['error']}")
 
+@app.route('/repo', methods=['POST'])
+def list_repo():
+    data = request.form
+    command = data.get('command')
+    text = data.get('text')
+    user_name = data.get('user_name')
+    tech_name = text.strip().lower()
+    response_message = ""
+        
+    if tech_name == 'django':
+        response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+        (https://github.com/OWASP-BLT/BLT)"
+    elif tech_name == 'python':
+         response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+        (https://github.com/OWASP-BLT/BLT)
+        https://github.com/OWASP-BLT/BLT-Flutter) 
+        (https://github.com/OWASP-BLT/BLT-Lettuce)"
+    elif tech_name == 'flutter' or tech_name == 'dart':
+        response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here: 
+        (https://github.com/OWASP-BLT/BLT-Flutter) 
+        (https://github.com/OWASP-BLT/BLT-Lettuce)"
+    elif tech_name == 'blockchain'or tech_name == 'cryptography':
+        response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+        (https://github.com/OWASP-BLT/BLT-Bacon)"
+    elif tech_name == 'javascript':
+        response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+        (https://github.com/OWASP-BLT/BLT-Action)  
+        (https://github.com/OWASP-BLT/BLT-Extension)  
+        (https://github.com/OWASP-BLT/BLT)"
+    elif tech_name == 'html' or tech_name == 'css':
+        response_message = f"Hello {user_name}, You can implement your '{tech_name}' knowledge here:
+        (https://github.com/OWASP-BLT/BLT-Extension)  
+        (https://github.com/OWASP-BLT/BLT)"
+    else:
+        response_message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+    return jsonify({
+        'response_type': 'in_channel',
+        'text': response_message,
+    })
