@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
 
 /// This page is thrown in case when a Navigation exception occurs.
 class ErrorPage extends StatelessWidget {

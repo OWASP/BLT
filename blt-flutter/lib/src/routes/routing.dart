@@ -12,14 +12,18 @@ class RouteManager {
   static String currentRoute = "/loginSignup";
   static const String legalPage = "/legal";
   static const String aboutPage = "/about";
+  static const String companiesListPage = "/companies";
   static const String companyDashboardPage = "/companyDashboard";
   static const String referralPage = "/refer";
   static const String globalLeaderboardPage = "/globalBoard";
   static const String monthlyLeaderboardPage = "/monthlyBoard";
   static const String companyScoreboardPage = "/companyBoard";
   static const String companyDetailPage = "/companyDetail";
+  static const String companyDetailPageWithIssues = "/companyWithIssues";
   static const String issueDetailPage = "/issueDetail";
   static const String changePassword = "/changePassword";
+  static const String openIssues = "/openIssues";
+  static const String closedIssues = "/closedIssues";
 
   /// Route generator, finds a requested route or throws the
   /// error page in case of route not found.
@@ -346,6 +350,92 @@ class RouteManager {
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               const ChangePasswordPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case companiesListPage:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const CompanyListPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case companyDetailPageWithIssues:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              CompanyDetailWithIssues(
+            company: arguments as Company,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case openIssues:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              OpenIssuesPage(
+            company: arguments as Company,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case closedIssues:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ClosedIssuesPage(
+            company: arguments as Company,
+          ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

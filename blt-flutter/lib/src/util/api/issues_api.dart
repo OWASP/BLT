@@ -232,4 +232,32 @@ class IssueApiClient {
   static Future getUserIssueById() async {}
 
   static Future searchUserIssueByKeyWord() async {}
+
+  static Future<IssueData?> getIssueByStatus(String status, String url) async {
+    http.Response? response;
+    IssueData? issueData;
+    List<Issue>? issueList;
+    try {
+      String searchUrl = GeneralEndPoints.apiBaseUrl +
+          "/api/v1/issues/" +
+          "?status=$status&domain=$url";
+      response = await http.get(Uri.parse(searchUrl));
+      if (response.statusCode == 200) {
+        issueList = [];
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        decodedResponse["results"].forEach((element) {
+          issueList!.add(Issue.fromJson(element));
+        });
+        issueData = IssueData(
+          count: decodedResponse["count"],
+          nextQuery: decodedResponse["next"],
+          previousQuery: decodedResponse["previous"],
+          issueList: issueList,
+        );
+      }
+    } catch (e) {
+      print(e);
+    }
+    return issueData;
+  }
 }

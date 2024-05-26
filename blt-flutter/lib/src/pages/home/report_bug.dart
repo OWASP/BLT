@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/home/home_imports.dart';
-import 'package:flutter/material.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals

@@ -6,6 +6,20 @@ import 'package:http/http.dart' as http;
 class CompanyApiClient {
   CompanyApiClient._();
 
+  static Future<List<Company>> getListOfCompanies(String endpoint) async {
+    String searchUrl = GeneralEndPoints.apiBaseUrl + endpoint;
+    print(searchUrl);
+    List<Company> companiesList = [];
+    try {
+      var response = await http.get(Uri.parse(searchUrl));
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      companiesList = Company.fromSnapshot(decodedResponse["results"]);
+    } catch (e) {
+      print(e);
+    }
+    return companiesList;
+  }
+
   /// Search a company by keyword,
   /// returns the first matching result.
   static Future<void> getCompanyByKeyWord(

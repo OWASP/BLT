@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
 
 /// Popup page for viewing company details when a company
 /// is clicked on the Company Scoreboard page.
@@ -62,7 +61,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
       ),
       child: Center(
         child: Text(
-          widget.company.openIssues > 0
+          widget.company.openIssues! > 0
               ? AppLocalizations.of(context)!.unableToGetInfo
               : AppLocalizations.of(context)!.noOpenIssues,
           style: GoogleFonts.aBeeZee(
@@ -86,7 +85,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
       ),
       child: Center(
         child: Text(
-          widget.company.closedIssues > 0
+          widget.company.closedIssues! > 0
               ? AppLocalizations.of(context)!.unableToGetInfo
               : AppLocalizations.of(context)!.noOpenIssues,
           style: GoogleFonts.aBeeZee(

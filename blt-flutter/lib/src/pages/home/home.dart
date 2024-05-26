@@ -314,6 +314,19 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               ListTile(
+                title: Text("Companies"),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.companiesListPage,
+                  );
+
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
+              ListTile(
                 title: Text(AppLocalizations.of(context)!.companyDashboard),
                 onTap: () {
                   Navigator.pushNamed(

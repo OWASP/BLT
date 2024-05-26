@@ -1,6 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
-
 
 /// Page for showing social activity of BLT, new issues,
 /// top premium subscribers.

@@ -79,3 +79,68 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     _resetState();
   }
 }
+
+class IssueByStatusListProvider
+    extends StateNotifier<AsyncValue<List<Issue>?>?> {
+  final Reader read;
+  final String status;
+  final String? url;
+  String? nxtUrl;
+  AsyncValue<List<Issue>?>? previousState;
+
+  IssueByStatusListProvider(this.read, this.status, this.url,
+      [AsyncValue<List<Issue>>? issueList])
+      : super(issueList ?? const AsyncValue.loading()) {
+    _retrieveIssueList();
+  }
+
+  Future<void> _retrieveIssueList() async {
+    try {
+      final IssueData? issueData =
+          await IssueApiClient.getIssueByStatus(status, url ?? "");
+      state = AsyncValue.data(issueData?.issueList ?? []);
+      print("Retrieved: ${state?.asData?.value}");
+    } catch (e) {
+      state = AsyncValue.error(e);
+    }
+  }
+
+  Future<List<Issue>> getMoreIssues(String status, String? url) async {
+    List<Issue> issues = [];
+    _cacheState();
+    try {
+      final IssueData? issueData =
+          await IssueApiClient.getIssueByStatus(status, url ?? "");
+      issues = issueData?.issueList ?? [];
+    } catch (e) {
+      _handleException(e);
+      throw e;
+    }
+    return issues;
+  }
+
+  Future<void> refreshIssueList() async {
+    state = const AsyncValue.loading();
+    try {
+      await _retrieveIssueList();
+    } catch (e) {
+      AsyncValue.error(e);
+    }
+  }
+
+  void _cacheState() {
+    previousState = state;
+  }
+
+  void _resetState() {
+    if (previousState != null) {
+      state = previousState;
+      previousState = null;
+    }
+  }
+
+  void _handleException(e) {
+    print(e);
+    _resetState();
+  }
+}

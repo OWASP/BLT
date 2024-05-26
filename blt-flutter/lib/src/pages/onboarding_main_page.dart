@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
 
 class OnboardingMainPage extends ConsumerStatefulWidget {
   @override

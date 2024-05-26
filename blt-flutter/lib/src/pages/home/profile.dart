@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/home/home_imports.dart';
-import 'package:flutter/material.dart';
 
 /// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.

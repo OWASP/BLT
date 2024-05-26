@@ -19,3 +19,7 @@ export '../pages/leaderboards/global_leaderboard.dart';
 export '../pages/issues/issue_detail.dart';
 export '../pages/leaderboards/monthly_leaderboard.dart';
 export '../pages/drawer/social.dart';
+export 'package:blt/src/pages/companies/company_details_and_issues.dart';
+export 'package:blt/src/pages/companies/company_list_page.dart';
+export 'package:blt/src/pages/issues/closed_issues.dart';
+export 'package:blt/src/pages/issues/open_issues.dart';

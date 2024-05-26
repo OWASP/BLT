@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
 
 /// Page for allowing users to send referrals to their friends.
 class ReferralPage extends StatefulWidget {

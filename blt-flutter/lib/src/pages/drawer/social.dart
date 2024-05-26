@@ -1,6 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
-//import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class SocialPage extends ConsumerStatefulWidget {
   const SocialPage({Key? key}) : super(key: key);

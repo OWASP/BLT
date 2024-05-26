@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/pages_import.dart';
-import 'package:flutter/material.dart';
 
 /// Page for initiating the process for recovering
 /// a user's account password.

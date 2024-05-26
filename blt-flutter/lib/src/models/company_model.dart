@@ -7,11 +7,14 @@ class Company {
   String? email;
   String? url;
   String? hexcolor;
-  final int openIssues;
-  final int closedIssues;
+  String? twitter;
+  String? facebook;
+  int? openIssues;
+  int? closedIssues;
   final DateTime lastModified;
   final String logoLink;
   final String topTester;
+  bool? isActive;
 
   Company(
     this.id,
@@ -24,6 +27,9 @@ class Company {
     this.lastModified,
     this.logoLink,
     this.topTester,
+    this.twitter,
+    this.facebook,
+    this.isActive,
   );
 
   Color? get valueColor {
@@ -45,12 +51,19 @@ class Company {
       parsedJson["email"] ?? null,
       parsedJson["url"] ?? null,
       parsedJson["color"] ?? null,
-      parsedJson["open"],
-      parsedJson["closed"],
+      parsedJson["open"] ?? 0,
+      parsedJson["closed"] ?? 0,
       DateTime.parse(parsedJson["modified"]),
       parsedJson["logo"].toString(),
-      parsedJson["top"],
+      parsedJson["top"] ?? "",
+      parsedJson["twitter"],
+      parsedJson["facebook"],
+      parsedJson["isActive"],
     );
+  }
+
+  static List<Company> fromSnapshot(List<dynamic> json) {
+    return json.map((data) => Company.fromJson(data)).toList();
   }
 
   void setMoreInfo(

@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/home/home_imports.dart';
-import 'package:flutter/material.dart';
 
 /// Issues page for viewing all the issues posted via the website and app.
 class IssuesPage extends ConsumerStatefulWidget {

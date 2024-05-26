@@ -1,5 +1,4 @@
 import 'package:blt/src/pages/home/home_imports.dart';
-import 'package:flutter/material.dart';
 
 /// The Leaderboards dashboard page, contains the Global,
 /// Monthly leaderboard, and Company Scoreboard.

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../pages_import.dart';
 
 /// Page stating the legal Terms and Conditions and Privacy

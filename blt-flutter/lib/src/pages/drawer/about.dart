@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:blt/src/pages/pages_import.dart';
 
 /// Page for describing the BLT project.
