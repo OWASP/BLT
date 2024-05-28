@@ -82,32 +82,32 @@ def handle_member_joined_channel(event_data):
     )
 
 
-@app.command("/setcrypto")
-def set_crypto_command(ack, say, command):
-    ack()
-    user_id = command["user_id"]
-    crypto_name, address = command["text"].split()
+#@app.command("/setcrypto")
+#def set_crypto_command(ack, say, command):
+#    ack()
+#    user_id = command["user_id"]
+#    crypto_name, address = command["text"].split()
 
     # Connect to the SQLite database
-    conn = sqlite3.connect("crypto_addresses.db")
-    cursor = conn.cursor()
+#    conn = sqlite3.connect("crypto_addresses.db")
+#    cursor = conn.cursor()
 
     # Insert the user's data into the database
-    cursor.execute(
-        "INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)",
-        (user_id, crypto_name, address),
-    )
-    conn.commit()
-    conn.close()
+#    cursor.execute(
+#        "INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)",
+#        (user_id, crypto_name, address),
+#    )
+#    conn.commit()
+#    conn.close()
 
-    say(f"Your cryptocurrency address for {crypto_name} has been saved.")
+#    say(f"Your cryptocurrency address for {crypto_name} has been saved.")
 
-    return jsonify(
-        {
-            "response_type": "in_channel",
-            "text": f"Your cryptocurrency address for {crypto_name} has been saved.",
-        }
-    )
+#    return jsonify(
+#        {
+#            "response_type": "in_channel",
+#            "text": f"Your cryptocurrency address for {crypto_name} has been saved.",
+#        }
+#    )
 
 
 @slack_events_adapter.on("message")
