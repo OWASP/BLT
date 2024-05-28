@@ -39,7 +39,7 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-
 #        logging.info(f"Body: {request.get_data(as_text=True)}")
 
 
-with open('repos.json') as f:
+with open('repo.json') as f:
     repos_data = json.load(f)
 
 @app.route("/update_server", methods=["POST"])
