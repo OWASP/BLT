@@ -39,7 +39,8 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-
 #        logging.info(f"Body: {request.get_data(as_text=True)}")
 
 
-with open('repo.json') as f:
+repo_json_path = '/home/DonnieBLT/BLT-Lettuce/repo.json'
+with open(repo_json_path) as f:
     repos_data = json.load(f)
 
 @app.route("/update_server", methods=["POST"])
@@ -176,7 +177,7 @@ def list_repo():
     tech_name = text.strip().lower()
 
     repos = repos_data.get(tech_name)
-        
+
     if repos:
         repos_list = "\n".join(repos)
         message = f"Hello {user_name}, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
@@ -189,4 +190,3 @@ def list_repo():
             "text": message,
         }
     )
-
