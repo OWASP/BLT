@@ -2,6 +2,7 @@ import logging
 import os
 import sqlite3
 
+import json
 import git
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -37,6 +38,9 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-
 #        logging.info(f"Headers: {request.headers}")
 #        logging.info(f"Body: {request.get_data(as_text=True)}")
 
+
+with open('repos.json') as f:
+    repos_data = json.load(f)
 
 @app.route("/update_server", methods=["POST"])
 def webhook():
@@ -171,33 +175,13 @@ def list_repo():
     user_name = data.get("user_name")
     tech_name = text.strip().lower()
 
-    repos = None
-    if tech_name in {"django"}:
-        repos = "(https://github.com/OWASP-BLT/BLT)"
-    elif tech_name in {"python"}:
-        repos = "(https://github.com/OWASP-BLT/BLT)"
-        "(https://github.com/OWASP-BLT/BLT-Flutter)"
-        "(https://github.com/OWASP-BLT/BLT-Lettuce)"
-    elif tech_name in {"dart", "flutter"}:
-        repos = "(https://github.com/OWASP-BLT/BLT-Flutter)"
-        "(https://github.com/OWASP-BLT/BLT-Lettuce)"
-    elif tech_name in {"blockchain", "cryptography"}:
-        repos = "(https://github.com/OWASP-BLT/BLT-Bacon)"
-    elif tech_name in {"javascript"}:
-        repos = "(https://github.com/OWASP-BLT/BLT-Action)"
-        "(https://github.com/OWASP-BLT/BLT-Extension)"
-        "(https://github.com/OWASP-BLT/BLT)"
-    elif tech_name in {"css", "html"}:
-        repos = "(https://github.com/OWASP-BLT/BLT-Extension)"
-        "(https://github.com/OWASP-BLT/BLT)"
-
-    message = (
-        f"""Hello {user_name}, You can implement your '{tech_name}' knowledge here:
-    {repos}
-    """
-        if repos
-        else f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
-    )
+    repos = repos_data.get(tech_name)
+        
+    if repos:
+        repos_list = "\n".join(repos)
+        message = f"Hello {user_name}, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
+    else:
+        message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
 
     return jsonify(
         {
@@ -205,3 +189,4 @@ def list_repo():
             "text": message,
         }
     )
+
