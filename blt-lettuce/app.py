@@ -208,7 +208,7 @@ def list_project():
         project_list = "\n".join(project)
         message = f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
     else:
-        message = f"Hello {user_name}, the project '{project_name}' is not recognized. Please try again."
+        message = f"Hello {user_name}, the project '{project_name}' is not recognized. Please try different query."
 
     return jsonify(
         {
