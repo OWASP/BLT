@@ -195,7 +195,7 @@ def list_repo():
         }
     )
 
-@app.route("/projects", methods=["POST"])
+@app.route("/project", methods=["POST"])
 def list_project():
     data = request.form
     text = data.get("text")
