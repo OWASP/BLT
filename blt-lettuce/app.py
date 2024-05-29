@@ -43,6 +43,10 @@ repo_json_path = '/home/DonnieBLT/BLT-Lettuce/repo.json'
 with open(repo_json_path) as f:
     repos_data = json.load(f)
 
+project_json_path = '/home/DonnieBLT/BLT-Lettuce/projects.json'
+with open(project_json_path) as f:
+    project_data = json.load(f)
+
 @app.route("/update_server", methods=["POST"])
 def webhook():
     if request.method == "POST":
@@ -183,6 +187,28 @@ def list_repo():
         message = f"Hello {user_name}, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
     else:
         message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+
+    return jsonify(
+        {
+            "response_type": "in_channel",
+            "text": message,
+        }
+    )
+
+@app.route("/project", methods=["POST"])
+def list_project():
+    data = request.form
+    text = data.get("text")
+    user_name = data.get("user_name")
+    project_name = text.strip().lower()
+
+    project = project_data.get(project_name)
+
+    if project:
+        project_list = "\n".join(project)
+        message = f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
+    else:
+        message = f"Hello {user_name}, the project '{project_name}' is not recognized. Please try different query."
 
     return jsonify(
         {
