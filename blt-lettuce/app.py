@@ -1,8 +1,7 @@
+import json
 import logging
 import os
-import sqlite3
 
-import json
 import git
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -28,7 +27,9 @@ slack_events_adapter = SlackEventAdapter(
     os.environ["SIGNING_SECRET"], "/slack/events", app
 )
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top")
+client.chat_postMessage(
+    channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top"
+)
 
 # keep for debugging purposes
 # @app.before_request
@@ -39,13 +40,14 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-
 #        logging.info(f"Body: {request.get_data(as_text=True)}")
 
 
-repo_json_path = '/home/DonnieBLT/BLT-Lettuce/repo.json'
+repo_json_path = "/home/DonnieBLT/BLT-Lettuce/repo.json"
 with open(repo_json_path) as f:
     repos_data = json.load(f)
 
-project_json_path = '/home/DonnieBLT/BLT-Lettuce/projects.json'
+project_json_path = "/home/DonnieBLT/BLT-Lettuce/projects.json"
 with open(project_json_path) as f:
     project_data = json.load(f)
+
 
 @app.route("/update_server", methods=["POST"])
 def webhook():
@@ -91,17 +93,17 @@ def handle_member_joined_channel(event_data):
     )
 
 
-#@app.command("/setcrypto")
-#def set_crypto_command(ack, say, command):
+# @app.command("/setcrypto")
+# def set_crypto_command(ack, say, command):
 #    ack()
 #    user_id = command["user_id"]
 #    crypto_name, address = command["text"].split()
 
-    # Connect to the SQLite database
+# Connect to the SQLite database
 #    conn = sqlite3.connect("crypto_addresses.db")
 #    cursor = conn.cursor()
 
-    # Insert the user's data into the database
+# Insert the user's data into the database
 #    cursor.execute(
 #        "INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)",
 #        (user_id, crypto_name, address),
@@ -194,6 +196,7 @@ def list_repo():
             "text": message,
         }
     )
+
 
 @app.route("/project", methods=["POST"])
 def list_project():
