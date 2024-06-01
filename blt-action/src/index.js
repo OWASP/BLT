@@ -38,7 +38,6 @@ const run = async () => {
         }
     }
 
-
     if (issue && proceedWithIssueProcessing) {
         console.log('processing issue');
         const assigneeLogin = comment.user.login;
@@ -120,18 +119,27 @@ const run = async () => {
                         );
 
                         if ((Difference_In_Time / (1000 * 3600 * 24)) > 5) {
-                            console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
-
-                            const assignees = event.issue.assignee.login.split(',').map((assigneeName) => assigneeName.trim());
-
-                            var issue_number = event.issue.number;
-
-                            octokit.issues.removeAssignees({
+                            // Check if the issue has any labels
+                            const issueDetails = await octokit.issues.get({
                                 owner,
                                 repo,
-                                issue_number,
-                                assignees,
-                            })
+                                issue_number: event.issue.number
+                            });
+
+                            if (issueDetails.data.labels.length === 0) {
+                                console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
+                                const assignees = event.issue.assignee.login.split(',').map((assigneeName) => assigneeName.trim());
+                                var issue_number = event.issue.number;
+
+                                await octokit.issues.removeAssignees({
+                                    owner,
+                                    repo,
+                                    issue_number,
+                                    assignees,
+                                });
+                            } else {
+                                console.log(`Issue #${event.issue.number} has labels, skipping unassign.`);
+                            }
                         }
                     }
                 }
