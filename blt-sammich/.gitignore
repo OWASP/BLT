@@ -1,1 +1,6 @@
-local_settings.py
+__pycache__
+.env
+.ruff_cache
+.secrets
+.venv
+*.code-workspace
