@@ -39,13 +39,20 @@ def format_data(prs, issues, comments):
             user_data[user] = {"prs": 0, "issues": 0, "comments": 0}
         user_data[user]["comments"] += 1
 
+    max_name_length = max(len(user) for user in user_data.keys())
+    max_prs_length = max(len(str(counts["prs"])) for counts in user_data.values())
+    max_issues_length = max(len(str(counts["issues"])) for counts in user_data.values())
+    max_comments_length = max(
+        len(str(counts["comments"])) for counts in user_data.values()
+    )
+
     table = [
-        "User | PRs Merged | Issues Resolved | Comments",
-        "---- | ---------- | --------------- | --------",
+        f"| {'User':<{max_name_length}} | PRs Merged | Issues Resolved | Comments |",
+        f"|{'-' * (max_name_length + 2)}|:{'-' * (max_prs_length + 2)}:|:{'-' * (max_issues_length + 2)}:|:{'-' * (max_comments_length + 2)}:|",
     ]
     for user, counts in user_data.items():
         table.append(
-            f"{user} | {counts['prs']} | {counts['issues']} | {counts['comments']}"
+            f"| {user:<{max_name_length}} | {counts['prs']:>{max_prs_length}} | {counts['issues']:>{max_issues_length}} | {counts['comments']:>{max_comments_length}} |"
         )
 
     return "\n".join(table)
