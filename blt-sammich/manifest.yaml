@@ -1,0 +1,25 @@
+display_information:
+  name: Sammich Dev
+features:
+  bot_user:
+    display_name: Sammich Dev
+    always_online: false
+  slash_commands:
+    - command: /demo
+      description: Show demo output
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - channels:read
+      - commands
+      - groups:read
+      - im:read
+      - mpim:read
+      - users:read
+settings:
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
