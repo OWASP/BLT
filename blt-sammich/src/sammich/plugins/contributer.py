@@ -4,6 +4,7 @@ from machine.plugins.decorators import command
 
 GITHUB_API_URL = "https://github.com/OWASP-BLT/BLT"
 
+
 def fetch_github_data(owner, repo):
     prs = requests.get(
         f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed"
@@ -15,6 +16,7 @@ def fetch_github_data(owner, repo):
         f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments"
     ).json()
     return prs, issues, comments
+
 
 def format_data(prs, issues, comments):
     user_data = {}
@@ -45,6 +47,7 @@ def format_data(prs, issues, comments):
 
     return table
 
+
 class ContributorPlugin(MachineBasePlugin):
     """Contributor plugin"""
 
@@ -56,6 +59,4 @@ class ContributorPlugin(MachineBasePlugin):
         prs, issues, comments = fetch_github_data(owner, repo)
         formatted_data = format_data(prs, issues, comments)
 
-        await command.say(
-            formatted_data or "No data available"
-        )
+        await command.say(formatted_data or "No data available")
