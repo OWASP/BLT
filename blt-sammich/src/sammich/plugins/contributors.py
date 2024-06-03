@@ -41,10 +41,12 @@ def format_data(prs, issues, comments):
 
     table = [
         "User | PRs Merged | Issues Resolved | Comments",
-        "---- | ---------- | --------------- | --------"
+        "---- | ---------- | --------------- | --------",
     ]
     for user, counts in user_data.items():
-        table.append(f"{user} | {counts['prs']} | {counts['issues']} | {counts['comments']}")
+        table.append(
+            f"{user} | {counts['prs']} | {counts['issues']} | {counts['comments']}"
+        )
 
     return "\n".join(table)
 
