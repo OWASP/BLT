@@ -8,15 +8,18 @@ features:
     - command: /demo
       description: Show demo output
       should_escape: false
+    - command: /contributor
+      description: gives contributors report
+      should_escape: false
 oauth_config:
   scopes:
     bot:
-      - channels:read
       - commands
-      - groups:read
-      - im:read
-      - mpim:read
       - users:read
+      - channels:read
+      - groups:read
+      - mpim:read
+      - im:read
 settings:
   interactivity:
     is_enabled: true
