@@ -8,7 +8,6 @@ class CompanyApiClient {
 
   static Future<List<Company>> getListOfCompanies(String endpoint) async {
     String searchUrl = GeneralEndPoints.apiBaseUrl + endpoint;
-    print(searchUrl);
     List<Company> companiesList = [];
     try {
       var response = await http.get(Uri.parse(searchUrl));

@@ -10,5 +10,5 @@ class LeaderboardEndpoints {
       GeneralEndPoints.apiBaseUrl + "leaderboard/";
 
   static const String companyScoreboard =
-      GeneralEndPoints.apiBaseUrl + "scoreboard/";
+      GeneralEndPoints.apiBaseUrl + "leaderboard/?leaderboard_type=companies";
 }

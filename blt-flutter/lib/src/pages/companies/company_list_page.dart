@@ -75,6 +75,24 @@ class CompanyListPageState extends ConsumerState<CompanyListPage>
             fontSize: 20,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  RouteManager.companyScoreboardPage,
+                );
+              },
+              child: Icon(
+                Icons.leaderboard,
+                size: 23,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -128,7 +146,7 @@ class CompanyListPageState extends ConsumerState<CompanyListPage>
                     if (companyList!.isEmpty) {
                       return Center(
                         child: Text(
-                          "${AppLocalizations.of(context)!.notManyBugs}:) \n ${AppLocalizations.of(context)!.yay}",
+                          "No companies found !!",
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -187,6 +205,7 @@ class CompanyListElement extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    print(company.logoLink);
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pushNamed(

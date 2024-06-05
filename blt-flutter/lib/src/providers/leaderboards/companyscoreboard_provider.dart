@@ -10,6 +10,7 @@ final companyScoreboardProvider = StateNotifierProvider<
 class CompanyScoreboardNotifier
     extends StateNotifier<AsyncValue<List<Company>?>?> {
   final Reader read;
+
   AsyncValue<List<Company>?>? previousState;
 
   CompanyScoreboardNotifier(this.read, [AsyncValue<List<Company>>? companyList])

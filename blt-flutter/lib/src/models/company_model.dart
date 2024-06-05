@@ -11,6 +11,7 @@ class Company {
   String? facebook;
   int? openIssues;
   int? closedIssues;
+  int? issueCount;
   final DateTime lastModified;
   final String logoLink;
   final String topTester;
@@ -24,6 +25,7 @@ class Company {
     this.hexcolor,
     this.openIssues,
     this.closedIssues,
+    this.issueCount,
     this.lastModified,
     this.logoLink,
     this.topTester,
@@ -53,6 +55,7 @@ class Company {
       parsedJson["color"] ?? null,
       parsedJson["open"] ?? 0,
       parsedJson["closed"] ?? 0,
+      parsedJson["issue_count"] ?? 0,
       DateTime.parse(parsedJson["modified"]),
       parsedJson["logo"].toString(),
       parsedJson["top"] ?? "",

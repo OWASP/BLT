@@ -1,16 +1,40 @@
-import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
-import 'package:flutter/material.dart';
+import 'package:blt/src/pages/home/home_imports.dart';
 
-/// Page showing the top contributing companies on BLT.
-class CompanyScoreBoardPage extends StatefulWidget {
-  const CompanyScoreBoardPage({Key? key}) : super(key: key);
+class CompanyScoreboardPage extends ConsumerStatefulWidget {
+  const CompanyScoreboardPage({super.key});
 
   @override
-  State<CompanyScoreBoardPage> createState() => _CompanyScoreBoardPageState();
+  CompanyScoreboardPageState createState() => CompanyScoreboardPageState();
 }
 
-class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
-  late Future _getObj;
+ScrollController _scrollController = new ScrollController();
+
+class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
+    with TickerProviderStateMixin {
+  late AnimationController animationController;
+  late String paginatedUrl;
+  late Color companyColor;
+
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+
+  @override
+  void initState() {
+    paginatedUrl = IssueEndPoints.issues;
+    companyColor = Color(0xFFDC4654);
+
+    animationController =
+        AnimationController(duration: new Duration(seconds: 2), vsync: this);
+    animationController.repeat();
+
+    // _scrollController.addListener(() async {
+    //   if (_scrollController.position.pixels ==
+    //       _scrollController.position.maxScrollExtent) {
+    //     loadMoreIssues();
+    //   }
+    // });
+    super.initState();
+  }
 
   CircleAvatar buildLogo(String partUrl) {
     try {
@@ -27,7 +51,7 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
       else
         return CircleAvatar(
           foregroundImage: CachedNetworkImageProvider(
-            "https://storage.googleapis.com/bhfiles/" + partUrl,
+            GeneralEndPoints.apiBaseUrl + "media/" + partUrl,
           ),
           radius: 20,
         );
@@ -45,165 +69,222 @@ class _CompanyScoreBoardPageState extends State<CompanyScoreBoardPage> {
   }
 
   @override
-  void initState() {
-    var paginatedUrl = LeaderboardEndpoints.companyScoreboard;
-    _getObj = LeaderboardApiClient.getScoreBoardData(paginatedUrl);
-    super.initState();
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
+  void loadMoreIssues() {
+    // paginatedUrl = ref.watch(companyListProvider.notifier).nxtUrl!;
+    ref.watch(companyScoreboardProvider.notifier);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final Size size = MediaQuery.of(context).size;
+    final issueState = ref.watch(companyScoreboardProvider);
 
     return Scaffold(
+      backgroundColor: isDarkMode
+          ? Color.fromRGBO(34, 22, 23, 1)
+          : Theme.of(context).canvasColor,
       appBar: AppBar(
+        backgroundColor: companyColor,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(AppLocalizations.of(context)!.companyScoreboard),
-        backgroundColor: Color(0xFFDC4654),
+        title: Text(
+          "Company Leaderboard",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              width: size.width,
-              color: Theme.of(context).canvasColor,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-                    child: Text(
-                      AppLocalizations.of(context)!.companyScoreboard,
-                      style: GoogleFonts.ubuntu(
-                        textStyle: TextStyle(
-                          color: Color(0xFF737373),
-                          fontSize: 25,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
-                    child: Text(
-                      AppLocalizations.of(context)!.theseAreMostActiveCompanies,
-                      style: GoogleFonts.aBeeZee(
-                        textStyle: TextStyle(
-                          color: Color(0xFF737373),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              height: size.height * 0.8,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: FutureBuilder(
-                future: _getObj,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          AppLocalizations.of(context)!.somethingWentWrong,
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      );
-                    } else if (snapshot.hasData) {
-                      final list = snapshot.data as List;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 0.0,
-                          vertical: 20.0,
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: ListView.builder(
-                            itemCount: list.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                onTap: () async {
-                                  await CompanyApiClient.getCompanyByKeyWord(
-                                    list[index],
-                                    list[index].companyName,
-                                  );
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteManager.companyDetailPage,
-                                    arguments: list[index],
-                                  );
-                                },
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: index == 0
-                                      ? BorderRadius.only(
-                                          topLeft: Radius.circular(10),
-                                          topRight: Radius.circular(15),
-                                        )
-                                      : index == list.length - 1
-                                          ? BorderRadius.only(
-                                              bottomLeft: Radius.circular(10),
-                                              bottomRight: Radius.circular(10),
-                                            )
-                                          : BorderRadius.only(
-                                              topLeft: Radius.circular(0),
-                                            ),
-                                ),
-                                tileColor: Color(0xFFE0E0E0),
-                                leading: buildLogo(list[index].logoLink),
-                                title: Text(
-                                  list[index].companyName,
-                                  style: GoogleFonts.ubuntu(
-                                    textStyle: TextStyle(
-                                      color: Color(0xFFDC4654),
-                                    ),
-                                  ),
-                                  maxLines: 6,
-                                ),
-                                subtitle: Text(
-                                  AppLocalizations.of(context)!.open +
-                                      list[index].openIssues.toString() +
-                                      AppLocalizations.of(context)!.closed +
-                                      list[index].closedIssues.toString(),
-                                  style: GoogleFonts.aBeeZee(
-                                    textStyle: TextStyle(
-                                      color: Color(0xFF737373),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                trailing: Text(
-                                  list[index].topTester.toString(),
-                                  style: GoogleFonts.ubuntu(
-                                    textStyle: TextStyle(
-                                      color: Color(0xFF737373),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(companiesListProvider.notifier).refreshCompanyList();
+        },
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                width: size.width,
+                color: isDarkMode
+                    ? Color.fromRGBO(34, 22, 23, 1)
+                    : Theme.of(context).canvasColor,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
+                      child: Text(
+                        "Company Leaderboard",
+                        style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Color(0xFF737373),
+                            fontSize: 25,
                           ),
                         ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+                      child: Text(
+                        "Check out the list of awesome companies out here. Maybe try to fix there issues too?",
+                        style: GoogleFonts.aBeeZee(
+                          textStyle: TextStyle(
+                            color: Color(0xFF737373),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                // height: size.height * 0.8,
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: issueState!.when(
+                  data: (List<Company>? companyList) {
+                    if (companyList!.isEmpty) {
+                      return Center(
+                        child: Text(
+                          "No companies found !!",
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    } else {
+                      return ListView.separated(
+                        controller: _scrollController,
+                        itemCount: (companyList.length < 100)
+                            ? companyList.length
+                            : 100,
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          final company = companyList[index];
+                          return ListTile(
+                            onTap: () async {
+                              Navigator.pushNamed(
+                                context,
+                                RouteManager.companyDetailPageWithIssues,
+                                arguments: Company(
+                                    company.id,
+                                    company.companyName,
+                                    company.email,
+                                    company.url,
+                                    company.hexcolor,
+                                    company.openIssues,
+                                    company.closedIssues,
+                                    company.issueCount,
+                                    company.lastModified,
+                                    GeneralEndPoints.apiBaseUrl +
+                                        "media/" +
+                                        company.logoLink,
+                                    company.topTester,
+                                    company.twitter,
+                                    company.facebook,
+                                    company.isActive),
+                              );
+                            },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: index == 0
+                                  ? BorderRadius.only(
+                                      topLeft: Radius.circular(10),
+                                      topRight: Radius.circular(15),
+                                    )
+                                  : index ==
+                                          ((companyList.length < 100)
+                                                  ? companyList.length
+                                                  : 100) -
+                                              1
+                                      ? BorderRadius.only(
+                                          bottomLeft: Radius.circular(10),
+                                          bottomRight: Radius.circular(10),
+                                        )
+                                      : BorderRadius.only(
+                                          topLeft: Radius.circular(0),
+                                        ),
+                            ),
+                            tileColor: (index == 0)
+                                ? Color.fromARGB(255, 248, 207, 85)
+                                : (index == 1)
+                                    ? Color.fromARGB(255, 191, 189, 189)
+                                    : (index == 2)
+                                        ? Color.fromARGB(255, 224, 142, 112)
+                                        : Color(0xFFE0E0E0),
+                            leading: buildLogo(company.logoLink),
+                            title: Text(
+                              company.companyName,
+                              style: GoogleFonts.ubuntu(
+                                textStyle: TextStyle(
+                                  color: Color(0xFFDC4654),
+                                ),
+                              ),
+                              maxLines: 6,
+                            ),
+                            subtitle: Text(
+                              "Total issue count: ${company.issueCount}",
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  color: Color(0xFF737373),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            trailing: Text(
+                              "# ${index + 1}",
+                              style: GoogleFonts.ubuntu(
+                                textStyle: TextStyle(
+                                  color: Color(0xFF737373),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder: (BuildContext context, int index) {
+                          return SizedBox(height: 10);
+                        },
                       );
                     }
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                },
+                  },
+                  error: (Object error, StackTrace? stackTrace) {
+                    return Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.somethingWentWrong,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    );
+                  },
+                  loading: () {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: animationController.drive(
+                          ColorTween(
+                            begin: Colors.blueAccent,
+                            end: Colors.red,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

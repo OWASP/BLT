@@ -271,7 +271,7 @@ class RouteManager {
       case companyScoreboardPage:
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const CompanyScoreBoardPage(),
+              const CompanyScoreboardPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

@@ -219,7 +219,7 @@ class CompanyDetailWithIssuesState
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              RouteManager.closedIssues,
+                              RouteManager.openIssues,
                               arguments: company,
                             );
                           },
@@ -356,9 +356,8 @@ class CompanyDetailWithIssuesState
                               child: InkWell(
                                 onTap: () {
                                   Navigator.pushNamed(
-                                    context,
-                                    RouteManager.monthlyLeaderboardPage,
-                                  );
+                                      context, RouteManager.closedIssues,
+                                      arguments: company);
                                 },
                                 child: ListView.builder(
                                   padding: EdgeInsets.zero,

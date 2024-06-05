@@ -68,17 +68,13 @@ class LeaderboardApiClient {
     });
   }
 
-  static Future<List<Company>> getScoreBoardData(String paginatedUrl) async {
-    return http
-        .get(
-      Uri.parse(paginatedUrl),
-    )
-        .then((http.Response response) {
-      List<Company> companies =
-          (json.decode(utf8.decode(response.bodyBytes)) as List)
-              .map((data) => Company.fromJson(data))
-              .toList();
-      return companies;
-    });
+  static Future<List<Company>> getScoreBoardData(String? paginatedUrl) async {
+    var req = await http.get(
+      Uri.parse(paginatedUrl!),
+    );
+    var response = jsonDecode(req.body);
+    return (response["results"] as List)
+        .map((data) => Company.fromJson(data))
+        .toList();
   }
 }
