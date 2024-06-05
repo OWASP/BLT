@@ -1,19 +1,23 @@
+import os
+
 import requests
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
 GITHUB_API_URL = "https://api.github.com"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def fetch_github_data(owner, repo):
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     prs = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed"
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed", headers=headers
     ).json()
     issues = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed"
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed", headers=headers
     ).json()
     comments = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments"
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments", headers=headers
     ).json()
     return prs, issues, comments
 
