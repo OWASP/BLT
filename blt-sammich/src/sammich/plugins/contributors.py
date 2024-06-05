@@ -1,8 +1,11 @@
 import os
 
 import requests
+from dotenv import load_dotenv
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
+
+load_dotenv()
 
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
