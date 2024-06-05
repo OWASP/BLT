@@ -23,5 +23,3 @@ To contribute to our project, follow these steps:
 We've created a video tutorial on how to contribute to our repository. You can watch it [here](https://www.loom.com/share/4b0f414ed3974f44a14659532b855e79?sid=e5d85c12-8782-4341-900b-3f978f9a9fd2).
 If you need any assistance or have any questions, please reach out to us on Slack.
 Thank you for contributing to our BLT Lettuce project!
-
-test
