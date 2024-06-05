@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "lettucetoolkit"
+version = "0.1.0"
+description = ""
+authors = ["Sarthak5598 <sarthak5598sharma@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
+gitpython = "^3.1.43"
+slack-machine = "^0.37.0"
+slackeventsapi = "^3.0.1"
+slack-sdk = "^3.27.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

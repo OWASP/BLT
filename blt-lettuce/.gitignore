@@ -1,3 +1,4 @@
 .env
 .ruff_cache
 *.code-workspace
+.secrets
