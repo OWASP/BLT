@@ -4,7 +4,7 @@ import requests
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
-project_json_path = "/home/DonnieBLT/BLT-Lettuce/projects.json"
+project_json_path = "Lettuce/projects.json"
 with open(project_json_path) as f:
     project_data = json.load(f)
 
