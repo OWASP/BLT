@@ -12,12 +12,11 @@ class RepoPlugin(MachineBasePlugin):
     @command("/repo")
     async def repo(self, command):
         text = command.text.strip()
-        user_name = command.user_name
         tech_name = text.lower()
         repos = repos_data.get(tech_name)
         if repos:
             repos_list = "\n".join(repos)
-            message = f"Hello {user_name}, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
+            message = f"Hello, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
         else:
-            message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+            message = f"Hello , the technology '{tech_name}' is not recognized. Please try again."
         await command.say(message)
