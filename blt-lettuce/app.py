@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 import git
 from dotenv import load_dotenv
@@ -40,14 +41,19 @@ client.chat_postMessage(
 #        logging.info(f"Body: {request.get_data(as_text=True)}")
 
 
-repo_json_path = "/home/DonnieBLT/BLT-Lettuce/repo.json"
+# Determine the root directory (assumes the script is run from the root folder)
+root_dir = Path(__file__).resolve().parent
+
+# Construct the paths to the JSON files
+repo_json_path = root_dir / "repo.json"
+project_json_path = root_dir / "projects.json"
+
+# Load the JSON data
 with open(repo_json_path) as f:
     repos_data = json.load(f)
 
-project_json_path = "/home/DonnieBLT/BLT-Lettuce/projects.json"
 with open(project_json_path) as f:
     project_data = json.load(f)
-
 
 @app.route("/update_server", methods=["POST"])
 def webhook():
