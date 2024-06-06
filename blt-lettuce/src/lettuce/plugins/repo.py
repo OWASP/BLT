@@ -10,7 +10,7 @@ with open(repo_json_path) as f:
 
 
 class RepoPlugin(MachineBasePlugin):
-    @command("/project")
+    @command("/repo")
     async def project(self, command):
         data = requests.form
         text = data.get("text")
