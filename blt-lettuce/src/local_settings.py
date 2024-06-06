@@ -8,4 +8,5 @@ SLACK_BOT_TOKEN = secrets.get("SLACK_BOT_TOKEN")
 PLUGINS = (
     "lettuce.plugins.project.ProjectPlugin",
     "lettuce.plugins.repo.RepoPlugin",
+    "lettuce.plugins.demo.DemoPlugin",
 )

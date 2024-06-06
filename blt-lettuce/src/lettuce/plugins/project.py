@@ -1,6 +1,5 @@
 import json
 
-import requests
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
@@ -12,9 +11,8 @@ with open(project_json_path) as f:
 class ProjectPlugin(MachineBasePlugin):
     @command("/project")
     async def project(self, command):
-        data = requests.form
-        text = data.get("text")
-        user_name = data.get("user_name")
+        text = command.text.strip()
+        user_name = command.user_name
         project_name = text.strip().lower()
 
         project = project_data.get(project_name)
@@ -25,4 +23,4 @@ class ProjectPlugin(MachineBasePlugin):
         else:
             message = f"Hello {user_name}, the project '{project_name}' is not recognized. Please try different query."
 
-        command.say(message)
+        await command.say(message)
