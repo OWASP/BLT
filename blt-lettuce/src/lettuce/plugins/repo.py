@@ -4,14 +4,14 @@ import requests
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
-repo_json_path = "/home/DonnieBLT/BLT-Lettuce/repo.json"
+repo_json_path = "Lettuce/repo.json"
 with open(repo_json_path) as f:
     repos_data = json.load(f)
 
 
 class RepoPlugin(MachineBasePlugin):
-    @command("/project")
-    async def project(self, command):
+    @command("/repo")
+    async def repo(self, command):
         data = requests.form
         text = data.get("text")
         user_name = data.get("user_name")
