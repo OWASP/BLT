@@ -55,6 +55,7 @@ with open(repo_json_path) as f:
 with open(project_json_path) as f:
     project_data = json.load(f)
 
+
 @app.route("/update_server", methods=["POST"])
 def webhook():
     if request.method == "POST":
