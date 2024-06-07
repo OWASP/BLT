@@ -15,25 +15,15 @@ load_dotenv()
 
 app = Flask(__name__)
 
-slack_events_adapter = SlackEventAdapter(
-    os.environ["SIGNING_SECRET"], "/slack/events", app
-)
+slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(
-    channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top"
-)
+client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top")
 
 
 def fetch_github_data(owner, repo):
-    prs = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed"
-    ).json()
-    issues = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed"
-    ).json()
-    comments = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments"
-    ).json()
+    prs = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed").json()
+    issues = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed").json()
+    comments = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments").json()
     return prs, issues, comments
 
 
@@ -58,11 +48,12 @@ def format_data(prs, issues, comments):
             user_data[user] = {"prs": 0, "issues": 0, "comments": 0}
         user_data[user]["comments"] += 1
 
-    table = "User | PRs Merged | Issues Resolved | Comments\n ---- | ---------- | --------------- | --------\n"
+    table = (
+        "User | PRs Merged | Issues Resolved | Comments\n"
+        " ---- | ---------- | --------------- | --------\n"
+    )
     for user, counts in user_data.items():
-        table += (
-            f"{user} | {counts['prs']} | {counts['issues']} | {counts['comments']}\n"
-        )
+        table += f"{user} | {counts['prs']} | {counts['issues']} | {counts['comments']}\n"
 
     return table
 
