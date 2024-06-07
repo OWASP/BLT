@@ -1,3 +1,5 @@
+__pycache__
 .env
 .ruff_cache
+.secrets
 *.code-workspace
