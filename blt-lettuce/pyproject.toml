@@ -14,6 +14,9 @@ gitpython = "^3.1.43"
 slack-machine = "^0.37.0"
 slackeventsapi = "^3.0.1"
 slack-sdk = "^3.27.2"
+pytest = "^8.2.2"
+pytest-mock = "^3.14.0"
+pytest-asyncio = "^0.23.7"
 
 [build-system]
 requires = ["poetry-core"]
