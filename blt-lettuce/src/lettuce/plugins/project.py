@@ -23,10 +23,10 @@ class ProjectPlugin(MachineBasePlugin):
 
         if project:
             project_list = "\n".join(project)
-            message = f"Hello , here the information about '{project_name}':\n{project_list}"
+            message = f"Hello, here the information about '{project_name}':\n{project_list}"
         else:
             message = (
-                f"Hello , the project '{project_name}' is not recognized. "
+                f"Hello, the project '{project_name}' is not recognized. "
                 "Please try different query."
             )
 
