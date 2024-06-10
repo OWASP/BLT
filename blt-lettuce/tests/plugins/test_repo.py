@@ -1,16 +1,6 @@
-import json
-
 import pytest
 
 from lettuce.plugins.repo import RepoPlugin
-
-repo_json_path = "data/repos.json"
-with open(repo_json_path) as f:
-    repos_data = json.load(f)
-
-project_json_path = "data/projects.json"
-with open(project_json_path) as f:
-    project_data = json.load(f)
 
 
 class TestRepoPlugin:
