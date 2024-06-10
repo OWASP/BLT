@@ -24,13 +24,9 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-slack_events_adapter = SlackEventAdapter(
-    os.environ["SIGNING_SECRET"], "/slack/events", app
-)
+slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(
-    channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top"
-)
+client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.8 24-05-28 top")
 
 # keep for debugging purposes
 # @app.before_request
@@ -96,7 +92,8 @@ def handle_member_joined_channel(event_data):
     # send a message to the user if they joined the #owasp-community channel
 
     client.chat_postMessage(
-        channel=channel_id, text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!"
+        channel=channel_id,
+        text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!",
     )
 
 
@@ -142,10 +139,7 @@ def handle_message(payload):
     if message.get("user") != bot_user_id:
         if (
             message.get("subtype") is None
-            and not any(
-                keyword in message.get("text", "").lower()
-                for keyword in ["#contribute"]
-            )
+            and not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"])
             and any(
                 keyword in message.get("text", "").lower()
                 for keyword in ("contribute", "contributing", "contributes")
@@ -156,7 +150,10 @@ def handle_message(payload):
             logging.info(f"detected contribute sending to channel: {channel}")
             response = client.chat_postMessage(
                 channel=channel,
-                text=f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> for contributing guidelines today!",
+                text=(
+                    f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> "
+                    "for contributing guidelines today!"
+                ),
             )
             if not response["ok"]:
                 client.chat_postMessage(
@@ -171,13 +168,9 @@ def handle_message(payload):
 
         try:
             if message.get("user") != bot_user_id:
-                client.chat_postMessage(
-                    channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}"
-                )
+                client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
             # Respond to the direct message
-            client.chat_postMessage(
-                channel=user, text=f"Hello <@{user}>, you said: {text}"
-            )
+            client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
         except SlackApiError as e:
             print(f"Error sending response: {e.response['error']}")
 
@@ -193,9 +186,14 @@ def list_repo():
 
     if repos:
         repos_list = "\n".join(repos)
-        message = f"Hello {user_name}, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
+        message = (
+            f"Hello {user_name}, you can implement your '{tech_name}' "
+            f"knowledge here:\n{repos_list}"
+        )
     else:
-        message = f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+        message = (
+            f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
+        )
 
     return jsonify(
         {
@@ -216,9 +214,14 @@ def list_project():
 
     if project:
         project_list = "\n".join(project)
-        message = f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
+        message = (
+            f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
+        )
     else:
-        message = f"Hello {user_name}, the project '{project_name}' is not recognized. Please try different query."
+        message = (
+            f"Hello {user_name}, the project '{project_name}' is not recognized. "
+            "Please try different query."
+        )
 
     return jsonify(
         {
