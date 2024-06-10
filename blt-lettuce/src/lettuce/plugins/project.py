@@ -1,20 +1,25 @@
 import json
 
+from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
-
-project_json_path = "projects.json"
-with open(project_json_path) as f:
-    project_data = json.load(f)
+from machine.storage import PluginStorage
+from machine.utils.collections import CaseInsensitiveDict
 
 
 class ProjectPlugin(MachineBasePlugin):
+    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
+        super().__init__(client, settings, storage)
+
+        with open("data/projects.json") as f:
+            self.project_data = json.load(f)
+
     @command("/project")
     async def project(self, command):
         text = command.text.strip()
         project_name = text.strip().lower()
 
-        project = project_data.get(project_name)
+        project = self.project_data.get(project_name)
 
         if project:
             project_list = "\n".join(project)
