@@ -10,7 +10,7 @@ with open(repo_json_path) as f:
 
 class RepoPlugin(MachineBasePlugin):
     @command("/repo")
-    async def show_repo_options(self, command):        
+    async def repo(self, command):        
         text = command.text.strip().lower()
         repos = repos_data.get(text)
         if repos:
