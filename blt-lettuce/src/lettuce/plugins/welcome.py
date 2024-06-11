@@ -3,10 +3,12 @@ from machine.plugins.decorators import process
 
 
 class WelcomePlugin(MachineBasePlugin):
-    @process("member_joined_channel")
+    @process("team_join")
     async def welcome(self, event):
-        user_id = event['user']
-        channel_id = event['channel']
+        user_id = event['user']['id']
+
+        response = await self.web_client.conversations_open(users=[user_id])
+        dm_channel_id = response['channel']['id']
 
         welcome_message = self.get_welcome_message(user_id)
 
@@ -20,7 +22,7 @@ class WelcomePlugin(MachineBasePlugin):
             }
         ]
 
-        await self.say(channel=channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks)
+        await self.say(channel=dm_channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks)
 
 
     def get_welcome_message(self, user_id):
