@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from lettuce.plugins.welcome.welcome import WelcomePlugin
+
 
 @pytest.mark.asyncio
 async def test_welcome_plugin(mocker):
@@ -11,28 +14,22 @@ async def test_welcome_plugin(mocker):
     welcome_message_content = "Hello, <@{user_id}>! Welcome!"
 
     plugin = WelcomePlugin(client=mock_client, settings=mock_settings, storage=mock_storage)
-    with patch.object(plugin, 'welcome_message_template', welcome_message_content):
+    with patch.object(plugin, "welcome_message_template", welcome_message_content):
         plugin.say = AsyncMock()
 
-        event = {
-            'user': {'id': 'U1234567890'}
-        }
+        event = {"user": {"id": "U1234567890"}}
 
         # Mock the conversations_open API response using patch
-        with patch.object(plugin.web_client, 'conversations_open', AsyncMock(return_value={'channel': {'id': 'D1234567890'}})):
+        with patch.object(
+            plugin.web_client,
+            "conversations_open",
+            AsyncMock(return_value={"channel": {"id": "D1234567890"}}),
+        ):
             await plugin.welcome(event)
 
-        expected_message = welcome_message_content.strip().format(user_id='U1234567890')
+        expected_message = welcome_message_content.strip().format(user_id="U1234567890")
         plugin.say.assert_called_once_with(
-            channel='D1234567890',
-            text='Welcome to the OWASP Slack Community!',
-            blocks=[
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": expected_message
-                    }
-                }
-            ]
+            channel="D1234567890",
+            text="Welcome to the OWASP Slack Community!",
+            blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": expected_message}}],
         )
