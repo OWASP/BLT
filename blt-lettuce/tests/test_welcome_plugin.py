@@ -10,30 +10,29 @@ async def test_welcome_plugin(mocker):
 
     welcome_message_content = "Hello, <@{user_id}>! Welcome!"
 
-    with patch('builtins.open', mocker.mock_open(read_data=welcome_message_content)):
-        plugin = WelcomePlugin(client=mock_client, settings=mock_settings, storage=mock_storage)
-    
-    plugin.say = AsyncMock()
+    plugin = WelcomePlugin(client=mock_client, settings=mock_settings, storage=mock_storage)
+    with patch.object(plugin, 'welcome_message_template', welcome_message_content):
+        plugin.say = AsyncMock()
 
-    event = {
-        'user': {'id': 'U1234567890'}
-    }
+        event = {
+            'user': {'id': 'U1234567890'}
+        }
 
-    # Mock the conversations_open API response using patch
-    with patch.object(plugin.web_client, 'conversations_open', AsyncMock(return_value={'channel': {'id': 'D1234567890'}})):
-        await plugin.welcome(event)
+        # Mock the conversations_open API response using patch
+        with patch.object(plugin.web_client, 'conversations_open', AsyncMock(return_value={'channel': {'id': 'D1234567890'}})):
+            await plugin.welcome(event)
 
-    expected_message = welcome_message_content.strip().format(user_id='U1234567890')
-    plugin.say.assert_called_once_with(
-        channel='D1234567890',
-        text='Welcome to the OWASP Slack Community!',
-        blocks=[
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": expected_message
+        expected_message = welcome_message_content.strip().format(user_id='U1234567890')
+        plugin.say.assert_called_once_with(
+            channel='D1234567890',
+            text='Welcome to the OWASP Slack Community!',
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": expected_message
+                    }
                 }
-            }
-        ]
-    )
+            ]
+        )
