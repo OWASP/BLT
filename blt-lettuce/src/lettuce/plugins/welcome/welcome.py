@@ -7,7 +7,7 @@ class WelcomePlugin(MachineBasePlugin):
         self.welcome_message_template = self.load_welcome_message_template()
 
     def load_welcome_message_template(self):
-        with open("welcome_message.txt", "r", encoding="utf-8") as file:
+        with open("src/lettuce/plugins/welcome/welcome_message.txt", "r", encoding="utf-8") as file:
             return file.read()
 
     @process("team_join")
