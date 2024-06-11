@@ -9,5 +9,5 @@ PLUGINS = (
     "lettuce.plugins.project.ProjectPlugin",
     "lettuce.plugins.repo.RepoPlugin",
     "lettuce.plugins.demo.DemoPlugin",
-    "lettuce.plugins.welcome.WelcomePlugin",
+    "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )

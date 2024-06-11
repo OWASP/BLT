@@ -1,8 +1,15 @@
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import process
 
-
 class WelcomePlugin(MachineBasePlugin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.welcome_message_template = self.load_welcome_message_template()
+
+    def load_welcome_message_template(self):
+        with open("welcome_message.txt", "r", encoding="utf-8") as file:
+            return file.read()
+
     @process("team_join")
     async def welcome(self, event):
         user_id = event['user']['id']
@@ -10,7 +17,7 @@ class WelcomePlugin(MachineBasePlugin):
         response = await self.web_client.conversations_open(users=[user_id])
         dm_channel_id = response['channel']['id']
 
-        welcome_message = self.get_welcome_message(user_id)
+        welcome_message = self.welcome_message_template.format(user_id=user_id)
 
         blocks = [
             {
@@ -23,9 +30,3 @@ class WelcomePlugin(MachineBasePlugin):
         ]
 
         await self.say(channel=dm_channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks)
-
-
-    def get_welcome_message(self, user_id):
-        with open("welcome_message.txt", "r", encoding="utf-8") as file:
-            message = file.read()
-        return message.format(user_id=user_id)

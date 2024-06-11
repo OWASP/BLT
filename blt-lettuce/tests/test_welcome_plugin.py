@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from src.lettuce.plugins.welcome import WelcomePlugin  # Adjust the import according to your project structure
+from src.lettuce.plugins.welcome.welcome import WelcomePlugin  # Adjust the import according to your project structure
 
 @pytest.mark.asyncio
 async def test_welcome_plugin(mocker):
