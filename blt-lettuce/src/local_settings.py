@@ -1,4 +1,5 @@
 from dotenv import dotenv_values
+import os
 
 secrets = dotenv_values(".secrets")
 
