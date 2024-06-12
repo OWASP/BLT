@@ -1,21 +1,27 @@
 import json
 import re
+
+from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command, action
-
-# Load repo data from JSON file
-repo_json_path = "repo.json"
-with open(repo_json_path) as f:
-    repos_data = json.load(f)
+from machine.storage import PluginStorage
+from machine.utils.collections import CaseInsensitiveDict
 
 class RepoPlugin(MachineBasePlugin):
+    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
+        super().__init__(client, settings, storage)
+
+        with open("data/repos.json") as f:
+            self.repo_data = json.load(f)
+
     @command("/repo")
-    async def repo(self, command):        
-        text = command.text.strip().lower()
-        repos = repos_data.get(text)
+    async def repo(self, command):
+        tech_name = command.text.strip().lower()
+
+        repos = self.repo_data.get(tech_name)
         if repos:
             repos_list = "\n".join(repos)
-            message = f"Hello, you can implement your '{text}' knowledge here:\n{repos_list}"
+            message = f"Hello, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
             await command.say(message)
         else:
             message_preview = {
@@ -36,7 +42,7 @@ class RepoPlugin(MachineBasePlugin):
                                 "text": {"type": "plain_text", "text": tech},
                                 "value": tech,
                                 "action_id": f"button_{tech}"
-                            } for tech in repos_data.keys()
+                            } for tech in self.repo_data.keys()
                         ]
                     }
                 ]
@@ -55,7 +61,7 @@ class RepoPlugin(MachineBasePlugin):
     async def handle_button_click(self, action):
         # Extract the clicked button's value
         clicked_button_value = action.payload.actions[0].value
-        repos = repos_data.get(clicked_button_value)
+        repos = self.repo_data.get(clicked_button_value)
         repos_list = "\n".join(repos)
         message = f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
         await action.say(message)
