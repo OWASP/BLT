@@ -13,10 +13,10 @@ os.environ.pop('HTTPS_PROXY', None)
 os.environ.pop('http_proxy', None)
 os.environ.pop('https_proxy', None)
 
-os.environ['HTTP_PROXY'] = "https://api.slack.com
-os.environ['HTTPS_PROXY'] = "https://api.slack.com
-os.environ['http_proxy'] = "https://api.slack.com
-os.environ['https_proxy'] = "https://api.slack.com
+os.environ['HTTP_PROXY'] = "https://api.slack.com"
+os.environ['HTTPS_PROXY'] = "https://api.slack.com"
+os.environ['http_proxy'] = "https://api.slack.com"
+os.environ['https_proxy'] = "https://api.slack.com"
 
 
 
