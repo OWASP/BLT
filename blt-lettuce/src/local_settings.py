@@ -19,3 +19,5 @@ PLUGINS = (
     "lettuce.plugins.update_server.UpdateServerPlugin",
     "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )
+
+HTTP_PROXY = proxy
