@@ -13,10 +13,10 @@ os.environ.pop('HTTPS_PROXY', None)
 os.environ.pop('http_proxy', None)
 os.environ.pop('https_proxy', None)
 
-os.environ['HTTP_PROXY'] = "https://proxy.server:3128"
-os.environ['HTTPS_PROXY'] = "https://proxy.server:3128"
-os.environ['http_proxy'] = "https://proxy.server:3128"
-os.environ['https_proxy'] = "https://proxy.server:3128"
+os.environ['HTTP_PROXY'] = "proxy.server:3128"
+os.environ['HTTPS_PROXY'] = "proxy.server:3128"
+os.environ['http_proxy'] = "proxy.server:3128"
+os.environ['https_proxy'] = "proxy.server:3128"
 
 
 
