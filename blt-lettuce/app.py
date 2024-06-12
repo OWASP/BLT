@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611 top")
+client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top")
 
 # keep for debugging purposes
 # @app.before_request
