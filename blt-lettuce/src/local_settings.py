@@ -7,9 +7,11 @@ SLACK_APP_TOKEN = secrets.get("SLACK_APP_TOKEN")
 SLACK_BOT_TOKEN = secrets.get("SLACK_BOT_TOKEN")
 
 #test
-proxy = ""
-os.environ['HTTP_PROXY'] = proxy
-os.environ['HTTPS_PROXY'] = proxy
+# Unset proxy environment variables
+os.environ.pop('HTTP_PROXY', None)
+os.environ.pop('HTTPS_PROXY', None)
+os.environ.pop('http_proxy', None)
+os.environ.pop('https_proxy', None)
 
 PLUGINS = (
     "lettuce.plugins.project.ProjectPlugin",
@@ -20,5 +22,5 @@ PLUGINS = (
     "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )
 
-HTTP_PROXY = proxy
-HTTPS_PROXY = proxy
+HTTP_PROXY = None
+HTTPS_PROXY = None
