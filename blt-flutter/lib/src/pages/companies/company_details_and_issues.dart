@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:primer_progress_bar/primer_progress_bar.dart';
 
 class CompanyDetailWithIssues extends ConsumerStatefulWidget {
   const CompanyDetailWithIssues({super.key, required this.company});
@@ -16,7 +17,8 @@ class CompanyDetailWithIssuesState
   late AnimationController animationController;
   late String paginatedUrl;
   late Color companyColor;
-  late List<Issue> openIssues, closedIssues;
+  List<Issue> openIssues = [], closedIssues = [];
+  List<Segment> segments = [];
   bool loading = true;
 
   static const TextStyle optionStyle =
@@ -48,11 +50,27 @@ class CompanyDetailWithIssuesState
     IssueData? response =
         await IssueApiClient.getIssueByStatus("open", widget.company.url!);
     openIssues = response!.issueList ?? [];
-    print(openIssues.length);
     response =
         await IssueApiClient.getIssueByStatus("closed", widget.company.url!);
     closedIssues = response!.issueList ?? [];
-    print(closedIssues.length);
+
+    // intialize the segments
+    segments = [
+      Segment(
+        value: closedIssues.length,
+        color: Color.fromARGB(255, 101, 205, 105),
+        label: Text(
+          "Closed",
+        ),
+      ),
+      Segment(
+        value: openIssues.length,
+        color: Colors.deepOrange,
+        label: Text(
+          "Open",
+        ),
+      ),
+    ];
     setState(() {
       loading = false;
     });
@@ -135,15 +153,47 @@ class CompanyDetailWithIssuesState
                     ),
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 10),
               ],
               Container(
                 width: double.infinity,
                 height: 50,
                 child: Builder(builder: (context) {
                   return TextButton(
+                    onPressed: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                            appBar: AppBar(
+                              backgroundColor: companyColor,
+                              leading: IconButton(
+                                icon: Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              centerTitle: true,
+                              title: Text(
+                                "Report Issue",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            body: ReportBug(
+                              reportPageDefaults: ReportPageDefaults(),
+                              company: company,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                     child: Text(
-                      "Subscribe",
+                      "Report Issue",
                       style: GoogleFonts.ubuntu(
                         textStyle: TextStyle(
                           color: Colors.white,
@@ -163,12 +213,98 @@ class CompanyDetailWithIssuesState
                             : Color(0xFFDC4654),
                       ),
                     ),
-                    onPressed: () async {},
                   );
                 }),
               ),
-              SizedBox(height: 10),
-
+              // SizedBox(height: 10),
+              // Container(
+              //   width: double.infinity,
+              //   height: 50,
+              //   child: Builder(builder: (context) {
+              //     return TextButton(
+              //       child: Text(
+              //         "Subscribe",
+              //         style: GoogleFonts.ubuntu(
+              //           textStyle: TextStyle(
+              //             color: Colors.white,
+              //             fontSize: 20,
+              //           ),
+              //         ),
+              //       ),
+              //       style: ButtonStyle(
+              //         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              //           RoundedRectangleBorder(
+              //             borderRadius: BorderRadius.circular(8.0),
+              //           ),
+              //         ),
+              //         backgroundColor: WidgetStateProperty.all(
+              //           isDarkMode
+              //               ? Color.fromRGBO(126, 33, 58, 1)
+              //               : Color(0xFFDC4654),
+              //         ),
+              //       ),
+              //       onPressed: () async {},
+              //     );
+              //   }),
+              // ),
+              SizedBox(height: 20),
+              // About Us Section: only if have a desc
+              if (company.description != null) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "About Us:",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFFDC4654),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "${company.description}",
+                    style: GoogleFonts.aBeeZee(
+                      textStyle: TextStyle(
+                        color: Color(0xFF737373),
+                      ),
+                    ),
+                    textAlign: TextAlign.justify,
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+              //  Progress Representation
+              if (closedIssues.length != 0 || openIssues.length != 0) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Progress",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFFDC4654),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                PrimerProgressBar(
+                  segments: segments,
+                  legendEllipsisBuilder: DefaultLegendEllipsisBuilder(
+                    segments: segments,
+                    color: Colors.grey,
+                    label: const Text("Other"),
+                    valueLabelBuilder: (value) => Text("$value%"),
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
               // Open Issues list
               Container(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 12),
@@ -184,7 +320,7 @@ class CompanyDetailWithIssuesState
                             style: GoogleFonts.ubuntu(
                               textStyle: TextStyle(
                                 color: Color(0xFFDC4654),
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -322,7 +458,7 @@ class CompanyDetailWithIssuesState
                                   style: GoogleFonts.ubuntu(
                                     textStyle: TextStyle(
                                       color: Color(0xFFDC4654),
-                                      fontSize: 16,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

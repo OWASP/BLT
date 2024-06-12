@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blt/src/pages/home/home_imports.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
@@ -5,8 +6,12 @@ import 'package:blt/src/pages/home/home_imports.dart';
 /// should be able to start bughunts.
 class ReportBug extends ConsumerStatefulWidget {
   final ReportPageDefaults reportPageDefaults;
-  const ReportBug({Key? key, required this.reportPageDefaults})
-      : super(key: key);
+  final Company? company;
+  ReportBug({
+    required this.reportPageDefaults,
+    this.company,
+  });
+
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ReportBugState();
 }
@@ -19,6 +24,7 @@ class _ReportBugState extends ConsumerState<ReportBug> {
       child: ReportForm(
         parentContext: context,
         reportPageDefaults: widget.reportPageDefaults,
+        company: widget.company,
       ),
     );
   }
@@ -27,11 +33,12 @@ class _ReportBugState extends ConsumerState<ReportBug> {
 class ReportForm extends ConsumerStatefulWidget {
   final BuildContext parentContext;
   final ReportPageDefaults reportPageDefaults;
-
-  const ReportForm({
+  final Company? company;
+  ReportForm({
     Key? key,
     required this.parentContext,
     required this.reportPageDefaults,
+    this.company,
   }) : super(key: key);
 
   @override
@@ -377,6 +384,11 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     }
     if (widget.reportPageDefaults.text != null) {
       _titleController.text = widget.reportPageDefaults.text!;
+    }
+    if (widget.company != null &&
+        widget.company?.url != null &&
+        widget.company?.url != "") {
+      _titleController.text = widget.company!.url!;
     }
     addFocusListener();
   }

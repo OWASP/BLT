@@ -4,6 +4,7 @@ import 'dart:ui';
 class Company {
   int? id;
   final String companyName;
+  String? description;
   String? email;
   String? url;
   String? hexcolor;
@@ -20,6 +21,7 @@ class Company {
   Company(
     this.id,
     this.companyName,
+    this.description,
     this.email,
     this.url,
     this.hexcolor,
@@ -50,6 +52,7 @@ class Company {
     return Company(
       parsedJson["id"] ?? null,
       parsedJson["name"],
+      parsedJson["description"] ?? null,
       parsedJson["email"] ?? null,
       parsedJson["url"] ?? null,
       parsedJson["color"] ?? null,

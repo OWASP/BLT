@@ -182,6 +182,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                                 arguments: Company(
                                     company.id,
                                     company.companyName,
+                                    company.description,
                                     company.email,
                                     company.url,
                                     company.hexcolor,
