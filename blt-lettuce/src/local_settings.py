@@ -7,7 +7,7 @@ SLACK_APP_TOKEN = secrets.get("SLACK_APP_TOKEN")
 SLACK_BOT_TOKEN = secrets.get("SLACK_BOT_TOKEN")
 
 #test
-proxy = "https://slack.com"
+proxy = ""
 os.environ['HTTP_PROXY'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
