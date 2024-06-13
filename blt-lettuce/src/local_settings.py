@@ -7,11 +7,6 @@ secrets = dotenv_values(".secrets")
 SLACK_APP_TOKEN = secrets.get("SLACK_APP_TOKEN")
 SLACK_BOT_TOKEN = secrets.get("SLACK_BOT_TOKEN")
 
-# test
-proxy = "http://proxy.server:3128"
-os.environ["HTTP_PROXY"] = proxy
-os.environ["HTTPS_PROXY"] = proxy
-
 PLUGINS = (
     "lettuce.plugins.project.ProjectPlugin",
     "lettuce.plugins.repo.RepoPlugin",
@@ -20,5 +15,3 @@ PLUGINS = (
     "lettuce.plugins.update_server.UpdateServerPlugin",
     "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )
-
-HTTP_PROXY = proxy
