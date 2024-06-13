@@ -44,7 +44,7 @@ class RepoPlugin(MachineBasePlugin):
                                 "type": "button",
                                 "text": {"type": "plain_text", "text": tech},
                                 "value": tech,
-                                "action_id": f"button_{tech}",
+                                "action_id": f"plugin_repo_button_{tech}",
                             }
                             for tech in self.repo_data.keys()
                         ],
@@ -56,7 +56,7 @@ class RepoPlugin(MachineBasePlugin):
                 channel=channel_id, blocks=message_preview["blocks"], text=fallback_message
             )
 
-    @action(action_id=re.compile(r"button_.*"), block_id=None)
+    @action(action_id=re.compile(r"plugin_repo_button_.*"), block_id=None)
     async def handle_button_click(self, action):
         clicked_button_value = action.payload.actions[0].value
         repos = self.repo_data.get(clicked_button_value)

@@ -73,7 +73,7 @@ async def test_repo_command_no_repo(repo_plugin, mock_command):
     """Test the repo command with a nonexistent repository."""
     mock_command.text.strip.return_value.lower.return_value = "nonexistent"
     await repo_plugin.repo(mock_command)
-    assert mock_command.say.call_count == 0
+    mock_command.say.assert_not_called()
     repo_plugin._web_client.return_value.chat_postMessage.assert_awaited_once()
 
 
