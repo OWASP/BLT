@@ -11,5 +11,5 @@ PLUGINS = (
     "lettuce.plugins.handle_messages.HandleMessagesPlugin",
     "lettuce.plugins.startup_message.StartupMessagePlugin",
     "lettuce.plugins.update_server.UpdateServerPlugin",
-    "lettuce.plugins.welcome.welcome.WelcomePlugin"
+    "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )
