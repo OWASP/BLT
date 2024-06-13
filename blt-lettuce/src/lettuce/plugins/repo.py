@@ -26,7 +26,7 @@ class RepoPlugin(MachineBasePlugin):
             message = f"Hello, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
             await command.say(message)
         else:
-            fallback_message = "Available technologies :"
+            fallback_message = "Available technologies:"
             message_preview = {
                 "blocks": [
                     {
