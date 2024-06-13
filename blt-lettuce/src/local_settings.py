@@ -4,6 +4,7 @@ secrets = dotenv_values(".secrets")
 
 SLACK_APP_TOKEN = secrets.get("SLACK_APP_TOKEN")
 SLACK_BOT_TOKEN = secrets.get("SLACK_BOT_TOKEN")
+SLACK_SIGNING_TOKEN = secrets.get("SLACK_SIGNING_TOKEN")
 
 
 PLUGINS = (
@@ -14,3 +15,5 @@ PLUGINS = (
     "lettuce.plugins.update_server.UpdateServerPlugin",
     "lettuce.plugins.welcome.welcome.WelcomePlugin",
 )
+
+USE_REQUEST_URL = True
