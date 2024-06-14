@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 import subprocess
 import json
+from importlib import import_module
+import asyncio
 
 # Function to import settings module dynamically
 def import_settings(settings_module_path):
@@ -97,7 +99,14 @@ def slack_events():
         logger.error(f"JSONDecodeError: {e}")
         return jsonify({'error': 'Invalid JSON'}), 400
 
-# Handle Slack slash commands and route to slack-machine
+# Function to load plugins
+def load_plugin(plugin_path):
+    module_name, class_name = plugin_path.rsplit('.', 1)
+    module = import_module(module_name)
+    cls = getattr(module, class_name)
+    return cls
+
+# Synchronous function to handle Slack slash commands
 @app.route('/slack/commands', methods=['POST'])
 def slack_commands():
     if request.content_type == 'application/x-www-form-urlencoded':
@@ -112,16 +121,22 @@ def slack_commands():
             )
             command = Command(slack_client, form_data)
 
-            # Assuming a `plugins` object that handles command routing in your slack-machine setup
-            from machine.plugins.base import MachineBasePlugin
-
-            # Find the appropriate plugin to handle the command
+            # Load plugins and find the correct one to handle the command
             response = None
-            for plugin in MachineBasePlugin.__subclasses__():
-                if hasattr(plugin, "handle_command"):
-                    response = plugin().handle_command(command)
-                    if response:
-                        break
+            command_name = form_data['command'].strip('/').lower()
+
+            async def execute_command():
+                for plugin_path in getattr(settings, "PLUGINS"):
+                    plugin_cls = load_plugin(plugin_path)
+                    plugin_instance = plugin_cls(slack_client, settings, None)  # Adjust storage as needed
+                    if hasattr(plugin_instance, command_name):
+                        command_method = getattr(plugin_instance, command_name)
+                        return await command_method(command)
+                return None
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            response = loop.run_until_complete(execute_command())
 
             if response:
                 response_message = {
