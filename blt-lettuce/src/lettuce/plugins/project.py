@@ -1,4 +1,5 @@
 import json
+import os
 
 from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
