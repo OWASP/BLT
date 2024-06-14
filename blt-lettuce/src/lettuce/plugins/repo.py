@@ -56,7 +56,7 @@ class RepoPlugin(MachineBasePlugin):
                 ]
             }
 
-            await self.web_client.chat_postMessage(
+            await command._client.client.chat_postMessage(
                 channel=channel_id, blocks=message_preview["blocks"], text=fallback_message
             )
 
@@ -68,4 +68,6 @@ class RepoPlugin(MachineBasePlugin):
         message = (
             f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
         )
-        await action.say(message)
+        await action._client.client.chat_postMessage(
+            channel=action.payload["channel"]["id"], text=message
+        )
