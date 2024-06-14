@@ -1,6 +1,5 @@
 import json
 import re
-import os
 
 from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
@@ -12,11 +11,9 @@ from machine.utils.collections import CaseInsensitiveDict
 class RepoPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
-        self.client = client
 
         # Construct the absolute path to repos.json
-        project_home = '/home/DonnieBLT/BLT-Lettuce'
-        data_path = os.path.join(project_home, 'data', 'repos.json')
+        data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'repos.json')
         with open(data_path) as f:
             self.repo_data = json.load(f)
 
@@ -57,18 +54,16 @@ class RepoPlugin(MachineBasePlugin):
                 ]
             }
 
-            await self.client.chat_postMessage(
+            await self.web_client.chat_postMessage(
                 channel=channel_id, blocks=message_preview["blocks"], text=fallback_message
             )
 
     @action(action_id=re.compile(r"plugin_repo_button_.*"), block_id=None)
     async def handle_button_click(self, action):
-        clicked_button_value = action.payload["actions"][0]["value"]
+        clicked_button_value = action.payload.actions[0].value
         repos = self.repo_data.get(clicked_button_value)
         repos_list = "\n".join(repos)
         message = (
             f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
         )
-        await self.client.chat_postMessage(
-            channel=action.payload["channel"]["id"], text=message
-        )
+        await action.say(message)
