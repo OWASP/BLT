@@ -56,18 +56,18 @@ class RepoPlugin(MachineBasePlugin):
                 ]
             }
 
-            await command._client.client.chat_postMessage(
+            await self.client.web_client.chat_postMessage(
                 channel=channel_id, blocks=message_preview["blocks"], text=fallback_message
             )
 
     @action(action_id=re.compile(r"plugin_repo_button_.*"), block_id=None)
     async def handle_button_click(self, action):
-        clicked_button_value = action.payload.actions[0].value
+        clicked_button_value = action.payload["actions"][0]["value"]
         repos = self.repo_data.get(clicked_button_value)
         repos_list = "\n".join(repos)
         message = (
             f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
         )
-        await action._client.client.chat_postMessage(
+        await self.client.web_client.chat_postMessage(
             channel=action.payload["channel"]["id"], text=message
         )
