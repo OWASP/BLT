@@ -12,6 +12,7 @@ from machine.utils.collections import CaseInsensitiveDict
 class RepoPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
+        self.client = client
 
         # Construct the absolute path to repos.json
         project_home = '/home/DonnieBLT/BLT-Lettuce'
