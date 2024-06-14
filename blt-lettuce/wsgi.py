@@ -1,14 +1,16 @@
 import os
 import sys
 import logging
-from flask import Flask
+from flask import Flask, request, jsonify
 from slack_sdk.web.async_client import AsyncWebClient
 from slackeventsapi import SlackEventAdapter
 from machine.clients.slack_request_url import SlackClientRequestURL
+from machine.clients.slack import SlackClient
+from machine.plugins.command import Command
 from dotenv import load_dotenv
 from zoneinfo import ZoneInfo
 import subprocess
-
+import json
 
 # Function to import settings module dynamically
 def import_settings(settings_module_path):
@@ -67,11 +69,11 @@ logger.debug(f"SLACK_SIGNING_TOKEN: {getattr(settings, 'SLACK_SIGNING_TOKEN', No
 # Create the Flask app
 app = Flask(__name__)
 
-# Initialize the Slack client
-slack_client = SlackClientRequestURL(
+# Initialize the Async Slack client
+async_slack_client = SlackClientRequestURL(
     AsyncWebClient(token=getattr(settings, 'SLACK_BOT_TOKEN', None)), ZoneInfo("UTC")
 )
-logger.info("slack_client is %s", slack_client)
+logger.info("slack_client is %s", async_slack_client)
 
 # Setting up the SlackEventAdapter
 slack_events_adapter = SlackEventAdapter(
@@ -79,26 +81,92 @@ slack_events_adapter = SlackEventAdapter(
 )
 logger.info("slack_events_adapter is %s", slack_events_adapter)
 
+# Logging incoming requests for debugging
+@app.before_request
+def log_request_info():
+    logger.debug('Headers: %s', request.headers)
+    logger.debug('Body: %s', request.get_data())
+
+# Handle Slack events
+@app.route('/slack/events', methods=['POST'])
+def slack_events():
+    try:
+        event_data = json.loads(request.data.decode('utf-8'))
+        return slack_events_adapter.server.event(request)
+    except json.JSONDecodeError as e:
+        logger.error(f"JSONDecodeError: {e}")
+        return jsonify({'error': 'Invalid JSON'}), 400
+
+# Handle Slack slash commands and route to slack-machine
+@app.route('/slack/commands', methods=['POST'])
+def slack_commands():
+    if request.content_type == 'application/x-www-form-urlencoded':
+        form_data = request.form.to_dict()
+        logger.debug(f"Form Data: {form_data}")
+
+        # Initialize the Slack client properly
+        try:
+            slack_client = SlackClient(
+                client=AsyncWebClient(token=getattr(settings, 'SLACK_BOT_TOKEN', None)),
+                tz=ZoneInfo("UTC")
+            )
+            command = Command(slack_client, form_data)
+
+            # Assuming a `plugins` object that handles command routing in your slack-machine setup
+            from machine.plugins.base import MachineBasePlugin
+
+            # Find the appropriate plugin to handle the command
+            response = None
+            for plugin in MachineBasePlugin.__subclasses__():
+                if hasattr(plugin, "handle_command"):
+                    response = plugin().handle_command(command)
+                    if response:
+                        break
+
+            if response:
+                response_message = {
+                    "response_type": "in_channel",
+                    "text": f"Command {form_data['command']} received and processed: {response}"
+                }
+            else:
+                response_message = {
+                    "response_type": "ephemeral",
+                    "text": f"Command {form_data['command']} could not be processed."
+                }
+
+        except ImportError as e:
+            logger.error(f"ImportError: {e}")
+            return jsonify({'error': 'Failed to import Slack module'}), 500
+        except Exception as e:
+            logger.error(f"Error processing command: {e}")
+            return jsonify({'error': f"Error processing command: {e}"}), 500
+
+        # Respond to the command
+        return jsonify(response_message)
+    else:
+        logger.error(f"Unsupported Content-Type: {request.content_type}")
+        return jsonify({'error': 'Unsupported Content-Type'}), 400
+
 # Adding event handlers for the SlackEventAdapter
 @slack_events_adapter.on("team_join")
 async def handle_team_join(event_data):
     event = event_data["event"]
-    await slack_client._on_team_join(event)
+    await async_slack_client._on_team_join(event)
 
 @slack_events_adapter.on("user_change")
 async def handle_user_change(event_data):
     event = event_data["event"]
-    await slack_client._on_user_change(event)
+    await async_slack_client._on_user_change(event)
 
 @slack_events_adapter.on("channel_created")
 async def handle_channel_created(event_data):
     event = event_data["event"]
-    await slack_client._on_channel_created(event)
+    await async_slack_client._on_channel_created(event)
 
 @slack_events_adapter.on("channel_deleted")
 async def handle_channel_deleted(event_data):
     event = event_data["event"]
-    await slack_client._on_channel_deleted(event)
+    await async_slack_client._on_channel_deleted(event)
 
 @slack_events_adapter.on("channel_rename")
 @slack_events_adapter.on("group_rename")
@@ -108,24 +176,22 @@ async def handle_channel_deleted(event_data):
 @slack_events_adapter.on("group_unarchive")
 async def handle_channel_updated(event_data):
     event = event_data["event"]
-    await slack_client._on_channel_updated(event)
+    await async_slack_client._on_channel_updated(event)
 
 @slack_events_adapter.on("channel_id_changed")
 async def handle_channel_id_changed(event_data):
     event = event_data["event"]
-    await slack_client._on_channel_id_changed(event)
+    await async_slack_client._on_channel_id_changed(event)
 
 @slack_events_adapter.on("member_joined_channel")
 async def handle_member_joined_channel(event_data):
     event = event_data["event"]
-    await slack_client._on_member_joined_channel(event)
+    await async_slack_client._on_member_joined_channel(event)
 
 # Define a simple route for the main Flask app
 @app.route('/')
 def hello_main():
     return "Hello from the main Flask app!"
-
-
 
 # If you need to start any background processes like slack-machine, you can do so here.
 # Example (adjust the command to suit your environment):
