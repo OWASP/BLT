@@ -13,8 +13,8 @@ class RepoPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
 
-        # Construct the absolute path to repos.json
-        data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'repos.json')
+        project_home = '/home/DonnieBLT/BLT-Lettuce'
+        data_path = os.path.join(project_home, 'data', 'repos.json')
         with open(data_path) as f:
             self.repo_data = json.load(f)
 
