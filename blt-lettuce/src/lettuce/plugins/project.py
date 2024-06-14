@@ -11,8 +11,11 @@ class ProjectPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
 
-        with open("data/projects.json") as f:
-            self.project_data = json.load(f)
+        # Construct the absolute path to repos.json
+        project_home = '/home/DonnieBLT/BLT-Lettuce'
+        data_path = os.path.join(project_home, 'data', 'projects.json')
+        with open(data_path) as f:
+            self.repo_data = json.load(f)
 
     @command("/project")
     async def project(self, command):
