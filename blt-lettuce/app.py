@@ -1,11 +1,10 @@
-import json
 import logging
 import os
 from pathlib import Path
 
 import git
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from slack import WebClient
 from slack_sdk.errors import SlackApiError
 from slackeventsapi import SlackEventAdapter
@@ -40,17 +39,6 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240
 # Determine the root directory (assumes the script is run from the root folder)
 root_dir = Path(__file__).resolve().parent
 
-# Construct the paths to the JSON files
-repo_json_path = root_dir / "repo.json"
-project_json_path = root_dir / "projects.json"
-
-# Load the JSON data
-with open(repo_json_path) as f:
-    repos_data = json.load(f)
-
-with open(project_json_path) as f:
-    project_data = json.load(f)
-
 
 @app.route("/update_server", methods=["POST"])
 def webhook():
@@ -72,16 +60,34 @@ def webhook():
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    # private channel for joins so it does not get noisy
+
+    # Post a message in the private joins channel
     response = client.chat_postMessage(
         channel=JOINS_CHANNEL_ID, text=f"<@{user_id}> joined the team."
     )
+
     if not response["ok"]:
         client.chat_postMessage(
             channel=DEPLOYS_CHANNEL_NAME,
             text=f"Error sending message: {response['error']}",
         )
         logging.error(f"Error sending message: {response['error']}")
+
+    try:
+        response = client.conversations_open(users=[user_id])
+        dm_channel_id = response["channel"]["id"]
+
+        with open("welcome_message.txt", "r", encoding="utf-8") as file:
+            welcome_message_template = file.read()
+
+        welcome_message = welcome_message_template.format(user_id=user_id)
+        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": welcome_message.strip()}}]
+
+        client.chat_postMessage(
+            channel=dm_channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks
+        )
+    except Exception as e:
+        logging.error(f"Error sending welcome message: {e}")
 
 
 @slack_events_adapter.on("member_joined_channel")
@@ -95,34 +101,6 @@ def handle_member_joined_channel(event_data):
         channel=channel_id,
         text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!",
     )
-
-
-# @app.command("/setcrypto")
-# def set_crypto_command(ack, say, command):
-#    ack()
-#    user_id = command["user_id"]
-#    crypto_name, address = command["text"].split()
-
-# Connect to the SQLite database
-#    conn = sqlite3.connect("crypto_addresses.db")
-#    cursor = conn.cursor()
-
-# Insert the user's data into the database
-#    cursor.execute(
-#        "INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)",
-#        (user_id, crypto_name, address),
-#    )
-#    conn.commit()
-#    conn.close()
-
-#    say(f"Your cryptocurrency address for {crypto_name} has been saved.")
-
-#    return jsonify(
-#        {
-#            "response_type": "in_channel",
-#            "text": f"Your cryptocurrency address for {crypto_name} has been saved.",
-#        }
-#    )
 
 
 @slack_events_adapter.on("message")
@@ -173,59 +151,3 @@ def handle_message(payload):
             client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
         except SlackApiError as e:
             print(f"Error sending response: {e.response['error']}")
-
-
-@app.route("/repo", methods=["POST"])
-def list_repo():
-    data = request.form
-    text = data.get("text")
-    user_name = data.get("user_name")
-    tech_name = text.strip().lower()
-
-    repos = repos_data.get(tech_name)
-
-    if repos:
-        repos_list = "\n".join(repos)
-        message = (
-            f"Hello {user_name}, you can implement your '{tech_name}' "
-            f"knowledge here:\n{repos_list}"
-        )
-    else:
-        message = (
-            f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
-        )
-
-    return jsonify(
-        {
-            "response_type": "in_channel",
-            "text": message,
-        }
-    )
-
-
-@app.route("/project", methods=["POST"])
-def list_project():
-    data = request.form
-    text = data.get("text")
-    user_name = data.get("user_name")
-    project_name = text.strip().lower()
-
-    project = project_data.get(project_name)
-
-    if project:
-        project_list = "\n".join(project)
-        message = (
-            f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
-        )
-    else:
-        message = (
-            f"Hello {user_name}, the project '{project_name}' is not recognized. "
-            "Please try different query."
-        )
-
-    return jsonify(
-        {
-            "response_type": "in_channel",
-            "text": message,
-        }
-    )
