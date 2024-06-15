@@ -9,9 +9,7 @@ from machine.utils.collections import CaseInsensitiveDict
 
 
 class RepoPlugin(MachineBasePlugin):
-    def __init__(
-        self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
-    ):
+    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
         with open("data/repos.json") as f:
             self.repo_data = json.load(f)
@@ -24,7 +22,9 @@ class RepoPlugin(MachineBasePlugin):
         repos = self.repo_data.get(tech_name)
         if repos:
             repos_list = "\n".join(repos)
-            message = f"Hello, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
+            message = (
+                f"Hello, you can implement your '{tech_name}' knowledge here:\n{repos_list}"
+            )
             await command.say(message)
         else:
             fallback_message = "Available technologies:"
