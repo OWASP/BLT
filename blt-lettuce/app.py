@@ -4,14 +4,14 @@ from pathlib import Path
 
 import git
 from dotenv import load_dotenv
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from slack import WebClient
 from slack_sdk.errors import SlackApiError
 from slackeventsapi import SlackEventAdapter
 
 DEPLOYS_CHANNEL_NAME = "#project-blt-lettuce-deploys"
 JOINS_CHANNEL_ID = "C06RMMRMGHE"
-
+CONTRIBUTE_ID = "C04DH8HEPTR"
 
 load_dotenv()
 
@@ -26,6 +26,22 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
 client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top")
+
+
+@app.route("/slack/events", methods=["POST"])
+def slack_events():
+    data = request.json
+
+    # Respond to Slack's URL verification challenge
+    if "challenge" in data:
+        return jsonify({"challenge": data["challenge"]})
+
+    # Handle other event types here
+    event = data.get("event", {})
+    handle_message(event)
+
+    return "Event received", 200
+
 
 # keep for debugging purposes
 # @app.before_request
@@ -90,29 +106,14 @@ def handle_team_join(event_data):
         logging.error(f"Error sending welcome message: {e}")
 
 
-@slack_events_adapter.on("member_joined_channel")
-def handle_member_joined_channel(event_data):
-    event = event_data["event"]
-    user_id = event["user"]
-    channel_id = event["channel"]
-    # send a message to the user if they joined the #owasp-community channel
-
-    client.chat_postMessage(
-        channel=channel_id,
-        text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!",
-    )
-
-
 @slack_events_adapter.on("message")
 def handle_message(payload):
     message = payload.get("event", {})
-
     try:
         response = client.auth_test()
         bot_user_id = response["user_id"]
     except SlackApiError:
         bot_user_id = None
-
     # Check if the message was not sent by the bot itself
     if message.get("user") != bot_user_id:
         if (
@@ -129,8 +130,8 @@ def handle_message(payload):
             response = client.chat_postMessage(
                 channel=channel,
                 text=(
-                    f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> "
-                    "for contributing guidelines today!"
+                    f"Hello <@{user}>! Please check this channel "
+                    f"<#{CONTRIBUTE_ID}> for contributing guidelines today!"
                 ),
             )
             if not response["ok"]:
@@ -139,11 +140,9 @@ def handle_message(payload):
                     text=f"Error sending message: {response['error']}",
                 )
                 logging.error(f"Error sending message: {response['error']}")
-
     if message.get("channel_type") == "im":
         user = message["user"]  # The user ID of the person who sent the message
         text = message.get("text", "")  # The text of the message
-
         try:
             if message.get("user") != bot_user_id:
                 client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
