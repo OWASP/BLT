@@ -8,7 +8,9 @@ from machine.utils.collections import CaseInsensitiveDict
 
 
 class ProjectPlugin(MachineBasePlugin):
-    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
+    def __init__(
+        self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
+    ):
         super().__init__(client, settings, storage)
         with open("data/projects.json") as f:
             self.project_data = json.load(f)
