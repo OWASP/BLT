@@ -1,6 +1,6 @@
 import json
-import re
 import os
+import re
 
 from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
@@ -13,8 +13,8 @@ class RepoPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
 
-        project_home = '/home/DonnieBLT/BLT-Lettuce'
-        data_path = os.path.join(project_home, 'data', 'repos.json')
+        project_home = "/home/DonnieBLT/BLT-Lettuce"
+        data_path = os.path.join(project_home, "data", "repos.json")
         with open(data_path) as f:
             self.repo_data = json.load(f)
 

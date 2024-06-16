@@ -13,8 +13,8 @@ class ProjectPlugin(MachineBasePlugin):
         super().__init__(client, settings, storage)
 
         # Construct the absolute path to repos.json
-        project_home = '/home/DonnieBLT/BLT-Lettuce'
-        data_path = os.path.join(project_home, 'data', 'projects.json')
+        project_home = "/home/DonnieBLT/BLT-Lettuce"
+        data_path = os.path.join(project_home, "data", "projects.json")
         with open(data_path) as f:
             self.repo_data = json.load(f)
 

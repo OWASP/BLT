@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from pathlib import Path
@@ -12,7 +11,7 @@ from slackeventsapi import SlackEventAdapter
 
 DEPLOYS_CHANNEL_NAME = "#project-blt-lettuce-deploys"
 JOINS_CHANNEL_ID = "C06RMMRMGHE"
-
+CONTRIBUTE_ID = "C04DH8HEPTR"
 
 load_dotenv()
 
@@ -28,6 +27,22 @@ slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/e
 client = WebClient(token=os.environ["SLACK_TOKEN"])
 client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top")
 
+
+@app.route("/slack/events", methods=["POST"])
+def slack_events():
+    data = request.json
+
+    # Respond to Slack's URL verification challenge
+    if "challenge" in data:
+        return jsonify({"challenge": data["challenge"]})
+
+    # Handle other event types here
+    event = data.get("event", {})
+    handle_message(event)
+
+    return "Event received", 200
+
+
 # keep for debugging purposes
 # @app.before_request
 # def log_request():
@@ -39,17 +54,6 @@ client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240
 
 # Determine the root directory (assumes the script is run from the root folder)
 root_dir = Path(__file__).resolve().parent
-
-# Construct the paths to the JSON files
-repo_json_path = root_dir / "repo.json"
-project_json_path = root_dir / "projects.json"
-
-# Load the JSON data
-with open(repo_json_path) as f:
-    repos_data = json.load(f)
-
-with open(project_json_path) as f:
-    project_data = json.load(f)
 
 
 @app.route("/update_server", methods=["POST"])
@@ -72,10 +76,12 @@ def webhook():
 @slack_events_adapter.on("team_join")
 def handle_team_join(event_data):
     user_id = event_data["event"]["user"]["id"]
-    # private channel for joins so it does not get noisy
+
+    # Post a message in the private joins channel
     response = client.chat_postMessage(
         channel=JOINS_CHANNEL_ID, text=f"<@{user_id}> joined the team."
     )
+
     if not response["ok"]:
         client.chat_postMessage(
             channel=DEPLOYS_CHANNEL_NAME,
@@ -83,58 +89,31 @@ def handle_team_join(event_data):
         )
         logging.error(f"Error sending message: {response['error']}")
 
+    try:
+        response = client.conversations_open(users=[user_id])
+        dm_channel_id = response["channel"]["id"]
 
-@slack_events_adapter.on("member_joined_channel")
-def handle_member_joined_channel(event_data):
-    event = event_data["event"]
-    user_id = event["user"]
-    channel_id = event["channel"]
-    # send a message to the user if they joined the #owasp-community channel
+        with open("welcome_message.txt", "r", encoding="utf-8") as file:
+            welcome_message_template = file.read()
 
-    client.chat_postMessage(
-        channel=channel_id,
-        text=f"Welcome <@{user_id}> to the <#{channel_id}> channel!",
-    )
+        welcome_message = welcome_message_template.format(user_id=user_id)
+        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": welcome_message.strip()}}]
 
-
-# @app.command("/setcrypto")
-# def set_crypto_command(ack, say, command):
-#    ack()
-#    user_id = command["user_id"]
-#    crypto_name, address = command["text"].split()
-
-# Connect to the SQLite database
-#    conn = sqlite3.connect("crypto_addresses.db")
-#    cursor = conn.cursor()
-
-# Insert the user's data into the database
-#    cursor.execute(
-#        "INSERT INTO addresses (user_id, crypto_name, address) VALUES (?, ?, ?)",
-#        (user_id, crypto_name, address),
-#    )
-#    conn.commit()
-#    conn.close()
-
-#    say(f"Your cryptocurrency address for {crypto_name} has been saved.")
-
-#    return jsonify(
-#        {
-#            "response_type": "in_channel",
-#            "text": f"Your cryptocurrency address for {crypto_name} has been saved.",
-#        }
-#    )
+        client.chat_postMessage(
+            channel=dm_channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks
+        )
+    except Exception as e:
+        logging.error(f"Error sending welcome message: {e}")
 
 
 @slack_events_adapter.on("message")
 def handle_message(payload):
     message = payload.get("event", {})
-
     try:
         response = client.auth_test()
         bot_user_id = response["user_id"]
     except SlackApiError:
         bot_user_id = None
-
     # Check if the message was not sent by the bot itself
     if message.get("user") != bot_user_id:
         if (
@@ -151,8 +130,8 @@ def handle_message(payload):
             response = client.chat_postMessage(
                 channel=channel,
                 text=(
-                    f"Hello <@{user}>! Please check this channel <#{JOINS_CHANNEL_ID}> "
-                    "for contributing guidelines today!"
+                    f"Hello <@{user}>! Please check this channel "
+                    f"<#{CONTRIBUTE_ID}> for contributing guidelines today!"
                 ),
             )
             if not response["ok"]:
@@ -161,11 +140,9 @@ def handle_message(payload):
                     text=f"Error sending message: {response['error']}",
                 )
                 logging.error(f"Error sending message: {response['error']}")
-
     if message.get("channel_type") == "im":
         user = message["user"]  # The user ID of the person who sent the message
         text = message.get("text", "")  # The text of the message
-
         try:
             if message.get("user") != bot_user_id:
                 client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
@@ -173,59 +150,3 @@ def handle_message(payload):
             client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
         except SlackApiError as e:
             print(f"Error sending response: {e.response['error']}")
-
-
-@app.route("/repo", methods=["POST"])
-def list_repo():
-    data = request.form
-    text = data.get("text")
-    user_name = data.get("user_name")
-    tech_name = text.strip().lower()
-
-    repos = repos_data.get(tech_name)
-
-    if repos:
-        repos_list = "\n".join(repos)
-        message = (
-            f"Hello {user_name}, you can implement your '{tech_name}' "
-            f"knowledge here:\n{repos_list}"
-        )
-    else:
-        message = (
-            f"Hello {user_name}, the technology '{tech_name}' is not recognized. Please try again."
-        )
-
-    return jsonify(
-        {
-            "response_type": "in_channel",
-            "text": message,
-        }
-    )
-
-
-@app.route("/project", methods=["POST"])
-def list_project():
-    data = request.form
-    text = data.get("text")
-    user_name = data.get("user_name")
-    project_name = text.strip().lower()
-
-    project = project_data.get(project_name)
-
-    if project:
-        project_list = "\n".join(project)
-        message = (
-            f"Hello {user_name}, here the information about '{project_name}':\n{project_list}"
-        )
-    else:
-        message = (
-            f"Hello {user_name}, the project '{project_name}' is not recognized. "
-            "Please try different query."
-        )
-
-    return jsonify(
-        {
-            "response_type": "in_channel",
-            "text": message,
-        }
-    )
