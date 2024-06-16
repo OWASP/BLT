@@ -1,14 +1,28 @@
+import os
+
 import requests
+from dotenv import load_dotenv
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
+load_dotenv()
+
 GITHUB_API_URL = "https://api.github.com"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def fetch_github_data(owner, repo):
-    prs = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed").json()
-    issues = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed").json()
-    comments = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments").json()
+
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    prs = requests.get(
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed", headers=headers
+    ).json()
+    issues = requests.get(
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed", headers=headers
+    ).json()
+    comments = requests.get(
+        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments", headers=headers
+    ).json()
     return prs, issues, comments
 
 
