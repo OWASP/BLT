@@ -12,7 +12,6 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
 def fetch_github_data(owner, repo):
-
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     prs = requests.get(
         f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed", headers=headers
