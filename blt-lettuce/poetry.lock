@@ -818,13 +818,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pydantic"
-version = "2.7.3"
+version = "2.7.4"
 description = "Data validation using Python type hints"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydantic-2.7.3-py3-none-any.whl", hash = "sha256:ea91b002777bf643bb20dd717c028ec43216b24a6001a280f83877fd2655d0b4"},
-    {file = "pydantic-2.7.3.tar.gz", hash = "sha256:c46c76a40bb1296728d7a8b99aa73dd70a48c3510111ff290034f860c99c419e"},
+    {file = "pydantic-2.7.4-py3-none-any.whl", hash = "sha256:ee8538d41ccb9c0a9ad3e0e5f07bf15ed8015b481ced539a1759d8cc89ae90d0"},
+    {file = "pydantic-2.7.4.tar.gz", hash = "sha256:0c84efd9548d545f63ac0060c1e4d39bb9b14db8b3c0652338aecc07b5adec52"},
 ]
 
 [package.dependencies]
@@ -1088,28 +1088,33 @@ name = "slack-machine"
 version = "0.37.0"
 description = "A wonderful, simple, yet powerful and extendable Slack bot framework"
 optional = false
-python-versions = "<4.0,>=3.8"
-files = [
-    {file = "slack_machine-0.37.0-py3-none-any.whl", hash = "sha256:6f5ced2ae4b35ab101aa796103ba90fae56721359db9d04ac71c258725f62b0e"},
-    {file = "slack_machine-0.37.0.tar.gz", hash = "sha256:d07a0c9f497687634c691c024b706aa23551c47e2aed68fa6ea518e21c7bd634"},
-]
+python-versions = "^3.8"
+files = []
+develop = false
 
 [package.dependencies]
-aiohttp = ">=3.8.5,<4.0.0"
-APScheduler = ">=3.9.1,<4.0.0"
-dill = ">=0.3.5.1,<0.4.0.0"
+aiohttp = "^3.8.5"
+APScheduler = "^3.9.1"
+dill = "^0.3.5.1"
 httpx = ">=0.23,<0.28"
-multidict = ">=6.0.5,<7.0.0"
-pydantic = ">=2.2.1,<3.0.0"
+multidict = "^6.0.5"
+pydantic = "^2.2.1"
 pyee = ">=9.0.4,<12.0.0"
-slack-sdk = ">=3.18.1,<4.0.0"
+slack-sdk = "^3.18.1"
+slackeventsapi = "^3.0.1"
 structlog = ">=22.1,<25.0"
 tzdata = ">=2022.2,<2025.0"
 
 [package.extras]
-dynamodb = ["aioboto3 (>=10,<13)"]
+dynamodb = ["aioboto3 (>=10,<14)"]
 redis = ["hiredis (>=2.0.0,<3.0.0)", "redis (>=4.3.4,<6.0.0)"]
 sqlite = ["aiosqlite (>=0.18,<0.21)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/Owasp-blt/slack-machine"
+reference = "HEAD"
+resolved_reference = "fdc12404c9adb867b5b1d1141e904851e3b80b86"
 
 [[package]]
 name = "slack-sdk"
@@ -1369,4 +1374,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d2bacc0eaf789daab9296ef04db4e8e5800c3226497ef575b64a022fb4df23fc"
+content-hash = "fce39534ce61c82b13655d0770b81c5b1f569a3022e646912e4b0bda527050c8"

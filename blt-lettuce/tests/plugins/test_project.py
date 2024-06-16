@@ -13,6 +13,7 @@
 #         )
 #         yield
 
+<<<<<<< HEAD
 #     @pytest.mark.asyncio
 #     async def test_project(self, mocker):
 #         mocker.patch.dict(
@@ -28,6 +29,38 @@
 #                 ],
 #             },
 #         )
+=======
+    @pytest.mark.asyncio
+    async def test_no_project(self, mocker):
+        mocker.patch.dict(self.project_plugin.project_data, {})
+
+        mock_command = mocker.AsyncMock()
+        mock_command.text = "xyx"
+        mock_command.say = mocker.AsyncMock()
+
+        await self.project_plugin.project(mock_command)
+
+        mock_command.say.assert_called_once_with(
+            "Hello, the project 'xyx' is not recognized. Please try different query."
+        )
+        mock_command.reset_mock()
+
+    @pytest.mark.asyncio
+    async def test_project(self, mocker):
+        mocker.patch.dict(
+            self.project_plugin.project_data,
+            {
+                "test-project-1": [
+                    "OWASP Test Project 1",
+                    "https://github.com/OWASP/test-project-1",
+                ],
+                "test-project-2": [
+                    "OWASP Test Project 2",
+                    "https://github.com/OWASP/test-project-2",
+                ],
+            },
+        )
+>>>>>>> a041431cbea4e5962c794733251eec7cf2c3ef25
 
 #         mock_command = mocker.AsyncMock()
 #         mock_command.say = mocker.AsyncMock()
