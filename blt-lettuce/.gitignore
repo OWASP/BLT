@@ -1,1 +1,7 @@
+__pycache__
 .env
+.pytest_cache
+.ruff_cache
+.secrets
+*.code-workspace
+.venv
