@@ -1,6 +1,7 @@
 import 'package:blt/src/components/components_import.dart';
 import 'package:blt/src/models/company_model.dart';
 import 'package:blt/src/util/api/company_api.dart';
+import 'package:http/http.dart' as http;
 
 final companiesListProvider =
     StateNotifierProvider<CompanyListNotifier, AsyncValue<List<Company>?>?>(
@@ -19,9 +20,10 @@ class CompanyListNotifier extends StateNotifier<AsyncValue<List<Company>?>?> {
   }
 
   Future<void> _retrieveCompaniesList() async {
+    final client = http.Client();
     try {
       final List<Company>? companyData =
-          await CompanyApiClient.getListOfCompanies("/company/");
+          await CompanyApiClient.getListOfCompanies(client, "/company/");
       state = AsyncValue.data(companyData);
     } catch (e) {
       AsyncValue.error(e);

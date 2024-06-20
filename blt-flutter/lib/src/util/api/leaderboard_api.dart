@@ -5,12 +5,13 @@ import 'package:blt/src/util/util_import.dart';
 class LeaderboardApiClient {
   LeaderboardApiClient._();
 
-  static Future<List<Leaders>> getLeaderData(String paginatedUrl) async {
-    return http
+  static Future<List<Leaders>> getLeaderData(
+      http.Client client, String paginatedUrl) async {
+    return client
         .get(
       Uri.parse(paginatedUrl),
     )
-        .then((http.Response response) {
+        .then((var response) {
       List<Leaders> leaders =
           (json.decode(utf8.decode(response.bodyBytes)) as List)
               .map((data) => Leaders.fromJson(data))
@@ -20,18 +21,18 @@ class LeaderboardApiClient {
   }
 
   static Future<LeaderData> getMonthlyLeaderData(
-      String paginatedUrl, int? year, int? month) async {
+      http.Client client, String paginatedUrl, int? year, int? month) async {
     final queryParams = {
       "filter": '1',
       "year": year.toString(),
       "month": month.toString(),
     };
-    print(Uri.parse(paginatedUrl).replace(queryParameters: queryParams));
-    return http
+    // print(Uri.parse(paginatedUrl).replace(queryParameters: queryParams));
+    return client
         .get(
       Uri.parse(paginatedUrl).replace(queryParameters: queryParams),
     )
-        .then((http.Response response) {
+        .then((var response) {
       List<Leaders> leaderList = [];
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       decodedResponse["results"].forEach((element) {
@@ -52,7 +53,7 @@ class LeaderboardApiClient {
         .get(
       Uri.parse(nextUrl!),
     )
-        .then((http.Response response) {
+        .then((var response) {
       List<Leaders> leaderList = [];
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       decodedResponse["results"].forEach((element) {
@@ -68,8 +69,9 @@ class LeaderboardApiClient {
     });
   }
 
-  static Future<List<Company>> getScoreBoardData(String? paginatedUrl) async {
-    var req = await http.get(
+  static Future<List<Company>> getScoreBoardData(
+      http.Client client, String? paginatedUrl) async {
+    var req = await client.get(
       Uri.parse(paginatedUrl!),
     );
     var response = jsonDecode(req.body);

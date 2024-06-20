@@ -1,5 +1,6 @@
 import 'package:blt/src/models/leaderdata_model.dart';
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:http/http.dart' as http;
 
 final monthlyLeaderBoardProvider = StateNotifierProvider<
     MonthlyLeaderBoardNotifier, AsyncValue<List<Leaders>?>?>((ref) {
@@ -21,6 +22,7 @@ class MonthlyLeaderBoardNotifier
     try {
       final LeaderData? monthlyLeaderData =
           await LeaderboardApiClient.getMonthlyLeaderData(
+        http.Client(),
         LeaderboardEndpoints.monthly_leaderboard,
         year,
         month,

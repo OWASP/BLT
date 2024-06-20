@@ -1,4 +1,5 @@
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:http/http.dart' as http;
 
 /// The provider which exposes the state management
 /// for companies in the company scoreboard list.
@@ -24,6 +25,7 @@ class CompanyScoreboardNotifier
     try {
       final List<Company>? companyData =
           await LeaderboardApiClient.getScoreBoardData(
+        http.Client(),
         LeaderboardEndpoints.companyScoreboard,
       );
 

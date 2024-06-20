@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:http/http.dart' as http;
 
 /// Page that displays the stats of a user registered on BLT,
 /// shows dummy data for Guest login.
@@ -27,8 +28,10 @@ class _UserProfileState extends ConsumerState<UserProfile> {
 
   Future<List<Issue>?> getAnonymousUserIssueList() async {
     List<Issue>? issueList = null;
+    final client = http.Client();
     try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
+        client,
         IssueEndPoints.issues,
       );
       issueList = issueData!.issueList;

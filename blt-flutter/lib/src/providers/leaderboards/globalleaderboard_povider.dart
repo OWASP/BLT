@@ -1,4 +1,5 @@
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:http/http.dart' as http;
 
 /// The provider which exposes the state management
 /// for users in the global leaderboard list.
@@ -23,6 +24,7 @@ class GlobalLeaderBoardNotifier
     try {
       final List<Leaders>? leaderData =
           await LeaderboardApiClient.getLeaderData(
+        http.Client(),
         LeaderboardEndpoints.globalLeaderboard,
       );
 

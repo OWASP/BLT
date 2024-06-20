@@ -1,4 +1,5 @@
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:http/http.dart' as http;
 
 /// The provider which exposes the state management
 /// for issues in the issue list.
@@ -16,12 +17,14 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
       : super(issueList ?? const AsyncValue.loading()) {
     _retrieveIssueList();
   }
+  final client = http.Client();
 
   /// Default call for getting first page of issues
   /// when the provider is initialized.
   Future<void> _retrieveIssueList() async {
     try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
+        client,
         IssueEndPoints.issues,
       );
       nxtUrl = issueData!.nextQuery;
@@ -36,6 +39,7 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
     _cacheState();
     try {
       final IssueData? issueData = await IssueApiClient.getAllIssues(
+        client,
         nextUrl,
       );
 

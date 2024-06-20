@@ -1,6 +1,7 @@
 import 'package:blt/src/pages/leaderboards/leaderboards_imports.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:http/http.dart' as http;
 
 /// Page showing the all time top contributing users.
 class GlobalLeaderBoardPage extends StatefulWidget {
@@ -16,7 +17,7 @@ class _GlobalLeaderBoardPageState extends State<GlobalLeaderBoardPage> {
   @override
   void initState() {
     var paginatedUrl = LeaderboardEndpoints.globalLeaderboard;
-    _getObj = LeaderboardApiClient.getLeaderData(paginatedUrl);
+    _getObj = LeaderboardApiClient.getLeaderData(http.Client(), paginatedUrl);
     super.initState();
   }
 

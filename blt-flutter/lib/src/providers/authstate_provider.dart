@@ -1,4 +1,5 @@
 import 'package:blt/src/providers/providers_imports.dart';
+import 'package:http/http.dart' as http;
 
 /// The provider which exposes the state management for user authentication.
 final authStateNotifier =
@@ -15,6 +16,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
       : super(
           authstate ?? const AsyncValue.data(AuthState.loggedOut),
         );
+
+  final client = http.Client();
 
   /// Do a guest type authentication.
   Future<void> guestLogin() async {
@@ -75,7 +78,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
         username: username,
         token: accessToken,
       );
-      UserApiClient.getUserInfo(currentUser!);
+      UserApiClient.getUserInfo(client, currentUser!);
 
       state = AsyncValue.data(AuthState.loggedIn);
       read(loginProvider.notifier).setUserLogin();
@@ -124,7 +127,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthState>> {
         if (rememberMe) {
           rememberUser(currentUser!.username!, currentUser!.token!);
         }
-        await UserApiClient.getUserInfo(currentUser!);
+        await UserApiClient.getUserInfo(client, currentUser!);
 
         state = AsyncValue.data(AuthState.loggedIn);
         read(loginProvider.notifier).setUserLogin();

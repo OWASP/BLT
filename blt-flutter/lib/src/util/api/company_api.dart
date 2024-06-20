@@ -6,11 +6,12 @@ import 'package:http/http.dart' as http;
 class CompanyApiClient {
   CompanyApiClient._();
 
-  static Future<List<Company>> getListOfCompanies(String endpoint) async {
+  static Future<List<Company>> getListOfCompanies(
+      http.Client client, String endpoint) async {
     String searchUrl = GeneralEndPoints.apiBaseUrl + endpoint;
     List<Company> companiesList = [];
     try {
-      var response = await http.get(Uri.parse(searchUrl));
+      var response = await client.get(Uri.parse(searchUrl));
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       companiesList = Company.fromSnapshot(decodedResponse["results"]);
     } catch (e) {
@@ -21,24 +22,18 @@ class CompanyApiClient {
 
   /// Search a company by keyword,
   /// returns the first matching result.
-  static Future<void> getCompanyByKeyWord(
-    Company company,
-    String keyword,
-  ) async {
-    http.Response? response;
-    String searchUrl = CompanyEndpoints.domain + "?search=$keyword";
+  static Future<Company?> getCompanyByKeyWord(
+      http.Client client, String paginated_url, String keyword) async {
+    String searchUrl = paginated_url + "?search=$keyword";
+    // print(searchUrl);
     try {
-      response = await http.get(Uri.parse(searchUrl));
+      var response = await client.get(Uri.parse(searchUrl));
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      var companyJson = decodedResponse["results"][0];
-      company.setMoreInfo(
-        companyJson["id"],
-        companyJson["email"],
-        companyJson["url"],
-        companyJson["color"],
-      );
+      var companyJson = Company.fromJson(decodedResponse["results"][0]);
+      return companyJson;
     } catch (e) {
       print(e);
     }
+    return null;
   }
 }

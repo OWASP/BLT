@@ -8,7 +8,8 @@ class IssueApiClient {
   IssueApiClient._();
 
   /// Get all the issues relating to the [paginatedUrl].
-  static Future<IssueData?> getAllIssues(String paginatedUrl) async {
+  static Future<IssueData?> getAllIssues(
+      http.Client client, String paginatedUrl) async {
     http.Response? response;
     IssueData? issueData;
     List<Issue>? issueList;
@@ -18,7 +19,7 @@ class IssueApiClient {
           }
         : null;
     try {
-      response = await http.get(
+      response = await client.get(
         Uri.parse(paginatedUrl),
         headers: headers,
       );
