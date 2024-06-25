@@ -46,24 +46,46 @@ def format_data(prs, issues, comments):
             user_data[user] = {"prs": 0, "issues": 0, "comments": 0}
         user_data[user]["comments"] += 1
 
-    max_name_length = max(len(user) for user in user_data.keys())
-    max_prs_length = max(len(str(counts["prs"])) for counts in user_data.values())
-    max_issues_length = max(len(str(counts["issues"])) for counts in user_data.values())
-    max_comments_length = max(len(str(counts["comments"])) for counts in user_data.values())
+    # Calculate column widths with minimum lengths
+    max_user_length = max(len(user) for user in user_data.keys())
+    max_prs_length = max(max(len(str(counts["prs"])) for counts in user_data.values()), 10)
+    max_issues_length = max(max(len(str(counts["issues"])) for counts in user_data.values()), 15)
+    max_comments_length = max(
+        max(len(str(counts["comments"])) for counts in user_data.values()), 9
+    )
 
-    table = [
-        f"| {'User':<{max_name_length}} | PRs Merged | Issues Resolved | Comments |",
-        f"|{'-' * (max_name_length + 2)}|:{'-' * (max_prs_length + 2)}:|"
-        f":{'-' * (max_issues_length + 2)}:|:{'-' * (max_comments_length + 2)}:|",
-    ]
+    # Formatting table header
+    header = (
+        f"{'User':<{max_user_length}}  "
+        f"{'PRs Merged':<{max_prs_length}}  "
+        f"{'Issues Resolved':<{max_issues_length}}  "
+        f"{'Comments':<{max_comments_length}}\n"
+    )
+    separator = (
+        f"{'-' * max_user_length}  "
+        f"{'-' * max_prs_length}  "
+        f"{'-' * max_issues_length}  "
+        f"{'-' * max_comments_length}\n"
+    )
+    rows = [header, separator]
+
+    # Formatting each user's data
     for user, counts in user_data.items():
-        table.append(
-            f"| {user:<{max_name_length}} | {counts['prs']:>{max_prs_length}} | "
-            f"{counts['issues']:>{max_issues_length}} | "
-            f"{counts['comments']:>{max_comments_length}} |"
+        rows.append(
+            f"{user:<{max_user_length}}  "
+            f"{counts['prs']:<{max_prs_length}}  "
+            f"{counts['issues']:<{max_issues_length}}  "
+            f"{counts['comments']:<{max_comments_length}}\n"
         )
 
-    return "\n".join(table)
+    table = "".join(rows)
+
+    return [
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"*Contributor Data*\n```\n{table}\n```"},
+        }
+    ]
 
 
 class ContributorPlugin(MachineBasePlugin):
@@ -71,11 +93,11 @@ class ContributorPlugin(MachineBasePlugin):
 
     @command("/contributors")
     async def contributors(self, command):
-        formatted_data = {}
-        try:
-            prs, issues, comments = fetch_github_data("OWASP-BLT", "BLT")
-            formatted_data = format_data(prs, issues, comments)
-        except requests.exceptions.JSONDecodeError:
-            pass
+        prs, issues, comments = fetch_github_data("OWASP-BLT", "BLT")
+        formatted_data = format_data(prs, issues, comments)
+        if not formatted_data:
+            formatted_data = [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "No data available"}}
+            ]
 
-        await command.say(formatted_data or "No data available")
+        await command.say(text="Contributors Activity", blocks=formatted_data)
