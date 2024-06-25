@@ -14,8 +14,11 @@ class ProjectPlugin(MachineBasePlugin):
     def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
 
-        with open("data/projects.json") as f:
-            self.project_data = json.load(f)
+        try:
+            with open("data/projects.json") as f:
+                self.project_data = json.load(f)
+        except json.JSONDecodeError:
+            self.project_data = {}
 
     @command("/project")
     async def project(self, command):
@@ -29,29 +32,30 @@ class ProjectPlugin(MachineBasePlugin):
             message = f"Hello, here the information about '{project_name}':\n{project_list}"
             await command.say(message)
         else:
+            # if the self.project_data is empty, return a message
+            if not self.project_data:
+                await command.say("No projects available")
+                return None
             await self.show_project_page(channel_id)
 
     async def show_project_page(self, channel_id):
         projects = list(self.project_data.keys())
-
-        if not projects:
-            await self.web_client.chat_postMessage(
-                channel=channel_id, text="No projects available."
-            )
-            return
 
         # Calculate the number of dropdowns needed
         num_dropdowns = (len(projects) + PROJECTS_PER_PAGE - 1) // PROJECTS_PER_PAGE
 
         blocks = []
         for i in range(num_dropdowns):
-            start_index = i * PROJECTS_PER_PAGE
-            end_index = start_index + PROJECTS_PER_PAGE
-            project_slice = projects[start_index:end_index]
+            project_for_each_page = 75
 
             options = [
-                {"text": {"type": "plain_text", "text": project[:75]}, "value": project}
-                for project in project_slice
+                {
+                    "text": {"type": "plain_text", "text": project[:project_for_each_page]},
+                    "value": project,
+                }
+                for project in projects[
+                    i * PROJECTS_PER_PAGE : i * PROJECTS_PER_PAGE + PROJECTS_PER_PAGE
+                ]
             ]
 
             blocks.append(
@@ -78,7 +82,7 @@ class ProjectPlugin(MachineBasePlugin):
             channel=channel_id, blocks=blocks, text="Available Projects"
         )
 
-    @action(action_id=re.compile(r"project_select_action_.*"), block_id=None)
+    @action(action_id=re.compile(r"project_select_action_.*"))
     async def handle_dropdown_selection(self, action):
         selected_project = action.payload.actions[0].selected_option.value
         project = self.project_data.get(selected_project)
