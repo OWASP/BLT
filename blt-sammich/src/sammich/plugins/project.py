@@ -45,9 +45,8 @@ class ProjectPlugin(MachineBasePlugin):
         num_dropdowns = (len(projects) + PROJECTS_PER_PAGE - 1) // PROJECTS_PER_PAGE
 
         blocks = []
+        project_for_each_page = 75
         for i in range(num_dropdowns):
-            project_for_each_page = 75
-
             options = [
                 {
                     "text": {"type": "plain_text", "text": project[:project_for_each_page]},
