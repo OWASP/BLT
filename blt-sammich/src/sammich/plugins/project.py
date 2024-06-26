@@ -77,6 +77,12 @@ class ProjectPlugin(MachineBasePlugin):
                 }
             )
 
+        # Here, we use `self.web_client.chat_postMessage` instead of `command.say()` 
+        # because `command.say()` sends an ephemeral message (is_ephemeral=True) by default. 
+        # When is_ephemeral is true, Slack API restricts interactions with the message, 
+        # making it impossible to trigger actions from it. 
+        # Therefore, we use `web_client.chat_postMessage` to post a standard message 
+        # that allows interactive elements like dropdowns to work correctly.
         await self.web_client.chat_postMessage(
             channel=channel_id, blocks=blocks, text="Available Projects"
         )
