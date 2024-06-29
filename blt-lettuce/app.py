@@ -37,7 +37,7 @@ template = """
 """
 
 
-OpenAI_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 cache = TTLCache(maxsize=100, ttl=86400)
 
@@ -140,7 +140,6 @@ def handle_message(payload):
         ):
             user = message.get("user")
             channel = message.get("channel")
-            logging.info(f"detected contribute sending to channel: {channel}")
             response = client.chat_postMessage(
                 channel=channel,
                 text=(
@@ -172,6 +171,7 @@ def gpt_bot(payload):
     token_per_prompt = 80
     user = "D078YQ93TSL"
     message = payload.get("event", {})
+
     if message.get("channel_type") == "im":
         doubt = message.get("text", "")
         prompt = template.format(doubt=doubt)
@@ -180,16 +180,34 @@ def gpt_bot(payload):
         rate_limit_key = f"global_daily_request_{today}"
         total_token_used = cache.get(rate_limit_key, 0)
 
-        if len(prompt) > 20:
+        if len(doubt) > 20:
             client.chat_postMessage(channel=user, text="Please enter less than 20 characters")
+            return
+        
         if total_token_used + token_per_prompt > token_limit:
             client.chat_postMessage(channel=user, text="Exceeds Token Limit")
-        else:
-            response = OpenAI_client.Completion.create(
+            return
+        
+        try:
+            response = openai_client.Completion.create(
                 messages=[{"role": "user", "content": prompt}],
                 model="gpt-3.5-turbo-0125",
                 max_tokens=20,
             )
             answer = response.choices[0].message.content
+        except Exception as e:
+            logging.error(f"OpenAI API request failed: {e}")
+            client.chat_postMessage(
+                channel=user, text="An error occurred while processing your request."
+            )
+            return
+
+        try:
             client.chat_postMessage(channel=user, text=f"{answer}")
             cache[rate_limit_key] = total_token_used + token_per_prompt
+
+            # Log the user's question and GPT's answer
+            logging.info(f"User's Question: {doubt}")
+            logging.info(f"GPT's Answer: {answer}")
+        except SlackApiError as e:
+            logging.error(f"Error sending message to Slack: {e.response['error']}")
