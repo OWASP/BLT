@@ -25,10 +25,13 @@ class TestContributorPlugin:
 
             formatted = format_data(prs, issues, comments)
 
-            expected_output = (
-                "| User  | PRs Merged | Issues Resolved | Comments |\n"
-                "|-------|:---:|:---:|:---:|\n"
-                "| user1 | 1 | 1 | 0 |"
+            expected_output_text = (
+                "*Contributor Data*\n"
+                "```\n"
+                "User   PRs Merged  Issues Resolved  Comments \n"
+                "-----  ----------  ---------------  ---------\n"
+                "user1  1           1                0        \n"
+                "\n```"
             )
 
-            assert formatted == expected_output
+            assert formatted[0]['text']['text'] == expected_output_text

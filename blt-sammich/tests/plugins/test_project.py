@@ -1,68 +1,85 @@
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+
 import pytest
+from machine.clients.slack import SlackClient
+from machine.storage import PluginStorage
+from machine.utils.collections import CaseInsensitiveDict
 
 from sammich.plugins.project import ProjectPlugin
 
+@pytest.fixture
+def mock_slack_client():
+    """Fixture to mock the SlackClient."""
+    return MagicMock(SlackClient)
 
-class TestProjectPlugin:
-    """Project plugin tests."""
 
-    @pytest.fixture(autouse=True)
-    def set_up(self, mocker):
-        self.project_plugin = ProjectPlugin(
-            client=mocker.Mock(), settings=mocker.Mock(), storage=mocker.Mock()
-        )
-        yield
+@pytest.fixture
+def mock_settings():
+    """Fixture to mock settings."""
+    return CaseInsensitiveDict()
 
-    @pytest.mark.asyncio
-    async def test_no_project(self, mocker):
-        mocker.patch.dict(self.project_plugin.project_data, {})
 
-        mock_command = mocker.AsyncMock()
-        mock_command.text = "xyx"
-        mock_command.say = mocker.AsyncMock()
+@pytest.fixture
+def mock_storage():
+    """Fixture to mock PluginStorage."""
+    return MagicMock(PluginStorage)
 
-        await self.project_plugin.project(mock_command)
 
-        mock_command.say.assert_called_once_with(
-            "Hello, the project 'xyx' is not recognized. Please try different query."
-        )
-        mock_command.reset_mock()
+@pytest.fixture
+def project_plugin(mock_slack_client, mock_settings, mock_storage):
+    """Fixture to create a ProjectPlugin instance with mocked dependencies."""
+    plugin = ProjectPlugin(mock_slack_client, mock_settings, mock_storage)
+    plugin.project_data = {
+        "project1": ["Task 1", "Task 2", "Task 3"],
+        "project2": ["Task A", "Task B"],
+    }
+    with patch.object(ProjectPlugin, "web_client", new_callable=PropertyMock) as mock_web_client:
+        mock_web_client.return_value.chat_postMessage = AsyncMock()
+        plugin._web_client = mock_web_client
+        yield plugin
 
-    @pytest.mark.asyncio
-    async def test_project(self, mocker):
-        mocker.patch.dict(
-            self.project_plugin.project_data,
-            {
-                "test-project-1": [
-                    "OWASP Test Project 1",
-                    "https://github.com/OWASP/test-project-1",
-                ],
-                "test-project-2": [
-                    "OWASP Test Project 2",
-                    "https://github.com/OWASP/test-project-2",
-                ],
-            },
-        )
 
-        mock_command = mocker.AsyncMock()
-        mock_command.say = mocker.AsyncMock()
+@pytest.fixture
+def mock_command():
+    """Fixture to mock a command object."""
+    cmd = MagicMock()
+    cmd.text.strip.return_value.lower.return_value = "project1"
+    cmd._cmd_payload = {"channel_id": "test_channel"}
+    cmd.say = AsyncMock()
+    return cmd
 
-        expected = {
-            "test-project-1": (
-                "Hello, here the information about 'test-project-1':\n"
-                "OWASP Test Project 1\nhttps://github.com/OWASP/test-project-1"
-            ),
-            "test-project-2": (
-                "Hello, here the information about 'test-project-2':\n"
-                "OWASP Test Project 2\nhttps://github.com/OWASP/test-project-2"
-            ),
-            "test-project-3": (
-                "Hello, the project 'test-project-3' is not recognized. "
-                "Please try different query."
-            ),
-        }
-        for query, response in expected.items():
-            mock_command.text = query
-            await self.project_plugin.project(mock_command)
-            mock_command.say.assert_called_once_with(response)
-            mock_command.reset_mock()
+
+@pytest.fixture
+def mock_action():
+    """Fixture to mock an action object."""
+    action = MagicMock()
+    action.payload.actions[0].selected_option.value = "project1"
+    action.say = AsyncMock()
+    return action
+
+
+@pytest.mark.asyncio
+async def test_project_command(project_plugin, mock_command):
+    """Test the project command with a valid project."""
+    await project_plugin.project(mock_command)
+    mock_command.say.assert_awaited_once_with(
+        "Hello, here the information about 'project1':\nTask 1\nTask 2\nTask 3"
+    )
+
+
+@pytest.mark.asyncio
+async def test_project_command_no_project(project_plugin, mock_command):
+    """Test the project command with a nonexistent project."""
+    mock_command.text.strip.return_value.lower.return_value = "nonexistent"
+    await project_plugin.project(mock_command)
+    mock_command.say.assert_not_called()
+    project_plugin._web_client.return_value.chat_postMessage.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_handle_dropdown_selection(project_plugin, mock_action):
+    """Test handling dropdown selection action."""
+    await project_plugin.handle_dropdown_selection(mock_action)
+    mock_action.say.assert_awaited_once_with(
+        "Hello, here is the information about 'project1':\nTask 1\nTask 2\nTask 3"
+    )
