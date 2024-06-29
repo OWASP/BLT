@@ -1,10 +1,13 @@
 import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 import git
+from cachetools import TTLCache
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from openai import OpenAI
 from slack import WebClient
 from slack_sdk.errors import SlackApiError
 from slackeventsapi import SlackEventAdapter
@@ -26,6 +29,17 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
 client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top")
+
+template = """
+    You're a Software Engineer (Mentor) at OWASP,
+    Your job is to provide help to contributors with a short message.
+    Contributor' Question :{Doubt}
+"""
+
+
+OpenAI_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+cache = TTLCache(maxsize=100, ttl=86400)
 
 
 @app.route("/slack/events", methods=["POST"])
@@ -140,13 +154,42 @@ def handle_message(payload):
                     text=f"Error sending message: {response['error']}",
                 )
                 logging.error(f"Error sending message: {response['error']}")
+    # if message.get("channel_type") == "im":
+    #     user = message["user"]  # The user ID of the person who sent the message
+    #     text = message.get("text", "")  # The text of the message
+    #     try:
+    #         if message.get("user") != bot_user_id:
+    #             client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
+    #         # Respond to the direct message
+    #         client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
+    #     except SlackApiError as e:
+    #         print(f"Error sending response: {e.response['error']}")
+
+
+@slack_events_adapter.on("message")
+def gpt_bot(payload):
+    token_limit = 1000
+    token_per_prompt = 80
+    user = "D078YQ93TSL"
+    message = payload.get("event", {})
     if message.get("channel_type") == "im":
-        user = message["user"]  # The user ID of the person who sent the message
-        text = message.get("text", "")  # The text of the message
-        try:
-            if message.get("user") != bot_user_id:
-                client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
-            # Respond to the direct message
-            client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
-        except SlackApiError as e:
-            print(f"Error sending response: {e.response['error']}")
+        doubt = message.get("text", "")
+        prompt = template.format(doubt=doubt)
+
+        today = datetime.now(timezone.utc).date()
+        rate_limit_key = f"global_daily_request_{today}"
+        total_token_used = cache.get(rate_limit_key, 0)
+
+        if len(prompt) > 20:
+            client.chat_postMessage(channel=user, text="Please enter less than 20 characters")
+        if total_token_used + token_per_prompt > token_limit:
+            client.chat_postMessage(channel=user, text="Exceeds Token Limit")
+        else:
+            response = OpenAI_client.Completion.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="gpt-3.5-turbo-0125",
+                max_tokens=20,
+            )
+            answer = response.choices[0].message.content
+            client.chat_postMessage(channel=user, text=f"{answer}")
+            cache[rate_limit_key] = total_token_used + token_per_prompt
