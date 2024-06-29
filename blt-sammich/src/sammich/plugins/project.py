@@ -77,7 +77,6 @@ class ProjectPlugin(MachineBasePlugin):
             channel=channel_id, blocks=blocks, text="Available Projects"
         )
 
-
     @action(action_id=re.compile(r"project_select_action_.*"), block_id=None)
     async def handle_dropdown_selection(self, action):
         selected_project = action.payload.actions[0].selected_option.value

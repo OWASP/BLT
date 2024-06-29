@@ -34,4 +34,4 @@ class TestContributorPlugin:
                 "\n```"
             )
 
-            assert formatted[0]['text']['text'] == expected_output_text
+            assert formatted[0]["text"]["text"] == expected_output_text

@@ -7,6 +7,7 @@ from machine.utils.collections import CaseInsensitiveDict
 
 from sammich.plugins.project import ProjectPlugin
 
+
 @pytest.fixture
 def mock_slack_client():
     """Fixture to mock the SlackClient."""
