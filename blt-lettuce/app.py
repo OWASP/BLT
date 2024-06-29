@@ -183,11 +183,11 @@ def gpt_bot(payload):
         if len(doubt) > 20:
             client.chat_postMessage(channel=user, text="Please enter less than 20 characters")
             return
-        
+
         if total_token_used + token_per_prompt > token_limit:
             client.chat_postMessage(channel=user, text="Exceeds Token Limit")
             return
-        
+
         try:
             response = openai_client.Completion.create(
                 messages=[{"role": "user", "content": prompt}],
