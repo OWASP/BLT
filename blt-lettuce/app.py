@@ -168,7 +168,7 @@ def handle_message(payload):
 @slack_events_adapter.on("message")
 def gpt_bot(payload):
     token_limit = 1000
-    token_per_prompt = 80
+    token_per_prompt = 100
     user = "D078YQ93TSL"
     message = payload.get("event", {})
 
@@ -180,8 +180,8 @@ def gpt_bot(payload):
         rate_limit_key = f"global_daily_request_{today}"
         total_token_used = cache.get(rate_limit_key, 0)
 
-        if len(doubt) > 20:
-            client.chat_postMessage(channel=user, text="Please enter less than 20 characters")
+        if len(doubt) > 50:
+            client.chat_postMessage(channel=user, text="Please enter less than 50 characters")
             return
 
         if total_token_used + token_per_prompt > token_limit:
