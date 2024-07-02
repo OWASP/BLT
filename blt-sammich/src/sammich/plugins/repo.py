@@ -9,9 +9,7 @@ from machine.utils.collections import CaseInsensitiveDict
 
 
 class RepoPlugin(MachineBasePlugin):
-    def __init__(
-        self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
-    ):
+    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
         super().__init__(client, settings, storage)
         with open("data/repos.json") as f:
             self.repo_data = json.load(f)
@@ -64,5 +62,7 @@ class RepoPlugin(MachineBasePlugin):
         clicked_button_value = action.payload.actions[0].value
         repos = self.repo_data.get(clicked_button_value)
         repos_list = "\n".join(repos)
-        message = f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
+        message = (
+            f"Hello, you can implement your '{clicked_button_value}' knowledge here:\n{repos_list}"
+        )
         await action.say(message)
