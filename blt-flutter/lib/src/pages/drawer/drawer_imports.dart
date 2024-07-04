@@ -11,3 +11,6 @@ export 'package:flutter_markdown/flutter_markdown.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:url_launcher/url_launcher.dart';
 export '../../constants/socialurls_constants.dart';
+export 'package:blt/src/pages/drawer/web_view.dart';
+export 'package:flutter/material.dart';
+export 'package:webview_flutter/webview_flutter.dart';

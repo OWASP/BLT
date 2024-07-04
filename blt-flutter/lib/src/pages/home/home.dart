@@ -1,22 +1,4 @@
-import 'package:blt/src/global/variables.dart';
-import 'package:blt/src/pages/home/issues.dart';
-import 'package:blt/src/pages/home/leaderboard.dart';
-import 'package:blt/src/pages/home/report_bug.dart';
-import 'package:blt/src/pages/home/start_hunt.dart';
-import 'package:blt/src/providers/authstate_provider.dart';
-import 'package:blt/src/providers/dark_mode_provider.dart';
-import 'package:blt/src/providers/login_provider.dart';
-import 'package:blt/src/routes/routing.dart';
-import 'package:blt/src/util/enums/login_type.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../../components/appbar.dart';
-import '../../pages/welcome.dart';
+import 'package:blt/src/pages/home/home_imports.dart';
 
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
@@ -347,6 +329,54 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               buildReferralOption(),
+              ListTile(
+                title: Container(
+                  width: double.infinity,
+                  height: 50,
+                  child: Builder(builder: (context) {
+                    return TextButton(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.payment_outlined,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            "Sponsor BLT",
+                            style: GoogleFonts.ubuntu(
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      style: ButtonStyle(
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        backgroundColor: WidgetStateProperty.all(
+                          isDarkMode.isDarkMode
+                              ? Color.fromRGBO(126, 33, 58, 1)
+                              : Color(0xFFDC4654),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteManager.sponsorPage,
+                        );
+                      },
+                    );
+                  }),
+                ),
+              ),
               ListTile(
                 title: Container(
                   width: double.infinity,

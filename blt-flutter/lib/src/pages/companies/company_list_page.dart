@@ -58,7 +58,8 @@ class CompanyListPageState extends ConsumerState<CompanyListPage>
           ? Color.fromRGBO(34, 22, 23, 1)
           : Theme.of(context).canvasColor,
       appBar: AppBar(
-        backgroundColor: companyColor,
+        backgroundColor:
+            isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
