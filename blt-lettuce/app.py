@@ -179,7 +179,7 @@ def gpt_bot(payload):
         today = datetime.now(timezone.utc).date()
         rate_limit_key = f"global_daily_request_{today}"
         total_token_used = cache.get(rate_limit_key, 0)
-        doubt_limit =50
+        doubt_limit = 50
         if len(doubt) >= doubt_limit:
             client.chat_postMessage(channel=user, text="Please enter less than 50 characters")
             return
