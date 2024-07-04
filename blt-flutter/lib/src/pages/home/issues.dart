@@ -118,9 +118,6 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                         itemCount: issueList.length,
                         itemBuilder: (context, index) {
                           final currentIssue = issueList[index];
-                          if (currentIssue.screenshotsLink!.isEmpty) {
-                            return Container();
-                          }
                           return IssueCard(
                             issue: currentIssue,
                           );

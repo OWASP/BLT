@@ -1,4 +1,3 @@
-import 'package:blt/src/pages/drawer/sponsor_page.dart';
 import 'package:blt/src/routes/routes_import.dart';
 
 /// The managing class for App Navigation, also adds custom page transitions.
@@ -25,6 +24,7 @@ class RouteManager {
   static const String changePassword = "/changePassword";
   static const String openIssues = "/openIssues";
   static const String closedIssues = "/closedIssues";
+  static const String chatBotPage = "/chatBot";
   static const String sponsorPage = "/sponsor";
 
   /// Route generator, finds a requested route or throws the
@@ -457,6 +457,26 @@ class RouteManager {
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               SponsorPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case chatBotPage:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ChatBotPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

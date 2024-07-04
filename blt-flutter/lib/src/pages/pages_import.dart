@@ -35,3 +35,5 @@ export 'package:blt/src/pages/welcome.dart';
 export 'package:flutter_gen/gen_l10n/app_localizations.dart';
 export 'package:blt/src/providers/language_provider.dart';
 export 'package:flutter/material.dart';
+export 'package:blt/src/util/api/chatbot_api.dart';
+export 'package:lottie/lottie.dart';

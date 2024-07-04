@@ -414,6 +414,23 @@ class _HomeState extends ConsumerState<Home> {
             ],
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              RouteManager.chatBotPage,
+            );
+          },
+          backgroundColor: isDarkMode.isDarkMode
+              ? Color.fromRGBO(94, 15, 36, 1)
+              : Color.fromARGB(255, 246, 219, 221),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset("assets/logo.png"),
+            ),
+          ),
+        ),
         body: PageView(
             controller: _pageController,
             onPageChanged: (index) {

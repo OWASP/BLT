@@ -35,10 +35,15 @@ class IssueCard extends StatelessWidget {
                 height: 0.214 * size.height,
                 child: AspectRatio(
                   aspectRatio: size.width / 0.214 * size.height,
-                  child: CachedNetworkImage(
-                    imageUrl: issue.screenshotsLink![0],
-                    fit: BoxFit.cover,
-                  ),
+                  child: (issue.screenshotsLink!.isNotEmpty)
+                      ? CachedNetworkImage(
+                          imageUrl: issue.screenshotsLink![0],
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          "assets/image-not-found.png",
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               Container(

@@ -23,3 +23,5 @@ export 'package:blt/src/pages/companies/company_details_and_issues.dart';
 export 'package:blt/src/pages/companies/company_list_page.dart';
 export 'package:blt/src/pages/issues/closed_issues.dart';
 export 'package:blt/src/pages/issues/open_issues.dart';
+export 'package:blt/src/pages/chat_bot_page.dart';
+export 'package:blt/src/pages/drawer/sponsor_page.dart';
