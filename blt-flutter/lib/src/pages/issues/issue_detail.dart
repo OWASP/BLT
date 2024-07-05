@@ -1,4 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
+import 'package:blt/src/constants/labels_constants.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
 import 'package:flutter/material.dart';
 
@@ -84,16 +85,43 @@ class IssueDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            Container(
-              child: Text(
-                "${AppLocalizations.of(context)!.issue} #${issue.id}",
-                style: GoogleFonts.ubuntu(
-                  textStyle: TextStyle(
-                    color: Color(0xFF737373),
-                    fontSize: 25,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Text(
+                    "${AppLocalizations.of(context)!.issue} #${issue.id}",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFF737373),
+                        fontSize: 25,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                if (issue.label != null)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white, width: 0.3),
+                      color: getLabelColor(issue.label!),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0)
+                          .copyWith(left: 10, right: 10),
+                      child: Text(
+                        "${labels[issue.label]}",
+                        style: GoogleFonts.aBeeZee(
+                          textStyle: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Container(
               child: Row(

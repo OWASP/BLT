@@ -1,3 +1,4 @@
+import 'package:blt/src/constants/labels_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:blt/src/components/components_import.dart';
 
@@ -56,17 +57,44 @@ class IssueCard extends StatelessWidget {
                 child: ListTile(
                   // contentPadding: EdgeInsets.zero,
                   isThreeLine: true,
-                  title: Text(
-                    "Issue #${issue.id}",
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                    style: GoogleFonts.ubuntu(
-                      textStyle: TextStyle(
-                        color: Color(0xFFDC4654),
-                        fontSize: 17.5,
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Issue #${issue.id}",
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                        style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Color(0xFFDC4654),
+                            fontSize: 17.5,
+                          ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      fontWeight: FontWeight.bold,
-                    ),
+                      if (issue.label != null)
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white, width: 0.3),
+                            color: getLabelColor(issue.label!),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6.0)
+                                .copyWith(left: 10, right: 10),
+                            child: Text(
+                              "${labels[issue.label]}",
+                              style: GoogleFonts.aBeeZee(
+                                textStyle: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
