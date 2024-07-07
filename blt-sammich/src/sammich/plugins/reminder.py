@@ -13,6 +13,8 @@ secrets = dotenv_values(".secrets")
 SLACK_BOT_TOKEN = secrets["SLACK_BOT_TOKEN"]
 
 reminder_pattern = re.compile(r"\[(.*?)\]\s+\[(.+?)\]\s+\[(.+?)\]")
+
+
 class ReminderPlugin(MachineBasePlugin):
     def parse_command(self, command_text):
         match = reminder_pattern.match(command_text)
