@@ -12,11 +12,10 @@ secrets = dotenv_values(".secrets")
 
 SLACK_BOT_TOKEN = secrets["SLACK_BOT_TOKEN"]
 
-
+reminder_pattern = re.compile(r"\[(.*?)\]\s+\[(.+?)\]\s+\[(.+?)\]")
 class ReminderPlugin(MachineBasePlugin):
     def parse_command(self, command_text):
-        pattern = re.compile(r"\[(.*?)\]\s+\[(.+?)\]\s+\[(.+?)\]")
-        match = pattern.match(command_text)
+        match = reminder_pattern.match(command_text)
         if match:
             channel_name, message, when = match.groups()
             return channel_name, message, when
@@ -37,8 +36,7 @@ class ReminderPlugin(MachineBasePlugin):
 
     def convert_to_timestamp(self, when):
         try:
-            future_time_str = when
-            future_time = datetime.datetime.strptime(future_time_str, "%d/%m/%Y %I:%M %p")
+            future_time = datetime.datetime.strptime(when, "%d/%m/%Y %I:%M %p")
             future_timestamp = int(future_time.timestamp())
 
             return future_timestamp
