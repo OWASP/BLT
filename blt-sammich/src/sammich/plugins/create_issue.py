@@ -1,10 +1,14 @@
-import requests
+import logging
+
 from dotenv import dotenv_values
+from github import Github
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
 
-secrets = dotenv_values(".secrets")
+import settings
 
+# Load secrets
+secrets = dotenv_values(".secrets")
 github_token = secrets["github_token"]
 
 
@@ -14,34 +18,17 @@ class CreateIssuePlugin(MachineBasePlugin):
         channel_id = command._cmd_payload["channel_id"]
         title = command.text.strip()
 
-        # Replace with your repository details
-        owner = "OWASP-BLT"
-        repo = "BLT-Sammich"
-
-        # GitHub API endpoint for creating an issue
-        url = f"https://api.github.com/repos/{owner}/{repo}/issues"
-
-        # Headers including Authorization with token and specifying API version
-        headers = {
-            "Authorization": f"token {github_token}",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        }
-
-        # Issue data: only title
-        issue_data = {
-            "title": title,
-            "body": "",
-            "assignee": None,
-            "milestone": None,
-        }
+        g = Github(github_token)
 
         try:
-            response = requests.post(url, headers=headers, json=issue_data)
-            response.raise_for_status()
-            issue_url = response.json().get("html_url", "No URL found")
+            repo = g.get_repo(f"{settings.owner}/{settings.repo}")
+            issue = repo.create_issue(title=title)
+            issue_url = issue.html_url
             await self.say(channel_id, f"Issue created successfully: {issue_url}")
-        except requests.exceptions.RequestException as e:
-            # Log the full response for debugging
-            print(response.content)
+        except Exception as e:
+            logging.error(f"Failed to create issue: {str(e)}")
             await self.say(channel_id, f"Failed to create issue: {str(e)}")
+
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
