@@ -1,7 +1,7 @@
-import datetime
 import logging
 import re
 import time
+from datetime import datetime, timedelta
 
 import requests
 from dotenv import dotenv_values
@@ -20,8 +20,37 @@ class ReminderPlugin(MachineBasePlugin):
         match = reminder_pattern.match(command_text)
         if match:
             channel_name, message, when = match.groups()
-            return channel_name, message, when
+            if "every" in when:
+                when = when.lstrip("every ")
+                every = True
+            else:
+                every = False
+            return channel_name, message, when, every
         return None, None, None
+
+    def get_weekday(self, day):
+        if "monday" in day:
+            return 0
+        elif "tuesday" in day:
+            return 1
+        elif "wednesday" in day:
+            return 2
+        elif "thursday" in day:
+            return 3
+        elif "friday" in day:
+            return 4
+        elif "saturday" in day:
+            return 5
+        elif "sunday" in day:
+            return 6
+        else:
+            return None
+
+    def get_date(self, day):
+        current_date = datetime.now()
+        days_ahead = (current_date.weekday() - day) % 7
+        next_date = datetime.now() + timedelta(days=days_ahead)
+        return next_date
 
     def get_channel_id(self, channel_name):
         # Use Slack API to get the channel ID from the channel name
@@ -38,9 +67,19 @@ class ReminderPlugin(MachineBasePlugin):
 
     def convert_to_timestamp(self, when):
         try:
-            future_time = datetime.datetime.strptime(when, "%d/%m/%Y %I:%M %p")
-            future_timestamp = int(future_time.timestamp())
+            parts = when.split(" ", 1)
+            day = self.get_weekday(when.lower())
+            date = self.get_date(day)
+            time = parts[1]
 
+            # Convert date to a formatted string in d/m/y format before concatenating with time
+            post_at = date.strftime("%d/%m/%y") + " " + time
+
+            print(post_at)
+            future_time = datetime.strptime(post_at, "%d/%m/%y %I:%M %p")
+            print(future_time)
+            future_timestamp = int(future_time.timestamp())
+            print(future_timestamp)
             return future_timestamp
         except ValueError:
             return None
@@ -66,7 +105,7 @@ class ReminderPlugin(MachineBasePlugin):
             self_channel = command._cmd_payload["channel_id"]
             text = command.text.strip()
             logging.info(f"Received command text: {text}")
-            channel_name, message, when = self.parse_command(text)
+            channel_name, message, when, every = self.parse_command(text)
             channel_id = self.get_channel_id(channel_name)
             if not channel_id or not message or not when:
                 await self.web_client.chat_postMessage(
