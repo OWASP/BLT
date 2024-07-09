@@ -10,4 +10,5 @@ PLUGINS = (
     "sammich.plugins.contributors.ContributorPlugin",
     "sammich.plugins.project.ProjectPlugin",
     "sammich.plugins.repo.RepoPlugin",
+    "sammich.plugins.create_issue.CreateIssuePlugin",
 )
