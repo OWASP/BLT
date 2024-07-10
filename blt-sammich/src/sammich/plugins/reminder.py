@@ -1,12 +1,18 @@
 import logging
 import re
 import time
+import dateparser
 from datetime import datetime, timedelta
-
+from github import Github
+from github import Auth
 import requests
 from dotenv import dotenv_values
+from slack_sdk.web.async_client import AsyncSlackResponse
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
+from typing import Any, Sequence
+from slack_sdk.models.blocks import Block
+from slack_sdk.models.attachments import Attachment
 
 secrets = dotenv_values(".secrets")
 
@@ -28,30 +34,6 @@ class ReminderPlugin(MachineBasePlugin):
             return channel_name, message, when, every
         return None, None, None
 
-    def get_weekday(self, day):
-        if "monday" in day:
-            return 0
-        elif "tuesday" in day:
-            return 1
-        elif "wednesday" in day:
-            return 2
-        elif "thursday" in day:
-            return 3
-        elif "friday" in day:
-            return 4
-        elif "saturday" in day:
-            return 5
-        elif "sunday" in day:
-            return 6
-        else:
-            return None
-
-    def get_date(self, day):
-        current_date = datetime.now()
-        days_ahead = (current_date.weekday() - day) % 7
-        next_date = datetime.now() + timedelta(days=days_ahead)
-        return next_date
-
     def get_channel_id(self, channel_name):
         # Use Slack API to get the channel ID from the channel name
         headers = {
@@ -65,39 +47,32 @@ class ReminderPlugin(MachineBasePlugin):
                 return channel["id"]
         return None
 
-    def convert_to_timestamp(self, when):
+    def convert_to_datetime(self, when):
         try:
-            parts = when.split(" ", 1)
-            day = self.get_weekday(when.lower())
-            date = self.get_date(day)
-            time = parts[1]
-
-            # Convert date to a formatted string in d/m/y format before concatenating with time
-            post_at = date.strftime("%d/%m/%y") + " " + time
-
-            print(post_at)
-            future_time = datetime.strptime(post_at, "%d/%m/%y %I:%M %p")
-            print(future_time)
-            future_timestamp = int(future_time.timestamp())
-            print(future_timestamp)
-            return future_timestamp
+            date = dateparser.parse(when)
+            return date
         except ValueError:
             return None
 
-    def schedule_message(self, channel_id, text, post_at):
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
-        }
-        data = {
-            "channel": channel_id,
-            "text": text,
-            "post_at": post_at,
-        }
-        response = requests.post(
-            "https://slack.com/api/chat.scheduleMessage", headers=headers, json=data
+    async def say_scheduled(
+        self,
+        when,
+        channel,
+        text,
+        attachments: Sequence[Attachment] | Sequence[dict[str, Any]] | None = None,
+        blocks: Sequence[Block] | Sequence[dict[str, Any]] | None = None,
+        thread_ts: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncSlackResponse:
+        return await self._client.send_scheduled(
+            when,
+            channel,
+            text=text,
+            attachments=attachments,
+            blocks=blocks,
+            thread_ts=thread_ts,
+            **kwargs,
         )
-        return response.json()
 
     @command("/setreminder")
     async def reminder(self, command):
@@ -115,7 +90,7 @@ class ReminderPlugin(MachineBasePlugin):
                 logging.error("Invalid command format")
                 return
 
-            post_at = self.convert_to_timestamp(when)
+            post_at = self.convert_to_datetime(when)
             if not post_at:
                 await self.web_client.chat_postMessage(
                     channel=self_channel, text=f"Invalid time format for 'when': {when}."
@@ -123,18 +98,19 @@ class ReminderPlugin(MachineBasePlugin):
                 logging.error(f"Invalid time format for 'when': {when}")
                 return
 
-            response = self.schedule_message(channel_id, message, post_at)
-            if response.get("ok"):
+            response = await self.say_scheduled(post_at, channel_id, message)
+            print(response)
+            if response["ok"]:
                 await self.web_client.chat_postMessage(
                     channel=self_channel,
                     text=(
                         f"Message scheduled successfully for"
-                        f"{time.ctime(post_at)} in channel {channel_id}."
+                        f" {post_at.strftime('%Y-%m-%d %H:%M:%S')} in channel {channel_id}."
                     ),
                 )
                 logging.info(
                     f"Message scheduled successfully for"
-                    f"{time.ctime(post_at)} in channel {channel_id}."
+                    f" {post_at.strftime('%Y-%m-%d %H:%M:%S')} in channel {channel_id}."
                 )
             else:
                 await self.web_client.chat_postMessage(
