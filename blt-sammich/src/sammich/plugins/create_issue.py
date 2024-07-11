@@ -15,8 +15,7 @@ class CreateIssuePlugin(MachineBasePlugin):
     async def createissue(self, command):
         channel_id = command._cmd_payload["channel_id"]
         title = command.text.strip()
-        github_token = secrets["github_token"]
-        github = Github(github_token)
+        github = Github(secrets["github_token"])
 
         try:
             repo = github.get_repo(
