@@ -21,7 +21,7 @@ class CreateIssuePlugin(MachineBasePlugin):
         github = Github(github_token)
 
         try:
-            repo = github.get_repo(f"{settings.owner}/{settings.repo}")
+            repo = github.get_repo(f"{settings.GITHUB_REPOSITORY_OWNER}/{settings.GITHUB_REPOSITORY_NAME}")
             issue = repo.create_issue(title=title)
             issue_url = issue.html_url
             await self.say(channel_id, f"Issue created successfully: {issue.html_url}")
