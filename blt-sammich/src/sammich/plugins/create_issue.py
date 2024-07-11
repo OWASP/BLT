@@ -7,9 +7,7 @@ from machine.plugins.decorators import command
 
 import settings
 
-# Load secrets
 secrets = dotenv_values(".secrets")
-github_token = secrets["github_token"]
 
 
 class CreateIssuePlugin(MachineBasePlugin):
@@ -17,7 +15,7 @@ class CreateIssuePlugin(MachineBasePlugin):
     async def createissue(self, command):
         channel_id = command._cmd_payload["channel_id"]
         title = command.text.strip()
-
+        github_token = secrets["github_token"]
         github = Github(github_token)
 
         try:
