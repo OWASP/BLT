@@ -16,7 +16,6 @@ class CreateIssuePlugin(MachineBasePlugin):
         channel_id = command._cmd_payload["channel_id"]
         title = command.text.strip()
         github = Github(secrets["github_token"])
-
         try:
             repo = github.get_repo(
                 f"{settings.GITHUB_REPOSITORY_OWNER}/{settings.GITHUB_REPOSITORY_NAME}"
