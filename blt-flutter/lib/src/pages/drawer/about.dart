@@ -12,12 +12,19 @@ class AboutPage extends StatelessWidget {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(AppLocalizations.of(context)!.aboutUs),
+        title: Text(
+          AppLocalizations.of(context)!.aboutUs,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
         backgroundColor:
             isDarkMode ? Color.fromRGBO(58, 21, 31, 1) : Color(0xFFDC4654),
       ),

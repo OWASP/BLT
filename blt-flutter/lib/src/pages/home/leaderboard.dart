@@ -611,7 +611,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                             child: Material(
                               color: Colors.transparent,
                               child: ListView.builder(
-                                itemCount: 3,
+                                itemCount: (companyData!.length > 3)
+                                    ? 3
+                                    : companyData.length,
                                 itemBuilder: (context, index) {
                                   return ListTile(
                                     shape: RoundedRectangleBorder(
@@ -631,9 +633,17 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                                                   topLeft: Radius.circular(0),
                                                 ),
                                     ),
-                                    tileColor: Color(0xFFE0E0E0),
+                                    tileColor: index == 2
+                                        ? Color(0xFFC9AE5D).withOpacity(0.42)
+                                        : index == 1
+                                            ? Color(0xFFADD8E6)
+                                                .withOpacity(0.42)
+                                            : index == 0
+                                                ? Color(0xFFFFD700)
+                                                    .withOpacity(0.42)
+                                                : Colors.white,
                                     leading: buildLogo(
-                                      companyData![index].logoLink,
+                                      companyData[index].logoLink,
                                     ),
                                     title: Text(
                                       companyData[index].companyName,

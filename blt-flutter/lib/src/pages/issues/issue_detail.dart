@@ -61,12 +61,19 @@ class IssueDetailPage extends StatelessWidget {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("${AppLocalizations.of(context)!.issue} #${issue.id}"),
+        title: Text(
+          "${AppLocalizations.of(context)!.issue} #${issue.id}",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           IssueLikeButton(
             issue: issue,
