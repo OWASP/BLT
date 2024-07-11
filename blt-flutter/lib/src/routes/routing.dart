@@ -26,6 +26,9 @@ class RouteManager {
   static const String closedIssues = "/closedIssues";
   static const String chatBotPage = "/chatBot";
   static const String sponsorPage = "/sponsor";
+  static const String showBugHunt = "/showBugHunt";
+  static const String showPrevBugHunt = "/showPrevBugHunt";
+  static const String bugHuntDescPageHunt = "/bugHuntDescPage";
 
   /// Route generator, finds a requested route or throws the
   /// error page in case of route not found.
@@ -477,6 +480,65 @@ class RouteManager {
         return PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               ChatBotPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+      case showBugHunt:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              ShowBugHunts(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case showPrevBugHunt:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              PreviousBugHunts(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0);
+            const end = Offset.zero;
+            const curve = Curves.ease;
+
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 750),
+        );
+
+      case bugHuntDescPageHunt:
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              BugHuntDescriptionPage(hunt: arguments as BugHunt),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0);
             const end = Offset.zero;

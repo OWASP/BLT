@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:blt/src/components/components_import.dart';
 
 /// The card used to display issues in the list of issues on the Issue Page.

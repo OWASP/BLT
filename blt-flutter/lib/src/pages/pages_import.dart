@@ -37,3 +37,5 @@ export 'package:blt/src/providers/language_provider.dart';
 export 'package:flutter/material.dart';
 export 'package:blt/src/util/api/chatbot_api.dart';
 export 'package:lottie/lottie.dart';
+export '../models/bug_hunt_model.dart';
+export 'package:blt/src/constants/monthname_constants.dart';

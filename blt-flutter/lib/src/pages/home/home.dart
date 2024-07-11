@@ -296,6 +296,19 @@ class _HomeState extends ConsumerState<Home> {
                 },
               ),
               ListTile(
+                title: Text("Bug Hunts"),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.showBugHunt,
+                  );
+
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                },
+              ),
+              ListTile(
                 title: Text("Companies"),
                 onTap: () {
                   Navigator.pushNamed(

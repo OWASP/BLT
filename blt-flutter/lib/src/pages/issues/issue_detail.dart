@@ -1,6 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
-import 'package:flutter/material.dart';
 
 /// Popup page when an issue is clicked to be viewed.
 class IssueDetailPage extends StatelessWidget {

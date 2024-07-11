@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:blt/src/components/components_import.dart';
 
 /// Chip that shows the open/close status of an issue.

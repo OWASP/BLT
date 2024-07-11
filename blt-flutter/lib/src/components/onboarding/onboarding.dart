@@ -1,5 +1,4 @@
 import 'package:blt/src/components/components_import.dart';
-import 'package:flutter/material.dart';
 
 class Onboarding extends StatefulWidget {
   final Map<String, String> stats;

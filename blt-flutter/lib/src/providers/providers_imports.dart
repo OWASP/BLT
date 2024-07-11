@@ -18,3 +18,5 @@ export 'package:blt/src/models/company_model.dart';
 export 'package:blt/src/util/api/leaderboard_api.dart';
 export 'package:blt/src/util/endpoints/leaderboard_endpoints.dart';
 export 'package:blt/src/models/leader_model.dart';
+export 'package:blt/src/models/bug_hunt_model.dart';
+export 'package:blt/src/util/api/bug_hunt_api.dart';
