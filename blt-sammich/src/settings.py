@@ -1,2 +1,2 @@
-repo = "BLT-Sammich"
-owner = "OWASP-BLT"
+GITHUB_REPOSITORY_OWNER = "OWASP-BLT"
+GITHUB_REPOSITORY_NAME = "BLT-Sammich"
