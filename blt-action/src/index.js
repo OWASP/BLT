@@ -100,7 +100,7 @@ const run = async () => {
             repo,
             per_page: 100,
         }, response => response.data.filter(r => r.event == "assigned")
-        ).then((data) => {
+        ).then(async (data) => {
             for (const event of data) {
 
                 if (event.issue.assignee && event.issue.state == "open") {
