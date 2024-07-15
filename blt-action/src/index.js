@@ -87,6 +87,14 @@ const run = async () => {
                 issue_number: issue.number,
                 assignees
             });
+
+            // Add the message to the issue
+            await octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `Hello @${assigneeLogin}! You've been assigned to [${repository}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request. To place a bid and potentially earn some BCH, type /bid [amount in BCH] [BCH address].`
+            });
         }
     } else {
         console.log('removing assignees greater than 5 days');
