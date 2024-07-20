@@ -29,3 +29,6 @@ export 'package:blt/src/models/bug_hunt_model.dart';
 export 'package:blt/src/pages/bug_hunt_desc_page.dart';
 export 'package:blt/src/pages/drawer/prev_bug_hunts.dart';
 export 'package:blt/src/pages/drawer/show_bug_hunts.dart';
+export 'package:blt/src/models/project_model.dart';
+export 'package:blt/src/pages/contributors_info.dart';
+export 'package:blt/src/pages/drawer/projects.dart';

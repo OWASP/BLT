@@ -39,3 +39,5 @@ export 'package:blt/src/util/api/chatbot_api.dart';
 export 'package:lottie/lottie.dart';
 export '../models/bug_hunt_model.dart';
 export 'package:blt/src/constants/monthname_constants.dart';
+export 'package:blt/src/models/contributors_model.dart';
+export 'package:blt/src/models/project_model.dart';

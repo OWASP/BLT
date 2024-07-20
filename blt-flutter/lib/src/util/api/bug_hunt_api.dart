@@ -58,9 +58,7 @@ class BugHuntApiClient {
 
   static Future<List<BugHunt>> searchBugHunts(
       {http.Client? client, String? search}) async {
-    // String searchUrl = GeneralEndPoints.apiBaseUrl + "/hunt";
-    String searchUrl =
-        "http://192.168.56.1:8000/api/v1" + "/hunt/?search=$search";
+    String searchUrl = GeneralEndPoints.apiBaseUrl + "/hunt/?search=$search";
     List<BugHunt> bugHuntList = [];
     try {
       var response = (client != null)

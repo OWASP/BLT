@@ -20,3 +20,6 @@ export 'package:blt/src/providers/bug_hunt_provider.dart';
 export 'package:blt/src/components/bug_hunt_list_tile.dart';
 export 'package:blt/src/components/bug_hunt_search_delegate.dart';
 export '../../routes/routing.dart';
+export 'package:blt/src/models/contributors_model.dart';
+export 'package:blt/src/models/project_model.dart';
+export 'package:blt/src/util/api/github_apis.dart';
