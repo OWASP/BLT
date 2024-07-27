@@ -1,18 +1,11 @@
 import logging
 import re
-import time
+
 import dateparser
-from datetime import datetime, timedelta
-from github import Github
-from github import Auth
 import requests
 from dotenv import dotenv_values
-from slack_sdk.web.async_client import AsyncSlackResponse
 from machine.plugins.base import MachineBasePlugin
 from machine.plugins.decorators import command
-from typing import Any, Sequence
-from slack_sdk.models.blocks import Block
-from slack_sdk.models.attachments import Attachment
 
 secrets = dotenv_values(".secrets")
 
@@ -35,7 +28,6 @@ class ReminderPlugin(MachineBasePlugin):
         return None, None, None
 
     def get_channel_id(self, channel_name):
-        # Use Slack API to get the channel ID from the channel name
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
@@ -54,25 +46,20 @@ class ReminderPlugin(MachineBasePlugin):
         except ValueError:
             return None
 
-    async def say_scheduled(
-        self,
-        when,
-        channel,
-        text,
-        attachments: Sequence[Attachment] | Sequence[dict[str, Any]] | None = None,
-        blocks: Sequence[Block] | Sequence[dict[str, Any]] | None = None,
-        thread_ts: str | None = None,
-        **kwargs: Any,
-    ) -> AsyncSlackResponse:
-        return await self._client.send_scheduled(
-            when,
-            channel,
-            text=text,
-            attachments=attachments,
-            blocks=blocks,
-            thread_ts=thread_ts,
-            **kwargs,
+    def schedule_message(self, channel_id, text, post_at):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
+        }
+        data = {
+            "channel": channel_id,
+            "text": text,
+            "post_at": post_at,
+        }
+        response = requests.post(
+            "https://slack.com/api/chat.scheduleMessage", headers=headers, json=data
         )
+        return response.json()
 
     @command("/setreminder")
     async def reminder(self, command):
