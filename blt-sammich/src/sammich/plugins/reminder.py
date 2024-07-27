@@ -86,18 +86,17 @@ class ReminderPlugin(MachineBasePlugin):
                 return
 
             response = await self.say_scheduled(post_at, channel_id, message)
-            print(response)
             if response["ok"]:
                 await self.web_client.chat_postMessage(
                     channel=self_channel,
                     text=(
                         f"Message scheduled successfully for"
-                        f" {post_at.strftime('%Y-%m-%d %H:%M:%S')} in channel {channel_id}."
+                        f" {post_at.strftime('%Y-%m-%d %H:%M:%S UTC')} in channel {channel_id}."
                     ),
                 )
                 logging.info(
                     f"Message scheduled successfully for"
-                    f" {post_at.strftime('%Y-%m-%d %H:%M:%S')} in channel {channel_id}."
+                    f" {post_at.strftime('%Y-%m-%d %H:%M:%S UTC')} in channel {channel_id}."
                 )
             else:
                 await self.web_client.chat_postMessage(
