@@ -1,7 +1,6 @@
-import os
-
 import requests
 from dotenv import dotenv_values
+
 secrets = dotenv_values(".secrets")
 
 GITHUB_API_URL = "https://api.github.com"
@@ -11,13 +10,23 @@ GITHUB_TOKEN = secrets["GITHUB_TOKEN"]
 def fetch_github_data(owner, repo, since_date):
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     try:
-        prs = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=merged&since={since_date}", headers=headers).json()
-        issues = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed&since={since_date}", headers=headers).json()
-        comments = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments?&since={since_date}", headers=headers).json()
+        prs = requests.get(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=merged&since={since_date}",
+            headers=headers,
+        ).json()
+        issues = requests.get(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed&since={since_date}",
+            headers=headers,
+        ).json()
+        comments = requests.get(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments?&since={since_date}",
+            headers=headers,
+        ).json()
     except requests.RequestException as e:
         print(f"Error fetching GitHub data: {e}")
         return [], [], []
     return prs, issues, comments
+
 
 def format_data(prs, issues, comments):
     user_data = {}
@@ -44,7 +53,9 @@ def format_data(prs, issues, comments):
     max_user_length = max(len(user) for user in user_data.keys())
     max_prs_length = max(max(len(str(counts["prs"])) for counts in user_data.values()), 10)
     max_issues_length = max(max(len(str(counts["issues"])) for counts in user_data.values()), 15)
-    max_comments_length = max(max(len(str(counts["comments"])) for counts in user_data.values()), 9)
+    max_comments_length = max(
+        max(len(str(counts["comments"])) for counts in user_data.values()), 9
+    )
 
     # Formatting table header
     header = (

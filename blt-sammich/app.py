@@ -1,16 +1,16 @@
-import os
-import requests,re
 import json
-import logging  
+import logging
+import re
+from datetime import datetime, timedelta
+
 from dotenv import dotenv_values
+from github import Github
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_bolt.app import App
-from datetime import datetime, timedelta
+
 import settings
-from github import Github
-from src.sammich.plugins.contributors import fetch_github_data,format_data
+from src.sammich.plugins.contributors import fetch_github_data, format_data
 from src.sammich.plugins.project import show_project_page
-from machine.plugins.decorators import action
 
 PROJECTS_PER_PAGE = 100
 # Load environment variables
@@ -36,6 +36,7 @@ def contributors(ack, say, command):
         ]
     say(text="Contributors Activity", blocks=formatted_data)
 
+
 @app.command("/ghissue")
 async def createissue(self, command):
     channel_id = command._cmd_payload["channel_id"]
@@ -51,39 +52,43 @@ async def createissue(self, command):
         logging.error("Failed to create issue")
         await self.say(channel_id, "Failed to create issue")
 
+
 with open("data/projects.json") as f:
     project_data = json.load(f)
 
 with open("data/repos.json") as f:
     repo_data = json.load(f)
 
+
 @app.command("/project")
 def project(ack, command, say):
     ack()  # Acknowledge the command
-    project_name = command['text'].strip().lower()
-    channel_id = command['channel_id']
+    project_name = command["text"].strip().lower()
+    channel_id = command["channel_id"]
     project = project_data.get(project_name)
     if project:
         project_list = "\n".join(project)
         message = f"Hello, here is the information about '{project_name}':\n{project_list}"
         say(message)
     else:
-        show_project_page(channel_id,say)
+        show_project_page(channel_id, say)
+
 
 @app.action(re.compile(r"project_select_action_.*"))
 def handle_dropdown_selection(ack, body, say):
     ack()  # Acknowledge the interaction
-    selected_project = body['actions'][0]['selected_option']['value']
+    selected_project = body["actions"][0]["selected_option"]["value"]
     project = project_data.get(selected_project)
     project_list = "\n".join(project)
     message = f"Hello, here is the information about '{selected_project}':\n{project_list}"
     say(message)
 
+
 @app.command("/repo")
 def repo(ack, command, say):
     ack()
-    tech_name =  command['text'].strip().lower()
-    channel_id = command['channel_id']
+    tech_name = command["text"].strip().lower()
+    channel_id = command["channel_id"]
 
     repos = repo_data.get(tech_name)
     if repos:
@@ -123,10 +128,11 @@ def repo(ack, command, say):
             text=fallback_message,
         )
 
+
 @app.action(re.compile(r"plugin_repo_button_.*"))
-def handle_button_click(ack,body,say):
+def handle_button_click(ack, body, say):
     ack()
-    clicked_button_value = body['actions'][0]['value']
+    clicked_button_value = body["actions"][0]["value"]
     repos = repo_data.get(clicked_button_value)
     repos_list = "\n".join(repos)
     message = (
@@ -134,6 +140,6 @@ def handle_button_click(ack,body,say):
     )
     say(message)
 
+
 if __name__ == "__main__":
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
-

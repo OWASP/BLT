@@ -1,16 +1,15 @@
-import re , json
+import json
 
 PROJECTS_PER_PAGE = 100
 with open("data/projects.json") as f:
     project_data = json.load(f)
 
-def show_project_page(channel_id,say):
+
+def show_project_page(channel_id, say):
     projects = list(project_data.keys())
 
     if not projects:
-        say(
-            channel=channel_id, text="No projects available."
-        )
+        say(channel=channel_id, text="No projects available.")
         return
 
     # Calculate the number of dropdowns needed
@@ -47,8 +46,4 @@ def show_project_page(channel_id,say):
             }
         )
 
-    say(
-        channel=channel_id, blocks=blocks, text="Available Projects"
-    )
-
-
+    say(channel=channel_id, blocks=blocks, text="Available Projects")
