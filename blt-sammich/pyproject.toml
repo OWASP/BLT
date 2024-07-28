@@ -16,6 +16,7 @@ slack-sdk = "^3.27.2"
 slackeventsapi = "^3.0.1"
 requests = "^2.32.3"
 pygithub = "^2.3.0"
+slack-bolt = "^1.19.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

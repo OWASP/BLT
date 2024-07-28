@@ -1,29 +1,23 @@
 import os
 
 import requests
-from dotenv import load_dotenv
-from machine.plugins.base import MachineBasePlugin
-from machine.plugins.decorators import command
-
-load_dotenv()
+from dotenv import dotenv_values
+secrets = dotenv_values(".secrets")
 
 GITHUB_API_URL = "https://api.github.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = secrets["GITHUB_TOKEN"]
 
 
-def fetch_github_data(owner, repo):
+def fetch_github_data(owner, repo, since_date):
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    prs = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=closed", headers=headers
-    ).json()
-    issues = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed", headers=headers
-    ).json()
-    comments = requests.get(
-        f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments", headers=headers
-    ).json()
+    try:
+        prs = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls?state=merged&since={since_date}", headers=headers).json()
+        issues = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues?state=closed&since={since_date}", headers=headers).json()
+        comments = requests.get(f"{GITHUB_API_URL}/repos/{owner}/{repo}/issues/comments?&since={since_date}", headers=headers).json()
+    except requests.RequestException as e:
+        print(f"Error fetching GitHub data: {e}")
+        return [], [], []
     return prs, issues, comments
-
 
 def format_data(prs, issues, comments):
     user_data = {}
@@ -50,9 +44,7 @@ def format_data(prs, issues, comments):
     max_user_length = max(len(user) for user in user_data.keys())
     max_prs_length = max(max(len(str(counts["prs"])) for counts in user_data.values()), 10)
     max_issues_length = max(max(len(str(counts["issues"])) for counts in user_data.values()), 15)
-    max_comments_length = max(
-        max(len(str(counts["comments"])) for counts in user_data.values()), 9
-    )
+    max_comments_length = max(max(len(str(counts["comments"])) for counts in user_data.values()), 9)
 
     # Formatting table header
     header = (
@@ -86,18 +78,3 @@ def format_data(prs, issues, comments):
             "text": {"type": "mrkdwn", "text": f"*Contributor Data*\n```\n{table}\n```"},
         }
     ]
-
-
-class ContributorPlugin(MachineBasePlugin):
-    """Contributor plugin"""
-
-    @command("/contributors")
-    async def contributors(self, command):
-        prs, issues, comments = fetch_github_data("OWASP-BLT", "BLT")
-        formatted_data = format_data(prs, issues, comments)
-        if not formatted_data:
-            formatted_data = [
-                {"type": "section", "text": {"type": "mrkdwn", "text": "No data available"}}
-            ]
-
-        await command.say(text="Contributors Activity", blocks=formatted_data)
