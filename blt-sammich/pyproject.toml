@@ -15,6 +15,7 @@ gitpython = "^3.1.43"
 slack-sdk = "^3.27.2"
 slackeventsapi = "^3.0.1"
 requests = "^2.32.3"
+dateparser = "^1.2.0"
 pygithub = "^2.3.0"
 slack-bolt = "^1.19.1"
 
