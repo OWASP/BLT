@@ -165,4 +165,23 @@ class AuthApiClient {
       }
     } catch (e) {}
   }
+
+  // Send a request to delete the current User.
+  static Future<bool> delete() async {
+    bool isDeleted = false;
+    print(currentUser!.token);
+    try {
+      var response = await http.delete(
+        Uri.parse(GeneralEndPoints.baseUrl + "auth/" + "delete"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      var json = jsonDecode(response.body);
+      isDeleted = json['success'];
+    } catch (e) {
+      print(e);
+    }
+    return isDeleted;
+  }
 }
