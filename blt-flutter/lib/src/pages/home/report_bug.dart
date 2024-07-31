@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals
@@ -54,6 +55,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   bool duplicateVerified = false;
   final _formKey = GlobalKey<FormState>();
   List<File> _image = [];
+  bool status = false;
   final picker = ImagePicker();
   List<String> _issueCategories = [
     "General",
@@ -376,9 +378,17 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     });
   }
 
+  void _checkStatus() async {
+    var check = await Permission.photos.request().isGranted;
+    setState(() {
+      status = check;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkStatus();
     if (widget.reportPageDefaults.sharedMediaFile != null) {
       _image = [File(widget.reportPageDefaults.sharedMediaFile!.path)];
     }
@@ -849,8 +859,72 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: InkWell(
-                                onTap: () {
-                                  _pickImageFromGallery();
+                                onTap: () async {
+                                  var permissionStatus =
+                                      await Permission.photos.status;
+                                  if (permissionStatus.isGranted) {
+                                    _pickImageFromGallery();
+                                  } else if (permissionStatus.isDenied ||
+                                      permissionStatus.isRestricted) {
+                                    var ask = await Permission.photos.request();
+                                    setState(() {
+                                      status = ask.isGranted;
+                                    });
+                                    if (ask.isGranted) {
+                                      _pickImageFromGallery();
+                                    } else if (ask.isPermanentlyDenied) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            AlertDialog(
+                                          title: Text('Permission Needed'),
+                                          content: Text(
+                                              'This app needs access to your photo gallery to upload images. Please enable the permission in the app settings.'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                openAppSettings();
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Settings'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  } else if (permissionStatus
+                                      .isPermanentlyDenied) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) =>
+                                          AlertDialog(
+                                        title: Text('Permission Needed'),
+                                        content: Text(
+                                            'This app needs access to your photo gallery to upload images. Please enable the permission in the app settings.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              openAppSettings();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('Settings'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Ink(
                                   child: Container(
