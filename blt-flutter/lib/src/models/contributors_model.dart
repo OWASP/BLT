@@ -43,7 +43,7 @@ class Contributors {
       name: json['name'],
       githubId: json['github_id'],
       githubUrl: json['github_url'],
-      image: json['avatar'],
+      image: json['avatar_url'],
       type: json['contributor_type'],
       contributions: json['contributions'],
     );

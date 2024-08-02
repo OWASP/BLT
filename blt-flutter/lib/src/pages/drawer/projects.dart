@@ -106,7 +106,7 @@ class _ContributorsPageState extends ConsumerState<ContributorsPage>
                       if (projectList!.isEmpty) {
                         return Center(
                           child: Text(
-                            "${AppLocalizations.of(context)!.notManyBugs}:) \n ${AppLocalizations.of(context)!.yay}",
+                            "Looks like there aren't many projects \n right now !",
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -165,7 +165,7 @@ class _ProjectSectionState extends State<ProjectSection> {
   List<Contributors>? contributors = [];
   @override
   void initState() {
-    contributors = widget.project.contributors;
+    contributors = widget.project.contributors ?? [];
     super.initState();
   }
 
@@ -179,17 +179,21 @@ class _ProjectSectionState extends State<ProjectSection> {
       children: [
         Row(
           children: [
-            SizedBox(
-              height: 25,
-              width: 25,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: CachedNetworkImage(imageUrl: widget.project.logo),
+            if (widget.project.logo_url != "")
+              SizedBox(
+                height: 25,
+                width: 25,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CachedNetworkImage(imageUrl: widget.project.logo_url!),
+                ),
               ),
-            ),
             SizedBox(width: 5),
             Text(
               widget.project.name,
+              softWrap: true,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.ubuntu(
                 textStyle: TextStyle(
                   color: Color(0xFFDC4654),

@@ -1,7 +1,5 @@
 import 'package:blt/src/models/contributors_model.dart';
 
-import '../util/util_import.dart';
-
 class Project {
   final int id;
   final String name;
@@ -10,7 +8,7 @@ class Project {
   final String github_url;
   String? wiki_url;
   String? homepage_url;
-  final String logo;
+  String? logo_url;
   DateTime? created;
   List<Contributors>? contributors;
 
@@ -22,7 +20,7 @@ class Project {
     required this.github_url,
     this.wiki_url,
     this.homepage_url,
-    required this.logo,
+    this.logo_url,
     this.created,
     this.contributors,
   });
@@ -35,7 +33,7 @@ class Project {
     String? github_url,
     String? wiki_url,
     String? homepage_url,
-    String? logo,
+    String? logo_url,
     DateTime? created,
     List<Contributors>? contributors,
   }) {
@@ -47,7 +45,7 @@ class Project {
       github_url: github_url ?? this.github_url,
       wiki_url: wiki_url ?? this.wiki_url,
       homepage_url: homepage_url ?? this.homepage_url,
-      logo: logo ?? this.logo,
+      logo_url: logo_url ?? this.logo_url,
       created: created ?? this.created,
       contributors: contributors ?? this.contributors,
     );
@@ -63,7 +61,7 @@ class Project {
       wiki_url: json['wiki_url'] != null ? json['wiki_url'] as String : "",
       homepage_url:
           json['homepage_url'] != null ? json['homepage_url'] as String : "",
-      logo: GeneralEndPoints.baseUrl + json['logo'],
+      logo_url: json['logo_url'] != null ? json['logo_url'] : "",
       created: json['created'] != null ? DateTime.parse(json['created']) : null,
       contributors: json['contributors'] != null
           ? Contributors.fromSnapshot(json['contributors'])
