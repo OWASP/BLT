@@ -189,16 +189,17 @@ class _ProjectSectionState extends State<ProjectSection> {
                 ),
               ),
             SizedBox(width: 5),
-            Text(
-              widget.project.name,
-              softWrap: true,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.ubuntu(
-                textStyle: TextStyle(
-                  color: Color(0xFFDC4654),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            SizedBox(
+              width: size.width * 0.8,
+              child: Text(
+                widget.project.name,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.ubuntu(
+                  textStyle: TextStyle(
+                    color: Color(0xFFDC4654),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

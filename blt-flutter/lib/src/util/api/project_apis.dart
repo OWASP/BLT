@@ -6,11 +6,14 @@ import '../util_import.dart';
 class ProjectAPiClient {
   ProjectAPiClient._();
 
-  static Future<List<Project>?> getAllProjects() async {
+  static Future<List<Project>?> getAllProjects(
+      {http.Client? testClient}) async {
     List<Project> projects = [];
     try {
       var uri = GeneralEndPoints.apiBaseUrl + "projects/";
-      var response = await http.get(Uri.parse(uri));
+      var response = (testClient != null)
+          ? await testClient.get(Uri.parse(uri))
+          : await http.get(Uri.parse(uri));
       var json_res = json.decode(response.body);
       projects = Project.fromSnapshot(json_res['projects']);
     } catch (e) {
