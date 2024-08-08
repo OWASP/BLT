@@ -204,7 +204,7 @@ class _CompanyDetailPageState extends State<CompanyDetailPage> {
                           ),
                         ),
                       ),
-                      ButtonBar(
+                      OverflowBar(
                         alignment: MainAxisAlignment.start,
                         children: [
                           TextButton.icon(
