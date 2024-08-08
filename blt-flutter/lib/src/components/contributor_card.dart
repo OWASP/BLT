@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:blt/src/components/components_import.dart';
 
 class ContributorCard extends StatelessWidget {

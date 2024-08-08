@@ -1,7 +1,7 @@
 name: blt
 description: The BLT-Flutter App
 
-version: 1.0.6+1
+version: 1.0.7+1
 publish_to: none
 
 environment:
@@ -36,6 +36,7 @@ dependencies:
   testing: ^0.0.11
   lottie: ^3.1.2
   webview_flutter: ^3.0.4
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_launcher_icons: ">=0.9.0 <0.13.0"

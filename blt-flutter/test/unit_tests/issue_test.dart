@@ -1,4 +1,4 @@
-import 'test_imports.dart';
+import '../test_imports.dart';
 import 'package:http/http.dart' as http;
 
 void main() {

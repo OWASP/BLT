@@ -113,15 +113,8 @@ class IssuesPageState extends ConsumerState<IssuesPage>
                         ),
                       );
                     } else {
-                      return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: issueList.length,
-                        itemBuilder: (context, index) {
-                          final currentIssue = issueList[index];
-                          return IssueCard(
-                            issue: currentIssue,
-                          );
-                        },
+                      return ShowIssueList(
+                        issueList: issueList,
                       );
                     }
                   },
@@ -151,6 +144,32 @@ class IssuesPageState extends ConsumerState<IssuesPage>
           ),
         ),
       ),
+    );
+  }
+}
+
+class ShowIssueList extends StatefulWidget {
+  const ShowIssueList({super.key, required this.issueList, this.isTesting});
+  final List<Issue> issueList;
+  final bool? isTesting;
+
+  @override
+  State<ShowIssueList> createState() => _ShowIssueListState();
+}
+
+class _ShowIssueListState extends State<ShowIssueList> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: widget.issueList.length,
+      itemBuilder: (context, index) {
+        final currentIssue = widget.issueList[index];
+        return IssueCard(
+          isTesting: widget.isTesting,
+          issue: currentIssue,
+        );
+      },
     );
   }
 }

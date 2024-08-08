@@ -152,20 +152,8 @@ class CompanyListPageState extends ConsumerState<CompanyListPage>
                         ),
                       );
                     } else {
-                      return ListView.separated(
-                        controller: _scrollController,
-                        itemCount: companyList.length,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final company = companyList[index];
-                          return CompanyListElement(
-                            company: company,
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) {
-                          return SizedBox(height: 10);
-                        },
+                      return ShowCompanyList(
+                        companyList: companyList,
                       );
                     }
                   },
@@ -195,6 +183,46 @@ class CompanyListPageState extends ConsumerState<CompanyListPage>
           ),
         ),
       ),
+    );
+  }
+}
+
+class ShowCompanyList extends StatefulWidget {
+  const ShowCompanyList({
+    super.key,
+    required this.companyList,
+    this.isTest,
+  });
+  final List<Company> companyList;
+  final bool? isTest;
+
+  @override
+  State<ShowCompanyList> createState() => _ShowCompanyListState();
+}
+
+class _ShowCompanyListState extends State<ShowCompanyList> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      controller: _scrollController,
+      itemCount: widget.companyList.length,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        final company = widget.companyList[index];
+        if (widget.isTest != null && widget.isTest == true) {
+          return ListTile(
+            title: Text(company.companyName),
+            subtitle: Text('${company.lastModified}'),
+          );
+        }
+        return CompanyListElement(
+          company: company,
+        );
+      },
+      separatorBuilder: (BuildContext context, int index) {
+        return SizedBox(height: 10);
+      },
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:blt/src/util/util_import.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -165,5 +164,24 @@ class AuthApiClient {
         ScaffoldMessenger.of(context).showSnackBar(sentSnack);
       }
     } catch (e) {}
+  }
+
+  // Send a request to delete the current User.
+  static Future<bool> delete() async {
+    bool isDeleted = false;
+    print(currentUser!.token);
+    try {
+      var response = await http.delete(
+        Uri.parse(GeneralEndPoints.baseUrl + "auth/" + "delete"),
+        headers: {
+          "Authorization": "Token ${currentUser!.token!}",
+        },
+      );
+      var json = jsonDecode(response.body);
+      isDeleted = json['success'];
+    } catch (e) {
+      print(e);
+    }
+    return isDeleted;
   }
 }

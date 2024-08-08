@@ -1,12 +1,13 @@
 import 'package:blt/src/constants/labels_constants.dart';
-import 'package:flutter/material.dart';
 import 'package:blt/src/components/components_import.dart';
 
-/// The card used to display issues in the list of issues on the Issue Page.
+// The card used to display issues in the list of issues on the Issue Page.
 class IssueCard extends StatelessWidget {
   final Issue issue;
+  final bool? isTesting;
 
-  const IssueCard({Key? key, required this.issue}) : super(key: key);
+  const IssueCard({Key? key, required this.issue, this.isTesting})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +53,7 @@ class IssueCard extends StatelessWidget {
                 height: 0.12 * size.height,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 12,
-                ),
+                ).copyWith(top: 10),
                 child: ListTile(
                   // contentPadding: EdgeInsets.zero,
                   isThreeLine: true,
@@ -100,7 +100,7 @@ class IssueCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.only(top: 8, bottom: 12),
+                        padding: const EdgeInsets.only(top: 8, bottom: 9),
                         child: Text(
                           issue.title.replaceAll("\n", " "),
                           overflow: TextOverflow.ellipsis,
@@ -127,9 +127,11 @@ class IssueCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  trailing: IssueLikeButton(
-                    issue: issue,
-                  ),
+                  trailing: (isTesting == true && isTesting != null)
+                      ? null
+                      : IssueLikeButton(
+                          issue: issue,
+                        ),
                 ),
                 // child: Column(
                 //   crossAxisAlignment: CrossAxisAlignment.start,

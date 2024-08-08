@@ -1,7 +1,6 @@
 import 'package:blt/src/components/components_import.dart';
 import 'package:blt/src/constants/labels_constants.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
-import 'package:flutter/material.dart';
 
 /// Popup page when an issue is clicked to be viewed.
 class IssueDetailPage extends StatelessWidget {
@@ -63,12 +62,19 @@ class IssueDetailPage extends StatelessWidget {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("${AppLocalizations.of(context)!.issue} #${issue.id}"),
+        title: Text(
+          "${AppLocalizations.of(context)!.issue} #${issue.id}",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           IssueLikeButton(
             issue: issue,

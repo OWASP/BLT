@@ -256,6 +256,83 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     }
   }
 
+  void buildDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "This account will be deleted permanently !",
+          style: GoogleFonts.ubuntu(
+            textStyle: TextStyle(
+              color: Color(0xFFDC4654),
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        content: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextButton(
+                  onPressed: () async {
+                    bool success = await AuthApiClient.delete();
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Account deleted successfully."),
+                        ),
+                      );
+                      await forgetUser();
+                      await Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => WelcomePage()),
+                          (Route route) => false);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error deleting this account."),
+                        ),
+                      );
+                    }
+                  },
+                  style: ButtonStyle(
+                    alignment: Alignment.center,
+                    backgroundColor: WidgetStateProperty.all(Color(0xFFDC4654)),
+                  ),
+                  child: Text(
+                    "Delete",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color.fromRGBO(255, 255, 255, 1),
+                        fontSize: 15,
+                      ),
+                    ),
+                  )),
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ButtonStyle(
+                    alignment: Alignment.center,
+                    backgroundColor: WidgetStateProperty.all(Color(0xFF737373)),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)!.cancel,
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color.fromRGBO(255, 255, 255, 1),
+                        fontSize: 15,
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     getLikedList = (currentUser! == guestUser)
@@ -291,6 +368,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -651,6 +729,45 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                         }
                       }),
                     ),
+                    Center(
+                      child: TextButton(
+                        onPressed: () async {
+                          if (currentUser == guestUser) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Anonymous User !!")));
+                          } else {
+                            buildDeleteDialog(context);
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 5),
+                          child: Text(
+                            "Delete Account",
+                            style: GoogleFonts.ubuntu(
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                        style: ButtonStyle(
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                          backgroundColor: WidgetStateProperty.all(
+                            isDarkMode
+                                ? Color.fromRGBO(126, 33, 58, 1)
+                                : Color(0xFFDC4654),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30),
                   ],
                 ),
               )

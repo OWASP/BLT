@@ -1,4 +1,5 @@
 import 'package:blt/src/pages/home/home_imports.dart';
+import 'package:blt/src/util/services/permission_handlers.dart';
 
 /// Navigator and drawer provider for the main pages:
 /// Issues, Report Bug, Leaderboards and Feed.
@@ -169,6 +170,8 @@ class _HomeState extends ConsumerState<Home> {
     );
     super.initState();
 
+    requestStoragePermission();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ReportPageDefaults defaults = await receiveSharedIntent();
       if (defaults.sharedMediaFile != null || defaults.text != null) {
@@ -260,34 +263,21 @@ class _HomeState extends ConsumerState<Home> {
                   await logout();
                 },
               ),
+              // ListTile(
+              //   title: Text(AppLocalizations.of(context)!.social),
+              //   onTap: () {
+              //     // Update the state of the app
+              //     // ...
+              //     // Then close the drawer
+              //     Navigator.pushNamed(context, RouteManager.socialPage);
+              //   },
+              // ),
               ListTile(
-                title: Text(AppLocalizations.of(context)!.social),
-                onTap: () {
-                  // Update the state of the app
-                  // ...
-                  // Then close the drawer
-                  Navigator.pushNamed(context, RouteManager.socialPage);
-                },
-              ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.termsOfService),
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    RouteManager.legalPage,
-                  );
-
-                  // Update the state of the app
-                  // ...
-                  // Then close the drawer
-                },
-              ),
-              ListTile(
-                title: Text(AppLocalizations.of(context)!.aboutUs),
+                title: Text("Bug Bounties"),
                 onTap: () {
                   Navigator.pushNamed(
                     context,
-                    RouteManager.aboutPage,
+                    RouteManager.showBugHunt,
                   );
 
                   // Update the state of the app
@@ -315,10 +305,33 @@ class _HomeState extends ConsumerState<Home> {
                     context,
                     RouteManager.companyDashboardPage,
                   );
-
-                  // Update the state of the app
-                  // ...
-                  // Then close the drawer
+                },
+              ),
+              ListTile(
+                title: Text("Projects"),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.contributorsPage,
+                  );
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.termsOfService),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.legalPage,
+                  );
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.aboutUs),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    RouteManager.aboutPage,
+                  );
                 },
               ),
               SwitchListTile(

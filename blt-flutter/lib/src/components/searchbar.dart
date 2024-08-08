@@ -1,5 +1,4 @@
 import 'package:blt/src/components/components_import.dart';
-import 'package:flutter/material.dart';
 
 /// The search bar of app for searching issues based on keyword.
 class BLTSearchDelegate extends SearchDelegate {

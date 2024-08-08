@@ -1,7 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
 
-import 'package:flutter/material.dart';
-
 class OnboardPage extends StatefulWidget {
   final PageController pageController;
   final OnboardPageModel pageModel;

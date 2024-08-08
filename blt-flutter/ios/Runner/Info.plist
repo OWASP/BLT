@@ -14,6 +14,8 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>blt</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to your photo library to upload images.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

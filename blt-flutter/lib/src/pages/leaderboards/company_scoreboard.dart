@@ -218,13 +218,13 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                                           topLeft: Radius.circular(0),
                                         ),
                             ),
-                            tileColor: (index == 0)
-                                ? Color.fromARGB(255, 248, 207, 85)
-                                : (index == 1)
-                                    ? Color.fromARGB(255, 191, 189, 189)
-                                    : (index == 2)
-                                        ? Color.fromARGB(255, 224, 142, 112)
-                                        : Color(0xFFE0E0E0),
+                            tileColor: index == 2
+                                ? Color(0xFFC9AE5D).withOpacity(0.42)
+                                : index == 1
+                                    ? Color(0xFFADD8E6).withOpacity(0.42)
+                                    : index == 0
+                                        ? Color(0xFFFFD700).withOpacity(0.42)
+                                        : Colors.white,
                             leading: buildLogo(company.logoLink),
                             title: Text(
                               company.companyName,
