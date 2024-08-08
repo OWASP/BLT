@@ -67,6 +67,26 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     "Design",
     "Server down"
   ];
+  List<String> _labels = [
+    "Web Development",
+    "Backend",
+    "Frontend",
+    "App Developement",
+    "Cyber-Security",
+    "Algorithms",
+    "Machine Learning",
+    "Dev-Ops",
+  ];
+  List<bool> _labelsState = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ];
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.pickMultiImage();
@@ -973,6 +993,39 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                 ),
               ],
             ),
+          ),
+          SizedBox(height: 14),
+          Wrap(
+            spacing: 5.0,
+            children: List<Widget>.generate(_labels.length, (int index) {
+              return ChoiceChip(
+                label: Text(
+                  _labels[index],
+                  style: (_labelsState[index])
+                      ? GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        )
+                      : GoogleFonts.aBeeZee(
+                          textStyle: TextStyle(
+                            fontSize: 12,
+                          ),
+                        ),
+                ),
+                checkmarkColor: Colors.white,
+                selected: _labelsState[index],
+                onSelected: (value) {
+                  setState(() {
+                    _labelsState[index] = !_labelsState[index];
+                  });
+                },
+                selectedColor: isDarkMode
+                    ? Color.fromRGBO(126, 33, 58, 1)
+                    : Color(0xFFDC4654),
+              );
+            }),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
