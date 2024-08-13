@@ -1,5 +1,4 @@
 import 'package:blt/src/util/util_import.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 /// Class for accessing the issue client.
