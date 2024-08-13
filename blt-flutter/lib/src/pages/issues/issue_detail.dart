@@ -150,6 +150,26 @@ class IssueDetailPage extends StatelessWidget {
                 ],
               ),
             ),
+            if (issue.tags!.isNotEmpty)
+              Wrap(
+                spacing: 5.0,
+                children:
+                    List<Widget>.generate(issue.tags!.length, (int index) {
+                  return Chip(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    label: Text(
+                      issue.tags![index].name,
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
@@ -247,15 +267,14 @@ class IssueDetailPage extends StatelessWidget {
               itemCount: validScreenshotIndexes.length,
               itemBuilder: (_, i) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(8),
-                      ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
                     ),
                     child: Image.network(
                       issue.screenshotsLink![validScreenshotIndexes[i] - 1],
+                      fit: BoxFit.cover,
                     ),
                   ),
                 );

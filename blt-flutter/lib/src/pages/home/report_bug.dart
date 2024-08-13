@@ -423,6 +423,11 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Form(
