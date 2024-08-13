@@ -2,6 +2,9 @@
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../models/tags_model.dart';
+import '../../util/api/tags_api.dart';
+
 /// Report Bug and Start Bug Hunt Page, namesake, used for
 /// posting bugs, companies and individuals
 /// should be able to start bughunts.
@@ -67,26 +70,9 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     "Design",
     "Server down"
   ];
-  List<String> _labels = [
-    "Web Development",
-    "Backend",
-    "Frontend",
-    "App Developement",
-    "Cyber-Security",
-    "Algorithms",
-    "Machine Learning",
-    "Dev-Ops",
-  ];
-  List<bool> _labelsState = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ];
+  bool showLabel = false;
+  List<Tag> _labels = [];
+  late List<bool> _labelsState;
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.pickMultiImage();
@@ -405,10 +391,23 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     });
   }
 
+  void getAvailableLabels() async {
+    setState(() {
+      showLabel = false;
+    });
+    var fetchedLabels = await TagsApiClient.getListOfTags();
+    setState(() {
+      _labels = fetchedLabels;
+      _labelsState = new List.filled(fetchedLabels.length, false);
+      showLabel = true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _checkStatus();
+    getAvailableLabels();
     if (widget.reportPageDefaults.sharedMediaFile != null) {
       _image = [File(widget.reportPageDefaults.sharedMediaFile!.path)];
     }
@@ -995,38 +994,39 @@ class _ReportFormState extends ConsumerState<ReportForm> {
             ),
           ),
           SizedBox(height: 14),
-          Wrap(
-            spacing: 5.0,
-            children: List<Widget>.generate(_labels.length, (int index) {
-              return ChoiceChip(
-                label: Text(
-                  _labels[index],
-                  style: (_labelsState[index])
-                      ? GoogleFonts.ubuntu(
-                          textStyle: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+          if (showLabel)
+            Wrap(
+              spacing: 5.0,
+              children: List<Widget>.generate(_labels.length, (int index) {
+                return ChoiceChip(
+                  label: Text(
+                    _labels[index].name,
+                    style: (_labelsState[index])
+                        ? GoogleFonts.ubuntu(
+                            textStyle: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          )
+                        : GoogleFonts.aBeeZee(
+                            textStyle: TextStyle(
+                              fontSize: 12,
+                            ),
                           ),
-                        )
-                      : GoogleFonts.aBeeZee(
-                          textStyle: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                ),
-                checkmarkColor: Colors.white,
-                selected: _labelsState[index],
-                onSelected: (value) {
-                  setState(() {
-                    _labelsState[index] = !_labelsState[index];
-                  });
-                },
-                selectedColor: isDarkMode
-                    ? Color.fromRGBO(126, 33, 58, 1)
-                    : Color(0xFFDC4654),
-              );
-            }),
-          ),
+                  ),
+                  checkmarkColor: Colors.white,
+                  selected: _labelsState[index],
+                  onSelected: (value) {
+                    setState(() {
+                      _labelsState[index] = !_labelsState[index];
+                    });
+                  },
+                  selectedColor: isDarkMode
+                      ? Color.fromRGBO(126, 33, 58, 1)
+                      : Color(0xFFDC4654),
+                );
+              }),
+            ),
           Padding(
             padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
             child: Text(
@@ -1068,6 +1068,10 @@ class _ReportFormState extends ConsumerState<ReportForm> {
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   if (_image.isNotEmpty) {
+                    List<Tag> tags = [];
+                    for (int i = 0; i < _labels.length; i++) {
+                      if (_labelsState[i]) tags.add(_labels[i]);
+                    }
                     Issue issue = Issue(
                       user: currentUser!,
                       url: _titleController.text,
@@ -1079,6 +1083,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                       userAgent:
                           "Dart ${Platform.version.substring(0, 7) + Platform.operatingSystem}",
                       label: _selectedIssueCategoriesIndex,
+                      tags: tags,
                     );
                     await IssueApiClient.postIssue(issue, widget.parentContext);
                   } else {
