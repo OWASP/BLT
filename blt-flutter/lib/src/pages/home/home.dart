@@ -200,7 +200,7 @@ class _HomeState extends ConsumerState<Home> {
     final isDarkMode = ref.watch(darkModeProvider);
     return PopScope(
       canPop: false,
-      onPopInvoked: (_) async {
+      onPopInvokedWithResult: (__, _) async {
         showGeneralDialog(
           context: context,
           barrierLabel: "Barrier",

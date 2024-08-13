@@ -13,7 +13,7 @@ ScrollController _scrollController = new ScrollController();
 class IssuesPageState extends ConsumerState<IssuesPage>
     with TickerProviderStateMixin {
   late AnimationController animationController;
-  late String paginatedUrl;
+  late String? paginatedUrl;
 
   static const TextStyle optionStyle =
       TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
@@ -42,8 +42,14 @@ class IssuesPageState extends ConsumerState<IssuesPage>
   }
 
   void loadMoreIssues() {
-    paginatedUrl = ref.watch(issueListProvider.notifier).nxtUrl!;
-    ref.watch(issueListProvider.notifier).getMoreIssues(paginatedUrl);
+    paginatedUrl = ref.watch(issueListProvider.notifier).nxtUrl;
+    if (paginatedUrl != null) {
+      // Modified: Added a null check before using paginatedUrl
+      ref.watch(issueListProvider.notifier).getMoreIssues(paginatedUrl!);
+    } else {
+      print(
+          "No more items to load."); // Modified: Handle the case where paginatedUrl is null
+    }
   }
 
   @override

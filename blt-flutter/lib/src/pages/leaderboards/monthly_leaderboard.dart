@@ -70,7 +70,7 @@ class _MonthlyLeaderBoardPageState
     final Size size = MediaQuery.of(context).size;
     final monthlyLeadersState = ref.watch(monthlyLeaderBoardProvider);
     return PopScope(
-        onPopInvoked: (_) async {
+        onPopInvokedWithResult: (__, _) async {
           ref
               .watch(monthlyLeaderBoardProvider.notifier)
               .refreshMonthlyLeaderList(
