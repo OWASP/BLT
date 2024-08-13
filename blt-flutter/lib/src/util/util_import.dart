@@ -13,3 +13,5 @@ export 'package:blt/src/models/leader_model.dart';
 export 'package:blt/src/models/issuedata_model.dart';
 export 'package:blt/src/models/issue_model.dart';
 export 'dart:convert';
+export 'package:blt/src/models/tags_model.dart';
+export 'package:flutter/material.dart';

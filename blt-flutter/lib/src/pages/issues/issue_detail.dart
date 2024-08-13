@@ -1,4 +1,5 @@
 import 'package:blt/src/components/components_import.dart';
+import 'package:blt/src/constants/labels_constants.dart';
 import 'package:blt/src/pages/issues/issues_import.dart';
 
 /// Popup page when an issue is clicked to be viewed.
@@ -90,16 +91,43 @@ class IssueDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
-            Container(
-              child: Text(
-                "${AppLocalizations.of(context)!.issue} #${issue.id}",
-                style: GoogleFonts.ubuntu(
-                  textStyle: TextStyle(
-                    color: Color(0xFF737373),
-                    fontSize: 25,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Text(
+                    "${AppLocalizations.of(context)!.issue} #${issue.id}",
+                    style: GoogleFonts.ubuntu(
+                      textStyle: TextStyle(
+                        color: Color(0xFF737373),
+                        fontSize: 25,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                if (issue.label != null)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white, width: 0.3),
+                      color: getLabelColor(issue.label!),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0)
+                          .copyWith(left: 10, right: 10),
+                      child: Text(
+                        "${labels[issue.label]}",
+                        style: GoogleFonts.aBeeZee(
+                          textStyle: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Container(
               child: Row(
@@ -122,6 +150,26 @@ class IssueDetailPage extends StatelessWidget {
                 ],
               ),
             ),
+            if (issue.tags!.isNotEmpty)
+              Wrap(
+                spacing: 5.0,
+                children:
+                    List<Widget>.generate(issue.tags!.length, (int index) {
+                  return Chip(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    label: Text(
+                      issue.tags![index].name,
+                      style: GoogleFonts.ubuntu(
+                        textStyle: TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
@@ -219,15 +267,14 @@ class IssueDetailPage extends StatelessWidget {
               itemCount: validScreenshotIndexes.length,
               itemBuilder: (_, i) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(8),
-                      ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(8),
                     ),
                     child: Image.network(
                       issue.screenshotsLink![validScreenshotIndexes[i] - 1],
+                      fit: BoxFit.cover,
                     ),
                   ),
                 );

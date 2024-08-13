@@ -1,3 +1,4 @@
+import 'package:blt/src/models/tags_model.dart';
 import 'package:intl/intl.dart';
 
 import './user_model.dart';
@@ -19,6 +20,7 @@ class Issue {
   int? flags;
   bool? liked;
   bool? flagged;
+  List<Tag>? tags;
   final List<String>? screenshotsLink;
   final DateTime? closedDate;
   final String? githubUrl;
@@ -53,6 +55,7 @@ class Issue {
     this.label,
     required this.isVerified,
     this.score,
+    this.tags,
     required this.isOpen,
     this.userAgent,
     this.ocr,
@@ -102,10 +105,15 @@ class Issue {
       hunt: responseData["hunt"],
       domain: responseData["domain"],
       closedBy: responseData["closed_by"],
+      tags: Tag.fromSnapshot(responseData["tags"]),
     );
   }
 
   Map<String, dynamic> toJson() {
+    List<int> tagId = [];
+    for (int i = 0; i < (tags?.length ?? 0); i++) {
+      tagId.add(tags![i].id);
+    }
     return {
       'user': {
         'username': user!.username!.trim(),
@@ -116,6 +124,7 @@ class Issue {
       'status': isOpen ? "open" : "closed",
       'description': description,
       'label': label,
+      'tags': tagId,
       // "hunt": null,
       // "domain": null,
       // "closed_by": null,
