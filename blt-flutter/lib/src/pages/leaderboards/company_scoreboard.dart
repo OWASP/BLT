@@ -51,7 +51,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
       else
         return CircleAvatar(
           foregroundImage: CachedNetworkImageProvider(
-            GeneralEndPoints.apiBaseUrl + "media/" + partUrl,
+            "https://storage.googleapis.com/bhfiles/" + partUrl,
           ),
           radius: 20,
         );
@@ -190,9 +190,10 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
                                     company.closedIssues,
                                     company.issueCount,
                                     company.lastModified,
-                                    GeneralEndPoints.apiBaseUrl +
-                                        "media/" +
-                                        company.logoLink,
+                                    (company.logoLink != "")
+                                        ? "https://storage.googleapis.com/bhfiles/" +
+                                            company.logoLink
+                                        : "",
                                     company.topTester,
                                     company.twitter,
                                     company.facebook,

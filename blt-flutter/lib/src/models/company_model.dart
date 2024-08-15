@@ -60,7 +60,7 @@ class Company {
       parsedJson["closed"] ?? 0,
       parsedJson["issue_count"] ?? 0,
       DateTime.parse(parsedJson["modified"]),
-      parsedJson["logo"].toString(),
+      parsedJson["logo"] ?? "",
       parsedJson["top"] ?? "",
       parsedJson["twitter"],
       parsedJson["facebook"],

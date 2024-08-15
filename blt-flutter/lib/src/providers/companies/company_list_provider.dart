@@ -23,7 +23,7 @@ class CompanyListNotifier extends StateNotifier<AsyncValue<List<Company>?>?> {
     final client = http.Client();
     try {
       final List<Company>? companyData =
-          await CompanyApiClient.getListOfCompanies(client, "/company/");
+          await CompanyApiClient.getListOfCompanies(client, "companies/");
       state = AsyncValue.data(companyData);
     } catch (e) {
       AsyncValue.error(e);

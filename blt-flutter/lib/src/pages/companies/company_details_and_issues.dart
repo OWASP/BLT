@@ -47,30 +47,33 @@ class CompanyDetailWithIssuesState
     setState(() {
       loading = true;
     });
-    IssueData? response =
-        await IssueApiClient.getIssueByStatus("open", widget.company.url!);
-    openIssues = response!.issueList ?? [];
-    response =
-        await IssueApiClient.getIssueByStatus("closed", widget.company.url!);
-    closedIssues = response!.issueList ?? [];
 
-    // intialize the segments
-    segments = [
-      Segment(
-        value: closedIssues.length,
-        color: Color.fromARGB(255, 101, 205, 105),
-        label: Text(
-          "Closed",
+    if (widget.company.url != null && widget.company.url != "") {
+      IssueData? response =
+          await IssueApiClient.getIssueByStatus("open", widget.company.url!);
+      openIssues = response!.issueList ?? [];
+      response =
+          await IssueApiClient.getIssueByStatus("closed", widget.company.url!);
+      closedIssues = response!.issueList ?? [];
+
+      // intialize the segments
+      segments = [
+        Segment(
+          value: closedIssues.length,
+          color: Color.fromARGB(255, 101, 205, 105),
+          label: Text(
+            "Closed",
+          ),
         ),
-      ),
-      Segment(
-        value: openIssues.length,
-        color: Colors.deepOrange,
-        label: Text(
-          "Open",
+        Segment(
+          value: openIssues.length,
+          color: Colors.deepOrange,
+          label: Text(
+            "Open",
+          ),
         ),
-      ),
-    ];
+      ];
+    }
     setState(() {
       loading = false;
     });
@@ -121,17 +124,18 @@ class CompanyDetailWithIssuesState
             padding: EdgeInsets.symmetric(horizontal: 20).copyWith(top: 12),
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  // width: size.width * 0.89,
-                  height: size.height * 0.17,
-                  child: Image.network(
-                    company.logoLink,
-                    fit: BoxFit.contain,
+              if (company.logoLink != "")
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    // width: size.width * 0.89,
+                    height: size.height * 0.17,
+                    child: Image.network(
+                      company.logoLink,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
-              ),
               SizedBox(height: 8),
               Text(
                 company.companyName,
@@ -143,7 +147,7 @@ class CompanyDetailWithIssuesState
                 ),
               ),
               SizedBox(height: 8),
-              if (company.email != "") ...[
+              if (company.email != null && company.email != "") ...[
                 Text(
                   company.email!,
                   style: GoogleFonts.ubuntu(
@@ -249,7 +253,7 @@ class CompanyDetailWithIssuesState
               // ),
               SizedBox(height: 20),
               // About Us Section: only if have a desc
-              if (company.description != null) ...[
+              if (company.description != null && company.description != "") ...[
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(

@@ -238,7 +238,7 @@ class IssueApiClient {
     List<Issue>? issueList;
     try {
       String searchUrl = GeneralEndPoints.apiBaseUrl +
-          "/api/v1/issues/" +
+          "issues/" +
           "?status=$status&domain=$url";
       response = await http.get(Uri.parse(searchUrl));
       if (response.statusCode == 200) {

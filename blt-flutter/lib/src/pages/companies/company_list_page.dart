@@ -259,11 +259,17 @@ class CompanyListElement extends StatelessWidget {
                 child: SizedBox(
                   height: 80,
                   width: 120,
-                  child: Image.network(
-                    company.logoLink,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                  ),
+                  child: (company.logoLink != "")
+                      ? Image.network(
+                          company.logoLink,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                        )
+                      : Image.asset(
+                          "assets/image-not-found.png",
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                        ),
                 ),
               ),
               SizedBox(height: 8),
