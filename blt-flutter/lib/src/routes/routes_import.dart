@@ -32,3 +32,5 @@ export 'package:blt/src/pages/drawer/show_bug_hunts.dart';
 export 'package:blt/src/models/project_model.dart';
 export 'package:blt/src/pages/contributors_info.dart';
 export 'package:blt/src/pages/drawer/projects.dart';
+export 'package:blt/src/pages/sizzle/sizzle_login.dart';
+export 'package:blt/src/pages/sizzle/sizzle_home.dart';
