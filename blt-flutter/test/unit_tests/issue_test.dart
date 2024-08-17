@@ -6,7 +6,7 @@ void main() {
     currentUser = guestUser;
   });
   group("Issue Api's Test", () {
-    test('getAllIssues returns correct data', () async {
+    test('Get All Issues Success', () async {
       final paginatedUrl = 'https://www.bugheist.com/api/v1/issues/';
       final dynamic mockResponse = {
         "count": 244,
@@ -32,17 +32,18 @@ void main() {
             "modified": "2024-03-29T03:42:55.120275Z",
             "is_hidden": false,
             "rewarded": 0,
-            "reporter_ip_address": "24.90.6.174",
+            "reporter_ip_address": "2603:7000:8c00:972a:d827:a994:2048:c8c6",
             "cve_id": null,
             "cve_score": null,
             "hunt": null,
             "domain": 3,
             "closed_by": null,
             "team_members": [],
-            "upvotes": 0,
-            "flags": 0,
-            "upvotted": false,
+            "tags": [],
             "flagged": false,
+            "flags": 0,
+            "upvotes": 0,
+            "upvotted": false,
             "screenshots": [
               "https://storage.googleapis.com/bhfiles/screenshots/pasted-ima0265cdff-894d-48ff-ab07-4ad962.png"
             ]
@@ -64,7 +65,7 @@ void main() {
       expect(result?.issueList?[0].screenshotsLink?.length, 1);
     });
 
-    test('getAllIssues handles errors gracefully', () async {
+    test('Get All Issues Error', () async {
       final paginatedUrl = 'https://www.bugheist.com/issues';
       final client = MockClient((request) async {
         // Create sample response of the HTTP call //
