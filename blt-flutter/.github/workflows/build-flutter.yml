@@ -17,6 +17,7 @@ jobs:
           architecture: x64
       - run: flutter pub get
       - run: flutter analyze
+      - run: flutter test
       - run: flutter build apk
 
       # Upload APK as a build artifact
