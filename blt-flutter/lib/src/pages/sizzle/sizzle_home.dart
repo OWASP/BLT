@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:blt/src/pages/sizzle/sizzle_state_provider.dart';
 import 'package:blt/src/pages/sizzle/sizzle_timer.dart';
+import 'dart:async';
+import 'package:awesome_notifications/awesome_notifications.dart'; //Added for awesome notifications
 
 class SizzleHome extends ConsumerStatefulWidget {
   const SizzleHome({Key? key}) : super(key: key);
@@ -19,33 +21,65 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
   String? selectedIssueId; // Added to track selected issue's ID
   String apiBaseUrl = GeneralEndPoints
       .apiBaseUrl; // Updated to use the correct apiBaseUrl variable
+  Timer? _timer; //Added for managing the timer
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    });
+
+    _initializeNotifications(); //Initialize awesome notifications
   }
 
   @override
   void dispose() async {
-    print('Dispose called: isTimerRunning = $isTimerRunning');
     WidgetsBinding.instance.removeObserver(this);
+    _cancelTimer(); //Cancel the timer when disposing
     if (isTimerRunning) {
-      await _stopTimer(); // Await the stopTimer to ensure the request completes before disposing
+      await stopTimer(); // Await the stopTimer to ensure the request completes before disposing
     }
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    print('AppLifecycleState changed: $state');
+  void _initializeNotifications() {
+    AwesomeNotifications().initialize(
+      null, //Notification icon
+      [
+        NotificationChannel(
+          channelKey: 'sizzle_timer_channel',
+          channelName: 'Sizzle Timer Notifications',
+          channelDescription:
+              'Notifications for Sizzle Timer', //Added channel description
+          defaultColor: Color(0xFFFD5D00),
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        )
+      ],
+      channelGroups: [
+        NotificationChannelGroup(
+          channelGroupKey: 'sizzle_timer_group',
+          channelGroupName: 'sizzle Timer Group', //Added channel group name
+        )
+      ],
+      debug: true,
+    );
+  }
 
-    if (state == AppLifecycleState.detached) {
-      // App is detached (e.g., removed from recent apps)
-      if (isTimerRunning) {
-        await _stopTimer(); // Await the stopTimer to ensure the request completes
-      }
-    }
+  Future<void> _showNotification() async {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 14,
+        channelKey: 'sizzle_timer_channel',
+        title: 'Timer Stopped',
+        body: 'The timer has stopped. Are you still working?',
+        notificationLayout: NotificationLayout.Default,
+      ),
+    );
   }
 
   @override
@@ -91,7 +125,7 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             bool isPop = await launchConfirmationDialog(context);
             if (isPop) {
-              await _stopTimer();
+              await stopTimer();
             }
           });
         }
@@ -197,8 +231,8 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: isTimerRunning
-              ? _stopTimer
-              : _startTimer, // Added logic to start/stop the timer
+              ? stopTimer
+              : startTimer, // Added logic to start/stop the timer
           child: Icon(isTimerRunning
               ? Icons.stop
               : Icons.play_arrow), // Updated icon based on timer state
@@ -208,9 +242,10 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
     );
   }
 
-  Future<void> _startTimer() async {
-    // Added method to start the timer
+  Future<void> startTimer() async {
     if (selectedIssueUrl == null) return;
+
+    selectedIssueId = selectedIssueUrl!.split('/').last;
 
     final response = await http.post(
       Uri.parse('$apiBaseUrl' +
@@ -232,6 +267,7 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
           timeLogId = data['id']; // Store the returned time log ID
           isTimerRunning =
               true; // Update the state to indicate the timer is running
+          _startCountdownTimer(); //Start the countdown for 5 minutes
         });
       }
     } else {
@@ -244,9 +280,20 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
     }
   }
 
-  Future<void> _stopTimer() async {
-    print(timeLogId);
-    // Added method to stop the timer
+  void _startCountdownTimer() {
+    _cancelTimer(); //Cancel any existing timer
+    _timer = Timer(Duration(minutes: 30), () async {
+      await stopTimer(); //Automatically stop the timer after 5 minutes
+      await _showNotification(); //Show a notification to remind the user
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel(); //Cancel the timer
+    _timer = null;
+  }
+
+  Future<void> stopTimer() async {
     if (timeLogId == null) return;
 
     final response = await http.post(
@@ -266,6 +313,7 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
               false; // Update the state to indicate the timer has stopped
           timeLogId = null; // Clear the time log ID
           selectedIssueId = null; // Clear the selected issue ID
+          _cancelTimer(); //Cancel the countdown timer
         });
       }
     } else {

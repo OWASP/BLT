@@ -37,6 +37,7 @@ dependencies:
   lottie: ^3.1.2
   webview_flutter: ^3.0.4
   permission_handler: ^11.3.1
+  awesome_notifications: ^0.9.3+1
 
 dev_dependencies:
   flutter_launcher_icons: ">=0.9.0 <0.13.0"
