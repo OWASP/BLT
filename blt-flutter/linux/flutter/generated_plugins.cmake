@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   awesome_notifications
   file_selector_linux
   flutter_secure_storage_linux
+  local_notifier
   pasteboard
   sentry_flutter
   url_launcher_linux
