@@ -5,6 +5,7 @@ import 'package:blt/src/pages/sizzle/sizzle_state_provider.dart';
 import 'package:blt/src/pages/sizzle/sizzle_timer.dart';
 import 'dart:async';
 import 'package:awesome_notifications/awesome_notifications.dart'; //Added for awesome notifications
+import 'package:local_notifier/local_notifier.dart';
 
 class SizzleHome extends ConsumerStatefulWidget {
   const SizzleHome({Key? key}) : super(key: key);
@@ -47,39 +48,64 @@ class _SizzleHomeState extends ConsumerState<SizzleHome>
   }
 
   void _initializeNotifications() {
-    AwesomeNotifications().initialize(
-      null, //Notification icon
-      [
-        NotificationChannel(
-          channelKey: 'sizzle_timer_channel',
-          channelName: 'Sizzle Timer Notifications',
-          channelDescription:
-              'Notifications for Sizzle Timer', //Added channel description
-          defaultColor: Color(0xFFFD5D00),
-          importance: NotificationImportance.High,
-          channelShowBadge: true,
-        )
-      ],
-      channelGroups: [
-        NotificationChannelGroup(
-          channelGroupKey: 'sizzle_timer_group',
-          channelGroupName: 'sizzle Timer Group', //Added channel group name
-        )
-      ],
-      debug: true,
-    );
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      _initializeDesktopNotifications();
+    } else {
+      AwesomeNotifications().initialize(
+        null, //Notification icon
+        [
+          NotificationChannel(
+            channelKey: 'sizzle_timer_channel',
+            channelName: 'Sizzle Timer Notifications',
+            channelDescription:
+                'Notifications for Sizzle Timer', //Added channel description
+            defaultColor: Color(0xFFFD5D00),
+            importance: NotificationImportance.High,
+            channelShowBadge: true,
+          )
+        ],
+        channelGroups: [
+          NotificationChannelGroup(
+            channelGroupKey: 'sizzle_timer_group',
+            channelGroupName: 'sizzle Timer Group', //Added channel group name
+          )
+        ],
+        debug: true,
+      );
+    }
   }
 
   Future<void> _showNotification() async {
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 14,
-        channelKey: 'sizzle_timer_channel',
-        title: 'Timer Stopped',
-        body: 'The timer has stopped. Are you still working?',
-        notificationLayout: NotificationLayout.Default,
-      ),
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      await _showDesktopNotification();
+    } else {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 14,
+          channelKey: 'sizzle_timer_channel',
+          title: 'Timer Stopped',
+          body: 'The timer has stopped. Are you still working?',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+    }
+  }
+
+  void _initializeDesktopNotifications() async {
+    await localNotifier.setup(
+      appName: 'Sizzle Timer', // Set your app name
+      shortcutPolicy:
+          ShortcutPolicy.requireCreate, // Relevant mainly for Windows
     );
+  }
+
+  Future<void> _showDesktopNotification() async {
+    LocalNotification notification = LocalNotification(
+      title: 'Timer Stopped',
+      body: 'The timer has stopped. Are you still working?',
+    );
+
+    await notification.show();
   }
 
   @override
