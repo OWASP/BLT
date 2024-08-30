@@ -2,7 +2,7 @@ name: Build and Test Flutter App
 on: [push, pull_request]
 
 jobs:
-  test:
+  android:
     runs-on: macos-latest
 
     steps:
@@ -25,3 +25,107 @@ jobs:
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Clean the build environment
+        run: flutter clean
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd macos
+          pod install
+
+      # Check if CODE_SIGN_IDENTITY exists and set it if it does
+      - name: Disable Code Signing (conditionally)
+        run: |
+          if /usr/libexec/PlistBuddy -c "Print :CODE_SIGN_IDENTITY" macos/Runner.xcodeproj/project.pbxproj > /dev/null 2>&1; then
+            sudo /usr/libexec/PlistBuddy -c "Set :CODE_SIGN_IDENTITY ''" macos/Runner.xcodeproj/project.pbxproj;
+          else
+            echo "CODE_SIGN_IDENTITY not set, skipping.";
+          fi
+
+      - name: Build macOS application with verbose logging
+        run: flutter build macos --verbose
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: macos-release-app
+          path: build/macos/Build/Products/Release/*.app
+
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Clean the build environment
+        run: flutter clean
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev clang cmake ninja-build pkg-config liblzma-dev libnotify-dev
+
+      - name: Build Linux application with verbose logging
+        run: flutter build linux --verbose
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux-release-app
+          path: build/linux/x64/release/bundle/*
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Clean the build environment
+        run: flutter clean
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Install Windows dependencies
+        run: |
+          choco install -y visualstudio2019buildtools
+          choco install -y visualstudio2019-workload-vctools
+          choco install -y cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+          choco install -y ninja
+
+      - name: Build Windows application with verbose logging
+        run: flutter build windows --verbose
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows-release-app
+          path: build/windows/x64/runner/Release/*.exe
