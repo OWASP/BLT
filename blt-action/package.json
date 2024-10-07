@@ -12,6 +12,16 @@
     ],
     "dependencies": {
         "@actions/core": "^1.9.1",
-        "@actions/github": "^4.0.0"
+        "@actions/github": "^4.0.0",
+        "auto-assign-issue": "file:"
+    },
+    "scripts": {
+        "test": "mocha src/mock-test.js"
+    },
+    "devDependencies": {
+        "assert": "^2.1.0",
+        "axios": "^1.7.7",
+        "mocha": "^10.7.3",
+        "nock": "^13.5.5"
     }
 }
