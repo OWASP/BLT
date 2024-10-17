@@ -113,12 +113,12 @@ const run = async () => {
 
                 if (event.issue.assignee && event.issue.state == "open") {
 
-                    var Difference_In_Time = present_date.getTime() - Date.parse(event.created_at);
+                    var Difference_In_Time = present_date.getTime() - Date.parse(event.issue.updated_at);
 
                     if (last_event.issue.number != event.issue.number) {
 
                         console.log(
-                            event.created_at + " " +
+                            event.issue.updated_at + " " +
                             event.issue.number + " " +
                             event.assignee.login + " " +
                             event.issue.assignee.login + " " +
