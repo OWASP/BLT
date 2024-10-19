@@ -1,5 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const fs = require('fs');
+const path = require('path');
 
 const run = async () => {
     console.log("starting");
@@ -156,5 +158,28 @@ const run = async () => {
         });
     }
 }
+
+// Function to handle symbolic links during the unwrapping process
+const handleSymbolicLinks = (srcPath, destPath) => {
+    if (fs.lstatSync(srcPath).isSymbolicLink()) {
+        const realPath = fs.realpathSync(srcPath);
+        if (fs.existsSync(realPath)) {
+            fs.symlinkSync(realPath, destPath);
+        } else {
+            console.log(`Skipping broken symbolic link: ${srcPath}`);
+        }
+    } else {
+        fs.copyFileSync(srcPath, destPath);
+    }
+};
+
+// Example usage of handleSymbolicLinks function
+const unwrap = (srcDir, destDir) => {
+    fs.readdirSync(srcDir).forEach(file => {
+        const srcPath = path.join(srcDir, file);
+        const destPath = path.join(destDir, file);
+        handleSymbolicLinks(srcPath, destPath);
+    });
+};
 
 run();
