@@ -12,11 +12,11 @@
     ],
     "dependencies": {
         "@actions/core": "^1.9.1",
-        "@actions/github": "^4.0.0",
-        "auto-assign-issue": "file:"
+        "@actions/github": "^4.0.0"
     },
     "scripts": {
-        "test": "mocha src/mock-test.js"
+        "test": "mocha src/mock-test.js",
+        "postinstall": "rm -rf node_modules/auto-assign-issue"
     },
     "devDependencies": {
         "assert": "^2.1.0",
