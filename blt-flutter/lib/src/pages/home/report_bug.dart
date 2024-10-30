@@ -1,6 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blt/src/pages/home/home_imports.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart'; // For method channel
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
 
 import '../../models/tags_model.dart';
 import '../../util/api/tags_api.dart';
@@ -73,6 +76,25 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   bool showLabel = false;
   List<Tag> _labels = [];
   late List<bool> _labelsState;
+  static const platform = MethodChannel('clipboard_image_channel');
+  bool _isSnackBarVisible = false;
+
+  void showSnackBar(BuildContext context, String message) {
+    if (!_isSnackBarVisible) {
+      _isSnackBarVisible = true;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+            SnackBar(
+              content: Text(message),
+              duration: Duration(seconds: 3),
+            ),
+          )
+          .closed
+          .then((_) {
+        _isSnackBarVisible = false;
+      });
+    }
+  }
 
   Future<void> _pickImageFromGallery() async {
     final imageFile = await picker.pickMultiImage();
@@ -88,27 +110,36 @@ class _ReportFormState extends ConsumerState<ReportForm> {
     }
   }
 
+  Future<void> _pasteImage() async {
+    try {
+      String base64Image = await platform.invokeMethod('getClipboardImage');
+      base64Image = base64Image.replaceAll(RegExp(r'\s+'), '');
+      while (base64Image.length % 4 != 0) {
+        base64Image += "=";
+      }
+      Uint8List decodedImage = base64Decode(base64Image);
+      Directory tempDir = await getTemporaryDirectory();
+      String tempPath = tempDir.path;
+
+      File tempFile = File(
+          '$tempPath/temp_image_${DateTime.now().millisecondsSinceEpoch}.png');
+
+      await tempFile.writeAsBytes(decodedImage);
+
+      setState(() {
+        _image.add(tempFile);
+      });
+    } on PlatformException {
+      showSnackBar(context, 'No image available on clipboard');
+    }
+  }
+
   // Future<File> _coverToImage(Uint8List imageBytes) async {
   //   String tempPath = (await getTemporaryDirectory()).path;
   //   File file = File('$tempPath/profile.png');
   //   await file.writeAsBytes(imageBytes.buffer
   //       .asUint8List(imageBytes.offsetInBytes, imageBytes.lengthInBytes));
   //   return file;
-  // }
-
-  // Future<void> _pasteImageFromClipBoard() async {
-  //   try {
-  //     final imageBytes = await Pasteboard.image;
-  //     late File? image;
-  //     if (imageBytes != null) {
-  //       image = await _coverToImage(imageBytes);
-  //     }
-  //     setState(() {
-  //       _image = image;
-  //     });
-  //   } catch (e) {
-  //     print('No Image Found On Clipboard');
-  //   }
   // }
 
   void markdownFormatting(String formatter) {
@@ -818,7 +849,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                     height: 125.0,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: min(5, _image.length + 1),
+                      itemCount: _image.length < 5 ? _image.length + 2 : 5,
                       itemBuilder: (_, i) {
                         if (i < _image.length) {
                           return Container(
@@ -871,6 +902,46 @@ class _ReportFormState extends ConsumerState<ReportForm> {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                          );
+                        } else if (i == _image.length) {
+                          return SizedBox(
+                            width: 125.0,
+                            child: Card(
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: InkWell(
+                                onTap: _pasteImage,
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Color(0xFFF8D2CD),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.paste,
+                                        color: Color(0xFFDC4654),
+                                        size: 35.0,
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        "Paste image",
+                                        style: GoogleFonts.ubuntu(
+                                          textStyle: TextStyle(
+                                            color: Color(0xFFDC4654),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           );

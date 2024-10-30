@@ -20,7 +20,7 @@ dependencies:
   shared_preferences: ^2.0.5
   flutter_svg: ">=1.0.3 <3.0.0"
   flutter_riverpod: ^1.0.3
-  intl: 
+  intl:
   flutter_secure_storage: ^9.0.0
   smooth_page_indicator: ^1.0.0+2
   pasteboard: ^0.2.0
