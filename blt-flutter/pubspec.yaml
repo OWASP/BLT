@@ -39,6 +39,7 @@ dependencies:
   permission_handler: ^11.3.1
   awesome_notifications: ^0.9.3+1
   local_notifier: ^0.1.6
+  sqflite: ^2.4.1
 
 dev_dependencies:
   flutter_launcher_icons: ">=0.9.0 <0.13.0"
