@@ -9,7 +9,7 @@ import UIKit
   ) -> Bool {
     // Register the method channel
     let controller = window?.rootViewController as! FlutterViewController
-    let clipboardImageChannel = FlutterMethodChannel(name: "clipboard_image_channel",
+    let clipboardImageChannel = FlutterMethodChannel(name: "com.apps.blt/channel",
                                                       binaryMessenger: controller.binaryMessenger)
 
     clipboardImageChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
