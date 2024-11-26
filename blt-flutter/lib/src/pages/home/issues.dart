@@ -20,7 +20,7 @@ class IssuesPageState extends ConsumerState<IssuesPage>
 
   @override
   void initState() {
-    paginatedUrl = IssueEndPoints.issues;
+    // paginatedUrl = IssueEndPoints.issues;
 
     animationController =
         AnimationController(duration: new Duration(seconds: 2), vsync: this);

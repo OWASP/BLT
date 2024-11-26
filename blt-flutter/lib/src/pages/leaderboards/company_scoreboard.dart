@@ -20,7 +20,7 @@ class CompanyScoreboardPageState extends ConsumerState<CompanyScoreboardPage>
 
   @override
   void initState() {
-    paginatedUrl = IssueEndPoints.issues;
+    // paginatedUrl = IssueEndPoints.issues;
     companyColor = Color(0xFFDC4654);
 
     animationController =

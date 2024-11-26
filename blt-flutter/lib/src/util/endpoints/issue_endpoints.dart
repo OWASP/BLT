@@ -4,7 +4,7 @@ import 'general_endpoints.dart';
 class IssueEndPoints {
   IssueEndPoints._();
 
-  static const String issues = GeneralEndPoints.apiBaseUrl + "issues/";
+  // static const String issues = GeneralEndPoints.apiBaseUrl + "issues/";
 
   static const String userIssues = GeneralEndPoints.apiBaseUrl + "userissues/";
 
