@@ -56,8 +56,8 @@ x.prototype.isEqual = function(a) {
 
 function Rect(a, b) {
     this.x = this.c = this.y = this.a = 0;
-    a && ("undefined" !== typeof a.G && "undefined" !== typeof a.I && "undefined" !== typeof a.H && "undefined" !== typeof a.J ? (this.x = Math.min(a.G, a.H), this.c = Math.abs(a.H - a.G), this.y = Math.min(a.I, a.J), this.a = Math.abs(a.J - a.I)) : "undefined" !== typeof a.x && "undefined" !== typeof a.y && "undefined" !== typeof a.c && "undefined" !== typeof a.a ? (this.x = a.x, this.c = a.c, this.y = a.y, this.a = a.a) : "undefined" !== typeof a.left && "undefined" !== typeof a.top && "undefined" !==
-        typeof a.right && "undefined" !== typeof a.bottom ? (this.x = a.left, this.c = a.right - a.left, this.y = a.top, this.a = a.top - a.bottom) : "undefined" !== typeof a.x && "undefined" !== typeof a.y && "undefined" !== typeof b.c && "undefined" !== typeof b.a && (this.x = a.x, this.c = b.c, this.y = a.y, this.a = b.a))
+    a && ("undefined" !== typeof a.G && "undefined" !== typeof a.I && "undefined" !== typeof a.H && "undefined" !== typeof a.J ? (this.x = Math.min(a.G, a.H), this.c = Math.abs(a.H - a.G), this.y = Math.min(a.I, a.J), this.a = Math.abs(a.J - a.I)) : "undefined" !== typeof a.x && "undefined" !== typeof a.y && "undefined" !== typeof a.c && "undefined" !== typeof a.a ? (this.x = a.x, this.c = a.c, this.y = a.y, this.a = a.a) : "undefined" !== typeof a.left && "undefined" !== typeof a.top && "undefined" !== typeof a.right && "undefined" !==
+        typeof a.bottom ? (this.x = a.left, this.c = a.right - a.left, this.y = a.top, this.a = a.top - a.bottom) : "undefined" !== typeof a.x && "undefined" !== typeof a.y && "undefined" !== typeof b.c && "undefined" !== typeof b.a && (this.x = a.x, this.c = b.c, this.y = a.y, this.a = b.a))
 }
 
 function ba(a, b, c) {
@@ -1771,15 +1771,16 @@ var Z = function() {
                 B();
                 return !1
             });
-            b(g +
-                "+p", function() {
+            b(g + "+p", function() {
                 l();
                 return !1
             });
-            b(g + "+z", function() {
-                M();
-                return !1
-            });
+            b(g +
+                "+z",
+                function() {
+                    M();
+                    return !1
+                });
             a(g + "+a", function() {
                 s.Wa();
                 return !1
@@ -2026,90 +2027,6 @@ var Z = function() {
             }
         }
     }();
-
-// Add code to interface with Blt sizzle time tracking
-function startBltSizzleTimer(issueId) {
-    // Make an API call to start the timer for the given issue
-    fetch(`https://blt-sizzle-api.example.com/start-timer?issueId=${issueId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }).then(response => {
-        if (response.ok) {
-            console.log('Timer started for issue:', issueId);
-        } else {
-            console.error('Failed to start timer for issue:', issueId);
-        }
-    }).catch(error => {
-        console.error('Error starting timer for issue:', issueId, error);
-    });
-}
-
-function stopBltSizzleTimer(issueId) {
-    // Make an API call to stop the timer for the given issue
-    fetch(`https://blt-sizzle-api.example.com/stop-timer?issueId=${issueId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }).then(response => {
-        if (response.ok) {
-            console.log('Timer stopped for issue:', issueId);
-        } else {
-            console.error('Failed to stop timer for issue:', issueId);
-        }
-    }).catch(error => {
-        console.error('Error stopping timer for issue:', issueId, error);
-    });
-}
-
-// Implement an in-progress indicator on the top right of github.com
-function showInProgressIndicator() {
-    const indicator = document.createElement('div');
-    indicator.id = 'blt-sizzle-indicator';
-    indicator.style.position = 'fixed';
-    indicator.style.top = '10px';
-    indicator.style.right = '10px';
-    indicator.style.backgroundColor = 'red';
-    indicator.style.color = 'white';
-    indicator.style.padding = '5px';
-    indicator.style.zIndex = '9999';
-    indicator.innerText = 'In Progress';
-    document.body.appendChild(indicator);
-}
-
-function hideInProgressIndicator() {
-    const indicator = document.getElementById('blt-sizzle-indicator');
-    if (indicator) {
-        document.body.removeChild(indicator);
-    }
-}
-
-// Add functionality to Quickstart on any issue and have the timer stop and start based on the current issue in the browser
-function quickstartIssue(issueId) {
-    startBltSizzleTimer(issueId);
-    showInProgressIndicator();
-}
-
-function stopIssue(issueId) {
-    stopBltSizzleTimer(issueId);
-    hideInProgressIndicator();
-}
-
-// Listen for changes in the URL to detect when the user navigates to a different issue
-let currentIssueId = null;
-setInterval(() => {
-    const issueIdMatch = window.location.pathname.match(/\/issues\/(\d+)/);
-    const issueId = issueIdMatch ? issueIdMatch[1] : null;
-
-    if (issueId !== currentIssueId) {
-        if (currentIssueId) {
-            stopIssue(currentIssueId);
-        }
-        if (issueId) {
-            quickstartIssue(issueId);
-        }
-        currentIssueId = issueId;
-    }
-}, 1000);
+jQuery(function() {
+    Ja.ca()
+});
