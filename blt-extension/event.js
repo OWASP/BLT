@@ -567,3 +567,56 @@ var Q = function(a) {
 }();
 z.U();
 
+// Add code to handle Blt sizzle time tracking events
+function startBltSizzleTimer(issueId) {
+    // Make an API call to start the timer for the given issue
+    fetch(`https://blt-sizzle-api.example.com/start-timer?issueId=${issueId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) {
+            console.log('Timer started for issue:', issueId);
+        } else {
+            console.error('Failed to start timer for issue:', issueId);
+        }
+    }).catch(error => {
+        console.error('Error starting timer for issue:', issueId, error);
+    });
+}
+
+function stopBltSizzleTimer(issueId) {
+    // Make an API call to stop the timer for the given issue
+    fetch(`https://blt-sizzle-api.example.com/stop-timer?issueId=${issueId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) {
+            console.log('Timer stopped for issue:', issueId);
+        } else {
+            console.error('Failed to stop timer for issue:', issueId);
+        }
+    }).catch(error => {
+        console.error('Error stopping timer for issue:', issueId, error);
+    });
+}
+
+// Implement event listeners for starting and stopping the timer based on the current issue in the browser
+let currentIssueId = null;
+setInterval(() => {
+    const issueIdMatch = window.location.pathname.match(/\/issues\/(\d+)/);
+    const issueId = issueIdMatch ? issueIdMatch[1] : null;
+
+    if (issueId !== currentIssueId) {
+        if (currentIssueId) {
+            stopBltSizzleTimer(currentIssueId);
+        }
+        if (issueId) {
+            startBltSizzleTimer(issueId);
+        }
+        currentIssueId = issueId;
+    }
+}, 1000);
