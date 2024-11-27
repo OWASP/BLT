@@ -26,13 +26,7 @@
    "manifest_version": 2,
    "name": "OWASP BLT-Extension",
    "short_name": "BLT-Extension",
-   "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture", "https://blt-sizzle-api.example.com/*" ],
+   "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.4",
-   "content_scripts": [
-      {
-         "matches": ["https://github.com/*"],
-         "js": ["content.js"]
-      }
-   ]
+   "version": "1.4"
 }
