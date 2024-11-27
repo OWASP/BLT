@@ -99,7 +99,7 @@ const run = async () => {
             });
         }
     } else {
-        console.log('removing assignees greater than 5 days');
+        console.log('Removing assignees greater than 24 hours and posting a note');
         var last_event = new Object()
         last_event.issue = new Object()
         last_event.issue.number = "";
@@ -128,13 +128,14 @@ const run = async () => {
                             (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
                         );
 
-                        if ((Difference_In_Time / (1000 * 3600 * 24)) > 5) {
+                        if ((Difference_In_Time / (1000 * 3600 * 24)) > 1) {
                             // Check if the issue has any labels
                             const issueDetails = await octokit.issues.get({
                                 owner,
                                 repo,
                                 issue_number: event.issue.number
                             });
+                            
 
                             if (issueDetails.data.labels.length === 0) {
                                 console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
@@ -146,6 +147,15 @@ const run = async () => {
                                     repo,
                                     issue_number,
                                     assignees,
+                                });
+
+                                // Add a comment about unassignment
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo,
+                                    issue_number: event.issue.number,
+                                    body: `⏰ This issue has been automatically unassigned due to 24 hours of inactivity. 
+                                    The issue is now available for anyone to work on again.`
                                 });
                             } else {
                                 console.log(`Issue #${event.issue.number} has labels, skipping unassign.`);
