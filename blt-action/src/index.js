@@ -10,8 +10,8 @@ const run = async () => {
     const githubRepo = github.context.repo.repo;
     const repository = `${githubOwner}/${githubRepo}`;
     const octokit = github.getOctokit(gitHubToken);
-
     console.log(repository);
+
     const { eventName, payload } = github.context;
     const { issue, comment } = payload;
     const [owner, repo] = repository.split('/');
@@ -85,20 +85,27 @@ const run = async () => {
                 body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
             });
         }  if (addAssignee) {
-            await octokit.issues.addAssignees({
+             const currentAssignees = await octokit.issues.get({
                 owner,
                 repo,
-                issue_number: issue.number,
-                assignees
-            });
+                issue_number: issue.number
+             });
+            if (!currentAssignees.data.assignees.some(a => a.login === assigneeLogin)) {
+                await octokit.issues.addAssignees({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    assignees
+                });
 
-            // Add the message to the issue
-            await octokit.issues.createComment({
-                owner,
-                repo,
-                issue_number: issue.number,
-                body: `Hello @${assigneeLogin}! You've been assigned to [${repository}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request. To place a bid and potentially earn some BCH, type /bid [amount in BCH] [BCH address].`
-            });
+                // Add the message to the issue
+                await octokit.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: `Hello @${assigneeLogin}! You've been assigned to [${repository}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request. To place a bid and potentially earn some BCH, type /bid [amount in BCH] [BCH address].`
+                });
+            }
         }
     } else {
         console.log('Removing assignees greater than 24 hours and posting a note');
@@ -136,13 +143,17 @@ const run = async () => {
                                 repo,
                                 issue_number: event.issue.number
                             });
-                            
+
 
                             if (issueDetails.data.labels.length === 0) {
                                 console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
 
-                                await octokit.issues.removeAssignees({ owner, repo, issue_number: event.issue.number, assignees: [event.issue.assignee.login] });
-
+                                await octokit.issues.removeAssignees({
+                                    owner,
+                                    repo,
+                                    issue_number: event.issue.number,
+                                    assignees: [event.issue.assignee.login],
+                                });
 
                                 // Add a comment about unassignment
                                 await octokit.issues.createComment({
