@@ -15,6 +15,7 @@ const run = async () => {
     const { eventName, payload } = github.context;
     const { issue, comment } = payload;
     const [owner, repo] = repository.split('/');
+
     let proceedWithIssueProcessing = false; // Initialize the flag
     console.log(eventName);
 
@@ -44,8 +45,9 @@ const run = async () => {
         console.log('processing issue');
         const assigneeLogin = comment.user.login;
         const assignees = assigneeLogin.split(',').map(assigneeName => assigneeName.trim());
-        var addAssignee = true;
-        var issuesWithoutPR = [];
+
+        let addAssignee = true;
+        let issuesWithoutPR = [];
 
         // Retrieve all open issues assigned to the user
         const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
@@ -82,28 +84,34 @@ const run = async () => {
                 issue_number: issue.number,
                 body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
             });
-        } else if (addAssignee) {
-            await octokit.issues.addAssignees({
+        }  if (addAssignee) {
+             const currentAssignees = await octokit.issues.get({
                 owner,
                 repo,
-                issue_number: issue.number,
-                assignees
-            });
+                issue_number: issue.number
+             });
+            if (!currentAssignees.data.assignees.some(a => a.login === assigneeLogin)) {
+                await octokit.issues.addAssignees({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    assignees
+                });
 
-            // Add the message to the issue
-            await octokit.issues.createComment({
-                owner,
-                repo,
-                issue_number: issue.number,
-                body: `Hello @${assigneeLogin}! You've been assigned to [${repository}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request. To place a bid and potentially earn some BCH, type /bid [amount in BCH] [BCH address].`
-            });
+                // Add the message to the issue
+                await octokit.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: `Hello @${assigneeLogin}! You've been assigned to [${repository}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request. To place a bid and potentially earn some BCH, type /bid [amount in BCH] [BCH address].`
+                });
+            }
         }
     } else {
         console.log('Removing assignees greater than 24 hours and posting a note');
-        var last_event = new Object()
-        last_event.issue = new Object()
-        last_event.issue.number = "";
-        var present_date = new Date();
+
+        let last_event = { issue: { number: "" } };
+        let present_date = new Date();
 
         await octokit.paginate(octokit.issues.listEventsForRepo, {
             owner,
@@ -115,7 +123,7 @@ const run = async () => {
 
                 if (event.issue.assignee && event.issue.state == "open") {
 
-                    var Difference_In_Time = present_date.getTime() - Date.parse(event.issue.updated_at);
+                    let Difference_In_Time = present_date.getTime() - Date.parse(event.issue.updated_at);
 
                     if (last_event.issue.number != event.issue.number) {
 
@@ -135,18 +143,16 @@ const run = async () => {
                                 repo,
                                 issue_number: event.issue.number
                             });
-                            
+
 
                             if (issueDetails.data.labels.length === 0) {
                                 console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
-                                const assignees = event.issue.assignee.login.split(',').map((assigneeName) => assigneeName.trim());
-                                var issue_number = event.issue.number;
 
                                 await octokit.issues.removeAssignees({
                                     owner,
                                     repo,
-                                    issue_number,
-                                    assignees,
+                                    issue_number: event.issue.number,
+                                    assignees: [event.issue.assignee.login],
                                 });
 
                                 // Add a comment about unassignment
