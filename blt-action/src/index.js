@@ -63,10 +63,9 @@ const run = async () => {
             }
 
             // Construct a search query to find pull requests that mention the assigned issue
-            const query = `type:pr state:open repo:${owner}/${repo} (is:linked OR references:"#${assignedIssue.number}")`;
+            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
             const pullRequests = await octokit.search.issuesAndPullRequests({
                 q: query
-                per_page: 1
             });
 
             // If there are no pull requests mentioning the issue number in their body, add it to the list
@@ -145,10 +144,9 @@ const run = async () => {
                                 issue_number: event.issue.number
                             });
 
-                            const query = `type:pr state:open repo:${owner}/${repo} (is:linked OR references:"#${event.issue.number}")`;
+                            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
                             const pullRequests = await octokit.search.issuesAndPullRequests({
                                 q: query,
-                                per_page: 1 
                             });
 
 
