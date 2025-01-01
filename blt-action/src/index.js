@@ -144,8 +144,13 @@ const run = async () => {
                                 issue_number: event.issue.number
                             });
 
+                            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
+                            const pullRequests = await octokit.search.issuesAndPullRequests({
+                                q: query,
+                            });
 
-                            if (issueDetails.data.labels.length === 0) {
+
+                            if (issueDetails.data.labels.length === 0 && pullRequests.data.total_count === 0) {
                                 console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
 
                                 await octokit.issues.removeAssignees({
