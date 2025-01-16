@@ -154,6 +154,31 @@ const run = async () => {
                                     issue_number: event.issue.number,
                                     assignees: [event.issue.assignee.login],
                                 });
+                                // Retrieve all comments on the issue
+                            const existingComments = await octokit.issues.listComments({
+                                owner,
+                                repo,
+                                issue_number: event.issue.number
+                            });
+
+                                // Find the most recent "unassign" comment
+                            const recentComment = existingComments.data.find(comment =>
+                                comment.body.includes('⏰ This issue has been automatically unassigned due to 24 hours of inactivity. The issue is now available for anyone to work on again.')||
+                                comment.body.includes('Removing assignees greater than 24 hours and posting a note')
+
+                            );
+
+                                if (recentComment) {
+                                    const lastCommentTime = new Date(recentComment.created_at).getTime();
+                                    const currentTime = Date.now();
+
+                            // Check if the last comment was made within the last 5 minutes
+                                if (currentTime - lastCommentTime < 5 * 60 * 1000) {
+                                return; // Skip adding a redundant comment
+                                }
+                            }
+
+
 
                                 // Add a comment about unassignment
                                 await octokit.issues.createComment({
