@@ -9,7 +9,8 @@
          "19": "img/icon19.png",
          "38": "img/icon38.png"
       },
-      "default_title": "OWASP BLT-Extension"
+      "default_title": "OWASP BLT-Extension",
+      "default_popup": "popup.html"
    },
    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
    "default_locale": "en",
@@ -28,5 +29,15 @@
    "short_name": "BLT-Extension",
    "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.4"
+   "version": "1.4",
+   "web_accessible_resources": [
+      "jobtracking.html",
+      "jobtracking.js"
+   ],
+   "content_scripts": [
+      {
+         "matches": ["*://*.linkedin.com/jobs/*"],
+         "js": ["linkedin-monitor.js"]
+      }
+   ]
 }

@@ -468,20 +468,27 @@ var Q = function(a) {
     });
   }
   function t(a) {
-    r(a);
-  }
-  function r(a) {
+    // Restore the original screenshot capture and editor functionality
     y(a, function(a) {
-      var b = q.L("screenshot_");
-      f[b] = a;
-      chrome.tabs.create({url:chrome.extension.getURL("screenshot.html?id=" + b)}, function(a) {
-        if ("function" == typeof chrome.tabs.Y) {
-          try {
-            chrome.tabs.Y(a.id, 1);
-          } catch (b) {
-          }
-        }
-      });
+        var b = q.L("screenshot_");
+        f[b] = a;
+        // Get current tab URL before opening screenshot editor
+        chrome.tabs.query({'active': true, 'windowId': chrome.windows.WINDOW_ID_CURRENT},
+            function(tabs){
+                global_url = tabs[0].url;
+                // Open screenshot editor in new tab
+                chrome.tabs.create({
+                    url: chrome.extension.getURL("screenshot.html?id=" + b)
+                }, function(a) {
+                    if ("function" == typeof chrome.tabs.Y) {
+                        try {
+                            chrome.tabs.Y(a.id, 1);
+                        } catch (b) {
+                        }
+                    }
+                });
+            }
+        );
     });
   }
   function y(a, b) {
@@ -526,7 +533,19 @@ var Q = function(a) {
   return{U:function() {
     h = new W;
     e = x();
-    chrome.browserAction.onClicked.addListener(t);
+    
+    // Remove the old click listener
+    // chrome.browserAction.onClicked.addListener(t);
+    
+    // Add message listener for popup actions
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'takeScreenshot') {
+            t(); // Call the existing screenshot function
+        } else if (request.action === 'jobTracking') {
+            chrome.tabs.create({ url: chrome.runtime.getURL('jobtracking.html') });
+        }
+    });
+    
     chrome.runtime.onMessage.addListener(b);
     document.addEventListener("copy", a);
     var c = chrome.runtime.getManifest().version;

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OWASP BLT Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --hover-color: #0b5ed7;
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #e5e7eb;
+            --secondary-bg: #f8f9fa;
+        }
+
+        body {
+            width: 280px;
+            margin: 0;
+            padding: 16px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .popup-header {
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .popup-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .popup-header p {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .menu-section {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .menu-button {
+            width: 100%;
+            padding: 12px;
+            margin: 4px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .menu-button:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-button:hover img {
+            filter: brightness(0) invert(1);
+        }
+
+        .menu-button img {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-button span {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .menu-button .icon-arrow {
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            opacity: 0.5;
+        }
+
+        .footer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 11px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-header">
+        <h1>Job Application Tools</h1>
+        <p>Track and manage your job applications</p>
+    </div>
+
+    <div class="menu-section">
+        <button id="screenshotBtn" class="menu-button">
+            <img src="img/icon19.png" alt="Screenshot">
+            <span>Take Screenshot</span>
+            <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+        <button id="jobTrackingBtn" class="menu-button">
+            <img src="img/icon19.png" alt="Job Tracking">
+            <span>Job Tracking Dashboard</span>
+            <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="footer">
+        <p>2025 OWASP Foundation - Job Application Tools Extension</p>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 
