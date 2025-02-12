@@ -38,6 +38,10 @@
       {
          "matches": ["*://*.linkedin.com/jobs/*"],
          "js": ["linkedin-monitor.js"]
+      },
+      {
+         "matches": ["*://*.wellfound.com/jobs*"],
+         "js": ["wellfound-monitor.js"]
       }
    ]
 }
