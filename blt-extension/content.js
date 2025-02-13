@@ -19,7 +19,7 @@ function aa(a) {
             fontFamily: c.css("fontFamily"),
             lineHeight: c.css("lineHeight")
         });
-        var b = a.value.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;").replace(/$/, "&nbsp;").replace(/\n/g,
+        var b = a.value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/$/, "&nbsp;").replace(/\n/g,
                 "&nbsp;<br/>").replace(/\s/g, "&nbsp;"),
             e = b.split("<br/>").length - 1;
         d.html(b);
