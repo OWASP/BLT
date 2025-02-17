@@ -1,226 +1,214 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const fs = require('fs');
-const path = require('path');
 
 const run = async () => {
-    console.log("starting");
-    const gitHubToken = core.getInput('repo-token', { required: true });
-    const githubOwner = github.context.repo.owner;
-    const githubRepo = github.context.repo.repo;
-    const repository = `${githubOwner}/${githubRepo}`;
-    const octokit = github.getOctokit(gitHubToken);
-    console.log(repository);
+    try {
+        console.log("Starting GitHub Action...");
 
-    const { eventName, payload } = github.context;
-    const { issue, comment } = payload;
-    const [owner, repo] = repository.split('/');
+        // Get necessary inputs
+        const gitHubToken = core.getInput('repo-token', { required: true });
+        const octokit = github.getOctokit(gitHubToken);
 
-    let proceedWithIssueProcessing = false; // Initialize the flag
-    console.log(eventName);
+        const { eventName, payload, repo } = github.context;
+        const { issue, comment } = payload;
+        const repository = `${repo.owner}/${repo.repo}`;
+        const [owner, repoName] = repository.split('/');
 
-    if (eventName === 'issue_comment' && issue && comment) {
-        console.log('processing issue comment');
-        const commentBody = comment.body.toLowerCase(); // Convert to lower case for case-insensitive comparison
+        console.log(`Processing event: ${eventName} in repository ${repository}`);
+
+        // Assignment keywords
         const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'please assign me this', 'i can try fixing this', 'i am interested in doing this', 'i am interested in contributing'];
         const unassignKeywords = ['/unassign'];
 
-        const shouldAssign = assignKeywords.some(keyword => commentBody.includes(keyword));
-        const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
+        if (eventName === 'issue_comment' && issue && comment) {
+            console.log('Processing issue comment...');
+            const commentBody = comment.body.toLowerCase();
+            const shouldAssign = assignKeywords.some(keyword => commentBody.includes(keyword));
+            const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
 
-        if (shouldAssign) {
-            proceedWithIssueProcessing = true; // Set flag to true
-        } else if (shouldUnassign) {
-            console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
-            await octokit.issues.removeAssignees({
-                owner,
-                repo,
-                issue_number: issue.number,
-                assignees: [comment.user.login]
-            });
-        }
-    }
+            if (shouldUnassign) {
+                console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
 
-    if (issue && proceedWithIssueProcessing) {
-        console.log('processing issue');
-        const assigneeLogin = comment.user.login;
-        const assignees = assigneeLogin.split(',').map(assigneeName => assigneeName.trim());
+                try {
+                    // Fetch issue details
+                    const issueDetails = await octokit.issues.get({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number
+                    });
 
-        let addAssignee = true;
-        let issuesWithoutPR = [];
+                    const hasAssignedLabel = issueDetails.data.labels.some(label => label.name === "assigned");
 
-        // Retrieve all open issues assigned to the user
-        const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
-            owner,
-            repo,
-            state: 'open',
-            assignee: assigneeLogin
-        });
-        for (const assignedIssue of assignedIssues) {
-            // Skip if it's the same issue
-            if (assignedIssue.number === issue.number) {
-                continue;
-            }
+                    if (hasAssignedLabel) {
+                        await octokit.issues.removeAssignees({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            assignees: [comment.user.login]
+                        });
 
-            // Construct a search query to find pull requests that mention the assigned issue
-            const query = `type:pr state:open repo:${owner}/${repo} ${assignedIssue.number} in:body`;
-            const pullRequests = await octokit.search.issuesAndPullRequests({
-                q: query
-            });
+                        await octokit.issues.removeLabel({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            name: "assigned"
+                        }).catch(() => console.log("Label already removed or not found."));
 
-            // If there are no pull requests mentioning the issue number in their body, add it to the list
-            if (pullRequests.data.total_count === 0) {
-                console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
-                issuesWithoutPR.push(assignedIssue.number);
-                break;
-            }
-        }
-        if (issuesWithoutPR.length > 0) {
-            addAssignee = false;
-            const issueList = issuesWithoutPR.join(', #');
-            await octokit.issues.createComment({
-                owner,
-                repo,
-                issue_number: issue.number,
-                body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
-            });
-        }  if (addAssignee) {
-             const currentAssignees = await octokit.issues.get({
-                owner,
-                repo,
-                issue_number: issue.number
-             });
-            if (!currentAssignees.data.assignees.some(a => a.login === assigneeLogin)) {
-                await octokit.issues.addAssignees({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    assignees
-                });
+                        // Check existing comments to avoid duplicates
+                        const existingComments = await octokit.issues.listComments({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number
+                        });
 
-                // Add the message to the issue
-                await octokit.issues.createComment({
-                    owner,
-                    repo,
-                    issue_number: issue.number,
-                    body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.`
-                });
-            }
-        }
-    } else {
-        console.log('Removing assignees greater than 24 hours and posting a note');
-
-        let last_event = { issue: { number: "" } };
-        let present_date = new Date();
-
-        await octokit.paginate(octokit.issues.listEventsForRepo, {
-            owner,
-            repo,
-            per_page: 100,
-        }, response => response.data.filter(r => r.event == "assigned")
-        ).then(async (data) => {
-            for (const event of data) {
-
-                if (event.issue.assignee && event.issue.state == "open") {
-
-                    let Difference_In_Time = present_date.getTime() - Date.parse(event.issue.updated_at);
-
-                    if (last_event.issue.number != event.issue.number) {
-
-                        console.log(
-                            event.issue.updated_at + " " +
-                            event.issue.number + " " +
-                            event.assignee.login + " " +
-                            event.issue.assignee.login + " " +
-                            event.issue.state + " " +
-                            (Difference_In_Time / (1000 * 3600 * 24)).toString() + " days",
+                        const unassignMessageExists = existingComments.data.some(comment =>
+                            comment.body.includes('⏰ This issue has been automatically unassigned due to 24 hours of inactivity.') ||
+                            comment.body.includes('You have been unassigned from this issue.')
                         );
 
-                        if ((Difference_In_Time / (1000 * 3600 * 24)) > 1) {
-                            // Check if the issue has any labels
-                            const issueDetails = await octokit.issues.get({
+                        if (!unassignMessageExists) {
+                            await octokit.issues.createComment({
                                 owner,
-                                repo,
-                                issue_number: event.issue.number
+                                repo: repoName,
+                                issue_number: issue.number,
+                                body: `You have been unassigned from this issue. The issue is now available for others to work on.`
+                            });
+                        }
+                    } else {
+                        console.log(`Issue #${issue.number} does not have the "assigned" label, skipping unassign.`);
+                    }
+                } catch (error) {
+                    console.error(`Error unassigning issue #${issue.number}:`, error);
+                }
+            }
+
+            if (shouldAssign) {
+                console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
+                try {
+                    const assigneeLogin = comment.user.login;
+
+                    // Get assigned issues
+                    const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                        owner,
+                        repo: repoName,
+                        state: 'open',
+                        assignee: assigneeLogin
+                    });
+
+                    // Check if user has unresolved issues without a PR
+                    let issuesWithoutPR = [];
+                    for (const assignedIssue of assignedIssues) {
+                        if (assignedIssue.number === issue.number) continue;
+
+                        const query = `type:pr state:open repo:${owner}/${repoName} ${assignedIssue.number} in:body`;
+                        const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
+
+                        if (pullRequests.data.total_count === 0) {
+                            console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
+                            issuesWithoutPR.push(assignedIssue.number);
+                        }
+                    }
+
+                    if (issuesWithoutPR.length > 0) {
+                        const issueList = issuesWithoutPR.join(', #');
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.`
+                        });
+                        return;
+                    }
+
+                    // Assign user to the issue
+                    await octokit.issues.addAssignees({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        assignees: [assigneeLogin]
+                    });
+
+                    // Add "assigned" label
+                    await octokit.issues.addLabels({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        labels: ["assigned"]
+                    });
+
+                    await octokit.issues.createComment({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.`
+                    });
+
+                } catch (error) {
+                    console.error(`Error assigning issue #${issue.number}:`, error);
+                }
+            }
+        }
+
+        console.log('Checking for stale assignments...');
+        const presentDate = new Date();
+
+        try {
+            const events = await octokit.paginate(octokit.issues.listEventsForRepo, {
+                owner,
+                repo: repoName,
+                per_page: 100,
+            }, response => response.data.filter(event => event.event === "assigned"));
+
+            for (const event of events) {
+                if (event.issue.assignee && event.issue.state === "open") {
+                    const timeSinceUpdate = presentDate.getTime() - new Date(event.issue.updated_at).getTime();
+                    const daysInactive = timeSinceUpdate / (1000 * 3600 * 24);
+
+                    if (daysInactive > 1) {
+                        console.log(`Unassigning issue #${event.issue.number} due to inactivity`);
+
+                        const issueDetails = await octokit.issues.get({
+                            owner,
+                            repo: repoName,
+                            issue_number: event.issue.number
+                        });
+
+                        const hasAssignedLabel = issueDetails.data.labels.some(label => label.name === "assigned");
+
+                        if (hasAssignedLabel) {
+                            await octokit.issues.removeAssignees({
+                                owner,
+                                repo: repoName,
+                                issue_number: event.issue.number,
+                                assignees: [event.issue.assignee.login]
                             });
 
-
-                            if (issueDetails.data.labels.length === 0) {
-                                console.log('unassigning ' + event.issue.assignee.login + " from " + event.issue.number);
-
-                                await octokit.issues.removeAssignees({
-                                    owner,
-                                    repo,
-                                    issue_number: event.issue.number,
-                                    assignees: [event.issue.assignee.login],
-                                });
-                                // Retrieve all comments on the issue
-                            const existingComments = await octokit.issues.listComments({
+                            await octokit.issues.removeLabel({
                                 owner,
-                                repo,
-                                issue_number: event.issue.number
+                                repo: repoName,
+                                issue_number: event.issue.number,
+                                name: "assigned"
                             });
 
-                                // Find the most recent "unassign" comment
-                            const recentComment = existingComments.data.find(comment =>
-                                comment.body.includes('⏰ This issue has been automatically unassigned due to 24 hours of inactivity. The issue is now available for anyone to work on again.')||
-                                comment.body.includes('Removing assignees greater than 24 hours and posting a note')
-
-                            );
-
-                                if (recentComment) {
-                                    const lastCommentTime = new Date(recentComment.created_at).getTime();
-                                    const currentTime = Date.now();
-
-                            // Check if the last comment was made within the last 5 minutes
-                                if (currentTime - lastCommentTime < 5 * 60 * 1000) {
-                                return; // Skip adding a redundant comment
-                                }
-                            }
-
-
-
-                                // Add a comment about unassignment
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo,
-                                    issue_number: event.issue.number,
-                                    body: `⏰ This issue has been automatically unassigned due to 24 hours of inactivity. 
-                                    The issue is now available for anyone to work on again.`
-                                });
-                            } else {
-                                console.log(`Issue #${event.issue.number} has labels, skipping unassign.`);
-                            }
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: event.issue.number,
+                                body: `⏰ This issue has been automatically unassigned due to 24 hours of inactivity. The issue is now available for anyone to work on again.`
+                            });
+                        } else {
+                            console.log(`Issue #${event.issue.number} does not have the "assigned" label, skipping unassign.`);
                         }
                     }
                 }
-                last_event = event;
             }
-        });
-    }
-}
-
-// Function to handle symbolic links during the unwrapping process
-const handleSymbolicLinks = (srcPath, destPath) => {
-    if (fs.lstatSync(srcPath).isSymbolicLink()) {
-        const realPath = fs.realpathSync(srcPath);
-        if (fs.existsSync(realPath)) {
-            fs.symlinkSync(realPath, destPath);
-        } else {
-            console.log(`Skipping broken symbolic link: ${srcPath}`);
+        } catch (error) {
+            console.error("Error processing stale assignments:", error);
         }
-    } else {
-        fs.copyFileSync(srcPath, destPath);
-    }
-};
 
-// Example usage of handleSymbolicLinks function
-const unwrap = (srcDir, destDir) => {
-    fs.readdirSync(srcDir).forEach(file => {
-        const srcPath = path.join(srcDir, file);
-        const destPath = path.join(destDir, file);
-        handleSymbolicLinks(srcPath, destPath);
-    });
+    } catch (error) {
+        console.error("Critical error in GitHub Action:", error);
+    }
 };
 
 run();
