@@ -1,6 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.apps.blt">
    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+   <uses-permission android:name="android.permission.READ_CALL_LOG" />
+<uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.CALL_SCREENING" />
+<uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
+<uses-permission android:name="android.permission.BIND_SCREENING_SERVICE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+<uses-feature
+    android:name="android.hardware.telephony"
+    android:required="true" />
+<uses-feature
+    android:name="android.hardware.microphone"
+    android:required="true" />
    <application
         android:label="blt"
         android:name="${applicationName}"
@@ -39,21 +54,19 @@
                <action android:name="android.intent.action.VIEW" />
                <category android:name="android.intent.category.DEFAULT" />
                <category android:name="android.intent.category.BROWSABLE" />
-               <!--TODO:  Add this filter, if you want support opening urls into your app-->
+
                <data
                    android:scheme="https"
                    android:host="example.com"
                    android:pathPrefix="/invite"/>
             </intent-filter>
 
-             <!--TODO: Add this filter, if you want to support sharing text into your app-->
             <intent-filter>
                <action android:name="android.intent.action.SEND" />
                <category android:name="android.intent.category.DEFAULT" />
                <data android:mimeType="text/*" />
             </intent-filter>
 
-            <!--TODO: Add this filter, if you want to support sharing images into your app-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -66,7 +79,6 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
 
-             <!--TODO: Add this filter, if you want to support sharing videos into your app-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -78,7 +90,6 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
 
-            <!--TODO: Add this filter, if you want to support sharing any type of files-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -88,13 +99,31 @@
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.DIAL" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="tel" />
             </intent-filter>
 
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <service
+            android:name=".SpamCallBlockerService"
+            android:permission="android.permission.BIND_SCREENING_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
+
     </application>
+    
+
 </manifest>

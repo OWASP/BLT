@@ -71,5 +71,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.10.1' 
     implementation 'androidx.appcompat:appcompat:1.6.1' 
     implementation 'androidx.activity:activity-ktx:1.7.2'
-
+    implementation 'org.greenrobot:eventbus:3.2.0'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation 'pub.devrel:easypermissions:3.0.0'
 }
