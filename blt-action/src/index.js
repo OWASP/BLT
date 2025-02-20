@@ -71,7 +71,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `You have been unassigned from this issue. The issue is now available for others to work on.`
+                                body: `You have been unassigned from this issue. It’s now open for others. You can reassign it anytime by typing /assign.`
                             });
                         }
                     } else {
