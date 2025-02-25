@@ -33,14 +33,6 @@ WALLET_NAME_MAINNET = os.getenv("WALLET_NAME_MAINNET", "master-wallet")
 WALLET_NAME_REGTEST = os.getenv("WALLET_NAME_REGTEST", "regtest-wallet")
 WALLET_ADDRESS_REGTEST = os.getenv("WALLET_ADDRESS_REGTEST", "bcrt1")
 
-# Default Batch Transaction Output
-DEFAULT_OUTPUT = {
-    "address": WALLET_ADDRESS_REGTEST,
-    "runes": {
-        "BLT•BACON•TOKENS": 1
-    }
-}
-
 
 @app.route("/mainnet/send-bacon-tokens", methods=["POST"])
 def send_bacon_tokens():
@@ -115,7 +107,16 @@ def send_bacon_tokens_regtest():
         return jsonify({"success": False, "error": "Block generation failed", "details": e.stderr})
 
     # Generate YAML batch transaction file
-    yaml_data = {"outputs": [DEFAULT_OUTPUT] * num_users}
+    yaml_data = {
+        "outputs": [
+            {
+                "address": WALLET_ADDRESS_REGTEST,
+                "runes": {
+                    "BLT•BACON•TOKENS": 1
+                }
+            } for _ in range(num_users)
+        ]
+    }
 
     with open(YAML_FILE_PATH, "w") as file:
         yaml.dump(yaml_data, file, default_flow_style=False)
