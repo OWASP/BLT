@@ -61,16 +61,18 @@ def send_bacon_tokens():
         "split",
         f"--splits={YAML_FILE_PATH}",
         f"--fee-rate={fee_rate}",
+        "--dry-run" 
     ]
 
-    if is_dry_run:
-        command.append("--dry-run")
+    # if is_dry_run:
+    #     command.append("--dry-run")
 
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
+        txid = result.stdout.strip()  # Extract the transaction ID from output
         return jsonify({
             "success": True,
-            "output": result.stdout,
+            "txid": txid,
             "dry_run": is_dry_run
         })
     except subprocess.CalledProcessError as e:
