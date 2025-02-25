@@ -80,7 +80,6 @@ def send_bacon_tokens():
             "dry_run": is_dry_run
         })
 
-
 @app.route("/regtest/send-bacon-tokens", methods=["POST"])
 def send_bacon_tokens_regtest():
     num_users = request.json.get("num_users")
@@ -90,21 +89,6 @@ def send_bacon_tokens_regtest():
         return jsonify({"success": False, "error": "num_users must be a positive integer"}), 400
     if not fee_rate or not isinstance(fee_rate, (int, float)):
         return jsonify({"success": False, "error": "Valid fee_rate is required"}), 400
-    # Generate a block to get UTXO for spending
-    try:
-        gen_block_command = [
-            "bitcoin-cli",
-            "-regtest",
-            f"-rpcuser={BITCOIN_RPC_USER_REGTEST}",
-            f"-rpcpassword={BITCOIN_RPC_PASSWORD_REGTEST}",
-            f"-datadir={BITCOIN_DATADIR_REGTEST}",
-            "generatetoaddress",
-            "2",
-            WALLET_ADDRESS_REGTEST
-        ]
-        gen_result = subprocess.run(gen_block_command, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": "Block generation failed", "details": e.stderr})
 
     # Generate YAML batch transaction file
     yaml_data = {
@@ -121,6 +105,7 @@ def send_bacon_tokens_regtest():
     with open(YAML_FILE_PATH, "w") as file:
         yaml.dump(yaml_data, file, default_flow_style=False)
 
+    # Run the transaction split command
     command = [
         "sudo",
         ORD_PATH,
@@ -139,9 +124,26 @@ def send_bacon_tokens_regtest():
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         txid = result.stdout.strip()  # Extract the transaction ID from output
-        return jsonify({"success": True, "txid": txid})
     except subprocess.CalledProcessError as e:
         return jsonify({"success": False, "error": e.stderr})
+
+    # Generate a block to include the transaction in the blockchain
+    try:
+        gen_block_command = [
+            "bitcoin-cli",
+            "-regtest",
+            f"-rpcuser={BITCOIN_RPC_USER_REGTEST}",
+            f"-rpcpassword={BITCOIN_RPC_PASSWORD_REGTEST}",
+            f"-datadir={BITCOIN_DATADIR_REGTEST}",
+            "generatetoaddress",
+            "2",
+            WALLET_ADDRESS_REGTEST
+        ]
+        subprocess.run(gen_block_command, capture_output=True, text=True, check=True)
+        return jsonify({"success": True, "txid": txid})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"success": False, "error": "Block generation failed", "details": e.stderr})
+
 
 
 if __name__ == "__main__":
