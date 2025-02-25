@@ -17,6 +17,7 @@ YAML_FILE_PATH = os.getenv("YAML_FILE_PATH", "/blockchain/ord-flask-server/tmp-b
 BITCOIN_RPC_USER_MAINNET = os.getenv("BITCOIN_RPC_USER_MAINNET", "bitcoin_mainnet")
 BITCOIN_RPC_PASSWORD_MAINNET = os.getenv("BITCOIN_RPC_PASSWORD_MAINNET", "password_mainnet")
 BITCOIN_RPC_URL_MAINNET = os.getenv("BITCOIN_RPC_URL_MAINNET", "http://bitcoin-node-ip:18443")
+BITCOIN_DATADIR_MAINNET = os.getenv("BITCOIN_DATADIR_MAINNET", "/blockchain/bitcoin/data")
 
 # Bitcoin RPC Configuration for Regtest
 BITCOIN_RPC_USER_REGTEST = os.getenv("BITCOIN_RPC_USER_REGTEST", "bitcoin_regtest")
@@ -38,7 +39,7 @@ WALLET_ADDRESS_REGTEST = os.getenv("WALLET_ADDRESS_REGTEST", "bcrt1")
 def send_bacon_tokens():
     yaml_content = request.json.get("yaml_content")
     fee_rate = request.json.get("fee_rate")
-    is_dry_run = request.json.get("dry_run", False)
+    is_dry_run = request.json.get("dry_run", True)
 
     if not yaml_content:
         return jsonify({"success": False, "error": "YAML content missing"}), 400
@@ -61,11 +62,10 @@ def send_bacon_tokens():
         "split",
         f"--splits={YAML_FILE_PATH}",
         f"--fee-rate={fee_rate}",
-        "--dry-run" 
     ]
 
-    # if is_dry_run:
-    #     command.append("--dry-run")
+    if is_dry_run:
+        command.append("--dry-run")
 
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -127,10 +127,37 @@ def send_bacon_tokens_regtest():
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         txid = result.stdout.strip()  # Extract the transaction ID from output
-        return jsonify({"success": True, "txid": txid})
+        return jsonify({"success": True, "txid": txid ,"dry_run": True})
     except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": e.stderr})
+        return jsonify({"success": False, "error": e.stderr, "dry_run": True})
 
+@app.route("/mainnet/wallet-balance", methods=["GET"])
+def wallet_balance():
+    command = [
+        "sudo",
+        ORD_PATH,
+        f"--bitcoin-rpc-username={BITCOIN_RPC_USER_MAINNET}",
+        f"--bitcoin-rpc-password={BITCOIN_RPC_PASSWORD_MAINNET}",
+        f"--bitcoin-rpc-url={BITCOIN_RPC_URL_MAINNET}",
+        f"--data-dir={BITCOIN_DATADIR_MAINNET}",
+        "wallet",
+        f"--server-url={ORD_SERVER_URL_MAINNET}",
+        f"--name={WALLET_NAME_MAINNET}",
+        "balance"
+    ]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        balance_output = result.stdout.strip()  # Extract the balance output from the command
+        return jsonify({
+            "success": True,
+            "balance": balance_output
+        })
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "success": False,
+            "error": e.stderr
+        })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("FLASK_PORT", 9002)))
