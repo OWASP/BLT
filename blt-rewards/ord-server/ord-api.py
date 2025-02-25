@@ -119,31 +119,15 @@ def send_bacon_tokens_regtest():
         "split",
         f"--splits={YAML_FILE_PATH}",
         f"--fee-rate={fee_rate}",
+        "--dry-run"
     ]
 
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         txid = result.stdout.strip()  # Extract the transaction ID from output
-    except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": e.stderr})
-
-    # Generate a block to include the transaction in the blockchain
-    try:
-        gen_block_command = [
-            "bitcoin-cli",
-            "-regtest",
-            f"-rpcuser={BITCOIN_RPC_USER_REGTEST}",
-            f"-rpcpassword={BITCOIN_RPC_PASSWORD_REGTEST}",
-            f"-datadir={BITCOIN_DATADIR_REGTEST}",
-            "generatetoaddress",
-            "2",
-            WALLET_ADDRESS_REGTEST
-        ]
-        subprocess.run(gen_block_command, capture_output=True, text=True, check=True)
         return jsonify({"success": True, "txid": txid})
     except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": "Block generation failed", "details": e.stderr})
-
+        return jsonify({"success": False, "error": e.stderr})
 
 
 if __name__ == "__main__":
