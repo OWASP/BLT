@@ -45,7 +45,12 @@ def send_bacon_tokens():
         return jsonify({"success": False, "error": "YAML content missing"}), 400
     if not fee_rate or not isinstance(fee_rate, (int, float)):
         return jsonify({"success": False, "error": "Valid fee_rate is required"}), 400
-
+    if not is_dry_run:
+        password = request.json.get("password")
+        if not password:
+            return jsonify({"success": False, "error": "Password is required for non-dry-run transactions"}), 400
+        elif password != os.getenv("WALLET_API_PASSWORD"):
+            return jsonify({"success": False, "error": "Invalid password"}), 401
     # Write YAML to a temporary file
     with open(YAML_FILE_PATH, "w") as file:
         file.write(yaml_content)
