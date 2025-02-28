@@ -17,7 +17,7 @@ const run = async () => {
         console.log(`Processing event: ${eventName} in repository ${repository}`);
 
         // Assignment keywords
-        const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'assign me this', 'Can I work on this', 'i can try fixing this', 'i am interested in doing this', 'be assigned this', 'i am interested in contributing'];
+        const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'assign me this', 'work on this', 'i can try fixing this', 'i am interested in doing this', 'be assigned this', 'i am interested in contributing'];
         const unassignKeywords = ['/unassign'];
 
         if (eventName === 'issue_comment' && issue && comment) {
