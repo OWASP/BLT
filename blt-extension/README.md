@@ -6,7 +6,7 @@ BLT is a Chrome extension that enables users to take screenshots or capture spec
 
 ### For Google Chrome
 
-1. **Download the Extension**: Download the latest version of BLT from the [Releases](../releases) page on GitHub.
+1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page on GitHub.
 
 2. **Unzip the File**: After downloading, unzip the file to a directory on your computer.
 
