@@ -50,11 +50,12 @@ const run = async () => {
             const gifUrl = giphyResponse.data.data[0]?.images?.original?.url;
 
             if (gifUrl) {
+                const newCommentBody = commentBody.replace(giphyKeyword, `![Giphy GIF](${gifUrl})`);
                 await octokit.issues.createComment({
                     owner,
                     repo,
                     issue_number: issue.number,
-                    body: `![Giphy GIF](${gifUrl})`
+                    body: newCommentBody
                 });
             } else {
                 await octokit.issues.createComment({
