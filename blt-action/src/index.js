@@ -2,14 +2,17 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios'); // Add axios for making API requests
 
 const run = async () => {
     console.log("starting");
     const gitHubToken = core.getInput('repo-token', { required: true });
+    const giphyApiKey = core.getInput('giphy-api-key', { required: true }); // Add Giphy API key input
     const githubOwner = github.context.repo.owner;
     const githubRepo = github.context.repo.repo;
     const repository = `${githubOwner}/${githubRepo}`;
     const octokit = github.getOctokit(gitHubToken);
+    const user = comment.user.login;
     console.log(repository);
 
     const { eventName, payload } = github.context;
@@ -24,9 +27,12 @@ const run = async () => {
         const commentBody = comment.body.toLowerCase(); // Convert to lower case for case-insensitive comparison
         const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'please assign me this', 'i can try fixing this', 'i am interested in doing this', 'i am interested in contributing'];
         const unassignKeywords = ['/unassign'];
+        const giphyKeyword = '/giphy';
 
         const shouldAssign = assignKeywords.some(keyword => commentBody.includes(keyword));
         const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
+        const shouldGiphy = commentBody.startsWith(giphyKeyword);
+        const user = comment.user.login;
 
         if (shouldAssign) {
             proceedWithIssueProcessing = true; // Set flag to true
@@ -38,6 +44,26 @@ const run = async () => {
                 issue_number: issue.number,
                 assignees: [comment.user.login]
             });
+        } else if (shouldGiphy) {
+            const searchText = commentBody.replace(giphyKeyword, '').trim();
+            const giphyResponse = await axios.get(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`);
+            const gifUrl = giphyResponse.data.data[0]?.images?.original?.url;
+
+            if (gifUrl) {
+                await octokit.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: `![Giphy GIF](${gifUrl})`
+                });
+            } else {
+                await octokit.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issue.number,
+                    body: `No GIFs found for "${searchText}".`
+                });
+            }
         }
     }
 

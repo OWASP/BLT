@@ -7,6 +7,9 @@ inputs:
     repository:
         description: 'The GITHUB_REPOSITORY, needed to update the Issue'
         required: true
+    giphy-api-key:
+        description: 'API key for the Giphy API'
+        required: false
 
 runs:
     using: 'node20'
