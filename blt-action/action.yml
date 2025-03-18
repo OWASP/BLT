@@ -9,7 +9,7 @@ inputs:
         required: true
     giphy-api-key:
         description: 'API key for the Giphy API'
-        required: false
+        required: true
 
 runs:
     using: 'node20'
