@@ -156,12 +156,11 @@ const run = async () => {
                 const gifUrl = giphyResponse.data.data[0]?.images?.original?.url;
 
                 if (gifUrl) {
-                    const newCommentBody = commentBody.replace(giphyKeyword, `![Giphy GIF](${gifUrl})`);
                     await octokit.issues.createComment({
                         owner,
                         repo: repoName,
                         issue_number: issue.number,
-                        body: newCommentBody
+                        body: `![Giphy GIF](${gifUrl})`
                     });
                 } else {
                     await octokit.issues.createComment({
