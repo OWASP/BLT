@@ -12,7 +12,7 @@ const run = async () => {
         const octokit = github.getOctokit(gitHubToken);
 
         const { eventName, payload, repo } = github.context;
-        const { issue, comment } = payload;
+        const { issue, comment, pull_request } = payload;
         const repository = `${repo.owner}/${repo.repo}`;
         const [owner, repoName] = repository.split('/');
 
@@ -23,8 +23,8 @@ const run = async () => {
         const unassignKeywords = ['/unassign'];
         const giphyKeyword = '/giphy';
 
-        if (eventName === 'issue_comment' && issue && comment) {
-            console.log('Processing issue comment...');
+        if ((eventName === 'issue_comment' && issue && comment) || (eventName === 'pull_request_review_comment' && pull_request && comment)) {
+            console.log('Processing comment...');
             const commentBody = comment.body.toLowerCase();
             const shouldAssign = assignKeywords.some(keyword => commentBody.includes(keyword));
             const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
@@ -159,14 +159,14 @@ const run = async () => {
                     await octokit.issues.createComment({
                         owner,
                         repo: repoName,
-                        issue_number: issue.number,
+                        issue_number: issue ? issue.number : pull_request.number,
                         body: `![Giphy GIF](${gifUrl})`
                     });
                 } else {
                     await octokit.issues.createComment({
                         owner,
                         repo: repoName,
-                        issue_number: issue.number,
+                        issue_number: issue ? issue.number : pull_request.number,
                         body: `No GIFs found for "${searchText}".`
                     });
                 }
