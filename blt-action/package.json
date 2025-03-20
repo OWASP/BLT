@@ -20,7 +20,7 @@
     },
     "devDependencies": {
         "assert": "^2.1.0",
-        "axios": "^1.7.7",
+        "axios": "^1.8.3",
         "mocha": "^10.7.3",
         "nock": "^13.5.5"
     }
