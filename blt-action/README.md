@@ -77,11 +77,3 @@ Contributions are what make the open-source community an amazing place to learn,
 6. **Open a Pull Request**:
    - Once you've pushed your new branch, create a new Pull Request from your forked repository to the original BLT-Action repository.
 
-
-https://www.github.com/OWASP/BLT  
-https://www.github.com/OWASP/BLT-Flutter  
-https://www.github.com/OWASP/BLT-Extension  
-https://www.github.com/OWASP/BLT-Bacon  
-https://www.github.com/OWASP/BLT-Action  
-
-https://owasp.org/www-project-bug-logging-tool/
