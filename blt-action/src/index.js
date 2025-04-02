@@ -22,6 +22,7 @@ const run = async () => {
         const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'assign it to me', 'assign me this', 'work on this', 'i can try fixing this', 'i am interested in doing this', 'be assigned this', 'i am interested in contributing'];
         const unassignKeywords = ['/unassign'];
         const giphyKeyword = '/giphy';
+        const kudosKeyword = '/kudos';
 
         if ((eventName === 'issue_comment' && issue && comment) || (eventName === 'pull_request_review_comment' && pull_request && comment)) {
             console.log('Processing comment...');
@@ -29,6 +30,7 @@ const run = async () => {
             const shouldAssign = assignKeywords.some(keyword => commentBody.includes(keyword));
             const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
             const shouldGiphy = commentBody.startsWith(giphyKeyword);
+            const shouldKudos = commentBody.startsWith(kudosKeyword);
 
             if (shouldUnassign) {
                 console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
@@ -168,6 +170,48 @@ const run = async () => {
                         repo: repoName,
                         issue_number: issue ? issue.number : pull_request.number,
                         body: `No GIFs found for "${searchText}".`
+                    });
+                }
+            } else if (shouldKudos) {
+                const kudosCommand = comment.body.trim().split(/\s+/);
+                if (kudosCommand.length >= 3) {
+                    const sender = comment.user.login;
+                    const receiver = kudosCommand[1];
+                    const kudosComment = kudosCommand.slice(2).join(' ') || 'awesome work';
+
+                    console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
+
+                    try {
+                        // Send kudos to the API
+                        await axios.post('https://448c-2405-201-400a-1019-280d-88a9-382c-e928.ngrok-free.app/teams/give-kudos', {
+                            kudosReceiver: receiver,
+                            kudosSender: sender,
+                            comment: kudosComment
+                        });
+
+                        // Confirm success in the issue or PR comment
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue ? issue.number : pull_request.number,
+                            body: `🎉 Kudos from @${sender} to @${receiver}! 🎉\n\n${kudosComment}\n\n✅ Kudos successfully sent to the team API!`
+                        });
+                    } catch (apiError) {
+                        console.error('Error sending kudos to the API:', apiError);
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue ? issue.number : pull_request.number,
+                            body: `⚠️ Failed to send kudos to the team API. Please try again later.`
+                        });
+                    }
+                } else {
+                    console.log('Invalid /kudos command format.');
+                    await octokit.issues.createComment({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue ? issue.number : pull_request.number,
+                        body: `⚠️ Invalid /kudos command format. Use: \`/kudos sender receiver comment(optional)\``
                     });
                 }
             }
