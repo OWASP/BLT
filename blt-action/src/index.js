@@ -182,8 +182,8 @@ const run = async () => {
                     console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
 
                     try {
-                        // Send kudos to the API
-                        await axios.post('https://448c-2405-201-400a-1019-280d-88a9-382c-e928.ngrok-free.app/teams/give-kudos', {
+                        // Send kudos to the API with the corrected URL
+                        await axios.post('https://448c-2405-201-400a-1019-280d-88a9-382c-e928.ngrok-free.app/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
                             comment: kudosComment
