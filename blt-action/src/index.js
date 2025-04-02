@@ -175,14 +175,14 @@ const run = async () => {
             } else if (shouldKudos) {
                 const kudosCommand = comment.body.trim().split(/\s+/);
                 if (kudosCommand.length >= 3) {
-                    const sender = comment.user.login;
-                    const receiver = kudosCommand[1];
-                    const kudosComment = kudosCommand.slice(2).join(' ') || 'awesome work';
+                    const sender = kudosCommand[1]; // Sender from the command
+                    const receiver = kudosCommand[2]; // Receiver from the command
+                    const kudosComment = kudosCommand.slice(3).join(' ') || 'awesome work'; // Optional comment
 
                     console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
 
                     try {
-                        // Send kudos to the API with the corrected URL
+                        // Send kudos to the API
                         await axios.post('https://448c-2405-201-400a-1019-280d-88a9-382c-e928.ngrok-free.app/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
