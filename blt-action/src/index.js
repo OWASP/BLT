@@ -183,7 +183,7 @@ const run = async () => {
 
                     try {
                         // Send kudos to the API
-                        await axios.post('https://448c-2405-201-400a-1019-280d-88a9-382c-e928.ngrok-free.app/teams/give-kudos/', {
+                        await axios.post('https://owaspblt.com/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
                             comment: kudosComment
