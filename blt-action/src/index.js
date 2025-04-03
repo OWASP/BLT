@@ -183,7 +183,7 @@ const run = async () => {
 
                     try {
                         // Send kudos to the API
-                        await axios.post('https://owaspblt.com/teams/give-kudos/', {
+                        await axios.post('https://owaspblt.org/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
                             comment: kudosComment
