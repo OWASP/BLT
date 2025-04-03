@@ -174,10 +174,10 @@ const run = async () => {
                 }
             } else if (shouldKudos) {
                 const kudosCommand = comment.body.trim().split(/\s+/);
-                if (kudosCommand.length >= 3) {
-                    const sender = kudosCommand[1]; // Sender from the command
-                    const receiver = kudosCommand[2]; // Receiver from the command
-                    const kudosComment = kudosCommand.slice(3).join(' ') || 'awesome work'; // Optional comment
+                if (kudosCommand.length >= 2) {
+                    const sender = comment.user.login; // GitHub username of the commenter
+                    const receiver = kudosCommand[1]; // Receiver from the command
+                    const kudosComment = kudosCommand.slice(2).join(' ') || 'awesome work'; // Optional comment
 
                     console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
 
@@ -211,7 +211,7 @@ const run = async () => {
                         owner,
                         repo: repoName,
                         issue_number: issue ? issue.number : pull_request.number,
-                        body: `⚠️ Invalid /kudos command format. Use: \`/kudos sender receiver comment(optional)\``
+                        body: `⚠️ Invalid /kudos command format. Use: \`/kudos receiver comment(optional)\``
                     });
                 }
             }
