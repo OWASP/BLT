@@ -64,10 +64,13 @@ jobs:
 
       - name: Update status file
         run: |
-          current_date=$(date +%Y-%m-%dT%H:%M:%S)
-          echo "$current_date,${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.duration_s }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
-          # Keep only last 30 days
-          tail -n 30 status.csv > status.csv.tmp
+          if [ ! -f status.csv ]; then
+            echo "duration_ms,duration_s,status,keyword_status" > status.csv
+          fi
+          echo "${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.duration_s }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
+          # Keep only last 30 rows (plus header)
+          head -n 1 status.csv > status.csv.tmp
+          tail -n 30 status.csv >> status.csv.tmp
           mv status.csv.tmp status.csv
 
       - name: Update index.html
@@ -157,7 +160,7 @@ jobs:
                   <h2 style="font-size:1.1em; margin-bottom:6px;">Recent Checks</h2>
                   <table id="recent-table">
                       <thead>
-                          <tr><th>Date</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
+                          <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
                       </thead>
                       <tbody></tbody>
                   </table>
@@ -228,9 +231,9 @@ jobs:
               fetch('status.csv').then(r => r.text()).then(csv => {
                   const rows = parseCSV(csv);
                   // Chart data
-                  const labels = rows.map(r => r[0]);
-                  const data = rows.map(r => parseInt(r[1])); // ms
-                  const bgColors = rows.map(r => (r[3]==='success' && r[4]==='found') ? '#4CAF50' : (r[3]==='success' ? '#FFC107' : '#f44336'));
+                  const labels = rows.map((_, i) => rows.length - i); // Use index as label
+                  const data = rows.map(r => parseInt(r[0])); // ms
+                  const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
                   // Chart.js
                   new Chart(document.getElementById('statusChart').getContext('2d'), {
                       type: 'line',
@@ -252,7 +255,7 @@ jobs:
                           plugins: { legend: { display: false } },
                           scales: {
                               y: { beginAtZero: true, title: { display: true, text: 'ms' } },
-                              x: { title: { display: true, text: 'Date' } }
+                              x: { title: { display: true, text: 'Check #' } }
                           }
                       }
                   });
@@ -260,10 +263,9 @@ jobs:
                   const tbody = document.querySelector('#recent-table tbody');
                   tbody.innerHTML = '';
                   rows.slice(-10).reverse().forEach(r => {
-                      const statusCell = r[3]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
-                      const keywordCell = r[4]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
-                      tbody.innerHTML += `<tr><td>
-                        ${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+                      const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
+                      const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+                      tbody.innerHTML += `<tr><td>${r[0]} ms</td><td>${r[1]} s</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
               });
           </script>
