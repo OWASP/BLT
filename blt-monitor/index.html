@@ -48,15 +48,15 @@
     <div class="summary">
         <div class="summary-block">
             <h2>Last Check</h2>
-            <span class="value" id="last-check">$(date)</span>
+            <span class="value" id="last-check">Sat May  3 19:58:19 UTC 2025</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">$last_check_iso</span>
-            <span id="last-check-unix" style="display:none;">$last_check_unix</span>
+            <span id="last-check-iso" style="display:none;">2025-05-03T19:58:19+00:00</span>
+            <span id="last-check-unix" style="display:none;">1746302299</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-seconds">1s</span><br>
-            <span class="ago" id="resp-ms"></span>
+            <span class="value" id="resp-seconds">1.163s</span><br>
+            <span class="ago" id="resp-ms">1163 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -116,10 +116,6 @@
         document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
     }
 
-    // Show response time in ms
-    const respSeconds = parseInt(document.getElementById('resp-seconds').textContent) || 0;
-    document.getElementById('resp-ms').textContent = (respSeconds * 1000) + ' ms';
-
     // Set status and keyword badges
     const status = "success";
     const keyword = "found";
@@ -150,8 +146,8 @@
         const rows = parseCSV(csv);
         // Chart data
         const labels = rows.map(r => r[0]);
-        const data = rows.map(r => parseInt(r[1]) * 1000); // ms
-        const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
+        const data = rows.map(r => parseInt(r[1])); // ms
+        const bgColors = rows.map(r => (r[3]==='success' && r[4]==='found') ? '#4CAF50' : (r[3]==='success' ? '#FFC107' : '#f44336'));
         // Chart.js
         new Chart(document.getElementById('statusChart').getContext('2d'), {
             type: 'line',
@@ -181,10 +177,10 @@
         const tbody = document.querySelector('#recent-table tbody');
         tbody.innerHTML = '';
         rows.slice(-10).reverse().forEach(r => {
-            const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
-            const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+            const statusCell = r[3]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
+            const keywordCell = r[4]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
             tbody.innerHTML += `<tr><td>
-              ${r[0]}</td><td>${parseInt(r[1])*1000} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+              ${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
         });
     });
 </script>
