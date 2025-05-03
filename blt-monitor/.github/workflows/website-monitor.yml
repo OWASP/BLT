@@ -2,7 +2,7 @@ name: Website Monitor
 
 # Example configuration (edit these values to change the default monitoring settings)
 env:
-  DEFAULT_WEBSITE_URL: 'https://owasp.org'
+  DEFAULT_WEBSITE_URL: 'https://owaspblt.org'
   DEFAULT_KEYWORD: 'OWASP'
 
 on:
