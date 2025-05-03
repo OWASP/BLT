@@ -66,10 +66,11 @@ jobs:
 
       - name: Update status file
         run: |
+          now_iso=$(date -Iseconds)
           if [ ! -f status.csv ]; then
-            echo "duration_ms,duration_s,status,keyword_status" > status.csv
+            echo "datetime,duration_ms,status,keyword_status" > status.csv
           fi
-          echo "${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.duration_s }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
+          echo "$now_iso,${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
           # Keep only last 30 rows (plus header)
           head -n 1 status.csv > status.csv.tmp
           tail -n 30 status.csv >> status.csv.tmp
@@ -152,8 +153,7 @@ jobs:
                   </div>
                   <div class="summary-block">
                       <h2>Response Time</h2>
-                      <span class="value" id="resp-seconds">${{ steps.monitor.outputs.duration_s }}s</span><br>
-                      <span class="ago" id="resp-ms">${{ steps.monitor.outputs.duration_ms }} ms</span>
+                      <span class="value" id="resp-ms">${{ steps.monitor.outputs.duration_ms }} ms</span>
                   </div>
                   <div class="summary-block">
                       <h2>Status</h2>
@@ -185,7 +185,7 @@ jobs:
               <h2 style="font-size:1.08em; margin-bottom:6px;">Recent Checks</h2>
               <table id="recent-table">
                   <thead>
-                      <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
+                      <tr><th>Date/Time</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
                   </thead>
                   <tbody></tbody>
               </table>
@@ -238,7 +238,7 @@ jobs:
               function parseCSV(csv) {
                   const lines = csv.trim().split('\n');
                   // Remove header row if present
-                  if (lines[0].toLowerCase().includes('duration_ms')) lines.shift();
+                  if (lines[0].toLowerCase().includes('datetime')) lines.shift();
                   const rows = lines.map(l => l.split(','));
                   return rows;
               }
@@ -246,7 +246,7 @@ jobs:
                   const rows = parseCSV(csv);
                   // Chart data
                   const labels = rows.map((_, i) => rows.length - i); // Use index as label
-                  const data = rows.map(r => parseInt(r[0])); // ms
+                  const data = rows.map(r => parseInt(r[1])); // ms
                   const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
                   // Chart.js
                   new Chart(document.getElementById('statusChart').getContext('2d'), {
@@ -279,7 +279,7 @@ jobs:
                   rows.slice(-10).reverse().forEach(r => {
                       const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
                       const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
-                      tbody.innerHTML += `<tr><td>${r[0]} ms</td><td>${r[1]} s</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+                      tbody.innerHTML += `<tr><td>${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
               });
           </script>
