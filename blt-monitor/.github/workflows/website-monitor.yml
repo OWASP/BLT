@@ -282,6 +282,8 @@ jobs:
           sed -i "s|LAST_CHECK_HUMAN_PLACEHOLDER|$last_check_human|" index.html
           sed -i "s|LAST_CHECK_ISO_PLACEHOLDER|$last_check_iso|" index.html
           sed -i "s|LAST_CHECK_UNIX_PLACEHOLDER|$last_check_unix|" index.html
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Commit and push changes
         run: |
