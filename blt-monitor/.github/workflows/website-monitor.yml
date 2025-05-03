@@ -97,10 +97,10 @@ jobs:
               </div>
               <div class="status">
                   <p>Last check: $(date)</p>
-                  <p>Response time: $duration seconds</p>
-                  <p>Status: $status</p>
-                  <div class="keyword-status $(if [ "$keyword_status" = "found" ]; then echo "keyword-found"; else echo "keyword-not-found"; fi)">
-                      Keyword Status: $(if [ "$keyword_status" = "found" ]; then echo "Found"; else echo "Not Found"; fi)
+                  <p>Response time: ${{ steps.monitor.outputs.duration }} seconds</p>
+                  <p>Status: ${{ steps.monitor.outputs.status }}</p>
+                  <div class="keyword-status $(if [ "${{ steps.monitor.outputs.keyword_status }}" = "found" ]; then echo "keyword-found"; else echo "keyword-not-found"; fi)">
+                      Keyword Status: $(if [ "${{ steps.monitor.outputs.keyword_status }}" = "found" ]; then echo "Found"; else echo "Not Found"; fi)
                   </div>
               </div>
               <div class="chart-container">
