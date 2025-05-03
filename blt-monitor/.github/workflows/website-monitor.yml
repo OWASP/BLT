@@ -67,7 +67,7 @@ jobs:
       - name: Update status file
         run: |
           now_iso=$(date -Iseconds)
-          if [ ! -f status.csv ]; then
+          if [ ! -s status.csv ]; then
             echo "datetime,duration_ms,status,keyword_status" > status.csv
           fi
           echo "$now_iso,${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
