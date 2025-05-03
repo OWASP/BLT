@@ -63,7 +63,7 @@ jobs:
       - name: Update status file
         run: |
           current_date=$(date +%Y-%m-%d)
-          echo "$current_date,$duration,$status,$keyword_status" >> status.csv
+          echo "$current_date,${{ steps.monitor.outputs.duration }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
           # Keep only last 30 days
           tail -n 30 status.csv > status.csv.tmp
           mv status.csv.tmp status.csv
