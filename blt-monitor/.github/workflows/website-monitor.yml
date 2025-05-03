@@ -73,7 +73,7 @@ jobs:
         run: |
           last_check_iso=$(date -Iseconds)
           last_check_unix=$(date +%s)
-          cat > index.html << EOF
+          cat > index.html << 'EOF'
           <!DOCTYPE html>
           <html lang="en">
           <head>
