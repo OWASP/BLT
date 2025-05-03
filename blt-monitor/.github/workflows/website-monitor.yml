@@ -324,7 +324,6 @@ jobs:
                       const secondsSinceLast = Math.floor((now - lastDate) / 1000);
                       secondsLeft = Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
                   }
-                  updateBar();
               });
               function updateBar() {
                   secondsLeft--;
