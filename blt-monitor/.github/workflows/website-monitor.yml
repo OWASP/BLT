@@ -95,39 +95,44 @@ jobs:
               <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
               <style>
                   body { font-family: 'Inter', Arial, sans-serif; background: #f8fafc; color: #222; margin: 0; padding: 0; }
-                  .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 32px 24px 24px 24px; }
-                  h1 { font-size: 2.1em; margin-bottom: 0.2em; letter-spacing: -1px; }
-                  .actions { margin: 18px 0 24px 0; display: flex; gap: 12px; flex-wrap: wrap; }
-                  .button { background: #1976d2; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 1em; transition: background 0.2s; display: inline-block; }
+                  .container { max-width: 1100px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 18px 18px 18px 18px; display: flex; gap: 24px; }
+                  .main-col { flex: 2 1 0; min-width: 0; }
+                  .side-col { flex: 1 1 320px; min-width: 260px; }
+                  h1 { font-size: 1.7em; margin-bottom: 0.2em; letter-spacing: -1px; }
+                  .actions { margin: 10px 0 18px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+                  .button { background: #1976d2; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 0.98em; transition: background 0.2s; display: inline-block; }
                   .button:hover { background: #1565c0; }
-                  .summary { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; margin-bottom: 18px; }
-                  .summary-block { flex: 1 1 180px; background: #f1f5f9; border-radius: 8px; padding: 18px 16px; text-align: center; }
-                  .summary-block h2 { margin: 0 0 8px 0; font-size: 1.1em; color: #555; font-weight: 500; }
-                  .summary-block .value { font-size: 1.5em; font-weight: 600; }
-                  .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.98em; font-weight: 500; }
+                  .summary { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+                  .summary-block { flex: 1 1 120px; background: #f1f5f9; border-radius: 8px; padding: 10px 8px; text-align: center; min-width: 110px; }
+                  .summary-block h2 { margin: 0 0 4px 0; font-size: 1em; color: #555; font-weight: 500; }
+                  .summary-block .value { font-size: 1.18em; font-weight: 600; }
+                  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.95em; font-weight: 500; }
                   .badge-up { background: #e8f5e9; color: #2e7d32; }
                   .badge-down { background: #ffebee; color: #c62828; }
                   .badge-keyword { background: #e3f2fd; color: #1565c0; }
                   .badge-keyword-missing { background: #fff3cd; color: #b26a00; }
-                  .ago { color: #888; font-size: 0.97em; }
-                  .chart-container { background: #f1f5f9; border-radius: 8px; padding: 18px 12px 8px 12px; margin: 24px 0 18px 0; }
-                  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.98em; }
-                  th, td { padding: 7px 8px; text-align: left; }
+                  .ago { color: #888; font-size: 0.93em; }
+                  .chart-container { background: #f1f5f9; border-radius: 8px; padding: 10px 6px 4px 6px; margin: 10px 0 10px 0; }
+                  .keyword-card { background: #f1f5f9; border-radius: 8px; padding: 10px 0; margin-bottom: 10px; text-align: center; }
+                  .keyword-card h2 { font-size: 1em; margin: 0 0 4px 0; color: #555; }
+                  table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 0.97em; }
+                  th, td { padding: 6px 7px; text-align: left; }
                   th { background: #f8fafc; color: #555; font-weight: 600; border-bottom: 2px solid #e0e7ef; }
                   tr:nth-child(even) { background: #f6fafd; }
                   tr:last-child td { border-bottom: none; }
-                  .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 10px; border-radius: 5px; margin: 15px 0; }
-                  details.instructions { margin: 15px 0; }
-                  @media (max-width: 600px) {
-                      .container { padding: 10px 2vw; }
-                      .summary { flex-direction: column; gap: 12px; }
+                  .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 8px; border-radius: 5px; margin: 10px 0; font-size: 0.97em; }
+                  details.instructions { margin: 10px 0; }
+                  @media (max-width: 900px) {
+                      .container { flex-direction: column; max-width: 98vw; }
+                      .side-col { min-width: 0; }
                   }
               </style>
           </head>
           <body>
           <div class="container">
+            <div class="main-col">
               <h1>Website Monitor</h1>
-              <a href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:18px;">
+              <a href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:12px;">
                 <img alt="Website Monitor Status" src="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml/badge.svg">
               </a>
               <div class="actions">
@@ -154,22 +159,13 @@ jobs:
                       <h2>Status</h2>
                       <span class="badge" id="status-badge"></span>
                   </div>
-                  <div class="summary-block">
-                      <h2>Keyword</h2>
-                      <span class="badge" id="keyword-badge"></span>
-                  </div>
+              </div>
+              <div class="keyword-card">
+                <h2>Keyword</h2>
+                <span class="badge" id="keyword-badge"></span>
               </div>
               <div class="chart-container">
                   <canvas id="statusChart"></canvas>
-              </div>
-              <div style="margin-top:18px;">
-                  <h2 style="font-size:1.1em; margin-bottom:6px;">Recent Checks</h2>
-                  <table id="recent-table">
-                      <thead>
-                          <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
-                      </thead>
-                      <tbody></tbody>
-                  </table>
               </div>
               <details class="instructions">
                   <summary><b>How to set up Slack notifications</b></summary>
@@ -184,6 +180,16 @@ jobs:
                       </li>
                   </ol>
               </details>
+            </div>
+            <div class="side-col">
+              <h2 style="font-size:1.08em; margin-bottom:6px;">Recent Checks</h2>
+              <table id="recent-table">
+                  <thead>
+                      <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
+                  </thead>
+                  <tbody></tbody>
+              </table>
+            </div>
           </div>
           <script>
               const slackConfigured = SLACK_CONFIGURED_PLACEHOLDER;
@@ -231,7 +237,9 @@ jobs:
               // Parse status.csv for chart and table
               function parseCSV(csv) {
                   const lines = csv.trim().split('\n');
-                  const rows = lines.slice(1).map(l => l.split(','));
+                  // Remove header row if present
+                  if (lines[0].toLowerCase().includes('duration_ms')) lines.shift();
+                  const rows = lines.map(l => l.split(','));
                   return rows;
               }
               fetch('status.csv').then(r => r.text()).then(csv => {
