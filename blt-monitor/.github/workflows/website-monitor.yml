@@ -37,14 +37,13 @@ jobs:
       - name: Monitor website
         id: monitor
         run: |
-          start_time=$(date +%s)
-          # Get the website content and check for keyword
+          start_time=$(date +%s%3N)
           content=$(curl -s "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
           response_code=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
-          end_time=$(date +%s)
-          duration=$((end_time - start_time))
+          end_time=$(date +%s%3N)
+          duration_ms=$((end_time - start_time))
+          duration_s=$(awk "BEGIN {printf \"%.3f\", $duration_ms/1000}")
           
-          # Check if keyword exists in content (case insensitive)
           if echo "$content" | grep -qi "${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"; then
             keyword_status="found"
           else
@@ -53,26 +52,29 @@ jobs:
           
           if [ "$response_code" -eq 200 ] && [ "$keyword_status" == "found" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
-            echo "duration=$duration" >> $GITHUB_OUTPUT
+            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
+            echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
             echo "keyword_status=found" >> $GITHUB_OUTPUT
           else
             echo "status=failure" >> $GITHUB_OUTPUT
-            echo "duration=$duration" >> $GITHUB_OUTPUT
+            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
+            echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
             echo "keyword_status=$keyword_status" >> $GITHUB_OUTPUT
           fi
 
       - name: Update status file
         run: |
-          current_date=$(date +%Y-%m-%d)
-          echo "$current_date,${{ steps.monitor.outputs.duration }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
+          current_date=$(date +%Y-%m-%dT%H:%M:%S)
+          echo "$current_date,${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.duration_s }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
           # Keep only last 30 days
           tail -n 30 status.csv > status.csv.tmp
           mv status.csv.tmp status.csv
 
       - name: Update index.html
         run: |
-          last_check_iso=$(date -Iseconds)
-          last_check_unix=$(date +%s)
+          last_check_human="$(date)"
+          last_check_iso="$(date -Iseconds)"
+          last_check_unix="$(date +%s)"
           if [ -n "${SLACK_WEBHOOK_URL}" ]; then
             slack_configured="true"
           else
@@ -129,15 +131,15 @@ jobs:
               <div class="summary">
                   <div class="summary-block">
                       <h2>Last Check</h2>
-                      <span class="value" id="last-check">$(date)</span>
+                      <span class="value" id="last-check">LAST_CHECK_HUMAN_PLACEHOLDER</span>
                       <div class="ago" id="last-check-ago"></div>
-                      <span id="last-check-iso" style="display:none;">$last_check_iso</span>
-                      <span id="last-check-unix" style="display:none;">$last_check_unix</span>
+                      <span id="last-check-iso" style="display:none;">LAST_CHECK_ISO_PLACEHOLDER</span>
+                      <span id="last-check-unix" style="display:none;">LAST_CHECK_UNIX_PLACEHOLDER</span>
                   </div>
                   <div class="summary-block">
                       <h2>Response Time</h2>
-                      <span class="value" id="resp-seconds">${{ steps.monitor.outputs.duration }}s</span><br>
-                      <span class="ago" id="resp-ms"></span>
+                      <span class="value" id="resp-seconds">${{ steps.monitor.outputs.duration_s }}s</span><br>
+                      <span class="ago" id="resp-ms">${{ steps.monitor.outputs.duration_ms }} ms</span>
                   </div>
                   <div class="summary-block">
                       <h2>Status</h2>
@@ -197,10 +199,6 @@ jobs:
                   document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
               }
 
-              // Show response time in ms
-              const respSeconds = parseInt(document.getElementById('resp-seconds').textContent) || 0;
-              document.getElementById('resp-ms').textContent = (respSeconds * 1000) + ' ms';
-
               // Set status and keyword badges
               const status = "${{ steps.monitor.outputs.status }}";
               const keyword = "${{ steps.monitor.outputs.keyword_status }}";
@@ -231,8 +229,8 @@ jobs:
                   const rows = parseCSV(csv);
                   // Chart data
                   const labels = rows.map(r => r[0]);
-                  const data = rows.map(r => parseInt(r[1]) * 1000); // ms
-                  const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
+                  const data = rows.map(r => parseInt(r[1])); // ms
+                  const bgColors = rows.map(r => (r[3]==='success' && r[4]==='found') ? '#4CAF50' : (r[3]==='success' ? '#FFC107' : '#f44336'));
                   // Chart.js
                   new Chart(document.getElementById('statusChart').getContext('2d'), {
                       type: 'line',
@@ -262,10 +260,10 @@ jobs:
                   const tbody = document.querySelector('#recent-table tbody');
                   tbody.innerHTML = '';
                   rows.slice(-10).reverse().forEach(r => {
-                      const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
-                      const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+                      const statusCell = r[3]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
+                      const keywordCell = r[4]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
                       tbody.innerHTML += `<tr><td>
-                        ${r[0]}</td><td>${parseInt(r[1])*1000} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+                        ${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
               });
           </script>
@@ -273,6 +271,9 @@ jobs:
           </html>
           EOF
           sed -i "s/SLACK_CONFIGURED_PLACEHOLDER/$slack_configured/" index.html
+          sed -i "s|LAST_CHECK_HUMAN_PLACEHOLDER|$last_check_human|" index.html
+          sed -i "s|LAST_CHECK_ISO_PLACEHOLDER|$last_check_iso|" index.html
+          sed -i "s|LAST_CHECK_UNIX_PLACEHOLDER|$last_check_unix|" index.html
 
       - name: Commit and push changes
         run: |
@@ -288,7 +289,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration }}s\nResponse time: ${{ steps.monitor.outputs.duration }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
+              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
