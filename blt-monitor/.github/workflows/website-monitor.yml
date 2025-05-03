@@ -24,6 +24,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
   monitor:
@@ -295,4 +297,8 @@ jobs:
               "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
