@@ -72,6 +72,7 @@ jobs:
       - name: Update index.html
         run: |
           # Generate the HTML content
+          last_check_iso=$(date -Iseconds)
           cat > index.html << EOF
           <!DOCTYPE html>
           <html>
@@ -86,17 +87,29 @@ jobs:
                   .keyword-found { background-color: #e8f5e9; color: #2e7d32; }
                   .keyword-not-found { background-color: #ffebee; color: #c62828; }
                   .config { background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                  .ago { color: #888; font-size: 0.95em; }
+                  .actions { margin: 20px 0; }
+                  .actions button, .actions a.button { background: #1976d2; color: #fff; border: none; padding: 10px 18px; border-radius: 5px; margin-right: 10px; cursor: pointer; text-decoration: none; font-size: 1em; }
+                  .actions button:hover, .actions a.button:hover { background: #1565c0; }
+                  .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 10px; border-radius: 5px; margin: 15px 0; }
+                  details.instructions { margin: 15px 0; }
               </style>
           </head>
           <body>
               <h1>Website Monitor</h1>
+              <div class="actions">
+                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank">Run Now</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/edit/main/.github/workflows/website-monitor.yml" target="_blank">Edit Config</a>
+              </div>
+              <div id="slack-warning"></div>
               <div class="config">
                   <h3>Configuration</h3>
                   <p>Website: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}</p>
                   <p>Keyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}</p>
               </div>
               <div class="status">
-                  <p>Last check: $(date)</p>
+                  <p>Last check: <span id="last-check">$(date)</span> <span class="ago" id="last-check-ago"></span></p>
+                  <span id="last-check-iso" style="display:none;">$last_check_iso</span>
                   <p>Response time: ${{ steps.monitor.outputs.duration }} seconds</p>
                   <p>Status: ${{ steps.monitor.outputs.status }}</p>
                   <div class="keyword-status $(if [ "${{ steps.monitor.outputs.keyword_status }}" = "found" ]; then echo "keyword-found"; else echo "keyword-not-found"; fi)">
@@ -106,7 +119,44 @@ jobs:
               <div class="chart-container">
                   <canvas id="statusChart"></canvas>
               </div>
+              <details class="instructions">
+                  <summary><b>How to set up Slack notifications</b></summary>
+                  <ol>
+                      <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank">https://api.slack.com/apps</a></li>
+                      <li>Enable <b>Incoming Webhooks</b> for the app.</li>
+                      <li>Create a new webhook URL and copy it.</li>
+                      <li>Go to your GitHub repository settings &rarr; <b>Secrets and variables</b> &rarr; <b>Actions</b>.</li>
+                      <li>Click <b>New repository secret</b> and add:<br>
+                          <b>Name:</b> <code>SLACK_WEBHOOK_URL</code><br>
+                          <b>Value:</b> (paste your Slack webhook URL)
+                      </li>
+                  </ol>
+              </details>
               <script>
+                  // Show how long ago the last check was
+                  function timeAgo(date) {
+                      const now = new Date();
+                      const seconds = Math.floor((now - date) / 1000);
+                      if (seconds < 60) return `${seconds} seconds ago`;
+                      const minutes = Math.floor(seconds / 60);
+                      if (minutes < 60) return `${minutes} minutes ago`;
+                      const hours = Math.floor(minutes / 60);
+                      if (hours < 24) return `${hours} hours ago`;
+                      const days = Math.floor(hours / 24);
+                      return `${days} days ago`;
+                  }
+                  const lastCheckIso = document.getElementById('last-check-iso').textContent;
+                  const lastCheckDate = new Date(lastCheckIso);
+                  document.getElementById('last-check-ago').textContent = '(' + timeAgo(lastCheckDate) + ')';
+
+                  // Show Slack warning if not configured (simulate by checking for a placeholder in the HTML)
+                  // In reality, secrets are not exposed to the frontend, so we use a placeholder approach
+                  const slackConfigured = false; // Set to true if you want to hide the warning (for demo, always false)
+                  if (!slackConfigured) {
+                      document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
+                  }
+
+                  // Chart.js code
                   const ctx = document.getElementById('statusChart').getContext('2d');
                   const data = {
                       labels: $(awk -F',' '{print "\""$1"\""}' status.csv | tr '\n' ','),
