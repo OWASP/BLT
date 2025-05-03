@@ -104,9 +104,9 @@ jobs:
                   .side-col { flex: 1 1 320px; min-width: 260px; }
                   h1 { font-size: 1.7em; margin-bottom: 0.2em; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
                   .website-link { font-size: 1.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
-                  .actions { margin: 10px 0 18px 0; display: flex; gap: 6px; flex-wrap: wrap; }
-                  .button { background: #1976d2; color: #fff; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 0.97em; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-                  .button i { font-size: 1em; }
+                  .actions { margin: 10px 0 18px 0; display: flex; gap: 4px; flex-wrap: wrap; }
+                  .button { background: #1976d2; color: #fff; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.93em; transition: background 0.2s; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+                  .button i { font-size: 0.98em; }
                   .button:hover { background: #1565c0; }
                   .github-stars { margin-left: 8px; vertical-align: middle; }
                   .summary { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
@@ -149,7 +149,6 @@ jobs:
               <div class="website-link"><i class="fa-solid fa-link"></i> <a href="${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}" target="_blank">${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}</a></div>
               <a href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:12px;">
                 <img alt="Website Monitor Status" src="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml/badge.svg">
-                <span style="font-size:0.97em;color:#888;margin-left:6px;">(refresh for latest status)</span>
               </a>
               <div class="actions">
                   <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
@@ -225,6 +224,13 @@ jobs:
               document.getElementById('last-check').textContent = lastCheckDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
               document.getElementById('last-check-ago').textContent = timeAgo(lastCheckDate);
 
+              // Format response time with commas
+              const respMsElem = document.getElementById('resp-ms');
+              if (respMsElem && respMsElem.textContent) {
+                  const ms = parseInt(respMsElem.textContent.replace(/[^\d]/g, ''));
+                  if (!isNaN(ms)) respMsElem.textContent = ms.toLocaleString() + ' ms';
+              }
+
               // Show Slack warning if not configured
               if (!slackConfigured) {
                   document.getElementById('slack-warning').innerHTML = '<div class="warning"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
@@ -294,7 +300,8 @@ jobs:
                   rows.slice(-10).reverse().forEach(r => {
                       const statusCell = r[2]==='success' ? '<span class="badge badge-up"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="badge badge-down"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
                       const keywordCell = r[3]==='found' ? `<span class="badge badge-keyword"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="badge badge-keyword-missing"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
-                      tbody.innerHTML += `<tr><td>${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+                      const ms = parseInt(r[1]);
+                      tbody.innerHTML += `<tr><td>${r[0]}</td><td>${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
               });
           </script>
