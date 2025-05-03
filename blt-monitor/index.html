@@ -77,11 +77,11 @@
             <h2>Last Check</h2>
             <span class="value" id="last-check">--:--:--</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-03T21:30:15+00:00</span>
+            <span id="last-check-iso" style="display:none;">2025-05-03T21:36:10+00:00</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-ms">1197 ms</span>
+            <span class="value" id="resp-ms">916 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -91,10 +91,11 @@
     <div class="keyword-card">
       <h2><i class="fa-solid fa-key"></i> Keyword</h2>
       <span class="keyword-label">Checking for:</span><span class="badge" id="keyword-badge"></span>
-      <div id="refresh-bar-container" style="position:relative;width:100%;height:8px;background:#e3e8ee;margin:14px 0 2px 0;">
+      <div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:8px 0 6px 0;font-weight:500;"></div>
+      <div id="refresh-bar-container" style="position:relative;width:100%;height:12px;background:#e3e8ee;border-radius:6px;overflow:hidden;">
         <div id="refresh-bar" style="position:absolute;left:0;top:0;height:100%;width:100%;background:#1976d2;transition:width 1s linear;"></div>
+        <div id="refresh-glaze" style="position:absolute;top:0;left:0;height:100%;width:30px;pointer-events:none;"></div>
       </div>
-      <div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:4px 0 0 0;font-weight:500;"></div>
     </div>
     <div class="chart-container">
         <canvas id="statusChart"></canvas>
@@ -182,6 +183,11 @@
         // Remove all header rows if present
         return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
     }
+    let REFRESH_INTERVAL = 300; // seconds (5 minutes)
+    let secondsLeft = REFRESH_INTERVAL;
+    const bar = document.getElementById('refresh-bar');
+    const timer = document.getElementById('refresh-timer');
+    const glaze = document.getElementById('refresh-glaze');
     fetch('status.csv').then(r => r.text()).then(csv => {
         const rows = parseCSV(csv);
         // Chart data
@@ -238,6 +244,18 @@
         const min = Math.floor(secondsLeft / 60);
         const sec = secondsLeft % 60;
         timer.textContent = `Next refresh in: ${min}:${sec.toString().padStart(2, '0')}`;
+        // Glaze effect: animate left to right every second
+        glaze.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%)';
+        glaze.style.left = '0';
+        glaze.style.transition = 'none';
+        setTimeout(() => {
+            glaze.style.transition = 'left 0.8s cubic-bezier(0.4,0,0.2,1)';
+            glaze.style.left = 'calc(100% - 30px)';
+        }, 10);
+        setTimeout(() => {
+            glaze.style.transition = 'none';
+            glaze.style.left = '0';
+        }, 900);
         if (secondsLeft <= 0) {
             location.reload();
         }
