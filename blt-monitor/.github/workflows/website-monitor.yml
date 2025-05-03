@@ -6,6 +6,7 @@ env:
   DEFAULT_KEYWORD: 'OWASP'
 
 on:
+  push:
   schedule:
     - cron: '*/5 * * * *'  # Run every 5 minutes
   workflow_dispatch:  # Allow manual triggering
