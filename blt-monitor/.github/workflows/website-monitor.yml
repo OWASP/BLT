@@ -127,6 +127,9 @@ jobs:
           <body>
           <div class="container">
               <h1>Website Monitor</h1>
+              <a href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:18px;">
+                <img alt="Website Monitor Status" src="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml/badge.svg">
+              </a>
               <div class="actions">
                   <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank">Run Now</a>
                   <a class="button" href="https://github.com/${{ github.repository }}/edit/main/.github/workflows/website-monitor.yml" target="_blank">Edit Config</a>
