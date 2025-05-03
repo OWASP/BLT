@@ -94,6 +94,7 @@
     </details>
 </div>
 <script>
+    const slackConfigured = false;
     // Show how long ago the last check was
     function timeAgo(date) {
         const now = new Date();
@@ -110,8 +111,7 @@
     const lastCheckDate = new Date(lastCheckIso);
     document.getElementById('last-check-ago').textContent = timeAgo(lastCheckDate);
 
-    // Show Slack warning if not configured (simulate by checking for a placeholder in the HTML)
-    const slackConfigured = false; // Set to true if you want to hide the warning (for demo, always false)
+    // Show Slack warning if not configured
     if (!slackConfigured) {
         document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
     }
