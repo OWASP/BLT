@@ -57,15 +57,14 @@
     <div class="summary">
         <div class="summary-block">
             <h2>Last Check</h2>
-            <span class="value" id="last-check">Sat May  3 20:34:56 UTC 2025</span>
+            <span class="value" id="last-check">Sat May  3 20:40:59 UTC 2025</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-03T20:34:56+00:00</span>
-            <span id="last-check-unix" style="display:none;">1746304496</span>
+            <span id="last-check-iso" style="display:none;">2025-05-03T20:40:59+00:00</span>
+            <span id="last-check-unix" style="display:none;">1746304859</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-seconds">1.436s</span><br>
-            <span class="ago" id="resp-ms">1436 ms</span>
+            <span class="value" id="resp-ms">901 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -97,7 +96,7 @@
     <h2 style="font-size:1.08em; margin-bottom:6px;">Recent Checks</h2>
     <table id="recent-table">
         <thead>
-            <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
+            <tr><th>Date/Time</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -150,7 +149,7 @@
     function parseCSV(csv) {
         const lines = csv.trim().split('\n');
         // Remove header row if present
-        if (lines[0].toLowerCase().includes('duration_ms')) lines.shift();
+        if (lines[0].toLowerCase().includes('datetime')) lines.shift();
         const rows = lines.map(l => l.split(','));
         return rows;
     }
@@ -158,7 +157,7 @@
         const rows = parseCSV(csv);
         // Chart data
         const labels = rows.map((_, i) => rows.length - i); // Use index as label
-        const data = rows.map(r => parseInt(r[0])); // ms
+        const data = rows.map(r => parseInt(r[1])); // ms
         const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
         // Chart.js
         new Chart(document.getElementById('statusChart').getContext('2d'), {
@@ -191,7 +190,7 @@
         rows.slice(-10).reverse().forEach(r => {
             const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
             const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
-            tbody.innerHTML += `<tr><td>${r[0]} ms</td><td>${r[1]} s</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+            tbody.innerHTML += `<tr><td>${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
         });
     });
 </script>
