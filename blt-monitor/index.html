@@ -48,15 +48,15 @@
     <div class="summary">
         <div class="summary-block">
             <h2>Last Check</h2>
-            <span class="value" id="last-check">Sat May  3 20:02:07 UTC 2025</span>
+            <span class="value" id="last-check">Sat May  3 20:06:59 UTC 2025</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-03T20:02:07+00:00</span>
-            <span id="last-check-unix" style="display:none;">1746302527</span>
+            <span id="last-check-iso" style="display:none;">2025-05-03T20:06:59+00:00</span>
+            <span id="last-check-unix" style="display:none;">1746302819</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-seconds">1.288s</span><br>
-            <span class="ago" id="resp-ms">1288 ms</span>
+            <span class="value" id="resp-seconds">0.947s</span><br>
+            <span class="ago" id="resp-ms">947 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -74,7 +74,7 @@
         <h2 style="font-size:1.1em; margin-bottom:6px;">Recent Checks</h2>
         <table id="recent-table">
             <thead>
-                <tr><th>Date</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
+                <tr><th>Resp. (ms)</th><th>Resp. (s)</th><th>Status</th><th>Keyword</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -145,9 +145,9 @@
     fetch('status.csv').then(r => r.text()).then(csv => {
         const rows = parseCSV(csv);
         // Chart data
-        const labels = rows.map(r => r[0]);
-        const data = rows.map(r => parseInt(r[1])); // ms
-        const bgColors = rows.map(r => (r[3]==='success' && r[4]==='found') ? '#4CAF50' : (r[3]==='success' ? '#FFC107' : '#f44336'));
+        const labels = rows.map((_, i) => rows.length - i); // Use index as label
+        const data = rows.map(r => parseInt(r[0])); // ms
+        const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
         // Chart.js
         new Chart(document.getElementById('statusChart').getContext('2d'), {
             type: 'line',
@@ -169,7 +169,7 @@
                 plugins: { legend: { display: false } },
                 scales: {
                     y: { beginAtZero: true, title: { display: true, text: 'ms' } },
-                    x: { title: { display: true, text: 'Date' } }
+                    x: { title: { display: true, text: 'Check #' } }
                 }
             }
         });
@@ -177,10 +177,9 @@
         const tbody = document.querySelector('#recent-table tbody');
         tbody.innerHTML = '';
         rows.slice(-10).reverse().forEach(r => {
-            const statusCell = r[3]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
-            const keywordCell = r[4]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
-            tbody.innerHTML += `<tr><td>
-              ${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+            const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
+            const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+            tbody.innerHTML += `<tr><td>${r[0]} ms</td><td>${r[1]} s</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
         });
     });
 </script>
