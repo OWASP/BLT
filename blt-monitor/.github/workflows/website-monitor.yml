@@ -94,15 +94,21 @@ jobs:
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>Website Monitor</title>
               <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
               <style>
                   body { font-family: 'Inter', Arial, sans-serif; background: #f8fafc; color: #222; margin: 0; padding: 0; }
-                  .container { max-width: 1100px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 18px 18px 18px 18px; display: flex; gap: 24px; }
+                  .banner { background: #222; color: #fff; text-align: center; padding: 8px 0; font-size: 1.05em; letter-spacing: 0.5px; }
+                  .banner a { color: #fff; text-decoration: underline; font-weight: 600; }
+                  .container { max-width: 1100px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 18px 18px 18px 18px; display: flex; gap: 24px; }
                   .main-col { flex: 2 1 0; min-width: 0; }
                   .side-col { flex: 1 1 320px; min-width: 260px; }
-                  h1 { font-size: 1.7em; margin-bottom: 0.2em; letter-spacing: -1px; }
-                  .actions { margin: 10px 0 18px 0; display: flex; gap: 8px; flex-wrap: wrap; }
-                  .button { background: #1976d2; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 0.98em; transition: background 0.2s; display: inline-block; }
+                  h1 { font-size: 1.7em; margin-bottom: 0.2em; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
+                  .website-link { font-size: 1.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+                  .actions { margin: 10px 0 18px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+                  .button { background: #1976d2; color: #fff; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 0.97em; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+                  .button i { font-size: 1em; }
                   .button:hover { background: #1565c0; }
+                  .github-stars { margin-left: 8px; vertical-align: middle; }
                   .summary { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
                   .summary-block { flex: 1 1 120px; background: #f1f5f9; border-radius: 8px; padding: 10px 8px; text-align: center; min-width: 110px; }
                   .summary-block h2 { margin: 0 0 4px 0; font-size: 1em; color: #555; font-weight: 500; }
@@ -116,6 +122,7 @@ jobs:
                   .chart-container { background: #f1f5f9; border-radius: 8px; padding: 10px 6px 4px 6px; margin: 10px 0 10px 0; }
                   .keyword-card { background: #f1f5f9; border-radius: 8px; padding: 10px 0; margin-bottom: 10px; text-align: center; }
                   .keyword-card h2 { font-size: 1em; margin: 0 0 4px 0; color: #555; }
+                  .keyword-label { font-size: 0.98em; color: #555; margin-right: 6px; }
                   table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 0.97em; }
                   th, td { padding: 6px 7px; text-align: left; }
                   th { background: #f8fafc; color: #555; font-weight: 600; border-bottom: 2px solid #e0e7ef; }
@@ -130,26 +137,33 @@ jobs:
               </style>
           </head>
           <body>
+          <div class="banner">
+            <i class="fa-solid fa-code-fork"></i> <a href="https://github.com/${{ github.repository }}/fork" target="_blank">Fork this repo</a>
+            <a class="github-stars" href="https://github.com/${{ github.repository }}" target="_blank">
+              <img alt="GitHub stars" src="https://img.shields.io/github/stars/${{ github.repository }}?style=social">
+            </a>
+          </div>
           <div class="container">
             <div class="main-col">
-              <h1>Website Monitor</h1>
+              <h1><i class="fa-solid fa-globe"></i> Website Monitor</h1>
+              <div class="website-link"><i class="fa-solid fa-link"></i> <a href="${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}" target="_blank">${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}</a></div>
               <a href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:12px;">
                 <img alt="Website Monitor Status" src="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml/badge.svg">
+                <span style="font-size:0.97em;color:#888;margin-left:6px;">(refresh for latest status)</span>
               </a>
               <div class="actions">
-                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank">Run Now</a>
-                  <a class="button" href="https://github.com/${{ github.repository }}/edit/main/.github/workflows/website-monitor.yml" target="_blank">Edit Config</a>
-                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/test-slack.yml" target="_blank">Test Slack Webhook</a>
-                  <a class="button" href="https://github.com/${{ github.repository }}/blob/main/status.csv" target="_blank">View CSV Data</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/test-slack.yml" target="_blank"><i class="fa-brands fa-slack"></i>Test Slack Webhook</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV Data</a>
               </div>
               <div id="slack-warning"></div>
               <div class="summary">
                   <div class="summary-block">
                       <h2>Last Check</h2>
-                      <span class="value" id="last-check">LAST_CHECK_HUMAN_PLACEHOLDER</span>
+                      <span class="value" id="last-check">--:--:--</span>
                       <div class="ago" id="last-check-ago"></div>
                       <span id="last-check-iso" style="display:none;">LAST_CHECK_ISO_PLACEHOLDER</span>
-                      <span id="last-check-unix" style="display:none;">LAST_CHECK_UNIX_PLACEHOLDER</span>
                   </div>
                   <div class="summary-block">
                       <h2>Response Time</h2>
@@ -161,14 +175,14 @@ jobs:
                   </div>
               </div>
               <div class="keyword-card">
-                <h2>Keyword</h2>
-                <span class="badge" id="keyword-badge"></span>
+                <h2><i class="fa-solid fa-key"></i> Keyword</h2>
+                <span class="keyword-label">Checking for:</span><span class="badge" id="keyword-badge"></span>
               </div>
               <div class="chart-container">
                   <canvas id="statusChart"></canvas>
               </div>
               <details class="instructions">
-                  <summary><b>How to set up Slack notifications</b></summary>
+                  <summary><b><i class="fa-solid fa-bell"></i> How to set up Slack notifications</b></summary>
                   <ol>
                       <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank">https://api.slack.com/apps</a></li>
                       <li>Enable <b>Incoming Webhooks</b> for the app.</li>
@@ -182,7 +196,7 @@ jobs:
               </details>
             </div>
             <div class="side-col">
-              <h2 style="font-size:1.08em; margin-bottom:6px;">Recent Checks</h2>
+              <h2 style="font-size:1.08em; margin-bottom:6px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Checks</h2>
               <table id="recent-table">
                   <thead>
                       <tr><th>Date/Time</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
@@ -205,42 +219,43 @@ jobs:
                   const days = Math.floor(hours / 24);
                   return `${days} days ago`;
               }
+              // Set last check time (just the time, not date)
               const lastCheckIso = document.getElementById('last-check-iso').textContent;
               const lastCheckDate = new Date(lastCheckIso);
+              document.getElementById('last-check').textContent = lastCheckDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
               document.getElementById('last-check-ago').textContent = timeAgo(lastCheckDate);
 
               // Show Slack warning if not configured
               if (!slackConfigured) {
-                  document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
+                  document.getElementById('slack-warning').innerHTML = '<div class="warning"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
               }
 
               // Set status and keyword badges
               const status = "${{ steps.monitor.outputs.status }}";
               const keyword = "${{ steps.monitor.outputs.keyword_status }}";
+              const keywordText = "${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}";
               const statusBadge = document.getElementById('status-badge');
               if (status === 'success') {
-                  statusBadge.textContent = 'Up';
+                  statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Up';
                   statusBadge.className = 'badge badge-up';
               } else {
-                  statusBadge.textContent = 'Down';
+                  statusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Down';
                   statusBadge.className = 'badge badge-down';
               }
               const keywordBadge = document.getElementById('keyword-badge');
               if (keyword === 'found') {
-                  keywordBadge.textContent = 'Found';
+                  keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
                   keywordBadge.className = 'badge badge-keyword';
               } else {
-                  keywordBadge.textContent = 'Not Found';
+                  keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
                   keywordBadge.className = 'badge badge-keyword-missing';
               }
 
               // Parse status.csv for chart and table
               function parseCSV(csv) {
                   const lines = csv.trim().split('\n');
-                  // Remove header row if present
-                  if (lines[0].toLowerCase().includes('datetime')) lines.shift();
-                  const rows = lines.map(l => l.split(','));
-                  return rows;
+                  // Remove all header rows if present
+                  return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
               }
               fetch('status.csv').then(r => r.text()).then(csv => {
                   const rows = parseCSV(csv);
@@ -277,8 +292,8 @@ jobs:
                   const tbody = document.querySelector('#recent-table tbody');
                   tbody.innerHTML = '';
                   rows.slice(-10).reverse().forEach(r => {
-                      const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
-                      const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+                      const statusCell = r[2]==='success' ? '<span class="badge badge-up"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="badge badge-down"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
+                      const keywordCell = r[3]==='found' ? `<span class="badge badge-keyword"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="badge badge-keyword-missing"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
                       tbody.innerHTML += `<tr><td>${r[0]}</td><td>${r[1]} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
               });
@@ -287,9 +302,7 @@ jobs:
           </html>
           EOF
           sed -i "s/SLACK_CONFIGURED_PLACEHOLDER/$slack_configured/" index.html
-          sed -i "s|LAST_CHECK_HUMAN_PLACEHOLDER|$last_check_human|" index.html
           sed -i "s|LAST_CHECK_ISO_PLACEHOLDER|$last_check_iso|" index.html
-          sed -i "s|LAST_CHECK_UNIX_PLACEHOLDER|$last_check_unix|" index.html
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
