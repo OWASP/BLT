@@ -1,0 +1,154 @@
+name: Website Monitor
+
+# Example configuration (edit these values to change the default monitoring settings)
+env:
+  DEFAULT_WEBSITE_URL: 'https://owasp.org'
+  DEFAULT_KEYWORD: 'OWASP'
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Run every 5 minutes
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      website_url:
+        description: 'Website URL to monitor (default: https://owasp.org)'
+        required: false
+        default: 'https://owasp.org'
+      keyword:
+        description: 'Keyword to check for in website content (default: OWASP)'
+        required: false
+        default: 'OWASP'
+
+# Set the permissions for the workflow
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+
+      - name: Monitor website
+        id: monitor
+        run: |
+          start_time=$(date +%s)
+          # Get the website content and check for keyword
+          content=$(curl -s "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
+          response_code=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          
+          # Check if keyword exists in content (case insensitive)
+          if echo "$content" | grep -qi "${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"; then
+            keyword_status="found"
+          else
+            keyword_status="not_found"
+          fi
+          
+          if [ "$response_code" -eq 200 ] && [ "$keyword_status" == "found" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "duration=$duration" >> $GITHUB_OUTPUT
+            echo "keyword_status=found" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "duration=$duration" >> $GITHUB_OUTPUT
+            echo "keyword_status=$keyword_status" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update status file
+        run: |
+          current_date=$(date +%Y-%m-%d)
+          echo "$current_date,$duration,$status,$keyword_status" >> status.csv
+          # Keep only last 30 days
+          tail -n 30 status.csv > status.csv.tmp
+          mv status.csv.tmp status.csv
+
+      - name: Update index.html
+        run: |
+          # Generate the HTML content
+          cat > index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Website Monitor</title>
+              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; }
+                  .status { margin: 20px 0; }
+                  .chart-container { width: 80%; margin: 20px auto; }
+                  .keyword-status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+                  .keyword-found { background-color: #e8f5e9; color: #2e7d32; }
+                  .keyword-not-found { background-color: #ffebee; color: #c62828; }
+                  .config { background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
+              </style>
+          </head>
+          <body>
+              <h1>Website Monitor</h1>
+              <div class="config">
+                  <h3>Configuration</h3>
+                  <p>Website: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}</p>
+                  <p>Keyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}</p>
+              </div>
+              <div class="status">
+                  <p>Last check: $(date)</p>
+                  <p>Response time: $duration seconds</p>
+                  <p>Status: $status</p>
+                  <div class="keyword-status $(if [ "$keyword_status" = "found" ]; then echo "keyword-found"; else echo "keyword-not-found"; fi)">
+                      Keyword Status: $(if [ "$keyword_status" = "found" ]; then echo "Found"; else echo "Not Found"; fi)
+                  </div>
+              </div>
+              <div class="chart-container">
+                  <canvas id="statusChart"></canvas>
+              </div>
+              <script>
+                  const ctx = document.getElementById('statusChart').getContext('2d');
+                  const data = {
+                      labels: $(awk -F',' '{print "\""$1"\""}' status.csv | tr '\n' ','),
+                      datasets: [{
+                          label: 'Response Time (seconds)',
+                          data: $(awk -F',' '{print $2}' status.csv | tr '\n' ','),
+                          backgroundColor: $(awk -F',' '{if($3=="success" && $4=="found") print "\"#4CAF50\""; else if($3=="success") print "\"#FFC107\""; else print "\"#f44336\""}' status.csv | tr '\n' ','),
+                          borderColor: 'rgba(0, 0, 0, 0.1)',
+                          borderWidth: 1
+                      }]
+                  };
+                  new Chart(ctx, {
+                      type: 'bar',
+                      data: data,
+                      options: {
+                          responsive: true,
+                          scales: {
+                              y: {
+                                  beginAtZero: true
+                              }
+                          }
+                      }
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add index.html status.csv
+          git commit -m "Update website monitor status"
+          git push
+
+      - name: Notify Slack on failure
+        if: steps.monitor.outputs.status == 'failure' || steps.monitor.outputs.keyword_status == 'not_found'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "⚠️ Website Monitor Alert\n$(if [ "$status" = "failure" ]; then echo "Website is down!"; else echo "Keyword not found!"; fi)\nLast check: $(date)\nResponse time: $duration seconds\nKeyword status: $(if [ "$keyword_status" = "found" ]; then echo "Found"; else echo "Not Found"; fi)\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
