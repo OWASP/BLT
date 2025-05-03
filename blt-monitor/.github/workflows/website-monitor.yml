@@ -100,6 +100,7 @@ jobs:
               <div class="actions">
                   <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank">Run Now</a>
                   <a class="button" href="https://github.com/${{ github.repository }}/edit/main/.github/workflows/website-monitor.yml" target="_blank">Edit Config</a>
+                  <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/test-slack.yml" target="_blank">Test Slack Webhook</a>
               </div>
               <div id="slack-warning"></div>
               <div class="config">
