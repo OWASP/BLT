@@ -137,12 +137,16 @@ jobs:
               </style>
           </head>
           <body>
+          <div id="refresh-bar-container" style="position:relative;width:100%;height:8px;background:#e3e8ee;">
+            <div id="refresh-bar" style="position:absolute;left:0;top:0;height:100%;width:100%;background:#1976d2;transition:width 1s linear;"></div>
+          </div>
           <div class="banner">
             <i class="fa-solid fa-code-fork"></i> <a href="https://github.com/${{ github.repository }}/fork" target="_blank">Fork this repo</a>
             <a class="github-stars" href="https://github.com/${{ github.repository }}" target="_blank">
               <img alt="GitHub stars" src="https://img.shields.io/github/stars/${{ github.repository }}?style=social">
             </a>
           </div>
+          <div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:8px 0 0 0;font-weight:500;"></div>
           <div class="container">
             <div class="main-col">
               <h1><i class="fa-solid fa-globe"></i> Website Monitor</h1>
@@ -257,7 +261,7 @@ jobs:
                   keywordBadge.className = 'badge badge-keyword-missing';
               }
 
-              // Parse status.csv for chart and table
+              // Parse status.csv for chart, table, and refresh timer
               function parseCSV(csv) {
                   const lines = csv.trim().split('\n');
                   // Remove all header rows if present
@@ -303,7 +307,27 @@ jobs:
                       const ms = parseInt(r[1]);
                       tbody.innerHTML += `<tr><td>${r[0]}</td><td>${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
                   });
+                  // Refresh timer based on latest entry
+                  if (rows.length > 0) {
+                      const lastDate = new Date(rows[rows.length-1][0]);
+                      const now = new Date();
+                      const secondsSinceLast = Math.floor((now - lastDate) / 1000);
+                      secondsLeft = Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
+                  }
+                  updateBar();
               });
+              function updateBar() {
+                  secondsLeft--;
+                  const percent = (secondsLeft / REFRESH_INTERVAL) * 100;
+                  bar.style.width = percent + '%';
+                  const min = Math.floor(secondsLeft / 60);
+                  const sec = secondsLeft % 60;
+                  timer.textContent = `Next refresh in: ${min}:${sec.toString().padStart(2, '0')}`;
+                  if (secondsLeft <= 0) {
+                      location.reload();
+                  }
+              }
+              setInterval(updateBar, 1000);
           </script>
           </body>
           </html>
@@ -318,8 +342,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add index.html status.csv
-          git commit -m "Update website monitor status"
-          git push
+          git commit -m "Update website monitor status" || true
+          git pull --rebase origin main || true
+          git push origin main
 
       - name: Notify Slack on failure
         if: steps.monitor.outputs.status == 'failure' || steps.monitor.outputs.keyword_status == 'not_found'
