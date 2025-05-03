@@ -77,11 +77,11 @@
             <h2>Last Check</h2>
             <span class="value" id="last-check">--:--:--</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-03T21:25:14+00:00</span>
+            <span id="last-check-iso" style="display:none;">2025-05-03T21:30:02+00:00</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-ms">981 ms</span>
+            <span class="value" id="resp-ms">2160 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -91,6 +91,10 @@
     <div class="keyword-card">
       <h2><i class="fa-solid fa-key"></i> Keyword</h2>
       <span class="keyword-label">Checking for:</span><span class="badge" id="keyword-badge"></span>
+      <div id="refresh-bar-container" style="position:relative;width:100%;height:8px;background:#e3e8ee;margin:14px 0 2px 0;">
+        <div id="refresh-bar" style="position:absolute;left:0;top:0;height:100%;width:100%;background:#1976d2;transition:width 1s linear;"></div>
+      </div>
+      <div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:4px 0 0 0;font-weight:500;"></div>
     </div>
     <div class="chart-container">
         <canvas id="statusChart"></canvas>
