@@ -71,31 +71,49 @@ jobs:
 
       - name: Update index.html
         run: |
-          # Generate the HTML content
           last_check_iso=$(date -Iseconds)
+          last_check_unix=$(date +%s)
           cat > index.html << EOF
           <!DOCTYPE html>
-          <html>
+          <html lang="en">
           <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>Website Monitor</title>
               <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
               <style>
-                  body { font-family: Arial, sans-serif; margin: 20px; }
-                  .status { margin: 20px 0; }
-                  .chart-container { width: 80%; margin: 20px auto; }
-                  .keyword-status { margin: 10px 0; padding: 10px; border-radius: 5px; }
-                  .keyword-found { background-color: #e8f5e9; color: #2e7d32; }
-                  .keyword-not-found { background-color: #ffebee; color: #c62828; }
-                  .config { background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
-                  .ago { color: #888; font-size: 0.95em; }
-                  .actions { margin: 20px 0; }
-                  .actions button, .actions a.button { background: #1976d2; color: #fff; border: none; padding: 10px 18px; border-radius: 5px; margin-right: 10px; cursor: pointer; text-decoration: none; font-size: 1em; }
-                  .actions button:hover, .actions a.button:hover { background: #1565c0; }
+                  body { font-family: 'Inter', Arial, sans-serif; background: #f8fafc; color: #222; margin: 0; padding: 0; }
+                  .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 32px 24px 24px 24px; }
+                  h1 { font-size: 2.1em; margin-bottom: 0.2em; letter-spacing: -1px; }
+                  .actions { margin: 18px 0 24px 0; display: flex; gap: 12px; flex-wrap: wrap; }
+                  .button { background: #1976d2; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 1em; transition: background 0.2s; display: inline-block; }
+                  .button:hover { background: #1565c0; }
+                  .summary { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; margin-bottom: 18px; }
+                  .summary-block { flex: 1 1 180px; background: #f1f5f9; border-radius: 8px; padding: 18px 16px; text-align: center; }
+                  .summary-block h2 { margin: 0 0 8px 0; font-size: 1.1em; color: #555; font-weight: 500; }
+                  .summary-block .value { font-size: 1.5em; font-weight: 600; }
+                  .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.98em; font-weight: 500; }
+                  .badge-up { background: #e8f5e9; color: #2e7d32; }
+                  .badge-down { background: #ffebee; color: #c62828; }
+                  .badge-keyword { background: #e3f2fd; color: #1565c0; }
+                  .badge-keyword-missing { background: #fff3cd; color: #b26a00; }
+                  .ago { color: #888; font-size: 0.97em; }
+                  .chart-container { background: #f1f5f9; border-radius: 8px; padding: 18px 12px 8px 12px; margin: 24px 0 18px 0; }
+                  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.98em; }
+                  th, td { padding: 7px 8px; text-align: left; }
+                  th { background: #f8fafc; color: #555; font-weight: 600; border-bottom: 2px solid #e0e7ef; }
+                  tr:nth-child(even) { background: #f6fafd; }
+                  tr:last-child td { border-bottom: none; }
                   .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 10px; border-radius: 5px; margin: 15px 0; }
                   details.instructions { margin: 15px 0; }
+                  @media (max-width: 600px) {
+                      .container { padding: 10px 2vw; }
+                      .summary { flex-direction: column; gap: 12px; }
+                  }
               </style>
           </head>
           <body>
+          <div class="container">
               <h1>Website Monitor</h1>
               <div class="actions">
                   <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/website-monitor.yml" target="_blank">Run Now</a>
@@ -103,22 +121,39 @@ jobs:
                   <a class="button" href="https://github.com/${{ github.repository }}/actions/workflows/test-slack.yml" target="_blank">Test Slack Webhook</a>
               </div>
               <div id="slack-warning"></div>
-              <div class="config">
-                  <h3>Configuration</h3>
-                  <p>Website: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}</p>
-                  <p>Keyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}</p>
-              </div>
-              <div class="status">
-                  <p>Last check: <span id="last-check">$(date)</span> <span class="ago" id="last-check-ago"></span></p>
-                  <span id="last-check-iso" style="display:none;">$last_check_iso</span>
-                  <p>Response time: ${{ steps.monitor.outputs.duration }} seconds</p>
-                  <p>Status: ${{ steps.monitor.outputs.status }}</p>
-                  <div class="keyword-status $(if [ "${{ steps.monitor.outputs.keyword_status }}" = "found" ]; then echo "keyword-found"; else echo "keyword-not-found"; fi)">
-                      Keyword Status: $(if [ "${{ steps.monitor.outputs.keyword_status }}" = "found" ]; then echo "Found"; else echo "Not Found"; fi)
+              <div class="summary">
+                  <div class="summary-block">
+                      <h2>Last Check</h2>
+                      <span class="value" id="last-check">$(date)</span>
+                      <div class="ago" id="last-check-ago"></div>
+                      <span id="last-check-iso" style="display:none;">$last_check_iso</span>
+                      <span id="last-check-unix" style="display:none;">$last_check_unix</span>
+                  </div>
+                  <div class="summary-block">
+                      <h2>Response Time</h2>
+                      <span class="value" id="resp-seconds">${{ steps.monitor.outputs.duration }}s</span><br>
+                      <span class="ago" id="resp-ms"></span>
+                  </div>
+                  <div class="summary-block">
+                      <h2>Status</h2>
+                      <span class="badge" id="status-badge"></span>
+                  </div>
+                  <div class="summary-block">
+                      <h2>Keyword</h2>
+                      <span class="badge" id="keyword-badge"></span>
                   </div>
               </div>
               <div class="chart-container">
                   <canvas id="statusChart"></canvas>
+              </div>
+              <div style="margin-top:18px;">
+                  <h2 style="font-size:1.1em; margin-bottom:6px;">Recent Checks</h2>
+                  <table id="recent-table">
+                      <thead>
+                          <tr><th>Date</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
+                      </thead>
+                      <tbody></tbody>
+                  </table>
               </div>
               <details class="instructions">
                   <summary><b>How to set up Slack notifications</b></summary>
@@ -133,55 +168,102 @@ jobs:
                       </li>
                   </ol>
               </details>
-              <script>
-                  // Show how long ago the last check was
-                  function timeAgo(date) {
-                      const now = new Date();
-                      const seconds = Math.floor((now - date) / 1000);
-                      if (seconds < 60) return `${seconds} seconds ago`;
-                      const minutes = Math.floor(seconds / 60);
-                      if (minutes < 60) return `${minutes} minutes ago`;
-                      const hours = Math.floor(minutes / 60);
-                      if (hours < 24) return `${hours} hours ago`;
-                      const days = Math.floor(hours / 24);
-                      return `${days} days ago`;
-                  }
-                  const lastCheckIso = document.getElementById('last-check-iso').textContent;
-                  const lastCheckDate = new Date(lastCheckIso);
-                  document.getElementById('last-check-ago').textContent = '(' + timeAgo(lastCheckDate) + ')';
+          </div>
+          <script>
+              // Show how long ago the last check was
+              function timeAgo(date) {
+                  const now = new Date();
+                  const seconds = Math.floor((now - date) / 1000);
+                  if (seconds < 60) return `${seconds} seconds ago`;
+                  const minutes = Math.floor(seconds / 60);
+                  if (minutes < 60) return `${minutes} minutes ago`;
+                  const hours = Math.floor(minutes / 60);
+                  if (hours < 24) return `${hours} hours ago`;
+                  const days = Math.floor(hours / 24);
+                  return `${days} days ago`;
+              }
+              const lastCheckIso = document.getElementById('last-check-iso').textContent;
+              const lastCheckDate = new Date(lastCheckIso);
+              document.getElementById('last-check-ago').textContent = timeAgo(lastCheckDate);
 
-                  // Show Slack warning if not configured (simulate by checking for a placeholder in the HTML)
-                  // In reality, secrets are not exposed to the frontend, so we use a placeholder approach
-                  const slackConfigured = false; // Set to true if you want to hide the warning (for demo, always false)
-                  if (!slackConfigured) {
-                      document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
-                  }
+              // Show Slack warning if not configured (simulate by checking for a placeholder in the HTML)
+              const slackConfigured = false; // Set to true if you want to hide the warning (for demo, always false)
+              if (!slackConfigured) {
+                  document.getElementById('slack-warning').innerHTML = '<div class="warning">⚠️ <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
+              }
 
-                  // Chart.js code
-                  const ctx = document.getElementById('statusChart').getContext('2d');
-                  const data = {
-                      labels: $(awk -F',' '{print "\""$1"\""}' status.csv | tr '\n' ','),
-                      datasets: [{
-                          label: 'Response Time (seconds)',
-                          data: $(awk -F',' '{print $2}' status.csv | tr '\n' ','),
-                          backgroundColor: $(awk -F',' '{if($3=="success" && $4=="found") print "\"#4CAF50\""; else if($3=="success") print "\"#FFC107\""; else print "\"#f44336\""}' status.csv | tr '\n' ','),
-                          borderColor: 'rgba(0, 0, 0, 0.1)',
-                          borderWidth: 1
-                      }]
-                  };
-                  new Chart(ctx, {
-                      type: 'bar',
-                      data: data,
+              // Show response time in ms
+              const respSeconds = parseInt(document.getElementById('resp-seconds').textContent) || 0;
+              document.getElementById('resp-ms').textContent = (respSeconds * 1000) + ' ms';
+
+              // Set status and keyword badges
+              const status = "${{ steps.monitor.outputs.status }}";
+              const keyword = "${{ steps.monitor.outputs.keyword_status }}";
+              const statusBadge = document.getElementById('status-badge');
+              if (status === 'success') {
+                  statusBadge.textContent = 'Up';
+                  statusBadge.className = 'badge badge-up';
+              } else {
+                  statusBadge.textContent = 'Down';
+                  statusBadge.className = 'badge badge-down';
+              }
+              const keywordBadge = document.getElementById('keyword-badge');
+              if (keyword === 'found') {
+                  keywordBadge.textContent = 'Found';
+                  keywordBadge.className = 'badge badge-keyword';
+              } else {
+                  keywordBadge.textContent = 'Not Found';
+                  keywordBadge.className = 'badge badge-keyword-missing';
+              }
+
+              // Parse status.csv for chart and table
+              function parseCSV(csv) {
+                  const lines = csv.trim().split('\n');
+                  const rows = lines.slice(1).map(l => l.split(','));
+                  return rows;
+              }
+              fetch('status.csv').then(r => r.text()).then(csv => {
+                  const rows = parseCSV(csv);
+                  // Chart data
+                  const labels = rows.map(r => r[0]);
+                  const data = rows.map(r => parseInt(r[1]) * 1000); // ms
+                  const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
+                  // Chart.js
+                  new Chart(document.getElementById('statusChart').getContext('2d'), {
+                      type: 'line',
+                      data: {
+                          labels: labels,
+                          datasets: [{
+                              label: 'Response Time (ms)',
+                              data: data,
+                              fill: false,
+                              borderColor: '#1976d2',
+                              backgroundColor: '#1976d2',
+                              pointBackgroundColor: bgColors,
+                              pointRadius: 5,
+                              tension: 0.2
+                          }]
+                      },
                       options: {
                           responsive: true,
+                          plugins: { legend: { display: false } },
                           scales: {
-                              y: {
-                                  beginAtZero: true
-                              }
+                              y: { beginAtZero: true, title: { display: true, text: 'ms' } },
+                              x: { title: { display: true, text: 'Date' } }
                           }
                       }
                   });
-              </script>
+                  // Table
+                  const tbody = document.querySelector('#recent-table tbody');
+                  tbody.innerHTML = '';
+                  rows.slice(-10).reverse().forEach(r => {
+                      const statusCell = r[2]==='success' ? '<span class="badge badge-up">Up</span>' : '<span class="badge badge-down">Down</span>';
+                      const keywordCell = r[3]==='found' ? '<span class="badge badge-keyword">Found</span>' : '<span class="badge badge-keyword-missing">Not Found</span>';
+                      tbody.innerHTML += `<tr><td>
+                        ${r[0]}</td><td>${parseInt(r[1])*1000} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+                  });
+              });
+          </script>
           </body>
           </html>
           EOF
@@ -200,7 +282,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "⚠️ Website Monitor Alert\n$(if [ "$status" = "failure" ]; then echo "Website is down!"; else echo "Keyword not found!"; fi)\nLast check: $(date)\nResponse time: $duration seconds\nKeyword status: $(if [ "$keyword_status" = "found" ]; then echo "Found"; else echo "Not Found"; fi)\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
+              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration }}s\nResponse time: ${{ steps.monitor.outputs.duration }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
