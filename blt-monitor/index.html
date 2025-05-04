@@ -77,11 +77,11 @@
             <h2>Last Check</h2>
             <span class="value" id="last-check">--:--:--</span>
             <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-04T00:28:55+00:00</span>
+            <span id="last-check-iso" style="display:none;">2025-05-04T00:39:13+00:00</span>
         </div>
         <div class="summary-block">
             <h2>Response Time</h2>
-            <span class="value" id="resp-ms">1533 ms</span>
+            <span class="value" id="resp-ms">431 ms</span>
         </div>
         <div class="summary-block">
             <h2>Status</h2>
@@ -157,8 +157,8 @@
     }
 
     // Set status and keyword badges
-    const status = "success";
-    const keyword = "found";
+    const status = "failure";
+    const keyword = "not_found";
     const keywordText = "OWASP";
     const statusBadge = document.getElementById('status-badge');
     if (status === 'success') {
