@@ -6,104 +6,65 @@
     <title>Website Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
-    <style>
-        body { font-family: 'Inter', Arial, sans-serif; background: #f8fafc; color: #222; margin: 0; padding: 0; }
-        .banner { background: #222; color: #fff; text-align: center; padding: 8px 0; font-size: 1.05em; letter-spacing: 0.5px; }
-        .banner a { color: #fff; text-decoration: underline; font-weight: 600; }
-        .container { max-width: 1100px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px #0001; padding: 18px 18px 18px 18px; display: flex; gap: 24px; }
-        .main-col { flex: 2 1 0; min-width: 0; }
-        .side-col { flex: 1 1 320px; min-width: 260px; }
-        h1 { font-size: 1.7em; margin-bottom: 0.2em; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
-        .website-link { font-size: 1.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
-        .actions { margin: 10px 0 18px 0; display: flex; gap: 4px; flex-wrap: wrap; }
-        .button { background: #1976d2; color: #fff; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.93em; transition: background 0.2s; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
-        .button i { font-size: 0.98em; }
-        .button:hover { background: #1565c0; }
-        .github-stars { margin-left: 8px; vertical-align: middle; }
-        .summary { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
-        .summary-block { flex: 1 1 120px; background: #f1f5f9; border-radius: 8px; padding: 10px 8px; text-align: center; min-width: 110px; }
-        .summary-block h2 { margin: 0 0 4px 0; font-size: 1em; color: #555; font-weight: 500; }
-        .summary-block .value { font-size: 1.18em; font-weight: 600; }
-        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.95em; font-weight: 500; }
-        .badge-up { background: #e8f5e9; color: #2e7d32; }
-        .badge-down { background: #ffebee; color: #c62828; }
-        .badge-keyword { background: #e3f2fd; color: #1565c0; }
-        .badge-keyword-missing { background: #fff3cd; color: #b26a00; }
-        .ago { color: #888; font-size: 0.93em; }
-        .chart-container { background: #f1f5f9; border-radius: 8px; padding: 10px 6px 4px 6px; margin: 10px 0 10px 0; }
-        .keyword-card { background: #f1f5f9; border-radius: 8px; padding: 10px 0; margin-bottom: 10px; text-align: center; }
-        .keyword-card h2 { font-size: 1em; margin: 0 0 4px 0; color: #555; }
-        .keyword-label { font-size: 0.98em; color: #555; margin-right: 6px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 0.97em; }
-        th, td { padding: 6px 7px; text-align: left; }
-        th { background: #f8fafc; color: #555; font-weight: 600; border-bottom: 2px solid #e0e7ef; }
-        tr:nth-child(even) { background: #f6fafd; }
-        tr:last-child td { border-bottom: none; }
-        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 8px; border-radius: 5px; margin: 10px 0; font-size: 0.97em; }
-        details.instructions { margin: 10px 0; }
-        @media (max-width: 900px) {
-            .container { flex-direction: column; max-width: 98vw; }
-            .side-col { min-width: 0; }
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div id="refresh-bar-container" style="position:relative;width:100%;height:8px;background:#e3e8ee;">
-  <div id="refresh-bar" style="position:absolute;left:0;top:0;height:100%;width:100%;background:#1976d2;transition:width 1s linear;"></div>
+<body class="bg-slate-50 text-gray-800 m-0 p-0 font-sans">
+<div id="refresh-bar-container" class="relative w-full h-2 bg-slate-200">
+  <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
 </div>
-<div class="banner">
-  <i class="fa-solid fa-code-fork"></i> <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/fork" target="_blank">Fork this repo</a>
-  <a class="github-stars" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor" target="_blank">
+<div class="bg-gray-800 text-white text-center py-2 text-lg tracking-wide">
+  <i class="fa-solid fa-code-fork"></i> <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/fork" target="_blank" class="text-white underline font-semibold">Fork this repo</a>
+  <a class="ml-2 align-middle" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor" target="_blank">
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
   </a>
 </div>
-<div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:8px 0 0 0;font-weight:500;"></div>
-<div class="container">
-  <div class="main-col">
-    <h1><i class="fa-solid fa-globe"></i> Website Monitor</h1>
-    <div class="website-link"><i class="fa-solid fa-link"></i> <a href="https://owaspblt.org" target="_blank">https://owaspblt.org</a></div>
-    <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank" style="display:inline-block;margin-bottom:12px;">
+<div id="refresh-timer" class="text-center text-lg text-blue-600 font-medium mt-2"></div>
+<div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 my-6 flex gap-6">
+  <div class="flex-2 min-w-0">
+    <h1 class="text-2xl font-bold mb-1 tracking-tight flex items-center gap-2.5"><i class="fa-solid fa-globe"></i> Website Monitor</h1>
+    <div class="text-lg mb-2 flex items-center gap-1.5"><i class="fa-solid fa-link"></i> <a href="https://owaspblt.org" target="_blank" class="text-blue-600 hover:underline">https://owaspblt.org</a></div>
+    <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block mb-3">
       <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml/badge.svg">
     </a>
-    <div class="actions">
-        <a class="button" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
-        <a class="button" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
-        <a class="button" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/test-slack.yml" target="_blank"><i class="fa-brands fa-slack"></i>Test Slack</a>
-        <a class="button" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV</a>
+    <div class="flex gap-1 flex-wrap my-2.5">
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/test-slack.yml" target="_blank"><i class="fa-brands fa-slack"></i>Test Slack</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV</a>
     </div>
     <div id="slack-warning"></div>
-    <div class="summary">
-        <div class="summary-block">
-            <h2>Last Check</h2>
-            <span class="value" id="last-check">--:--:--</span>
-            <div class="ago" id="last-check-ago"></div>
-            <span id="last-check-iso" style="display:none;">2025-05-04T19:44:31+00:00</span>
+    <div class="flex flex-wrap gap-3 items-center mb-2.5">
+        <div class="flex-1 min-w-[120px] bg-slate-100 rounded-lg p-2.5 text-center">
+            <h2 class="m-0 mb-1 text-base text-gray-600 font-medium">Last Check</h2>
+            <span class="text-lg font-semibold" id="last-check">--:--:--</span>
+            <div class="text-gray-500 text-sm" id="last-check-ago"></div>
+            <span id="last-check-iso" class="hidden">2025-05-04T19:46:13+00:00</span>
         </div>
-        <div class="summary-block">
-            <h2>Response Time</h2>
-            <span class="value" id="resp-ms">1074 ms</span>
+        <div class="flex-1 min-w-[120px] bg-slate-100 rounded-lg p-2.5 text-center">
+            <h2 class="m-0 mb-1 text-base text-gray-600 font-medium">Response Time</h2>
+            <span class="text-lg font-semibold" id="resp-ms">1922 ms</span>
         </div>
-        <div class="summary-block">
-            <h2>Status</h2>
-            <span class="badge" id="status-badge"></span>
+        <div class="flex-1 min-w-[120px] bg-slate-100 rounded-lg p-2.5 text-center">
+            <h2 class="m-0 mb-1 text-base text-gray-600 font-medium">Status</h2>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium" id="status-badge"></span>
         </div>
     </div>
-    <div class="keyword-card">
-      <h2><i class="fa-solid fa-key"></i> Keyword</h2>
-      <span class="keyword-label">Checking for:</span><span class="badge" id="keyword-badge"></span>
-      <div id="refresh-timer" style="text-align:center;font-size:1.01em;color:#1976d2;margin:8px 0 6px 0;font-weight:500;"></div>
-      <div id="refresh-bar-container" style="position:relative;width:100%;height:12px;background:#e3e8ee;border-radius:6px;overflow:hidden;">
-        <div id="refresh-bar" style="position:absolute;left:0;top:0;height:100%;width:100%;background:#1976d2;transition:width 1s linear;"></div>
-        <div id="refresh-glaze" style="position:absolute;top:0;left:0;height:100%;width:30px;pointer-events:none;"></div>
+    <div class="bg-slate-100 rounded-lg p-2.5 mb-2.5 text-center">
+      <h2 class="text-base m-0 mb-1 text-gray-600"><i class="fa-solid fa-key"></i> Keyword</h2>
+      <span class="text-gray-600 text-sm mr-1.5">Checking for:</span><span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium" id="keyword-badge"></span>
+      <div id="refresh-timer" class="text-center text-lg text-blue-600 font-medium mt-2 mb-1.5"></div>
+      <div id="refresh-bar-container" class="relative w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+        <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
+        <div id="refresh-glaze" class="absolute top-0 left-0 h-full w-[30px] pointer-events-none"></div>
       </div>
     </div>
-    <div class="chart-container">
+    <div class="bg-slate-100 rounded-lg p-2.5 px-1.5 pt-2.5 pb-1 my-2.5">
         <canvas id="statusChart"></canvas>
     </div>
-    <details class="instructions">
-        <summary><b><i class="fa-solid fa-bell"></i> How to set up Slack notifications</b></summary>
-        <ol>
-            <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank">https://api.slack.com/apps</a></li>
+    <details class="my-2.5">
+        <summary class="font-bold cursor-pointer"><b><i class="fa-solid fa-bell"></i> How to set up Slack notifications</b></summary>
+        <ol class="list-decimal pl-5 mt-2">
+            <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank" class="text-blue-600 hover:underline">https://api.slack.com/apps</a></li>
             <li>Enable <b>Incoming Webhooks</b> for the app.</li>
             <li>Create a new webhook URL and copy it.</li>
             <li>Go to your GitHub repository settings &rarr; <b>Secrets and variables</b> &rarr; <b>Actions</b>.</li>
@@ -114,13 +75,13 @@
         </ol>
     </details>
   </div>
-  <div class="side-col">
-    <h2 style="font-size:1.08em; margin-bottom:6px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Checks</h2>
-    <table id="recent-table">
+  <div class="flex-1 min-w-[260px]">
+    <h2 class="text-lg mb-1.5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Checks</h2>
+    <table id="recent-table" class="w-full border-collapse mt-0 text-sm">
         <thead>
-            <tr><th>Date/Time</th><th>Resp. (ms)</th><th>Status</th><th>Keyword</th></tr>
+            <tr class="bg-slate-50 text-gray-600 font-semibold border-b-2 border-slate-200"><th class="p-1.5 text-left">Date/Time</th><th class="p-1.5 text-left">Resp. (ms)</th><th class="p-1.5 text-left">Status</th><th class="p-1.5 text-left">Keyword</th></tr>
         </thead>
-        <tbody></tbody>
+        <tbody class="[&>tr:nth-child(even)]:bg-slate-50 [&>tr:last-child>td]:border-0"></tbody>
     </table>
   </div>
 </div>
@@ -153,7 +114,7 @@
 
     // Show Slack warning if not configured
     if (!slackConfigured) {
-        document.getElementById('slack-warning').innerHTML = '<div class="warning"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
+        document.getElementById('slack-warning').innerHTML = '<div class="bg-yellow-100 text-yellow-800 border border-yellow-200 rounded-md p-2 my-2.5 text-sm"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> To enable alerts, set the <code>SLACK_WEBHOOK_URL</code> secret in your repository. See instructions below.</div>';
     }
 
     // Set status and keyword badges
@@ -163,18 +124,18 @@
     const statusBadge = document.getElementById('status-badge');
     if (status === 'success') {
         statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Up';
-        statusBadge.className = 'badge badge-up';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800';
     } else {
         statusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Down';
-        statusBadge.className = 'badge badge-down';
+        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800';
     }
     const keywordBadge = document.getElementById('keyword-badge');
     if (keyword === 'found') {
         keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
-        keywordBadge.className = 'badge badge-keyword';
+        keywordBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
     } else {
         keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
-        keywordBadge.className = 'badge badge-keyword-missing';
+        keywordBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800';
     }
 
     // Parse status.csv for chart, table, and refresh timer
@@ -223,10 +184,10 @@
         const tbody = document.querySelector('#recent-table tbody');
         tbody.innerHTML = '';
         rows.slice(-10).reverse().forEach(r => {
-            const statusCell = r[2]==='success' ? '<span class="badge badge-up"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="badge badge-down"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
-            const keywordCell = r[3]==='found' ? `<span class="badge badge-keyword"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="badge badge-keyword-missing"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
+            const statusCell = r[2]==='success' ? '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
+            const keywordCell = r[3]==='found' ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
             const ms = parseInt(r[1]);
-            tbody.innerHTML += `<tr><td>${r[0]}</td><td>${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td>${statusCell}</td><td>${keywordCell}</td></tr>`;
+            tbody.innerHTML += `<tr class="border-b border-slate-200"><td class="p-1.5">${r[0]}</td><td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td class="p-1.5">${statusCell}</td><td class="p-1.5">${keywordCell}</td></tr>`;
         });
         // Refresh timer based on latest entry
         if (rows.length > 0) {
@@ -259,7 +220,7 @@
             location.reload();
         }
     }
-    //setInterval(updateBar, 1000);
+    setInterval(updateBar, 1000);
 </script>
 </body>
 </html>
