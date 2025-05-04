@@ -9,10 +9,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-gray-800 m-0 p-0 font-sans">
-<div id="refresh-bar-container" class="relative w-full h-2 bg-slate-200">
-  <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
-</div>
-<div id="refresh-timer" class="text-center text-base sm:text-lg text-blue-600 font-medium mt-2"></div>
 <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-4 sm:p-6 my-4 sm:my-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
   <div class="flex-2 min-w-0">
     <h1 class="text-xl sm:text-2xl font-bold mb-1 tracking-tight flex items-center gap-2.5"><i class="fa-solid fa-globe"></i> Website Monitor</h1>
@@ -40,11 +36,11 @@
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Last Check</h2>
             <span class="text-base sm:text-lg font-semibold" id="last-check">--:--:--</span>
             <div class="text-gray-500 text-xs sm:text-sm" id="last-check-ago"></div>
-            <span id="last-check-iso" class="hidden">2025-05-04T21:01:43+00:00</span>
+            <span id="last-check-iso" class="hidden">2025-05-04T21:07:49+00:00</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
-            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1487 ms</span>
+            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1467 ms</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Status</h2>
@@ -150,8 +146,8 @@
     }
     let REFRESH_INTERVAL = 300; // seconds (5 minutes)
     let secondsLeft = REFRESH_INTERVAL;
-    const bar = document.getElementById('refresh-bar');
     const timer = document.getElementById('refresh-timer');
+    const bar = document.getElementById('refresh-bar');
     const glaze = document.getElementById('refresh-glaze');
     fetch('status.csv').then(r => r.text()).then(csv => {
         const rows = parseCSV(csv);
@@ -198,7 +194,8 @@
             const lastDate = new Date(rows[rows.length-1][0]);
             const now = new Date();
             const secondsSinceLast = Math.floor((now - lastDate) / 1000);
-            secondsLeft = Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
+            // If more than 5 minutes have passed, start at 5 minutes
+            secondsLeft = secondsSinceLast >= REFRESH_INTERVAL ? REFRESH_INTERVAL : Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
         }
     });
     function updateBar() {
@@ -218,7 +215,7 @@
         glaze.style.transition = 'none';
         setTimeout(() => {
             glaze.style.transition = 'left 0.8s cubic-bezier(0.4,0,0.2,1)';
-            glaze.style.left = 'calc(100% - 30px)';
+            glaze.style.left = `${percent}%`;
         }, 10);
         setTimeout(() => {
             glaze.style.transition = 'none';
