@@ -138,10 +138,12 @@ jobs:
                   </div>
               </div>
               <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 mb-2.5 text-center">
-                <h2 class="text-sm sm:text-base m-0 mb-1 text-gray-600"><i class="fa-solid fa-key"></i> Keyword</h2>
-                <span class="text-gray-600 text-xs sm:text-sm mr-1.5">Checking for:</span><span class="inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium" id="keyword-badge"></span>
-                <div id="refresh-timer" class="text-center text-base sm:text-lg text-blue-600 font-medium mt-2 mb-1.5"></div>
-                <div id="refresh-bar-container" class="relative w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                <div class="flex items-center justify-center gap-1.5 text-sm sm:text-base">
+                  <span class="text-gray-600"><i class="fa-solid fa-key"></i> Keyword</span>
+                  <span id="keyword-badge" class="inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium"></span>
+                  <span id="refresh-timer" class="text-blue-600 font-medium"></span>
+                </div>
+                <div id="refresh-bar-container" class="relative w-full h-3 bg-slate-200 rounded-full overflow-hidden mt-2">
                   <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
                   <div id="refresh-glaze" class="absolute top-0 left-0 h-full w-[30px] pointer-events-none"></div>
                 </div>
@@ -222,10 +224,10 @@ jobs:
               const keywordBadge = document.getElementById('keyword-badge');
               if (keyword === 'found') {
                   keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
-                  keywordBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
+                  keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800';
               } else {
                   keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
-                  keywordBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800';
+                  keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800';
               }
 
               // Parse status.csv for chart, table, and refresh timer
@@ -283,7 +285,7 @@ jobs:
                   const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
                   const minTime = Math.min(...responseTimes);
                   const maxTime = Math.max(...responseTimes);
-                  document.getElementById('resp-min-max').textContent = `min: ${minTime.toLocaleString()}ms | max: ${maxTime.toLocaleString()}ms`;
+                  document.getElementById('resp-min-max').textContent = `${minTime.toLocaleString()}ms | ${maxTime.toLocaleString()}ms`;
                   // Refresh timer based on latest entry
                   if (rows.length > 0) {
                       const lastDate = new Date(rows[rows.length-1][0]);
@@ -303,7 +305,7 @@ jobs:
                   bar.style.width = percent + '%';
                   const min = Math.floor(secondsLeft / 60);
                   const sec = secondsLeft % 60;
-                  timer.textContent = `Next refresh in: ${min}:${sec.toString().padStart(2, '0')}`;
+                  timer.textContent = `checking in: ${min}:${sec.toString().padStart(2, '0')}`;
                   // Glaze effect: animate left to right every second
                   glaze.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%)';
                   glaze.style.left = '0';
