@@ -113,9 +113,7 @@ jobs:
                 <a href="https://github.com/${{ github.repository }}" target="_blank">
                   <img alt="GitHub stars" src="https://img.shields.io/github/stars/${{ github.repository }}?style=social">
                 </a>
-                <a href="https://github.com/${{ github.repository }}/fork" target="_blank" class="inline-flex items-center gap-1 bg-gray-800 text-white px-2 py-1 rounded-md text-xs sm:text-sm hover:bg-gray-700 transition-colors">
-                  <i class="fa-solid fa-code-fork"></i>
-                  <span>Fork</span>
+                <a href="https://github.com/${{ github.repository }}/fork" target="_blank" class="inline-flex items-center gap-1">
                   <img alt="GitHub forks" src="https://img.shields.io/github/forks/${{ github.repository }}?style=social">
                 </a>
               </div>
