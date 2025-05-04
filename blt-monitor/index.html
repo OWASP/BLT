@@ -38,11 +38,11 @@
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Last Check</h2>
             <span class="text-base sm:text-lg font-semibold" id="last-check">--:--:--</span>
             <div class="text-gray-500 text-xs sm:text-sm" id="last-check-ago"></div>
-            <span id="last-check-iso" class="hidden">2025-05-04T20:02:27+00:00</span>
+            <span id="last-check-iso" class="hidden">2025-05-04T20:04:12+00:00</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
-            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1630 ms</span>
+            <span class="text-base sm:text-lg font-semibold" id="resp-ms">8383 ms</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Status</h2>
@@ -201,6 +201,10 @@
     });
     function updateBar() {
         secondsLeft--;
+        if (secondsLeft <= 0) {
+            secondsLeft = REFRESH_INTERVAL; // Reset to 5 minutes
+            location.reload();
+        }
         const percent = (secondsLeft / REFRESH_INTERVAL) * 100;
         bar.style.width = percent + '%';
         const min = Math.floor(secondsLeft / 60);
@@ -218,9 +222,6 @@
             glaze.style.transition = 'none';
             glaze.style.left = '0';
         }, 900);
-        if (secondsLeft <= 0) {
-            location.reload();
-        }
     }
     setInterval(updateBar, 1000);
 </script>
