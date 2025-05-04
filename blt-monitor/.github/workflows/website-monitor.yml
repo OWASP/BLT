@@ -130,6 +130,7 @@ jobs:
                   <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
                       <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
                       <span class="text-base sm:text-lg font-semibold" id="resp-ms">${{ steps.monitor.outputs.duration_ms }} ms</span>
+                      <div class="text-gray-500 text-[10px] sm:text-xs mt-0.5" id="resp-min-max"></div>
                   </div>
                   <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
                       <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Status</h2>
@@ -278,6 +279,11 @@ jobs:
                       const ms = parseInt(r[1]);
                       tbody.innerHTML += `<tr class="border-b border-slate-200"><td class="p-1.5">${r[0]}</td><td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td class="p-1.5">${statusCell}</td><td class="p-1.5">${keywordCell}</td></tr>`;
                   });
+                  // Calculate min and max response times
+                  const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
+                  const minTime = Math.min(...responseTimes);
+                  const maxTime = Math.max(...responseTimes);
+                  document.getElementById('resp-min-max').textContent = `min: ${minTime.toLocaleString()}ms | max: ${maxTime.toLocaleString()}ms`;
                   // Refresh timer based on latest entry
                   if (rows.length > 0) {
                       const lastDate = new Date(rows[rows.length-1][0]);
