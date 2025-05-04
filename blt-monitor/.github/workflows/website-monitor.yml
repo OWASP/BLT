@@ -290,6 +290,10 @@ jobs:
               });
               function updateBar() {
                   secondsLeft--;
+                  if (secondsLeft <= 0) {
+                      secondsLeft = REFRESH_INTERVAL; // Reset to 5 minutes
+                      location.reload();
+                  }
                   const percent = (secondsLeft / REFRESH_INTERVAL) * 100;
                   bar.style.width = percent + '%';
                   const min = Math.floor(secondsLeft / 60);
@@ -307,9 +311,6 @@ jobs:
                       glaze.style.transition = 'none';
                       glaze.style.left = '0';
                   }, 900);
-                  if (secondsLeft <= 0) {
-                      location.reload();
-                  }
               }
               setInterval(updateBar, 1000);
           </script>
