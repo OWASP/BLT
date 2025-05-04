@@ -12,20 +12,24 @@
 <div id="refresh-bar-container" class="relative w-full h-2 bg-slate-200">
   <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
 </div>
-<div class="bg-gray-800 text-white text-center py-2 px-4 text-base sm:text-lg tracking-wide">
-  <i class="fa-solid fa-code-fork"></i> <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/fork" target="_blank" class="text-white underline font-semibold">Fork this repo</a>
-  <a class="ml-2 align-middle" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor" target="_blank">
-    <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
-  </a>
-</div>
 <div id="refresh-timer" class="text-center text-base sm:text-lg text-blue-600 font-medium mt-2"></div>
 <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-4 sm:p-6 my-4 sm:my-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
   <div class="flex-2 min-w-0">
     <h1 class="text-xl sm:text-2xl font-bold mb-1 tracking-tight flex items-center gap-2.5"><i class="fa-solid fa-globe"></i> Website Monitor</h1>
     <div class="text-base sm:text-lg mb-2 flex items-center gap-1.5"><i class="fa-solid fa-link"></i> <a href="https://owaspblt.org" target="_blank" class="text-blue-600 hover:underline break-all">https://owaspblt.org</a></div>
-    <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block mb-3">
-      <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml/badge.svg">
-    </a>
+    <div class="flex items-center gap-2 mb-3">
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block">
+        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml/badge.svg">
+      </a>
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor" target="_blank">
+        <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
+      </a>
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/fork" target="_blank" class="inline-flex items-center gap-1 bg-gray-800 text-white px-2 py-1 rounded-md text-xs sm:text-sm hover:bg-gray-700 transition-colors">
+        <i class="fa-solid fa-code-fork"></i>
+        <span>Fork</span>
+        <img alt="GitHub forks" src="https://img.shields.io/github/forks/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
+      </a>
+    </div>
     <div class="flex gap-1 flex-wrap my-2.5">
         <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
         <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
@@ -38,11 +42,11 @@
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Last Check</h2>
             <span class="text-base sm:text-lg font-semibold" id="last-check">--:--:--</span>
             <div class="text-gray-500 text-xs sm:text-sm" id="last-check-ago"></div>
-            <span id="last-check-iso" class="hidden">2025-05-04T20:30:35+00:00</span>
+            <span id="last-check-iso" class="hidden">2025-05-04T20:37:50+00:00</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
-            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1931 ms</span>
+            <span class="text-base sm:text-lg font-semibold" id="resp-ms">18912 ms</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Status</h2>
