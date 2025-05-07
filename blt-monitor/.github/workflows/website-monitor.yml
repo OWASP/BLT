@@ -40,15 +40,15 @@ jobs:
         id: monitor
         run: |
           start_time=$(date +%s%3N)
-          content=$(curl -s "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
+          content=$(curl -s -L "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
+          response_code=$(curl -s -L -o /dev/null -w "%{http_code}" "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
           end_time=$(date +%s%3N)
           duration_ms=$((end_time - start_time))
           duration_s=$(awk "BEGIN {printf \"%.3f\", $duration_ms/1000}")
           
           # Check for Cloudflare DDoS protection
           if echo "$content" | grep -qi "cloudflare"; then
-            if echo "$content" | grep -qi "checking your browser\|ddos protection\|security check"; then
+            if echo "$content" | grep -qi "checking your browser\|ddos protection\|security check\|ray-id\|ray id\|cf-ray\|cf ray"; then
               echo "status=protected" >> $GITHUB_OUTPUT
               echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
               echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
@@ -376,7 +376,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || (steps.monitor.outputs.status == 'protected' && 'Website is protected by Cloudflare!') || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nStatus: ${{ steps.monitor.outputs.status }}\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
