@@ -48,7 +48,7 @@ jobs:
           
           # Check for Cloudflare DDoS protection or human verification
           if echo "$content" | grep -qi "cloudflare"; then
-            if echo "$content" | grep -qi "checking your browser\|ddos protection\|security check\|ray-id\|ray id\|cf-ray\|cf ray\|human verification\|verify you are human\|challenge\|challenge-platform\|cf-browser-verification"; then
+            if echo "$content" | grep -qi "checking your browser\|ddos protection\|security check\|ray-id\|ray id\|cf-ray\|cf ray\|human verification\|verify you are human\|challenge\|challenge-platform\|cf-browser-verification\|needs to review the security of your connection before proceeding"; then
               echo "status=protected" >> $GITHUB_OUTPUT
               echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
               echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
@@ -56,6 +56,16 @@ jobs:
               echo "response_code=$response_code" >> $GITHUB_OUTPUT
               exit 0
             fi
+          fi
+          
+          # Check specifically for 403 with security review message
+          if [ "$response_code" -eq 403 ] && echo "$content" | grep -qi "needs to review the security of your connection before proceeding"; then
+            echo "status=protected" >> $GITHUB_OUTPUT
+            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
+            echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
+            echo "keyword_status=protected" >> $GITHUB_OUTPUT
+            echo "response_code=$response_code" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
           # If we get here, we're past Cloudflare protection
@@ -379,7 +389,7 @@ jobs:
           git push origin main
 
       - name: Notify Slack on failure
-        if: steps.monitor.outputs.status == 'failure' || (steps.monitor.outputs.keyword_status == 'not_found' && steps.monitor.outputs.status != 'protected')
+        if: steps.monitor.outputs.status == 'failure' || (steps.monitor.outputs.keyword_status == 'not_found' && steps.monitor.outputs.status != 'protected' && steps.monitor.outputs.response_code != '403')
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
