@@ -36,11 +36,11 @@
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Last Check</h2>
             <span class="text-base sm:text-lg font-semibold" id="last-check">--:--:--</span>
             <div class="text-gray-500 text-xs sm:text-sm" id="last-check-ago"></div>
-            <span id="last-check-iso" class="hidden">2025-05-07T21:05:40+00:00</span>
+            <span id="last-check-iso" class="hidden">2025-05-10T22:15:54+00:00</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
-            <span class="text-base sm:text-lg font-semibold" id="resp-ms">240 ms</span>
+            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1386 ms</span>
             <div class="text-gray-500 text-[10px] sm:text-xs mt-0.5" id="resp-min-max"></div>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
@@ -49,7 +49,7 @@
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Code</h2>
-            <span class="text-base sm:text-lg font-semibold" id="response-code">403</span>
+            <span class="text-base sm:text-lg font-semibold" id="response-code">200</span>
         </div>
     </div>
     <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 mb-2.5 text-center">
@@ -125,8 +125,8 @@
     }
 
     // Set status and keyword badges
-    const status = "failure";
-    const keyword = "found";
+    const status = "protected";
+    const keyword = "protected";
     const keywordText = "OWASP";
     const statusBadge = document.getElementById('status-badge');
     if (status === 'success') {
