@@ -31,25 +31,21 @@
         <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV</a>
     </div>
     <div id="slack-warning"></div>
-    <div class="grid grid-cols-4 gap-3 items-center mb-2.5 overflow-x-auto">
+    <div class="grid grid-cols-3 gap-3 items-center mb-2.5 overflow-x-auto">
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Last Check</h2>
             <span class="text-base sm:text-lg font-semibold" id="last-check">--:--:--</span>
             <div class="text-gray-500 text-xs sm:text-sm" id="last-check-ago"></div>
-            <span id="last-check-iso" class="hidden">2025-05-10T22:15:54+00:00</span>
+            <span id="last-check-iso" class="hidden">2025-05-10T22:25:19+00:00</span>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Time</h2>
-            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1386 ms</span>
+            <span class="text-base sm:text-lg font-semibold" id="resp-ms">1407 ms</span>
             <div class="text-gray-500 text-[10px] sm:text-xs mt-0.5" id="resp-min-max"></div>
         </div>
         <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
             <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Status</h2>
             <span class="inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium" id="status-badge"></span>
-        </div>
-        <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 text-center min-w-[120px]">
-            <h2 class="m-0 mb-1 text-sm sm:text-base text-gray-600 font-medium">Response Code</h2>
-            <span class="text-base sm:text-lg font-semibold" id="response-code">200</span>
         </div>
     </div>
     <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 mb-2.5 text-center">
@@ -72,7 +68,7 @@
     <div class="overflow-x-auto">
       <table id="recent-table" class="w-full border-collapse mt-0 text-xs sm:text-sm">
           <thead>
-              <tr class="bg-slate-50 text-gray-600 font-semibold border-b-2 border-slate-200"><th class="p-1.5 text-left">Date/Time</th><th class="p-1.5 text-left">Resp. (ms)</th><th class="p-1.5 text-left">Status</th><th class="p-1.5 text-left">Code</th><th class="p-1.5 text-left">Keyword</th></tr>
+              <tr class="bg-slate-50 text-gray-600 font-semibold border-b-2 border-slate-200"><th class="p-1.5 text-left">Date/Time</th><th class="p-1.5 text-left">Resp. (ms)</th><th class="p-1.5 text-left">Status</th><th class="p-1.5 text-left">Keyword</th></tr>
           </thead>
           <tbody class="[&>tr:nth-child(even)]:bg-slate-50 [&>tr:last-child>td]:border-0"></tbody>
       </table>
@@ -125,16 +121,13 @@
     }
 
     // Set status and keyword badges
-    const status = "protected";
-    const keyword = "protected";
+    const status = "success";
+    const keyword = "found";
     const keywordText = "OWASP";
     const statusBadge = document.getElementById('status-badge');
     if (status === 'success') {
         statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Up';
         statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800';
-    } else if (status === 'protected') {
-        statusBadge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Protected';
-        statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
     } else {
         statusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Down';
         statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800';
@@ -142,9 +135,6 @@
     const keywordBadge = document.getElementById('keyword-badge');
     if (keyword === 'found') {
         keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
-        keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800';
-    } else if (keyword === 'protected') {
-        keywordBadge.innerHTML = `<i class='fa-solid fa-shield-halved'></i> Cloudflare Protected`;
         keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800';
     } else {
         keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
@@ -197,25 +187,11 @@
         const tbody = document.querySelector('#recent-table tbody');
         tbody.innerHTML = '';
         rows.slice(-10).reverse().forEach(r => {
-            let statusCell;
-            if (r[2] === 'success') {
-                statusCell = '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"><i class="fa-solid fa-circle-check"></i> Up</span>';
-            } else if (r[2] === 'protected') {
-                statusCell = '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class="fa-solid fa-shield-halved"></i> Protected</span>';
-            } else {
-                statusCell = '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
-            }
-            let keywordCell;
-            if (r[3] === 'found') {
-                keywordCell = `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>`;
-            } else if (r[3] === 'protected') {
-                keywordCell = `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-shield-halved'></i> Cloudflare Protected</span>`;
-            } else {
-                keywordCell = `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
-            }
+            const statusCell = r[2]==='success' ? '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
+            const keywordCell = r[3]==='found' ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
             const ms = parseInt(r[1]);
             const time = new Date(r[0]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            tbody.innerHTML += `<tr class="border-b border-slate-200"><td class="p-1.5">${time}</td><td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td class="p-1.5">${statusCell}</td><td class="p-1.5">${r[4]}</td><td class="p-1.5">${keywordCell}</td></tr>`;
+            tbody.innerHTML += `<tr class="border-b border-slate-200"><td class="p-1.5">${time}</td><td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td class="p-1.5">${statusCell}</td><td class="p-1.5">${keywordCell}</td></tr>`;
         });
         // Calculate min and max response times
         const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
