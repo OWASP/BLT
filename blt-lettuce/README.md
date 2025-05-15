@@ -1,5 +1,7 @@
 # Lettuce
 
+Note: This Slack bot has been incorpotated into the main BLT repo
+
 A slack bot made by the BLT team for the OWASP Slack workspace.
 Welcome to the BLT Lettuce repository, where we're developing a Slackbot for our workspace. Everyone is invited to contribute and share their ideas. Our Slackbot will leverage the capabilities of artificial intelligence, making this project both exciting and full of potential. There are endless possibilities for what we can achieve with this bot, and we hope you'll all contribute your ideas and efforts.
 
