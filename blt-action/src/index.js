@@ -68,7 +68,7 @@ const run = async () => {
                         });
 
                         const unassignMessageExists = existingComments.data.some(comment =>
-                            comment.body.includes('⏰ This issue has been automatically unassigned due to 24 hours of inactivity.') ||
+                            comment.body.includes('⏰ This issue has been automatically unassigned from  due to 24 hours of inactivity.') ||
                             comment.body.includes('You have been unassigned from this issue.')
                         );
 
@@ -262,7 +262,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: event.issue.number,
-                                body: `⏰ This issue has been automatically unassigned due to 24 hours of inactivity. The issue is now available for anyone to work on again.`
+                                body: `⏰ This issue has been automatically unassigned from ${event.issue.assignee.login} due to 24 hours of inactivity. The issue is now available for anyone to work on again.`
                             });
                         } else {
                             console.log(`Issue #${event.issue.number} does not have the "assigned" label, skipping unassign.`);
