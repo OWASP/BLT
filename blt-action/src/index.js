@@ -235,6 +235,19 @@ const run = async () => {
                     if (daysInactive > 1) {
                         console.log(`Unassigning issue #${event.issue.number} due to inactivity`);
 
+                        try { 
+                          const query = `type:pr state:open repo:${owner}/${repoName} ${event.issue.number} in:body`;
+                          const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
+
+                          if (pullRequests.data.total_count > 0) {
+                              console.log(`Issue #${event.issue.number} has an open pull request, skipping unassign.`);
+                              continue; // Skip unassigning if there's an open PR
+                          }
+                        } catch (searchError) {
+                          console.log(`Error checking for open pull requests for issue #${event.issue.number}:`, searchError);
+                        }
+
+
                         const issueDetails = await octokit.issues.get({
                             owner,
                             repo: repoName,
