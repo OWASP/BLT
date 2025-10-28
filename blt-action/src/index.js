@@ -234,20 +234,29 @@ const run = async () => {
 
                     if (daysInactive > 1) {
                         console.log(`Unassigning issue #${event.issue.number} due to inactivity`);
-
                         try { 
-                          const query = `type:pr state:open repo:${owner}/${repoName} ${event.issue.number} in:body`;
-                          const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
+                          const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
+                            owner,
+                            repo: repoName,
+                            issue_number: event.issue.number,
+                            per_page: 100,
+                          });
 
-                          if (pullRequests.data.total_count > 0) {
-                              console.log(`Issue #${event.issue.number} has an open pull request, skipping unassign.`);
-                              continue; // Skip unassigning if there's an open PR
+                          const hasOpenLinkedPR = timelineEvents.some(e =>
+                            e.event === "cross-referenced" &&
+                            e.source &&
+                            e.source.issue &&
+                            e.source.issue.pull_request &&
+                            e.source.issue.state === "open"
+                          );
+                          if (hasOpenLinkedPR) {
+                              console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
+                              continue; 
                           }
                         } catch (searchError) {
                           console.log(`Error checking for open pull requests for issue #${event.issue.number}:`, searchError);
                         }
-
-
+                        
                         const issueDetails = await octokit.issues.get({
                             owner,
                             repo: repoName,
