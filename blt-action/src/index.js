@@ -106,7 +106,7 @@ const run = async () => {
                     for (const assignedIssue of assignedIssues) {
                         if (assignedIssue.number === issue.number) continue;
 
-                        const query = `type:pr state:open repo:${owner}/${repoName} ${assignedIssue.number} in:body`;
+                        const query = `repo:${owner}/${repoName} is:pr is:open ${assignedIssue.number} in:body`;
                         const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
 
                         if (pullRequests.data.total_count === 0) {
