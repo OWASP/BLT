@@ -142,6 +142,17 @@ The dashboard uses Tailwind CSS. Main brand colors can be changed by replacing `
 - `red-600` → `blue-600`, `green-600`, `purple-600`, etc.
 - `red-700` → `blue-700`, `green-700`, `purple-700`, etc.
 
+### Performance Optimization
+
+The dashboard uses Tailwind CSS via CDN for simplicity. For production, you can optimize by:
+
+1. Installing Tailwind CLI: `npm install -D tailwindcss`
+2. Creating a `tailwind.config.js` file
+3. Building a custom CSS file with only used classes
+4. Replacing the CDN link with your custom CSS
+
+This can reduce the CSS from ~3MB to ~10KB.
+
 ### Adding Sponsor Logos
 
 1. Create an `images` folder in your repository

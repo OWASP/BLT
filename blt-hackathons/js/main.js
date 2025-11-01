@@ -60,13 +60,13 @@ class HackathonDashboard {
 
         // Update description
         document.getElementById('hackathon-description').innerHTML = 
-            `<p class="text-gray-700">${this.config.description.trim()}</p>`;
+            `<p class="text-gray-700">${this.escapeHtml(this.config.description.trim())}</p>`;
 
         // Update rules if provided
         if (this.config.rules) {
             document.getElementById('rules-section').style.display = 'block';
             document.getElementById('hackathon-rules').innerHTML = 
-                `<p class="text-gray-700">${this.config.rules.trim()}</p>`;
+                `<p class="text-gray-700">${this.escapeHtml(this.config.rules.trim())}</p>`;
         }
 
         // Update dates and status

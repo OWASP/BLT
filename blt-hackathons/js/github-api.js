@@ -29,7 +29,7 @@ class GitHubAPI {
         };
 
         if (this.token) {
-            headers['Authorization'] = `token ${this.token}`;
+            headers['Authorization'] = `Bearer ${this.token}`;
         }
 
         try {
@@ -64,7 +64,7 @@ class GitHubAPI {
         const allPRs = [];
         let page = 1;
         const perPage = 100;
-        const maxPages = 10; // Limit to prevent excessive API calls
+        const maxPages = 20; // Increased to allow more PRs to be fetched
 
         while (page <= maxPages) {
             const url = `${this.baseURL}/repos/${owner}/${repo}/pulls?state=all&sort=updated&direction=desc&per_page=${perPage}&page=${page}`;
