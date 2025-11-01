@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="hackathon-title">Hackathon Dashboard</title>
+    <meta name="description" content="Track your hackathon progress with leaderboards, charts, and prizes">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .trophy-gold { color: #FFD700; }
+        .trophy-silver { color: #C0C0C0; }
+        .trophy-bronze { color: #CD7F32; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-trophy text-red-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900" id="nav-title">Hackathon Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="hackathon-status" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Banner Section -->
+        <div class="relative rounded-lg overflow-hidden mb-8 h-64 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-center" id="banner-section">
+            <div class="text-center text-white p-4">
+                <h2 class="text-4xl font-bold mb-2" id="hackathon-name">Loading...</h2>
+                <p class="text-xl mb-2" id="hackathon-dates"></p>
+                <p class="text-lg" id="time-remaining"></p>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-700">Participants</h3>
+                <p class="text-3xl font-bold text-red-600" id="participant-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-700">Pull Requests</h3>
+                <p class="text-3xl font-bold text-red-600" id="pr-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-700">Merged PRs</h3>
+                <p class="text-3xl font-bold text-red-600" id="merged-pr-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-700">Repositories</h3>
+                <p class="text-3xl font-bold text-red-600" id="repo-count">0</p>
+            </div>
+        </div>
+
+        <!-- PR Activity Chart -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Pull Request Activity</h2>
+            <div class="h-64">
+                <canvas id="prActivityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Info & Repositories -->
+            <div class="lg:col-span-2">
+                <!-- Description -->
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">About this Hackathon</h2>
+                    <div class="prose max-w-none" id="hackathon-description">
+                        <p class="text-gray-600">Loading description...</p>
+                    </div>
+                    <div class="mt-6" id="rules-section" style="display: none;">
+                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Rules</h3>
+                        <div class="prose max-w-none" id="hackathon-rules"></div>
+                    </div>
+                </div>
+
+                <!-- Repositories -->
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-code-branch mr-2 text-red-600"></i>
+                        Repositories
+                    </h2>
+                    <div id="repositories-list" class="space-y-4">
+                        <p class="text-gray-600">Loading repositories...</p>
+                    </div>
+                </div>
+
+                <!-- Prizes -->
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-trophy mr-2 text-red-600"></i>
+                        Prizes
+                    </h2>
+                    <div id="prizes-list" class="space-y-6">
+                        <p class="text-gray-600">Loading prizes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Leaderboard & Sponsors -->
+            <div class="lg:col-span-1">
+                <!-- Leaderboard -->
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-medal mr-2 text-red-600"></i>
+                        Leaderboard
+                    </h2>
+                    <div id="leaderboard" class="space-y-4">
+                        <p class="text-gray-600">Loading leaderboard...</p>
+                    </div>
+                </div>
+
+                <!-- Sponsors -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-handshake mr-2 text-red-600"></i>
+                        Sponsors
+                    </h2>
+                    <div id="sponsors-list">
+                        <p class="text-gray-600 italic">No sponsors configured.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
+            <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Hackathon" class="text-red-600 hover:underline" target="_blank">BLT-Hackathon</a></p>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/github-api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
