@@ -8,6 +8,20 @@ class GitHubAPI {
         this.token = token;
         this.baseURL = 'https://api.github.com';
         this.cache = new Map();
+        
+        // Validate token format if provided
+        if (this.token && !this.isValidToken(this.token)) {
+            console.warn('GitHub token format may be invalid. Personal access tokens should start with "ghp_"');
+        }
+    }
+
+    /**
+     * Validate GitHub token format
+     */
+    isValidToken(token) {
+        // Basic validation: tokens should start with 'ghp_' for personal access tokens
+        // or 'github_pat_' for fine-grained tokens
+        return token.startsWith('ghp_') || token.startsWith('github_pat_') || token.startsWith('gho_');
     }
 
     /**
