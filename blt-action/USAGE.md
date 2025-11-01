@@ -44,9 +44,12 @@ jobs:
       startsWith(github.event.comment.body, '/kudos') || 
       contains(github.event.comment.body, 'assign to me') || 
       contains(github.event.comment.body, 'assign this to me') || 
+      contains(github.event.comment.body, 'assign it to me') || 
+      contains(github.event.comment.body, 'assign me this') || 
       contains(github.event.comment.body, 'work on this') || 
       contains(github.event.comment.body, 'i can try fixing this') || 
       contains(github.event.comment.body, 'i am interested in doing this') || 
+      contains(github.event.comment.body, 'be assigned this') || 
       contains(github.event.comment.body, 'i am interested in contributing'))) || 
       github.event_name == 'schedule' || 
       github.event_name == 'workflow_dispatch' ||
