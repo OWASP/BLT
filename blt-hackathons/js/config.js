@@ -22,8 +22,8 @@ const HACKATHON_CONFIG = {
     `,
     
     // Hackathon Timeline (ISO 8601 format)
-    startTime: "2025-01-01T00:00:00Z",
-    endTime: "2025-01-31T23:59:59Z",
+    startTime: "2025-11-01T00:00:00Z",
+    endTime: "2026-05-31T23:59:59Z",
     
     // GitHub Configuration
     github: {
