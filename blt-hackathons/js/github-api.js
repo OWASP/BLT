@@ -262,6 +262,14 @@ class GitHubAPI {
 
     /**
      * Process issues and generate statistics
+     * 
+     * Note: This method modifies the repoStats parameter by adding issue counts
+     * to existing repository statistics. This is intentional to combine PR and
+     * issue data in a single stats object.
+     * 
+     * @param {Array} issues - Array of GitHub issues
+     * @param {Object} repoStats - Repository statistics object (will be modified)
+     * @returns {Object} Summary with totalIssues and closedIssues counts
      */
     processIssueData(issues, repoStats) {
         issues.forEach(issue => {

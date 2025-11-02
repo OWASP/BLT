@@ -218,6 +218,20 @@ class HackathonDashboard {
         // Get unique repositories from PRs
         const repositories = [...new Set(prs.map(pr => pr.repository))];
         
+        // Pre-process PRs into a Map for O(1) lookups: date -> repo -> count
+        const prsByDateAndRepo = new Map();
+        prs.forEach(pr => {
+            if (!pr.merged_at) return;
+            
+            const prDate = new Date(pr.created_at).toISOString().split('T')[0];
+            if (!prsByDateAndRepo.has(prDate)) {
+                prsByDateAndRepo.set(prDate, new Map());
+            }
+            const dateMap = prsByDateAndRepo.get(prDate);
+            const currentCount = dateMap.get(pr.repository) || 0;
+            dateMap.set(pr.repository, currentCount + 1);
+        });
+        
         // Create datasets for each repository
         const repoColors = this.generateColors(repositories.length);
         const datasets = [];
@@ -225,10 +239,8 @@ class HackathonDashboard {
         // Add datasets for PRs by repository
         repositories.forEach((repo, index) => {
             const data = dates.map(date => {
-                return prs.filter(pr => {
-                    const prDate = new Date(pr.created_at).toISOString().split('T')[0];
-                    return prDate === date && pr.repository === repo && pr.merged_at;
-                }).length;
+                const dateMap = prsByDateAndRepo.get(date);
+                return dateMap ? (dateMap.get(repo) || 0) : 0;
             });
             
             datasets.push({
