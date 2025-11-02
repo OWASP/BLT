@@ -223,7 +223,8 @@ class HackathonDashboard {
         prs.forEach(pr => {
             if (!pr.merged_at) return;
             
-            const prDate = new Date(pr.created_at).toISOString().split('T')[0];
+            // Use merged_at date since we're showing merged PRs
+            const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
             if (!prsByDateAndRepo.has(prDate)) {
                 prsByDateAndRepo.set(prDate, new Map());
             }
@@ -320,10 +321,13 @@ class HackathonDashboard {
         ];
         
         // If we need more colors than predefined, generate random ones
+        const MIN_COLOR_VALUE = 55;  // Minimum RGB value to avoid too dark colors
+        const COLOR_RANGE = 200;     // Range of RGB values for reasonable brightness
+        
         while (colors.length < count) {
-            const r = Math.floor(Math.random() * 200 + 55);
-            const g = Math.floor(Math.random() * 200 + 55);
-            const b = Math.floor(Math.random() * 200 + 55);
+            const r = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
+            const g = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
+            const b = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
             colors.push(`rgba(${r}, ${g}, ${b}, 0.8)`);
         }
         
