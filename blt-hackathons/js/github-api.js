@@ -72,6 +72,63 @@ class GitHubAPI {
     }
 
     /**
+     * Fetch all issues for a repository
+     */
+    async fetchIssues(owner, repo, startDate, endDate) {
+        const allIssues = [];
+        let page = 1;
+        const perPage = 100;
+        const maxPages = 20;
+
+        while (page <= maxPages) {
+            const url = `${this.baseURL}/repos/${owner}/${repo}/issues?state=all&sort=updated&direction=desc&per_page=${perPage}&page=${page}`;
+            
+            try {
+                const issues = await this.makeRequest(url);
+                
+                if (!issues || issues.length === 0) {
+                    break;
+                }
+
+                // Filter issues by date range and exclude pull requests
+                for (const issue of issues) {
+                    // Skip pull requests (they have a pull_request property)
+                    if (issue.pull_request) {
+                        continue;
+                    }
+
+                    const createdAt = new Date(issue.created_at);
+                    const closedAt = issue.closed_at ? new Date(issue.closed_at) : null;
+                    
+                    // Include if created or closed during hackathon
+                    const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
+                    const relevantByClosure = closedAt && closedAt >= startDate && closedAt <= endDate;
+                    
+                    if (relevantByCreation || relevantByClosure) {
+                        allIssues.push({
+                            ...issue,
+                            repository: `${owner}/${repo}`
+                        });
+                    }
+                    
+                    // If issues are too old, stop fetching
+                    if (createdAt < startDate && (!closedAt || closedAt < startDate)) {
+                        page = maxPages + 1; // Break outer loop
+                        break;
+                    }
+                }
+
+                page++;
+            } catch (error) {
+                console.error(`Error fetching issues for ${owner}/${repo}:`, error);
+                break;
+            }
+        }
+
+        return allIssues;
+    }
+
+    /**
      * Fetch all pull requests for a repository
      */
     async fetchPullRequests(owner, repo, startDate, endDate) {
@@ -140,6 +197,30 @@ class GitHubAPI {
     }
 
     /**
+     * Get all issues for multiple repositories
+     */
+    async getAllIssues(repositories, startDate, endDate) {
+        const promises = repositories.map(repoPath => {
+            const [owner, repo] = repoPath.split('/');
+            return this.fetchIssues(owner, repo, startDate, endDate);
+        });
+
+        const results = await Promise.allSettled(promises);
+        
+        // Combine all successful results
+        const allIssues = [];
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                allIssues.push(...result.value);
+            } else {
+                console.error(`Failed to fetch issues for ${repositories[index]}:`, result.reason);
+            }
+        });
+
+        return allIssues;
+    }
+
+    /**
      * Get all pull requests for multiple repositories
      */
     async getAllPullRequests(repositories, startDate, endDate) {
@@ -177,6 +258,35 @@ class GitHubAPI {
         return results
             .filter(r => r.status === 'fulfilled')
             .map(r => r.value);
+    }
+
+    /**
+     * Process issues and generate statistics
+     * 
+     * Note: This method modifies the repoStats parameter by adding issue counts
+     * to existing repository statistics. This is intentional to combine PR and
+     * issue data in a single stats object.
+     * 
+     * @param {Array} issues - Array of GitHub issues
+     * @param {Object} repoStats - Repository statistics object (will be modified)
+     * @returns {Object} Summary with totalIssues and closedIssues counts
+     */
+    processIssueData(issues, repoStats) {
+        issues.forEach(issue => {
+            const repo = issue.repository;
+            if (!repoStats[repo]) {
+                repoStats[repo] = { total: 0, merged: 0, issues: 0, closedIssues: 0 };
+            }
+            repoStats[repo].issues++;
+            if (issue.state === 'closed') {
+                repoStats[repo].closedIssues++;
+            }
+        });
+
+        return {
+            totalIssues: issues.length,
+            closedIssues: issues.filter(i => i.state === 'closed').length
+        };
     }
 
     /**
@@ -242,7 +352,7 @@ class GitHubAPI {
             // Track repo statistics
             const repo = pr.repository;
             if (!stats.repoStats[repo]) {
-                stats.repoStats[repo] = { total: 0, merged: 0 };
+                stats.repoStats[repo] = { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             }
             stats.repoStats[repo].total++;
             if (isMerged) {

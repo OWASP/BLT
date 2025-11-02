@@ -24,20 +24,32 @@ class HackathonDashboard {
             const startDate = new Date(this.config.startTime);
             const endDate = new Date(this.config.endTime);
             
-            // Fetch all PRs
-            const prs = await this.api.getAllPullRequests(
-                this.config.github.repositories,
-                startDate,
-                endDate
-            );
+            // Fetch all PRs and issues
+            const [prs, issues] = await Promise.all([
+                this.api.getAllPullRequests(
+                    this.config.github.repositories,
+                    startDate,
+                    endDate
+                ),
+                this.api.getAllIssues(
+                    this.config.github.repositories,
+                    startDate,
+                    endDate
+                )
+            ]);
 
             // Process PR data
             const stats = this.api.processPRData(prs, startDate, endDate);
+            
+            // Process issue data
+            const issueStats = this.api.processIssueData(issues, stats.repoStats);
+            stats.totalIssues = issueStats.totalIssues;
+            stats.closedIssues = issueStats.closedIssues;
 
             // Update UI
             this.updateStats(stats);
             this.renderLeaderboard(stats.participants);
-            this.renderChart(stats.dailyActivity);
+            this.renderChart(stats.dailyActivity, prs);
             this.renderRepositories(stats.repoStats);
             this.renderPrizes();
             this.renderSponsors();
@@ -110,6 +122,7 @@ class HackathonDashboard {
         document.getElementById('participant-count').textContent = stats.participants.size;
         document.getElementById('pr-count').textContent = stats.totalPRs;
         document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
+        document.getElementById('issue-count').textContent = stats.totalIssues || 0;
         document.getElementById('repo-count').textContent = this.config.github.repositories.length;
     }
 
@@ -197,12 +210,48 @@ class HackathonDashboard {
     }
 
     /**
-     * Render the PR activity chart
+     * Render the PR activity chart with repository breakdown
      */
-    renderChart(dailyActivity) {
+    renderChart(dailyActivity, prs) {
         const dates = Object.keys(dailyActivity).sort();
-        const totalCounts = dates.map(date => dailyActivity[date].total);
-        const mergedCounts = dates.map(date => dailyActivity[date].merged);
+        
+        // Get unique repositories from PRs
+        const repositories = [...new Set(prs.map(pr => pr.repository))];
+        
+        // Pre-process PRs into a Map for O(1) lookups: date -> repo -> count
+        const prsByDateAndRepo = new Map();
+        prs.forEach(pr => {
+            if (!pr.merged_at) return;
+            
+            // Use merged_at date since we're showing merged PRs
+            const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
+            if (!prsByDateAndRepo.has(prDate)) {
+                prsByDateAndRepo.set(prDate, new Map());
+            }
+            const dateMap = prsByDateAndRepo.get(prDate);
+            const currentCount = dateMap.get(pr.repository) || 0;
+            dateMap.set(pr.repository, currentCount + 1);
+        });
+        
+        // Create datasets for each repository
+        const repoColors = this.generateColors(repositories.length);
+        const datasets = [];
+        
+        // Add datasets for PRs by repository
+        repositories.forEach((repo, index) => {
+            const data = dates.map(date => {
+                const dateMap = prsByDateAndRepo.get(date);
+                return dateMap ? (dateMap.get(repo) || 0) : 0;
+            });
+            
+            datasets.push({
+                label: repo,
+                data: data,
+                backgroundColor: repoColors[index],
+                borderColor: repoColors[index],
+                borderWidth: 1
+            });
+        });
 
         const ctx = document.getElementById('prActivityChart').getContext('2d');
         
@@ -214,22 +263,7 @@ class HackathonDashboard {
             type: 'bar',
             data: {
                 labels: dates,
-                datasets: [
-                    {
-                        label: 'All Pull Requests',
-                        data: totalCounts,
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Merged Pull Requests',
-                        data: mergedCounts,
-                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                        borderColor: 'rgba(239, 68, 68, 1)',
-                        borderWidth: 1
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -238,20 +272,26 @@ class HackathonDashboard {
                     legend: {
                         display: true,
                         position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
                     }
                 },
                 scales: {
                     x: {
+                        stacked: true,
                         title: {
                             display: true,
                             text: 'Date'
                         }
                     },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Number of Pull Requests'
+                            text: 'Number of Merged Pull Requests'
                         },
                         ticks: {
                             precision: 0
@@ -263,6 +303,38 @@ class HackathonDashboard {
     }
 
     /**
+     * Generate distinct colors for chart datasets
+     */
+    generateColors(count) {
+        const colors = [
+            'rgba(239, 68, 68, 0.8)',   // red
+            'rgba(59, 130, 246, 0.8)',  // blue
+            'rgba(34, 197, 94, 0.8)',   // green
+            'rgba(249, 115, 22, 0.8)',  // orange
+            'rgba(168, 85, 247, 0.8)',  // purple
+            'rgba(236, 72, 153, 0.8)',  // pink
+            'rgba(14, 165, 233, 0.8)',  // sky
+            'rgba(132, 204, 22, 0.8)',  // lime
+            'rgba(251, 146, 60, 0.8)',  // amber
+            'rgba(192, 132, 252, 0.8)', // violet
+            'rgba(244, 63, 94, 0.8)',   // rose
+        ];
+        
+        // If we need more colors than predefined, generate random ones
+        const MIN_COLOR_VALUE = 55;  // Minimum RGB value to avoid too dark colors
+        const COLOR_RANGE = 200;     // Range of RGB values for reasonable brightness
+        
+        while (colors.length < count) {
+            const r = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
+            const g = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
+            const b = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
+            colors.push(`rgba(${r}, ${g}, ${b}, 0.8)`);
+        }
+        
+        return colors.slice(0, count);
+    }
+
+    /**
      * Render repositories list
      */
     renderRepositories(repoStats) {
@@ -270,7 +342,7 @@ class HackathonDashboard {
         
         const reposHtml = this.config.github.repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
-            const stats = repoStats[repoPath] || { total: 0, merged: 0 };
+            const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             
             return `
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -282,12 +354,19 @@ class HackathonDashboard {
                                 ${repoPath}
                             </a>
                         </div>
-                        ${this.config.display.showRepoStats ? `
-                            <span class="text-sm text-gray-500">
-                                ${stats.merged} merged PR${stats.merged !== 1 ? 's' : ''}
-                            </span>
-                        ` : ''}
                     </div>
+                    ${this.config.display.showRepoStats ? `
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span class="flex items-center">
+                                <i class="fas fa-code-branch mr-1 text-blue-500"></i>
+                                <strong>${stats.total}</strong> PRs (<strong>${stats.merged}</strong> merged)
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-circle-dot mr-1 text-green-500"></i>
+                                <strong>${stats.issues || 0}</strong> Issues (<strong>${stats.closedIssues || 0}</strong> closed)
+                            </span>
+                        </div>
+                    ` : ''}
                     <div class="flex gap-2">
                         <a href="https://github.com/${repoPath}" target="_blank"
                            class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
@@ -298,6 +377,11 @@ class HackathonDashboard {
                            class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
                             <i class="fas fa-code-branch mr-1"></i>
                             Pull Requests
+                        </a>
+                        <a href="https://github.com/${repoPath}/issues" target="_blank"
+                           class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                            <i class="fas fa-circle-dot mr-1"></i>
+                            Issues
                         </a>
                     </div>
                 </div>

@@ -1,0 +1,91 @@
+name: Update Repository Statistics
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch and update statistics
+        run: |
+          # Create a simple Node.js script to fetch stats
+          cat > fetch-stats.js << 'EOF'
+          const fs = require('fs');
+
+          // Read the config file
+          const configContent = fs.readFileSync('js/config.js', 'utf8');
+          
+          // Extract dates and repo count using safer regex patterns
+          const startTimeMatch = configContent.match(/startTime:\s*["']([^"']+)["']/);
+          const endTimeMatch = configContent.match(/endTime:\s*["']([^"']+)["']/);
+          const nameMatch = configContent.match(/name:\s*["']([^"']+)["']/);
+          
+          // Count repositories by finding array entries
+          const reposMatch = configContent.match(/repositories:\s*\[([\s\S]*?)\]/);
+          let repoCount = 0;
+          if (reposMatch) {
+            // Count non-empty lines within the array
+            repoCount = reposMatch[1].split('\n').filter(line => line.trim() && line.includes('/')).length;
+          }
+          
+          if (!startTimeMatch || !endTimeMatch || !nameMatch) {
+            console.error('Could not parse config file');
+            process.exit(1);
+          }
+          
+          console.log('Fetching statistics for repositories');
+          console.log('Date range:', startTimeMatch[1], 'to', endTimeMatch[1]);
+          
+          // Create a simple stats file to track the last update time
+          const statsData = {
+            lastUpdated: new Date().toISOString(),
+            repositories: repoCount,
+            hackathonName: nameMatch[1],
+            startTime: startTimeMatch[1],
+            endTime: endTimeMatch[1]
+          };
+          
+          // Write stats to a JSON file
+          fs.writeFileSync('stats.json', JSON.stringify(statsData, null, 2));
+          console.log('Statistics updated successfully at', statsData.lastUpdated);
+          EOF
+
+          node fetch-stats.js
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add stats.json
+          git diff --staged --quiet || git commit -m "Update statistics [skip ci]"
+          git push
+        continue-on-error: true
+
+      - name: Trigger Pages deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Trigger a Pages build
+            await github.rest.repos.requestPagesBuild({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            }).catch(err => {
+              console.log('Could not trigger Pages build:', err.message);
+            });
