@@ -1,0 +1,25 @@
+{
+  "stats": {
+    "commits": 0,
+    "pullRequests": 0,
+    "issues": 0,
+    "reviews": 0
+  },
+  "contributions": [
+    {
+      "title": "Example: Initial project setup",
+      "description": "Set up the project structure and initial configuration",
+      "date": "2024-05-20",
+      "url": "https://github.com/ORG/REPO/commit/abc123",
+      "type": "commit"
+    },
+    {
+      "title": "Example: Feature implementation PR",
+      "description": "Implemented the core feature with tests",
+      "date": "2024-06-01",
+      "url": "https://github.com/ORG/REPO/pull/1",
+      "type": "pull_request"
+    }
+  ],
+  "lastUpdated": "2024-01-01T00:00:00Z"
+}

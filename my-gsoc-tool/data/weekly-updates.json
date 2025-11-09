@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Week 1: Project Setup & Research",
+    "summary": "Set up development environment, studied the codebase architecture, and created initial project documentation. Met with mentors to discuss project timeline and milestones.",
+    "date": "2024-05-27"
+  },
+  {
+    "title": "Week 2: Core Feature Development",
+    "summary": "Started implementing the core feature. Completed initial prototype and created tests. Discussed implementation approach with mentors and received valuable feedback.",
+    "date": "2024-06-03"
+  },
+  {
+    "title": "Week 3: Testing & Documentation",
+    "summary": "Added comprehensive test coverage for new features. Updated documentation to reflect changes. Fixed bugs identified during testing phase.",
+    "date": "2024-06-10"
+  },
+  {
+    "title": "Week 4: Code Review & Refinement",
+    "summary": "Addressed code review comments from mentors. Refactored code for better maintainability. Started working on the next milestone.",
+    "date": "2024-06-17"
+  }
+]

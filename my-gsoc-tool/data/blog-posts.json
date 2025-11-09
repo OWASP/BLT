@@ -1,0 +1,23 @@
+[
+  {
+    "title": "GSoC 2024: Getting Started",
+    "excerpt": "My journey begins with Google Summer of Code 2024. In this post, I share my initial thoughts and goals for the summer.",
+    "url": "https://yourblog.dev/gsoc-getting-started",
+    "date": "2024-05-01",
+    "readTime": "5 min read"
+  },
+  {
+    "title": "Week 1-2: Community Bonding",
+    "excerpt": "During the community bonding period, I got to know my mentors and the organization's workflow. Here's what I learned.",
+    "url": "https://yourblog.dev/week-1-2-community-bonding",
+    "date": "2024-05-15",
+    "readTime": "7 min read"
+  },
+  {
+    "title": "Coding Period Begins: First Pull Request",
+    "excerpt": "The coding period has officially started! I submitted my first pull request and here's what I learned from the review process.",
+    "url": "https://yourblog.dev/first-pull-request",
+    "date": "2024-06-01",
+    "readTime": "6 min read"
+  }
+]

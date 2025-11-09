@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Project Proposal Accepted",
+    "description": "Successfully submitted and got my GSoC project proposal accepted!",
+    "date": "2024-05-01",
+    "icon": "check-circle"
+  },
+  {
+    "title": "Community Bonding Complete",
+    "description": "Finished the community bonding period. Got familiar with the organization's workflow and met all the team members.",
+    "date": "2024-05-20",
+    "icon": "users"
+  },
+  {
+    "title": "First Pull Request Merged",
+    "description": "My first major contribution was merged into the main codebase after thorough review.",
+    "date": "2024-06-05",
+    "icon": "code-branch"
+  },
+  {
+    "title": "Mid-Term Evaluation Passed",
+    "description": "Successfully passed the mid-term evaluation with positive feedback from mentors.",
+    "date": "2024-07-10",
+    "icon": "star"
+  },
+  {
+    "title": "Feature Complete",
+    "description": "Completed the main feature implementation with full test coverage and documentation.",
+    "date": "2024-08-01",
+    "icon": "trophy"
+  }
+]
