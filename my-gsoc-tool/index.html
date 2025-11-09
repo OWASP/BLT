@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSoC Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <img id="student-avatar" class="avatar" src="" alt="Student Avatar">
+                <div class="header-info">
+                    <h1 id="student-name">Loading...</h1>
+                    <p id="student-bio" class="bio">GSoC Contributor</p>
+                    <div class="social-links" id="social-links">
+                        <!-- Dynamic social links -->
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Project Info Section -->
+        <section class="card project-info">
+            <h2><i class="fas fa-project-diagram"></i> GSoC Project</h2>
+            <div id="project-details">
+                <h3 id="project-title">Loading...</h3>
+                <p id="project-description">Loading project details...</p>
+                <div class="project-meta">
+                    <span id="organization" class="meta-item"><i class="fas fa-building"></i> Organization: Loading...</span>
+                    <span id="timeline" class="meta-item"><i class="fas fa-calendar"></i> Timeline: Loading...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- GitHub Contributions -->
+            <section class="card contributions">
+                <h2><i class="fab fa-github"></i> GitHub Contributions</h2>
+                <div id="github-stats" class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-commits">-</div>
+                        <div class="stat-label">Commits</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-prs">-</div>
+                        <div class="stat-label">Pull Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-issues">-</div>
+                        <div class="stat-label">Issues</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-reviews">-</div>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                </div>
+                <div id="contribution-list" class="contribution-list">
+                    <!-- Dynamic contribution items -->
+                </div>
+            </section>
+
+            <!-- Slack Participation -->
+            <section class="card slack-section">
+                <h2><i class="fab fa-slack"></i> Community Participation</h2>
+                <div id="slack-info">
+                    <p class="slack-description">Active in organization communication channels</p>
+                    <div id="slack-channels" class="channel-list">
+                        <!-- Dynamic slack channel info -->
+                    </div>
+                    <a id="slack-link" href="#" class="btn-primary" target="_blank" style="display: none;">
+                        <i class="fab fa-slack"></i> Join Slack Workspace
+                    </a>
+                </div>
+            </section>
+
+            <!-- Blog Posts & Progress -->
+            <section class="card blog-section">
+                <h2><i class="fas fa-blog"></i> Progress Blog</h2>
+                <div id="blog-posts" class="blog-list">
+                    <!-- Dynamic blog posts -->
+                </div>
+                <a id="blog-link" href="#" class="btn-secondary" target="_blank" style="display: none;">
+                    <i class="fas fa-external-link-alt"></i> View Full Blog
+                </a>
+            </section>
+
+            <!-- Mentor Interactions -->
+            <section class="card mentor-section">
+                <h2><i class="fas fa-user-tie"></i> Mentor Interactions</h2>
+                <div id="mentor-info">
+                    <div class="mentor-card" id="mentor-details">
+                        <!-- Dynamic mentor information -->
+                    </div>
+                    <div id="feedback-list" class="feedback-list">
+                        <!-- Dynamic feedback items -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Updates -->
+            <section class="card updates-section">
+                <h2><i class="fas fa-calendar-week"></i> Weekly Updates</h2>
+                <div id="weekly-updates" class="timeline">
+                    <!-- Dynamic weekly updates -->
+                </div>
+            </section>
+
+            <!-- Milestones & Achievements -->
+            <section class="card milestones-section">
+                <h2><i class="fas fa-trophy"></i> Milestones & Achievements</h2>
+                <div id="milestones" class="milestone-list">
+                    <!-- Dynamic milestones -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>GSoC Student Dashboard | Generated automatically via GitHub Actions</p>
+            <p>Last updated: <span id="last-updated">-</span></p>
+        </footer>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

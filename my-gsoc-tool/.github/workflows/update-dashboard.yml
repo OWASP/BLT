@@ -1,0 +1,201 @@
+name: Update GSoC Dashboard
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allow manual trigger
+  push:
+    branches:
+      - main
+    paths:
+      - 'config.json'
+      - 'data/**'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  fetch-github-contributions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch GitHub contributions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create scripts directory if it doesn't exist
+          mkdir -p scripts
+          
+          # Create a simple script to fetch GitHub data
+          cat > scripts/fetch-github-data.js << 'EOF'
+          const fs = require('fs');
+          const https = require('https');
+
+          // Read config
+          const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+          
+          // Extract GitHub username from URL
+          const githubUrl = config.student.github || '';
+          const username = githubUrl.split('/').pop() || 'example-user';
+          const repo = config.project.repository ? config.project.repository.split('/').slice(-2).join('/') : '';
+
+          console.log(`Fetching data for user: ${username}`);
+
+          // Function to make GitHub API request
+          function makeRequest(path) {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: 'api.github.com',
+                path: path,
+                headers: {
+                  'User-Agent': 'GSoC-Dashboard',
+                  'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+                  'Accept': 'application/vnd.github.v3+json'
+                }
+              };
+
+              https.get(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => data += chunk);
+                res.on('end', () => {
+                  try {
+                    resolve(JSON.parse(data));
+                  } catch (e) {
+                    resolve([]);
+                  }
+                });
+              }).on('error', reject);
+            });
+          }
+
+          // Main function
+          async function fetchData() {
+            try {
+              // Get user events
+              const events = await makeRequest(`/users/${username}/events/public?per_page=100`);
+              
+              // Count contributions
+              const stats = {
+                commits: 0,
+                pullRequests: 0,
+                issues: 0,
+                reviews: 0
+              };
+
+              const contributions = [];
+              const seenEvents = new Set();
+
+              events.forEach(event => {
+                const eventId = event.id;
+                if (seenEvents.has(eventId)) return;
+                seenEvents.add(eventId);
+
+                if (event.type === 'PushEvent') {
+                  stats.commits += event.payload.commits?.length || 0;
+                  contributions.push({
+                    title: `Pushed commits to ${event.repo.name}`,
+                    description: event.payload.commits?.[0]?.message || 'Code changes',
+                    date: event.created_at.split('T')[0],
+                    url: `https://github.com/${event.repo.name}`,
+                    type: 'commit'
+                  });
+                } else if (event.type === 'PullRequestEvent') {
+                  stats.pullRequests++;
+                  contributions.push({
+                    title: `${event.payload.action} PR: ${event.payload.pull_request.title}`,
+                    description: event.payload.pull_request.body?.substring(0, 150) || 'Pull request',
+                    date: event.created_at.split('T')[0],
+                    url: event.payload.pull_request.html_url,
+                    type: 'pull_request'
+                  });
+                } else if (event.type === 'IssuesEvent') {
+                  stats.issues++;
+                  contributions.push({
+                    title: `${event.payload.action} issue: ${event.payload.issue.title}`,
+                    description: event.payload.issue.body?.substring(0, 150) || 'Issue',
+                    date: event.created_at.split('T')[0],
+                    url: event.payload.issue.html_url,
+                    type: 'issue'
+                  });
+                } else if (event.type === 'PullRequestReviewEvent') {
+                  stats.reviews++;
+                  contributions.push({
+                    title: `Reviewed PR: ${event.payload.pull_request.title}`,
+                    description: 'Pull request review',
+                    date: event.created_at.split('T')[0],
+                    url: event.payload.pull_request.html_url,
+                    type: 'review'
+                  });
+                }
+              });
+
+              // Sort by date and limit
+              contributions.sort((a, b) => new Date(b.date) - new Date(a.date));
+              const limitedContributions = contributions.slice(0, 20);
+
+              const output = {
+                stats,
+                contributions: limitedContributions,
+                lastUpdated: new Date().toISOString()
+              };
+
+              fs.writeFileSync('data/github-contributions.json', JSON.stringify(output, null, 2));
+              console.log('GitHub data updated successfully!');
+              console.log('Stats:', stats);
+            } catch (error) {
+              console.error('Error fetching GitHub data:', error);
+              // Keep existing data on error
+            }
+          }
+
+          fetchData();
+          EOF
+
+          # Run the script
+          node scripts/fetch-github-data.js
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/github-contributions.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update GitHub contributions data [skip ci]"
+            git push
+          fi
+
+  deploy-to-pages:
+    needs: fetch-github-contributions
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
