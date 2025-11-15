@@ -65,6 +65,17 @@ The built site will be in the `site/` directory.
 
 Documentation is automatically deployed to GitHub Pages when changes are pushed to the `main` branch. The deployment is handled by GitHub Actions (see `.github/workflows/deploy-docs.yml`).
 
+### GitHub Pages Setup
+
+To enable GitHub Pages for this repository:
+
+1. Go to repository **Settings** → **Pages**
+2. Under **Source**, select **Deploy from a branch**
+3. Select branch: **gh-pages** and folder: **/ (root)**
+4. Click **Save**
+
+The workflow will automatically create and maintain the `gh-pages` branch with the built documentation.
+
 ## 📝 Contributing
 
 We welcome contributions to improve the documentation! To contribute:
