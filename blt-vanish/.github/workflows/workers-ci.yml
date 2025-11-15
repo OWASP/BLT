@@ -1,0 +1,115 @@
+name: Cloudflare Workers CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'cloudflare_workers/**'
+      - '.github/workflows/workers-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'cloudflare_workers/**'
+      - '.github/workflows/workers-ci.yml'
+
+jobs:
+  lint-and-test:
+    name: Lint and Test Workers
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: cloudflare_workers/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: cloudflare_workers
+        run: npm ci
+      
+      - name: Lint TypeScript
+        working-directory: cloudflare_workers
+        run: npm run lint
+      
+      - name: Type check
+        working-directory: cloudflare_workers
+        run: npx tsc --noEmit
+      
+      - name: Run tests
+        working-directory: cloudflare_workers
+        run: npm test
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: cloudflare_workers
+        run: npm ci
+      
+      - name: Run npm audit
+        working-directory: cloudflare_workers
+        run: npm audit --audit-level=moderate
+      
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./cloudflare_workers
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  validate-brokers:
+    name: Validate Broker Data
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install ajv-cli
+        run: npm install -g ajv-cli
+      
+      - name: Validate broker JSON against schema
+        run: |
+          ajv validate -s data/schema.json -d "data/brokers/*.json" --all-errors
+
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [lint-and-test, security-scan, validate-brokers]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: cloudflare_workers
+        run: npm ci
+      
+      - name: Deploy to Cloudflare Workers (Preview)
+        working-directory: cloudflare_workers
+        run: npx wrangler deploy --env development
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
