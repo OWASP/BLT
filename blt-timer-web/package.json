@@ -1,0 +1,34 @@
+{
+  "name": "fresh-time-tracker",
+  "version": "1.0.0",
+  "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "time-tracking",
+    "cloudflare-worker",
+    "github",
+    "privacy",
+    "productivity"
+  ],
+  "author": "OWASP-BLT",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231025.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint": "^8.53.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6",
+    "wrangler": "^3.15.0"
+  },
+  "dependencies": {
+    "hono": "^3.11.2"
+  }
+}

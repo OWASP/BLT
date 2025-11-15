@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh Time Tracker - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 16px;
+            color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        input {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .status.active {
+            background: #48bb78;
+            color: white;
+        }
+
+        .status.inactive {
+            background: #cbd5e0;
+            color: #4a5568;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .privacy-notice {
+            background: #edf2f7;
+            border-left: 4px solid #48bb78;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .privacy-notice h3 {
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .privacy-notice ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .privacy-notice li {
+            padding: 4px 0;
+            color: #4a5568;
+        }
+
+        .privacy-notice li::before {
+            content: "✓ ";
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        #log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+        }
+
+        .log-entry .timestamp {
+            color: #90cdf4;
+        }
+
+        .log-entry .success {
+            color: #48bb78;
+        }
+
+        .log-entry .error {
+            color: #f56565;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕐 Fresh Time Tracker</h1>
+            <p>Privacy-focused developer productivity tracking</p>
+        </div>
+
+        <div class="card">
+            <h2>Configuration</h2>
+            <div class="controls">
+                <input type="text" id="apiUrl" placeholder="API URL (http://localhost:8787)" value="http://localhost:8787">
+                <input type="text" id="userId" placeholder="User ID">
+                <input type="text" id="projectId" placeholder="Project ID">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Session Control</h2>
+            <div id="status" class="status inactive">Not Tracking</div>
+            <div class="controls">
+                <button class="btn-primary" onclick="startTracking()">▶️ Start Session</button>
+                <button class="btn-secondary" onclick="pauseTracking()" disabled>⏸️ Pause</button>
+                <button class="btn-danger" onclick="stopTracking()" disabled>⏹️ Stop</button>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <h3>Session Duration</h3>
+                    <p id="duration">0m</p>
+                </div>
+                <div class="stat-card">
+                    <h3>GitHub Events</h3>
+                    <p id="githubEvents">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Activity Level</h3>
+                    <p id="activityLevel">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Productivity</h3>
+                    <p id="productivity">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Activity Log</h2>
+            <div id="log"></div>
+        </div>
+
+        <div class="card">
+            <div class="privacy-notice">
+                <h3>🔒 Privacy Guarantee</h3>
+                <ul>
+                    <li>All screenshot analysis happens locally on your machine</li>
+                    <li>No screenshots or personal data uploaded to servers</li>
+                    <li>Only aggregate activity metrics collected</li>
+                    <li>Full control over what data is tracked</li>
+                    <li>Data encrypted at rest and in transit</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let startTime = null;
+        let durationInterval = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            logDiv.innerHTML += `<div class="log-entry"><span class="timestamp">[${timestamp}]</span> <span class="${className}">${message}</span></div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value || 'http://localhost:8787';
+        }
+
+        function getUserId() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Please enter a User ID');
+                return null;
+            }
+            return userId;
+        }
+
+        function getProjectId() {
+            const projectId = document.getElementById('projectId').value;
+            if (!projectId) {
+                alert('Please enter a Project ID');
+                return null;
+            }
+            return projectId;
+        }
+
+        async function startTracking() {
+            const userId = getUserId();
+            const projectId = getProjectId();
+            if (!userId || !projectId) return;
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/sessions/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': userId,
+                    },
+                    body: JSON.stringify({ projectId }),
+                });
+
+                const data = await response.json();
+                sessionId = data.session.id;
+                startTime = Date.now();
+
+                document.getElementById('status').className = 'status active';
+                document.getElementById('status').textContent = 'Tracking Active';
+                document.getElementById('stats').style.display = 'grid';
+                
+                document.querySelector('.btn-primary').disabled = true;
+                document.querySelector('.btn-secondary').disabled = false;
+                document.querySelector('.btn-danger').disabled = false;
+
+                log('Session started: ' + sessionId, 'success');
+                
+                // Start duration counter
+                durationInterval = setInterval(updateDuration, 1000);
+
+                // Simulate some activity
+                setTimeout(() => trackGithubEvent(), 3000);
+                setTimeout(() => trackAgentPrompt(), 6000);
+
+            } catch (error) {
+                log('Failed to start session: ' + error.message, 'error');
+            }
+        }
+
+        async function stopTracking() {
+            if (!sessionId) return;
+
+            const userId = getUserId();
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/sessions/${sessionId}/end`, {
+                    method: 'POST',
+                    headers: {
+                        'X-User-ID': userId,
+                    },
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('status').className = 'status inactive';
+                document.getElementById('status').textContent = 'Not Tracking';
+                
+                document.querySelector('.btn-primary').disabled = false;
+                document.querySelector('.btn-secondary').disabled = true;
+                document.querySelector('.btn-danger').disabled = true;
+
+                clearInterval(durationInterval);
+                
+                log('Session ended. Duration: ' + Math.floor(data.session.duration / 1000 / 60) + ' minutes', 'success');
+                
+                // Get summary
+                await getSummary();
+                
+                sessionId = null;
+                startTime = null;
+
+            } catch (error) {
+                log('Failed to end session: ' + error.message, 'error');
+            }
+        }
+
+        async function pauseTracking() {
+            if (!sessionId) return;
+
+            const userId = getUserId();
+            if (!userId) return;
+
+            try {
+                await fetch(`${getApiUrl()}/api/sessions/${sessionId}/pause`, {
+                    method: 'POST',
+                    headers: {
+                        'X-User-ID': userId,
+                    },
+                });
+
+                document.getElementById('status').className = 'status inactive';
+                document.getElementById('status').textContent = 'Paused';
+                
+                clearInterval(durationInterval);
+                
+                log('Session paused', 'success');
+
+            } catch (error) {
+                log('Failed to pause session: ' + error.message, 'error');
+            }
+        }
+
+        function updateDuration() {
+            if (!startTime) return;
+            const duration = Math.floor((Date.now() - startTime) / 1000 / 60);
+            document.getElementById('duration').textContent = duration + 'm';
+        }
+
+        async function trackGithubEvent() {
+            if (!sessionId) return;
+
+            const userId = getUserId();
+            if (!userId) return;
+
+            try {
+                await fetch(`${getApiUrl()}/api/activity`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': userId,
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        type: 'github',
+                        data: {
+                            type: 'github',
+                            action: 'commit',
+                            repository: 'OWASP-BLT/Fresh',
+                            commitSha: 'abc123',
+                        },
+                    }),
+                });
+
+                const currentCount = parseInt(document.getElementById('githubEvents').textContent);
+                document.getElementById('githubEvents').textContent = currentCount + 1;
+                
+                log('GitHub commit tracked', 'success');
+
+            } catch (error) {
+                log('Failed to track GitHub event: ' + error.message, 'error');
+            }
+        }
+
+        async function trackAgentPrompt() {
+            if (!sessionId) return;
+
+            const userId = getUserId();
+            if (!userId) return;
+
+            try {
+                await fetch(`${getApiUrl()}/api/activity`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': userId,
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        type: 'agent-prompt',
+                        data: {
+                            type: 'agent-prompt',
+                            agentName: 'GitHub Copilot',
+                            promptLength: 150,
+                            responseLength: 500,
+                        },
+                    }),
+                });
+                
+                log('Agent prompt tracked: GitHub Copilot', 'success');
+
+            } catch (error) {
+                log('Failed to track agent prompt: ' + error.message, 'error');
+            }
+        }
+
+        async function getSummary() {
+            if (!sessionId) return;
+
+            const userId = getUserId();
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/sessions/${sessionId}/summary`, {
+                    headers: {
+                        'X-User-ID': userId,
+                    },
+                });
+
+                const { summary } = await response.json();
+                
+                document.getElementById('githubEvents').textContent = summary.githubEvents;
+                document.getElementById('productivity').textContent = summary.productivity.toUpperCase();
+                
+                log('Summary generated: ' + summary.productivity + ' productivity', 'success');
+
+            } catch (error) {
+                log('Failed to get summary: ' + error.message, 'error');
+            }
+        }
+
+        // Initial log message
+        log('Dashboard ready. Configure your settings and start tracking!');
+    </script>
+</body>
+</html>
