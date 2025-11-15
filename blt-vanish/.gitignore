@@ -1,0 +1,67 @@
+# Flutter/Dart
+flutter_app/.dart_tool/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+flutter_app/.packages
+flutter_app/build/
+flutter_app/ios/Flutter/flutter_export_environment.sh
+flutter_app/ios/Flutter/App.framework
+flutter_app/ios/Flutter/Flutter.framework
+flutter_app/ios/Flutter/Flutter.podspec
+flutter_app/ios/Flutter/Generated.xcconfig
+flutter_app/ios/Pods/
+flutter_app/android/.gradle
+flutter_app/android/captures/
+flutter_app/android/gradlew
+flutter_app/android/gradlew.bat
+flutter_app/android/local.properties
+flutter_app/android/app/*.iml
+flutter_app/android/.idea
+flutter_app/*.g.dart
+flutter_app/pubspec.lock
+
+# Cloudflare Workers
+cloudflare_workers/node_modules/
+cloudflare_workers/dist/
+cloudflare_workers/package-lock.json
+cloudflare_workers/wrangler.toml.local
+cloudflare_workers/.dev.vars
+cloudflare_workers/.wrangler/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.zip
+*.tar.gz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+coverage/
+*.lcov
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart

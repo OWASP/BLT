@@ -1,0 +1,27 @@
+name = "selferase"
+main = "src/index.ts"
+compatibility_date = "2023-12-01"
+
+# Workers configuration
+workers_dev = true
+account_id = "" # Set your Cloudflare account ID
+route = "" # Set your custom domain route if needed
+
+# Environment variables (optional)
+[env.production]
+name = "selferase-production"
+
+[env.development]
+name = "selferase-development"
+
+# CORS and security settings
+[build]
+command = "tsc"
+
+# Limits
+[limits]
+cpu_ms = 50
+
+# Analytics (optional - set to false for privacy)
+[analytics_engine_datasets]
+# No analytics to preserve privacy
