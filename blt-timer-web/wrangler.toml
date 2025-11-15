@@ -1,0 +1,28 @@
+name = "fresh-time-tracker"
+main = "src/index.ts"
+compatibility_date = "2023-11-15"
+workers_dev = true
+
+[env.production]
+name = "fresh-time-tracker-prod"
+
+# KV namespaces for data storage
+[[kv_namespaces]]
+binding = "TIME_TRACKING_DATA"
+id = "time_tracking_data"
+preview_id = "time_tracking_data_preview"
+
+[[kv_namespaces]]
+binding = "ACTIVITY_DATA"
+id = "activity_data"
+preview_id = "activity_data_preview"
+
+# Durable Objects for real-time tracking
+[[durable_objects.bindings]]
+name = "TRACKER_SESSION"
+class_name = "TrackerSession"
+script_name = "fresh-time-tracker"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TrackerSession"]
