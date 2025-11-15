@@ -1,0 +1,47 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install dependencies
+        run: pip install mkdocs-material
+
+      - name: Build documentation
+        run: mkdocs build
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          cname: docs.owaspblt.org
