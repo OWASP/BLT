@@ -127,4 +127,5 @@ export interface Env {
   TIME_TRACKING_DATA: KVNamespace;
   ACTIVITY_DATA: KVNamespace;
   TRACKER_SESSION: DurableObjectNamespace;
+  [key: string]: any;
 }

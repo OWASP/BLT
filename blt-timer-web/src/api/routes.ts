@@ -6,9 +6,6 @@ import { Hono } from 'hono';
 import { Env } from '../types';
 import { SessionManager } from '../modules/session-manager';
 import { GitHubMonitor } from '../modules/github-monitor';
-import { AgentTracker } from '../modules/agent-tracker';
-import { ActivityTracker } from '../modules/activity-tracker';
-import { ScreenshotAnalyzer } from '../modules/screenshot-analyzer';
 
 const app = new Hono<{ Bindings: Env }>();
 

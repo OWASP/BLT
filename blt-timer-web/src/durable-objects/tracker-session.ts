@@ -95,7 +95,8 @@ export class TrackerSession {
    */
   private async handleStart(request: Request): Promise<Response> {
     try {
-      const { userId, projectId } = await request.json();
+      const body = await request.json() as { userId: string; projectId: string };
+      const { userId, projectId } = body;
 
       this.session = {
         id: crypto.randomUUID(),

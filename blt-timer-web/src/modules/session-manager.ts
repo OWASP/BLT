@@ -7,8 +7,6 @@ import {
   TimeTrackingSession,
   ActivityEvent,
   ActivitySummary,
-  Project,
-  User,
   Env,
 } from '../types';
 
