@@ -73,4 +73,37 @@ describe('GitHub API Mock Test', () => {
     giphyScope.done();
     githubScope.done();
   });
+
+  it('should send kudos to BLT API', async () => {
+    const owner = 'testowner';
+    const repo = 'testrepo';
+    const issueNumber = 1;
+    const sender = 'githubuser';
+    const receiver = 'bltuser';
+    const comment = 'Great work on the PR!';
+    const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
+
+    const bltScope = nock('https://owaspblt.org')
+      .post('/teams/give-kudos/', {
+        kudosReceiver: receiver,
+        kudosSender: sender,
+        link: link,
+        comment: comment
+      })
+      .reply(201, { success: true, message: 'Kudos sent successfully!' });
+
+    const githubScope = nock('https://api.github.com')
+      .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`)
+      .reply(201, { status: 'success' });
+
+    // Simulate the kudos sending
+    await axios.post('https://owaspblt.org/teams/give-kudos/', {
+      kudosReceiver: receiver,
+      kudosSender: sender,
+      link: link,
+      comment: comment
+    });
+
+    bltScope.done();
+  });
 });

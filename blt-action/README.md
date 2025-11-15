@@ -137,10 +137,12 @@ To use the `/giphy` command:
   - Example: `/giphy celebration`
   - Posts an animated GIF from Giphy matching your search term
   
-- **Send Kudos**: Comment `/kudos @username [optional message]`
-  - Example: `/kudos @contributor great work on the PR!`
-  - Sends appreciation to the OWASP BLT team API
-  - Recognizes contributors for their efforts
+- **Send Kudos**: Comment `/kudos username [optional message]`
+  - Example: `/kudos alice great work on the PR!`
+  - Sends appreciation to the OWASP BLT platform
+  - The username should be the recipient's BLT username (without @ symbol)
+  - If the user doesn't have their GitHub account linked to BLT, they'll need to do so at https://owaspblt.org
+  - Recognizes contributors for their efforts and tracks kudos on their BLT profile
 
 #### Automated Features
 - **Stale Issue Unassignment**: If an issue remains inactive for 24 hours without a linked pull request, the action automatically:
