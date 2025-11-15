@@ -16,6 +16,8 @@ jobs:
   lint-and-test:
     name: Lint and Test Workers
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +48,8 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
@@ -73,6 +77,8 @@ jobs:
   validate-brokers:
     name: Validate Broker Data
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
@@ -94,6 +100,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     needs: [lint-and-test, security-scan, validate-brokers]
+    permissions:
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
