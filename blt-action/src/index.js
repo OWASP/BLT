@@ -127,13 +127,7 @@ const run = async () => {
                     }
 
                     // prevent multiple assignees
-                    const issueData = await octokit.issues.get({
-                        owner,
-                        repo: repoName,
-                        issue_number: issue.number
-                    });
-
-                    const currentAssignees = issueData.data.assignees || [];
+                    const currentAssignees = issue.assignees || [];
 
                     if (currentAssignees.length > 0) {
                         const currentAssignee = currentAssignees[0].login;
@@ -152,9 +146,9 @@ const run = async () => {
                         }
 
                         // If already assigned to the same user → proceed silently
-                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Continuing...`);
+                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
+                        return;
                     }
-
 
                     // Assign user to the issue
                     await octokit.issues.addAssignees({
