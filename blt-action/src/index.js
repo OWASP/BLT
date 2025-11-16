@@ -129,6 +129,30 @@ const run = async () => {
                         return;
                     }
 
+                    // prevent multiple assignees
+                    const currentAssignees = issue.assignees || [];
+
+                    if (currentAssignees.length > 0) {
+                        const currentAssignee = currentAssignees[0].login;
+
+                        if (currentAssignee !== assigneeLogin) {
+                            console.log(`Issue #${issue.number} is already assigned to ${currentAssignee}`);
+
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.`
+                            });
+
+                            return; // prevent assignment
+                        }
+
+                        // If already assigned to the same user → proceed silently
+                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
+                        return;
+                    }
+
                     // Assign user to the issue
                     await octokit.issues.addAssignees({
                         owner,
@@ -237,29 +261,31 @@ const run = async () => {
 
                     if (daysInactive > 1) {
                         console.log(`Unassigning issue #${event.issue.number} due to inactivity`);
-                        try { 
-                          const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
-                            owner,
-                            repo: repoName,
-                            issue_number: event.issue.number,
-                            per_page: 100,
-                          });
+                        try {
+                            const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
+                                owner,
+                                repo: repoName,
+                                issue_number: event.issue.number,
+                                per_page: 100,
+                            });
 
-                          const hasOpenLinkedPR = timelineEvents.some(e =>
-                            e.event === "cross-referenced" &&
-                            e.source &&
-                            e.source.issue &&
-                            e.source.issue.pull_request &&
-                            e.source.issue.state === "open"
-                          );
-                          if (hasOpenLinkedPR) {
-                              console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
-                              continue; 
-                          }
+                            const hasOpenLinkedPR = timelineEvents.some(e =>
+                                e.event === "cross-referenced" &&
+                                e.source &&
+                                e.source.issue &&
+                                e.source.issue.pull_request &&
+                                e.source.issue.state === "open"
+                            );
+                            if (hasOpenLinkedPR) {
+                                console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
+                                continue;
+                            }
                         } catch (searchError) {
-                          console.log(`Error checking for open pull requests for issue #${event.issue.number}:`, searchError);
+                            console.log(`Error checking for open pull requests for issue #${event.issue.number}:`, searchError);
+                            console.log(`Skipping unassignment for issue #${event.issue.number} due to verification failure.`);
+                            continue;
                         }
-                        
+
                         const issueDetails = await octokit.issues.get({
                             owner,
                             repo: repoName,
