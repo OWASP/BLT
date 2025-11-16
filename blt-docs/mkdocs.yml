@@ -1,0 +1,156 @@
+site_name: OWASP BLT Documentation
+site_url: https://owasp-blt.github.io/documentation/
+site_description: Official documentation for OWASP Bug Logging Tool (BLT)
+site_author: OWASP BLT Team
+repo_url: https://github.com/OWASP-BLT/BLT
+repo_name: OWASP-BLT/BLT
+edit_uri: ""
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: red
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: red
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+  favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - tags
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/OWASP-BLT/BLT
+      name: BLT on GitHub
+    - icon: fontawesome/brands/slack
+      link: https://owasp.org/slack/invite
+      name: OWASP Slack
+    - icon: fontawesome/solid/globe
+      link: https://owaspblt.org
+      name: BLT Website
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  generator: false
+
+copyright: Copyright &copy; 2024 OWASP Foundation
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Setup Guide: getting-started/setup.md
+      - Project Proposal: getting-started/proposal.md
+  - Features:
+      - Overview: features/overview.md
+  - User Guide:
+      - About BLT: user-guide/about-us.md
+      - Home Page: user-guide/home-page.md
+      - Authentication:
+          - Login: user-guide/login-page.md
+          - Sign Up: user-guide/signup-page.md
+          - Change Password: user-guide/change-password.md
+      - Bug Reporting:
+          - Report a Bug: user-guide/report-bug.md
+          - Issue Page: user-guide/issue-page.md
+          - Place a Bid: user-guide/place-a-bid.md
+      - Leaderboards & Stats:
+          - Global Leaderboard: user-guide/global-leaderboard.md
+          - Company Scoreboard: user-guide/company-scoreboard.md
+          - Statistics: user-guide/stats.md
+          - Weekly Activity: user-guide/weekly-activity.md
+      - Companies:
+          - Company Dashboard: user-guide/company-dashboard.md
+          - Company Listing: user-guide/company-listing.md
+          - Start a Bug Hunt: user-guide/start-bughunt.md
+      - Community:
+          - Community Members: user-guide/community-members.md
+          - User Profile: user-guide/user-profile.md
+          - Invite Users: user-guide/invite.md
+          - BLT TV: user-guide/blt-tv.md
+      - Trademarks:
+          - Trademark Search: user-guide/trademarks-search.md
+          - Search Results: user-guide/trademarks-search-results.md
+      - Reference:
+          - BLT Details: user-guide/details.md
+          - OWASP BLT Overview: user-guide/details-from-owasp.md
+          - Terms & Conditions: user-guide/terms.md
+  - Developer Guide:
+      - Contributing: developer-guide/contributing.md
+      - Bot Setup: developer-guide/bot-setup.md
