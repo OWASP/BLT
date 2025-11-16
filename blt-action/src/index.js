@@ -285,6 +285,8 @@ const run = async () => {
                             }
                         } catch (searchError) {
                             console.log(`Error checking for open pull requests for issue #${event.issue.number}:`, searchError);
+                            console.log(`Skipping unassignment for issue #${event.issue.number} due to verification failure.`);
+                            continue;
                         }
 
                         const issueDetails = await octokit.issues.get({
