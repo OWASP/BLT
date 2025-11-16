@@ -1,5 +1,5 @@
-name: 'OWASP BLT-Action Auto-assign Issue and unassign after 5 days'
-description: 'Auto-assigns issues to users'
+name: 'OWASP BLT-Action Auto-assign Issue and unassign after 24 hours'
+description: 'Auto-assigns issues to users and manages issue workflow with GIFs, kudos, and automatic stale issue handling'
 inputs:
     repo-token:
         description: 'The GITHUB_TOKEN, needed to update the Issue'
