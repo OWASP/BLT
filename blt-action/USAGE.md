@@ -14,7 +14,7 @@
 - **Unassignment**: Users can unassign via `/unassign`
 - **Stale Issue Handling**: Auto-unassigns after 24 hours of inactivity without a PR
 - **GIF Integration**: Post GIFs using `/giphy [search term]`
-- **Kudos System**: Send appreciation using `/kudos username [message]` (use BLT username without @)
+- **Kudos System**: Send appreciation using `/kudos @username [message]` (works with any GitHub username)
 - **PR Tracking**: Validates linked pull requests before unassignment
 - **Multi-assignment Prevention**: Blocks new assignments if user has issues without PRs
 

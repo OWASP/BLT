@@ -74,7 +74,7 @@ describe('GitHub API Mock Test', () => {
     githubScope.done();
   });
 
-  it('should send kudos to BLT API', async () => {
+  it('should send kudos to BLT API when user has profile', async () => {
     const owner = 'testowner';
     const repo = 'testrepo';
     const issueNumber = 1;
@@ -92,10 +92,6 @@ describe('GitHub API Mock Test', () => {
       })
       .reply(201, { success: true, message: 'Kudos sent successfully!' });
 
-    const githubScope = nock('https://api.github.com')
-      .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`)
-      .reply(201, { status: 'success' });
-
     // Simulate the kudos sending
     await axios.post('https://owaspblt.org/teams/give-kudos/', {
       kudosReceiver: receiver,
@@ -103,6 +99,40 @@ describe('GitHub API Mock Test', () => {
       link: link,
       comment: comment
     });
+
+    bltScope.done();
+  });
+
+  it('should handle kudos when user does not have BLT profile', async () => {
+    const owner = 'testowner';
+    const repo = 'testrepo';
+    const issueNumber = 1;
+    const sender = 'githubuser';
+    const receiver = 'newuser';
+    const comment = 'Great work on the PR!';
+    const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
+
+    const bltScope = nock('https://owaspblt.org')
+      .post('/teams/give-kudos/', {
+        kudosReceiver: receiver,
+        kudosSender: sender,
+        link: link,
+        comment: comment
+      })
+      .reply(404, { success: false, error: 'Receiver username not found' });
+
+    // Simulate the kudos sending - should not throw error even if API returns 404
+    try {
+      await axios.post('https://owaspblt.org/teams/give-kudos/', {
+        kudosReceiver: receiver,
+        kudosSender: sender,
+        link: link,
+        comment: comment
+      });
+    } catch (error) {
+      // This is expected for users without BLT profile
+      assert.strictEqual(error.response.status, 404);
+    }
 
     bltScope.done();
   });

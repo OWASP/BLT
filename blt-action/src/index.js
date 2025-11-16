@@ -186,48 +186,46 @@ const run = async () => {
                     const issueNumber = issue ? issue.number : pull_request.number;
                     const link = `https://github.com/${owner}/${repoName}/issues/${issueNumber}`;
 
-                    console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
+                    console.log(`Sending kudos from ${sender} to @${receiver} with comment: "${kudosComment}"`);
 
+                    // Always post kudos comment on GitHub first
+                    await octokit.issues.createComment({
+                        owner,
+                        repo: repoName,
+                        issue_number: issueNumber,
+                        body: `🎉 Kudos from @${sender} to @${receiver}! 🎉\n\n> ${kudosComment}`
+                    });
+
+                    // Try to send to BLT API (optional, won't fail if user doesn't have profile)
                     try {
-                        // Send kudos to the API
-                        const response = await axios.post('https://owaspblt.org/teams/give-kudos/', {
+                        await axios.post('https://owaspblt.org/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
                             link: link,
                             comment: kudosComment
                         });
 
-                        // Confirm success in the issue or PR comment
+                        // If successful, add a follow-up comment about BLT tracking
                         await octokit.issues.createComment({
                             owner,
                             repo: repoName,
                             issue_number: issueNumber,
-                            body: `🎉 Kudos from @${sender} to ${receiver}! 🎉\n\n> ${kudosComment}\n\n✅ Kudos successfully sent to [BLT](https://owaspblt.org/profile/${receiver})!`
+                            body: `✅ Kudos tracked on [BLT profile](https://owaspblt.org/profile/${receiver})!`
                         });
+                        
+                        console.log(`Kudos successfully tracked on BLT for ${receiver}`);
                     } catch (apiError) {
-                        console.error('Error sending kudos to the API:', apiError);
-                        let errorMessage = '⚠️ Failed to send kudos to the BLT API.';
+                        console.log(`Note: Kudos not tracked on BLT (user may not have a profile): ${apiError.message}`);
                         
-                        // Provide more specific error messages based on the API response
-                        if (apiError.response) {
-                            const status = apiError.response.status;
-                            const errorData = apiError.response.data;
-                            
-                            if (status === 404) {
-                                errorMessage = `⚠️ User \`${receiver}\` not found on BLT. Please ensure:\n- The username is correct (without @ symbol)\n- The user has a BLT account at https://owaspblt.org\n- The user has linked their GitHub account to their BLT profile`;
-                            } else if (status === 400 && errorData?.error) {
-                                errorMessage = `⚠️ ${errorData.error}`;
-                            } else {
-                                errorMessage = `⚠️ Failed to send kudos: ${errorData?.error || 'Unknown error'}. Please try again later.`;
-                            }
+                        // Post informational message about BLT profile (only if it's a 404 or similar)
+                        if (apiError.response && (apiError.response.status === 404 || apiError.response.status === 400)) {
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issueNumber,
+                                body: `💡 @${receiver} - Create a [BLT profile](https://owaspblt.org) to track all your kudos in one place!`
+                            });
                         }
-                        
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issueNumber,
-                            body: errorMessage
-                        });
                     }
                 } else {
                     console.log('Invalid /kudos command format.');
@@ -235,7 +233,7 @@ const run = async () => {
                         owner,
                         repo: repoName,
                         issue_number: issue ? issue.number : pull_request.number,
-                        body: `⚠️ Invalid /kudos command format.\n\nUsage: \`/kudos username [optional comment]\`\n\nExample: \`/kudos alice Great work on the PR!\`\n\nNote: Use BLT username without the @ symbol.`
+                        body: `⚠️ Invalid /kudos command format.\n\nUsage: \`/kudos @username [optional comment]\`\n\nExample: \`/kudos @alice Great work on the PR!\``
                     });
                 }
             }
