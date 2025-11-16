@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SelfErase Broker Data Schema",
+  "description": "Schema for data broker definitions in the SelfErase system",
+  "type": "object",
+  "required": ["id", "name", "description", "website", "category", "dataTypes", "optOutMethod", "requiredFields", "isActive"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the broker (lowercase, hyphenated)",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the broker"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the broker's services"
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "description": "Main website URL"
+    },
+    "optOutUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to opt-out or data removal page"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "People Search",
+        "Data Broker",
+        "Background Check",
+        "Public Records",
+        "Social Media",
+        "Marketing",
+        "Other"
+      ],
+      "description": "Category of data broker"
+    },
+    "dataTypes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "name",
+          "address",
+          "phone",
+          "email",
+          "age",
+          "dob",
+          "ssn",
+          "relatives",
+          "neighbors",
+          "property_records",
+          "criminal_records",
+          "financial_records",
+          "employment",
+          "education",
+          "social_media",
+          "photos",
+          "vehicle_records",
+          "other"
+        ]
+      },
+      "description": "Types of personal data collected by the broker"
+    },
+    "optOutMethod": {
+      "type": "object",
+      "required": ["type", "instructions", "steps"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["online_form", "email", "mail", "phone", "multiple"],
+          "description": "Primary method for opting out"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Brief instructions for the opt-out process"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "ID of the template to use for this broker"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Step-by-step instructions"
+        }
+      }
+    },
+    "contactEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address for opt-out requests"
+    },
+    "contactPhone": {
+      "type": "string",
+      "description": "Phone number for opt-out requests"
+    },
+    "mailingAddress": {
+      "type": "string",
+      "description": "Mailing address for written opt-out requests"
+    },
+    "requiredFields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "firstName",
+          "middleName",
+          "lastName",
+          "email",
+          "phone",
+          "address",
+          "city",
+          "state",
+          "zipCode",
+          "dob",
+          "age",
+          "profileUrl"
+        ]
+      },
+      "description": "Fields required for opt-out request"
+    },
+    "estimatedResponseDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "description": "Estimated days for broker to respond"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or special instructions"
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether the broker is actively tracked"
+    }
+  }
+}
