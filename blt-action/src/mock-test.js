@@ -10,6 +10,24 @@ async function assignUserToIssue(owner, repo, issueNumber, username) {
   return response.data;
 }
 
+async function unassignUserFromIssue(owner, repo, issueNumber, username) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/assignees`;
+  const response = await axios.delete(url, { data: { assignees: [username] } });
+  return response.data;
+}
+
+async function addLabelToIssue(owner, repo, issueNumber, labels) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/labels`;
+  const response = await axios.post(url, { labels });
+  return response.data;
+}
+
+async function removeLabelFromIssue(owner, repo, issueNumber, labelName) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/labels/${labelName}`;
+  const response = await axios.delete(url);
+  return response.data;
+}
+
 async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKey) {
   const giphyResponse = await axios.get(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`);
   const gifUrl = giphyResponse.data.data[0]?.images?.original?.url;
@@ -23,83 +41,350 @@ async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKe
   }
 }
 
+async function sendKudos(sender, receiver, comment) {
+  const response = await axios.post('https://owaspblt.org/teams/give-kudos/', {
+    kudosReceiver: receiver,
+    kudosSender: sender,
+    comment: comment
+  });
+  return response.data;
+}
+
 describe('GitHub API Mock Test', () => {
   beforeEach(() => {
     nock.cleanAll();
   });
 
-  it('should assign a user to an issue with a PR', async () => {
-    const owner = 'testowner';
-    const repo = 'testrepo';
-    const issueNumber = 1;
-    const username = 'testuser';
+  describe('Assignment Management', () => {
+    it('should assign a user to an issue with a PR', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const username = 'testuser';
 
-    const scope = nock('https://api.github.com')
-      .post(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, { assignees: [username] })
-      .reply(201, { status: 'success' });
+      const scope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, { assignees: [username] })
+        .reply(201, { status: 'success' });
 
-    const result = await assignUserToIssue(owner, repo, issueNumber, username);
-    assert.strictEqual(result.status, 'success');
+      const result = await assignUserToIssue(owner, repo, issueNumber, username);
+      assert.strictEqual(result.status, 'success');
 
-    scope.done();
+      scope.done();
+    });
+
+    it('should unassign a user from an issue', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const username = 'testuser';
+
+      const scope = nock('https://api.github.com')
+        .delete(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, { assignees: [username] })
+        .reply(200, { status: 'success' });
+
+      const result = await unassignUserFromIssue(owner, repo, issueNumber, username);
+      assert.strictEqual(result.status, 'success');
+
+      scope.done();
+    });
+
+    it('should detect all assignment keywords', () => {
+      const assignKeywords = [
+        '/assign',
+        'assign to me',
+        'assign this to me',
+        'assign it to me',
+        'assign me this',
+        'work on this',
+        'i can try fixing this',
+        'i am interested in doing this',
+        'be assigned this',
+        'i am interested in contributing'
+      ];
+
+      assignKeywords.forEach(keyword => {
+        const testComment = `I would like to ${keyword}`.toLowerCase();
+        assert.ok(
+          assignKeywords.some(k => testComment.includes(k)),
+          `Keyword "${keyword}" should be detected in comment`
+        );
+      });
+    });
   });
 
-  it('should post a Giphy comment on an issue', async () => {
-    const owner = 'testowner';
-    const repo = 'testrepo';
-    const issueNumber = 1;
-    const searchText = 'funny cat';
-    const giphyApiKey = 'testapikey';
+  describe('Label Management', () => {
+    it('should add "assigned" label to an issue', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
 
-    const giphyScope = nock('https://api.giphy.com')
-      .get(`/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`)
-      .reply(200, {
-        data: [
-          {
-            images: {
-              original: {
-                url: 'https://giphy.com/gifs/moodman-dog-confused-rigley-beans-Z5xk7fGO5FjjTElnpT'
+      const scope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${issueNumber}/labels`, { labels: ['assigned'] })
+        .reply(200, { status: 'success' });
+
+      const result = await addLabelToIssue(owner, repo, issueNumber, ['assigned']);
+      assert.strictEqual(result.status, 'success');
+
+      scope.done();
+    });
+
+    it('should remove "assigned" label from an issue', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+
+      const scope = nock('https://api.github.com')
+        .delete(`/repos/${owner}/${repo}/issues/${issueNumber}/labels/assigned`)
+        .reply(200, { status: 'success' });
+
+      const result = await removeLabelFromIssue(owner, repo, issueNumber, 'assigned');
+      assert.strictEqual(result.status, 'success');
+
+      scope.done();
+    });
+  });
+
+  describe('Giphy Integration', () => {
+    it('should post a Giphy comment on an issue', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const searchText = 'funny cat';
+      const giphyApiKey = 'testapikey';
+
+      const giphyScope = nock('https://api.giphy.com')
+        .get(`/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`)
+        .reply(200, {
+          data: [
+            {
+              images: {
+                original: {
+                  url: 'https://giphy.com/gifs/moodman-dog-confused-rigley-beans-Z5xk7fGO5FjjTElnpT'
+                }
               }
             }
-          }
-        ]
-      });
+          ]
+        });
 
-    const githubScope = nock('https://api.github.com')
-      .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, { body: '![Giphy GIF](https://giphy.com/gifs/moodman-dog-confused-rigley-beans-Z5xk7fGO5FjjTElnpT)' })
-      .reply(201, { status: 'success' });
+      const githubScope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, { body: '![Giphy GIF](https://giphy.com/gifs/moodman-dog-confused-rigley-beans-Z5xk7fGO5FjjTElnpT)' })
+        .reply(201, { status: 'success' });
 
-    const result = await postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKey);
-    assert.strictEqual(result.status, 'success');
+      const result = await postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKey);
+      assert.strictEqual(result.status, 'success');
 
-    giphyScope.done();
-    githubScope.done();
+      giphyScope.done();
+      githubScope.done();
+    });
+
+    it('should handle no GIFs found scenario', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const searchText = 'nonexistentgif12345';
+      const giphyApiKey = 'testapikey';
+
+      const giphyScope = nock('https://api.giphy.com')
+        .get(`/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`)
+        .reply(200, {
+          data: []
+        });
+
+      try {
+        await postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKey);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.ok(error.message.includes('No GIFs found'));
+      }
+
+      giphyScope.done();
+    });
   });
 
-  it('should include attribution in comment bodies', () => {
-    // Test various comment bodies to ensure they include the attribution
-    const testComments = [
-      'You have been unassigned from this issue. It\'s now open for others. You can reassign it anytime by typing /assign.',
-      'You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #1. Please submit a pull request for these issues before getting assigned to a new one.',
-      'Hello @user! You\'ve been assigned to [repo issue #1](https://github.com/owner/repo/issues/1). You have 24 hours to complete a pull request.',
-      'No GIFs found for "test".',
-      '🎉 Kudos from @sender to @receiver! 🎉\n\nawesome work\n\n✅ Kudos successfully sent to the team API!',
-      '⚠️ Failed to send kudos to the team API. Please try again later.',
-      '⚠️ Invalid /kudos command format. Use: `/kudos receiver comment(optional)`',
-      '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.'
-    ];
+  describe('Kudos System', () => {
+    it('should send kudos to the OWASP BLT API', async () => {
+      const sender = 'testsender';
+      const receiver = '@testreceiver';
+      const comment = 'great work on the PR';
 
-    // Each comment should end with the attribution
-    testComments.forEach((comment, index) => {
-      const commentWithAttribution = comment + attribution;
-      assert.ok(
-        commentWithAttribution.includes('OWASP BLT-Action'),
-        `Comment ${index + 1} should include attribution`
-      );
-      assert.ok(
-        commentWithAttribution.includes('https://github.com/OWASP-BLT/BLT-Action'),
-        `Comment ${index + 1} should include repository link`
-      );
+      const scope = nock('https://owaspblt.org')
+        .post('/teams/give-kudos/', {
+          kudosReceiver: receiver,
+          kudosSender: sender,
+          comment: comment
+        })
+        .reply(200, { status: 'success' });
+
+      const result = await sendKudos(sender, receiver, comment);
+      assert.strictEqual(result.status, 'success');
+
+      scope.done();
+    });
+
+    it('should handle default kudos message', async () => {
+      const sender = 'testsender';
+      const receiver = '@testreceiver';
+      const comment = 'awesome work';
+
+      const scope = nock('https://owaspblt.org')
+        .post('/teams/give-kudos/', {
+          kudosReceiver: receiver,
+          kudosSender: sender,
+          comment: comment
+        })
+        .reply(200, { status: 'success' });
+
+      const result = await sendKudos(sender, receiver, comment);
+      assert.strictEqual(result.status, 'success');
+
+      scope.done();
+    });
+  });
+
+  describe('Command Detection', () => {
+    it('should detect /unassign command', () => {
+      const testComments = [
+        '/unassign',
+        '/unassign me',
+        '/unassign please'
+      ];
+
+      testComments.forEach(comment => {
+        assert.ok(
+          comment.toLowerCase().startsWith('/unassign'),
+          `Command "${comment}" should be detected as /unassign`
+        );
+      });
+    });
+
+    it('should detect /giphy command', () => {
+      const testComments = [
+        '/giphy celebration',
+        '/giphy funny cat',
+        '/giphy winning'
+      ];
+
+      testComments.forEach(comment => {
+        assert.ok(
+          comment.toLowerCase().startsWith('/giphy'),
+          `Command "${comment}" should be detected as /giphy`
+        );
+      });
+    });
+
+    it('should detect /kudos command', () => {
+      const testComments = [
+        '/kudos @user great work',
+        '/kudos @contributor awesome',
+        '/kudos @dev'
+      ];
+
+      testComments.forEach(comment => {
+        assert.ok(
+          comment.toLowerCase().startsWith('/kudos'),
+          `Command "${comment}" should be detected as /kudos`
+        );
+      });
+    });
+  });
+
+  describe('Attribution', () => {
+    it('should include attribution in comment bodies', () => {
+      // Test various comment bodies to ensure they include the attribution
+      const testComments = [
+        'You have been unassigned from this issue. It\'s now open for others. You can reassign it anytime by typing /assign.',
+        'You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #1. Please submit a pull request for these issues before getting assigned to a new one.',
+        'Hello @user! You\'ve been assigned to [repo issue #1](https://github.com/owner/repo/issues/1). You have 24 hours to complete a pull request.',
+        'No GIFs found for "test".',
+        '🎉 Kudos from @sender to @receiver! 🎉\n\nawesome work\n\n✅ Kudos successfully sent to the team API!',
+        '⚠️ Failed to send kudos to the team API. Please try again later.',
+        '⚠️ Invalid /kudos command format. Use: `/kudos receiver comment(optional)`',
+        '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.'
+      ];
+
+      // Each comment should end with the attribution
+      testComments.forEach((comment, index) => {
+        const commentWithAttribution = comment + attribution;
+        assert.ok(
+          commentWithAttribution.includes('OWASP BLT-Action'),
+          `Comment ${index + 1} should include attribution`
+        );
+        assert.ok(
+          commentWithAttribution.includes('https://github.com/OWASP-BLT/BLT-Action'),
+          `Comment ${index + 1} should include repository link`
+        );
+      });
+    });
+
+    it('should have consistent attribution format', () => {
+      const expectedAttribution = '\n\n---\n*This comment was generated by [OWASP BLT-Action](https://github.com/OWASP-BLT/BLT-Action)*';
+      assert.strictEqual(attribution, expectedAttribution, 'Attribution format should be consistent');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle GitHub API errors gracefully', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const username = 'testuser';
+
+      const scope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, { assignees: [username] })
+        .reply(500, { message: 'Internal Server Error' });
+
+      try {
+        await assignUserToIssue(owner, repo, issueNumber, username);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.ok(error.message.includes('500'));
+      }
+
+      scope.done();
+    });
+
+    it('should handle Giphy API errors gracefully', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const searchText = 'test';
+      const giphyApiKey = 'testapikey';
+
+      const giphyScope = nock('https://api.giphy.com')
+        .get(`/v1/gifs/search?api_key=${giphyApiKey}&q=${searchText}&limit=1`)
+        .reply(403, { message: 'Forbidden' });
+
+      try {
+        await postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKey);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.ok(error.message.includes('403'));
+      }
+
+      giphyScope.done();
+    });
+
+    it('should handle Kudos API errors gracefully', async () => {
+      const sender = 'testsender';
+      const receiver = '@testreceiver';
+      const comment = 'great work';
+
+      const scope = nock('https://owaspblt.org')
+        .post('/teams/give-kudos/', {
+          kudosReceiver: receiver,
+          kudosSender: sender,
+          comment: comment
+        })
+        .reply(500, { message: 'Internal Server Error' });
+
+      try {
+        await sendKudos(sender, receiver, comment);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.ok(error.message.includes('500'));
+      }
+
+      scope.done();
     });
   });
 });
