@@ -174,11 +174,11 @@ To use the `/giphy` command:
   - Shows a message if no GIF is found for the search term
   
 - **Send Kudos**: Comment `/kudos @username [optional message]`
-  - Example: `/kudos @contributor great work on the PR!`
-  - Sends appreciation to the OWASP BLT team API at https://owaspblt.org/teams/give-kudos/
-  - Recognizes contributors for their efforts
-  - Posts confirmation when kudos are successfully sent
-  - Defaults to "awesome work" if no custom message is provided
+  - Example: `/kudos @alice great work on the PR!`
+  - Posts kudos publicly on the issue/PR for everyone to see
+  - Works with any GitHub username - no BLT account required!
+  - If the recipient has a [BLT profile](https://owaspblt.org), kudos are automatically tracked there
+  - If they don't have a BLT profile yet, they'll be encouraged to create one to track all their kudos
   - Works on both issues and pull request comments
 
 #### Automated Features
