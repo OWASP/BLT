@@ -29,6 +29,28 @@ Once installed, using BLT is straightforward:
 
 Encounter any issues or have questions? Please file an issue on our GitHub [Issues](../issues) page.
 
+## For Developers
+
+### Creating a New Release
+
+This repository uses GitHub Actions to automatically create releases that are ready to be installed in Chromium-based browsers.
+
+To create a new release:
+
+1. **Update the version** in `manifest.json` to the new version number (e.g., `1.5`)
+2. **Commit and push** your changes to the main branch
+3. **Create and push a tag** with the version number:
+   ```bash
+   git tag v1.5
+   git push origin v1.5
+   ```
+4. The GitHub Action will automatically:
+   - Package the extension files into a zip
+   - Create a GitHub release with the zip file attached
+   - Generate release notes
+
+The release zip file will be available on the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page and can be downloaded and installed directly in Chromium.
+
 
 https://www.github.com/OWASP/BLT  
 https://www.github.com/OWASP/BLT-Flutter  
