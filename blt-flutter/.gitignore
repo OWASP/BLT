@@ -25,7 +25,9 @@
 .pub-cache/
 .pub/
 /build/
-*.lock
+# Note: pubspec.lock should be committed for applications to ensure consistent builds
+# Only ignore other .lock files
+**/*.iml.lock
 
 # Web related
 lib/generated_plugin_registrant.dart
