@@ -1,0 +1,34 @@
+name: Verify Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build the action
+        run: npm run build
+
+      - name: Verify dist/ is up to date
+        run: |
+          if [ -n "$(git status --porcelain dist/)" ]; then
+            echo "Error: dist/ directory is not up to date. Please run 'npm run build' and commit the changes."
+            git --no-pager diff dist/
+            exit 1
+          else
+            echo "✓ dist/ directory is up to date"
+          fi
