@@ -1,0 +1,5 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+PyGithub>=2.1.1
+PyYAML>=6.0
+python-dotenv>=1.0.0
