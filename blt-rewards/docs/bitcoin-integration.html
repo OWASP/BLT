@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bitcoin Integration Guide for BACON - Using Runes Protocol">
+    <title>Bitcoin Integration - BACON</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="hero" style="min-height: 40vh;">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">🥓 BACON</a></div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="api-reference.html">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html">Bitcoin</a></li>
+                    <li><a href="solana-integration.html">Solana</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="hero-content">
+            <h1>₿ Bitcoin Integration</h1>
+            <p class="tagline">Using Runes Protocol for BACON Tokens</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="section">
+            <div class="container">
+                <h2>What is the Runes Protocol?</h2>
+                <div class="feature-detail">
+                    <p>The Runes protocol is a fungible token protocol built on Bitcoin that allows for the creation and transfer of tokens directly on the Bitcoin blockchain. Unlike other token standards, Runes leverages Bitcoin's native UTXO model for efficient and secure token transfers.</p>
+                    
+                    <h3>Key Features</h3>
+                    <ul>
+                        <li><strong>Native Bitcoin:</strong> Tokens exist on the Bitcoin mainnet without requiring a separate layer</li>
+                        <li><strong>UTXO-based:</strong> Leverages Bitcoin's proven UTXO model for better efficiency</li>
+                        <li><strong>No Off-chain Dependencies:</strong> All data is stored on the Bitcoin blockchain</li>
+                        <li><strong>Fungible Tokens:</strong> Perfect for reward and incentive systems</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt">
+            <div class="container">
+                <h2>Setting Up Bitcoin Node</h2>
+                
+                <div class="feature-detail">
+                    <h3>Option 1: Run Your Own Bitcoin Node</h3>
+                    <p>Use the provided setup script to deploy a Bitcoin Core node with Runes support:</p>
+                    <div class="code-block">
+<pre>#!/bin/bash
+# Download and run the setup script
+curl -sSL https://raw.githubusercontent.com/OWASP-BLT/BLT-Bacon/main/setup_bacon_node.sh | bash
+
+# Or manually:
+git clone https://github.com/OWASP-BLT/BLT-Bacon.git
+cd BLT-Bacon
+chmod +x setup_bacon_node.sh
+./setup_bacon_node.sh</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Option 2: Use a Bitcoin Node Service</h3>
+                    <p>Connect to a third-party Bitcoin node provider:</p>
+                    <div class="code-block">
+<pre>// Configure with external node
+const bacon = new BaconSDK({
+  blockchain: 'bitcoin',
+  network: 'mainnet',
+  rpc: {
+    url: 'https://your-bitcoin-node.com',
+    username: 'your_username',
+    password: 'your_password'
+  }
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Bitcoin Node Configuration</h3>
+                    <p>Essential settings in <code>bitcoin.conf</code>:</p>
+                    <div class="code-block">
+<pre>server=1
+daemon=1
+txindex=1
+rpcuser=yourusername
+rpcpassword=yourpassword
+rpcallowip=127.0.0.1
+rpcport=8332
+addresstype=bech32
+
+# Runes-specific settings
+enablerunes=1
+runesindex=1</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <h2>Creating BACON Tokens on Bitcoin</h2>
+                
+                <div class="integration-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Initialize Token</h3>
+                            <p>Create your BACON token on Bitcoin:</p>
+                            <div class="code-block">
+<pre>const { BitcoinRunes } = require('@blt-bacon/bitcoin');
+
+const runes = new BitcoinRunes({
+  network: 'mainnet',
+  rpcUrl: process.env.BITCOIN_RPC_URL,
+  rpcUser: process.env.BITCOIN_RPC_USER,
+  rpcPassword: process.env.BITCOIN_RPC_PASSWORD
+});
+
+// Create BACON token
+const tokenId = await runes.createToken({
+  name: 'BACON',
+  symbol: 'BACON',
+  decimals: 8,
+  supply: 21000000, // Total supply
+  description: 'Blockchain Assisted Contribution Network Token'
+});</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Mint Tokens</h3>
+                            <p>Mint BACON tokens for distribution:</p>
+                            <div class="code-block">
+<pre>// Mint tokens to treasury wallet
+await runes.mint({
+  tokenId: 'BACON',
+  amount: 1000000,
+  destination: treasuryAddress
+});
+
+// Check balance
+const balance = await runes.getBalance(treasuryAddress, 'BACON');
+console.log(`Treasury balance: ${balance} BACON`);</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Distribute Rewards</h3>
+                            <p>Send BACON tokens as rewards:</p>
+                            <div class="code-block">
+<pre>// Transfer tokens to contributor
+await runes.transfer({
+  tokenId: 'BACON',
+  from: treasuryAddress,
+  to: contributorAddress,
+  amount: 100,
+  memo: 'Reward for fixing bug #123'
+});
+
+// Batch transfer for multiple recipients
+await runes.batchTransfer({
+  tokenId: 'BACON',
+  from: treasuryAddress,
+  transfers: [
+    { to: address1, amount: 50 },
+    { to: address2, amount: 75 },
+    { to: address3, amount: 100 }
+  ]
+});</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt">
+            <div class="container">
+                <h2>Bitcoin Features Integration</h2>
+                
+                <div class="feature-detail">
+                    <h3>Schnorr Signatures</h3>
+                    <p>Enhanced privacy and efficiency with Schnorr signatures:</p>
+                    <div class="code-block">
+<pre>// Use Schnorr signatures for transactions
+const tx = await runes.createTransaction({
+  signatureType: 'schnorr',
+  outputs: [{
+    address: recipientAddress,
+    amount: 100,
+    tokenId: 'BACON'
+  }]
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Taproot Integration</h3>
+                    <p>Leverage Taproot for complex smart contracts:</p>
+                    <div class="code-block">
+<pre>// Create Taproot-based conditional reward
+const taprootContract = await runes.createTaprootContract({
+  conditions: {
+    minContributions: 5,
+    timelock: '30 days',
+    multiSig: [address1, address2, address3]
+  },
+  reward: {
+    tokenId: 'BACON',
+    amount: 500
+  }
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Lightning Network Support</h3>
+                    <p>Fast, low-cost transfers via Lightning Network:</p>
+                    <div class="code-block">
+<pre>// Initialize Lightning Network connection
+const lightning = await runes.connectLightning({
+  nodeUrl: process.env.LIGHTNING_NODE_URL
+});
+
+// Send instant reward via Lightning
+await lightning.sendPayment({
+  tokenId: 'BACON',
+  destination: lightningInvoice,
+  amount: 25
+});</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <h2>Security Best Practices</h2>
+                
+                <div class="use-cases">
+                    <div class="use-case">
+                        <h3>🔐 Wallet Security</h3>
+                        <ul>
+                            <li>Use hardware wallets for treasury management</li>
+                            <li>Implement multi-signature requirements for large transfers</li>
+                            <li>Keep private keys encrypted and secure</li>
+                            <li>Use separate hot and cold wallets</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>🔒 Transaction Security</h3>
+                        <ul>
+                            <li>Verify all addresses before sending</li>
+                            <li>Use RBF (Replace-By-Fee) for stuck transactions</li>
+                            <li>Monitor for double-spend attempts</li>
+                            <li>Implement rate limiting on rewards</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>🛡️ Node Security</h3>
+                        <ul>
+                            <li>Keep Bitcoin Core updated</li>
+                            <li>Enable firewall and restrict RPC access</li>
+                            <li>Regular backups of wallet.dat</li>
+                            <li>Monitor node health and sync status</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>📊 Audit Trail</h3>
+                        <ul>
+                            <li>Log all reward distributions</li>
+                            <li>Maintain transaction history</li>
+                            <li>Regular audit of token balances</li>
+                            <li>Implement fraud detection</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt">
+            <div class="container">
+                <h2>Advanced Configuration</h2>
+                
+                <div class="feature-detail">
+                    <h3>Custom Fee Management</h3>
+                    <div class="code-block">
+<pre>// Configure transaction fees
+const bacon = new BaconSDK({
+  blockchain: 'bitcoin',
+  fees: {
+    strategy: 'dynamic', // or 'fixed'
+    priority: 'medium', // low, medium, high
+    maxFeeRate: 50, // sat/vB
+    estimator: 'mempool.space' // fee estimation service
+  }
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Transaction Batching</h3>
+                    <div class="code-block">
+<pre>// Batch multiple rewards into single transaction
+await bacon.batchRewards({
+  recipients: [
+    { user: 'alice', amount: 50, reason: 'PR #123' },
+    { user: 'bob', amount: 75, reason: 'Issue #456' },
+    { user: 'charlie', amount: 100, reason: 'Release v2.0' }
+  ],
+  optimization: 'minimize-fees' // or 'minimize-time'
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>Monitoring and Alerts</h3>
+                    <div class="code-block">
+<pre>// Set up monitoring
+bacon.monitor({
+  events: ['transaction', 'balance', 'error'],
+  alerting: {
+    lowBalance: {
+      threshold: 1000,
+      notify: ['admin@example.com']
+    },
+    largeTransaction: {
+      threshold: 10000,
+      requireConfirmation: true
+    }
+  }
+});</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container center">
+                <h2>Ready to Use Bitcoin?</h2>
+                <p class="lead">Start rewarding contributors with Bitcoin-based BACON tokens</p>
+                <div class="cta-buttons">
+                    <a href="getting-started.html" class="btn btn-primary">Get Started</a>
+                    <a href="api-reference.html" class="btn btn-secondary">View API Reference</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>BACON</h4>
+                    <p>Blockchain Assisted Contribution Network</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Getting Started</a></li>
+                        <li><a href="api-reference.html">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html">Bitcoin</a></li>
+                        <li><a href="solana-integration.html">Solana</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

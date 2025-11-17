@@ -1,0 +1,48 @@
+# BACON GitHub Pages Configuration
+title: BACON - Blockchain Assisted Contribution Network
+description: Incentivize open source contributions with Bitcoin and Solana blockchain rewards
+url: https://owasp-blt.github.io/BLT-Bacon
+baseurl: /BLT-Bacon
+
+# Theme
+theme: null
+
+# Build settings
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
+
+# SEO
+twitter:
+  card: summary_large_image
+  
+social:
+  name: OWASP BLT
+  links:
+    - https://github.com/OWASP-BLT/BLT-Bacon
+
+# Google Analytics (optional)
+# google_analytics: UA-XXXXXXXXX-X
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:path/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      image: /assets/images/bacon-og.png
