@@ -305,13 +305,14 @@ describe('GitHub API Mock Test', () => {
       // Each comment should end with the attribution
       testComments.forEach((comment, index) => {
         const commentWithAttribution = comment + attribution;
+        const expectedLink = '[OWASP BLT-Action](https://github.com/OWASP-BLT/BLT-Action)';
         assert.ok(
           commentWithAttribution.includes('OWASP BLT-Action'),
           `Comment ${index + 1} should include attribution`
         );
         assert.ok(
-          commentWithAttribution.includes('https://github.com/OWASP-BLT/BLT-Action'),
-          `Comment ${index + 1} should include repository link`
+          commentWithAttribution.includes(expectedLink),
+          `Comment ${index + 1} should include the exact attribution link format`
         );
       });
     });
