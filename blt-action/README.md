@@ -35,6 +35,11 @@
   - Integrates with OWASP BLT team API to track and record kudos
   - Provides confirmation when kudos are successfully sent
   - Supports custom appreciation messages
+- **Tip System**: Support contributors financially using `/tip @username $amount` to send tips via GitHub Sponsors.
+  - Generates direct links to contributor's GitHub Sponsors page
+  - Validates GitHub Sponsors availability for the recipient
+  - Provides clear instructions for completing one-time payments
+  - Works on both issues and pull request comments
 
 ### Compatibility & Branding
 - **Issue and PR Support**: Works on both issue comments and pull request review comments for maximum flexibility.
@@ -45,7 +50,7 @@
 
 The BLT-Action operates through multiple triggers:
 
-1. **Comment-Triggered Actions**: When users comment on issues or pull requests with specific commands (`/assign`, `/unassign`, `/giphy`, `/kudos`), the action processes these commands immediately.
+1. **Comment-Triggered Actions**: When users comment on issues or pull requests with specific commands (`/assign`, `/unassign`, `/giphy`, `/kudos`, `/tip`), the action processes these commands immediately.
 
 2. **Scheduled Monitoring**: A daily cron job (configurable) checks all assigned issues for inactivity:
    - Identifies issues assigned for more than 24 hours without updates
@@ -58,7 +63,7 @@ The BLT-Action operates through multiple triggers:
    - Validates existing assignments before allowing new ones
    - Automatically adds and removes the "assigned" label for tracking
 
-4. **Engagement & Recognition**: Commands like `/giphy` and `/kudos` work across both issues and pull requests, making it easy to keep discussions lively and recognize contributor efforts.
+4. **Engagement & Recognition**: Commands like `/giphy`, `/kudos`, and `/tip` work across both issues and pull requests, making it easy to keep discussions lively, recognize contributor efforts, and support them financially via GitHub Sponsors.
 
 ## Getting Started
 
@@ -117,6 +122,7 @@ To use the `/giphy` command:
           startsWith(github.event.comment.body, '/unassign') || 
           startsWith(github.event.comment.body, '/giphy') || 
           startsWith(github.event.comment.body, '/kudos') || 
+          startsWith(github.event.comment.body, '/tip') || 
           contains(github.event.comment.body, 'assign to me') || 
           contains(github.event.comment.body, 'assign this to me') || 
           contains(github.event.comment.body, 'assign it to me') || 
@@ -180,6 +186,15 @@ To use the `/giphy` command:
   - Posts confirmation when kudos are successfully sent
   - Defaults to "awesome work" if no custom message is provided
   - Works on both issues and pull request comments
+
+- **Send Tips**: Comment `/tip @username $amount`
+  - Example: `/tip @contributor $10`
+  - Generates a direct link to the contributor's GitHub Sponsors page
+  - Supports any amount (e.g., `$5`, `$10.50`, `$100`)
+  - Validates that the recipient has GitHub Sponsors enabled
+  - Provides clear instructions for completing the one-time payment
+  - Works on both issues and pull request comments
+  - Note: Due to GitHub API limitations, tips cannot be sent automatically and require manual completion on the GitHub Sponsors page
 
 #### Automated Features
 - **Stale Issue Unassignment**: If an issue remains inactive for 24 hours without a linked pull request, the action automatically:

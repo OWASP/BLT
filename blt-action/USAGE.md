@@ -17,6 +17,7 @@ This GitHub Action provides automated issue assignment, engagement features, and
 - **Stale Issue Handling**: Auto-unassigns after 24 hours of inactivity without a PR
 - **GIF Integration**: Post GIFs using `/giphy [search term]` on issues or PRs
 - **Kudos System**: Send appreciation using `/kudos @username [message]` - integrates with OWASP BLT API
+- **Tip System**: Support contributors financially using `/tip @username $amount` - generates GitHub Sponsors links
 - **Smart PR Tracking**: Validates linked pull requests via cross-references before unassignment
 - **Multi-assignment Prevention**: Blocks new assignments if user has issues without PRs
 - **Scheduled Execution**: Daily cron job checks for stale assignments
@@ -51,6 +52,7 @@ jobs:
       startsWith(github.event.comment.body, '/unassign') || 
       startsWith(github.event.comment.body, '/giphy') || 
       startsWith(github.event.comment.body, '/kudos') || 
+      startsWith(github.event.comment.body, '/tip') || 
       contains(github.event.comment.body, 'assign to me') || 
       contains(github.event.comment.body, 'assign this to me') || 
       contains(github.event.comment.body, 'assign it to me') || 
