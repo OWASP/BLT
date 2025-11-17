@@ -46,7 +46,8 @@ class OWASPComplianceChecker:
         
         # Parse URL to determine repository
         parsed_url = urlparse(repo_url)
-        is_github = "github.com" in parsed_url.netloc
+        # Strict check: netloc must be exactly github.com or www.github.com
+        is_github = parsed_url.netloc.lower() in ["github.com", "www.github.com"]
         
         if is_github:
             # Extract owner and repo name
