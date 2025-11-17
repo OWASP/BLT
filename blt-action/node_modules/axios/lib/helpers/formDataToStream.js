@@ -1,11 +1,12 @@
-import {TextEncoder} from 'util';
+import util from 'util';
 import {Readable} from 'stream';
 import utils from "../utils.js";
 import readBlob from "./readBlob.js";
+import platform from "../platform/index.js";
 
-const BOUNDARY_ALPHABET = utils.ALPHABET.ALPHA_DIGIT + '-_';
+const BOUNDARY_ALPHABET = platform.ALPHABET.ALPHA_DIGIT + '-_';
 
-const textEncoder = new TextEncoder();
+const textEncoder = typeof TextEncoder === 'function' ? new TextEncoder() : new util.TextEncoder();
 
 const CRLF = '\r\n';
 const CRLF_BYTES = textEncoder.encode(CRLF);
@@ -63,7 +64,7 @@ const formDataToStream = (form, headersHandler, options) => {
   const {
     tag = 'form-data-boundary',
     size = 25,
-    boundary = tag + '-' + utils.generateString(size, BOUNDARY_ALPHABET)
+    boundary = tag + '-' + platform.generateString(size, BOUNDARY_ALPHABET)
   } = options || {};
 
   if(!utils.isFormData(form)) {
@@ -75,7 +76,7 @@ const formDataToStream = (form, headersHandler, options) => {
   }
 
   const boundaryBytes = textEncoder.encode('--' + boundary + CRLF);
-  const footerBytes = textEncoder.encode('--' + boundary + '--' + CRLF + CRLF);
+  const footerBytes = textEncoder.encode('--' + boundary + '--' + CRLF);
   let contentLength = footerBytes.byteLength;
 
   const parts = Array.from(form.entries()).map(([name, value]) => {

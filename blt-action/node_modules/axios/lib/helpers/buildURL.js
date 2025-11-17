@@ -16,9 +16,7 @@ function encode(val) {
     replace(/%3A/gi, ':').
     replace(/%24/g, '$').
     replace(/%2C/gi, ',').
-    replace(/%20/g, '+').
-    replace(/%5B/gi, '[').
-    replace(/%5D/gi, ']');
+    replace(/%20/g, '+');
 }
 
 /**
@@ -26,7 +24,7 @@ function encode(val) {
  *
  * @param {string} url The base of the url (e.g., http://www.google.com)
  * @param {object} [params] The params to be appended
- * @param {?object} options
+ * @param {?(object|Function)} options
  *
  * @returns {string} The formatted url
  */
@@ -37,6 +35,12 @@ export default function buildURL(url, params, options) {
   }
   
   const _encode = options && options.encode || encode;
+
+  if (utils.isFunction(options)) {
+    options = {
+      serialize: options
+    };
+  } 
 
   const serializeFn = options && options.serialize;
 

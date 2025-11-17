@@ -6,6 +6,7 @@ import bind from './helpers/bind.js';
 
 const {toString} = Object.prototype;
 const {getPrototypeOf} = Object;
+const {iterator, toStringTag} = Symbol;
 
 const kindOf = (cache => thing => {
     const str = toString.call(thing);
@@ -132,7 +133,28 @@ const isPlainObject = (val) => {
   }
 
   const prototype = getPrototypeOf(val);
-  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in val) && !(Symbol.iterator in val);
+  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(toStringTag in val) && !(iterator in val);
+}
+
+/**
+ * Determine if a value is an empty object (safely handles Buffers)
+ *
+ * @param {*} val The value to test
+ *
+ * @returns {boolean} True if value is an empty object, otherwise false
+ */
+const isEmptyObject = (val) => {
+  // Early return for non-objects or Buffers to prevent RangeError
+  if (!isObject(val) || isBuffer(val)) {
+    return false;
+  }
+
+  try {
+    return Object.keys(val).length === 0 && Object.getPrototypeOf(val) === Object.prototype;
+  } catch (e) {
+    // Fallback for any other objects that might cause RangeError with Object.keys()
+    return false;
+  }
 }
 
 /**
@@ -257,6 +279,11 @@ function forEach(obj, fn, {allOwnKeys = false} = {}) {
       fn.call(null, obj[i], i, obj);
     }
   } else {
+    // Buffer check
+    if (isBuffer(obj)) {
+      return;
+    }
+
     // Iterate over object keys
     const keys = allOwnKeys ? Object.getOwnPropertyNames(obj) : Object.keys(obj);
     const len = keys.length;
@@ -270,6 +297,10 @@ function forEach(obj, fn, {allOwnKeys = false} = {}) {
 }
 
 function findKey(obj, key) {
+  if (isBuffer(obj)){
+    return null;
+  }
+
   key = key.toLowerCase();
   const keys = Object.keys(obj);
   let i = keys.length;
@@ -310,7 +341,7 @@ const isContextDefined = (context) => !isUndefined(context) && context !== _glob
  * @returns {Object} Result of all merge properties
  */
 function merge(/* obj1, obj2, obj3, ... */) {
-  const {caseless} = isContextDefined(this) && this || {};
+  const {caseless, skipUndefined} = isContextDefined(this) && this || {};
   const result = {};
   const assignValue = (val, key) => {
     const targetKey = caseless && findKey(result, key) || key;
@@ -320,7 +351,7 @@ function merge(/* obj1, obj2, obj3, ... */) {
       result[targetKey] = merge({}, val);
     } else if (isArray(val)) {
       result[targetKey] = val.slice();
-    } else {
+    } else if (!skipUndefined || !isUndefined(val)) {
       result[targetKey] = val;
     }
   }
@@ -483,13 +514,13 @@ const isTypedArray = (TypedArray => {
  * @returns {void}
  */
 const forEachEntry = (obj, fn) => {
-  const generator = obj && obj[Symbol.iterator];
+  const generator = obj && obj[iterator];
 
-  const iterator = generator.call(obj);
+  const _iterator = generator.call(obj);
 
   let result;
 
-  while ((result = iterator.next()) && !result.done) {
+  while ((result = _iterator.next()) && !result.done) {
     const pair = result.value;
     fn.call(obj, pair[0], pair[1]);
   }
@@ -602,25 +633,7 @@ const toFiniteNumber = (value, defaultValue) => {
   return value != null && Number.isFinite(value = +value) ? value : defaultValue;
 }
 
-const ALPHA = 'abcdefghijklmnopqrstuvwxyz'
 
-const DIGIT = '0123456789';
-
-const ALPHABET = {
-  DIGIT,
-  ALPHA,
-  ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
-}
-
-const generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
-  let str = '';
-  const {length} = alphabet;
-  while (size--) {
-    str += alphabet[Math.random() * length|0]
-  }
-
-  return str;
-}
 
 /**
  * If the thing is a FormData object, return true, otherwise return false.
@@ -630,7 +643,7 @@ const generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
  * @returns {boolean}
  */
 function isSpecCompliantForm(thing) {
-  return !!(thing && isFunction(thing.append) && thing[Symbol.toStringTag] === 'FormData' && thing[Symbol.iterator]);
+  return !!(thing && isFunction(thing.append) && thing[toStringTag] === 'FormData' && thing[iterator]);
 }
 
 const toJSONObject = (obj) => {
@@ -641,6 +654,11 @@ const toJSONObject = (obj) => {
     if (isObject(source)) {
       if (stack.indexOf(source) >= 0) {
         return;
+      }
+
+      //Buffer check
+      if (isBuffer(source)) {
+        return source;
       }
 
       if(!('toJSON' in source)) {
@@ -699,6 +717,10 @@ const asap = typeof queueMicrotask !== 'undefined' ?
 
 // *********************
 
+
+const isIterable = (thing) => thing != null && isFunction(thing[iterator]);
+
+
 export default {
   isArray,
   isArrayBuffer,
@@ -710,6 +732,7 @@ export default {
   isBoolean,
   isObject,
   isPlainObject,
+  isEmptyObject,
   isReadableStream,
   isRequest,
   isResponse,
@@ -749,12 +772,11 @@ export default {
   findKey,
   global: _global,
   isContextDefined,
-  ALPHABET,
-  generateString,
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
   isThenable,
   setImmediate: _setImmediate,
-  asap
+  asap,
+  isIterable
 };
