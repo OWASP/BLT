@@ -41,10 +41,11 @@ async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKe
   }
 }
 
-async function sendKudos(sender, receiver, comment) {
+async function sendKudos(sender, receiver, comment, link) {
   const response = await axios.post('https://owaspblt.org/teams/give-kudos/', {
     kudosReceiver: receiver,
     kudosSender: sender,
+    link: link,
     comment: comment
   });
   return response.data;
@@ -202,42 +203,56 @@ describe('GitHub API Mock Test', () => {
   });
 
   describe('Kudos System', () => {
-    it('should send kudos to the OWASP BLT API', async () => {
-      const sender = 'testsender';
-      const receiver = '@testreceiver';
-      const comment = 'great work on the PR';
+    it('should send kudos to BLT API when user has profile', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const sender = 'githubuser';
+      const receiver = 'bltuser';
+      const comment = 'Great work on the PR!';
+      const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
 
-      const scope = nock('https://owaspblt.org')
+      const bltScope = nock('https://owaspblt.org')
         .post('/teams/give-kudos/', {
           kudosReceiver: receiver,
           kudosSender: sender,
+          link: link,
           comment: comment
         })
-        .reply(200, { status: 'success' });
+        .reply(201, { success: true, message: 'Kudos sent successfully!' });
 
-      const result = await sendKudos(sender, receiver, comment);
-      assert.strictEqual(result.status, 'success');
+      const result = await sendKudos(sender, receiver, comment, link);
+      assert.strictEqual(result.success, true);
 
-      scope.done();
+      bltScope.done();
     });
 
-    it('should handle default kudos message', async () => {
-      const sender = 'testsender';
-      const receiver = '@testreceiver';
-      const comment = 'awesome work';
+    it('should handle kudos when user does not have BLT profile', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 1;
+      const sender = 'githubuser';
+      const receiver = 'newuser';
+      const comment = 'Great work on the PR!';
+      const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
 
-      const scope = nock('https://owaspblt.org')
+      const bltScope = nock('https://owaspblt.org')
         .post('/teams/give-kudos/', {
           kudosReceiver: receiver,
           kudosSender: sender,
+          link: link,
           comment: comment
         })
-        .reply(200, { status: 'success' });
+        .reply(404, { success: false, error: 'Receiver username not found' });
 
-      const result = await sendKudos(sender, receiver, comment);
-      assert.strictEqual(result.status, 'success');
+      try {
+        await sendKudos(sender, receiver, comment, link);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.strictEqual(error.response.status, 404);
+      }
 
-      scope.done();
+      bltScope.done();
     });
   });
 
@@ -296,9 +311,10 @@ describe('GitHub API Mock Test', () => {
         'You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #1. Please submit a pull request for these issues before getting assigned to a new one.',
         'Hello @user! You\'ve been assigned to [repo issue #1](https://github.com/owner/repo/issues/1). You have 24 hours to complete a pull request.',
         'No GIFs found for "test".',
-        '🎉 Kudos from @sender to @receiver! 🎉\n\nawesome work\n\n✅ Kudos successfully sent to the team API!',
-        '⚠️ Failed to send kudos to the team API. Please try again later.',
-        '⚠️ Invalid /kudos command format. Use: `/kudos receiver comment(optional)`',
+        '🎉 Kudos from @sender to @receiver! 🎉\n\nawesome work',
+        '✅ Kudos tracked on BLT profile',
+        '💡 @receiver - Create a BLT profile to track all your kudos in one place!',
+        '⚠️ Invalid /kudos command format.\n\nUsage: `/kudos @username [optional comment]`\n\nExample: `/kudos @alice Great work on the PR!`',
         '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.'
       ];
 
@@ -369,113 +385,25 @@ describe('GitHub API Mock Test', () => {
       const sender = 'testsender';
       const receiver = '@testreceiver';
       const comment = 'great work';
+      const link = 'https://github.com/owner/repo/issues/1';
 
       const scope = nock('https://owaspblt.org')
         .post('/teams/give-kudos/', {
           kudosReceiver: receiver,
           kudosSender: sender,
+          link: link,
           comment: comment
         })
         .reply(500, { message: 'Internal Server Error' });
 
       try {
-        await sendKudos(sender, receiver, comment);
+        await sendKudos(sender, receiver, comment, link);
         assert.fail('Should have thrown an error');
       } catch (error) {
         assert.ok(error.message.includes('500'));
       }
 
       scope.done();
-  it('should send kudos to BLT API when user has profile', async () => {
-    const owner = 'testowner';
-    const repo = 'testrepo';
-    const issueNumber = 1;
-    const sender = 'githubuser';
-    const receiver = 'bltuser';
-    const comment = 'Great work on the PR!';
-    const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
-
-    const bltScope = nock('https://owaspblt.org')
-      .post('/teams/give-kudos/', {
-        kudosReceiver: receiver,
-        kudosSender: sender,
-        link: link,
-        comment: comment
-      })
-      .reply(201, { success: true, message: 'Kudos sent successfully!' });
-
-    // Simulate the kudos sending
-    await axios.post('https://owaspblt.org/teams/give-kudos/', {
-      kudosReceiver: receiver,
-      kudosSender: sender,
-      link: link,
-      comment: comment
-    });
-
-    bltScope.done();
-  });
-
-  it('should handle kudos when user does not have BLT profile', async () => {
-    const owner = 'testowner';
-    const repo = 'testrepo';
-    const issueNumber = 1;
-    const sender = 'githubuser';
-    const receiver = 'newuser';
-    const comment = 'Great work on the PR!';
-    const link = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
-
-    const bltScope = nock('https://owaspblt.org')
-      .post('/teams/give-kudos/', {
-        kudosReceiver: receiver,
-        kudosSender: sender,
-        link: link,
-        comment: comment
-      })
-      .reply(404, { success: false, error: 'Receiver username not found' });
-
-    // Simulate the kudos sending - should not throw error even if API returns 404
-    try {
-      await axios.post('https://owaspblt.org/teams/give-kudos/', {
-        kudosReceiver: receiver,
-        kudosSender: sender,
-        link: link,
-        comment: comment
-      });
-    } catch (error) {
-      // This is expected for users without BLT profile
-      assert.strictEqual(error.response.status, 404);
-    }
-
-    bltScope.done();
-  });
-
-  it('should include attribution in comment bodies', () => {
-    const attribution = '\n\n---\n*This comment was generated by [OWASP BLT-Action](https://github.com/OWASP-BLT/BLT-Action)*';
-    
-    // Test various comment bodies to ensure they include the attribution
-    const testComments = [
-      'You have been unassigned from this issue. It\'s now open for others. You can reassign it anytime by typing /assign.',
-      'You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #1. Please submit a pull request for these issues before getting assigned to a new one.',
-      'Hello @user! You\'ve been assigned to [repo issue #1](https://github.com/owner/repo/issues/1). You have 24 hours to complete a pull request.',
-      'No GIFs found for "test".',
-      '🎉 Kudos from @sender to @receiver! 🎉\n\nawesome work',
-      '✅ Kudos tracked on BLT profile',
-      '💡 @receiver - Create a BLT profile to track all your kudos in one place!',
-      '⚠️ Invalid /kudos command format.\n\nUsage: `/kudos @username [optional comment]`\n\nExample: `/kudos @alice Great work on the PR!`',
-      '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.'
-    ];
-
-    // Each comment should end with the attribution
-    testComments.forEach((comment, index) => {
-      const commentWithAttribution = comment + attribution;
-      assert.ok(
-        commentWithAttribution.includes('OWASP BLT-Action'),
-        `Comment ${index + 1} should include attribution`
-      );
-      assert.ok(
-        commentWithAttribution.includes('https://github.com/OWASP-BLT/BLT-Action'),
-        `Comment ${index + 1} should include repository link`
-      );
     });
   });
 });
