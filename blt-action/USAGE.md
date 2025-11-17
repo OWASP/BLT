@@ -16,7 +16,7 @@ This GitHub Action provides automated issue assignment, engagement features, and
 - **Unassignment**: Users can unassign via `/unassign`
 - **Stale Issue Handling**: Auto-unassigns after 24 hours of inactivity without a PR
 - **GIF Integration**: Post GIFs using `/giphy [search term]` on issues or PRs
-- **Kudos System**: Send appreciation using `/kudos @username [message]` - integrates with OWASP BLT API
+- **Kudos System**: Send appreciation using `/kudos @username [message]` (works with any GitHub username) - integrates with OWASP BLT API
 - **Smart PR Tracking**: Validates linked pull requests via cross-references before unassignment
 - **Multi-assignment Prevention**: Blocks new assignments if user has issues without PRs
 - **Scheduled Execution**: Daily cron job checks for stale assignments
