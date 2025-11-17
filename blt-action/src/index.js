@@ -205,34 +205,56 @@ const run = async () => {
                 const kudosCommand = comment.body.trim().split(/\s+/);
                 if (kudosCommand.length >= 2) {
                     const sender = comment.user.login; // GitHub username of the commenter
-                    const receiver = kudosCommand[1]; // Receiver from the command
-                    const kudosComment = kudosCommand.slice(2).join(' ') || 'awesome work'; // Optional comment
+                    let receiver = kudosCommand[1]; // Receiver from the command
+                    const kudosComment = kudosCommand.slice(2).join(' ') || 'Great work!'; // Optional comment
+                    
+                    // Strip @ symbol from receiver if present
+                    receiver = receiver.replace(/^@/, '');
 
-                    console.log(`Sending kudos from ${sender} to ${receiver} with comment: "${kudosComment}"`);
+                    // Build the link to the issue or PR where kudos was given
+                    const issueNumber = issue ? issue.number : pull_request.number;
+                    const link = `https://github.com/${owner}/${repoName}/issues/${issueNumber}`;
 
+                    console.log(`Sending kudos from ${sender} to @${receiver} with comment: "${kudosComment}"`);
+
+                    // Always post kudos comment on GitHub first
+                    await octokit.issues.createComment({
+                        owner,
+                        repo: repoName,
+                        issue_number: issueNumber,
+                        body: `🎉 Kudos from @${sender} to @${receiver}! 🎉\n\n> ${kudosComment}${attribution}`
+                    });
+
+                    // Try to send to BLT API (optional, won't fail if user doesn't have profile)
                     try {
-                        // Send kudos to the API
                         await axios.post('https://owaspblt.org/teams/give-kudos/', {
                             kudosReceiver: receiver,
                             kudosSender: sender,
+                            link: link,
                             comment: kudosComment
                         });
 
-                        // Confirm success in the issue or PR comment
+                        // If successful, add a follow-up comment about BLT tracking
                         await octokit.issues.createComment({
                             owner,
                             repo: repoName,
-                            issue_number: issue ? issue.number : pull_request.number,
-                            body: `🎉 Kudos from @${sender} to @${receiver}! 🎉\n\n${kudosComment}\n\n✅ Kudos successfully sent to the team API!${attribution}`
+                            issue_number: issueNumber,
+                            body: `✅ Kudos tracked on [BLT profile](https://owaspblt.org/profile/${receiver})!${attribution}`
                         });
+                        
+                        console.log(`Kudos successfully tracked on BLT for ${receiver}`);
                     } catch (apiError) {
-                        console.error('Error sending kudos to the API:', apiError);
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue ? issue.number : pull_request.number,
-                            body: `⚠️ Failed to send kudos to the team API. Please try again later.${attribution}`
-                        });
+                        console.log(`Note: Kudos not tracked on BLT (user may not have a profile): ${apiError.message}`);
+                        
+                        // Post informational message about BLT profile (only if it's a 404 or similar)
+                        if (apiError.response && (apiError.response.status === 404 || apiError.response.status === 400)) {
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issueNumber,
+                                body: `💡 @${receiver} - Create a [BLT profile](https://owaspblt.org) to track all your kudos in one place!${attribution}`
+                            });
+                        }
                     }
                 } else {
                     console.log('Invalid /kudos command format.');
@@ -240,7 +262,7 @@ const run = async () => {
                         owner,
                         repo: repoName,
                         issue_number: issue ? issue.number : pull_request.number,
-                        body: `⚠️ Invalid /kudos command format. Use: \`/kudos receiver comment(optional)\`${attribution}`
+                        body: `⚠️ Invalid /kudos command format.\n\nUsage: \`/kudos @username [optional comment]\`\n\nExample: \`/kudos @alice Great work on the PR!\`${attribution}`
                     });
                 }
             } else if (shouldTip) {
