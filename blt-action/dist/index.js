@@ -43769,6 +43769,7 @@ const run = async () => {
         const unassignKeywords = ['/unassign'];
         const giphyKeyword = '/giphy';
         const kudosKeyword = '/kudos';
+        const tipKeyword = '/tip';
 
         if ((eventName === 'issue_comment' && issue && comment) || (eventName === 'pull_request_review_comment' && pull_request && comment)) {
             console.log('Processing comment...');
@@ -43777,6 +43778,7 @@ const run = async () => {
             const shouldUnassign = unassignKeywords.some(keyword => commentBody.startsWith(keyword));
             const shouldGiphy = commentBody.startsWith(giphyKeyword);
             const shouldKudos = commentBody.startsWith(kudosKeyword);
+            const shouldTip = commentBody.startsWith(tipKeyword);
 
             if (shouldUnassign) {
                 console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
@@ -44004,6 +44006,73 @@ const run = async () => {
                         repo: repoName,
                         issue_number: issue ? issue.number : pull_request.number,
                         body: `⚠️ Invalid /kudos command format.\n\nUsage: \`/kudos @username [optional comment]\`\n\nExample: \`/kudos @alice Great work on the PR!\`${attribution}`
+                    });
+                }
+            } else if (shouldTip) {
+                const tipCommand = comment.body.trim().split(/\s+/);
+                if (tipCommand.length >= 3) {
+                    const sender = comment.user.login; // GitHub username of the commenter
+                    const receiver = tipCommand[1].replace('@', ''); // Remove @ if present
+                    const amount = tipCommand[2]; // Amount with $ symbol
+
+                    // Validate amount format
+                    const amountMatch = amount.match(/^\$?(\d+(?:\.\d{1,2})?)$/);
+                    if (!amountMatch) {
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue ? issue.number : pull_request.number,
+                            body: `⚠️ Invalid amount format. Use: \`/tip @username $amount\` (e.g., \`/tip @user $5\` or \`/tip @user $10.50\`)${attribution}`
+                        });
+                        return;
+                    }
+
+                    const amountValue = amountMatch[1];
+                    const sponsorUrl = `https://github.com/sponsors/${receiver}`;
+
+                    console.log(`Generating tip link from ${sender} to ${receiver} for $${amountValue}`);
+
+                    try {
+                        // Check if the user has GitHub Sponsors enabled by making a HEAD request
+                        const sponsorCheckResponse = await axios.head(sponsorUrl).catch(() => null);
+                        
+                        if (!sponsorCheckResponse) {
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue ? issue.number : pull_request.number,
+                                body: `⚠️ @${receiver} does not appear to have GitHub Sponsors enabled. Please verify the username or ask them to set up GitHub Sponsors first.\n\nLearn more: https://github.com/sponsors${attribution}`
+                            });
+                            return;
+                        }
+
+                        // Post success message with sponsor link
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue ? issue.number : pull_request.number,
+                            body: `💰 **Tip Request from @${sender} to @${receiver}**\n\n` +
+                                `Amount: **$${amountValue}**\n\n` +
+                                `To complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n` +
+                                `🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n` +
+                                `*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*${attribution}`
+                        });
+                    } catch (error) {
+                        console.error('Error processing tip command:', error);
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue ? issue.number : pull_request.number,
+                            body: `⚠️ Failed to process tip request. Please try again later or visit https://github.com/sponsors/${receiver} directly.${attribution}`
+                        });
+                    }
+                } else {
+                    console.log('Invalid /tip command format.');
+                    await octokit.issues.createComment({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue ? issue.number : pull_request.number,
+                        body: `⚠️ Invalid /tip command format. Use: \`/tip @username $amount\`\n\nExample: \`/tip @contributor $10\`${attribution}`
                     });
                 }
             }

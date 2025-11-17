@@ -41,6 +41,19 @@ async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKe
   }
 }
 
+async function postTipComment(owner, repo, issueNumber, receiver, amount) {
+  const sponsorUrl = `https://github.com/sponsors/${receiver}`;
+  
+  // Check if GitHub Sponsors is enabled
+  await axios.head(sponsorUrl);
+  
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`;
+  const response = await axios.post(url, {
+    body: `💰 **Tip Request from @sender to @${receiver}**\n\nAmount: **$${amount}**\n\nTo complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*`
+  });
+  return response.data;
+}
+
 async function sendKudos(sender, receiver, comment, link) {
   const response = await axios.post('https://owaspblt.org/teams/give-kudos/', {
     kudosReceiver: receiver,
@@ -202,6 +215,34 @@ describe('GitHub API Mock Test', () => {
     });
   });
 
+  it('should post a tip comment with GitHub Sponsors link', async () => {
+    const owner = 'testowner';
+    const repo = 'testrepo';
+    const issueNumber = 1;
+    const receiver = 'testuser';
+    const amount = '10';
+
+    // Mock the HEAD request to check if sponsors page exists
+    const sponsorScope = nock('https://github.com')
+      .head(`/sponsors/${receiver}`)
+      .reply(200);
+
+    const githubScope = nock('https://api.github.com')
+      .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, (body) => {
+        return body.body.includes('Tip Request') && 
+               body.body.includes(`@${receiver}`) && 
+               body.body.includes(`$${amount}`) &&
+               body.body.includes(`https://github.com/sponsors/${receiver}`);
+      })
+      .reply(201, { status: 'success' });
+
+    const result = await postTipComment(owner, repo, issueNumber, receiver, amount);
+    assert.strictEqual(result.status, 'success');
+
+    sponsorScope.done();
+    githubScope.done();
+  });
+
   describe('Kudos System', () => {
     it('should send kudos to BLT API when user has profile', async () => {
       const owner = 'testowner';
@@ -315,7 +356,9 @@ describe('GitHub API Mock Test', () => {
         '✅ Kudos tracked on BLT profile',
         '💡 @receiver - Create a BLT profile to track all your kudos in one place!',
         '⚠️ Invalid /kudos command format.\n\nUsage: `/kudos @username [optional comment]`\n\nExample: `/kudos @alice Great work on the PR!`',
-        '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.'
+        '⏰ This issue has been automatically unassigned from user due to 24 hours of inactivity. The issue is now available for anyone to work on again.',
+        '💰 **Tip Request from @sender to @receiver**\n\nAmount: **$10**\n\nTo complete this tip, please visit @receiver\'s GitHub Sponsors page and select a one-time payment:\n\n🔗 [Sponsor @receiver](https://github.com/sponsors/receiver)\n\n*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*',
+        '⚠️ Invalid /tip command format. Use: `/tip @username $amount`\n\nExample: `/tip @contributor $10`'
       ];
 
       // Each comment should end with the attribution
