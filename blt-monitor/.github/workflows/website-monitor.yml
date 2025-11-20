@@ -45,13 +45,13 @@ jobs:
           end_time=$(date +%s%3N)
           duration_ms=$((end_time - start_time))
           duration_s=$(awk "BEGIN {printf \"%.3f\", $duration_ms/1000}")
-          
+
           if echo "$content" | grep -qi "${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"; then
             keyword_status="found"
           else
             keyword_status="not_found"
           fi
-          
+
           if [ "$response_code" -eq 200 ] && [ "$keyword_status" == "found" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
@@ -345,7 +345,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"
+              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -357,4 +357,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 
+        uses: actions/deploy-pages@v4
