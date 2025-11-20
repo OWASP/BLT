@@ -10,5 +10,5 @@ jobs:
       - name: Send test message to Slack
         run: |
           curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"✅ Slack webhook test successful! This means your SLACK_WEBHOOK_URL is set up correctly."}' \
-            ${{ secrets.SLACK_WEBHOOK_URL }} 
+            --data '{"text":"✅ Slack webhook test successful! This means your SLACK_WEBHOOK_URL is set up correctly.\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
