@@ -6,6 +6,8 @@ Demonstrates key functionality without requiring NVD API access.
 from blockchain import Blockchain
 from cve_fetcher import CVEFetcher
 import json
+import os
+import tempfile
 
 
 def print_section(title):
@@ -114,7 +116,9 @@ def demo_blockchain():
     print_section("7. Persistence")
     
     # Save blockchain
-    filename = "/tmp/demo_blockchain.json"
+    import tempfile
+    temp_dir = tempfile.gettempdir()
+    filename = os.path.join(temp_dir, "demo_blockchain.json")
     blockchain.save_to_file(filename)
     print(f"✓ Blockchain saved to {filename}")
     

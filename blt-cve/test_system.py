@@ -93,22 +93,27 @@ class TestBlockchain(unittest.TestCase):
     
     def test_save_load_blockchain(self):
         """Test saving and loading blockchain."""
-        test_file = '/tmp/test_blockchain.json'
+        import tempfile
         
-        # Add data and save
-        cve_data = {'cve_id': 'CVE-2023-SAVE', 'description': 'Test save'}
-        self.blockchain.add_cve(cve_data)
-        self.blockchain.mine_pending_cves()
-        self.blockchain.save_to_file(test_file)
+        # Create temporary file
+        fd, test_file = tempfile.mkstemp(suffix='.json')
+        os.close(fd)
         
-        # Load and verify
-        loaded_blockchain = Blockchain.load_from_file(test_file, difficulty=2)
-        self.assertEqual(len(loaded_blockchain.chain), len(self.blockchain.chain))
-        self.assertTrue(loaded_blockchain.is_chain_valid())
-        
-        # Clean up
-        if os.path.exists(test_file):
-            os.remove(test_file)
+        try:
+            # Add data and save
+            cve_data = {'cve_id': 'CVE-2023-SAVE', 'description': 'Test save'}
+            self.blockchain.add_cve(cve_data)
+            self.blockchain.mine_pending_cves()
+            self.blockchain.save_to_file(test_file)
+            
+            # Load and verify
+            loaded_blockchain = Blockchain.load_from_file(test_file, difficulty=2)
+            self.assertEqual(len(loaded_blockchain.chain), len(self.blockchain.chain))
+            self.assertTrue(loaded_blockchain.is_chain_valid())
+        finally:
+            # Clean up
+            if os.path.exists(test_file):
+                os.remove(test_file)
 
 
 class TestCVEFetcher(unittest.TestCase):

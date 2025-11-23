@@ -21,7 +21,7 @@ class BLTCVECLI:
         try:
             response = requests.get(f"{self.base_url}/health", timeout=5)
             return response.status_code == 200
-        except:
+        except (requests.exceptions.RequestException, Exception):
             return False
     
     def health(self) -> None:

@@ -17,7 +17,11 @@ app = Flask(__name__)
 
 # Initialize blockchain
 BLOCKCHAIN_FILE = "blockchain_data/cve_blockchain.json"
-DIFFICULTY = int(os.getenv('BLOCKCHAIN_DIFFICULTY', 4))
+try:
+    DIFFICULTY = int(os.getenv('BLOCKCHAIN_DIFFICULTY', 4))
+except (ValueError, TypeError):
+    print("Warning: Invalid BLOCKCHAIN_DIFFICULTY value, using default of 4")
+    DIFFICULTY = 4
 
 # Create blockchain directory if it doesn't exist
 os.makedirs("blockchain_data", exist_ok=True)
