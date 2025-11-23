@@ -6,10 +6,19 @@ authors = [
     {name = "Sahil Dhillon",email = "sodhillon_b21@it.vjti.ac.in"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0.0"
 dependencies = [
     "django (>=5.2.8,<6.0.0)",
-    "google-genai (>=1.52.0,<2.0.0)"
+    "google-genai (>=1.52.0,<2.0.0)",
+    "qdrant-client (>=1.16.0,<2.0.0)",
+    "bandit (>=1.9.1,<2.0.0)",
+    "unidiff (>=0.7.5,<0.8.0)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "langchain (>=1.0.8,<2.0.0)",
+    "tenacity (>=9.1.2,<10.0.0)",
+    "pyjwt (>=2.10.1,<3.0.0)",
+    "celery[redis] (>=5.5.3,<6.0.0)",
+    "rich (>=14.2.0,<15.0.0)"
 ]
 
 
