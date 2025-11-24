@@ -28,21 +28,18 @@ static int xi_opcode;
 int init_tracking() {
     display = XOpenDisplay(NULL);
     if (!display) {
-        fprintf(stderr, "Cannot open display\n");
         return 0;
     }
 
     // Check for XInput2
     int event, error;
     if (!XQueryExtension(display, "XInputExtension", &xi_opcode, &event, &error)) {
-        fprintf(stderr, "X Input extension not available\n");
         return 0;
     }
 
     // Check XInput2 version
     int major = 2, minor = 0;
     if (XIQueryVersion(display, &major, &minor) != Success) {
-        fprintf(stderr, "XI2 not available. Server supports %d.%d\n", major, minor);
         return 0;
     }
 

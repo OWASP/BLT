@@ -49,10 +49,7 @@ class TimeTrackerClient {
 
       // Start monitoring
       this.startMonitoring();
-
-      console.log('Tracking session started:', this.sessionId);
     } catch (error) {
-      console.error('Failed to start session:', error);
       throw error;
     }
   }
@@ -75,10 +72,7 @@ class TimeTrackerClient {
 
       this.stopMonitoring();
       this.sessionId = null;
-
-      console.log('Tracking session ended');
     } catch (error) {
-      console.error('Failed to end session:', error);
       throw error;
     }
   }
@@ -192,7 +186,6 @@ class TimeTrackerClient {
           body: JSON.stringify(activity),
         });
       } catch (error) {
-        console.error('Failed to sync activity:', error);
       }
     }
   }
@@ -207,10 +200,10 @@ class TimeTrackerClient {
     try {
       // This would use a local screenshot API or browser extension
       // For security, this requires explicit user permission
-      
+
       // Simulated local analysis
       const screenshotId = crypto.randomUUID();
-      
+
       // In production, this would:
       // 1. Capture screenshot to local storage
       // 2. Run local LLM analysis
@@ -241,10 +234,7 @@ class TimeTrackerClient {
           },
         }),
       });
-
-      console.log('Screenshot analyzed locally');
     } catch (error) {
-      console.error('Failed to capture/analyze screenshot:', error);
     }
   }
 
@@ -277,7 +267,6 @@ class TimeTrackerClient {
         }),
       });
     } catch (error) {
-      console.error('Failed to track agent prompt:', error);
     }
   }
 }

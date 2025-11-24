@@ -178,8 +178,6 @@ class VSCodePromptTracker {
     try {
       final logsDir = Directory(basePath);
       if (!await logsDir.exists()) {
-        // ignore: avoid_print
-        print('[PromptTracker] Logs directory not found for $source at $basePath');
         return;
       }
 
@@ -191,8 +189,6 @@ class VSCodePromptTracker {
           .toList();
 
       if (logDirs.isEmpty) {
-        // ignore: avoid_print
-        print('[PromptTracker] No log subdirectories found for $source in $basePath');
         return;
       }
 
@@ -209,16 +205,10 @@ class VSCodePromptTracker {
         }
       }
       if (found == null) {
-        // ignore: avoid_print
-        print('[PromptTracker] No GitHub Copilot Chat.log found for $source in ${latestLogDir.path}');
         return;
       }
-      // ignore: avoid_print
-      print('[PromptTracker] Using log file for $source: ${found.path}');
       await _checkLogFile(found.path, source);
     } catch (e) {
-      // ignore: avoid_print
-      print('[PromptTracker] Error while checking logs for $source: $e');
     }
   }
 
@@ -264,11 +254,7 @@ class VSCodePromptTracker {
         _lastFileSize[filePath] = currentSize;
         if (promptCount > 0) {
           // Debug baseline count
-          // ignore: avoid_print
-          print('[PromptTracker] Baseline for $source: $promptCount matched lines, last line: ${_lastPromptLine ?? ''}');
         } else {
-          // ignore: avoid_print
-          print('[PromptTracker] Baseline for $source: no prompt-like lines detected');
         }
       } else if (currentSize > lastSize) {
         // Incremental scan: read only new bytes
@@ -323,8 +309,6 @@ class VSCodePromptTracker {
         if (newPrompts > 0) {
           _lastLineCount[filePath] = (_lastLineCount[filePath] ?? 0) + newPrompts;
           _lastMatchedLines[source] = _lastLineCount[filePath]!;
-          // ignore: avoid_print
-          print('[PromptTracker] Incremental $source +$newPrompts (total ${_lastLineCount[filePath]})');
         }
         _lastFileSize[filePath] = currentSize;
       }

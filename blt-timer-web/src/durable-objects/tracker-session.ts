@@ -53,7 +53,6 @@ export class TrackerSession {
         const data = JSON.parse(event.data as string);
         this.handleWebSocketMessage(data);
       } catch (error) {
-        console.error('WebSocket message error:', error);
       }
     });
 
@@ -85,7 +84,6 @@ export class TrackerSession {
       try {
         ws.send(payload);
       } catch (error) {
-        console.error('Broadcast error:', error);
       }
     });
   }

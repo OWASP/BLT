@@ -55,7 +55,6 @@ export class GitHubMonitor {
    */
   async watchRepository(repositoryUrl: string): Promise<void> {
     // Implementation would set up webhooks or polling for the repository
-    console.log(`Watching repository: ${repositoryUrl}`);
   }
 
   /**
@@ -82,7 +81,6 @@ export class GitHubMonitor {
         },
       };
     } catch (error) {
-      console.error('Error parsing GitHub webhook:', error);
       return null;
     }
   }

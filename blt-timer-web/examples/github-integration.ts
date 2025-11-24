@@ -34,10 +34,8 @@ class GitHubIntegration {
       });
 
       if (response.ok) {
-        console.log(`✅ GitHub ${event} event tracked`);
       }
     } catch (error) {
-      console.error('Failed to track GitHub webhook:', error);
     }
   }
 
@@ -64,10 +62,7 @@ class GitHubIntegration {
           },
         }),
       });
-
-      console.log(`✅ Commit tracked: ${sha}`);
     } catch (error) {
-      console.error('Failed to track commit:', error);
     }
   }
 
@@ -97,10 +92,7 @@ class GitHubIntegration {
           },
         }),
       });
-
-      console.log(`✅ PR #${prNumber} ${action} tracked`);
     } catch (error) {
-      console.error('Failed to track PR:', error);
     }
   }
 
@@ -109,7 +101,6 @@ class GitHubIntegration {
    */
   async fetchRecentActivity(): Promise<any[]> {
     if (!this.config.githubToken) {
-      console.warn('GitHub token not provided, skipping fetch');
       return [];
     }
 
@@ -128,7 +119,6 @@ class GitHubIntegration {
       const events = await response.json();
       return events;
     } catch (error) {
-      console.error('Failed to fetch GitHub activity:', error);
       return [];
     }
   }
@@ -178,7 +168,6 @@ async function example() {
 
   // Fetch recent activity
   const activities = await integration.fetchRecentActivity();
-  console.log(`Found ${activities.length} recent GitHub events`);
 }
 
 export default GitHubIntegration;
