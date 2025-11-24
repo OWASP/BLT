@@ -52,6 +52,24 @@ npm install
 npm run dev
 ```
 
+### Flutter Desktop App (Linux)
+
+A native Flutter desktop application is available for real-time activity tracking on Linux:
+
+```bash
+cd flutter_tracker
+./run.sh
+```
+
+See [flutter_tracker/SETUP.md](flutter_tracker/SETUP.md) for detailed setup instructions.
+
+**Features:**
+- Real-time keyboard and mouse activity tracking
+- Live scrolling charts updated every second
+- Daily activity summaries
+- Compact window design
+- Privacy-focused (no keystroke/position logging)
+
 ### Basic Usage
 
 ```typescript
