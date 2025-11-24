@@ -216,9 +216,9 @@ Contributions are welcome! This is an OWASP project aimed at ensuring CVE databa
 3. Make your changes
 4. Submit a pull request
 
-## 🌐 OWASP BugHeist
+## 🌐 OWASP BLT
 
-This project is part of the OWASP BugHeist (BLT) initiative. Visit [BLT Website](https://owasp.org/www-project-buglogging-tool/) for more information.
+This project is part of the OWASP BLT initiative. Visit [BLT Website](https://owasp.org/www-project-buglogging-tool/) for more information.
 
 ## ⚠️ Important Notes
 
