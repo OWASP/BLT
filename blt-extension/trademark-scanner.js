@@ -26,7 +26,7 @@ async function checkTrademark(keyword) {
         } else {
           const data = response.data;
 
-          if (data && data.available === false && data.trademarks.length > 0) {
+          if (data && data.available === false && Array.isArray(data.trademarks) && data.trademarks.length > 0) {
             resolve(data.trademarks);
           } else {
             resolve(null);
@@ -45,14 +45,15 @@ function extractKeywords() {
 }
 
 function highlightWordOnPage(word) {
+  const regex = new RegExp(`\\b${word}\\b`, "g");
   const walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_TEXT
   );
-  const regex = new RegExp(`\\b${word}\\b`, 'g');
 
   let node;
   while ((node = walker.nextNode())) {
+    regex.lastIndex = 0;
     if (!regex.test(node.nodeValue)) continue;
 
     const span = document.createElement('span');
