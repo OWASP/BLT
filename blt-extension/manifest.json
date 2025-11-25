@@ -1,47 +1,55 @@
 {
-   "author": "OWASP BLT",
-   "background": {
-      "persistent": false,
-      "scripts": [ "libs/jquery-1.11.1.min.js", "event.js" ]
-   },
-   "browser_action": {
-      "default_icon": {
-         "19": "img/icon19.png",
-         "38": "img/icon38.png"
-      },
-      "default_title": "OWASP BLT-Extension",
-      "default_popup": "popup.html"
-   },
-   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
-   "default_locale": "en",
-   "description": "OWASP BLT let's you get points for testing and finding issues!",
-   "homepage_url": "https://www.owasp.org/BLT/",
-   "icons": {
-      "128": "img/icon128.png",
+  "manifest_version": 3,
+  "name": "OWASP BLT-Extension",
+  "short_name": "BLT-Extension",
+  "version": "1.5",
+  "default_locale": "en",
+  "author": "OWASP BLT",
+  "description": "OWASP BLT lets you get points, track jobs, and manage applications.",
+
+  "icons": {
+    "19": "img/icon19.png",
+    "38": "img/icon38.png",
+    "128": "img/icon128.png"
+  },
+
+  "action": {
+    "default_icon": {
       "19": "img/icon19.png",
-      "24": "img/icon24.png",
-      "256": "img/icon256.png",
-      "32": "img/icon32.png",
       "38": "img/icon38.png"
-   },
-   "manifest_version": 2,
-   "name": "OWASP BLT-Extension",
-   "short_name": "BLT-Extension",
-   "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture" ],
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.4",
-   "web_accessible_resources": [
-      "jobtracking.html",
-      "jobtracking.js"
-   ],
-   "content_scripts": [
-      {
-         "matches": ["*://*.linkedin.com/jobs/*"],
-         "js": ["linkedin-monitor.js"]
-      },
-      {
-         "matches": ["*://*.wellfound.com/jobs*"],
-         "js": ["wellfound-monitor.js"]
-      }
-   ]
+    },
+    "default_title": "OWASP BLT-Extension",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "permissions": ["activeTab", "tabs", "storage", "downloads", "scripting"],
+
+  "host_permissions": ["<all_urls>"],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/jobs/*"],
+      "js": ["linkedin-monitor.js"]
+    },
+    {
+      "matches": ["*://*.wellfound.com/jobs*"],
+      "js": ["wellfound-monitor.js"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["jobtracking.html", "jobtracking.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+
+  "homepage_url": "https://www.owasp.org/BLT/"
 }
