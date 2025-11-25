@@ -20,7 +20,6 @@ async function checkTrademark(keyword) {
     chrome.runtime.sendMessage(
       { type: "CHECK_TRADEMARK", keyword },
       (response) => {
-        console.log("API RESPONSE for", keyword, "=>", response);
 
         if (!response || !response.ok) {
           resolve(null);
@@ -72,7 +71,6 @@ async function runTrademarkScan() {
   for (const kw of keywords) {
     const result = await checkTrademark(kw);
     if (result) {
-      console.log(`Trademark match for: ${kw}`);
       highlightWordOnPage(kw);
     }
     await new Promise(r => setTimeout(r, 200));
