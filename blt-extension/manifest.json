@@ -2,7 +2,7 @@
    "author": "OWASP BLT",
    "background": {
       "persistent": false,
-      "scripts": [ "libs/jquery-1.11.1.min.js", "event.js" ]
+      "scripts": [ "libs/jquery-1.11.1.min.js", "event.js", "background.js" ]
    },
    "browser_action": {
       "default_icon": {
@@ -42,6 +42,10 @@
       {
          "matches": ["*://*.wellfound.com/jobs*"],
          "js": ["wellfound-monitor.js"]
+      },
+      {
+        "matches": ["<all_urls>"],
+        "js": ["trademark-scanner.js"]
       }
    ]
 }

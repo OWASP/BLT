@@ -42,6 +42,14 @@
             color: #6b7280;
         }
 
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            margin-top: 10px;
+            color: #374151;
+        }
+
         .menu-section {
             background: var(--secondary-bg);
             border-radius: 8px;
@@ -113,6 +121,8 @@
     </div>
 
     <div class="menu-section">
+        <div class="section-title">General Tools</div>
+
         <button id="screenshotBtn" class="menu-button">
             <img src="img/icon19.png" alt="Screenshot">
             <span>Take Screenshot</span>
@@ -120,9 +130,23 @@
                 <path d="M9 5l7 7-7 7"/>
             </svg>
         </button>
+
         <button id="jobTrackingBtn" class="menu-button">
             <img src="img/icon19.png" alt="Job Tracking">
             <span>Job Tracking Dashboard</span>
+            <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Trademark scanner -->
+    <div class="menu-section">
+        <div class="section-title">Trademark Tools</div>
+
+        <button id="runScanBtn" class="menu-button">
+            <img src="img/icon19.png" alt="Trademark Scanner">
+            <span>Run Trademark Scanner</span>
             <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 5l7 7-7 7"/>
             </svg>
@@ -135,4 +159,4 @@
 
     <script src="popup.js"></script>
 </body>
-</html> 
+</html>
