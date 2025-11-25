@@ -46,13 +46,34 @@ function extractKeywords() {
 
 function highlightWordOnPage(word) {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(`\\b${escaped}\\b`, "g"); const walker = document.createTreeWalker(
+  const regex = new RegExp(`\\b${escaped}\\b`, "g");
+  const walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_TEXT,
     {
       acceptNode(node) {
-        const tag = node.parentNode?.nodeName;
-        if (tag === "SCRIPT" || tag === "STYLE" || tag === "TEXTAREA" || tag === "NOSCRIPT") {
+        const parent = node.parentNode;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+
+        const parentEl =
+          parent.nodeType === Node.ELEMENT_NODE ? parent : null;
+
+        // Skip any text already wrapped in our own highlight markup.
+        if (
+          parentEl &&
+          (parentEl.nodeName === "MARK" ||
+            parentEl.closest(".tm-highlight"))
+        ) {
+          return NodeFilter.FILTER_REJECT;
+        }
+
+        const tag = parent.nodeName;
+        if (
+          tag === "SCRIPT" ||
+          tag === "STYLE" ||
+          tag === "TEXTAREA" ||
+          tag === "NOSCRIPT"
+        ) {
           return NodeFilter.FILTER_REJECT;
         }
         return NodeFilter.FILTER_ACCEPT;
