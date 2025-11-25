@@ -1,35 +1,20 @@
 {
-   "author": "OWASP BLT",
-   "background": {
-      "persistent": false,
-      "scripts": [ "libs/jquery-1.11.1.min.js", "event.js" ]
-   },
-    "scripts": {
-    "build": "npm run build"
+  "name": "owasp-blt-extension",
+  "version": "1.5.0",
+  "description": "OWASP BLT lets you get points, track jobs, and manage applications.",
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "homepage": "https://www.owasp.org/BLT/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWASP-BLT/BLT-Extension.git"
   },
-   "browser_action": {
-      "default_icon": {
-         "19": "img/icon19.png",
-         "38": "img/icon38.png"
-      },
-      "default_title": "OWASP BLT-Extension"
-   },
-   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
-   "default_locale": "en",
-   "description": "OWASP BLT let's you get points for testing and finding issues!",
-   "homepage_url": "https://www.owasp.org/BLT/",
-   "icons": {
-      "128": "img/icon128.png",
-      "19": "img/icon19.png",
-      "24": "img/icon24.png",
-      "256": "img/icon256.png",
-      "32": "img/icon32.png",
-      "38": "img/icon38.png"
-   },
-   "manifest_version": 2,
-   "name": "OWASP-BLT-Extension",
-   "short_name": "BLT-Extension",
-   "permissions": [ "\u003Call_urls>", "activeTab", "storage", "unlimitedStorage", "notifications", "clipboardWrite", "downloads", "tabCapture" ],
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.2.2"
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
 }
