@@ -15,7 +15,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-async function checkTrademark(keyword) {
+function checkTrademark(keyword) {
   return new Promise(resolve => {
     chrome.runtime.sendMessage(
       { type: "CHECK_TRADEMARK", keyword },
@@ -45,10 +45,19 @@ function extractKeywords() {
 }
 
 function highlightWordOnPage(word) {
-  const regex = new RegExp(`\\b${word}\\b`, "g");
-  const walker = document.createTreeWalker(
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`\\b${escaped}\\b`, "g"); const walker = document.createTreeWalker(
     document.body,
-    NodeFilter.SHOW_TEXT
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        const tag = node.parentNode?.nodeName;
+        if (tag === "SCRIPT" || tag === "STYLE" || tag === "TEXTAREA" || tag === "NOSCRIPT") {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    }
   );
 
   let node;
