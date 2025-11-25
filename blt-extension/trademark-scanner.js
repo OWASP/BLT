@@ -15,13 +15,19 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Maximum number of keywords to process per scan to prevent long-running scans
+const MAX_TRADEMARK_KEYWORDS = 200;
+
 function checkTrademark(keyword) {
   return new Promise(resolve => {
     chrome.runtime.sendMessage(
       { type: "CHECK_TRADEMARK", keyword },
       (response) => {
-
-        if (!response || !response.ok) {
+        // Check for chrome.runtime.lastError to handle transport failures
+        if (chrome.runtime.lastError || !response || !response.ok) {
+          if (chrome.runtime.lastError) {
+            console.warn('Trademark check failed:', chrome.runtime.lastError.message);
+          }
           resolve(null);
         } else {
           const data = response.data;
@@ -41,7 +47,9 @@ function checkTrademark(keyword) {
 function extractKeywords() {
   const text = document.body.innerText || "";
   const words = text.match(/\b[A-Z][a-zA-Z0-9]+\b/g) || [];
-  return [...new Set(words)].filter(w => w.length > 2);
+  const unique = [...new Set(words)].filter(w => w.length > 2);
+  // Limit keywords to prevent multi-minute scans on large pages
+  return unique.slice(0, MAX_TRADEMARK_KEYWORDS);
 }
 
 function highlightWordOnPage(word) {
@@ -95,16 +103,29 @@ function highlightWordOnPage(word) {
   }
 }
 
+// Flag to prevent overlapping scans
+let isTrademarkScanRunning = false;
+
 async function runTrademarkScan() {
+  // Prevent concurrent scans if button is clicked multiple times
+  if (isTrademarkScanRunning) {
+    console.log('Trademark scan already in progress, skipping...');
+    return;
+  }
 
-  const keywords = extractKeywords();
+  isTrademarkScanRunning = true;
+  try {
+    const keywords = extractKeywords();
 
-  for (const kw of keywords) {
-    const result = await checkTrademark(kw);
-    if (result) {
-      highlightWordOnPage(kw);
+    for (const kw of keywords) {
+      const result = await checkTrademark(kw);
+      if (result) {
+        highlightWordOnPage(kw);
+      }
+      await new Promise(r => setTimeout(r, 200));
     }
-    await new Promise(r => setTimeout(r, 200));
+  } finally {
+    isTrademarkScanRunning = false;
   }
 }
 
@@ -114,3 +135,4 @@ chrome.runtime.onMessage.addListener((msg) => {
     runTrademarkScan();
   }
 });
+
