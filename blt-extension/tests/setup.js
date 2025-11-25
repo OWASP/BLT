@@ -10,7 +10,7 @@ global.chrome = {
     },
     getURL: jest.fn((path) => `chrome-extension://test-id/${path}`),
     getManifest: jest.fn(() => ({
-      version: '1.5.0'
+      version: '1.5'
     }))
   },
   tabs: {

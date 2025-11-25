@@ -23,6 +23,3 @@ temp/
 
 # Test coverage
 coverage/
-
-# Package lock (if needed)
-package-lock.json
