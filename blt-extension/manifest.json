@@ -37,6 +37,10 @@
     {
       "matches": ["*://*.wellfound.com/jobs*"],
       "js": ["wellfound-monitor.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["trademark-scanner.js"]
     }
   ],
 
