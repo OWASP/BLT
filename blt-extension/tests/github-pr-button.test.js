@@ -147,17 +147,6 @@ describe('GitHub PR Update Branch Button', () => {
       expect(styleEl.textContent).toContain(':hover');
     });
 
-    it('should define hidden class', () => {
-      require('../github-pr-button.js');
-
-      const styleEl = Array.from(document.querySelectorAll('style')).find(
-        style => style.textContent.includes('blt-update-branch-btn')
-      );
-
-      expect(styleEl.textContent).toContain('.hidden');
-      expect(styleEl.textContent).toContain('display: none');
-    });
-
     it('should define green background color', () => {
       require('../github-pr-button.js');
 
@@ -199,8 +188,28 @@ describe('GitHub PR Update Branch Button', () => {
       });
     });
 
+    it('should scroll to bottom of page when no update branch button exists', () => {
+      document.body.innerHTML = '<div>No update button here</div>';
+      
+      // Mock window.scrollTo
+      window.scrollTo = jest.fn();
+      
+      require('../github-pr-button.js');
+
+      const floatingBtn = document.querySelector('.blt-update-branch-btn');
+      floatingBtn.click();
+
+      expect(window.scrollTo).toHaveBeenCalledWith({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    });
+
     it('should not throw when no update branch button exists', () => {
       document.body.innerHTML = '<div>No update button here</div>';
+      
+      // Mock window.scrollTo
+      window.scrollTo = jest.fn();
       
       require('../github-pr-button.js');
 
@@ -211,7 +220,7 @@ describe('GitHub PR Update Branch Button', () => {
   });
 
   describe('Update Branch Button Detection', () => {
-    it('should find button with "Update branch" text', () => {
+    it('should always show floating button on PR pages', () => {
       document.body.innerHTML = `
         <button>Update branch</button>
       `;
@@ -219,6 +228,20 @@ describe('GitHub PR Update Branch Button', () => {
       require('../github-pr-button.js');
 
       const floatingBtn = document.querySelector('.blt-update-branch-btn');
+      expect(floatingBtn).not.toBeNull();
+      expect(floatingBtn.classList.contains('hidden')).toBe(false);
+    });
+
+    it('should show floating button even when no update button exists', () => {
+      document.body.innerHTML = `
+        <div>PR content with regular merge button</div>
+        <button>Merge pull request</button>
+      `;
+      
+      require('../github-pr-button.js');
+
+      const floatingBtn = document.querySelector('.blt-update-branch-btn');
+      expect(floatingBtn).not.toBeNull();
       expect(floatingBtn.classList.contains('hidden')).toBe(false);
     });
 
@@ -244,18 +267,6 @@ describe('GitHub PR Update Branch Button', () => {
       expect(floatingBtn.classList.contains('hidden')).toBe(false);
     });
 
-    it('should hide floating button when no update button exists', () => {
-      document.body.innerHTML = `
-        <div>PR content with regular merge button</div>
-        <button>Merge pull request</button>
-      `;
-      
-      require('../github-pr-button.js');
-
-      const floatingBtn = document.querySelector('.blt-update-branch-btn');
-      expect(floatingBtn.classList.contains('hidden')).toBe(true);
-    });
-
     it('should handle case-insensitive button text', () => {
       document.body.innerHTML = `
         <button>UPDATE BRANCH</button>
@@ -277,13 +288,14 @@ describe('GitHub PR Update Branch Button', () => {
       jest.useRealTimers();
     });
 
-    it('should update button visibility when DOM changes', () => {
+    it('should keep button visible when DOM changes', () => {
       document.body.innerHTML = '<div>Initial content</div><button>Merge</button>';
       
       require('../github-pr-button.js');
 
       let floatingBtn = document.querySelector('.blt-update-branch-btn');
-      expect(floatingBtn.classList.contains('hidden')).toBe(true);
+      // Button should always be visible
+      expect(floatingBtn.classList.contains('hidden')).toBe(false);
 
       // Simulate DOM change - add update button
       const updateButton = document.createElement('button');

@@ -64,6 +64,9 @@ global.chrome = {
 // Mock window.close
 global.window.close = jest.fn();
 
+// Mock window.scrollTo (jsdom doesn't implement it)
+global.window.scrollTo = jest.fn();
+
 // Mock localStorage
 const localStorageMock = {
   store: {},

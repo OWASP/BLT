@@ -39,10 +39,6 @@ floatingButtonStyle.textContent = `
   height: 16px;
   fill: currentColor;
 }
-
-.blt-update-branch-btn.hidden {
-  display: none;
-}
 `;
 document.head.appendChild(floatingButtonStyle);
 
@@ -139,7 +135,8 @@ function createFloatingButton() {
 }
 
 /**
- * Scrolls to the update branch button and highlights it
+ * Scrolls to the update branch button and highlights it.
+ * If the update branch button is not found, scrolls to the bottom of the page.
  */
 function scrollToUpdateBranch() {
     const updateBtn = findUpdateBranchButton();
@@ -162,20 +159,12 @@ function scrollToUpdateBranch() {
             updateBtn.style.outline = originalOutline;
             updateBtn.style.boxShadow = originalBoxShadow;
         }, 2000);
-    }
-}
-
-/**
- * Updates the visibility of the floating button based on whether
- * the update branch button exists on the page
- */
-function updateFloatingButtonVisibility() {
-    const updateBtn = findUpdateBranchButton();
-    
-    if (updateBtn && floatingButton) {
-        floatingButton.classList.remove('hidden');
-    } else if (floatingButton) {
-        floatingButton.classList.add('hidden');
+    } else {
+        // If update branch button is not found, scroll to the bottom of the page
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 }
 
@@ -193,19 +182,16 @@ function initFloatingButton() {
         return;
     }
     
-    // Create and add the floating button
+    // Create and add the floating button (always visible on PR pages)
     floatingButton = createFloatingButton();
     document.body.appendChild(floatingButton);
-    
-    // Initially hide if no update branch button found
-    updateFloatingButtonVisibility();
 }
 
 // Debounce timer for MutationObserver callbacks
 let debounceTimer = null;
 
 /**
- * Debounced handler for MutationObserver to reduce DOM queries
+ * Debounced handler for MutationObserver to ensure button is initialized
  */
 function handleMutations() {
     if (debounceTimer) {
@@ -216,8 +202,6 @@ function handleMutations() {
         if (!floatingButton) {
             initFloatingButton();
         }
-        // Update visibility based on current page state
-        updateFloatingButtonVisibility();
     }, 100);
 }
 
