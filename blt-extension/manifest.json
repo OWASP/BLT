@@ -45,6 +45,11 @@
       "matches": ["<all_urls>"],
       "js": ["trademark-scanner.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://github.com/*/pull/*"],
+      "js": ["github-pr-button.js"],
+      "run_at": "document_idle"
     }
   ],
 
