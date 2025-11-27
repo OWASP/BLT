@@ -4,7 +4,24 @@ BLT is a Chrome extension that enables users to take screenshots or capture spec
 
 ## Installation Instructions
 
-### For Google Chrome
+### Quick Install (One-Line Command)
+
+Run this command in your terminal to automatically download and install the BLT extension:
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/OWASP-BLT/BLT-Extension/main/install.sh)
+```
+
+This script will:
+- Download the latest BLT extension
+- Detect your OS (Linux, macOS, or Windows)
+- Find all Chrome/Chromium browser profiles
+- Let you choose which profile to install to
+- Guide you through the final setup steps
+
+**Supported Browsers:** Google Chrome, Chromium, Brave, Microsoft Edge
+
+### Manual Installation for Google Chrome
 
 1. **Download the Extension**: Download the latest version of BLT from the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page on GitHub.
 
