@@ -34,7 +34,44 @@ detect_os() {
     echo -e "${GREEN}Detected OS: ${OS}${NC}"
 }
 
+# Get profile name from Local State file's info_cache
+# This is the preferred method as it contains more reliable profile names
+get_profile_name_from_local_state() {
+    local browser_data_dir="$1"
+    local profile_id="$2"
+    local display_name=""
+    local local_state_file="${browser_data_dir}/Local State"
+    
+    if [ -f "$local_state_file" ]; then
+        # Remove newlines to handle both minified and pretty-printed JSON
+        local json_content
+        json_content=$(tr -d '\n\r' < "$local_state_file" 2>/dev/null)
+        
+        # Extract the info_cache section for this profile
+        # The structure is: "profile":{"info_cache":{"Profile 1":{"name":"..."},...}}
+        # First, try to find the profile entry in info_cache
+        local profile_entry
+        profile_entry=$(echo "$json_content" | grep -o "\"$profile_id\"[[:space:]]*:[[:space:]]*{[^}]*}" | head -1)
+        
+        if [ -n "$profile_entry" ]; then
+            # Try multiple possible name fields in order of preference: name, display_name, gaia_name
+            display_name=$(echo "$profile_entry" | grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            
+            if [ -z "$display_name" ]; then
+                display_name=$(echo "$profile_entry" | grep -o '"display_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"display_name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            fi
+            
+            if [ -z "$display_name" ]; then
+                display_name=$(echo "$profile_entry" | grep -o '"gaia_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"gaia_name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            fi
+        fi
+    fi
+    
+    echo "$display_name"
+}
+
 # Get the human-readable profile name from Preferences file
+# This is the fallback method if Local State doesn't have the info
 get_profile_display_name() {
     local prefs_file="$1"
     local display_name=""
@@ -53,7 +90,16 @@ get_profile_display_name() {
         profile_section=$(echo "$json_content" | grep -o '"profile"[[:space:]]*:[[:space:]]*{[^}]*}' | head -1)
         
         if [ -n "$profile_section" ]; then
+            # Try multiple possible name fields in order of preference: name, display_name, gaia_name
             display_name=$(echo "$profile_section" | grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            
+            if [ -z "$display_name" ]; then
+                display_name=$(echo "$profile_section" | grep -o '"display_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"display_name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            fi
+            
+            if [ -z "$display_name" ]; then
+                display_name=$(echo "$profile_section" | grep -o '"gaia_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"gaia_name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+            fi
         fi
     fi
     
@@ -72,7 +118,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/google-chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/.config/google-chrome" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chrome - $profile_name ($display_name)")
                         else
@@ -87,7 +138,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/google-chrome/common/google-chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/snap/google-chrome/common/google-chrome" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chrome (Snap) - $profile_name ($display_name)")
                         else
@@ -102,7 +158,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/.config/chromium" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chromium - $profile_name ($display_name)")
                         else
@@ -117,7 +178,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/chromium/common/chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/snap/chromium/common/chromium" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chromium (Snap) - $profile_name ($display_name)")
                         else
@@ -132,7 +198,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/.config/BraveSoftware/Brave-Browser" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Brave - $profile_name ($display_name)")
                         else
@@ -147,7 +218,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Brave (Snap) - $profile_name ($display_name)")
                         else
@@ -162,7 +238,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/microsoft-edge"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/.config/microsoft-edge" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Edge - $profile_name ($display_name)")
                         else
@@ -179,7 +260,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Google/Chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/Library/Application Support/Google/Chrome" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chrome - $profile_name ($display_name)")
                         else
@@ -194,7 +280,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/Library/Application Support/Chromium" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chromium - $profile_name ($display_name)")
                         else
@@ -209,7 +300,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/Library/Application Support/BraveSoftware/Brave-Browser" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Brave - $profile_name ($display_name)")
                         else
@@ -224,7 +320,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Microsoft Edge"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$HOME/Library/Application Support/Microsoft Edge" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Edge - $profile_name ($display_name)")
                         else
@@ -241,7 +342,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Google/Chrome/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$LOCALAPPDATA/Google/Chrome/User Data" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chrome - $profile_name ($display_name)")
                         else
@@ -256,7 +362,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Chromium/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$LOCALAPPDATA/Chromium/User Data" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Chromium - $profile_name ($display_name)")
                         else
@@ -271,7 +382,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/BraveSoftware/Brave-Browser/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$LOCALAPPDATA/BraveSoftware/Brave-Browser/User Data" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Brave - $profile_name ($display_name)")
                         else
@@ -286,7 +402,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Microsoft/Edge/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        # First try to get display name from Local State file's info_cache
+                        display_name=$(get_profile_name_from_local_state "$LOCALAPPDATA/Microsoft/Edge/User Data" "$profile_name")
+                        # Fall back to Preferences file if Local State didn't have the name
+                        if [ -z "$display_name" ]; then
+                            display_name=$(get_profile_display_name "${profile}Preferences")
+                        fi
                         if [ -n "$display_name" ]; then
                             PROFILES+=("Edge - $profile_name ($display_name)")
                         else
