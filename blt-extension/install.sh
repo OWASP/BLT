@@ -214,7 +214,10 @@ download_extension() {
     
     # Create temp directory
     TEMP_DIR=$(mktemp -d)
-    cd "$TEMP_DIR"
+    if ! cd "$TEMP_DIR"; then
+        echo -e "${RED}Error: Failed to access temporary directory${NC}"
+        exit 1
+    fi
     
     # Try to get the latest release
     RELEASE_INFO=$(curl -s "$GITHUB_API" 2>/dev/null || echo "")
@@ -307,7 +310,7 @@ launch_browser() {
                 fi
                 ;;
             Windows)
-                start "" "$browser_exe" --profile-directory="$actual_profile_name" "$EXTENSION_PAGE" &
+                start "" "$browser_exe" --profile-directory="$actual_profile_name" "$EXTENSION_PAGE"
                 ;;
         esac
         
@@ -392,8 +395,8 @@ main() {
     echo ""
     echo -e "Visit ${BLUE}${EXTENSION_PAGE}${NC} to learn more about BLT!"
     
-    # Cleanup temp files (keep extension files)
-    rm -f "$TEMP_DIR/extension.zip" 2>/dev/null || true
+    # Cleanup temp directory (extension files have been copied to profile)
+    rm -rf "$TEMP_DIR" 2>/dev/null || true
 }
 
 # Run main function
