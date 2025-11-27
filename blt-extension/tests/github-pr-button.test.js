@@ -22,7 +22,10 @@ describe('GitHub PR Update Branch Button', () => {
     
     // Mock window.location for GitHub PR page
     delete window.location;
-    window.location = { pathname: '/owner/repo/pull/123' };
+    window.location = { 
+      pathname: '/owner/repo/pull/123',
+      href: 'https://github.com/owner/repo/pull/123'
+    };
     
     // Mock scrollIntoView for jsdom
     Element.prototype.scrollIntoView = jest.fn();
@@ -63,6 +66,13 @@ describe('GitHub PR Update Branch Button', () => {
       );
     });
 
+    it('should create floating button container on PR pages', () => {
+      require('../github-pr-button.js');
+
+      const container = document.querySelector('.blt-floating-btn-container');
+      expect(container).not.toBeNull();
+    });
+
     it('should create floating button on PR pages', () => {
       require('../github-pr-button.js');
 
@@ -90,6 +100,13 @@ describe('GitHub PR Update Branch Button', () => {
 
       const floatingBtns = document.querySelectorAll('.blt-update-branch-btn');
       expect(floatingBtns.length).toBe(1);
+    });
+
+    it('should create three buttons in the container', () => {
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      expect(buttons.length).toBe(3);
     });
   });
 
@@ -121,6 +138,26 @@ describe('GitHub PR Update Branch Button', () => {
       const floatingBtn = document.querySelector('.blt-update-branch-btn');
       const svgIcon = floatingBtn.querySelector('svg');
       expect(svgIcon).not.toBeNull();
+    });
+
+    it('should have scroll to top button with correct text', () => {
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      const scrollTopBtn = Array.from(buttons).find(btn => 
+        btn.textContent.includes('Scroll to Top')
+      );
+      expect(scrollTopBtn).not.toBeNull();
+    });
+
+    it('should have view files button with correct text', () => {
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      const viewFilesBtn = Array.from(buttons).find(btn => 
+        btn.textContent.includes('View Files')
+      );
+      expect(viewFilesBtn).not.toBeNull();
     });
   });
 
@@ -155,6 +192,16 @@ describe('GitHub PR Update Branch Button', () => {
       );
 
       expect(styleEl.textContent).toContain('background:');
+    });
+
+    it('should define secondary button styles', () => {
+      require('../github-pr-button.js');
+
+      const styleEl = Array.from(document.querySelectorAll('style')).find(
+        style => style.textContent.includes('blt-floating-btn-container')
+      );
+
+      expect(styleEl.textContent).toContain('blt-secondary-btn');
     });
   });
 
@@ -216,6 +263,35 @@ describe('GitHub PR Update Branch Button', () => {
       const floatingBtn = document.querySelector('.blt-update-branch-btn');
       
       expect(() => floatingBtn.click()).not.toThrow();
+    });
+
+    it('should scroll to top when scroll to top button is clicked', () => {
+      window.scrollTo = jest.fn();
+      
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      const scrollTopBtn = Array.from(buttons).find(btn => 
+        btn.textContent.includes('Scroll to Top')
+      );
+      scrollTopBtn.click();
+
+      expect(window.scrollTo).toHaveBeenCalledWith({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    it('should navigate to files page when view files button is clicked', () => {
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      const viewFilesBtn = Array.from(buttons).find(btn => 
+        btn.textContent.includes('View Files')
+      );
+      viewFilesBtn.click();
+
+      expect(window.location.href).toBe('/owner/repo/pull/123/files');
     });
   });
 
@@ -331,6 +407,23 @@ describe('GitHub PR Update Branch Button', () => {
 
       const floatingBtn = document.querySelector('.blt-update-branch-btn');
       expect(floatingBtn).not.toBeNull();
+    });
+
+    it('should navigate to correct files URL for different PRs', () => {
+      window.location = { 
+        pathname: '/another-owner/another-repo/pull/789',
+        href: 'https://github.com/another-owner/another-repo/pull/789'
+      };
+      
+      require('../github-pr-button.js');
+
+      const buttons = document.querySelectorAll('.blt-floating-btn');
+      const viewFilesBtn = Array.from(buttons).find(btn => 
+        btn.textContent.includes('View Files')
+      );
+      viewFilesBtn.click();
+
+      expect(window.location.href).toBe('/another-owner/another-repo/pull/789/files');
     });
   });
 });
