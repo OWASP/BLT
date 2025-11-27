@@ -1,14 +1,62 @@
 // GitHub PR Update Branch Floating Button
-// Adds a floating button on GitHub PR pages that scrolls to the "Update branch" button
+// Adds floating buttons on GitHub PR pages for navigation
 
-// CSS styles for the floating button
+// CSS styles for the floating buttons
 const floatingButtonStyle = document.createElement("style");
 floatingButtonStyle.textContent = `
-.blt-update-branch-btn {
+.blt-floating-btn-container {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.blt-floating-btn {
+  background: #238636;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+}
+
+.blt-floating-btn:hover {
+  background: #2ea043;
+  transform: translateY(-2px);
+}
+
+.blt-floating-btn:active {
+  transform: translateY(0);
+}
+
+.blt-floating-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.blt-floating-btn.blt-secondary-btn {
+  background: #0969da;
+}
+
+.blt-floating-btn.blt-secondary-btn:hover {
+  background: #0860ca;
+}
+
+/* Keep backwards compatibility with old class name */
+.blt-update-branch-btn {
   background: #238636;
   color: white;
   border: none;
@@ -39,10 +87,6 @@ floatingButtonStyle.textContent = `
   height: 16px;
   fill: currentColor;
 }
-
-.blt-update-branch-btn.hidden {
-  display: none;
-}
 `;
 document.head.appendChild(floatingButtonStyle);
 
@@ -53,6 +97,21 @@ const downArrowIcon = `
 </svg>
 `;
 
+// SVG icon for scroll to top (up arrow icon)
+const upArrowIcon = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 3.22l4.22 4.22a.75.75 0 01-1.06 1.06L8 5.31 4.84 8.5a.75.75 0 01-1.06-1.06L8 3.22zM8 12.25a.75.75 0 01-.75-.75V6.81a.75.75 0 011.5 0v4.69a.75.75 0 01-.75.75z"/>
+</svg>
+`;
+
+// SVG icon for files page (file icon)
+const filesIcon = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M3.75 1.5a.25.25 0 00-.25.25v11.5c0 .138.112.25.25.25h8.5a.25.25 0 00.25-.25V6H9.75A1.75 1.75 0 018 4.25V1.5H3.75zm5.75.56v2.19c0 .138.112.25.25.25h2.19L9.5 2.06zM2 1.75C2 .784 2.784 0 3.75 0h5.086c.464 0 .909.184 1.237.513l3.414 3.414c.329.328.513.773.513 1.237v8.086A1.75 1.75 0 0112.25 15h-8.5A1.75 1.75 0 012 13.25V1.75z"/>
+</svg>
+`;
+
+let floatingButtonContainer = null;
 let floatingButton = null;
 
 /**
@@ -123,7 +182,72 @@ function findUpdateBranchButton() {
 }
 
 /**
- * Creates the floating button element
+ * Creates a floating button element
+ * @param {string} icon - SVG icon HTML
+ * @param {string} text - Button text
+ * @param {string} title - Button title/tooltip
+ * @param {Function} clickHandler - Click event handler
+ * @param {boolean} isSecondary - Whether to use secondary styling
+ * @returns {HTMLButtonElement} The floating button element
+ */
+function createButton(icon, text, title, clickHandler, isSecondary = false) {
+    const button = document.createElement('button');
+    button.className = `blt-floating-btn${isSecondary ? ' blt-secondary-btn' : ''}`;
+    button.innerHTML = `${icon}<span>${text}</span>`;
+    button.title = title;
+    button.setAttribute('aria-label', title);
+    
+    button.addEventListener('click', clickHandler);
+    
+    return button;
+}
+
+/**
+ * Creates the floating button container with all buttons
+ * @returns {HTMLDivElement} The floating button container element
+ */
+function createFloatingButtonContainer() {
+    const container = document.createElement('div');
+    container.className = 'blt-floating-btn-container';
+    
+    // Create scroll to top button
+    const scrollTopBtn = createButton(
+        upArrowIcon,
+        'Scroll to Top',
+        'Scroll to top of page',
+        scrollToTop,
+        true
+    );
+    
+    // Create view files button
+    const viewFilesBtn = createButton(
+        filesIcon,
+        'View Files',
+        'View changed files',
+        navigateToFiles,
+        true
+    );
+    
+    // Create scroll to update branch button (primary)
+    const updateBranchBtn = createButton(
+        downArrowIcon,
+        'Go to Update Branch',
+        'Scroll to Update Branch button',
+        scrollToUpdateBranch,
+        false
+    );
+    // Add backwards-compatible class name
+    updateBranchBtn.classList.add('blt-update-branch-btn');
+    
+    container.appendChild(scrollTopBtn);
+    container.appendChild(viewFilesBtn);
+    container.appendChild(updateBranchBtn);
+    
+    return container;
+}
+
+/**
+ * Creates the floating button element (backwards compatibility)
  * @returns {HTMLButtonElement} The floating button element
  */
 function createFloatingButton() {
@@ -139,7 +263,31 @@ function createFloatingButton() {
 }
 
 /**
- * Scrolls to the update branch button and highlights it
+ * Scrolls to the top of the page
+ */
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+/**
+ * Navigates to the files changed tab of the PR
+ */
+function navigateToFiles() {
+    // Get the current PR URL and navigate to /files
+    const currentPath = window.location.pathname;
+    const prMatch = currentPath.match(/(.+\/pull\/\d+)/);
+    if (prMatch) {
+        const prBasePath = prMatch[1];
+        window.location.href = `${prBasePath}/files`;
+    }
+}
+
+/**
+ * Scrolls to the update branch button and highlights it.
+ * If the update branch button is not found, scrolls to the bottom of the page.
  */
 function scrollToUpdateBranch() {
     const updateBtn = findUpdateBranchButton();
@@ -162,20 +310,12 @@ function scrollToUpdateBranch() {
             updateBtn.style.outline = originalOutline;
             updateBtn.style.boxShadow = originalBoxShadow;
         }, 2000);
-    }
-}
-
-/**
- * Updates the visibility of the floating button based on whether
- * the update branch button exists on the page
- */
-function updateFloatingButtonVisibility() {
-    const updateBtn = findUpdateBranchButton();
-    
-    if (updateBtn && floatingButton) {
-        floatingButton.classList.remove('hidden');
-    } else if (floatingButton) {
-        floatingButton.classList.add('hidden');
+    } else {
+        // If update branch button is not found, scroll to the bottom of the page
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 }
 
@@ -189,23 +329,23 @@ function initFloatingButton() {
     }
     
     // Don't create duplicate buttons
-    if (floatingButton || document.querySelector('.blt-update-branch-btn')) {
+    if (floatingButtonContainer || document.querySelector('.blt-floating-btn-container')) {
         return;
     }
     
-    // Create and add the floating button
-    floatingButton = createFloatingButton();
-    document.body.appendChild(floatingButton);
+    // Create and add the floating button container (always visible on PR pages)
+    floatingButtonContainer = createFloatingButtonContainer();
+    document.body.appendChild(floatingButtonContainer);
     
-    // Initially hide if no update branch button found
-    updateFloatingButtonVisibility();
+    // Set floatingButton reference for backwards compatibility
+    floatingButton = floatingButtonContainer.querySelector('.blt-update-branch-btn');
 }
 
 // Debounce timer for MutationObserver callbacks
 let debounceTimer = null;
 
 /**
- * Debounced handler for MutationObserver to reduce DOM queries
+ * Debounced handler for MutationObserver to ensure button is initialized
  */
 function handleMutations() {
     if (debounceTimer) {
@@ -213,11 +353,9 @@ function handleMutations() {
     }
     debounceTimer = setTimeout(() => {
         // Initialize button if not already done
-        if (!floatingButton) {
+        if (!floatingButtonContainer) {
             initFloatingButton();
         }
-        // Update visibility based on current page state
-        updateFloatingButtonVisibility();
     }, 100);
 }
 
