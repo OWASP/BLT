@@ -269,6 +269,14 @@ describe('GitHub PR Update Branch Button', () => {
   });
 
   describe('MutationObserver Updates', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('should update button visibility when DOM changes', () => {
       document.body.innerHTML = '<div>Initial content</div><button>Merge</button>';
       
@@ -285,6 +293,9 @@ describe('GitHub PR Update Branch Button', () => {
       // Trigger MutationObserver callback
       const observerCallback = MutationObserver.mock.calls[0][0];
       observerCallback();
+      
+      // Fast-forward the debounce timer
+      jest.advanceTimersByTime(150);
 
       floatingBtn = document.querySelector('.blt-update-branch-btn');
       expect(floatingBtn.classList.contains('hidden')).toBe(false);

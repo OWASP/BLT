@@ -67,7 +67,7 @@ function findUpdateBranchButton() {
     // GitHub uses different variations of this button
     const selectors = [
         // Primary update branch button
-        'button[data-disable-with="Updating branch…"]',
+        'button[data-disable-with="Updating branch\u2026"]',
         // Form-based update buttons
         'form[action*="update_branch"] button',
         '.branch-action-btn',
@@ -88,7 +88,7 @@ function findUpdateBranchButton() {
                     return el;
                 }
             }
-        } catch {
+        } catch (e) {
             // Some selectors may not be valid, continue to next
         }
     }
@@ -109,9 +109,13 @@ function findUpdateBranchButton() {
     // Also check for the merge box area which contains the update branch section
     const mergeBox = document.querySelector('.merge-message, .merging-body, [data-target="merge-message"]');
     if (mergeBox) {
-        const updateBtn = mergeBox.querySelector('button');
-        if (updateBtn && updateBtn.textContent?.toLowerCase().includes('update')) {
-            return updateBtn;
+        const buttons = mergeBox.querySelectorAll('button');
+        for (const updateBtn of buttons) {
+            const btnText = updateBtn.textContent?.trim().toLowerCase() || '';
+            // More specific matching: require "update" followed by "branch" or "with"
+            if (btnText.includes('update branch') || btnText.includes('update with')) {
+                return updateBtn;
+            }
         }
     }
 
@@ -185,7 +189,7 @@ function initFloatingButton() {
     }
     
     // Don't create duplicate buttons
-    if (document.querySelector('.blt-update-branch-btn')) {
+    if (floatingButton || document.querySelector('.blt-update-branch-btn')) {
         return;
     }
     
@@ -197,16 +201,29 @@ function initFloatingButton() {
     updateFloatingButtonVisibility();
 }
 
+// Debounce timer for MutationObserver callbacks
+let debounceTimer = null;
+
+/**
+ * Debounced handler for MutationObserver to reduce DOM queries
+ */
+function handleMutations() {
+    if (debounceTimer) {
+        clearTimeout(debounceTimer);
+    }
+    debounceTimer = setTimeout(() => {
+        // Initialize button if not already done
+        if (!floatingButton) {
+            initFloatingButton();
+        }
+        // Update visibility based on current page state
+        updateFloatingButtonVisibility();
+    }, 100);
+}
+
 // Use MutationObserver to detect when the update branch button appears
 // GitHub uses dynamic content loading
-const observer = new MutationObserver(() => {
-    // Initialize button if not already done
-    if (!document.querySelector('.blt-update-branch-btn')) {
-        initFloatingButton();
-    }
-    // Update visibility based on current page state
-    updateFloatingButtonVisibility();
-});
+const observer = new MutationObserver(handleMutations);
 
 // Start observing the document body for changes
 observer.observe(document.body, { childList: true, subtree: true });
