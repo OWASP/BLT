@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP Metadata Explorer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- header -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="title">OWASP Metadata Explorer</h1>
+      <div class="header-stats" id="stats">Loading repositories...</div>
+    </div>
+   <button class="btn" onclick="window.location.href='charts.html'" style="display: inline-flex; align-items: center; gap: 4px;">
+    📊 Analytics
+</button>
+    <div class="header-actions">
+      <button class="btn btn-icon" id="toggle-theme" title="Toggle theme">🌓</button>
+      <button class="btn" id="toggle-filters">Filters</button>
+      <button class="btn" id="toggle-columns">Columns</button>
+      <button class="btn" id="export-btn">Export CSV</button>
+    </div>
+  </header>
+
+  <!-- control bar -->
+  <div class="control-bar">
+    <div class="search-container">
+      <input type="text" id="search" placeholder="Search repositories..." class="search-input">
+      <div class="results-count" id="row-count">0</div>
+    </div>
+    <div class="view-controls">
+      <button class="btn btn-sm" id="sort-asc">Sort A-Z</button>
+      <button class="btn btn-sm" id="sort-desc">Sort Z-A</button>
+    </div>
+  </div>
+
+  <!-- filters panel -->
+  <section id="filters-panel" class="panel hidden">
+    <div class="panel-header">
+      <h3>Filter Repositories</h3>
+      <button class="btn btn-text" id="clear-filters">Clear All</button>
+    </div>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="field-filter">Fields with data</label>
+        <select id="field-filter" multiple class="select-multiple">
+          <option value="all" selected>All fields</option>
+        </select>
+        <div class="help-text">Hold Ctrl/Cmd to select multiple</div>
+      </div>
+      <div class="filter-group">
+        <label for="completeness-filter">Metadata status</label>
+        <select id="completeness-filter" class="select-single">
+          <option value="all">All repositories</option>
+          <option value="with-metadata">With metadata</option>
+          <option value="without-metadata">Without metadata</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- columns panel -->
+  <section id="columns-panel" class="panel hidden">
+    <div class="panel-header">
+      <h3>Visible Columns</h3>
+    </div>
+    <div id="column-checkboxes" class="columns-grid"></div>
+  </section>
+
+  <!-- main content -->
+  <main class="main-content">
+    <div class="table-container">
+      <table id="metadata-table">
+        <thead id="table-head">
+          <tr>
+            <th data-column="repo" class="sort-asc">Repository</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr>
+            <td colspan="100" class="loading">Loading metadata...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- status -->
+  <footer class="footer">
+    <div class="status" id="status">Loading data...</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
