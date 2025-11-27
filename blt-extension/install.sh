@@ -34,6 +34,32 @@ detect_os() {
     echo -e "${GREEN}Detected OS: ${OS}${NC}"
 }
 
+# Get the human-readable profile name from Preferences file
+get_profile_display_name() {
+    local prefs_file="$1"
+    local display_name=""
+    
+    if [ -f "$prefs_file" ]; then
+        # Try to extract profile.name from the Preferences JSON file
+        # Chrome stores the profile name in "profile":{"name":"<value>",...}
+        # We use standard tools (tr, grep, sed) to avoid requiring jq dependency
+        
+        # Remove newlines to handle both minified and pretty-printed JSON
+        local json_content
+        json_content=$(tr -d '\n\r' < "$prefs_file" 2>/dev/null)
+        
+        # Extract the profile object and then get the name field from it
+        local profile_section
+        profile_section=$(echo "$json_content" | grep -o '"profile"[[:space:]]*:[[:space:]]*{[^}]*}' | head -1)
+        
+        if [ -n "$profile_section" ]; then
+            display_name=$(echo "$profile_section" | grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"name"[[:space:]]*:[[:space:]]*"//' | sed 's/"$//')
+        fi
+    fi
+    
+    echo "$display_name"
+}
+
 # Find Chrome/Chromium profile directories
 find_chrome_profiles() {
     PROFILES=()
@@ -46,7 +72,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/google-chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chrome - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chrome - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chrome - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/.config/google-chrome/$profile_name")
                     fi
                 done
@@ -56,7 +87,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/google-chrome/common/google-chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chrome (Snap) - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chrome (Snap) - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chrome (Snap) - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/snap/google-chrome/common/google-chrome/$profile_name")
                     fi
                 done
@@ -66,7 +102,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chromium - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chromium - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chromium - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/.config/chromium/$profile_name")
                     fi
                 done
@@ -76,7 +117,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/chromium/common/chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chromium (Snap) - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chromium (Snap) - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chromium (Snap) - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/snap/chromium/common/chromium/$profile_name")
                     fi
                 done
@@ -86,7 +132,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Brave - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Brave - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Brave - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/.config/BraveSoftware/Brave-Browser/$profile_name")
                     fi
                 done
@@ -96,7 +147,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Brave (Snap) - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Brave (Snap) - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Brave (Snap) - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser/$profile_name")
                     fi
                 done
@@ -106,7 +162,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/.config/microsoft-edge"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Edge - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Edge - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Edge - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/.config/microsoft-edge/$profile_name")
                     fi
                 done
@@ -118,7 +179,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Google/Chrome"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chrome - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chrome - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chrome - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/Library/Application Support/Google/Chrome/$profile_name")
                     fi
                 done
@@ -128,7 +194,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Chromium"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chromium - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chromium - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chromium - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/Library/Application Support/Chromium/$profile_name")
                     fi
                 done
@@ -138,7 +209,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/BraveSoftware/Brave-Browser"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Brave - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Brave - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Brave - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/Library/Application Support/BraveSoftware/Brave-Browser/$profile_name")
                     fi
                 done
@@ -148,7 +224,12 @@ find_chrome_profiles() {
                 for profile in "$HOME/Library/Application Support/Microsoft Edge"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Edge - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Edge - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Edge - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$HOME/Library/Application Support/Microsoft Edge/$profile_name")
                     fi
                 done
@@ -160,7 +241,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Google/Chrome/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chrome - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chrome - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chrome - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$LOCALAPPDATA/Google/Chrome/User Data/$profile_name")
                     fi
                 done
@@ -170,7 +256,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Chromium/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Chromium - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Chromium - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Chromium - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$LOCALAPPDATA/Chromium/User Data/$profile_name")
                     fi
                 done
@@ -180,7 +271,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/BraveSoftware/Brave-Browser/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Brave - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Brave - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Brave - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$LOCALAPPDATA/BraveSoftware/Brave-Browser/User Data/$profile_name")
                     fi
                 done
@@ -190,7 +286,12 @@ find_chrome_profiles() {
                 for profile in "$LOCALAPPDATA/Microsoft/Edge/User Data"/*/; do
                     if [ -f "${profile}Preferences" ]; then
                         profile_name=$(basename "$profile")
-                        PROFILES+=("Edge - $profile_name")
+                        display_name=$(get_profile_display_name "${profile}Preferences")
+                        if [ -n "$display_name" ]; then
+                            PROFILES+=("Edge - $profile_name ($display_name)")
+                        else
+                            PROFILES+=("Edge - $profile_name")
+                        fi
                         PROFILE_PATHS+=("$LOCALAPPDATA/Microsoft/Edge/User Data/$profile_name")
                     fi
                 done
