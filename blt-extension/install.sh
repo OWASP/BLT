@@ -51,6 +51,16 @@ find_chrome_profiles() {
                     fi
                 done
             fi
+            # Chrome profiles (Snap)
+            if [ -d "$HOME/snap/google-chrome/common/google-chrome" ]; then
+                for profile in "$HOME/snap/google-chrome/common/google-chrome"/*/; do
+                    if [ -f "${profile}Preferences" ]; then
+                        profile_name=$(basename "$profile")
+                        PROFILES+=("Chrome (Snap) - $profile_name")
+                        PROFILE_PATHS+=("$HOME/snap/google-chrome/common/google-chrome/$profile_name")
+                    fi
+                done
+            fi
             # Chromium profiles
             if [ -d "$HOME/.config/chromium" ]; then
                 for profile in "$HOME/.config/chromium"/*/; do
@@ -61,6 +71,16 @@ find_chrome_profiles() {
                     fi
                 done
             fi
+            # Chromium profiles (Snap)
+            if [ -d "$HOME/snap/chromium/common/chromium" ]; then
+                for profile in "$HOME/snap/chromium/common/chromium"/*/; do
+                    if [ -f "${profile}Preferences" ]; then
+                        profile_name=$(basename "$profile")
+                        PROFILES+=("Chromium (Snap) - $profile_name")
+                        PROFILE_PATHS+=("$HOME/snap/chromium/common/chromium/$profile_name")
+                    fi
+                done
+            fi
             # Brave Browser profiles
             if [ -d "$HOME/.config/BraveSoftware/Brave-Browser" ]; then
                 for profile in "$HOME/.config/BraveSoftware/Brave-Browser"/*/; do
@@ -68,6 +88,16 @@ find_chrome_profiles() {
                         profile_name=$(basename "$profile")
                         PROFILES+=("Brave - $profile_name")
                         PROFILE_PATHS+=("$HOME/.config/BraveSoftware/Brave-Browser/$profile_name")
+                    fi
+                done
+            fi
+            # Brave Browser profiles (Snap)
+            if [ -d "$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser" ]; then
+                for profile in "$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser"/*/; do
+                    if [ -f "${profile}Preferences" ]; then
+                        profile_name=$(basename "$profile")
+                        PROFILES+=("Brave (Snap) - $profile_name")
+                        PROFILE_PATHS+=("$HOME/snap/brave/common/.config/BraveSoftware/Brave-Browser/$profile_name")
                     fi
                 done
             fi
@@ -183,10 +213,13 @@ get_browser_executable() {
     case "$OS" in
         Linux)
             case "$browser_type" in
-                Chrome)     echo "google-chrome";;
-                Chromium)   echo "chromium-browser";;
-                Brave)      echo "brave-browser";;
-                Edge)       echo "microsoft-edge";;
+                Chrome)             echo "google-chrome";;
+                "Chrome (Snap)")    echo "google-chrome";;
+                Chromium)           echo "chromium-browser";;
+                "Chromium (Snap)")  echo "chromium";;
+                Brave)              echo "brave-browser";;
+                "Brave (Snap)")     echo "brave-browser";;
+                Edge)               echo "microsoft-edge";;
             esac
             ;;
         macOS)
