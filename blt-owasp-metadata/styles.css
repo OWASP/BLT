@@ -382,6 +382,22 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
+/* Archived repository styles */
+.archived-row {
+  opacity: 0.7;
+  background: var(--bg-tertiary);
+}
+
+.archived-row:hover {
+  opacity: 0.85;
+}
+
+.archived-badge {
+  font-size: 0.875rem;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
 /* Special cell types */
 .repo-cell {
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
