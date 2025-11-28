@@ -11,52 +11,29 @@ import { loadConfig, loadGitHubData, loadBlogPosts, loadFeedback, loadWeeklyUpda
 
 // Initialize dashboard
 async function initDashboard() {
-    try {
-        console.log('Starting dashboard initialization...');
-        
-        // Load all data
-        console.log('Loading config...');
-        const config = await loadConfig();
-        console.log('Config loaded:', config);
-        
-        console.log('Loading GitHub data...');
-        const githubData = await loadGitHubData(config);
-        console.log('GitHub data loaded:', githubData);
-        
-        console.log('Loading blog posts...');
-        const blogPosts = await loadBlogPosts();
-        console.log('Blog posts loaded:', blogPosts);
-        
-        console.log('Loading feedback...');
-        const feedback = await loadFeedback();
-        console.log('Feedback loaded:', feedback);
-        
-        console.log('Loading weekly updates...');
-        const weeklyUpdates = await loadWeeklyUpdates();
-        console.log('Weekly updates loaded:', weeklyUpdates);
-        
-        console.log('Loading milestones...');
-        const milestones = await loadMilestones();
-        console.log('Milestones loaded:', milestones);
+  try {
+    const config = await loadConfig();
+    const githubData = await loadGitHubData(config);
+    const blogPosts = await loadBlogPosts();
+    const feedback = await loadFeedback();
+    const weeklyUpdates = await loadWeeklyUpdates();
+    const milestones = await loadMilestones();
 
-        // Render all sections
-        console.log('Rendering components...');
-        renderEditableButtonSection();
-        renderHeader(config);
-        renderProjectInfo(config);
-        renderGitHubStats(githubData);
-        renderSlackInfo(config);
-        renderBlogPosts(blogPosts, config);
-        renderMentorInfo(config, feedback);
-        renderWeeklyUpdates(weeklyUpdates);
-        renderMilestones(milestones);
-        updateLastUpdated();
-        
-        console.log('Dashboard initialization complete!');
-    } catch (error) {
-        console.error('Error initializing dashboard:', error);
-    }
+    // Render all sections
+    renderEditableButtonSection();
+    renderHeader(config);
+    renderProjectInfo(config);
+    renderGitHubStats(githubData);
+    renderSlackInfo(config);
+    renderBlogPosts(blogPosts, config);
+    renderMentorInfo(config, feedback);
+    renderWeeklyUpdates(weeklyUpdates);
+    renderMilestones(milestones);
+    updateLastUpdated();
+  } catch (error) {
+    console.error("Error initializing dashboard:", error);
+  }
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initDashboard);
+document.addEventListener("DOMContentLoaded", initDashboard);
