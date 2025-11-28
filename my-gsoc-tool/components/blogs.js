@@ -7,6 +7,13 @@ export function renderBlogPosts(posts, config) {
 
     if (!posts) posts = [];
 
+    // Add unique IDs to posts if they don't exist
+    posts.forEach((post, index) => {
+        if (!post._id) {
+            post._id = Date.now() + Math.random(); // Simple unique ID
+        }
+    });
+
     if (!IS_EDITABLE) {
         if (posts.length > 0) {
             blogList.innerHTML = posts.map(post => `
@@ -31,14 +38,13 @@ export function renderBlogPosts(posts, config) {
         return; // stop here
     }
 
-
-    blogList.innerHTML = posts.map((post, index) => `
+    blogList.innerHTML = posts.map((post) => `
         <div class="blog-post editable-blog-post">
             <input 
                 type="text" 
-                class="edit-input" 
-                value="${post.title}" 
-                data-index="${index}" 
+                class="input-field" 
+                value="${post.title || ''}" 
+                data-id="${post._id}" 
                 data-field="title"
                 placeholder="Post Title"
             />
@@ -46,16 +52,16 @@ export function renderBlogPosts(posts, config) {
             <div class="edit-inline">
                 <input 
                     type="date" 
-                    class="edit-input small" 
-                    value="${post.date}" 
-                    data-index="${index}" 
+                    class="input-field small" 
+                    value="${post.date || ''}" 
+                    data-id="${post._id}" 
                     data-field="date"
                 />
                 <input 
                     type="text" 
-                    class="edit-input small" 
+                    class="input-field small" 
                     value="${post.readTime || ''}" 
-                    data-index="${index}" 
+                    data-id="${post._id}" 
                     data-field="readTime"
                     placeholder="Read Time"
                 />
@@ -63,57 +69,67 @@ export function renderBlogPosts(posts, config) {
 
             <input 
                 type="text" 
-                class="edit-input" 
-                value="${post.url}" 
-                data-index="${index}" 
+                class="input-field" 
+                value="${post.url || ''}" 
+                data-id="${post._id}" 
                 data-field="url"
                 placeholder="Post URL"
             />
 
             <textarea 
-                class="edit-textarea" 
-                data-index="${index}" 
+                class="text-area-field" 
+                data-id="${post._id}" 
                 data-field="excerpt"
                 placeholder="Short excerpt"
-            >${post.excerpt}</textarea>
+            >${post.excerpt || ''}</textarea>
 
-            <button class="remove-btn" data-remove="${index}">Remove</button>
+            <button class="btn btn-danger" data-remove="${post._id}">Remove</button>
         </div>
     `).join('');
 
-    // Add new post button
     blogList.innerHTML += `
-        <button class="add-post-btn">+ Add New Blog Post</button>
+        <button class="btn-primary add-post-btn">+ Add New Blog Post</button>
     `;
 
-    // Handle input changes
-    blogList.addEventListener("input", (e) => {
-        const index = e.target.getAttribute("data-index");
+    // Remove existing event listeners to avoid duplicates
+    const newBlogList = blogList.cloneNode(true);
+    blogList.parentNode.replaceChild(newBlogList, blogList);
+
+    // Add input event listener
+    newBlogList.addEventListener("input", (e) => {
+        const postId = e.target.getAttribute("data-id");
         const field = e.target.getAttribute("data-field");
-        if (index !== null && field) {
-            posts[index][field] = e.target.value;
+        if (postId && field) {
+            const post = posts.find(p => p._id == postId);
+            if (post) {
+                post[field] = e.target.value;
+            }
         }
     });
 
-    // Handle remove
-    blogList.addEventListener("click", (e) => {
-        const removeIndex = e.target.getAttribute("data-remove");
-        if (removeIndex !== null) {
-            posts.splice(removeIndex, 1);
-            renderBlogPosts(posts, config); // re-render
+    // Add click event listener for remove buttons
+    newBlogList.addEventListener("click", (e) => {
+        const removeId = e.target.getAttribute("data-remove");
+        if (removeId) {
+            const postIndex = posts.findIndex(p => p._id == removeId);
+            if (postIndex !== -1) {
+                posts.splice(postIndex, 1);
+                renderBlogPosts(posts, config); // re-render
+            }
         }
-    });
-
-    // Handle add post
-    document.querySelector(".add-post-btn").addEventListener("click", () => {
-        posts.push({
-            title: "",
-            date: "",
-            excerpt: "",
-            url: "",
-            readTime: ""
-        });
-        renderBlogPosts(posts, config);
+        
+        // Handle add button
+        if (e.target.classList.contains("add-post-btn")) {
+            posts.push({
+                _id: Date.now() + Math.random(),
+                title: "",
+                date: "",
+                excerpt: "",
+                url: "",
+                readTime: ""
+            });
+            renderBlogPosts(posts, config);
+        }
     });
 
     // Blog link as editable too

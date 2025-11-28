@@ -463,6 +463,15 @@ body {
     box-shadow: var(--shadow-hover);
 }
 
+.btn-danger {
+    background: #ff4444;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 6px;
+}
 /* Footer */
 .dashboard-footer {
     text-align: center;
@@ -474,25 +483,6 @@ body {
 
 .dashboard-footer p {
     margin: 5px 0;
-}
-
-.input-field {
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  border: 1px solid #d0d5dd;
-  border-radius: 10px;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.input-field:hover {
-  border-color: #b8bec9;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
 }
 
 .edit-section {
@@ -513,7 +503,7 @@ body {
     background: var(--card-background);
 }
 
-.edit-input, .edit-textarea {
+.input-field, .text-area-field {
     width: 100%;
     margin: 6px 0;
     padding: 8px;
@@ -523,7 +513,7 @@ body {
     color: var(--text-primary);
 }
 
-.edit-textarea {
+.text-area-field {
     height: 70px;
     resize: vertical;
 }
@@ -533,30 +523,11 @@ body {
     gap: 10px;
 }
 
-.edit-input.small {
+
+.input-field.small {
     flex: 1;
 }
 
-.remove-btn {
-    background: #ff4444;
-    color: white;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 6px;
-}
-
-.add-post-btn {
-    background: var(--primary-color);
-    color: white;
-    padding: 10px;
-    width: 100%;
-    margin-top: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
 
 
 /* Responsive Design */

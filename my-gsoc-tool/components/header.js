@@ -21,7 +21,7 @@ export function renderHeader(config) {
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Name</span>
-                <input value="${config.student.name}" name="name" type="text" placeholder="Your Name" class="input-field" />
+                <input value="${config.student.name}" name="name" type="text" placeholder="Your Name" class="input-field text-white" />
                 </label>
 
                 <label class="flex flex-col">
