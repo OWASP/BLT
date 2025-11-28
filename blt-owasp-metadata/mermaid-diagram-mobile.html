@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>OWASP SDLC Diagram - Mobile View</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="mermaid.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .mobile-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--primary);
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      gap: 8px;
+    }
+
+    .mobile-header h1 {
+      font-size: 14px;
+      margin: 0;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .mobile-header-buttons {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .mobile-btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+    }
+
+    .mobile-btn:hover,
+    .mobile-btn:active {
+      background: var(--primary-dark);
+    }
+
+    .mobile-btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .mobile-btn-secondary:hover,
+    .mobile-btn-secondary:active {
+      background: var(--border);
+    }
+
+    .diagram-viewport {
+      position: fixed;
+      top: 54px;
+      left: 0;
+      right: 0;
+      bottom: 70px;
+      overflow: hidden;
+      background: var(--bg);
+      touch-action: none;
+    }
+
+    .diagram-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: center center;
+      cursor: grab;
+    }
+
+    .diagram-canvas:active {
+      cursor: grabbing;
+    }
+
+    .diagram-canvas.dragging {
+      cursor: grabbing;
+    }
+
+    #mermaid-chart {
+      padding: 20px;
+      min-width: max-content;
+    }
+
+    .zoom-controls {
+      position: fixed;
+      bottom: 80px;
+      right: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .zoom-btn {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      touch-action: manipulation;
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .zoom-btn-reset {
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .mobile-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .zoom-info {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .gesture-hint {
+      font-size: 11px;
+      color: var(--text-lighter);
+      text-align: center;
+      flex: 1;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    .error-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--error);
+    }
+
+    /* Fullscreen mode */
+    .fullscreen .mobile-header,
+    .fullscreen .mobile-footer,
+    .fullscreen .zoom-controls {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .fullscreen .diagram-viewport {
+      top: 0;
+      bottom: 0;
+    }
+
+    .fullscreen:not(.controls-visible) .mobile-header,
+    .fullscreen:not(.controls-visible) .mobile-footer,
+    .fullscreen:not(.controls-visible) .zoom-controls {
+      opacity: 0;
+    }
+
+    .fullscreen.controls-visible .mobile-header,
+    .fullscreen.controls-visible .mobile-footer,
+    .fullscreen.controls-visible .zoom-controls {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Project count badge */
+    .project-badge {
+      background: var(--bg-tertiary);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    /* Mini legend in footer */
+    .mini-legend {
+      display: flex;
+      gap: 12px;
+      font-size: 10px;
+      color: var(--text-light);
+    }
+
+    .mini-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .legend-phase {
+      background: #34568b;
+    }
+
+    .legend-project {
+      background: #8c9aac;
+      border-radius: 50%;
+    }
+
+    /* Dark theme adjustments */
+    body.dark .zoom-btn {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading SDLC diagram...</div>
+  </div>
+
+  <header class="mobile-header">
+    <h1>🔄 OWASP SDLC Diagram</h1>
+    <div class="mobile-header-buttons">
+      <span class="project-badge" id="project-count">Loading...</span>
+      <a href="mermaid-diagram.html" class="mobile-btn mobile-btn-secondary" title="Desktop View">🖥️</a>
+      <button class="mobile-btn mobile-btn-secondary" id="toggle-theme" title="Toggle Theme">🌓</button>
+    </div>
+  </header>
+
+  <div class="diagram-viewport" id="diagram-viewport">
+    <div class="diagram-canvas" id="diagram-canvas">
+      <div id="mermaid-chart">
+        <pre class="mermaid" id="mermaid-content"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="zoom-controls">
+    <button class="zoom-btn" id="zoom-in" title="Zoom In">+</button>
+    <button class="zoom-btn zoom-btn-reset" id="zoom-reset" title="Reset View">FIT</button>
+    <button class="zoom-btn" id="zoom-out" title="Zoom Out">−</button>
+  </div>
+
+  <footer class="mobile-footer">
+    <div class="mini-legend">
+      <div class="mini-legend-item">
+        <div class="mini-legend-color legend-phase"></div>
+        <span>Phase</span>
+      </div>
+      <div class="mini-legend-item">
+        <div class="mini-legend-color legend-project"></div>
+        <span>Project</span>
+      </div>
+    </div>
+    <div class="gesture-hint">Pinch to zoom • Drag to pan</div>
+    <div class="zoom-info" id="zoom-info">100%</div>
+  </footer>
+
+  <script>
+    const METADATA_URL = "data/metadata.json";
+
+    // State
+    let projectData = [];
+    let categorizedProjects = {};
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let lastTouchDistance = 0;
+
+    // Keywords used to categorize projects into SDLC phases
+    const sdlcKeywords = {
+      requirements: {
+        title: ['verification standard', 'asvs', 'masvs', 'security rat', 'skf', 'security knowledge framework', 'requirements'],
+        tags: ['asvs', 'masvs', 'requirements', 'standards', 'verification'],
+        type: ['standards']
+      },
+      design: {
+        title: ['threat model', 'threat dragon', 'pytm', 'cornucopia', 'design', 'architecture'],
+        tags: ['threat-modeling', 'threatmodeling', 'threat', 'design', 'architecture'],
+        type: []
+      },
+      implementation: {
+        title: ['cheat sheet', 'secure coding', 'proactive controls', 'esapi', 'csrfguard', 'encoder', 'dependency-check', 'dependency-track', 'cyclonedx', 'sbom', 'secure headers', 'code review'],
+        tags: ['secure-coding', 'cheat', 'esapi', 'dependency', 'sbom', 'sca', 'supply chain', 'headers', 'implementation', 'coding', 'builder', 'builders'],
+        type: ['code']
+      },
+      verification: {
+        title: ['testing guide', 'wstg', 'mstg', 'testing', 'scanner', 'amass', 'nettacker', 'owtf', 'zap', 'penetration', 'pentest', 'security testing', 'find security bugs'],
+        tags: ['testing', 'scanner', 'pentest', 'breaker', 'breakers', 'verification', 'sast', 'dast', 'osint'],
+        type: ['tool']
+      },
+      operation: {
+        title: ['waf', 'modsecurity', 'coraza', 'crs', 'firewall', 'runtime', 'appsensor'],
+        tags: ['waf', 'firewall', 'runtime', 'defense', 'operation', 'crs'],
+        type: []
+      },
+      policyGap: {
+        title: ['samm', 'maturity', 'benchmark', 'assessment'],
+        tags: ['samm', 'maturity', 'assessment', 'policy'],
+        type: []
+      },
+      metrics: {
+        title: ['metrics', 'measurement', 'kpi', 'dashboard'],
+        tags: ['metrics', 'measurement', 'kpi'],
+        type: []
+      },
+      training: {
+        title: ['goat', 'juice shop', 'webgoat', 'security shepherd', 'vulnerable', 'lab', 'training', 'education', 'ctf', 'challenge', 'wrong secrets', 'top 10', 'top ten', 'dojo'],
+        tags: ['training', 'education', 'vulnerable', 'lab', 'ctf', 'top10', 'goat'],
+        type: []
+      },
+      culture: {
+        title: ['champions', 'awareness', 'culture', 'devsecops', 'integration', 'process'],
+        tags: ['champions', 'awareness', 'culture', 'devsecops'],
+        type: []
+      }
+    };
+
+    // Initialize mermaid
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: document.body.classList.contains('dark') ? 'dark' : 'base',
+      securityLevel: 'loose',
+      themeVariables: {
+        primaryColor: '#34568b',
+        primaryTextColor: '#fff',
+        primaryBorderColor: '#1e3a5f',
+        lineColor: '#5a6c7d',
+        secondaryColor: '#8c9aac',
+        tertiaryColor: '#f5f5f5',
+        fontSize: '12px'
+      },
+      flowchart: {
+        htmlLabels: true,
+        curve: 'basis',
+        rankSpacing: 60,
+        nodeSpacing: 40,
+        padding: 12,
+        useMaxWidth: false
+      }
+    });
+
+    // Store project URLs for click handlers
+    window.projectUrls = {};
+
+    // Global callback function for Mermaid click handlers
+    window.openProject = function(nodeId) {
+      const url = window.projectUrls[nodeId];
+      if (url) {
+        window.open(url, '_blank', 'noopener');
+      }
+    };
+
+    // Load and process data
+    async function loadData() {
+      try {
+        const response = await fetch(METADATA_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+        const rawData = await response.json();
+
+        // Filter for www-project-* repos with title and type
+        projectData = rawData.filter(item =>
+          item.repo &&
+          item.repo.includes('www-project-') &&
+          item.title &&
+          item.type
+        ).map(item => ({
+          repo: item.repo,
+          title: item.title,
+          type: (item.type || '').toLowerCase(),
+          level: item.level || 0,
+          tags: (item.tags || '').toLowerCase(),
+          pitch: item.pitch || ''
+        }));
+
+        console.log(`Loaded ${projectData.length} www-project-* repos with metadata`);
+
+        // Categorize projects into SDLC phases
+        categorizeProjects();
+
+        renderMermaidDiagram();
+        updateProjectCount();
+        hideLoading();
+
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        showError('Failed to load project data. Please check your network connection or try again later.');
+        hideLoading();
+      }
+    }
+
+    // Categorize projects into SDLC phases based on metadata
+    function categorizeProjects() {
+      categorizedProjects = {
+        requirements: [],
+        design: [],
+        implementation: [],
+        verification: [],
+        operation: [],
+        policyGap: [],
+        metrics: [],
+        training: [],
+        culture: []
+      };
+
+      const assigned = new Set();
+
+      // First pass: categorize based on keywords
+      projectData.forEach(project => {
+        const titleLower = project.title.toLowerCase();
+        const tagsLower = project.tags.toLowerCase();
+        const typeLower = project.type.toLowerCase();
+
+        // Check each phase for matches
+        for (const [phase, keywords] of Object.entries(sdlcKeywords)) {
+          const titleMatch = keywords.title.some(kw => titleLower.includes(kw));
+          const tagMatch = keywords.tags.some(kw => tagsLower.includes(kw));
+          const typeMatch = keywords.type.some(kw => typeLower.includes(kw));
+
+          if (titleMatch || tagMatch || typeMatch) {
+            if (!assigned.has(project.repo)) {
+              categorizedProjects[phase].push(project);
+              assigned.add(project.repo);
+              break;
+            }
+          }
+        }
+      });
+
+      // Second pass: assign remaining projects based on type alone
+      projectData.forEach(project => {
+        if (assigned.has(project.repo)) return;
+
+        const typeLower = project.type.toLowerCase();
+
+        if (typeLower === 'tool') {
+          categorizedProjects.verification.push(project);
+        } else if (typeLower === 'documentation') {
+          categorizedProjects.implementation.push(project);
+        } else if (typeLower === 'code') {
+          categorizedProjects.implementation.push(project);
+        } else if (typeLower === 'standards') {
+          categorizedProjects.requirements.push(project);
+        } else {
+          categorizedProjects.implementation.push(project);
+        }
+        assigned.add(project.repo);
+      });
+    }
+
+    // Update project count display
+    function updateProjectCount() {
+      const countEl = document.getElementById('project-count');
+      if (countEl) {
+        countEl.textContent = `${projectData.length} Projects`;
+      }
+    }
+
+    /**
+     * Generate a safe ID for mermaid nodes.
+     * Removes special characters that could break mermaid parsing.
+     * @param {string} str - The input string to sanitize
+     * @returns {string} A sanitized string safe to use as a mermaid node ID (max 30 chars)
+     */
+    function safeId(str) {
+      return str.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+    }
+
+    /**
+     * Sanitize label text for mermaid nodes.
+     * Removes "OWASP" prefix and special characters that break mermaid parsing.
+     * @param {string} str - The input label text
+     * @returns {string} A sanitized label (max 16 chars for mobile readability)
+     */
+    function safeLabel(str) {
+      return str
+        .replace(/OWASP /gi, '')
+        .replace(/[()]/g, '')
+        .replace(/[<>]/g, '')
+        .replace(/"/g, "'")
+        .substring(0, 16);
+    }
+
+    // Render the mermaid diagram
+    function renderMermaidDiagram() {
+      // Build the mermaid flowchart definition - simplified for mobile
+      let diagram = `flowchart TB
+    classDef phaseStyle fill:#34568b,stroke:#1e3a5f,color:#fff,stroke-width:2px
+    classDef centerStyle fill:#1e3a5f,stroke:#0d2137,color:#fff,stroke-width:3px
+    classDef categoryStyle fill:#5a6c7d,stroke:#3d4d5c,color:#fff
+    classDef projectStyle fill:#8c9aac,stroke:#6b7a8a,color:#333,rx:20,ry:20
+    
+    OpenCRE((OpenCRE.org)):::centerStyle
+    
+    Requirements[Requirements]:::phaseStyle
+    Design[Design]:::phaseStyle
+    Implementation[Implementation]:::phaseStyle
+    Verification[Verification]:::phaseStyle
+    Operation[Operation]:::phaseStyle
+    PolicyGap[Policy Gap]:::phaseStyle
+    Metrics[Metrics]:::phaseStyle
+    Training[Training]:::phaseStyle
+    Culture[Culture]:::phaseStyle
+    
+    Requirements --> Design
+    Design --> Implementation
+    Implementation --> Verification
+    Operation --> Requirements
+    Verification -->|After N Iterations| PolicyGap
+    PolicyGap --> Metrics
+    Metrics --> Training
+    Training --> Culture
+    Culture --> OpenCRE
+    OpenCRE --> Requirements
+    OpenCRE --> Design
+    OpenCRE --> Implementation
+    OpenCRE --> Verification
+`;
+
+      // Helper function to add projects from a category
+      function addProjects(projects, phaseNodeId, categoryLabel, categoryNodeId) {
+        if (!projects || projects.length === 0) return '';
+
+        let output = '';
+
+        if (categoryLabel) {
+          output += `    ${categoryNodeId}[${categoryLabel}]:::categoryStyle\n`;
+          output += `    ${phaseNodeId} --> ${categoryNodeId}\n`;
+        }
+
+        // Show up to 5 projects per category on mobile for better readability
+        const maxProjects = 5;
+        const projectsToShow = projects.slice(0, maxProjects);
+
+        projectsToShow.forEach((proj, idx) => {
+          const title = safeLabel(proj.title);
+          const nodeId = `${categoryNodeId}Proj${idx}`;
+          output += `    ${nodeId}((${title})):::projectStyle\n`;
+          output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${nodeId}\n`;
+
+          // Store project URL for click handler
+          if (proj.repo && /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(proj.repo)) {
+            const repoUrl = `https://github.com/${proj.repo}`;
+            window.projectUrls[nodeId] = repoUrl;
+            output += `    click ${nodeId} call openProject("${nodeId}")\n`;
+          }
+        });
+
+        if (projects.length > maxProjects) {
+          const remaining = projects.length - maxProjects;
+          const moreNodeId = `${categoryNodeId}More`;
+          output += `    ${moreNodeId}((+${remaining} more)):::projectStyle\n`;
+          output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${moreNodeId}\n`;
+        }
+
+        return output;
+      }
+
+      // Add projects for each phase
+      diagram += addProjects(categorizedProjects.requirements, 'Requirements', 'Standards', 'ReqDocs');
+      diagram += addProjects(categorizedProjects.design, 'Design', 'Threat Model', 'DesignTM');
+      diagram += addProjects(categorizedProjects.implementation, 'Implementation', 'Docs & Code', 'ImplDocs');
+      diagram += addProjects(categorizedProjects.verification, 'Verification', 'Testing', 'VerTools');
+      diagram += addProjects(categorizedProjects.operation, 'Operation', 'Runtime', 'OpTools');
+      diagram += addProjects(categorizedProjects.policyGap, 'PolicyGap', 'Assessment', 'PolicyGuides');
+      diagram += addProjects(categorizedProjects.metrics, 'Metrics', 'Metrics', 'MetricsTools');
+      diagram += addProjects(categorizedProjects.training, 'Training', 'Labs', 'TrainTools');
+      diagram += addProjects(categorizedProjects.culture, 'Culture', 'Process', 'CultureDocs');
+
+      diagram += `
+    Operation -.->|Iterate| Requirements
+`;
+
+      // Set the diagram content
+      document.getElementById('mermaid-content').textContent = diagram;
+
+      try {
+        mermaid.run({
+          nodes: document.querySelectorAll('.mermaid')
+        }).then(() => {
+          // Center the diagram after rendering
+          setTimeout(fitToScreen, 100);
+        });
+      } catch (error) {
+        console.error('Mermaid rendering error:', error);
+        showError('Failed to render diagram. Please try refreshing the page.');
+      }
+    }
+
+    // Show error message
+    function showError(message) {
+      const container = document.getElementById('mermaid-chart');
+      container.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    // Hide loading overlay
+    function hideLoading() {
+      document.getElementById('loading-overlay').classList.add('hidden');
+    }
+
+    // Transform functions
+    function updateTransform() {
+      const canvas = document.getElementById('diagram-canvas');
+      canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      document.getElementById('zoom-info').textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function zoomIn() {
+      scale = Math.min(scale * 1.3, 5);
+      updateTransform();
+    }
+
+    function zoomOut() {
+      scale = Math.max(scale / 1.3, 0.2);
+      updateTransform();
+    }
+
+    function fitToScreen() {
+      const viewport = document.getElementById('diagram-viewport');
+      const chart = document.getElementById('mermaid-chart');
+      
+      if (!chart || !viewport) return;
+      
+      const svg = chart.querySelector('svg');
+      if (!svg) return;
+
+      const viewportWidth = viewport.clientWidth;
+      const viewportHeight = viewport.clientHeight;
+      const svgRect = svg.getBoundingClientRect();
+      
+      // Calculate scale to fit
+      const scaleX = (viewportWidth - 40) / svgRect.width;
+      const scaleY = (viewportHeight - 40) / svgRect.height;
+      scale = Math.min(scaleX, scaleY, 1);
+      
+      // Center the diagram
+      translateX = 0;
+      translateY = 0;
+      
+      updateTransform();
+    }
+
+    // Touch handlers
+    function getTouchDistance(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function handleTouchStart(e) {
+      if (e.touches.length === 2) {
+        lastTouchDistance = getTouchDistance(e.touches);
+      } else if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX - translateX;
+        startY = e.touches[0].clientY - translateY;
+        document.getElementById('diagram-canvas').classList.add('dragging');
+      }
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+      
+      if (e.touches.length === 2) {
+        // Pinch zoom
+        const distance = getTouchDistance(e.touches);
+        const delta = distance / lastTouchDistance;
+        scale = Math.max(0.2, Math.min(5, scale * delta));
+        lastTouchDistance = distance;
+        updateTransform();
+      } else if (e.touches.length === 1 && isDragging) {
+        // Pan
+        translateX = e.touches[0].clientX - startX;
+        translateY = e.touches[0].clientY - startY;
+        updateTransform();
+      }
+    }
+
+    function handleTouchEnd(e) {
+      isDragging = false;
+      lastTouchDistance = 0;
+      document.getElementById('diagram-canvas').classList.remove('dragging');
+    }
+
+    // Mouse handlers for desktop fallback
+    function handleMouseDown(e) {
+      isDragging = true;
+      startX = e.clientX - translateX;
+      startY = e.clientY - translateY;
+      document.getElementById('diagram-canvas').classList.add('dragging');
+    }
+
+    function handleMouseMove(e) {
+      if (!isDragging) return;
+      translateX = e.clientX - startX;
+      translateY = e.clientY - startY;
+      updateTransform();
+    }
+
+    function handleMouseUp() {
+      isDragging = false;
+      document.getElementById('diagram-canvas').classList.remove('dragging');
+    }
+
+    function handleWheel(e) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      scale = Math.max(0.2, Math.min(5, scale * delta));
+      updateTransform();
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+      // Re-initialize mermaid with appropriate theme
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'base',
+        securityLevel: 'loose',
+        themeVariables: isDark ? {
+          primaryColor: '#4a6fa5',
+          primaryTextColor: '#fff',
+          primaryBorderColor: '#2d4a6f',
+          lineColor: '#7a8a9a',
+          secondaryColor: '#5a6a7a',
+          tertiaryColor: '#2a3a4a',
+          fontSize: '12px'
+        } : {
+          primaryColor: '#34568b',
+          primaryTextColor: '#fff',
+          primaryBorderColor: '#1e3a5f',
+          lineColor: '#5a6c7d',
+          secondaryColor: '#8c9aac',
+          tertiaryColor: '#f5f5f5',
+          fontSize: '12px'
+        },
+        flowchart: {
+          htmlLabels: true,
+          curve: 'basis',
+          rankSpacing: 60,
+          nodeSpacing: 40,
+          padding: 12,
+          useMaxWidth: false
+        }
+      });
+
+      // Re-render diagram
+      renderMermaidDiagram();
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize theme from localStorage
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+      }
+
+      // Set up event listeners
+      const viewport = document.getElementById('diagram-viewport');
+      viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
+      viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
+      viewport.addEventListener('touchend', handleTouchEnd);
+      viewport.addEventListener('mousedown', handleMouseDown);
+      viewport.addEventListener('mousemove', handleMouseMove);
+      viewport.addEventListener('mouseup', handleMouseUp);
+      viewport.addEventListener('mouseleave', handleMouseUp);
+      viewport.addEventListener('wheel', handleWheel, { passive: false });
+
+      document.getElementById('zoom-in').addEventListener('click', zoomIn);
+      document.getElementById('zoom-out').addEventListener('click', zoomOut);
+      document.getElementById('zoom-reset').addEventListener('click', fitToScreen);
+      document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
+
+      // Load data
+      loadData();
+    });
+  </script>
+</body>
+
+</html>
