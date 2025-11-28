@@ -1,4 +1,5 @@
 // Dashboard JavaScript for GSoC Student Dashboard
+const IS_EDITABLE = window.location.search.includes('edit=true')
 
 // Load configuration
 async function loadConfig() {
@@ -126,7 +127,56 @@ function renderHeader(config) {
     document.getElementById('student-avatar').alt = config.student.name;
 
     const socialLinks = document.getElementById('social-links');
+    const socialEditSection = document.getElementById('social-edit-section');
     socialLinks.innerHTML = '';
+    socialEditSection.innerHTML = '';
+
+    if(IS_EDITABLE ){
+        socialEditSection.innerHTML += `
+            <form id="studentForm" class="shadow-md rounded-2xl p-6 space-y-5">
+            <h2 class="text-2xl mt-10">Edit Student</h2>
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">Name</span>
+                <input value="${config.student.name}" name="name" type="text" placeholder="Your Name" class="input-field" />
+                </label>
+
+                <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">Email</span>
+                <input value="${config.student.email}" name="email" type="email" placeholder="your.email@example.com" required class="input-field" />
+                </label>
+            </div>
+
+            <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">Bio</span>
+                <input value="${config.student.bio}" name="bio" type="text" placeholder="Google Summer of Code Contributor" class="input-field" />
+            </label>
+
+            <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">Avatar URL</span>
+                <input value="${config.student.avatar}" name="avatar" type="url" placeholder="https://github.com/YOUR-USERNAME.png" class="input-field" />
+            </label>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">GitHub</span>
+                <input value="${config.student.github}" name="github" type="url" placeholder="https://github.com/YOUR-USERNAME" class="input-field" />
+                </label>
+
+                <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">Blog</span>
+                <input value="${config.student.blog}" name="blog" type="url" placeholder="https://yourblog.dev" class="input-field" />
+                </label>
+            </div>
+
+            <label class="flex flex-col">
+                <span class="text-sm font-medium mb-1">LinkedIn</span>
+                <input value="${config.student.linkedin}" name="linkedin" type="url" placeholder="https://linkedin.com/in/YOUR-PROFILE" class="input-field" />
+            </label>
+            </form>
+        `;
+    }
 
     if (config.student.github) {
         socialLinks.innerHTML += `
@@ -327,6 +377,17 @@ function updateLastUpdated() {
     lastUpdated.textContent = new Date().toLocaleString();
 }
 
+function renderEditableButtonSection() {
+    if (IS_EDITABLE) {  
+        const editSection = document.getElementById('editabe-button-section');
+        editSection.innerHTML = `
+            <button id="save-button" href="config.json" target="_blank" class="btn-primary fixed top-[90%] cursor-pointer right-60 z-50 flex items-center gap-2">
+                <i class="fas fa-edit"></i> Save changes
+            </button>
+        `;
+    }
+}
+
 // Initialize dashboard
 async function initDashboard() {
     try {
@@ -339,6 +400,7 @@ async function initDashboard() {
         const milestones = await loadMilestones();
 
         // Render all sections
+        renderEditableButtonSection();
         renderHeader(config);
         renderProjectInfo(config);
         renderGitHubStats(githubData);
