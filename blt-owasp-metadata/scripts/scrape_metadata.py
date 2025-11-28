@@ -129,7 +129,7 @@ def parse_sidebar_content(content):
     # Only extract if this looks like a leaders section
     if is_leaders_file:
         leader_pattern = re.compile(r'\*\s*\[([^\]]+)\]\(mailto:([^)]+)\)', re.IGNORECASE)
-        leader_simple_pattern = re.compile(r'^\s*\*\s*\[([^\]]+)\]\([^)]*\)\s*$', re.MULTILINE)
+        leader_simple_pattern = re.compile(r'^\s*\*\s*\[([^\]]+)\]\([^)]+\)\s*$', re.MULTILINE)
         
         leaders = []
         for match in leader_pattern.finditer(content):
@@ -152,7 +152,7 @@ def parse_sidebar_content(content):
     social_patterns = {
         "twitter": re.compile(r'\[(?:Twitter|X)\]\((https?://(?:twitter\.com|x\.com)/[^)]+)\)', re.IGNORECASE),
         "facebook": re.compile(r'\[Facebook\]\((https?://(?:www\.)?facebook\.com/[^)]+)\)', re.IGNORECASE),
-        "linkedin": re.compile(r'\[Linkedin\]\((https?://(?:www\.)?linkedin\.com/[^)]+)\)', re.IGNORECASE),
+        "linkedin": re.compile(r'\[LinkedIn\]\((https?://(?:www\.)?linkedin\.com/[^)]+)\)', re.IGNORECASE),
         "youtube": re.compile(r'\[YouTube\]\((https?://(?:www\.)?youtube\.com/[^)]+)\)', re.IGNORECASE),
         "meetup": re.compile(r'\[Meetup(?:\.com)?\]\((https?://(?:www\.)?meetup\.com/[^)]+)\)', re.IGNORECASE),
     }
@@ -210,12 +210,17 @@ def parse_sidebar_content(content):
         if repos:
             data["code_repositories"] = [url for name, url in repos]
     
-    # Extract licensing info
+    # Extract licensing info (more specific patterns first)
     license_patterns = [
-        (re.compile(r'Apache\s*2(?:\s*License)?', re.IGNORECASE), "Apache 2.0"),
+        (re.compile(r'Apache\s*2(?:\.0)?(?:\s*License)?', re.IGNORECASE), "Apache 2.0"),
         (re.compile(r'MIT\s*License', re.IGNORECASE), "MIT"),
-        (re.compile(r'GPL', re.IGNORECASE), "GPL"),
+        (re.compile(r'LGPL\s*v?3', re.IGNORECASE), "LGPL 3.0"),
+        (re.compile(r'AGPL\s*v?3', re.IGNORECASE), "AGPL 3.0"),
+        (re.compile(r'GPL\s*v?3', re.IGNORECASE), "GPL 3.0"),
+        (re.compile(r'GPL\s*v?2', re.IGNORECASE), "GPL 2.0"),
+        (re.compile(r'\bGPL\b', re.IGNORECASE), "GPL"),
         (re.compile(r'Creative Commons', re.IGNORECASE), "Creative Commons"),
+        (re.compile(r'CC BY-SA', re.IGNORECASE), "CC BY-SA"),
         (re.compile(r'CC BY', re.IGNORECASE), "CC BY"),
     ]
     
@@ -302,7 +307,7 @@ def main():
             }
             row.update(meta)
             
-            # Add sidebar metadata with "sidebar_" prefix to distinguish
+            # Add sidebar metadata to the row
             for key, value in sidebar_meta.items():
                 # Handle list values for CSV compatibility
                 if isinstance(value, list):
