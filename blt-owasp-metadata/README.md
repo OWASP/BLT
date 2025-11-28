@@ -160,11 +160,5 @@ This project is part of the OWASP Foundation's open source initiatives and is li
 ---
 
 <p align="center">
-  <a href="https://owasp.org">
-    <img src="https://owasp.org/assets/images/logo.png" alt="OWASP Logo" width="200">
-  </a>
-</p>
-
-<p align="center">
   Made with ❤️ by the <a href="https://owasp.org/www-project-bug-logging-tool/">OWASP BLT Project</a>
 </p>
