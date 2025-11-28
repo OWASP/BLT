@@ -145,6 +145,27 @@
       border-color: var(--primary);
     }
 
+    /* Mobile view button */
+    .mobile-view-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #10b981;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .mobile-view-btn:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
     #diagram-wrapper {
       transform-origin: center center;
       transition: transform 0.3s ease;
@@ -163,6 +184,7 @@
 
 <body>
   <div class="toolbar">
+    <a href="mermaid-diagram-mobile.html" class="mobile-view-btn" title="Open mobile-optimized view">📱 Mobile View</a>
     <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
     <button id="download-diagram" title="Download SVG">📥 Download</button>
     <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
@@ -178,7 +200,16 @@
       <a href="index.html" class="nav-button">← Back to Table View</a>
       <a href="charts.html" class="nav-button">📊 Analytics</a>
       <a href="diagram.html" class="nav-button">🗺️ Project Diagram</a>
+      <a href="mermaid-diagram-mobile.html" class="nav-button" style="background: #10b981;">📱 Mobile View</a>
       <span class="project-count">Loading projects...</span>
+    </div>
+
+    <div class="mobile-notice" id="mobile-notice" style="display: none; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: center;">
+      <p style="margin: 0; color: #065f46;">
+        📱 <strong>On a mobile device?</strong> Try our 
+        <a href="mermaid-diagram-mobile.html" style="color: #059669; font-weight: 600;">optimized mobile view</a> 
+        for easier navigation with pinch-to-zoom and drag-to-pan.
+      </p>
     </div>
 
     <div class="mermaid-container">
@@ -235,6 +266,17 @@
   </footer>
 
   <script src="mermaid-diagram.js"></script>
+  <script>
+    // Show mobile notice on mobile devices
+    (function() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.innerWidth <= 768);
+      const mobileNotice = document.getElementById('mobile-notice');
+      if (isMobile && mobileNotice) {
+        mobileNotice.style.display = 'block';
+      }
+    })();
+  </script>
 </body>
 
 </html>
