@@ -35,6 +35,14 @@
         <div class="stat-label">Total Repositories</div>
       </div>
       <div class="stat-card">
+        <div class="stat-number" id="active-repos">0</div>
+        <div class="stat-label">Active Repositories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="archived-repos">0</div>
+        <div class="stat-label">📦 Archived Repositories</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-number" id="repos-with-metadata">0</div>
         <div class="stat-label">Repositories with Metadata</div>
       </div>
@@ -46,6 +54,16 @@
         <div class="stat-number" id="completeness-rate">0%</div>
         <div class="stat-label">Overall Completeness</div>
       </div>
+    </div>
+
+    <!-- Archive Filter -->
+    <div class="archive-filter-container">
+      <label for="chart-archive-filter">Show repositories: </label>
+      <select id="chart-archive-filter" class="archive-filter-select">
+        <option value="all">All repositories</option>
+        <option value="active" selected>Active only</option>
+        <option value="archived">Archived only</option>
+      </select>
     </div>
 
     <!-- Charts Grid -->

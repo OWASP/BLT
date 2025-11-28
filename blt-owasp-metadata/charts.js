@@ -10,7 +10,24 @@ let charts = {
 
 // Data
 let matrixData = [];
+let filteredData = [];
 let fieldStats = {};
+let archiveFilter = 'active'; // 'all', 'active', 'archived'
+
+// Helper function to check if a repository is archived
+function isArchived(row) {
+    const archived = row.archived;
+    if (archived === true || archived === 'true' || archived === '✔') return true;
+    return false;
+}
+
+// Get filtered data based on archive filter
+function getFilteredData() {
+    if (archiveFilter === 'all') return matrixData;
+    if (archiveFilter === 'active') return matrixData.filter(row => !isArchived(row));
+    if (archiveFilter === 'archived') return matrixData.filter(row => isArchived(row));
+    return matrixData;
+}
 
 // Initialize
 async function loadData() {
@@ -22,6 +39,7 @@ async function loadData() {
         
         const rawData = await res.json();
         matrixData = processData(rawData);
+        filteredData = getFilteredData();
         
         calculateFieldStats();
         renderAllCharts();
@@ -61,22 +79,22 @@ function calculateFieldStats() {
     fieldStats = {};
     const allFields = new Set();
     
-    // Collect all unique fields
-    matrixData.forEach(row => {
+    // Collect all unique fields (excluding archived)
+    filteredData.forEach(row => {
         Object.keys(row).forEach(field => {
-            if (field !== 'repo') {
+            if (field !== 'repo' && field !== 'archived') {
                 allFields.add(field);
             }
         });
     });
     
-    // Calculate statistics for each field
+    // Calculate statistics for each field based on filtered data
     allFields.forEach(field => {
-        const count = matrixData.filter(row => 
+        const count = filteredData.filter(row => 
             row[field] !== null && row[field] !== undefined && row[field] !== ''
         ).length;
         
-        const percentage = (count / matrixData.length) * 100;
+        const percentage = filteredData.length > 0 ? (count / filteredData.length) * 100 : 0;
         
         fieldStats[field] = {
             count,
@@ -90,16 +108,21 @@ function calculateFieldStats() {
 
 function updateStats() {
     const totalRepos = matrixData.length;
-    const reposWithMetadata = matrixData.filter(row => {
+    const archivedRepos = matrixData.filter(row => isArchived(row)).length;
+    const activeRepos = totalRepos - archivedRepos;
+    
+    const reposWithMetadata = filteredData.filter(row => {
         return Object.keys(row).some(key => 
-            key !== 'repo' && row[key] !== null && row[key] !== undefined && row[key] !== ''
+            key !== 'repo' && key !== 'archived' && row[key] !== null && row[key] !== undefined && row[key] !== ''
         );
     }).length;
     
     const totalFields = Object.keys(fieldStats).length;
-    const completenessRate = ((reposWithMetadata / totalRepos) * 100).toFixed(1);
+    const completenessRate = filteredData.length > 0 ? ((reposWithMetadata / filteredData.length) * 100).toFixed(1) : '0';
     
     document.getElementById('total-repos').textContent = totalRepos.toLocaleString();
+    document.getElementById('active-repos').textContent = activeRepos.toLocaleString();
+    document.getElementById('archived-repos').textContent = archivedRepos.toLocaleString();
     document.getElementById('repos-with-metadata').textContent = reposWithMetadata.toLocaleString();
     document.getElementById('total-fields').textContent = totalFields.toLocaleString();
     document.getElementById('completeness-rate').textContent = `${completenessRate}%`;
@@ -192,7 +215,7 @@ function renderFieldFrequencyChart() {
 function renderCompletenessChart() {
     const ctx = document.getElementById('completeness-chart').getContext('2d');
     
-    // Calculate completeness distribution
+    // Calculate completeness distribution using filtered data
     const completenessRanges = {
         '0%': 0,
         '1-25%': 0,
@@ -202,10 +225,10 @@ function renderCompletenessChart() {
         '100%': 0
     };
     
-    matrixData.forEach(row => {
+    filteredData.forEach(row => {
         const totalFields = Object.keys(fieldStats).length;
         const filledFields = Object.keys(row).filter(key => 
-            key !== 'repo' && row[key] !== null && row[key] !== undefined && row[key] !== ''
+            key !== 'repo' && key !== 'archived' && row[key] !== null && row[key] !== undefined && row[key] !== ''
         ).length;
         
         const percentage = totalFields > 0 ? (filledFields / totalFields) * 100 : 0;
@@ -244,9 +267,9 @@ function renderCompletenessChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const total = matrixData.length;
+                            const total = filteredData.length;
                             const value = context.parsed;
-                            const percentage = ((value / total) * 100).toFixed(1);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
                             return `${context.label}: ${value} repos (${percentage}%)`;
                         }
                     }
@@ -352,7 +375,7 @@ function renderFieldDetailsTable() {
     tbody.innerHTML = sortedFields.map(([field, stats]) => `
         <tr>
             <td><strong>${formatFieldName(field)}</strong></td>
-            <td>${stats.count} / ${matrixData.length}</td>
+            <td>${stats.count} / ${filteredData.length}</td>
             <td>${stats.percentage}%</td>
             <td>
                 <div class="progress-bar">
@@ -431,12 +454,26 @@ document.getElementById('refresh-charts').addEventListener('click', () => {
     loadData();
 });
 
+document.getElementById('chart-archive-filter').addEventListener('change', (e) => {
+    archiveFilter = e.target.value;
+    filteredData = getFilteredData();
+    calculateFieldStats();
+    renderAllCharts();
+    updateStats();
+});
+
 document.getElementById('export-charts').addEventListener('click', () => {
+    const archivedCount = matrixData.filter(row => isArchived(row)).length;
+    const activeCount = matrixData.length - archivedCount;
+    
     const dataStr = JSON.stringify({
         stats: fieldStats,
         summary: {
             totalRepositories: matrixData.length,
+            activeRepositories: activeCount,
+            archivedRepositories: archivedCount,
             totalFields: Object.keys(fieldStats).length,
+            filterApplied: archiveFilter,
             generated: new Date().toISOString()
         }
     }, null, 2);

@@ -25,6 +25,7 @@ const elements = {
     // Filters
     fieldFilter: document.getElementById('field-filter'),
     completenessFilter: document.getElementById('completeness-filter'),
+    archiveFilter: document.getElementById('archive-filter'),
     columnCheckboxes: document.getElementById('column-checkboxes')
 };
 
@@ -126,6 +127,7 @@ function setupEventListeners() {
     elements.search.addEventListener('input', debounce(renderTable, 300));
     elements.fieldFilter.addEventListener('change', handleFieldFilterChange);
     elements.completenessFilter.addEventListener('change', renderTable);
+    elements.archiveFilter.addEventListener('change', renderTable);
     elements.clearFilters.addEventListener('click', clearAllFilters);
     
     // Export
@@ -138,21 +140,25 @@ function updateStatus(message) {
 
 function updateStats(filteredData = state.matrixData) {
     const totalRepos = state.matrixData.length;
-    const totalFields = state.columns.length;
+    const totalFields = state.columns.filter(col => col !== 'archived').length;
+    
+    // Count archived repositories
+    const archivedRepos = state.matrixData.filter(row => isArchived(row)).length;
+    const activeRepos = totalRepos - archivedRepos;
     
     // Count fields that have data in at least one repository
     const fieldsWithData = state.columns.filter(col => 
-        state.matrixData.some(row => hasData(row[col]))
+        col !== 'archived' && state.matrixData.some(row => hasData(row[col]))
     ).length;
 
     // Count repositories that have at least one non-repo field with data
     const reposWithMetadata = state.matrixData.filter(row =>
-        state.columns.some(col => col !== 'repo' && hasData(row[col]))
+        state.columns.some(col => col !== 'repo' && col !== 'archived' && hasData(row[col]))
     ).length;
 
-    console.log(`Stats: ${totalFields} total fields, ${fieldsWithData} fields with data`);
+    console.log(`Stats: ${totalFields} total fields, ${fieldsWithData} fields with data, ${archivedRepos} archived`);
     
-    elements.stats.textContent = `${totalRepos} repositories (${reposWithMetadata} with metadata) • ${totalFields} total fields • ${fieldsWithData} fields with data`;
+    elements.stats.textContent = `${totalRepos} repositories (${activeRepos} active, ${archivedRepos} archived) • ${reposWithMetadata} with metadata • ${totalFields} fields`;
     elements.rowCount.textContent = `${filteredData.length} results`;
 }
 
@@ -166,8 +172,8 @@ function hasData(value) {
 }
 
 function populateFieldFilter() {
-    // Include ALL fields including repo in the filter, sorted alphabetically
-    const fields = state.columns.filter(col => col !== 'repo').sort();
+    // Include ALL fields except repo and archived in the filter, sorted alphabetically
+    const fields = state.columns.filter(col => col !== 'repo' && col !== 'archived').sort();
     
     console.log('Populating field filter with:', fields.length, 'fields');
     
@@ -181,8 +187,8 @@ function populateFieldFilter() {
 }
 
 function populateColumnToggles() {
-    // Show ALL fields including repo in column toggles
-    const fields = state.columns.filter(col => col !== 'repo').sort();
+    // Show ALL fields except repo and archived in column toggles
+    const fields = state.columns.filter(col => col !== 'repo' && col !== 'archived').sort();
     
     console.log('Populating column toggles with:', fields.length, 'fields');
     
@@ -218,12 +224,17 @@ function populateColumnToggles() {
 function getFilteredData() {
     const searchTerm = elements.search.value.toLowerCase().trim();
     const completeness = elements.completenessFilter.value;
+    const archiveStatus = elements.archiveFilter.value;
     
     return state.matrixData.filter(row => {
         // Search filter - always search in repo field
         const repoMatch = !searchTerm || 
             (row.repo && row.repo.toLowerCase().includes(searchTerm));
         if (!repoMatch) return false;
+        
+        // Archive filter
+        if (archiveStatus === 'active' && isArchived(row)) return false;
+        if (archiveStatus === 'archived' && !isArchived(row)) return false;
         
         // Field filter - check if row has any of the selected fields with data
         const fieldMatch = state.selectedFields.has('all') || 
@@ -235,17 +246,24 @@ function getFilteredData() {
         // Completeness filter - check if row has any metadata in non-repo fields
         if (completeness === 'with-metadata') {
             return state.columns.some(col => 
-                col !== 'repo' && hasData(row[col])
+                col !== 'repo' && col !== 'archived' && hasData(row[col])
             );
         }
         if (completeness === 'without-metadata') {
             return !state.columns.some(col => 
-                col !== 'repo' && hasData(row[col])
+                col !== 'repo' && col !== 'archived' && hasData(row[col])
             );
         }
         
         return true;
     });
+}
+
+// Helper function to check if a repository is archived
+function isArchived(row) {
+    const archived = row.archived;
+    if (archived === true || archived === 'true' || archived === '✔') return true;
+    return false;
 }
 
 function handleFieldFilterChange() {
@@ -265,6 +283,7 @@ function clearAllFilters() {
     elements.search.value = '';
     elements.fieldFilter.value = 'all';
     elements.completenessFilter.value = 'all';
+    elements.archiveFilter.value = 'active';
     state.selectedFields = new Set(['all']);
     
     // Reset all columns to visible
@@ -321,12 +340,13 @@ function renderTableBody(data) {
     }
     
     elements.tableBody.innerHTML = data.map(row => `
-        <tr>
+        <tr class="${isArchived(row) ? 'archived-row' : ''}">
             ${visibleCols.map(col => {
                 const value = row[col];
                 
                 if (col === 'repo') {
-                    return `<td class="repo-cell">${escapeHtml(value || '')}</td>`;
+                    const archivedIndicator = isArchived(row) ? '<span class="archived-badge" title="Archived Repository">📦</span> ' : '';
+                    return `<td class="repo-cell">${archivedIndicator}${escapeHtml(value || '')}</td>`;
                 } else if (col === 'level') {
                     return renderLevelCell(value);
                 } else {
@@ -341,7 +361,7 @@ function getVisibleColumns() {
     return [
         'repo', 
         ...Array.from(state.visibleColumns)
-            .filter(col => col !== 'repo')
+            .filter(col => col !== 'repo' && col !== 'archived')
             .sort()
     ];
 }
@@ -404,6 +424,14 @@ function renderLevelCell(value) {
 
 function sortData(data) {
     return [...data].sort((a, b) => {
+        // First, sort by archived status (non-archived first)
+        const aArchived = isArchived(a) ? 1 : 0;
+        const bArchived = isArchived(b) ? 1 : 0;
+        if (aArchived !== bArchived) {
+            return aArchived - bArchived;
+        }
+        
+        // Then sort by the selected column
         const aVal = String(a[state.sortColumn] || '').toLowerCase();
         const bVal = String(b[state.sortColumn] || '').toLowerCase();
         

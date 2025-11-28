@@ -78,7 +78,7 @@ def fetch_repos_from_org(org):
             break
 
         for repo in batch:
-            repos.append({"owner": org, "repo": repo["name"]})
+            repos.append({"owner": org, "repo": repo["name"], "archived": repo.get("archived", False)})
 
         page += 1
 
@@ -244,9 +244,12 @@ def extract_front_matter(content):
 def scan_repo(entry):
     owner = entry["owner"]
     repo = entry["repo"]
+    archived = entry.get("archived", False)
 
     cached = load_cache(owner, repo)
     if cached:
+        # Ensure archived status is updated even for cached entries
+        cached["archived"] = archived
         return cached
 
     content = fetch_index_md(owner, repo)
@@ -276,7 +279,8 @@ def scan_repo(entry):
         "repo": f"{owner}/{repo}",
         "source_file": ", ".join(source_files) if source_files else None,
         "metadata": metadata,
-        "sidebar_metadata": sidebar_metadata
+        "sidebar_metadata": sidebar_metadata,
+        "archived": archived
     }
 
     save_cache(owner, repo, result)
@@ -303,7 +307,8 @@ def main():
             
             row = {
                 "repo": res["repo"],
-                "source_file": res["source_file"]
+                "source_file": res["source_file"],
+                "archived": res.get("archived", False)
             }
             row.update(meta)
             
@@ -357,17 +362,17 @@ def main():
             f.write(f"| {k} | {c} |\n")
 
     if all_metadata:
-        all_fields = sorted({k for item in all_metadata for k in item.keys() if k not in ["repo", "source_file"]})
+        all_fields = sorted({k for item in all_metadata for k in item.keys() if k not in ["repo", "source_file", "archived"]})
         matrix_rows = []
 
         for item in all_metadata:
-            row = {"repo": item["repo"]}
+            row = {"repo": item["repo"], "archived": item.get("archived", False)}
             for f in all_fields:
-                row[f] = "✔" if f in item and item[f] not in [None, "", []] else ""
+                row[f] = "✔" if f in item and item[f] not in [None, "", [], False] else ""
             matrix_rows.append(row)
 
         with open(MATRIX_CSV, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["repo"] + all_fields)
+            writer = csv.DictWriter(f, fieldnames=["repo", "archived"] + all_fields)
             writer.writeheader()
             writer.writerows(matrix_rows)
 
