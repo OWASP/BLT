@@ -1,4 +1,4 @@
-const MATRIX_URL = "../data/metadata_matrix.json";
+const MATRIX_URL = "data/metadata_matrix.json";
 
 // Chart instances
 let charts = {
