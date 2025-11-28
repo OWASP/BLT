@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP Project Wayfinder Diagram</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="charts.css" />
+  <style>
+    .diagram-page {
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .diagram-container {
+      background: var(--bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+
+    .diagram-container h3 {
+      margin: 0 0 20px 0;
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    #mermaid-diagram {
+      display: flex;
+      justify-content: center;
+      min-height: 400px;
+    }
+
+    #mermaid-diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .type-tool { background: #3b82f6; }
+    .type-documentation { background: #10b981; }
+    .type-code { background: #8b5cf6; }
+    .type-standards { background: #f59e0b; }
+    .type-other { background: #6b7280; }
+
+    .level-flagship { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .level-lab { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .level-incubator { background: linear-gradient(135deg, #a3e635, #84cc16); }
+
+    .filter-section {
+      background: var(--bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .filter-group-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-group-inline label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+    }
+
+    .filter-group-inline select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 150px;
+    }
+
+    .project-count {
+      margin-left: auto;
+      font-size: 14px;
+      color: var(--text-light);
+      background: var(--bg-secondary);
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+
+    .loading-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-light);
+      font-style: italic;
+    }
+
+    .error-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--error);
+      background: #fef2f2;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    body.dark .error-message {
+      background: #450a0a;
+    }
+
+    /* Tree Diagram Styles */
+    .tree-diagram {
+      padding: 20px;
+      width: 100%;
+    }
+
+    .tree-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tree-node {
+      padding: 12px 20px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .root-node {
+      background: linear-gradient(135deg, #fb7e00, #e57200);
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      padding: 16px 28px;
+      margin-bottom: 20px;
+    }
+
+    .root-node .node-icon {
+      font-size: 24px;
+    }
+
+    .type-node {
+      background: var(--bg-secondary);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 16px;
+      cursor: default;
+      border-left: 4px solid var(--primary);
+    }
+
+    .type-tool .type-node { border-left-color: #3b82f6; }
+    .type-documentation .type-node { border-left-color: #10b981; }
+    .type-code .type-node { border-left-color: #8b5cf6; }
+    .type-standards .type-node { border-left-color: #f59e0b; }
+    .type-other .type-node { border-left-color: #6b7280; }
+
+    .maturity-node {
+      background: var(--bg-tertiary);
+      color: var(--text-light);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .maturity-flagship .maturity-node {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+      border-left: 3px solid #f59e0b;
+    }
+
+    .maturity-lab .maturity-node {
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      color: #1e40af;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .maturity-incubator .maturity-node {
+      background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+      color: #166534;
+      border-left: 3px solid #22c55e;
+    }
+
+    .project-node {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      text-decoration: none;
+      color: var(--text);
+      padding: 10px 14px;
+    }
+
+    .project-node:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .project-node.type-tool { border-left: 3px solid #3b82f6; }
+    .project-node.type-documentation { border-left: 3px solid #10b981; }
+    .project-node.type-code { border-left: 3px solid #8b5cf6; }
+    .project-node.type-standards { border-left: 3px solid #f59e0b; }
+    .project-node.type-other { border-left: 3px solid #6b7280; }
+
+    .more-node {
+      background: var(--bg-tertiary);
+      color: var(--text-light);
+      font-size: 12px;
+      font-style: italic;
+      padding: 8px 12px;
+    }
+
+    .node-count {
+      background: rgba(0,0,0,0.1);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .level-badge {
+      background: var(--primary);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .tree-children {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 16px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .tree-children.type-level {
+      padding: 24px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .tree-children.maturity-level {
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .tree-children.project-level {
+      padding: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .tree-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .type-branch {
+      min-width: 280px;
+      max-width: 350px;
+    }
+
+    .maturity-branch {
+      width: 100%;
+    }
+
+    .project-branch {
+      flex: 0 1 auto;
+    }
+
+    /* Connector lines */
+    .tree-children::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      height: 16px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .tree-children.type-level::before {
+      display: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .tree-children.type-level {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .type-branch {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+      }
+      
+      .tree-node {
+        font-size: 14px;
+        padding: 10px 14px;
+      }
+      
+      .root-node {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toolbar">
+    <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
+    <button id="download-svg" title="Download SVG">📥 Download</button>
+    <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
+  </div>
+
+  <div class="diagram-page">
+    <div class="page-header">
+      <h1>🗺️ OWASP Project Wayfinder Diagram</h1>
+      <p class="subtitle">Visual overview of OWASP projects grouped by type and maturity level</p>
+    </div>
+
+    <div class="navigation">
+      <a href="index.html" class="nav-button">← Back to Table View</a>
+      <a href="charts.html" class="nav-button">📊 Analytics</a>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group-inline">
+          <label for="type-filter">Project Type</label>
+          <select id="type-filter">
+            <option value="all">All Types</option>
+            <option value="tool">Tool</option>
+            <option value="documentation">Documentation</option>
+            <option value="code">Code</option>
+            <option value="standards">Standards</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="filter-group-inline">
+          <label for="level-filter">Maturity Level</label>
+          <select id="level-filter">
+            <option value="all">All Levels</option>
+            <option value="flagship">Flagship (4+)</option>
+            <option value="lab">Lab (2-3)</option>
+            <option value="incubator">Incubator (0-1)</option>
+          </select>
+        </div>
+        <div class="project-count" id="project-count">Loading...</div>
+      </div>
+    </div>
+
+    <div class="diagram-container">
+      <h3>Project Organization by Type</h3>
+      <div id="mermaid-diagram">
+        <div class="loading-message">Loading project data...</div>
+      </div>
+    </div>
+
+    <div class="diagram-container">
+      <h3>Legend</h3>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color type-tool"></div>
+          <span>Tool</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color type-documentation"></div>
+          <span>Documentation</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color type-code"></div>
+          <span>Code</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color type-standards"></div>
+          <span>Standards</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color type-other"></div>
+          <span>Other</span>
+        </div>
+      </div>
+      <div class="legend" style="margin-top: 12px;">
+        <div class="legend-item">
+          <div class="legend-color level-flagship"></div>
+          <span>Flagship (Level 4+)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color level-lab"></div>
+          <span>Lab (Level 2-3)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color level-incubator"></div>
+          <span>Incubator (Level 0-1)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p style="text-align: center;">
+      Data source: <code>data/metadata.json</code> · 
+      Generated from OWASP repository metadata ·
+      Last updated: <span id="last-updated">Loading...</span>
+    </p>
+  </footer>
+
+  <script src="diagram.js"></script>
+</body>
+
+</html>
