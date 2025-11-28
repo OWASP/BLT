@@ -5,6 +5,12 @@ export function renderMilestones(milestones) {
     const milestoneList = document.getElementById('milestones');
     if (!milestones) milestones = [];
 
+    milestones.forEach((milestone) => {
+        if (!milestone._id) {
+            milestone._id = Date.now() + Math.random();
+        }
+    });
+
     if (!IS_EDITABLE) {
         if (milestones.length > 0) {
             milestoneList.innerHTML = milestones.map(milestone => `
@@ -28,45 +34,26 @@ export function renderMilestones(milestones) {
         return;
     }
 
-    milestoneList.innerHTML = milestones.map((milestone, index) => `
-        <div class="milestone-item bg-[var(--bg-color)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
-
-            <div class="edit-inline">
-                <input 
-                    type="text"
-                    class="input-field small"
-                    data-index="${index}"
-                    data-field="icon"
-                    value="${milestone.icon || ''}"
-                    placeholder="Icon (e.g. trophy)"
-                />
-
-                <input 
-                    type="date"
-                    class="input-field small"
-                    data-index="${index}"
-                    data-field="date"
-                    value="${milestone.date}"
-                />
-            </div>
+    milestoneList.innerHTML = milestones.map((milestone) => `
+        <div class="milestone-item blog-post editable-blog-post flex flex-col">
 
             <input 
                 type="text"
                 class="input-field mt-2"
-                data-index="${index}"
+                data-id="${milestone._id}"
                 data-field="title"
-                value="${milestone.title}"
+                value="${milestone.title || ''}"
                 placeholder="Milestone Title"
             />
 
             <textarea
                 class="text-area-field mt-2"
-                data-index="${index}"
+                data-id="${milestone._id}"
                 data-field="description"
                 placeholder="Description"
-            >${milestone.description}</textarea>
+            >${milestone.description || ''}</textarea>
 
-            <button class="btn-danger mt-3" data-remove="${index}">Remove</button>
+            <button class="btn-danger mt-3" data-remove="${milestone._id}">Remove</button>
         </div>
     `).join('');
 
@@ -76,30 +63,40 @@ export function renderMilestones(milestones) {
         </button>
     `;
 
-    milestoneList.addEventListener("input", (e) => {
-        const index = e.target.getAttribute("data-index");
+    const newMilestoneList = milestoneList.cloneNode(true);
+    milestoneList.parentNode.replaceChild(newMilestoneList, milestoneList);
+
+    newMilestoneList.addEventListener("input", (e) => {
+        const milestoneId = e.target.getAttribute("data-id");
         const field = e.target.getAttribute("data-field");
 
-        if (index !== null && field) {
-            milestones[index][field] = e.target.value;
+        if (milestoneId && field) {
+            const milestone = milestones.find(m => m._id == milestoneId);
+            if (milestone) {
+                milestone[field] = e.target.value;
+            }
         }
     });
 
-    milestoneList.addEventListener("click", (e) => {
-        const removeIndex = e.target.getAttribute("data-remove");
-        if (removeIndex !== null) {
-            milestones.splice(removeIndex, 1);
+    newMilestoneList.addEventListener("click", (e) => {
+        const removeId = e.target.getAttribute("data-remove");
+        if (removeId) {
+            const milestoneIndex = milestones.findIndex(m => m._id == removeId);
+            if (milestoneIndex !== -1) {
+                milestones.splice(milestoneIndex, 1);
+                renderMilestones(milestones);
+            }
+        }
+
+        if (e.target.id === "addMilestone") {
+            milestones.push({
+                _id: Date.now() + Math.random(),
+                title: "",
+                description: "",
+                date: "",
+                icon: "trophy",
+            });
             renderMilestones(milestones);
         }
-    });
-
-    document.getElementById("addMilestone").addEventListener("click", () => {
-        milestones.push({
-            title: "",
-            description: "",
-            date: "",
-            icon: "trophy",
-        });
-        renderMilestones(milestones);
     });
 }

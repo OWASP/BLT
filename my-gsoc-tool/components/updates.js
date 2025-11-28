@@ -4,6 +4,12 @@ import { IS_EDITABLE } from "../libs/constants.js";
 export function renderWeeklyUpdates(updates) {
     const timeline = document.getElementById('weekly-updates');
     if (!updates) updates = [];
+    
+    updates.forEach((update) => {
+        if (!update._id) {
+            update._id = Date.now() + Math.random();
+        }
+    });
 
     if (!IS_EDITABLE) {
         if (updates.length > 0) {
@@ -22,36 +28,36 @@ export function renderWeeklyUpdates(updates) {
         return;
     }
 
-    timeline.innerHTML = updates.map((update, index) => `
+    timeline.innerHTML = updates.map((update) => `
         <div class="timeline-item blog-post editable-blog-post">
             
             <input 
                 type="text"
                 class="input-field"
-                data-index="${index}"
+                data-id="${update._id}"
                 data-field="title"
-                value="${update.title}"
+                value="${update.title || ''}"
                 placeholder="Week Title"
             />
 
             <textarea
                 class="text-area-field"
-                data-index="${index}"
+                data-id="${update._id}"
                 data-field="summary"
                 placeholder="Summary"
-            >${update.summary}</textarea>
+            >${update.summary || ''}</textarea>
 
             <div class="edit-inline">
                 <input 
                     type="date"
                     class="input-field small"
-                    data-index="${index}"
+                    data-id="${update._id}"
                     data-field="date"
-                    value="${update.date}"
+                    value="${update.date || ''}"
                 />
             </div>
 
-            <button class="btn-danger mt-2" data-remove="${index}">Remove</button>
+            <button class="btn-danger mt-2" data-remove="${update._id}">Remove</button>
         </div>
     `).join('');
 
@@ -61,29 +67,40 @@ export function renderWeeklyUpdates(updates) {
         </button>
     `;
 
-    timeline.addEventListener("input", (e) => {
-        const index = e.target.getAttribute("data-index");
+    const newTimeline = timeline.cloneNode(true);
+    timeline.parentNode.replaceChild(newTimeline, timeline);
+
+    newTimeline.addEventListener("input", (e) => {
+        const updateId = e.target.getAttribute("data-id");
         const field = e.target.getAttribute("data-field");
 
-        if (index !== null && field) {
-            updates[index][field] = e.target.value;
+        if (updateId && field) {
+            const update = updates.find(u => u._id == updateId);
+            if (update) {
+                update[field] = e.target.value;
+            }
         }
     });
 
-    timeline.addEventListener("click", (e) => {
-        const removeIndex = e.target.getAttribute("data-remove");
-        if (removeIndex !== null) {
-            updates.splice(removeIndex, 1);
+    newTimeline.addEventListener("click", (e) => {
+        const removeId = e.target.getAttribute("data-remove");
+        if (removeId) {
+            const updateIndex = updates.findIndex(u => u._id == removeId);
+            if (updateIndex !== -1) {
+                updates.splice(updateIndex, 1);
+                renderWeeklyUpdates(updates);
+            }
+        }
+
+
+        if (e.target.id === "addWeeklyUpdate") {
+            updates.push({
+                _id: Date.now() + Math.random(),
+                title: "",
+                summary: "",
+                date: ""
+            });
             renderWeeklyUpdates(updates);
         }
-    });
-
-    document.getElementById("addWeeklyUpdate").addEventListener("click", () => {
-        updates.push({
-            title: "",
-            summary: "",
-            date: ""
-        });
-        renderWeeklyUpdates(updates);
     });
 }
