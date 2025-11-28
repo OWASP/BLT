@@ -133,45 +133,45 @@ function renderHeader(config) {
 
     if(IS_EDITABLE ){
         socialEditSection.innerHTML += `
-            <form id="studentForm" class="shadow-md rounded-2xl p-6 space-y-5">
-            <h2 class="text-2xl mt-10">Edit Student</h2>
+            <form id="studentForm" class="rounded-2xl p-6 space-y-7">
+            <h2 class="text-2xl mb-10">Edit Details</h2>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">Name</span>
+                <span class="text-md font-medium mb-1">Name</span>
                 <input value="${config.student.name}" name="name" type="text" placeholder="Your Name" class="input-field" />
                 </label>
 
                 <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">Email</span>
+                <span class="text-md font-medium mb-1">Email</span>
                 <input value="${config.student.email}" name="email" type="email" placeholder="your.email@example.com" required class="input-field" />
                 </label>
             </div>
 
             <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">Bio</span>
+                <span class="text-md font-medium mb-1">Bio</span>
                 <input value="${config.student.bio}" name="bio" type="text" placeholder="Google Summer of Code Contributor" class="input-field" />
             </label>
 
             <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">Avatar URL</span>
+                <span class="text-md font-medium mb-1">Avatar URL</span>
                 <input value="${config.student.avatar}" name="avatar" type="url" placeholder="https://github.com/YOUR-USERNAME.png" class="input-field" />
             </label>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">GitHub</span>
+                <span class="text-md font-medium mb-1">GitHub</span>
                 <input value="${config.student.github}" name="github" type="url" placeholder="https://github.com/YOUR-USERNAME" class="input-field" />
                 </label>
 
                 <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">Blog</span>
+                <span class="text-md font-medium mb-1">Blog</span>
                 <input value="${config.student.blog}" name="blog" type="url" placeholder="https://yourblog.dev" class="input-field" />
                 </label>
             </div>
 
             <label class="flex flex-col">
-                <span class="text-sm font-medium mb-1">LinkedIn</span>
+                <span class="text-md font-medium mb-1">LinkedIn</span>
                 <input value="${config.student.linkedin}" name="linkedin" type="url" placeholder="https://linkedin.com/in/YOUR-PROFILE" class="input-field" />
             </label>
             </form>
