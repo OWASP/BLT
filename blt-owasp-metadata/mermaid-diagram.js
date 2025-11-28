@@ -54,10 +54,14 @@ const sdlcKeywords = {
     }
 };
 
-// Initialize mermaid
+// Initialize mermaid with securityLevel loose to enable click handlers
+// Note: 'loose' is required for Mermaid's click callback functionality to work.
+// The click handlers only call our validated openProject function which uses
+// a whitelist (window.projectUrls) of pre-validated GitHub URLs.
 mermaid.initialize({
     startOnLoad: false,
     theme: 'base',
+    securityLevel: 'loose',
     themeVariables: {
         primaryColor: '#34568b',
         primaryTextColor: '#fff',
@@ -76,6 +80,9 @@ mermaid.initialize({
         useMaxWidth: false
     }
 });
+
+// Store project URLs for click handlers
+window.projectUrls = {};
 
 // Load and process data
 async function loadData() {
@@ -261,31 +268,34 @@ function renderMermaidDiagram() {
 `;
 
     // Helper function to add projects from a category
-    function addProjects(projects, phaseNodeId, categoryLabel, categoryNodeId, maxProjects = 15) {
+    // Shows ALL projects and makes them clickable
+    function addProjects(projects, phaseNodeId, categoryLabel, categoryNodeId) {
         if (!projects || projects.length === 0) return '';
         
         let output = '';
-        // Limit projects shown to avoid overwhelming the diagram
-        const displayProjects = projects.slice(0, maxProjects);
-        const remaining = projects.length - maxProjects;
         
         if (categoryLabel) {
             output += `    ${categoryNodeId}[${categoryLabel}]:::categoryStyle\n`;
             output += `    ${phaseNodeId} --> ${categoryNodeId}\n`;
         }
         
-        displayProjects.forEach((proj, idx) => {
+        // Show ALL projects (no limit)
+        projects.forEach((proj, idx) => {
             const title = safeLabel(proj.title);
             const nodeId = `${categoryNodeId}Proj${idx}`;
             output += `    ${nodeId}((${title})):::projectStyle\n`;
             output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${nodeId}\n`;
+            
+            // Store project URL for click handler
+            // Validate repo format to prevent URL injection (must match owner/repo pattern)
+            if (proj.repo && /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(proj.repo)) {
+                const repoUrl = `https://github.com/${proj.repo}`;
+                window.projectUrls[nodeId] = repoUrl;
+                
+                // Add click handler for this project
+                output += `    click ${nodeId} call openProject("${nodeId}")\n`;
+            }
         });
-        
-        // Add a "more" indicator if there are additional projects
-        if (remaining > 0) {
-            output += `    ${categoryNodeId}More[+${remaining} more]:::categoryStyle\n`;
-            output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${categoryNodeId}More\n`;
-        }
         
         return output;
     }
@@ -294,55 +304,55 @@ function renderMermaidDiagram() {
     diagram += `
     %% Requirements phase projects
 `;
-    diagram += addProjects(categorizedProjects.requirements, 'Requirements', 'Standards', 'ReqDocs', 8);
+    diagram += addProjects(categorizedProjects.requirements, 'Requirements', 'Standards', 'ReqDocs');
 
     // Design phase - Threat Modeling
     diagram += `
     %% Design phase projects
 `;
-    diagram += addProjects(categorizedProjects.design, 'Design', 'Threat Modeling', 'DesignTM', 8);
+    diagram += addProjects(categorizedProjects.design, 'Design', 'Threat Modeling', 'DesignTM');
 
     // Implementation phase - Various documentation and libraries
     diagram += `
     %% Implementation phase projects
 `;
-    diagram += addProjects(categorizedProjects.implementation, 'Implementation', 'Docs & Code', 'ImplDocs', 12);
+    diagram += addProjects(categorizedProjects.implementation, 'Implementation', 'Docs & Code', 'ImplDocs');
 
     // Verification phase - Testing guides and tools
     diagram += `
     %% Verification phase projects
 `;
-    diagram += addProjects(categorizedProjects.verification, 'Verification', 'Testing Tools', 'VerTools', 12);
+    diagram += addProjects(categorizedProjects.verification, 'Verification', 'Testing Tools', 'VerTools');
 
     // Operation phase - WAFs and runtime protection
     diagram += `
     %% Operation phase projects
 `;
-    diagram += addProjects(categorizedProjects.operation, 'Operation', 'Runtime', 'OpTools', 8);
+    diagram += addProjects(categorizedProjects.operation, 'Operation', 'Runtime', 'OpTools');
 
     // Policy Gap Evaluation phase
     diagram += `
     %% Policy Gap Evaluation
 `;
-    diagram += addProjects(categorizedProjects.policyGap, 'PolicyGap', 'Assessment', 'PolicyGuides', 8);
+    diagram += addProjects(categorizedProjects.policyGap, 'PolicyGap', 'Assessment', 'PolicyGuides');
 
     // Metrics phase
     diagram += `
     %% Metrics phase projects
 `;
-    diagram += addProjects(categorizedProjects.metrics, 'Metrics', 'Metrics', 'MetricsTools', 8);
+    diagram += addProjects(categorizedProjects.metrics, 'Metrics', 'Metrics', 'MetricsTools');
 
     // Training phase - Vulnerable applications and educational resources
     diagram += `
     %% Training/Education phase projects
 `;
-    diagram += addProjects(categorizedProjects.training, 'Training', 'Labs & Education', 'TrainTools', 15);
+    diagram += addProjects(categorizedProjects.training, 'Training', 'Labs & Education', 'TrainTools');
 
     // Culture phase
     diagram += `
     %% Culture Building phase projects
 `;
-    diagram += addProjects(categorizedProjects.culture, 'Culture', 'Process', 'CultureDocs', 8);
+    diagram += addProjects(categorizedProjects.culture, 'Culture', 'Process', 'CultureDocs');
 
     // Add iterate connection from Operation to Requirements
     diagram += `
@@ -428,9 +438,11 @@ function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
     // Re-initialize mermaid with appropriate theme
+    // Note: 'loose' is required for Mermaid's click callback functionality
     mermaid.initialize({
         startOnLoad: false,
         theme: isDark ? 'dark' : 'base',
+        securityLevel: 'loose',
         themeVariables: isDark ? {
             primaryColor: '#4a6fa5',
             primaryTextColor: '#fff',
@@ -462,6 +474,15 @@ function toggleTheme() {
     renderMermaidDiagram();
 }
 
+// Global callback function for Mermaid click handlers
+// This opens the GitHub repository for a project
+window.openProject = function(nodeId) {
+    const url = window.projectUrls[nodeId];
+    if (url) {
+        window.open(url, '_blank', 'noopener');
+    }
+};
+
 // Event listeners
 document.getElementById('toggle-theme').addEventListener('click', toggleTheme);
 document.getElementById('download-diagram').addEventListener('click', downloadDiagram);
@@ -473,11 +494,13 @@ document.getElementById('zoom-out').addEventListener('click', zoomOut);
 document.getElementById('zoom-reset').addEventListener('click', zoomReset);
 
 // Initialize theme from localStorage
+// Note: 'loose' is required for Mermaid's click callback functionality
 if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
     mermaid.initialize({
         startOnLoad: false,
         theme: 'dark',
+        securityLevel: 'loose',
         themeVariables: {
             primaryColor: '#4a6fa5',
             primaryTextColor: '#fff',

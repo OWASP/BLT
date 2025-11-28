@@ -108,6 +108,19 @@
       stroke-width: 2px;
     }
 
+    /* Make clickable project nodes show pointer cursor */
+    .mermaid .node.clickable {
+      cursor: pointer;
+    }
+
+    .mermaid .node.clickable:hover rect,
+    .mermaid .node.clickable:hover circle,
+    .mermaid .node.clickable:hover ellipse,
+    .mermaid .node.clickable:hover polygon {
+      stroke-width: 3px;
+      filter: brightness(1.1);
+    }
+
     /* Make diagram zoomable */
     .zoom-controls {
       display: flex;
