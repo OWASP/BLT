@@ -1,5 +1,7 @@
 # Metadata Summary
 
+## Front Matter Fields (index.md)
+
 | Field | Count |
 |---|---|
 | Country | 1 |
@@ -44,3 +46,20 @@
 | url | 4 |
 | video1 | 1 |
 | video2 | 1 |
+
+## Sidebar Fields (info.md, leaders.md)
+
+| Field | Count |
+|---|---|
+| audience | 286 |
+| code_repositories | 173 |
+| download_links | 260 |
+| leaders_list | 747 |
+| license | 59 |
+| project_classification | 294 |
+| sidebar_type | 106 |
+| social_facebook | 75 |
+| social_linkedin | 141 |
+| social_meetup | 319 |
+| social_twitter | 155 |
+| social_youtube | 72 |
