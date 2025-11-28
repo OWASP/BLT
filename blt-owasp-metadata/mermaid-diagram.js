@@ -2,64 +2,55 @@ const METADATA_URL = "data/metadata.json";
 
 // State
 let projectData = [];
+let categorizedProjects = {};
 let zoomLevel = 1;
 
-// SDLC Phase definitions with their associated project categories
-const sdlcPhases = {
+// Keywords used to categorize projects into SDLC phases
+const sdlcKeywords = {
     requirements: {
-        label: "Requirements",
-        categories: {
-            docs: ["ASVS", "MASVS", "Security RAT", "SKF"]
-        }
+        title: ['verification standard', 'asvs', 'masvs', 'security rat', 'skf', 'security knowledge framework', 'requirements'],
+        tags: ['asvs', 'masvs', 'requirements', 'standards', 'verification'],
+        type: ['standards']
     },
     design: {
-        label: "Design",
-        categories: {
-            threatModeling: ["Threat Dragon", "pytm", "Cornucopia", "Threat Modeling"]
-        }
+        title: ['threat model', 'threat dragon', 'pytm', 'cornucopia', 'design', 'architecture'],
+        tags: ['threat-modeling', 'threatmodeling', 'threat', 'design', 'architecture'],
+        type: []
     },
     implementation: {
-        label: "Implementation",
-        categories: {
-            docs: ["Proactive Controls", "Go SCP", "Cheat Sheet"],
-            dependencies: ["Dependency-Check", "Dependency-Track", "CycloneDX"],
-            secureLibraries: ["ESAPI", "CSRFGuard", "Secure Headers"]
-        }
+        title: ['cheat sheet', 'secure coding', 'proactive controls', 'esapi', 'csrfguard', 'encoder', 'dependency-check', 'dependency-track', 'cyclonedx', 'sbom', 'secure headers', 'code review'],
+        tags: ['secure-coding', 'cheat', 'esapi', 'dependency', 'sbom', 'sca', 'supply chain', 'headers', 'implementation', 'coding', 'builder', 'builders'],
+        type: ['code']
     },
     verification: {
-        label: "Verification",
-        categories: {
-            guides: ["WSTG", "MSTG", "Web Security Testing"],
-            tools: ["Amass", "Nettacker", "Secure Headers", "Code Pulse", "OWTF"]
-        }
+        title: ['testing guide', 'wstg', 'mstg', 'testing', 'scanner', 'amass', 'nettacker', 'owtf', 'zap', 'penetration', 'pentest', 'security testing', 'find security bugs'],
+        tags: ['testing', 'scanner', 'pentest', 'breaker', 'breakers', 'verification', 'sast', 'dast', 'osint'],
+        type: ['tool']
     },
     operation: {
-        label: "Operation",
-        categories: {
-            tools: ["Coraza", "ModSecurity"]
-        }
+        title: ['waf', 'modsecurity', 'coraza', 'crs', 'firewall', 'runtime', 'appsensor'],
+        tags: ['waf', 'firewall', 'runtime', 'defense', 'operation', 'crs'],
+        type: []
     },
     policyGap: {
-        label: "Policy Gap\\nEvaluation",
-        categories: {
-            guides: ["SAMM", "ASVS", "MASVS"]
-        }
+        title: ['samm', 'maturity', 'benchmark', 'assessment'],
+        tags: ['samm', 'maturity', 'assessment', 'policy'],
+        type: []
     },
     metrics: {
-        label: "Metrics",
-        categories: {}
+        title: ['metrics', 'measurement', 'kpi', 'dashboard'],
+        tags: ['metrics', 'measurement', 'kpi'],
+        type: []
     },
     training: {
-        label: "Training/\\nEducation",
-        categories: {
-            tools: ["Juice Shop", "WebGoat", "Security Shepherd", "PyGoat", "Snakes", "Wrong Secrets", "Top 10", "API Top 10", "Mobile Top 10"]
-        }
+        title: ['goat', 'juice shop', 'webgoat', 'security shepherd', 'vulnerable', 'lab', 'training', 'education', 'ctf', 'challenge', 'wrong secrets', 'top 10', 'top ten', 'dojo'],
+        tags: ['training', 'education', 'vulnerable', 'lab', 'ctf', 'top10', 'goat'],
+        type: []
     },
     culture: {
-        label: "Culture\\nBuilding &\\nProcess\\nMaturing",
-        categories: {
-            docs: ["Security Champions", "SAMM", "ASVS", "MASVS"]
-        }
+        title: ['champions', 'awareness', 'culture', 'devsecops', 'integration', 'process'],
+        tags: ['champions', 'awareness', 'culture', 'devsecops'],
+        type: []
     }
 };
 
@@ -94,26 +85,111 @@ async function loadData() {
         
         const rawData = await response.json();
         
-        // Filter projects with type metadata
+        // Filter for www-project-* repos with title and type
         projectData = rawData.filter(item => 
-            item.type && item.title && item.repo
+            item.repo && 
+            item.repo.includes('www-project-') && 
+            item.title && 
+            item.type
         ).map(item => ({
             repo: item.repo,
             title: item.title,
-            type: item.type,
+            type: (item.type || '').toLowerCase(),
             level: item.level || 0,
-            tags: item.tags || '',
+            tags: (item.tags || '').toLowerCase(),
             pitch: item.pitch || ''
         }));
         
-        console.log(`Loaded ${projectData.length} projects with metadata`);
+        console.log(`Loaded ${projectData.length} www-project-* repos with metadata`);
+        
+        // Categorize projects into SDLC phases
+        categorizeProjects();
         
         renderMermaidDiagram();
         updateLastUpdated();
+        updateProjectCount();
         
     } catch (error) {
         console.error('Failed to load data:', error);
         showError('Failed to load project data. Please ensure data/metadata.json exists.');
+    }
+}
+
+// Categorize projects into SDLC phases based on metadata
+function categorizeProjects() {
+    categorizedProjects = {
+        requirements: [],
+        design: [],
+        implementation: [],
+        verification: [],
+        operation: [],
+        policyGap: [],
+        metrics: [],
+        training: [],
+        culture: []
+    };
+    
+    const assigned = new Set();
+    
+    // First pass: categorize based on keywords
+    projectData.forEach(project => {
+        const titleLower = project.title.toLowerCase();
+        const tagsLower = project.tags.toLowerCase();
+        const typeLower = project.type.toLowerCase();
+        
+        // Check each phase for matches
+        for (const [phase, keywords] of Object.entries(sdlcKeywords)) {
+            // Check title keywords
+            const titleMatch = keywords.title.some(kw => titleLower.includes(kw));
+            // Check tag keywords
+            const tagMatch = keywords.tags.some(kw => tagsLower.includes(kw));
+            // Check type keywords
+            const typeMatch = keywords.type.some(kw => typeLower.includes(kw));
+            
+            if (titleMatch || tagMatch || typeMatch) {
+                if (!assigned.has(project.repo)) {
+                    categorizedProjects[phase].push(project);
+                    assigned.add(project.repo);
+                    break; // Only assign to one phase
+                }
+            }
+        }
+    });
+    
+    // Second pass: assign remaining projects based on type alone
+    projectData.forEach(project => {
+        if (assigned.has(project.repo)) return;
+        
+        const typeLower = project.type.toLowerCase();
+        
+        // Default categorization based on type
+        if (typeLower === 'tool') {
+            categorizedProjects.verification.push(project);
+        } else if (typeLower === 'documentation') {
+            categorizedProjects.implementation.push(project);
+        } else if (typeLower === 'code') {
+            categorizedProjects.implementation.push(project);
+        } else if (typeLower === 'standards') {
+            categorizedProjects.requirements.push(project);
+        } else {
+            // Uncategorized projects go to implementation as default
+            categorizedProjects.implementation.push(project);
+        }
+        assigned.add(project.repo);
+    });
+    
+    // Log categorization results
+    console.log('Project categorization:');
+    for (const [phase, projects] of Object.entries(categorizedProjects)) {
+        console.log(`  ${phase}: ${projects.length} projects`);
+    }
+}
+
+// Update project count display
+function updateProjectCount() {
+    const countEl = document.querySelector('.project-count');
+    if (countEl) {
+        countEl.textContent = `Total Projects: ${projectData.length}`;
     }
 }
 
@@ -182,195 +258,91 @@ function renderMermaidDiagram() {
     OpenCRE --> Design
     OpenCRE --> Implementation
     OpenCRE --> Verification
-    
-    %% Requirements phase projects
-    ReqDocs[Docs]:::categoryStyle
-    Requirements --> ReqDocs
 `;
 
-    // Add Requirements projects
-    const reqProjects = ['SKF', 'Security RAT', 'ASVS', 'MASVS'];
-    reqProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `ReqProj${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    ReqDocs --> ${nodeId}\n`;
-    });
+    // Helper function to add projects from a category
+    function addProjects(projects, phaseNodeId, categoryLabel, categoryNodeId, maxProjects = 15) {
+        if (!projects || projects.length === 0) return '';
+        
+        let output = '';
+        // Limit projects shown to avoid overwhelming the diagram
+        const displayProjects = projects.slice(0, maxProjects);
+        const remaining = projects.length - maxProjects;
+        
+        if (categoryLabel) {
+            output += `    ${categoryNodeId}[${categoryLabel}]:::categoryStyle\n`;
+            output += `    ${phaseNodeId} --> ${categoryNodeId}\n`;
+        }
+        
+        displayProjects.forEach((proj, idx) => {
+            const title = safeLabel(proj.title);
+            const nodeId = `${categoryNodeId}Proj${idx}`;
+            output += `    ${nodeId}((${title})):::projectStyle\n`;
+            output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${nodeId}\n`;
+        });
+        
+        // Add a "more" indicator if there are additional projects
+        if (remaining > 0) {
+            output += `    ${categoryNodeId}More[+${remaining} more]:::categoryStyle\n`;
+            output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${categoryNodeId}More\n`;
+        }
+        
+        return output;
+    }
+
+    // Requirements phase - Standards and verification standards
+    diagram += `
+    %% Requirements phase projects
+`;
+    diagram += addProjects(categorizedProjects.requirements, 'Requirements', 'Standards', 'ReqDocs', 8);
 
     // Design phase - Threat Modeling
     diagram += `
     %% Design phase projects
-    DesignTM[Threat Modeling]:::categoryStyle
-    Design --> DesignTM
 `;
-    const designProjects = ['Threat Dragon', 'pytm', 'Cornucopia', 'Threat Model'];
-    designProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        if (proj || name === 'Cornucopia' || name === 'Threat Model') {
-            const title = proj ? safeLabel(proj.title) : name;
-            const nodeId = `DesignProj${idx}`;
-            diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-            diagram += `    DesignTM --> ${nodeId}\n`;
-        }
-    });
+    diagram += addProjects(categorizedProjects.design, 'Design', 'Threat Modeling', 'DesignTM', 8);
 
-    // Implementation phase
+    // Implementation phase - Various documentation and libraries
     diagram += `
     %% Implementation phase projects
-    ImplDocs[Docs]:::categoryStyle
-    ImplDeps[Dependencies]:::categoryStyle
-    ImplLibs[Secure Libraries]:::categoryStyle
-    Implementation --> ImplDocs
-    Implementation --> ImplDeps
-    ImplDeps --> ImplLibs
 `;
-    
-    // Implementation Docs
-    const implDocProjects = ['Proactive Controls', 'Go SCP', 'Cheat Sheet'];
-    implDocProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `ImplDoc${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    ImplDocs --> ${nodeId}\n`;
-    });
+    diagram += addProjects(categorizedProjects.implementation, 'Implementation', 'Docs & Code', 'ImplDocs', 12);
 
-    // Implementation Dependencies
-    const implDepProjects = ['Dependency-Check', 'Dependency-Track', 'CycloneDX'];
-    implDepProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `ImplDep${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    ImplDeps --> ${nodeId}\n`;
-    });
-
-    // Implementation Secure Libraries
-    const implLibProjects = ['ESAPI', 'CSRFGuard', 'Secure Headers'];
-    implLibProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `ImplLib${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    ImplLibs --> ${nodeId}\n`;
-    });
-
-    // Verification phase
+    // Verification phase - Testing guides and tools
     diagram += `
     %% Verification phase projects
-    VerGuides[Guides]:::categoryStyle
-    VerTools[Tools]:::categoryStyle
-    VerFrameworks[Frameworks]:::categoryStyle
-    Verification --> VerGuides
-    Verification --> VerTools
-    VerTools --> VerFrameworks
 `;
+    diagram += addProjects(categorizedProjects.verification, 'Verification', 'Testing Tools', 'VerTools', 12);
 
-    // Verification Guides
-    const verGuideProjects = ['WSTG', 'MSTG'];
-    verGuideProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `VerGuide${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    VerGuides --> ${nodeId}\n`;
-    });
-
-    // Verification Tools
-    const verToolProjects = ['Amass', 'Nettacker', 'Code Pulse', 'Secure Headers'];
-    verToolProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `VerTool${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    VerTools --> ${nodeId}\n`;
-    });
-
-    // Verification Frameworks
-    const verFrameworkProjects = ['OWTF', 'Glue', 'Dracon'];
-    verFrameworkProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        if (proj) {
-            const title = safeLabel(proj.title);
-            const nodeId = `VerFw${idx}`;
-            diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-            diagram += `    VerFrameworks --> ${nodeId}\n`;
-        }
-    });
-
-    // Vulnerability Management
-    diagram += `
-    %% Vulnerability Management
-    VulnMgmt[Vulnerability Management]:::categoryStyle
-    VerFrameworks --> VulnMgmt
-`;
-    const vulnProjects = ['Defect Dojo'];
-    vulnProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `Vuln${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    VulnMgmt --> ${nodeId}\n`;
-    });
-
-    // Operation phase
+    // Operation phase - WAFs and runtime protection
     diagram += `
     %% Operation phase projects
 `;
-    const opProjects = ['Coraza', 'ModSecurity'];
-    opProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `Op${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    Operation --> ${nodeId}\n`;
-    });
+    diagram += addProjects(categorizedProjects.operation, 'Operation', 'Runtime', 'OpTools', 8);
 
     // Policy Gap Evaluation phase
     diagram += `
     %% Policy Gap Evaluation
-    PolicyGuides[Guides]:::categoryStyle
-    PolicyGap --> PolicyGuides
 `;
-    const policyProjects = ['SAMM', 'ASVS', 'MASVS'];
-    policyProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        const title = proj ? safeLabel(proj.title) : name;
-        const nodeId = `Policy${idx}`;
-        diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-        diagram += `    PolicyGuides --> ${nodeId}\n`;
-    });
+    diagram += addProjects(categorizedProjects.policyGap, 'PolicyGap', 'Assessment', 'PolicyGuides', 8);
 
-    // Training phase
+    // Metrics phase
+    diagram += `
+    %% Metrics phase projects
+`;
+    diagram += addProjects(categorizedProjects.metrics, 'Metrics', 'Metrics', 'MetricsTools', 8);
+
+    // Training phase - Vulnerable applications and educational resources
     diagram += `
     %% Training/Education phase projects
 `;
-    const trainingProjects = ['Juice Shop', 'WebGoat', 'Security Shepherd', 'PyGoat', 'Snakes', 'Wrong Secrets', 'Top 10', 'API Security', 'Mobile Top 10'];
-    trainingProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        if (proj) {
-            const title = safeLabel(proj.title);
-            const nodeId = `Train${idx}`;
-            diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-            diagram += `    Training --> ${nodeId}\n`;
-        }
-    });
+    diagram += addProjects(categorizedProjects.training, 'Training', 'Labs & Education', 'TrainTools', 15);
 
     // Culture phase
     diagram += `
     %% Culture Building phase projects
 `;
-    const cultureProjects = ['Security Champions', 'SAMM', 'ASVS', 'MASVS'];
-    cultureProjects.forEach((name, idx) => {
-        const proj = findProject(name);
-        if (proj) {
-            const title = safeLabel(proj.title);
-            const nodeId = `Culture${idx}`;
-            diagram += `    ${nodeId}((${title})):::projectStyle\n`;
-            diagram += `    Culture --> ${nodeId}\n`;
-        }
-    });
+    diagram += addProjects(categorizedProjects.culture, 'Culture', 'Process', 'CultureDocs', 8);
 
     // Add iterate connection from Operation to Requirements
     diagram += `
