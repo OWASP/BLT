@@ -3,7 +3,6 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen?logo=github)](https://owasp-blt.github.io/OWASP-metadata/)
 [![Scraper Workflow](https://github.com/OWASP-BLT/OWASP-metadata/actions/workflows/scraper.yml/badge.svg)](https://github.com/OWASP-BLT/OWASP-metadata/actions/workflows/scraper.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![OWASP](https://img.shields.io/badge/OWASP-Project-orange?logo=owasp)](https://owasp.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
