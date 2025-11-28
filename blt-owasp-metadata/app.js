@@ -327,6 +327,8 @@ function renderTableBody(data) {
                 
                 if (col === 'repo') {
                     return `<td class="repo-cell">${escapeHtml(value || '')}</td>`;
+                } else if (col === 'level') {
+                    return renderLevelCell(value);
                 } else {
                     return renderTableCell(value);
                 }
@@ -373,6 +375,31 @@ function renderTableCell(value) {
     
     // Regular text
     return `<td class="text-cell">${escapeHtml(strValue)}</td>`;
+}
+
+function renderLevelCell(value) {
+    if (!hasData(value)) {
+        return `<td class="empty-cell" title="No data">—</td>`;
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+        return `<td class="text-cell">${escapeHtml(String(value))}</td>`;
+    }
+    
+    // Determine level label
+    let levelLabel = '';
+    if (numValue >= 4) {
+        levelLabel = 'Flagship';
+    } else if (numValue === 3.5) {
+        levelLabel = 'Production';
+    } else if (numValue >= 2) {
+        levelLabel = 'Lab';
+    } else {
+        levelLabel = 'Incubator';
+    }
+    
+    return `<td class="text-cell" title="Level ${numValue} - ${levelLabel}">${numValue} (${levelLabel})</td>`;
 }
 
 function sortData(data) {

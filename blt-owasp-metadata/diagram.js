@@ -72,6 +72,7 @@ function parseLevel(level) {
 // Get maturity category based on level
 function getMaturityCategory(level) {
     if (level >= 4) return 'flagship';
+    if (level === 3.5) return 'production';
     if (level >= 2) return 'lab';
     return 'incubator';
 }
@@ -135,6 +136,7 @@ function renderDiagram() {
         if (!groupedByType[project.type]) {
             groupedByType[project.type] = {
                 flagship: [],
+                production: [],
                 lab: [],
                 incubator: []
             };
@@ -154,12 +156,13 @@ function renderDiagram() {
     
     const maturityLabels = {
         'flagship': '⭐ Flagship',
+        'production': '🚀 Production',
         'lab': '🔬 Lab',
         'incubator': '🌱 Incubator'
     };
     
     const typeOrder = ['tool', 'documentation', 'code', 'standards', 'other'];
-    const maturityOrder = ['flagship', 'lab', 'incubator'];
+    const maturityOrder = ['flagship', 'production', 'lab', 'incubator'];
     
     // Build HTML tree diagram
     let html = `
@@ -177,7 +180,7 @@ function renderDiagram() {
         if (!groupedByType[type]) return;
         
         const typeData = groupedByType[type];
-        const totalCount = typeData.flagship.length + typeData.lab.length + typeData.incubator.length;
+        const totalCount = typeData.flagship.length + typeData.production.length + typeData.lab.length + typeData.incubator.length;
         
         if (totalCount === 0) return;
         
