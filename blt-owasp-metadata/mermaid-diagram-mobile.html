@@ -441,7 +441,7 @@
     async function loadData() {
       try {
         const response = await fetch(METADATA_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
         const rawData = await response.json();
 
@@ -471,7 +471,7 @@
 
       } catch (error) {
         console.error('Failed to load data:', error);
-        showError('Failed to load project data. Please ensure data/metadata.json exists.');
+        showError('Failed to load project data. Please check your network connection or try again later.');
         hideLoading();
       }
     }
@@ -543,12 +543,22 @@
       }
     }
 
-    // Generate safe ID for mermaid nodes
+    /**
+     * Generate a safe ID for mermaid nodes.
+     * Removes special characters that could break mermaid parsing.
+     * @param {string} str - The input string to sanitize
+     * @returns {string} A sanitized string safe to use as a mermaid node ID (max 30 chars)
+     */
     function safeId(str) {
       return str.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
     }
 
-    // Escape label text for mermaid
+    /**
+     * Sanitize label text for mermaid nodes.
+     * Removes "OWASP" prefix and special characters that break mermaid parsing.
+     * @param {string} str - The input label text
+     * @returns {string} A sanitized label (max 16 chars for mobile readability)
+     */
     function safeLabel(str) {
       return str
         .replace(/OWASP /gi, '')
@@ -660,7 +670,7 @@
         });
       } catch (error) {
         console.error('Mermaid rendering error:', error);
-        showError('Failed to render diagram.');
+        showError('Failed to render diagram. Please try refreshing the page.');
       }
     }
 
