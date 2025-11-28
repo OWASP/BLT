@@ -1,6 +1,31 @@
 # OWASP Metadata
 
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen?logo=github)](https://owasp-blt.github.io/OWASP-metadata/)
+[![Scraper Workflow](https://github.com/OWASP-BLT/OWASP-metadata/actions/workflows/scraper.yml/badge.svg)](https://github.com/OWASP-BLT/OWASP-metadata/actions/workflows/scraper.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![OWASP](https://img.shields.io/badge/OWASP-Project-orange?logo=owasp)](https://owasp.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?logo=chartdotjs&logoColor=white)](https://www.chartjs.org/)
+[![Mermaid](https://img.shields.io/badge/Mermaid-FF3670?logo=mermaid&logoColor=white)](https://mermaid.js.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/OWASP-BLT/OWASP-metadata/pulls)
+[![GitHub Issues](https://img.shields.io/github/issues/OWASP-BLT/OWASP-metadata)](https://github.com/OWASP-BLT/OWASP-metadata/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/OWASP-BLT/OWASP-metadata?style=social)](https://github.com/OWASP-BLT/OWASP-metadata/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/OWASP-BLT/OWASP-metadata?style=social)](https://github.com/OWASP-BLT/OWASP-metadata/network/members)
+
 A unified metadata aggregation system for OWASP projects and chapters. This project aims to unify and standardize data across the OWASP repository ecosystem without requiring major changes to existing repositories, by leveraging the existing Jekyll front matter in `index.md` files.
+
+## 🌐 Live Demo
+
+**[View the Live Dashboard →](https://owasp-blt.github.io/OWASP-metadata/)**
+
+Explore the interactive web interface with:
+- 📊 **[Metadata Explorer](https://owasp-blt.github.io/OWASP-metadata/)** - Browse and search all OWASP repositories
+- 📈 **[Analytics Dashboard](https://owasp-blt.github.io/OWASP-metadata/charts.html)** - Visualize metadata coverage and trends
+- 🗺️ **[Project Wayfinder](https://owasp-blt.github.io/OWASP-metadata/diagram.html)** - Visual overview by type and maturity
+- 🔄 **[SDLC Integration Chart](https://owasp-blt.github.io/OWASP-metadata/mermaid-diagram.html)** - OWASP projects mapped to Software Development Lifecycle phases
 
 ## Purpose
 
@@ -48,10 +73,22 @@ The scraper generates several data files in the `data/` directory:
 
 ## Web Interface
 
-The project includes two web interfaces:
+The project includes multiple interactive web interfaces:
 
-- **Metadata Explorer** (`index.html`): Interactive table for browsing, filtering, and searching repository metadata
-- **Analytics Dashboard** (`charts.html`): Visual analytics showing field usage, completeness rates, and trends
+| Interface | Description | Link |
+|-----------|-------------|------|
+| **Metadata Explorer** | Interactive table for browsing, filtering, and searching repository metadata | [View →](https://owasp-blt.github.io/OWASP-metadata/) |
+| **Analytics Dashboard** | Visual analytics showing field usage, completeness rates, and trends | [View →](https://owasp-blt.github.io/OWASP-metadata/charts.html) |
+| **Project Wayfinder** | Visual diagram showing projects grouped by type and maturity level | [View →](https://owasp-blt.github.io/OWASP-metadata/diagram.html) |
+| **SDLC Integration Chart** | Mermaid-based diagram mapping OWASP projects to SDLC phases | [View →](https://owasp-blt.github.io/OWASP-metadata/mermaid-diagram.html) |
+
+### Features
+
+- 🌓 **Dark/Light Theme Toggle** - Switch between themes for comfortable viewing
+- 🔍 **Advanced Filtering** - Filter by project type, maturity level, and metadata fields
+- 📥 **Export Functionality** - Download data as CSV or diagrams as SVG
+- 📱 **Responsive Design** - Works on desktop and mobile devices
+- ⚡ **Real-time Updates** - Data refreshes weekly via GitHub Actions
 
 ## OWASP Slack Bot Integration
 
@@ -70,8 +107,13 @@ The standardized metadata from this project will be consumed by the OWASP Slack 
 ├── data/                     # Generated metadata files
 ├── index.html                # Metadata explorer UI
 ├── charts.html               # Analytics dashboard
+├── diagram.html              # Project Wayfinder diagram
+├── mermaid-diagram.html      # SDLC integration diagram
 ├── app.js                    # Explorer application logic
 ├── charts.js                 # Analytics charts logic
+├── diagram.js                # Project Wayfinder logic
+├── mermaid-diagram.js        # SDLC diagram logic
+├── mermaid.min.js            # Mermaid library for diagrams
 ├── styles.css                # Shared styles
 └── charts.css                # Analytics-specific styles
 ```
@@ -93,12 +135,36 @@ python scripts/scrape_metadata.py
 
 ### Viewing the Data
 
-Open `index.html` in a browser to explore the metadata interactively, or view `charts.html` for analytics and visualizations.
+Visit the **[Live Dashboard](https://owasp-blt.github.io/OWASP-metadata/)** to explore the metadata interactively, or run locally by opening `index.html` in a browser.
+
+For analytics and visualizations, visit the **[Analytics Dashboard](https://owasp-blt.github.io/OWASP-metadata/charts.html)**.
+
+To see how OWASP projects map to the Software Development Lifecycle, check out the **[SDLC Integration Chart](https://owasp-blt.github.io/OWASP-metadata/mermaid-diagram.html)**.
 
 ## Contributing
 
 Contributions are welcome! This project helps improve metadata consistency across OWASP repositories. If you notice missing or inconsistent metadata in OWASP projects, consider contributing to those repositories by adding or updating their `index.md` front matter.
 
+### How to Contribute
+
+1. **Fork** this repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
 ## License
 
-This project is part of the OWASP Foundation's open source initiatives.
+This project is part of the OWASP Foundation's open source initiatives and is licensed under the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0).
+
+---
+
+<p align="center">
+  <a href="https://owasp.org">
+    <img src="https://owasp.org/assets/images/logo.png" alt="OWASP Logo" width="200">
+  </a>
+</p>
+
+<p align="center">
+  Made with ❤️ by the <a href="https://owasp.org/www-project-bug-logging-tool/">OWASP BLT Project</a>
+</p>
