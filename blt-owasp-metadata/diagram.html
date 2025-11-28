@@ -73,6 +73,7 @@
     .type-other { background: #6b7280; }
 
     .level-flagship { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .level-production { background: linear-gradient(135deg, #f472b6, #ec4899); }
     .level-lab { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
     .level-incubator { background: linear-gradient(135deg, #a3e635, #84cc16); }
 
@@ -205,6 +206,12 @@
       background: linear-gradient(135deg, #fef3c7, #fde68a);
       color: #92400e;
       border-left: 3px solid #f59e0b;
+    }
+
+    .maturity-production .maturity-node {
+      background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+      color: #9d174d;
+      border-left: 3px solid #ec4899;
     }
 
     .maturity-lab .maturity-node {
@@ -357,6 +364,7 @@
 
 <body>
   <div class="toolbar">
+    <a href="https://github.com/OWASP-BLT/OWASP-metadata" target="_blank" rel="noopener" title="View on GitHub">📦 GitHub</a>
     <button id="toggle-theme" title="Toggle dark mode">🌓 Theme</button>
     <button id="download-svg" title="Download SVG">📥 Download</button>
     <button id="refresh-diagram" title="Refresh diagram">🔄 Refresh</button>
@@ -392,6 +400,7 @@
           <select id="level-filter">
             <option value="all">All Levels</option>
             <option value="flagship">Flagship (4+)</option>
+            <option value="production">Production (3.5)</option>
             <option value="lab">Lab (2-3)</option>
             <option value="incubator">Incubator (0-1)</option>
           </select>
@@ -435,6 +444,10 @@
         <div class="legend-item">
           <div class="legend-color level-flagship"></div>
           <span>Flagship (Level 4+)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color level-production"></div>
+          <span>Production (Level 3.5)</span>
         </div>
         <div class="legend-item">
           <div class="legend-color level-lab"></div>
