@@ -23,7 +23,7 @@ export function renderWeeklyUpdates(updates) {
     }
 
     timeline.innerHTML = updates.map((update, index) => `
-        <div class="timeline-item bg-[var(--bg-color)] p-4 rounded-lg shadow-sm border border-[var(--border-color)]">
+        <div class="timeline-item blog-post editable-blog-post">
             
             <input 
                 type="text"
@@ -69,7 +69,7 @@ export function renderWeeklyUpdates(updates) {
             updates[index][field] = e.target.value;
         }
     });
-    
+
     timeline.addEventListener("click", (e) => {
         const removeIndex = e.target.getAttribute("data-remove");
         if (removeIndex !== null) {
