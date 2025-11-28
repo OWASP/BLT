@@ -55,6 +55,9 @@ const sdlcKeywords = {
 };
 
 // Initialize mermaid with securityLevel loose to enable click handlers
+// Note: 'loose' is required for Mermaid's click callback functionality to work.
+// The click handlers only call our validated openProject function which uses
+// a whitelist (window.projectUrls) of pre-validated GitHub URLs.
 mermaid.initialize({
     startOnLoad: false,
     theme: 'base',
@@ -284,11 +287,14 @@ function renderMermaidDiagram() {
             output += `    ${categoryLabel ? categoryNodeId : phaseNodeId} --> ${nodeId}\n`;
             
             // Store project URL for click handler
-            const repoUrl = `https://github.com/${proj.repo}`;
-            window.projectUrls[nodeId] = repoUrl;
-            
-            // Add click handler for this project
-            output += `    click ${nodeId} call openProject("${nodeId}")\n`;
+            // Validate repo format to prevent URL injection (must match owner/repo pattern)
+            if (proj.repo && /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(proj.repo)) {
+                const repoUrl = `https://github.com/${proj.repo}`;
+                window.projectUrls[nodeId] = repoUrl;
+                
+                // Add click handler for this project
+                output += `    click ${nodeId} call openProject("${nodeId}")\n`;
+            }
         });
         
         return output;
@@ -432,6 +438,7 @@ function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
     // Re-initialize mermaid with appropriate theme
+    // Note: 'loose' is required for Mermaid's click callback functionality
     mermaid.initialize({
         startOnLoad: false,
         theme: isDark ? 'dark' : 'base',
@@ -487,6 +494,7 @@ document.getElementById('zoom-out').addEventListener('click', zoomOut);
 document.getElementById('zoom-reset').addEventListener('click', zoomReset);
 
 // Initialize theme from localStorage
+// Note: 'loose' is required for Mermaid's click callback functionality
 if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
     mermaid.initialize({
