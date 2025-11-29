@@ -62,7 +62,6 @@ async def get_stats(env):
         result = await env.STATS_KV.getWithMetadata("stats", "json")
         if result and result.value is not None:
             stats = result.value
-            version = getattr(result, "metadata", {}).get("version", None)
             etag = getattr(result, "etag", None)
             return stats, etag
     except Exception:
@@ -88,7 +87,7 @@ async def increment_joins(env, max_retries=5):
         try:
             await save_stats(env, stats, etag)
             return stats
-        except Exception as e:
+        except Exception:
             # If the put failed due to version conflict, retry
             continue
     raise Exception("Failed to increment joins after multiple retries due to concurrent updates.")
@@ -102,10 +101,12 @@ async def increment_commands(env, max_retries=5):
         try:
             await save_stats(env, stats, etag)
             return stats
-        except Exception as e:
+        except Exception:
             # If the put failed due to version conflict, retry
             continue
-    raise Exception("Failed to increment commands after multiple retries due to concurrent updates.")
+    raise Exception(
+        "Failed to increment commands after multiple retries due to concurrent updates."
+    )
 
 
 async def send_slack_message(env, channel, text, blocks=None):
