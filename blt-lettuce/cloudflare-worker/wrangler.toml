@@ -1,0 +1,20 @@
+name = "blt-lettuce-worker"
+main = "worker.py"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["python_workers"]
+
+# KV Namespace for storing stats
+# To create this namespace, run:
+# wrangler kv:namespace create "STATS_KV"
+# Then update the id below with the actual namespace ID
+[[kv_namespaces]]
+binding = "STATS_KV"
+id = "your-kv-namespace-id"
+
+# Environment variables (secrets should be set via wrangler secret put)
+# Required secrets:
+# - SLACK_TOKEN: Slack Bot Token for sending messages
+# - SIGNING_SECRET: Slack signing secret for verifying requests
+
+[vars]
+ENVIRONMENT = "production"

@@ -5,6 +5,14 @@ Note: This Slack bot has been incorpotated into the main BLT repo
 A slack bot made by the BLT team for the OWASP Slack workspace.
 Welcome to the BLT Lettuce repository, where we're developing a Slackbot for our workspace. Everyone is invited to contribute and share their ideas. Our Slackbot will leverage the capabilities of artificial intelligence, making this project both exciting and full of potential. There are endless possibilities for what we can achieve with this bot, and we hope you'll all contribute your ideas and efforts.
 
+## Stats Dashboard
+
+View live statistics for the BLT-Lettuce bot at our [Stats Dashboard](https://owasp-blt.github.io/BLT-Lettuce/).
+
+## Cloudflare Worker
+
+The bot includes a Cloudflare Python Worker that handles webhooks and tracks statistics. See the [cloudflare-worker/README.md](cloudflare-worker/README.md) for setup instructions.
+
 A Slackbot is an automated assistant or bot designed to interact with users within the Slack messaging platform. Slackbots can perform a variety of tasks, such as answering questions, providing information, scheduling meetings, setting reminders, integrating with other tools and services, and automating repetitive tasks. They can be built using Slack's API and can be customized to suit the specific needs of a team or organization. Slackbots can help improve productivity and streamline communication by handling routine tasks and providing quick access to information without users having to leave the Slack interface.
 
 
