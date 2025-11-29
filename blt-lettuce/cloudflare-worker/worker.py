@@ -56,36 +56,56 @@ WELCOME_MESSAGE = (
 
 
 async def get_stats(env):
-    """Get current stats from KV store."""
+    """Get current stats and version from KV store."""
     try:
-        stats_data = await env.STATS_KV.get("stats")
-        if stats_data:
-            return json.loads(stats_data)
+        # Use getWithMetadata to get the value and its metadata (including version/etag)
+        result = await env.STATS_KV.getWithMetadata("stats", "json")
+        if result and result.value is not None:
+            stats = result.value
+            version = getattr(result, "metadata", {}).get("version", None)
+            etag = getattr(result, "etag", None)
+            return stats, etag
     except Exception:
         pass
-    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}
+    # If not found, return default stats and None for etag
+    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}, None
 
 
-async def save_stats(env, stats):
-    """Save stats to KV store."""
+async def save_stats(env, stats, etag=None):
+    """Save stats to KV store with optional optimistic locking."""
     stats["last_updated"] = get_utc_now()
-    await env.STATS_KV.put("stats", json.dumps(stats))
+    options = {}
+    if etag:
+        options["if_match"] = etag
+    await env.STATS_KV.put("stats", json.dumps(stats), **options)
 
 
-async def increment_joins(env):
-    """Increment the joins counter."""
-    stats = await get_stats(env)
-    stats["joins"] = stats.get("joins", 0) + 1
-    await save_stats(env, stats)
-    return stats
+async def increment_joins(env, max_retries=5):
+    """Increment the joins counter atomically with optimistic locking."""
+    for _ in range(max_retries):
+        stats, etag = await get_stats(env)
+        stats["joins"] = stats.get("joins", 0) + 1
+        try:
+            await save_stats(env, stats, etag)
+            return stats
+        except Exception as e:
+            # If the put failed due to version conflict, retry
+            continue
+    raise Exception("Failed to increment joins after multiple retries due to concurrent updates.")
 
 
-async def increment_commands(env):
-    """Increment the commands counter."""
-    stats = await get_stats(env)
-    stats["commands"] = stats.get("commands", 0) + 1
-    await save_stats(env, stats)
-    return stats
+async def increment_commands(env, max_retries=5):
+    """Increment the commands counter atomically with optimistic locking."""
+    for _ in range(max_retries):
+        stats, etag = await get_stats(env)
+        stats["commands"] = stats.get("commands", 0) + 1
+        try:
+            await save_stats(env, stats, etag)
+            return stats
+        except Exception as e:
+            # If the put failed due to version conflict, retry
+            continue
+    raise Exception("Failed to increment commands after multiple retries due to concurrent updates.")
 
 
 async def send_slack_message(env, channel, text, blocks=None):
