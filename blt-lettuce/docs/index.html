@@ -26,6 +26,17 @@
             --text-primary: #ffffff;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
+            /* Font sizes */
+            --font-xs: 0.75rem;
+            --font-sm: 0.85rem;
+            --font-base: 0.9rem;
+            --font-md: 1.1rem;
+            --font-lg: 1.25rem;
+            --font-xl: 1.5rem;
+            --font-2xl: 2rem;
+            --font-3xl: 2.5rem;
+            --font-4xl: 3.5rem;
+            --font-5xl: 5rem;
         }
 
         body {
@@ -765,14 +776,19 @@
                 }
                 const data = await response.json();
                 return Array.isArray(data) ? data.length : 0;
-            } catch {
+            } catch (error) {
+                console.warn('Failed to fetch contributors:', error);
                 return 0;
             }
         }
 
+        // Number formatting constants
+        const MILLION = 1000000;
+        const THOUSAND = 1000;
+
         function formatNumber(num) {
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            if (num >= MILLION) return (num / MILLION).toFixed(1) + 'M';
+            if (num >= THOUSAND) return (num / THOUSAND).toFixed(1) + 'K';
             return num.toLocaleString();
         }
 
