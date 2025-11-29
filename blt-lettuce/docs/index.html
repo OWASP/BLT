@@ -731,25 +731,40 @@
 
     <script>
         // Configuration
+        // Try local stats.json first (scraped from BLT status page), fallback to Cloudflare Worker
+        const STATS_JSON_URL = 'https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/data/stats.json';
         const STATS_API_URL = 'https://blt-lettuce-worker.workers.dev/stats';
         const GITHUB_API_URL = 'https://api.github.com/repos/OWASP-BLT/BLT-Lettuce';
 
         // Fallback stats
         const FALLBACK_STATS = {
-            joins: 0,
+            total_activities: 0,
+            last_24h_activities: 0,
+            success_rate: 0,
+            active_workspaces: 0,
+            team_joins: 0,
             commands: 0,
             last_updated: new Date().toISOString()
         };
 
-        // Fetch bot stats from Cloudflare Worker
+        // Fetch bot stats from local stats.json (scraped daily from BLT status page)
         async function fetchStats() {
             try {
-                const response = await fetch(STATS_API_URL);
-                if (!response.ok) throw new Error('Failed to fetch stats');
+                // First try local stats.json file (scraped from BLT status page)
+                const response = await fetch(STATS_JSON_URL);
+                if (!response.ok) throw new Error('Failed to fetch local stats');
                 return await response.json();
             } catch (error) {
-                console.warn('Using fallback stats:', error.message);
-                return FALLBACK_STATS;
+                console.warn('Local stats fetch failed, trying Cloudflare Worker:', error.message);
+                // Fallback to Cloudflare Worker API
+                try {
+                    const response = await fetch(STATS_API_URL);
+                    if (!response.ok) throw new Error('Failed to fetch stats from worker');
+                    return await response.json();
+                } catch (workerError) {
+                    console.warn('Using fallback stats:', workerError.message);
+                    return FALLBACK_STATS;
+                }
             }
         }
 
@@ -806,31 +821,37 @@
 
         function renderStats(stats) {
             const container = document.getElementById('stats-container');
+            // Support both old format (joins/commands) and new format (team_joins/commands/total_activities)
+            const teamJoins = stats.team_joins || stats.joins || 0;
+            const commands = stats.commands || 0;
+            const totalActivities = stats.total_activities || (teamJoins + commands);
+            const successRate = stats.success_rate || 0;
+
             container.innerHTML = `
                 <div class="stats-grid">
                     <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label">Total Activities</div>
+                        <div class="stat-value">${formatNumber(totalActivities)}</div>
+                        <div class="stat-description">All bot activities tracked</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-icon">👋</div>
                         <div class="stat-label">Members Welcomed</div>
-                        <div class="stat-value">${formatNumber(stats.joins || 0)}</div>
+                        <div class="stat-value">${formatNumber(teamJoins)}</div>
                         <div class="stat-description">New members welcomed to OWASP Slack</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">⚡</div>
                         <div class="stat-label">Commands Executed</div>
-                        <div class="stat-value">${formatNumber(stats.commands || 0)}</div>
+                        <div class="stat-value">${formatNumber(commands)}</div>
                         <div class="stat-description">Bot interactions processed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🤖</div>
-                        <div class="stat-label">Bot Status</div>
-                        <div class="stat-value">Active</div>
-                        <div class="stat-description">Running on Cloudflare Edge</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🌍</div>
-                        <div class="stat-label">Global Reach</div>
-                        <div class="stat-value">24/7</div>
-                        <div class="stat-description">Available worldwide</div>
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Success Rate</div>
+                        <div class="stat-value">${successRate > 0 ? successRate + '%' : 'Active'}</div>
+                        <div class="stat-description">${successRate > 0 ? 'Of all activities' : 'Running on Cloudflare Edge'}</div>
                     </div>
                 </div>
             `;

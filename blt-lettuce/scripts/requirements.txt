@@ -1,0 +1,4 @@
+# Requirements for the stats scraper script
+# These are a subset of the main project dependencies
+requests>=2.32.3
+beautifulsoup4>=4.12.3
