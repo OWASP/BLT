@@ -347,7 +347,7 @@
         // Initialize
         async function init() {
             const stats = await fetchStats();
-            if (stats) {
+            if (stats !== null && stats !== undefined) {
                 renderStats(stats);
             } else {
                 renderError('Unable to load stats');

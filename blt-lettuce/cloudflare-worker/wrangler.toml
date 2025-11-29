@@ -5,16 +5,16 @@ compatibility_flags = ["python_workers"]
 
 # KV Namespace for storing stats
 # To create this namespace, run:
-# wrangler kv:namespace create "STATS_KV"
-# Then update the id below with the actual namespace ID
+#   wrangler kv:namespace create "STATS_KV"
+# Then replace the placeholder ID below with the actual namespace ID from the output
 [[kv_namespaces]]
 binding = "STATS_KV"
-id = "your-kv-namespace-id"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"  # Required: Update this before deployment
 
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
-# - SLACK_TOKEN: Slack Bot Token for sending messages
-# - SIGNING_SECRET: Slack signing secret for verifying requests
+#   wrangler secret put SLACK_TOKEN
+#   wrangler secret put SIGNING_SECRET
 
 [vars]
 ENVIRONMENT = "production"

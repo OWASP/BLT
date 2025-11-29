@@ -6,12 +6,17 @@ and tracks stats for joins and commands.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from js import Response, fetch
 
 # Stats are stored in Cloudflare KV namespace
 # Stats structure: { "joins": int, "commands": int, "last_updated": str }
+
+
+def get_utc_now():
+    """Get current UTC time in ISO format."""
+    return datetime.now(timezone.utc).isoformat()
 
 WELCOME_MESSAGE = (
     ":tada: *Welcome to the OWASP Slack Community, {user_id}!* :tada:\n\n"
@@ -57,12 +62,12 @@ async def get_stats(env):
             return json.loads(stats_data)
     except Exception:
         pass
-    return {"joins": 0, "commands": 0, "last_updated": datetime.utcnow().isoformat()}
+    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}
 
 
 async def save_stats(env, stats):
     """Save stats to KV store."""
-    stats["last_updated"] = datetime.utcnow().isoformat()
+    stats["last_updated"] = get_utc_now()
     await env.STATS_KV.put("stats", json.dumps(stats))
 
 
@@ -84,7 +89,9 @@ async def increment_commands(env):
 
 async def send_slack_message(env, channel, text, blocks=None):
     """Send a message to Slack."""
-    slack_token = env.SLACK_TOKEN
+    slack_token = getattr(env, "SLACK_TOKEN", None)
+    if not slack_token:
+        return {"ok": False, "error": "SLACK_TOKEN not configured"}
 
     payload = {
         "channel": channel,
@@ -109,7 +116,9 @@ async def send_slack_message(env, channel, text, blocks=None):
 
 async def open_conversation(env, user_id):
     """Open a DM conversation with a user."""
-    slack_token = env.SLACK_TOKEN
+    slack_token = getattr(env, "SLACK_TOKEN", None)
+    if not slack_token:
+        return {"ok": False, "error": "SLACK_TOKEN not configured"}
 
     response = await fetch(
         "https://slack.com/api/conversations.open",
@@ -140,6 +149,8 @@ async def handle_team_join(env, event):
         return {"error": f"Failed to open DM: {dm_response.get('error')}"}
 
     dm_channel = dm_response.get("channel", {}).get("id")
+    if not dm_channel:
+        return {"error": "Failed to get DM channel ID"}
 
     # Format welcome message
     welcome_text = WELCOME_MESSAGE.format(user_id=user_id)
@@ -219,7 +230,7 @@ async def on_fetch(request, env):
 
     # Health check endpoint
     if "/health" in url:
-        return Response.json({"status": "ok", "timestamp": datetime.utcnow().isoformat()})
+        return Response.json({"status": "ok", "timestamp": get_utc_now()})
 
     # Default response
     return Response.json({
