@@ -740,7 +740,6 @@
         const FALLBACK_STATS = {
             total_activities: 0,
             last_24h_activities: 0,
-            success_rate: 0,
             active_workspaces: 0,
             team_joins: 0,
             commands: 0,
@@ -825,7 +824,6 @@
             const teamJoins = stats.team_joins || stats.joins || 0;
             const commands = stats.commands || 0;
             const totalActivities = stats.total_activities || (teamJoins + commands);
-            const successRate = stats.success_rate || 0;
 
             container.innerHTML = `
                 <div class="stats-grid">
@@ -846,12 +844,6 @@
                         <div class="stat-label">Commands Executed</div>
                         <div class="stat-value">${formatNumber(commands)}</div>
                         <div class="stat-description">Bot interactions processed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-label">Success Rate</div>
-                        <div class="stat-value">${successRate > 0 ? successRate + '%' : 'Active'}</div>
-                        <div class="stat-description">${successRate > 0 ? 'Of all activities' : 'Running on Cloudflare Edge'}</div>
                     </div>
                 </div>
             `;

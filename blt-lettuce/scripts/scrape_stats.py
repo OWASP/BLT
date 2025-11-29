@@ -50,7 +50,6 @@ def parse_stats(html_content):
     stats = {
         "total_activities": 0,
         "last_24h_activities": 0,
-        "success_rate": 0,
         "active_workspaces": 0,
         "team_joins": 0,
         "commands": 0,
@@ -74,11 +73,6 @@ def parse_stats(html_content):
     )
     if last_24h_match:
         stats["last_24h_activities"] = extract_number(last_24h_match.group(1))
-
-    # Extract Success Rate
-    success_match = re.search(r"Success\s*Rate[:\s]*([\d.]+)%?", text_content, re.IGNORECASE)
-    if success_match:
-        stats["success_rate"] = extract_number(success_match.group(1))
 
     # Extract Active Workspaces
     workspace_match = re.search(
