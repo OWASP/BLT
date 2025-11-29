@@ -18,6 +18,7 @@ def get_utc_now():
     """Get current UTC time in ISO format."""
     return datetime.now(timezone.utc).isoformat()
 
+
 WELCOME_MESSAGE = (
     ":tada: *Welcome to the OWASP Slack Community, {user_id}!* :tada:\n\n"
     "We're thrilled to have you here! Whether you're new to OWASP or a "
@@ -195,12 +196,15 @@ async def on_fetch(request, env):
     # Stats endpoint - returns current stats as JSON
     if "/stats" in url and method == "GET":
         stats = await get_stats(env)
-        return Response.json(stats, {
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Type": "application/json",
+        return Response.json(
+            stats,
+            {
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Content-Type": "application/json",
+                },
             },
-        })
+        )
 
     # Webhook endpoint for Slack events
     if "/webhook" in url and method == "POST":
@@ -233,11 +237,13 @@ async def on_fetch(request, env):
         return Response.json({"status": "ok", "timestamp": get_utc_now()})
 
     # Default response
-    return Response.json({
-        "message": "BLT-Lettuce Cloudflare Worker",
-        "endpoints": {
-            "/webhook": "POST - Slack webhook endpoint",
-            "/stats": "GET - Get current stats",
-            "/health": "GET - Health check",
-        },
-    })
+    return Response.json(
+        {
+            "message": "BLT-Lettuce Cloudflare Worker",
+            "endpoints": {
+                "/webhook": "POST - Slack webhook endpoint",
+                "/stats": "GET - Get current stats",
+                "/health": "GET - Health check",
+            },
+        }
+    )
