@@ -13,6 +13,19 @@ export async function loadConfig() {
     }
 }
 
+export async function loadProjectInfo() {
+    try {
+        const response = await fetch('data/project.json');
+        if (!response.ok) {
+            throw new Error('Project info file not found');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error loading project info:', error);
+        return {};
+    }
+}
+
 // Default configuration
 export function getDefaultConfig() {
     return {

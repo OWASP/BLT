@@ -7,7 +7,7 @@ import { renderMentorInfo } from "./components/mentor.js";
 import { renderWeeklyUpdates } from "./components/updates.js";
 import { renderMilestones } from "./components/milestones.js";
 import { renderEditableButtonSection, updateLastUpdated } from "./libs/utils.js";
-import { loadConfig, loadGitHubData, loadBlogPosts, loadMentorConfig, loadWeeklyUpdates, loadMilestones } from "./libs/config-loader.js";
+import { loadConfig, loadGitHubData, loadBlogPosts, loadMentorConfig, loadWeeklyUpdates, loadMilestones, loadProjectInfo } from "./libs/config-loader.js";
 
 // Initialize dashboard
 async function initDashboard() {
@@ -18,11 +18,11 @@ async function initDashboard() {
     const mentorConfig = await loadMentorConfig();
     const weeklyUpdates = await loadWeeklyUpdates();
     const milestones = await loadMilestones();
-
+    const projectData = await loadProjectInfo()
     // Render all sections
     renderEditableButtonSection();
     renderHeader(config);
-    renderProjectInfo(config);
+    renderProjectInfo(projectData);
     renderGitHubStats(githubData);
     renderSlackInfo(config);
     renderBlogPosts(blogPosts, config);
