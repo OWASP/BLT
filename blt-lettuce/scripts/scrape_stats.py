@@ -35,8 +35,8 @@ def extract_number(text):
     """Extract a numeric value from text."""
     if not text:
         return 0
-    # Remove any non-numeric characters except decimal point
-    match = re.search(r"[\d.]+", text.replace(",", ""))
+    # Match a proper decimal number (digits with optional single decimal point)
+    match = re.search(r"\d+(?:\.\d+)?", text.replace(",", ""))
     if match:
         value = match.group()
         return float(value) if "." in value else int(value)
@@ -87,7 +87,7 @@ def parse_stats(html_content):
     if workspace_match:
         stats["active_workspaces"] = extract_number(workspace_match.group(1))
 
-    # Extract Team_Join count
+    # Extract Team join count
     team_join_match = re.search(r"Team[_\s]?Join[:\s]*(\d[\d,]*)", text_content, re.IGNORECASE)
     if team_join_match:
         stats["team_joins"] = extract_number(team_join_match.group(1))
