@@ -1,18 +1,19 @@
 import { formatDate } from "../libs/utils.js";
 import { IS_EDITABLE } from "../libs/constants.js";
 
-export function renderMentorInfo(config, feedback) {
+export function renderMentorInfo(config) {
     const mentorDetails = document.getElementById('mentor-details');
     const feedbackList = document.getElementById('feedback-list');
+    const feedback = config.feedback || [];
 
     if (!feedback) feedback = [];
-    
+
     feedback.forEach((item) => {
         if (!item._id) {
             item._id = Date.now() + Math.random();
         }
     });
-    
+
     if (!IS_EDITABLE) {
         mentorDetails.innerHTML = `
             <div class="mentor-card">
@@ -148,7 +149,6 @@ export function renderMentorInfo(config, feedback) {
                 renderMentorInfo(config, feedback);
             }
         }
-        
 
         if (e.target.id === "addFeedback") {
             feedback.push({

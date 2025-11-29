@@ -22,12 +22,5 @@
       "gsoc-2024",
       "your-project-channel"
     ]
-  },
-  "mentor": {
-    "name": "Mentor Name",
-    "email": "mentor@example.com",
-    "avatar": "https://github.com/MENTOR-USERNAME.png",
-    "role": "Project Mentor",
-    "github": "https://github.com/MENTOR-USERNAME"
   }
 }

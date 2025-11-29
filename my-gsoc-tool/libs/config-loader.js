@@ -76,9 +76,9 @@ export async function loadBlogPosts() {
 }
 
 // Load feedback data
-export async function loadFeedback() {
+export async function loadMentorConfig() {
     try {
-        const response = await fetch('data/feedback.json');
+        const response = await fetch('data/mentor.json');
         if (!response.ok) {
             throw new Error('Feedback data not found');
         }

@@ -35,7 +35,7 @@ export function renderBlogPosts(posts, config) {
             blogLink.style.display = 'inline-block';
         }
 
-        return; // stop here
+        return;
     }
 
     blogList.innerHTML = posts.map((post) => `
@@ -117,7 +117,7 @@ export function renderBlogPosts(posts, config) {
                 renderBlogPosts(posts, config); // re-render
             }
         }
-        
+
         // Handle add button
         if (e.target.classList.contains("add-post-btn")) {
             posts.push({
