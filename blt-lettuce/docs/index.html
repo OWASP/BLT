@@ -201,7 +201,7 @@
 
         <div id="stats-container">
             <div class="loading">
-                <div class="spinner"></div>
+                <div class="spinner" role="status" aria-label="Loading statistics"></div>
                 <p>Loading stats...</p>
             </div>
         </div>
@@ -347,16 +347,12 @@
         // Initialize
         async function init() {
             const stats = await fetchStats();
-            if (stats !== null && stats !== undefined) {
-                renderStats(stats);
-            } else {
-                renderError('Unable to load stats');
-            }
+            renderStats(stats);
         }
 
-        // Auto-refresh every 30 seconds
+        // Auto-refresh every 60 seconds
         init();
-        setInterval(init, 30000);
+        setInterval(init, 60000);
     </script>
 </body>
 </html>

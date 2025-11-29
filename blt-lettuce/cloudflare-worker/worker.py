@@ -5,6 +5,8 @@ This worker handles webhook events, sends welcome messages,
 and tracks stats for joins and commands.
 """
 
+import hashlib
+import hmac
 import json
 from datetime import datetime, timezone
 
@@ -20,7 +22,7 @@ def get_utc_now():
 
 
 WELCOME_MESSAGE = (
-    ":tada: *Welcome to the OWASP Slack Community, {user_id}!* :tada:\n\n"
+    ":tada: *Welcome to the OWASP Slack Community, <@{user_id}>!* :tada:\n\n"
     "We're thrilled to have you here! Whether you're new to OWASP or a "
     "long-time contributor, this Slack workspace is the perfect place to "
     "connect, collaborate, and stay informed about all things OWASP.\n\n"
@@ -196,6 +198,35 @@ async def handle_command(env, event):
     return {"ok": True, "message": "Command tracked"}
 
 
+def verify_slack_signature(signing_secret, timestamp, body, signature):
+    """Verify that the request came from Slack using the signing secret."""
+    if not signing_secret or not timestamp or not signature:
+        return False
+
+    # Check timestamp to prevent replay attacks (allow 5 minutes)
+    try:
+        request_time = int(timestamp)
+        current_time = int(datetime.now(timezone.utc).timestamp())
+        if abs(current_time - request_time) > 300:
+            return False
+    except (ValueError, TypeError):
+        return False
+
+    # Calculate expected signature
+    sig_basestring = f"v0:{timestamp}:{body}"
+    expected_signature = (
+        "v0="
+        + hmac.new(
+            signing_secret.encode("utf-8"),
+            sig_basestring.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+    )
+
+    # Compare signatures using constant-time comparison
+    return hmac.compare_digest(expected_signature, signature)
+
+
 async def on_fetch(request, env):
     """Main entry point for the Cloudflare Worker."""
     url = request.url
@@ -230,28 +261,40 @@ async def on_fetch(request, env):
     # Webhook endpoint for Slack events
     if "/webhook" in url and method == "POST":
         try:
-            body = await request.json()
+            # Get raw body for signature verification
+            body_text = await request.text()
+
+            # Verify Slack signature (skip for url_verification)
+            body_json = json.loads(body_text)
+            if body_json.get("type") != "url_verification":
+                signing_secret = getattr(env, "SIGNING_SECRET", None)
+                timestamp = request.headers.get("X-Slack-Request-Timestamp")
+                signature = request.headers.get("X-Slack-Signature")
+
+                if not verify_slack_signature(signing_secret, timestamp, body_text, signature):
+                    return Response.json({"error": "Invalid signature"}, {"status": 401})
 
             # Handle Slack URL verification challenge
-            if body.get("type") == "url_verification":
-                return Response.json({"challenge": body.get("challenge")})
+            if body_json.get("type") == "url_verification":
+                return Response.json({"challenge": body_json.get("challenge")})
 
             # Handle events
-            event = body.get("event", {})
+            event = body_json.get("event", {})
             event_type = event.get("type")
 
             if event_type == "team_join":
                 result = await handle_team_join(env, event)
                 return Response.json(result)
 
-            if event_type == "app_mention" or body.get("command"):
+            if event_type == "app_mention" or body_json.get("command"):
                 result = await handle_command(env, event)
                 return Response.json(result)
 
             return Response.json({"ok": True, "message": "Event received"})
 
-        except Exception as e:
-            return Response.json({"error": str(e)}, {"status": 500})
+        except Exception:
+            # Return sanitized error message to avoid exposing internal details
+            return Response.json({"error": "Internal server error"}, {"status": 500})
 
     # Health check endpoint
     if "/health" in url:
