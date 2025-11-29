@@ -7,28 +7,5 @@
     "email": "alex.johnson@example.com",
     "blog": "https://alexjohnson.dev/blog",
     "linkedin": "https://linkedin.com/in/alexjohnson"
-  },
-  "project": {
-    "title": "Enhanced Security Testing Dashboard for BLT",
-    "description": "Developing a comprehensive security testing dashboard that integrates vulnerability scanning, penetration testing results, and automated security reports. The project aims to make security testing more accessible and actionable for developers.",
-    "organization": "OWASP Foundation",
-    "timeline": "May 27, 2024 - August 26, 2024",
-    "repository": "https://github.com/OWASP-BLT/BLT"
-  },
-  "slack": {
-    "workspaceUrl": "https://owasp.slack.com/join/shared_invite/zt-example123",
-    "channels": [
-      "general",
-      "gsoc-2024",
-      "blt-development",
-      "security-testing"
-    ]
-  },
-  "mentor": {
-    "name": "Dr. Sarah Chen",
-    "email": "sarah.chen@owasp.org",
-    "avatar": "https://github.com/sarahchen.png",
-    "role": "OWASP BLT Lead Maintainer & GSoC Mentor",
-    "github": "https://github.com/sarahchen"
   }
 }

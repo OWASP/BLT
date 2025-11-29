@@ -439,6 +439,7 @@ body {
     font-weight: 600;
     transition: all 0.3s;
     margin-top: 15px;
+    cursor: pointer;
 }
 
 .btn-primary {
@@ -446,11 +447,6 @@ body {
     color: white;
 }
 
-.btn-primary:hover {
-    background: #3367d6;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-hover);
-}
 
 .btn-secondary {
     background: var(--secondary-color);

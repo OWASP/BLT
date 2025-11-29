@@ -26,6 +26,19 @@ export async function loadProjectInfo() {
     }
 }
 
+export async function loadSlackInfo() {
+    try {
+        const response = await fetch('data/slack.json');
+        if (!response.ok) {
+            throw new Error('Slack info file not found');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error loading slack info:', error);
+        return {};
+    }
+}
+
 // Default configuration
 export function getDefaultConfig() {
     return {

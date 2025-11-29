@@ -1,5 +1,7 @@
 
-import { IS_EDITABLE } from "../libs/constants.js";
+import { getRepoContent, updateRepoContent } from "../libs/api.js";
+import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { showAlert } from "../libs/utils.js";
 
 // Render header
 export function renderHeader(config) {
@@ -13,7 +15,17 @@ export function renderHeader(config) {
     socialLinks.innerHTML = '';
     socialEditSection.innerHTML = '';
 
-    if(IS_EDITABLE ){
+    const localConfig = {
+        name: config.student.name,
+        email: config.student.email,
+        bio: config.student.bio,
+        avatar: config.student.avatar,
+        github: config.student.github,
+        blog: config.student.blog,
+        linkedin: config.student.linkedin
+    }
+
+    if (IS_EDITABLE) {
         socialEditSection.innerHTML += `
             <form id="studentForm" class="rounded-2xl p-6 space-y-7">
             <h2 class="text-2xl mb-10">Edit Details</h2>
@@ -21,44 +33,64 @@ export function renderHeader(config) {
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Name</span>
-                <input value="${config.student.name}" name="name" type="text" placeholder="Your Name" class="input-field text-white" />
+                <input value="${localConfig.name}" name="name" type="text" placeholder="Your Name" class="input-field !text-white" />
                 </label>
 
                 <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Email</span>
-                <input value="${config.student.email}" name="email" type="email" placeholder="your.email@example.com" required class="input-field" />
+                <input value="${localConfig.email}" name="email" type="email" placeholder="your.email@example.com" required class="input-field !text-white" />
                 </label>
             </div>
 
             <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Bio</span>
-                <input value="${config.student.bio}" name="bio" type="text" placeholder="Google Summer of Code Contributor" class="input-field" />
+                <input value="${localConfig.bio}" name="bio" type="text" placeholder="Google Summer of Code Contributor" class="input-field !text-white" />
             </label>
 
             <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Avatar URL</span>
-                <input value="${config.student.avatar}" name="avatar" type="url" placeholder="https://github.com/YOUR-USERNAME.png" class="input-field" />
+                <input value="${localConfig.avatar}" name="avatar" type="url" placeholder="https://github.com/YOUR-USERNAME.png" class="input-field !text-white" />
             </label>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">GitHub</span>
-                <input value="${config.student.github}" name="github" type="url" placeholder="https://github.com/YOUR-USERNAME" class="input-field" />
+                <input value="${localConfig.github}" name="github" type="url" placeholder="https://github.com/YOUR-USERNAME" class="input-field !text-white" />
                 </label>
 
                 <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">Blog</span>
-                <input value="${config.student.blog}" name="blog" type="url" placeholder="https://yourblog.dev" class="input-field" />
+                <input value="${localConfig.blog}" name="blog" type="url" placeholder="https://yourblog.dev" class="input-field !text-white" />
                 </label>
             </div>
 
             <label class="flex flex-col">
                 <span class="text-md font-medium mb-1">LinkedIn</span>
-                <input value="${config.student.linkedin}" name="linkedin" type="url" placeholder="https://linkedin.com/in/YOUR-PROFILE" class="input-field" />
+                <input value="${localConfig.linkedin}" name="linkedin" type="url" placeholder="https://linkedin.com/in/YOUR-PROFILE" class="input-field !text-white" />
             </label>
+
+
+            <button id="saveProfileChangesBtn" type="button" class="btn-primary mt-4 w-full">Save Changes</button>
             </form>
         `;
+
+        const studentForm = document.getElementById("studentForm");
+        studentForm.addEventListener("input", (e) => {
+            const field = e.target.name;
+            const value = e.target.value;
+            localConfig[field] = value;
+        });
+
+        const button = document.getElementById("saveProfileChangesBtn");
+        button.addEventListener("click", async () => {
+            const jsonString = JSON.stringify(localConfig, null, 2);
+            const repoContent = await getRepoContent(OWNER, REPO, "config.json");
+            const res = await updateRepoContent(OWNER, REPO, "config.json", jsonString, repoContent.sha);
+            showAlert(res, "Profile details updated successfully!");
+        });
     }
+
+
 
     if (config.student.github) {
         socialLinks.innerHTML += `

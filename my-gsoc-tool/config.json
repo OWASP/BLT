@@ -7,13 +7,5 @@
     "email": "your.email@example.com",
     "blog": "https://yourblog.dev",
     "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
-  },
-  "slack": {
-    "workspaceUrl": "https://your-org.slack.com/join/shared_invite/xxx",
-    "channels": [
-      "general",
-      "gsoc-2024",
-      "your-project-channel"
-    ]
   }
 }
