@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLT-Lettuce Stats Dashboard</title>
+    <meta name="description" content="BLT-Lettuce - OWASP Slack Bot for welcoming new members, finding projects, and connecting the security community">
+    <meta name="keywords" content="OWASP, Slack Bot, Security, BLT, Open Source">
+    <meta property="og:title" content="BLT-Lettuce - OWASP Slack Bot">
+    <meta property="og:description" content="An intelligent Slack bot that welcomes new members and helps them discover OWASP projects">
+    <meta property="og:type" content="website">
+    <title>BLT-Lettuce | OWASP Slack Bot</title>
     <style>
         * {
             margin: 0;
@@ -11,48 +16,218 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #00d4ff;
+            --secondary: #7b2cbf;
+            --accent: #4ade80;
+            --bg-dark: #1a1a2e;
+            --bg-mid: #16213e;
+            --bg-light: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            /* Font sizes */
+            --font-xs: 0.75rem;
+            --font-sm: 0.85rem;
+            --font-base: 0.9rem;
+            --font-md: 1.1rem;
+            --font-lg: 1.25rem;
+            --font-xl: 1.5rem;
+            --font-2xl: 2rem;
+            --font-3xl: 2.5rem;
+            --font-4xl: 3.5rem;
+            --font-5xl: 5rem;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
             min-height: 100vh;
-            color: #ffffff;
-            padding: 20px;
+            color: var(--text-primary);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        header {
+        /* Navigation */
+        nav {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-brand span {
+            font-size: 1.5rem;
+        }
+
+        .nav-brand strong {
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
             text-align: center;
-            padding: 40px 0;
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+            animation: pulse 15s ease-in-out infinite;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-logo {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .subtitle {
-            color: #94a3b8;
-            font-size: 1.1rem;
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .hero-badges img {
+            height: 24px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 60px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--primary);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 24px;
-            margin: 40px 0;
         }
 
         .stat-card {
@@ -62,6 +237,7 @@
             padding: 32px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
         }
 
         .stat-card:hover {
@@ -76,64 +252,239 @@
 
         .stat-label {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .stat-description {
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 0.85rem;
             margin-top: 8px;
         }
 
-        .info-section {
+        /* Features Section */
+        .features-section {
+            padding: 60px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
             padding: 32px;
-            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 60px 0;
+        }
+
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 24px;
+            border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .info-section h2 {
+        .flow-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .flow-content h4 {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .flow-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* GitHub Stats Section */
+        .github-stats {
+            padding: 60px 0;
+        }
+
+        .github-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .github-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .github-stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .github-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            padding: 60px 0;
+        }
+
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .tech-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .tech-badge span {
             font-size: 1.5rem;
+        }
+
+        /* Contributing Section */
+        .contributing {
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .contributing-content {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 48px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .contributing h2 {
             margin-bottom: 16px;
-            color: #00d4ff;
+            color: var(--primary);
         }
 
-        .info-section p {
-            color: #94a3b8;
+        .contributing p {
+            color: var(--text-secondary);
             line-height: 1.7;
-            margin-bottom: 12px;
+            margin-bottom: 24px;
         }
 
-        .info-section a {
-            color: #00d4ff;
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }
+
+        footer p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
             text-decoration: none;
+            transition: color 0.3s ease;
         }
 
-        .info-section a:hover {
-            text-decoration: underline;
+        .footer-links a:hover {
+            color: var(--primary);
         }
 
         .last-updated {
-            text-align: center;
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 0.85rem;
-            margin-top: 40px;
-            padding: 20px;
+            margin-top: 24px;
         }
 
+        /* Loading & Error States */
         .loading {
             text-align: center;
             padding: 40px;
@@ -143,7 +494,7 @@
             width: 40px;
             height: 40px;
             border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00d4ff;
+            border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 16px;
@@ -153,120 +504,291 @@
             to { transform: rotate(360deg); }
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 16px 24px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 20px 0;
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
 
-        footer {
-            text-align: center;
-            padding: 40px 0;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
+            .hero-logo {
+                font-size: 4rem;
+            }
 
-        footer a {
-            color: #00d4ff;
-            text-decoration: none;
-        }
+            .nav-links {
+                display: none;
+            }
 
-        footer a:hover {
-            text-decoration: underline;
-        }
+            .flow-step {
+                flex-direction: column;
+                text-align: center;
+            }
 
-        .badge {
-            display: inline-block;
-            background: rgba(0, 212, 255, 0.1);
-            color: #00d4ff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            margin-left: 8px;
-            vertical-align: middle;
+            .flow-number {
+                align-self: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">🥬</div>
-            <h1>BLT-Lettuce Stats</h1>
-            <p class="subtitle">OWASP Slack Bot Statistics Dashboard</p>
-        </header>
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="nav-brand">
+                <span>🥬</span>
+                <strong>BLT-Lettuce</strong>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#stats">Stats</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <div id="stats-container">
-            <div class="loading">
-                <div class="spinner" role="status" aria-label="Loading statistics"></div>
-                <p>Loading stats...</p>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-logo">🥬</div>
+            <h1>BLT-Lettuce</h1>
+            <p class="hero-subtitle">
+                An intelligent Slack bot for the OWASP community that welcomes new members, 
+                helps discover projects, and connects security enthusiasts worldwide.
+            </p>
+            <div class="hero-badges">
+                <img src="https://img.shields.io/github/license/OWASP-BLT/BLT-Lettuce?style=flat-square&color=blue" alt="License">
+                <img src="https://img.shields.io/github/stars/OWASP-BLT/BLT-Lettuce?style=flat-square&color=yellow" alt="Stars">
+                <img src="https://img.shields.io/github/forks/OWASP-BLT/BLT-Lettuce?style=flat-square&color=green" alt="Forks">
+                <img src="https://img.shields.io/github/issues/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Issues">
+                <img src="https://img.shields.io/github/contributors/OWASP-BLT/BLT-Lettuce?style=flat-square&color=purple" alt="Contributors">
+            </div>
+            <div class="cta-buttons">
+                <a href="https://owasp.org/slack/invite" class="btn btn-primary" target="_blank">
+                    <span>💬</span> Join OWASP Slack
+                </a>
+                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" class="btn btn-secondary" target="_blank">
+                    <span>⭐</span> Star on GitHub
+                </a>
             </div>
         </div>
+    </section>
 
-        <div class="info-section">
-            <h2>About BLT-Lettuce</h2>
-            <p>
-                BLT-Lettuce is a Slack bot developed by the OWASP BLT team for the OWASP Slack workspace.
-                It welcomes new members, provides helpful information, and assists the community with various tasks.
-            </p>
-            <p>
-                The bot is powered by a <strong>Cloudflare Python Worker</strong> that handles webhooks and tracks
-                statistics displayed on this dashboard.
-            </p>
-            <p>
-                Learn more about the project on our
-                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub repository</a>.
-            </p>
-        </div>
+    <div class="container">
+        <section id="features" class="features-section">
+            <h2 class="section-title">✨ Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">👋</div>
+                    <h3>Welcome New Members</h3>
+                    <p>Automatically sends personalized welcome messages to new OWASP Slack members, helping them navigate channels and get involved.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Project Discovery</h3>
+                    <p>Interactive conversations help users find OWASP projects that match their interests through guided questions and smart recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>GitHub Integration</h3>
+                    <p>Scans configured GitHub organizations, caches project metadata, and provides up-to-date information about project activity and stats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Conversational Flow</h3>
+                    <p>Engages users via Slack DM with multiple-choice questions to understand their needs and guide them to relevant resources.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Cloudflare Workers</h3>
+                    <p>Powered by Python Cloudflare Workers for lightning-fast responses, global edge deployment, and reliable performance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Security First</h3>
+                    <p>Built by security experts with secure coding practices, proper signature verification, and no exposed credentials.</p>
+                </div>
+            </div>
+        </section>
 
-        <div id="last-updated" class="last-updated"></div>
+        <section id="stats" class="stats-section">
+            <h2 class="section-title">📈 Live Statistics</h2>
+            <div id="stats-container">
+                <div class="loading">
+                    <div class="spinner" role="status" aria-label="Loading statistics"></div>
+                    <p>Loading stats...</p>
+                </div>
+            </div>
+        </section>
 
-        <footer>
-            <p>
-                Made with 💚 by the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank">OWASP BLT Team</a>
-            </p>
-            <p style="margin-top: 8px;">
-                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub</a> •
-                <a href="https://owasp.org/slack/invite" target="_blank">Join OWASP Slack</a>
-            </p>
-        </footer>
+        <section id="how-it-works" class="how-it-works">
+            <h2 class="section-title">🔄 How It Works</h2>
+            <div class="flowchart">
+                <div class="flow-step">
+                    <div class="flow-number">1</div>
+                    <div class="flow-content">
+                        <h4>User Joins or Initiates</h4>
+                        <p>A new member joins OWASP Slack, or an existing member starts a conversation with the bot to discover projects.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">2</div>
+                    <div class="flow-content">
+                        <h4>Interactive Questions</h4>
+                        <p>The bot asks multiple-choice questions to understand user interests: Are you looking for documentation, tools, or deliberately insecure apps for learning?</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">3</div>
+                    <div class="flow-content">
+                        <h4>Project Metadata Scan</h4>
+                        <p>The bot queries cached project metadata from configured GitHub organizations, filtering by user preferences and project characteristics.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">4</div>
+                    <div class="flow-content">
+                        <h4>Personalized Recommendations</h4>
+                        <p>Based on responses, the bot provides links to matching repositories with descriptions, stats, and how to get involved.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">5</div>
+                    <div class="flow-content">
+                        <h4>Fallback & Help</h4>
+                        <p>If no projects match, offers option to start over or provides a link to learn how to start a new OWASP project.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="github-stats" class="github-stats">
+            <h2 class="section-title">🐙 Project Health</h2>
+            <div class="github-grid" id="github-stats-container">
+                <div class="github-stat">
+                    <div class="github-stat-value" id="gh-stars">--</div>
+                    <div class="github-stat-label">GitHub Stars</div>
+                </div>
+                <div class="github-stat">
+                    <div class="github-stat-value" id="gh-forks">--</div>
+                    <div class="github-stat-label">Forks</div>
+                </div>
+                <div class="github-stat">
+                    <div class="github-stat-value" id="gh-issues">--</div>
+                    <div class="github-stat-label">Open Issues</div>
+                </div>
+                <div class="github-stat">
+                    <div class="github-stat-value" id="gh-contributors">--</div>
+                    <div class="github-stat-label">Contributors</div>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <img src="https://img.shields.io/github/commit-activity/m/OWASP-BLT/BLT-Lettuce?style=flat-square&label=Monthly%20Commits" alt="Commit Activity" style="margin: 4px;">
+                <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT-Lettuce?style=flat-square" alt="Last Commit" style="margin: 4px;">
+                <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT-Lettuce?style=flat-square" alt="Top Language" style="margin: 4px;">
+                <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT-Lettuce?style=flat-square" alt="Repo Size" style="margin: 4px;">
+            </div>
+        </section>
+
+        <section class="tech-stack">
+            <h2 class="section-title">🛠️ Tech Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-badge"><span>🐍</span> Python</div>
+                <div class="tech-badge"><span>☁️</span> Cloudflare Workers</div>
+                <div class="tech-badge"><span>💬</span> Slack API</div>
+                <div class="tech-badge"><span>🐙</span> GitHub API</div>
+                <div class="tech-badge"><span>🗄️</span> KV Storage</div>
+                <div class="tech-badge"><span>📄</span> GitHub Pages</div>
+            </div>
+        </section>
+
+        <section class="contributing">
+            <div class="contributing-content">
+                <h2>🤝 Contribute to BLT-Lettuce</h2>
+                <p>
+                    We welcome contributions from everyone! Whether you're fixing bugs, adding features, 
+                    improving documentation, or suggesting ideas, your help makes this project better.
+                </p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce/blob/main/README.md#how-to-contribute" class="btn btn-primary">
+                        <span>📖</span> Contribution Guide
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce/issues" class="btn btn-secondary" target="_blank">
+                        <span>🐛</span> View Issues
+                    </a>
+                </div>
+            </div>
+        </section>
     </div>
 
+    <footer>
+        <p>Made with 💚 by the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" style="color: var(--primary);">OWASP BLT Team</a></p>
+        <div class="footer-links">
+            <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub</a>
+            <a href="https://owasp.org/slack/invite" target="_blank">Join OWASP Slack</a>
+            <a href="https://owasp.org" target="_blank">OWASP Foundation</a>
+            <a href="https://github.com/OWASP-BLT/BLT" target="_blank">BLT Main Project</a>
+        </div>
+        <div id="last-updated" class="last-updated"></div>
+    </footer>
+
     <script>
-        // Configuration - Update this URL to your Cloudflare Worker URL
+        // Configuration
         const STATS_API_URL = 'https://blt-lettuce-worker.workers.dev/stats';
-        
-        // Fallback stats for demo/development
+        const GITHUB_API_URL = 'https://api.github.com/repos/OWASP-BLT/BLT-Lettuce';
+
+        // Fallback stats
         const FALLBACK_STATS = {
             joins: 0,
             commands: 0,
             last_updated: new Date().toISOString()
         };
 
+        // Fetch bot stats from Cloudflare Worker
         async function fetchStats() {
             try {
                 const response = await fetch(STATS_API_URL);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch stats');
-                }
+                if (!response.ok) throw new Error('Failed to fetch stats');
                 return await response.json();
             } catch (error) {
                 console.warn('Using fallback stats:', error.message);
-                // Return fallback stats if API is not configured yet
                 return FALLBACK_STATS;
             }
         }
 
+        // Fetch GitHub stats
+        async function fetchGitHubStats() {
+            try {
+                const response = await fetch(GITHUB_API_URL);
+                if (!response.ok) throw new Error('Failed to fetch GitHub stats');
+                return await response.json();
+            } catch (error) {
+                console.warn('Failed to fetch GitHub stats:', error.message);
+                return null;
+            }
+        }
+
+        // Fetch contributors count
+        async function fetchContributors() {
+            try {
+                const response = await fetch(`${GITHUB_API_URL}/contributors?per_page=1`);
+                const linkHeader = response.headers.get('Link');
+                if (linkHeader) {
+                    const match = linkHeader.match(/page=(\d+)>; rel="last"/);
+                    if (match) return parseInt(match[1], 10);
+                }
+                const data = await response.json();
+                return Array.isArray(data) ? data.length : 0;
+            } catch (error) {
+                console.warn('Failed to fetch contributors:', error);
+                return 0;
+            }
+        }
+
+        // Number formatting constants
+        const MILLION = 1000000;
+        const THOUSAND = 1000;
+
         function formatNumber(num) {
-            if (num >= 1000000) {
-                return (num / 1000000).toFixed(1) + 'M';
-            }
-            if (num >= 1000) {
-                return (num / 1000).toFixed(1) + 'K';
-            }
+            if (num >= MILLION) return (num / MILLION).toFixed(1) + 'M';
+            if (num >= THOUSAND) return (num / THOUSAND).toFixed(1) + 'K';
             return num.toLocaleString();
         }
 
@@ -284,73 +806,74 @@
 
         function renderStats(stats) {
             const container = document.getElementById('stats-container');
-            
             container.innerHTML = `
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">👋</div>
-                        <div class="stat-label">Total Joins</div>
+                        <div class="stat-label">Members Welcomed</div>
                         <div class="stat-value">${formatNumber(stats.joins || 0)}</div>
                         <div class="stat-description">New members welcomed to OWASP Slack</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">⚡</div>
-                        <div class="stat-label">Commands Run</div>
+                        <div class="stat-label">Commands Executed</div>
                         <div class="stat-value">${formatNumber(stats.commands || 0)}</div>
-                        <div class="stat-description">Bot commands executed by users</div>
+                        <div class="stat-description">Bot interactions processed</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🤖</div>
                         <div class="stat-label">Bot Status</div>
                         <div class="stat-value">Active</div>
-                        <div class="stat-description">Cloudflare Worker powered bot</div>
+                        <div class="stat-description">Running on Cloudflare Edge</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-label">Global Reach</div>
+                        <div class="stat-value">24/7</div>
+                        <div class="stat-description">Available worldwide</div>
                     </div>
                 </div>
             `;
 
             const lastUpdated = document.getElementById('last-updated');
             if (stats.last_updated) {
-                lastUpdated.innerHTML = `Last updated: ${formatDate(stats.last_updated)}`;
+                lastUpdated.innerHTML = `Stats last updated: ${formatDate(stats.last_updated)}`;
             }
         }
 
-        function renderError(message) {
-            const container = document.getElementById('stats-container');
-            container.innerHTML = `
-                <div class="error-message">
-                    <p>⚠️ ${message}</p>
-                    <p style="margin-top: 8px; font-size: 0.85rem;">Stats will appear once the Cloudflare Worker is deployed and configured.</p>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👋</div>
-                        <div class="stat-label">Total Joins</div>
-                        <div class="stat-value">--</div>
-                        <div class="stat-description">New members welcomed to OWASP Slack</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⚡</div>
-                        <div class="stat-label">Commands Run</div>
-                        <div class="stat-value">--</div>
-                        <div class="stat-description">Bot commands executed by users</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🤖</div>
-                        <div class="stat-label">Bot Status</div>
-                        <div class="stat-value">Pending</div>
-                        <div class="stat-description">Waiting for Cloudflare Worker deployment</div>
-                    </div>
-                </div>
-            `;
+        async function renderGitHubStats() {
+            const [repoData, contributorCount] = await Promise.all([
+                fetchGitHubStats(),
+                fetchContributors()
+            ]);
+
+            if (repoData) {
+                document.getElementById('gh-stars').textContent = formatNumber(repoData.stargazers_count || 0);
+                document.getElementById('gh-forks').textContent = formatNumber(repoData.forks_count || 0);
+                document.getElementById('gh-issues').textContent = formatNumber(repoData.open_issues_count || 0);
+            }
+            document.getElementById('gh-contributors').textContent = formatNumber(contributorCount);
         }
 
         // Initialize
         async function init() {
             const stats = await fetchStats();
             renderStats(stats);
+            await renderGitHubStats();
         }
 
-        // Auto-refresh every 60 seconds
+        // Smooth scrolling for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Initialize and auto-refresh
         init();
         setInterval(init, 60000);
     </script>
