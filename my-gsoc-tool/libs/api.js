@@ -1,7 +1,7 @@
 // doc ref: https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
 
 let token = null;
-import { IS_EDITABLE } from "./constants";
+import { IS_EDITABLE } from "./constants.js";
 
 export function getGitHubToken() {
     console.log("IS_EDITABLE", IS_EDITABLE);

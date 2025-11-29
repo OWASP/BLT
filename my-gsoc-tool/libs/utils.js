@@ -15,7 +15,7 @@ export function updateLastUpdated() {
 
 export function renderEditableButtonSection() {
     if (IS_EDITABLE) {
-        const editSection = document.getElementById('editabe-button-section');
+        const editSection = document.getElementById('editable-button-section');
         editSection.innerHTML = `
             <button id="save-button" href="config.json" target="_blank" class="btn-primary fixed top-[90%] cursor-pointer right-60 z-50 flex items-center gap-2">
                 <i class="fas fa-edit"></i> Save changes
