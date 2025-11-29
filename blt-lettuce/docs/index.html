@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-Lettuce Stats Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-description {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            color: #00d4ff;
+        }
+
+        .info-section p {
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .info-section a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        .info-section a:hover {
+            text-decoration: underline;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 40px;
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 16px 24px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🥬</div>
+            <h1>BLT-Lettuce Stats</h1>
+            <p class="subtitle">OWASP Slack Bot Statistics Dashboard</p>
+        </header>
+
+        <div id="stats-container">
+            <div class="loading">
+                <div class="spinner" role="status" aria-label="Loading statistics"></div>
+                <p>Loading stats...</p>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>About BLT-Lettuce</h2>
+            <p>
+                BLT-Lettuce is a Slack bot developed by the OWASP BLT team for the OWASP Slack workspace.
+                It welcomes new members, provides helpful information, and assists the community with various tasks.
+            </p>
+            <p>
+                The bot is powered by a <strong>Cloudflare Python Worker</strong> that handles webhooks and tracks
+                statistics displayed on this dashboard.
+            </p>
+            <p>
+                Learn more about the project on our
+                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub repository</a>.
+            </p>
+        </div>
+
+        <div id="last-updated" class="last-updated"></div>
+
+        <footer>
+            <p>
+                Made with 💚 by the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank">OWASP BLT Team</a>
+            </p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank">GitHub</a> •
+                <a href="https://owasp.org/slack/invite" target="_blank">Join OWASP Slack</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - Update this URL to your Cloudflare Worker URL
+        const STATS_API_URL = 'https://blt-lettuce-worker.workers.dev/stats';
+        
+        // Fallback stats for demo/development
+        const FALLBACK_STATS = {
+            joins: 0,
+            commands: 0,
+            last_updated: new Date().toISOString()
+        };
+
+        async function fetchStats() {
+            try {
+                const response = await fetch(STATS_API_URL);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch stats');
+                }
+                return await response.json();
+            } catch (error) {
+                console.warn('Using fallback stats:', error.message);
+                // Return fallback stats if API is not configured yet
+                return FALLBACK_STATS;
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZoneName: 'short'
+            });
+        }
+
+        function renderStats(stats) {
+            const container = document.getElementById('stats-container');
+            
+            container.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👋</div>
+                        <div class="stat-label">Total Joins</div>
+                        <div class="stat-value">${formatNumber(stats.joins || 0)}</div>
+                        <div class="stat-description">New members welcomed to OWASP Slack</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-label">Commands Run</div>
+                        <div class="stat-value">${formatNumber(stats.commands || 0)}</div>
+                        <div class="stat-description">Bot commands executed by users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-label">Bot Status</div>
+                        <div class="stat-value">Active</div>
+                        <div class="stat-description">Cloudflare Worker powered bot</div>
+                    </div>
+                </div>
+            `;
+
+            const lastUpdated = document.getElementById('last-updated');
+            if (stats.last_updated) {
+                lastUpdated.innerHTML = `Last updated: ${formatDate(stats.last_updated)}`;
+            }
+        }
+
+        function renderError(message) {
+            const container = document.getElementById('stats-container');
+            container.innerHTML = `
+                <div class="error-message">
+                    <p>⚠️ ${message}</p>
+                    <p style="margin-top: 8px; font-size: 0.85rem;">Stats will appear once the Cloudflare Worker is deployed and configured.</p>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👋</div>
+                        <div class="stat-label">Total Joins</div>
+                        <div class="stat-value">--</div>
+                        <div class="stat-description">New members welcomed to OWASP Slack</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-label">Commands Run</div>
+                        <div class="stat-value">--</div>
+                        <div class="stat-description">Bot commands executed by users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-label">Bot Status</div>
+                        <div class="stat-value">Pending</div>
+                        <div class="stat-description">Waiting for Cloudflare Worker deployment</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize
+        async function init() {
+            const stats = await fetchStats();
+            renderStats(stats);
+        }
+
+        // Auto-refresh every 60 seconds
+        init();
+        setInterval(init, 60000);
+    </script>
+</body>
+</html>

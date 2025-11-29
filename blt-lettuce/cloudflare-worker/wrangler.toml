@@ -1,0 +1,20 @@
+name = "blt-lettuce-worker"
+main = "worker.py"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["python_workers"]
+
+# KV Namespace for storing stats
+# To create this namespace, run:
+#   wrangler kv:namespace create "STATS_KV"
+# Then replace the placeholder ID below with the actual namespace ID from the output
+[[kv_namespaces]]
+binding = "STATS_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"  # Required: Update this before deployment
+
+# Environment variables (secrets should be set via wrangler secret put)
+# Required secrets:
+#   wrangler secret put SLACK_TOKEN
+#   wrangler secret put SIGNING_SECRET
+
+[vars]
+ENVIRONMENT = "production"
