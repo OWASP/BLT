@@ -15,6 +15,7 @@ slack-machine = { git = "https://github.com/Owasp-blt/slack-machine" }
 slackeventsapi = "^3.0.1"
 slack-sdk = "^3.27.2"
 beautifulsoup4 = "^4.12.3"
+pydantic = "^2.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
