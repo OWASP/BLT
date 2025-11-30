@@ -1,8 +1,26 @@
 [
   {
-    "title": "Week 1: update 1",
-    "summary": "desc 1",
+    "title": "Week 1: Project Setup & Initial Architecture",
+    "summary": "Set up repo structure, defined core architecture, finalized API contract, added basic CI pipeline, and documented setup steps for contributors.",
     "date": "2024-05-27",
-    "_id": 1764524100639.485
+    "_id": 1764524100639
+  },
+  {
+    "title": "Week 2: Core Feature Implementation",
+    "summary": "Implemented authentication flow, added user session handling, built first draft of the data ingestion module, and wrote initial unit tests.",
+    "date": "2024-06-03",
+    "_id": 1764524104643
+  },
+  {
+    "title": "Week 3: Plugin System & Integrations",
+    "summary": "Developed plugin loader, created example Django integration, optimized build process, and added support for configuration overrides.",
+    "date": "2024-06-10",
+    "_id": 1764524108495
+  },
+  {
+    "title": "Week 4: UI Polishing & Documentation",
+    "summary": "Refined GitHub Pages interface, added onboarding steps, improved mobile design, wrote detailed docs for installation, and prepared upcoming milestone plan.",
+    "date": "2024-06-17",
+    "_id": 1764524112338
   }
 ]
