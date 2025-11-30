@@ -1,7 +1,7 @@
 {
   "project": {
-    "title": "OWASP BLT PROJECT",
-    "description": "desc ",
+    "title": "OWASP BLT DYNAMIC PROJECT",
+    "description": "a short desc",
     "organization": "OWASP BLT",
     "timeline": "May 2025 - August 2025",
     "repository": "https://github.com/ORG/REPO"
