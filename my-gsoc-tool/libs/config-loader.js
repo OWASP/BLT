@@ -50,22 +50,6 @@ export function getDefaultConfig() {
             email: "",
             blog: "",
             linkedin: ""
-        },
-        project: {
-            title: "My GSoC Project",
-            description: "Working on an amazing open-source project through Google Summer of Code",
-            organization: "Open Source Organization",
-            timeline: "May 2024 - August 2024"
-        },
-        slack: {
-            workspaceUrl: "",
-            channels: []
-        },
-        mentor: {
-            name: "Mentor Name",
-            email: "",
-            avatar: "https://via.placeholder.com/80",
-            role: "Project Mentor"
         }
     };
 }

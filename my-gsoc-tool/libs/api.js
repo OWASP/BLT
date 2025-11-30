@@ -1,6 +1,7 @@
 // doc ref: https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
 
 let token = null;
+import { loadConfig } from "./config-loader.js";
 import { IS_EDITABLE } from "./constants.js";
 
 export function getGitHubToken() {
@@ -40,6 +41,7 @@ export const getRepoContent = async (owner, repo, path) => {
 
 export const updateRepoContent = async (owner, repo, path, content, sha) => {
     try {
+        const userConfig = loadConfig()
         if (!token) {
             alert("GitHub token not provided.");
             getGitHubToken();
@@ -58,7 +60,7 @@ export const updateRepoContent = async (owner, repo, path, content, sha) => {
                 message: 'chore: update config via MY-GSOC-TOOL',
                 committer: {
                     name: 'MY-GSOC-TOOL Bot',
-                    email: 'my-gsoc-tool-bot@example.com',
+                    email: userConfig.student.email || "demouser@example.com",
                 },
                 content: encodedContent,
                 sha: sha,
