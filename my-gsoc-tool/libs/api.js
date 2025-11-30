@@ -2,7 +2,7 @@
 
 let token = null;
 import { loadConfig } from "./config-loader.js";
-import { EMAIL, IS_EDITABLE } from "./constants.js";
+import { BRANCH, EMAIL, IS_EDITABLE } from "./constants.js";
 
 export function getGitHubToken() {
     console.log("IS_EDITABLE", IS_EDITABLE);
@@ -19,7 +19,7 @@ export const getRepoContent = async (owner, repo, path) => {
             return null;
         }
 
-        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${BRANCH}`, {
             headers: {
                 'Accept': 'application/vnd.github+json',
                 'Authorization': `Bearer ${token}`,
@@ -64,6 +64,7 @@ export const updateRepoContent = async (owner, repo, path, content, sha) => {
                 },
                 content: encodedContent,
                 sha: sha,
+                branch: BRANCH
             }),
         });
 
