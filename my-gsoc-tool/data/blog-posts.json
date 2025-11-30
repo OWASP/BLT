@@ -1,18 +1,14 @@
 [
   {
-    "title": "blog 1",
-    "excerpt": "desc1 ",
-    "url": "link1 ",
-    "date": "2024-05-10",
-    "readTime": "1111 min read",
-    "_id": 1764523859859.3345
+    "title": "Week 1: update 1",
+    "summary": "desc 1",
+    "date": "2024-05-27",
+    "_id": 1764524100639.485
   },
   {
-    "title": "blog 2",
-    "excerpt": "desc2",
-    "url": "link2 ",
-    "date": "2024-06-08",
-    "readTime": "111 min read",
-    "_id": 1764523859859.288
+    "title": "Week 2: update 2",
+    "summary": "desc 2",
+    "date": "2024-06-03",
+    "_id": 1764524100639.59
   }
 ]
