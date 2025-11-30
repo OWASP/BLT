@@ -2,7 +2,7 @@
 
 let token = null;
 import { loadConfig } from "./config-loader.js";
-import { IS_EDITABLE } from "./constants.js";
+import { EMAIL, IS_EDITABLE } from "./constants.js";
 
 export function getGitHubToken() {
     console.log("IS_EDITABLE", IS_EDITABLE);
@@ -60,7 +60,7 @@ export const updateRepoContent = async (owner, repo, path, content, sha) => {
                 message: 'chore: update config via MY-GSOC-TOOL',
                 committer: {
                     name: 'MY-GSOC-TOOL Bot',
-                    email: userConfig.student.email || "demouser@example.com",
+                    email: EMAIL,
                 },
                 content: encodedContent,
                 sha: sha,
