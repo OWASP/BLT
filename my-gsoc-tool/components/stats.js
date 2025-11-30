@@ -31,7 +31,7 @@ export function renderCommunityParticipation(communityData) {
     const communityLink = document.getElementById('slack-link');
     const editSection = document.getElementById('community-edit-section');
 
-    const community = communityData.community || { platformUrl: "", channels: [] };
+    const community = communityData || { platformUrl: "", channels: [] };
 
     // Add unique IDs to channels if they don't exist
     community.channels.forEach((channel, index) => {
