@@ -1,16 +1,18 @@
 import { getRepoContent, updateRepoContent } from "../libs/api.js";
 import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { showAlert } from "../libs/utils.js";
 
 // Render project info
 
-export function renderProjectInfo(config) {
+export function renderProjectInfo(projectData) {
     const editSection = document.getElementById("project-edit-section");
     if (IS_EDITABLE) {
         const localConfig = {
-            title: config.project.title,
-            description: config.project.description,
-            organization: config.project.organization,
-            timeline: config.project.timeline,
+            title: projectData.project.title,
+            description: projectData.project.description,
+            organization: projectData.project.organization,
+            timeline: projectData.project.timeline,
+            repository: projectData.project.repository || ""
         }
         editSection.innerHTML = `
         <form id="projectForm" class="rounded-xl p-6 space-y-8">
@@ -46,21 +48,26 @@ export function renderProjectInfo(config) {
         });
 
         const saveBtn = document.getElementById("saveProjectBtn");
-        saveBtn.addEventListener("click", () => {
-            const jsonConfig = JSON.stringify({ project: localConfig }, null, 2);
-            const contentResponse = getRepoContent(OWNER, REPO, "data/project.json")
-            if (!contentResponse) {
-                alert("Failed to fetch project details. Please try again later.");
-                return;
+        saveBtn.addEventListener("click", async () => {
+            try {
+                const jsonConfig = JSON.stringify({ project: localConfig }, null, 2);
+                const contentResponse = await getRepoContent(OWNER, REPO, "data/project.json");
+                if (!contentResponse) {
+                    alert("Failed to fetch project details. Please try again later.");
+                    return;
+                }
+                const res = await updateRepoContent(OWNER, REPO, "data/project.json", jsonConfig, contentResponse.sha);
+                showAlert(res, "Project details updated successfully!");
+            } catch (error) {
+                console.error("Error updating project:", error);
+                alert("Failed to update project details. Please try again.");
             }
-            const res = updateRepoContent(OWNER, REPO, "data/project.json", jsonConfig, contentResponse.sha);
-            showAlert(res, "Project details updated successfully!");
         });
     }
-    document.getElementById("project-title").textContent = config.project.title;
-    document.getElementById("project-description").textContent = config.project.description;
+    document.getElementById("project-title").textContent = projectData.project.title;
+    document.getElementById("project-description").textContent = projectData.project.description;
     document.getElementById("organization").innerHTML = `
-        <i class="fas fa-building"></i> Organization: ${config.project.organization}`;
+        <i class="fas fa-building"></i> Organization: ${projectData.project.organization}`;
     document.getElementById("timeline").innerHTML = `
-        <i class="fas fa-calendar"></i> Timeline: ${config.project.timeline}`;
+        <i class="fas fa-calendar"></i> Timeline: ${projectData.project.timeline}`;
 }

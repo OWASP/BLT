@@ -7,16 +7,21 @@ import { BRANCH, EMAIL, IS_EDITABLE } from "./constants.js";
 export function getGitHubToken() {
     console.log("IS_EDITABLE", IS_EDITABLE);
     console.log("token", token);
-    if (!IS_EDITABLE || token) return;
-    token = prompt("Please enter your GitHub Personal Access Token (with repo scope) to enable saving changes:");
+    if (!IS_EDITABLE) return null;
+    if (!token) {
+        token = prompt("Please enter your GitHub Personal Access Token (with repo scope) to enable saving changes:");
+    }
+    return token;
 }
 
 export const getRepoContent = async (owner, repo, path) => {
     try {
         if (!token) {
-            alert("GitHub token not provided.");
-            getGitHubToken();
-            return null;
+            token = getGitHubToken();
+            if (!token) {
+                alert("GitHub token not provided.");
+                return null;
+            }
         }
 
         const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${BRANCH}`, {
@@ -41,11 +46,12 @@ export const getRepoContent = async (owner, repo, path) => {
 
 export const updateRepoContent = async (owner, repo, path, content, sha) => {
     try {
-        const userConfig = loadConfig()
         if (!token) {
-            alert("GitHub token not provided.");
-            getGitHubToken();
-            return { success: false }
+            token = getGitHubToken();
+            if (!token) {
+                alert("GitHub token not provided.");
+                return { success: false };
+            }
         }
 
         const encodedContent = btoa(content);
