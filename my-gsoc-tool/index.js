@@ -1,13 +1,13 @@
 import { IS_EDITABLE } from "./libs/constants.js";
 import { renderHeader } from "./components/header.js";
 import { renderProjectInfo } from "./components/project.js";
-import { renderGitHubStats, renderSlackInfo } from "./components/stats.js";
+import { renderGitHubStats, renderCommunityParticipation } from "./components/stats.js";
 import { renderBlogPosts } from "./components/blogs.js";
 import { renderMentorInfo } from "./components/mentor.js";
 import { renderWeeklyUpdates } from "./components/updates.js";
 import { renderMilestones } from "./components/milestones.js";
 import { updateLastUpdated } from "./libs/utils.js";
-import { loadConfig, loadGitHubData, loadBlogPosts, loadMentorConfig, loadWeeklyUpdates, loadMilestones, loadProjectInfo, loadSlackInfo } from "./libs/config-loader.js";
+import { loadConfig, loadGitHubData, loadBlogPosts, loadMentorConfig, loadWeeklyUpdates, loadMilestones, loadProjectInfo, loadCommunityInfo } from "./libs/config-loader.js";
 
 // Initialize dashboard
 async function initDashboard() {
@@ -19,12 +19,12 @@ async function initDashboard() {
     const weeklyUpdates = await loadWeeklyUpdates();
     const milestones = await loadMilestones();
     const projectData = await loadProjectInfo()
-    const slackInfo = await loadSlackInfo()
+    const communityInfo = await loadCommunityInfo()
     // Render all sections
     renderHeader(config);
     renderProjectInfo(projectData);
     renderGitHubStats(githubData);
-    renderSlackInfo(slackInfo);
+    renderCommunityParticipation(communityInfo);
     renderBlogPosts(blogPosts, config);
     renderMentorInfo(mentorConfig);
     renderWeeklyUpdates(weeklyUpdates);

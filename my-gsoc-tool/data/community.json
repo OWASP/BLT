@@ -1,0 +1,10 @@
+{
+    "community": {
+        "platformUrl": "https://example.com",
+        "channels": [
+            "general",
+            "meetings",
+            "project-discussion"
+        ]
+    }
+}

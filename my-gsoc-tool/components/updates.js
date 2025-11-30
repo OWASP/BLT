@@ -31,7 +31,6 @@ export function renderWeeklyUpdates(updates) {
 
     timeline.innerHTML = updates.map((update) => `
         <div class="timeline-item blog-post editable-blog-post">
-            
             <input 
                 type="text"
                 class="input-field"
@@ -109,11 +108,11 @@ export function renderWeeklyUpdates(updates) {
     });
 
     const saveUpdatesButton = document.getElementById("save-weekly-updates")
-    const blogJson = JSON.stringify(updates, null, 2);
-    saveUpdatesButton.addEventListener("click", () => {
-        const contentResponse = getRepoContent(OWNER, REPO, "data/blog-posts.json");
+    saveUpdatesButton.addEventListener("click", async () => {
+        const updatesJson = JSON.stringify(updates, null, 2);
+        const contentResponse = await getRepoContent(OWNER, REPO, "data/blog-posts.json");
         if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Cannot find the SHA for the file");
-        const response = updateRepoContent(OWNER, REPO, "data/blog-posts.json", blogJson, contentResponse.sha);
+        const response = await updateRepoContent(OWNER, REPO, "data/blog-posts.json", updatesJson, contentResponse.sha);
         showAlert(response, "Updated blog content.")
     })
 }

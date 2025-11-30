@@ -26,9 +26,9 @@ export async function loadProjectInfo() {
     }
 }
 
-export async function loadSlackInfo() {
+export async function loadCommunityInfo() {
     try {
-        const response = await fetch('data/slack.json');
+        const response = await fetch('data/community.json');
         if (!response.ok) {
             throw new Error('Slack info file not found');
         }
