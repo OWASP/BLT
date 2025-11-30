@@ -1,5 +1,6 @@
-import { formatDate } from "../libs/utils.js";
-import { IS_EDITABLE } from "../libs/constants.js";
+import { formatDate, showAlert } from "../libs/utils.js";
+import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { getRepoContent, updateRepoContent } from "../libs/api.js";
 
 export function renderMilestones(milestones) {
     const milestoneList = document.getElementById('milestones');
@@ -58,9 +59,14 @@ export function renderMilestones(milestones) {
     `).join('');
 
     milestoneList.innerHTML += `
-        <button class="btn-primary w-full mt-4" id="addMilestone">
+    <div class="flex gap-3">
+        <button class="btn-secondary w-full mt-4" id="addMilestone">
             + Add Milestone
         </button>
+        <button id="save-milestone-btn" class="btn-primary w-full mt-4" id="addMilestone">
+            Save
+        </button>
+    </div>
     `;
 
     const newMilestoneList = milestoneList.cloneNode(true);
@@ -99,4 +105,15 @@ export function renderMilestones(milestones) {
             renderMilestones(milestones);
         }
     });
+
+    const milestoneSaveButton = document.getElementById("save-milestone-btn");
+    const milestoneJson = JSON.stringify(milestones, null, 2);
+
+    milestoneSaveButton.addEventListener("click", () => {
+        const contentResponse = getRepoContent(OWNER, REPO, "data/milestones.js");
+        if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Try again after refresh !");
+
+        const response = updateRepoContent(OWNER, REPO, "data/milestone.js", milestoneJson, contentResponse.sha);
+        showAlert(response, "Successfully updated the milestone content");
+    })
 }
