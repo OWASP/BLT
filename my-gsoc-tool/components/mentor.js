@@ -9,6 +9,16 @@ export function renderMentorInfo(config) {
 
     if (!feedback) feedback = [];
 
+    const localConfig = {
+        mentor: {
+            avatar: config.mentor.avatar,
+            name: config.mentor.name,
+            role: config.mentor.role,
+            email: config.mentor.email,
+        },
+        feedback: config.feedback || []
+    }
+
     feedback.forEach((item) => {
         if (!item._id) {
             item._id = Date.now() + Math.random();
@@ -46,11 +56,11 @@ export function renderMentorInfo(config) {
 
     mentorDetails.innerHTML = `
         <div class="mentor-card flex gap-4 items-start">
-            <div>
+            <form id="mentorForm">
                 <input 
                     type="text"
                     class="input-field"
-                    value="${config.mentor.avatar}"
+                    value="${localConfig.mentor.avatar}"
                     data-field="avatar"
                     placeholder="Mentor Avatar URL"
                 />
@@ -58,7 +68,7 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${config.mentor.name}"
+                    value="${localConfig.mentor.name}"
                     data-field="name"
                     placeholder="Mentor Name"
                 />
@@ -66,7 +76,7 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${config.mentor.role}"
+                    value="${localConfig.mentor.role}"
                     data-field="role"
                     placeholder="Mentor Role"
                 />
@@ -74,23 +84,23 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${config.mentor.email || ''}"
+                    value="${localConfig.mentor.email || ''}"
                     data-field="email"
                     placeholder="Mentor Email"
                 />
-            </div>
+            </form>
         </div>
     `;
 
-    mentorDetails.addEventListener("input", (e) => {
-        const field = e.target.getAttribute("data-field");
-        if (field) {
-            config.mentor[field] = e.target.value;
-        }
+    const mentorForm = document.getElementById("mentorForm");
+    mentorForm.addEventListener("input", (e) => {
+        const field = e.target.name;
+        const value = e.target.value;
+        localConfig.mentor[field] = value;
     });
 
     // Feedback editable UI
-    feedbackList.innerHTML = feedback.map((item) => `
+    feedbackList.innerHTML = localConfig.feedback.map((item) => `
         <div class="feedback-item">
             <div class="feedback-header">
                 <input 
@@ -125,17 +135,9 @@ export function renderMentorInfo(config) {
     feedbackList.innerHTML += `
         <div class="flex gap-3">
             <button class="btn-secondary w-full mt-4" id="addFeedback">+ Add Feedback</button>
-            <button id="save-mentor" class="btn-primary w-full mt-4" id="saveFeedback">Save</button>
+            <button id="save-mentor-content" class="btn-primary w-full mt-4">Save</button>
         </div>
     `;
-
-    const saveMentorButton = document.getElementById("save-mentor");
-    const mentorJson = JSON.stringify(config.mentor, null, 2);
-    saveMentorButton.addEventListener("click", () => {
-        const contentResponse = getRepoContent(OWNER, REPO, "data/mentor.json");
-        const response = updateRepoContent(OWNER, REPO, "data/mentor.json", mentorJson, contentResponse.sha);
-        showAlert(response, "Mentor details updated successfully!");
-    })
 
     const newFeedbackList = feedbackList.cloneNode(true);
     feedbackList.parentNode.replaceChild(newFeedbackList, feedbackList);
@@ -172,4 +174,18 @@ export function renderMentorInfo(config) {
             renderMentorInfo(config, feedback);
         }
     });
+
+    const saveMentorButton = document.getElementById("save-mentor-content");
+    saveMentorButton.addEventListener("click", async () => {
+        const mentorJson = JSON.stringify(localConfig, null, 2);
+        const contentResponse = await getRepoContent(OWNER, REPO, "data/mentor.json");
+        console.log("repo", contentResponse);
+
+        if (!contentResponse || !contentResponse.sha) {
+            alert("Failed to fetch mentor content from repository.");
+            return;
+        }
+        const response = await updateRepoContent(OWNER, REPO, "data/mentor.json", mentorJson, contentResponse.sha);
+        showAlert(response, "Mentor details updated successfully!");
+    })
 }
