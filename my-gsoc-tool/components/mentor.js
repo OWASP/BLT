@@ -122,8 +122,12 @@ export function renderMentorInfo(config) {
     `).join('');
 
     feedbackList.innerHTML += `
-        <button class="btn-primary w-full mt-4" id="addFeedback">+ Add Feedback</button>
+        <div class="flex gap-2">
+            <button class="btn-secondary w-full mt-4" id="addFeedback">+ Add Feedback</button>
+            <button class="btn-primary w-full mt-4" id="saveFeedback">Save</button>
+        </div>
     `;
+
 
     const newFeedbackList = feedbackList.cloneNode(true);
     feedbackList.parentNode.replaceChild(newFeedbackList, feedbackList);

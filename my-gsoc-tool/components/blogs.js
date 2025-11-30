@@ -1,5 +1,6 @@
-import { formatDate } from "../libs/utils.js";
-import { IS_EDITABLE } from "../libs/constants.js";
+import { formatDate, showAlert } from "../libs/utils.js";
+import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { getRepoContent, updateRepoContent } from "../libs/api.js";
 
 export function renderBlogPosts(posts, config) {
     const blogList = document.getElementById('blog-posts');
@@ -10,7 +11,7 @@ export function renderBlogPosts(posts, config) {
     // Add unique IDs to posts if they don't exist
     posts.forEach((post, index) => {
         if (!post._id) {
-            post._id = Date.now() + Math.random(); // Simple unique ID
+            post._id = Date.now() + Math.random();
         }
     });
 
@@ -88,8 +89,25 @@ export function renderBlogPosts(posts, config) {
     `).join('');
 
     blogList.innerHTML += `
-        <button class="btn-primary add-post-btn">+ Add New Blog Post</button>
+        <button class="btn-secondary add-post-btn">+ Add New Blog Post</button>
     `;
+
+    blogList.innerHTML += `
+        <button id="save-posts-btn" class="btn-primary">Save</button>
+    `;
+
+    const savePostsBtn = document.getElementById('save-posts-btn');
+    const blogJson = JSON.stringify(posts, null, 2);
+
+    savePostsBtn.addEventListener('click', () => {
+        const contentResponse = getRepoContent(OWNER, REPO, 'data/blog-posts.json');
+        if (!contentResponse) {
+            alert("Failed to fetch existing blog posts from GitHub.");
+            return;
+        }
+        const response = updateRepoContent(OWNER, REPO, 'data/blog-posts.json', blogJson, contentResponse.sha);
+        showAlert(response, "Blog posts updated successfully!");
+    });
 
     // Remove existing event listeners to avoid duplicates
     const newBlogList = blogList.cloneNode(true);

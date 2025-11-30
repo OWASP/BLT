@@ -453,12 +453,6 @@ body {
     color: white;
 }
 
-.btn-secondary:hover {
-    background: #2d8e47;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-hover);
-}
-
 .btn-danger {
     background: #ff4444;
     color: white;

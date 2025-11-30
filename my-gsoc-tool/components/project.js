@@ -49,14 +49,18 @@ export function renderProjectInfo(config) {
         saveBtn.addEventListener("click", () => {
             const jsonConfig = JSON.stringify({ project: localConfig }, null, 2);
             const contentResponse = getRepoContent(OWNER, REPO, "data/project.json")
+            if (!contentResponse) {
+                alert("Failed to fetch project details. Please try again later.");
+                return;
+            }
             const res = updateRepoContent(OWNER, REPO, "data/project.json", jsonConfig, contentResponse.sha);
             showAlert(res, "Project details updated successfully!");
         });
     }
-        document.getElementById("project-title").textContent = config.project.title;
-        document.getElementById("project-description").textContent = config.project.description;
-        document.getElementById("organization").innerHTML = `
+    document.getElementById("project-title").textContent = config.project.title;
+    document.getElementById("project-description").textContent = config.project.description;
+    document.getElementById("organization").innerHTML = `
         <i class="fas fa-building"></i> Organization: ${config.project.organization}`;
-        document.getElementById("timeline").innerHTML = `
+    document.getElementById("timeline").innerHTML = `
         <i class="fas fa-calendar"></i> Timeline: ${config.project.timeline}`;
 }
