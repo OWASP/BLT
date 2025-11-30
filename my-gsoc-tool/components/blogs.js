@@ -146,7 +146,6 @@ export function renderBlogPosts(posts, config) {
     savePostsBtn.addEventListener('click', async () => {
         const blogJson = JSON.stringify(posts, null, 2);
         const contentResponse = await getRepoContent(OWNER, REPO, 'data/blog-posts.json');
-        console.log("content", contentResponse);
         if (!contentResponse || !contentResponse.sha) {
             alert("Failed to fetch existing blog posts from GitHub.");
             return;

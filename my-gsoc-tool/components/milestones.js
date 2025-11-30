@@ -113,7 +113,7 @@ export function renderMilestones(milestones) {
         const contentResponse = getRepoContent(OWNER, REPO, "data/milestones.js");
         if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Try again after refresh !");
 
-        const response = updateRepoContent(OWNER, REPO, "data/milestone.js", milestoneJson, contentResponse.sha);
+        const response = updateRepoContent(OWNER, REPO, "data/milestone.json", milestoneJson, contentResponse.sha);
         showAlert(response, "Successfully updated the milestone content");
     })
 }

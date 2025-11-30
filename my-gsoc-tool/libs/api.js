@@ -1,12 +1,7 @@
-// doc ref: https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
-
 let token = null;
-import { loadConfig } from "./config-loader.js";
 import { BRANCH, EMAIL, IS_EDITABLE } from "./constants.js";
 
 export function getGitHubToken() {
-    console.log("IS_EDITABLE", IS_EDITABLE);
-    console.log("token", token);
     if (!IS_EDITABLE) return null;
     if (!token) {
         token = prompt("Please enter your GitHub Personal Access Token (with repo scope) to enable saving changes:");
@@ -19,7 +14,6 @@ export const getRepoContent = async (owner, repo, path) => {
         if (!token) {
             token = getGitHubToken();
             if (!token) {
-                alert("GitHub token not provided.");
                 return null;
             }
         }
@@ -32,7 +26,7 @@ export const getRepoContent = async (owner, repo, path) => {
             }
         });
         if (!response.ok) {
-            alert("Failed to fetch file content from GitHub:", response.statusText);
+            console.error(`Failed to fetch file content: ${response.status} ${response.statusText}`);
             return null;
         }
         const data = await response.json();
@@ -49,7 +43,6 @@ export const updateRepoContent = async (owner, repo, path, content, sha) => {
         if (!token) {
             token = getGitHubToken();
             if (!token) {
-                alert("GitHub token not provided.");
                 return { success: false };
             }
         }
@@ -75,7 +68,7 @@ export const updateRepoContent = async (owner, repo, path, content, sha) => {
         });
 
         if (!response.ok) {
-            alert("Failed to update file content on GitHub:", response.statusText);
+            console.error(`Failed to update file: ${response.status} ${response.statusText}`);
             return { success: false };
         }
 

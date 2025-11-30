@@ -179,7 +179,6 @@ export function renderMentorInfo(config) {
     saveMentorButton.addEventListener("click", async () => {
         const mentorJson = JSON.stringify(localConfig, null, 2);
         const contentResponse = await getRepoContent(OWNER, REPO, "data/mentor.json");
-        console.log("repo", contentResponse);
 
         if (!contentResponse || !contentResponse.sha) {
             alert("Failed to fetch mentor content from repository.");

@@ -84,10 +84,8 @@ export function renderHeader(config) {
         const button = document.getElementById("saveProfileChangesBtn");
         button.addEventListener("click", async () => {
             const jsonString = JSON.stringify({ student: localConfig }, null, 2);
-            console.log(jsonString);
 
             const repoContent = await getRepoContent(OWNER, REPO, "config.json");
-            console.log("repo content", repoContent);
 
             const res = await updateRepoContent(OWNER, REPO, "config.json", jsonString, repoContent.sha);
             showAlert(res, "Profile details updated successfully!");

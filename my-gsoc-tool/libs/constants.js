@@ -1,6 +1,6 @@
 
 export const IS_EDITABLE = window.location.search.includes('edit=true')
-export const OWNER = "mdkaifansari04";
+export const OWNER = "YOUR-USERNAME";
 export const REPO = "MY-GSOC-TOOL";
-export const EMAIL = "demo@kaif.com"
-export const BRANCH = "feat/runtime-editing-mode"
+export const EMAIL = "your.email@example.com"
+export const BRANCH = "main"
