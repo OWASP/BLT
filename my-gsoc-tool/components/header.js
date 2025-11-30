@@ -90,8 +90,6 @@ export function renderHeader(config) {
         });
     }
 
-
-
     if (config.student.github) {
         socialLinks.innerHTML += `
             <a href="${config.student.github}" target="_blank">

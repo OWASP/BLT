@@ -1,10 +1,11 @@
-import { formatDate } from "../libs/utils.js";
-import { IS_EDITABLE } from "../libs/constants.js";
+import { formatDate, showAlert } from "../libs/utils.js";
+import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { getRepoContent, updateRepoContent } from "../libs/api.js";
 
 export function renderWeeklyUpdates(updates) {
     const timeline = document.getElementById('weekly-updates');
     if (!updates) updates = [];
-    
+
     updates.forEach((update) => {
         if (!update._id) {
             update._id = Date.now() + Math.random();
@@ -62,9 +63,12 @@ export function renderWeeklyUpdates(updates) {
     `).join('');
 
     timeline.innerHTML += `
-        <button class="btn-primary w-full mt-4" id="addWeeklyUpdate">
+    <div class="flex gap-3">
+        <button class="btn-secondary w-full mt-4" id="addWeeklyUpdate">
             + Add Weekly Update
         </button>
+        <button id="save-weekly-updates" class="btn-primary w-full mt-4" id="addWeeklyUpdate">Save</button>
+    </div>
     `;
 
     const newTimeline = timeline.cloneNode(true);
@@ -103,4 +107,13 @@ export function renderWeeklyUpdates(updates) {
             renderWeeklyUpdates(updates);
         }
     });
+
+    const saveUpdatesButton = document.getElementById("save-weekly-updates")
+    const blogJson = JSON.stringify(updates, null, 2);
+    saveUpdatesButton.addEventListener("click", () => {
+        const contentResponse = getRepoContent(OWNER, REPO, "data/blog-posts.json");
+        if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Cannot find the SHA for the file");
+        const response = updateRepoContent(OWNER, REPO, "data/blog-posts.json", blogJson, contentResponse.sha);
+        showAlert(response, "Updated blog content.")
+    })
 }
