@@ -1,5 +1,6 @@
-import { formatDate } from "../libs/utils.js";
-import { IS_EDITABLE } from "../libs/constants.js";
+import { formatDate, showAlert } from "../libs/utils.js";
+import { IS_EDITABLE, OWNER, REPO } from "../libs/constants.js";
+import { getRepoContent, updateRepoContent } from "../libs/api.js";
 
 export function renderMentorInfo(config) {
     const mentorDetails = document.getElementById('mentor-details');
@@ -122,12 +123,19 @@ export function renderMentorInfo(config) {
     `).join('');
 
     feedbackList.innerHTML += `
-        <div class="flex gap-2">
+        <div class="flex gap-3">
             <button class="btn-secondary w-full mt-4" id="addFeedback">+ Add Feedback</button>
-            <button class="btn-primary w-full mt-4" id="saveFeedback">Save</button>
+            <button id="save-mentor" class="btn-primary w-full mt-4" id="saveFeedback">Save</button>
         </div>
     `;
 
+    const saveMentorButton = document.getElementById("save-mentor");
+    const mentorJson = JSON.stringify(config.mentor, null, 2);
+    saveMentorButton.addEventListener("click", () => {
+        const contentResponse = getRepoContent(OWNER, REPO, "data/mentor.json");
+        const response = updateRepoContent(OWNER, REPO, "data/mentor.json", mentorJson, contentResponse.sha);
+        showAlert(response, "Mentor details updated successfully!");
+    })
 
     const newFeedbackList = feedbackList.cloneNode(true);
     feedbackList.parentNode.replaceChild(newFeedbackList, feedbackList);
