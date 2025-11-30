@@ -1,9 +1,11 @@
 {
-  "name": "Md kaif",
-  "email": "your.email@example.com",
-  "bio": "Google Summer of Code Contributor",
-  "avatar": "https://github.com/YOUR-USERNAME.png",
-  "github": "https://github.com/YOUR-USERNAME",
-  "blog": "https://yourblog.dev",
-  "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
+  "student": {
+    "name": "Your Name",
+    "bio": "Google Summer of Code Contributor",
+    "avatar": "https://github.com/YOUR-USERNAME.png",
+    "github": "https://github.com/YOUR-USERNAME",
+    "email": "your.email@example.com",
+    "blog": "https://yourblog.dev",
+    "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
+  }
 }
