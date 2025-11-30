@@ -92,7 +92,7 @@ export function renderCommunityParticipation(communityData) {
             const contentResponse = await getRepoContent(OWNER, REPO, "data/community.json");
             if (!contentResponse || !contentResponse.sha) alert("Failed to update, Please try again after refresh !");
             const response = await updateRepoContent(OWNER, REPO, "data/community.json", communityJson, contentResponse.sha);
-            showAlert(response);
+            showAlert(response, "Updated the community info");
         })
     }
 
