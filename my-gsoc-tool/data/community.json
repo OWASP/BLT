@@ -1,9 +1,13 @@
 {
-  "platformUrl": "https://kaif.com",
+  "platformUrl": "https://example.com",
   "channels": [
     {
-      "name": "general",
-      "_id": 1764525252158.1616
+      "name": "demo 1",
+      "_id": 1764525479485.8755
+    },
+    {
+      "name": "demo 2",
+      "_id": 1764525480033.799
     }
   ]
 }
