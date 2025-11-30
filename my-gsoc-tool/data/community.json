@@ -1,10 +1,9 @@
 {
-    "community": {
-        "platformUrl": "https://example.com",
-        "channels": [
-            "general",
-            "meetings",
-            "project-discussion"
-        ]
+  "platformUrl": "https://kaif.com",
+  "channels": [
+    {
+      "name": "general",
+      "_id": 1764525252158.1616
     }
+  ]
 }
