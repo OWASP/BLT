@@ -40,7 +40,7 @@ export function renderBlogPosts(posts, config) {
     }
 
     blogList.innerHTML = posts.map((post) => `
-        <div class="blog-post editable-blog-post">
+        <form id="blogPostForm" class="blog-post editable-blog-post">
             <input 
                 type="text" 
                 class="input-field" 
@@ -85,7 +85,7 @@ export function renderBlogPosts(posts, config) {
             >${post.excerpt || ''}</textarea>
 
             <button class="btn btn-danger" data-remove="${post._id}">Remove</button>
-        </div>
+        </form>
     `).join('');
 
     blogList.innerHTML += `
@@ -95,19 +95,6 @@ export function renderBlogPosts(posts, config) {
     blogList.innerHTML += `
         <button id="save-posts-btn" class="btn-primary">Save</button>
     `;
-
-    const savePostsBtn = document.getElementById('save-posts-btn');
-    const blogJson = JSON.stringify(posts, null, 2);
-
-    savePostsBtn.addEventListener('click', () => {
-        const contentResponse = getRepoContent(OWNER, REPO, 'data/blog-posts.json');
-        if (!contentResponse) {
-            alert("Failed to fetch existing blog posts from GitHub.");
-            return;
-        }
-        const response = updateRepoContent(OWNER, REPO, 'data/blog-posts.json', blogJson, contentResponse.sha);
-        showAlert(response, "Blog posts updated successfully!");
-    });
 
     // Remove existing event listeners to avoid duplicates
     const newBlogList = blogList.cloneNode(true);
@@ -154,4 +141,17 @@ export function renderBlogPosts(posts, config) {
     if (config.student.blog) {
         blogLink.href = config.student.blog;
     }
+
+    const savePostsBtn = document.getElementById('save-posts-btn');
+    savePostsBtn.addEventListener('click', async () => {
+        const blogJson = JSON.stringify(posts, null, 2);
+        const contentResponse = await getRepoContent(OWNER, REPO, 'data/blog-posts.json');
+        console.log("content", contentResponse);
+        if (!contentResponse || !contentResponse.sha) {
+            alert("Failed to fetch existing blog posts from GitHub.");
+            return;
+        }
+        const response = await updateRepoContent(OWNER, REPO, 'data/blog-posts.json', blogJson, contentResponse.sha);
+        showAlert(response, "Blog posts updated successfully!");
+    });
 }
