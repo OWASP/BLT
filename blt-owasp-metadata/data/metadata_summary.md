@@ -52,12 +52,12 @@
 | Field | Count |
 |---|---|
 | audience | 286 |
-| code_repositories | 173 |
-| download_links | 260 |
+| code_repositories | 174 |
+| download_links | 259 |
 | leaders_list | 747 |
-| license | 59 |
+| license | 60 |
 | project_classification | 294 |
-| sidebar_type | 106 |
+| sidebar_type | 107 |
 | social_facebook | 75 |
 | social_linkedin | 141 |
 | social_meetup | 319 |
