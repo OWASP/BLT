@@ -33,7 +33,7 @@
 
 BLT-Lettuce is an intelligent Slack bot designed for the OWASP Slack workspace. It welcomes new members, helps them discover projects, and connects the global security community.
 
-> **Note:** This Slack bot functionality has been incorporated into the main [BLT repository](https://github.com/OWASP-BLT/BLT) and is being transferred back to tgis repo for better organization.
+> **Note:** This Slack bot functionality has been incorporated into the main [BLT repository](https://github.com/OWASP-BLT/BLT) and is being transferred back to this repo for better organization.
 
 ### 🎯 Core Features
 
