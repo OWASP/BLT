@@ -1,0 +1,38 @@
+[project]
+name = "blt-api"
+version = "1.0.0"
+description = "Full-featured API for OWASP BLT that runs on Cloudflare Workers"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "AGPL-3.0" }
+authors = [
+    { name = "OWASP BLT Team" }
+]
+keywords = ["cloudflare", "workers", "api", "owasp", "blt", "bug-bounty", "security"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Security",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

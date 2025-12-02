@@ -1,0 +1,17 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "blt-api"
+main = "src/main.py"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["python_workers"]
+
+[vars]
+BLT_API_BASE_URL = "https://blt.owasp.org/api/v1"
+BLT_WEBSITE_URL = "https://blt.owasp.org"
+
+# Production environment
+[env.production]
+vars = { BLT_API_BASE_URL = "https://blt.owasp.org/api/v1", BLT_WEBSITE_URL = "https://blt.owasp.org" }
+
+# Development environment
+[env.development]
+vars = { BLT_API_BASE_URL = "http://localhost:8000/api/v1", BLT_WEBSITE_URL = "http://localhost:8000" }
