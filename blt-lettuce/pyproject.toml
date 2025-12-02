@@ -11,7 +11,6 @@ python = "^3.10"
 requests = "^2.32.3"
 python-dotenv = "^1.0.1"
 gitpython = "^3.1.43"
-slack-machine = { git = "https://github.com/Owasp-blt/slack-machine" }
 slackeventsapi = "^3.0.1"
 slack-sdk = "^3.27.2"
 beautifulsoup4 = "^4.12.3"
