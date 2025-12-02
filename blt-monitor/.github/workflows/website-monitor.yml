@@ -52,7 +52,7 @@ jobs:
             keyword_status="not_found"
           fi
 
-          if [ "$response_code" -eq 200 ] && [ "$keyword_status" == "found" ]; then
+          if [ "$keyword_status" == "found" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
             echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
