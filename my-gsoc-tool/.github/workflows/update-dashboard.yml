@@ -45,9 +45,9 @@ jobs:
           const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
           
           // Extract GitHub username from URL
-          const githubUrl = config.student.github || '';
+          const githubUrl = config.student?.github || '';
           const username = githubUrl.split('/').pop() || 'example-user';
-          const repo = config.project.repository ? config.project.repository.split('/').slice(-2).join('/') : '';
+          const repo = config.project?.repository ? config.project.repository.split('/').slice(-2).join('/') : '';
 
           console.log(`Fetching data for user: ${username}`);
 
