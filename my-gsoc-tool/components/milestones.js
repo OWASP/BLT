@@ -107,13 +107,16 @@ export function renderMilestones(milestones) {
     });
 
     const milestoneSaveButton = document.getElementById("save-milestone-btn");
-    const milestoneJson = JSON.stringify(milestones, null, 2);
 
-    milestoneSaveButton.addEventListener("click", () => {
-        const contentResponse = getRepoContent(OWNER, REPO, "data/milestones.js");
-        if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Try again after refresh !");
+    milestoneSaveButton.addEventListener("click", async () => {
+        const milestoneJson = JSON.stringify(milestones, null, 2);
+        const contentResponse = await getRepoContent(OWNER, REPO, "data/milestones.json");
+        if (!contentResponse || !contentResponse.sha) {
+            alert("Something went wrong, Try again after refresh!");
+            return;
+        }
 
-        const response = updateRepoContent(OWNER, REPO, "data/milestone.json", milestoneJson, contentResponse.sha);
+        const response = await updateRepoContent(OWNER, REPO, "data/milestones.json", milestoneJson, contentResponse.sha);
         showAlert(response, "Successfully updated the milestone content");
     })
 }

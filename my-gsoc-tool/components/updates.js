@@ -110,9 +110,12 @@ export function renderWeeklyUpdates(updates) {
     const saveUpdatesButton = document.getElementById("save-weekly-updates")
     saveUpdatesButton.addEventListener("click", async () => {
         const updatesJson = JSON.stringify(updates, null, 2);
-        const contentResponse = await getRepoContent(OWNER, REPO, "data/blog-posts.json");
-        if (!contentResponse || !contentResponse.sha) alert("Something went wrong, Cannot find the SHA for the file");
-        const response = await updateRepoContent(OWNER, REPO, "data/blog-posts.json", updatesJson, contentResponse.sha);
-        showAlert(response, "Updated blog content.")
+        const contentResponse = await getRepoContent(OWNER, REPO, "data/weekly-updates.json");
+        if (!contentResponse || !contentResponse.sha) {
+            alert("Something went wrong, Cannot find the SHA for the file");
+            return;
+        }
+        const response = await updateRepoContent(OWNER, REPO, "data/weekly-updates.json", updatesJson, contentResponse.sha);
+        showAlert(response, "Updated weekly updates content.")
     })
 }

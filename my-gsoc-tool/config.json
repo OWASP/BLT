@@ -1,11 +1,11 @@
 {
   "student": {
-    "name": "Md Kaif Ansari",
-    "email": "amdkaif843@gmail.com",
-    "bio": "Google Summer of Code contrbutor",
-    "avatar": "https://github.com/mdkaifansari.png",
-    "github": "https://github.com/mdkaifansari04",
-    "blog": "https://mdkaif.me",
-    "linkedin": "https://linkedin.com/in/md-kaif-ansari"
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "bio": "Google Summer of Code Contributor",
+    "avatar": "assets/images/sample-avatar.svg",
+    "github": "https://github.com/YOUR-USERNAME",
+    "blog": "https://yourblog.dev",
+    "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
   }
 }

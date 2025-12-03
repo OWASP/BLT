@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <linearGradient id="mentorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbc04"/>
+      <stop offset="100%" style="stop-color:#ea4335"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="40" fill="url(#mentorGrad)"/>
+  <circle cx="40" cy="32" r="14" fill="white"/>
+  <ellipse cx="40" cy="65" rx="24" ry="18" fill="white"/>
+</svg>
