@@ -1,23 +1,26 @@
 [
   {
-    "title": "GSoC 2024: Getting Started",
-    "excerpt": "My journey begins with Google Summer of Code 2024. In this post, I share my initial thoughts and goals for the summer.",
-    "url": "https://yourblog.dev/gsoc-getting-started",
-    "date": "2024-05-01",
-    "readTime": "5 min read"
+    "title": "Week 1: Project Setup & Initial Architecture",
+    "summary": "Set up repo structure, defined core architecture, finalized API contract, added basic CI pipeline, and documented setup steps for contributors.",
+    "date": "2024-05-27",
+    "_id": 1764524100639
   },
   {
-    "title": "Week 1-2: Community Bonding",
-    "excerpt": "During the community bonding period, I got to know my mentors and the organization's workflow. Here's what I learned.",
-    "url": "https://yourblog.dev/week-1-2-community-bonding",
-    "date": "2024-05-15",
-    "readTime": "7 min read"
+    "title": "Week 2: Core Feature Implementation",
+    "summary": "Implemented authentication flow, added user session handling, built first draft of the data ingestion module, and wrote initial unit tests.",
+    "date": "2024-06-03",
+    "_id": 1764524104643
   },
   {
-    "title": "Coding Period Begins: First Pull Request",
-    "excerpt": "The coding period has officially started! I submitted my first pull request and here's what I learned from the review process.",
-    "url": "https://yourblog.dev/first-pull-request",
-    "date": "2024-06-01",
-    "readTime": "6 min read"
+    "title": "Week 3: Plugin System & Integrations",
+    "summary": "Developed plugin loader, created example Django integration, optimized build process, and added support for configuration overrides.",
+    "date": "2024-06-10",
+    "_id": 1764524108495
+  },
+  {
+    "title": "Week 4: UI Polishing & Documentation",
+    "summary": "Refined GitHub Pages interface, added onboarding steps, improved mobile design, wrote detailed docs for installation, and prepared upcoming milestone plan.",
+    "date": "2024-06-17",
+    "_id": 1764524112338
   }
 ]

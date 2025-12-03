@@ -54,8 +54,11 @@ We love new ideas! To suggest a feature:
 
 3. **Test your changes**:
    - Test locally with a simple HTTP server
+   - Test both regular and edit modes (`?edit=true`)
    - Check responsiveness on different screen sizes
-   - Validate JSON files
+   - Validate JSON files and component exports
+   - Test component isolation and reusability
+   - Verify GitHub API integration if applicable
    - Test in multiple browsers if possible
 
 4. **Update documentation** if needed:
@@ -109,11 +112,14 @@ We love new ideas! To suggest a feature:
 - Comment major sections
 
 #### JavaScript
-- Use modern ES6+ syntax
+- Use modern ES6+ syntax with modules (import/export)
 - Keep functions pure when possible
-- Handle errors gracefully
+- Handle errors gracefully with try/catch
 - Add JSDoc comments for functions
 - Use async/await for promises
+- Follow component-based architecture
+- Export functions for modularity
+- Use consistent naming for DOM elements and event handlers
 
 ### File Organization
 
@@ -121,12 +127,29 @@ We love new ideas! To suggest a feature:
 MY-GSOC-TOOL/
 ├── .github/
 │   └── workflows/       # GitHub Actions workflows
-├── data/                # JSON data files
-├── index.html          # Main HTML file
-├── styles.css          # All styles
-├── dashboard.js        # All JavaScript
-├── config.json         # Configuration
-└── docs/               # Documentation
+├── components/          # Modular render components
+│   ├── blogs.js        # Blog posts with editing
+│   ├── header.js       # Profile and contact info
+│   ├── mentor.js       # Mentor feedback
+│   ├── milestones.js   # Achievement milestones
+│   ├── project.js      # Project details
+│   ├── stats.js        # GitHub stats & community
+│   └── updates.js      # Weekly updates
+├── data/               # JSON data files
+│   ├── blog-posts.json
+│   ├── community.json
+│   ├── mentor.json
+│   ├── milestones.json
+│   └── weekly-updates.json
+├── libs/               # Utility functions
+│   ├── api.js         # GitHub API integration
+│   ├── config-loader.js # Configuration loader
+│   ├── constants.js   # Configuration constants
+│   └── utils.js       # Common utilities
+├── index.html         # Main HTML file
+├── index.js           # Dashboard initialization
+├── styles.css         # All styles
+└── config.json        # Configuration
 ```
 
 ### Commit Message Format
@@ -147,25 +170,30 @@ Style: Code style changes
 We especially welcome contributions in these areas:
 
 ### High Priority
-- [ ] Improved error handling and user feedback
-- [ ] Support for more platforms (GitLab, Bitbucket)
+- [ ] Improved error handling in live editing mode
+- [ ] Offline mode for editing (localStorage backup)
+- [ ] Support for more Git platforms (GitLab, Bitbucket)
 - [ ] Dark mode theme
-- [ ] Print-friendly stylesheet
 - [ ] Export to PDF functionality
+- [ ] Advanced GitHub token validation
 
 ### Medium Priority
 - [ ] More data visualization (charts, graphs)
-- [ ] Timeline visualization improvements
+- [ ] Drag-and-drop reordering for items
+- [ ] Rich text editor for content
 - [ ] Mobile app (PWA)
 - [ ] Internationalization (i18n)
 - [ ] Accessibility improvements
+- [ ] Import from existing portfolio tools
 
 ### Good First Issues
-- [ ] Additional icon options
+- [ ] Additional milestone icons
 - [ ] Color theme presets
 - [ ] Social media preview cards (Open Graph)
 - [ ] More example configurations
 - [ ] Tutorial videos or GIFs
+- [ ] Component documentation
+- [ ] New component templates
 
 ## 🧪 Testing
 
@@ -177,16 +205,29 @@ Before submitting a PR, please test:
    # Visit http://localhost:8080
    ```
 
-2. **JSON Validation**:
+2. **Live Editing Testing**:
+   - Test with `?edit=true` parameter
+   - Verify GitHub token integration (use test token)
+   - Test all edit modes (add, edit, remove items)
+   - Verify preview functionality
+   - Test save operations
+
+3. **Component Testing**:
+   - Test each component independently
+   - Verify proper imports/exports
+   - Test error handling in components
+
+4. **JSON Validation**:
    - All JSON files should be valid
    - Use https://jsonlint.com for validation
+   - Verify `_id` fields are properly handled
 
-3. **Cross-Browser Testing** (if possible):
+5. **Cross-Browser Testing** (if possible):
    - Chrome/Edge
    - Firefox
    - Safari
 
-4. **Responsive Testing**:
+6. **Responsive Testing**:
    - Desktop (1920x1080)
    - Tablet (768x1024)
    - Mobile (375x667)
@@ -218,20 +259,25 @@ If you discover a security vulnerability:
 ### Data Flow
 
 ```
-config.json → dashboard.js → Renders to HTML
+config.json → index.js → Loads components
      ↓
-data/*.json → dashboard.js → Updates sections
+data/*.json → components/*.js → Renders sections
      ↓
 GitHub API → GitHub Actions → data/github-contributions.json
+     ↓
+Live Editing → libs/api.js → GitHub API → Saves to repo
 ```
 
 ### Key Components
 
 1. **Configuration** (`config.json`): User's personal information
 2. **Data Files** (`data/`): Dynamic content that changes over time
-3. **Dashboard Logic** (`dashboard.js`): Loads and renders all data
-4. **Styling** (`styles.css`): All visual presentation
-5. **Automation** (`.github/workflows/`): Automatic updates
+3. **Components** (`components/`): Modular render functions for each section
+4. **Utilities** (`libs/`): API integration, configuration, and common functions
+5. **Dashboard Logic** (`index.js`): Initializes dashboard and loads modules
+6. **Styling** (`styles.css`): All visual presentation
+7. **Live Editing** (`libs/api.js`): GitHub API integration for browser editing
+8. **Automation** (`.github/workflows/`): Automatic updates
 
 ## 🎨 Design Guidelines
 
