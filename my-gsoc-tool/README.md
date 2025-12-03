@@ -324,6 +324,18 @@ If you encounter issues or have questions:
 
 ---
 
+<!-- FORKS_START -->
+## 🍴 Project Forks
+
+The following users have forked this project:
+
+No forks yet. Be the first to fork this project!
+
+_Last updated: Never_
+<!-- FORKS_END -->
+
+---
+
 **Made with ❤️ for GSoC Students**
 
 Start your GSoC journey with a professional dashboard! 🚀
