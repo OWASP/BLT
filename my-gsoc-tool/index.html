@@ -10,8 +10,18 @@
 </head>
 <body>
     <div class="container">
+        <div class="bg-white shadow-md fixed top-5 -right-1 z-10 p-4 flex items-center justify-between rounded-md">
+            <button id="edit-mode-btn" class="btn-primary relative right-14" style="display: none;">
+                <i class="fas fa-edit"></i> Enter Edit Mode
+            </button>
+            <div id="token-section" class="token-section flex flex-col" style="display: none;">
+                <input class="input-field border p-2 rounded w-full"  type="password" id="github-token" placeholder="GitHub Token (repo scope)" />
+                <button id="save-token-btn" class="btn-secondary w-full">Save</button>
+                <button id="remove-token-btn" class="btn-danger w-full">Remove</button>
+                <p class="token-help pt-1">Need a token? <a class="!text-black" href="https://github.com/settings/tokens" target="_blank">Generate one here</a></p>
+            </div>
+        </div>
         <!-- Header Section -->
-
         <header class="dashboard-header">
             <div class="header-content">
                 <img id="student-avatar" class="avatar" src="" alt="Student Avatar">

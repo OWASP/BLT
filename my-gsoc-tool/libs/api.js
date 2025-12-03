@@ -4,9 +4,22 @@ import { BRANCH, EMAIL, IS_EDITABLE } from "./constants.js";
 export function getGitHubToken() {
     if (!IS_EDITABLE) return null;
     if (!token) {
-        token = prompt("Please enter your GitHub Personal Access Token (with repo scope) to enable saving changes:");
+        token = localStorage.getItem('github_token');
     }
     return token;
+}
+
+export function setGitHubToken(newToken) {
+    token = newToken;
+    if (newToken) {
+        localStorage.setItem('github_token', newToken);
+    } else {
+        localStorage.removeItem('github_token');
+    }
+}
+
+export function hasToken() {
+    return !!localStorage.getItem('github_token');
 }
 
 export const getRepoContent = async (owner, repo, path) => {

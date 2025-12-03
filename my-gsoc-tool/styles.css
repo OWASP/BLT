@@ -91,6 +91,28 @@ body {
     transform: translateY(-2px);
 }
 
+.token-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: fit-content;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px 10px;
+    border-radius: 8px;
+    max-width: 230px;
+}
+
+.token-section input:disabled {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.token-section .token-help {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 3px;
+}
+
 /* Card Styles */
 .card {
     background: var(--card-bg);
@@ -440,6 +462,8 @@ body {
     transition: all 0.3s;
     margin-top: 15px;
     cursor: pointer;
+    border: none;
+    font-size: 14px;
 }
 
 .btn-primary {
