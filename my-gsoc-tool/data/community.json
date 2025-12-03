@@ -1,17 +1,17 @@
 {
-  "platformUrl": "https://kaif.com",
+  "platformUrl": "https://your-community-platform.com",
   "channels": [
     {
       "name": "general",
-      "_id": 1764525252158.1616
+      "_id": 1
     },
     {
-      "name": "new-contributors",
-      "_id": 1764526631085.6958
+      "name": "gsoc-contributors",
+      "_id": 2
     },
     {
-      "name": "gsoc-2025",
-      "_id": 1764526682083.6958
+      "name": "your-project-channel",
+      "_id": 3
     }
   ]
 }
