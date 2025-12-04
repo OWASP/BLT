@@ -52,11 +52,6 @@
       <div class="flex items-center justify-center gap-1.5 text-sm sm:text-base">
         <span class="text-gray-600"><i class="fa-solid fa-key"></i> Keyword</span>
         <span id="keyword-badge" class="inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium"></span>
-        <span id="refresh-timer" class="text-blue-600 font-medium"></span>
-      </div>
-      <div id="refresh-bar-container" class="relative w-full h-3 bg-slate-200 rounded-full overflow-hidden mt-2">
-        <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
-        <div id="refresh-glaze" class="absolute top-0 left-0 h-full w-[30px] pointer-events-none"></div>
       </div>
     </div>
     <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 px-1.5 pt-2.5 pb-1 my-2.5">
@@ -144,94 +139,96 @@
     // Parse status.csv for chart, table, and refresh timer
     function parseCSV(csv) {
         const lines = csv.trim().split('\n');
-        // Remove all header rows if present
         return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
     }
-    let REFRESH_INTERVAL = 300; // seconds (5 minutes)
-    let secondsLeft = REFRESH_INTERVAL;
-    const timer = document.getElementById('refresh-timer');
-    const bar = document.getElementById('refresh-bar');
-    const glaze = document.getElementById('refresh-glaze');
-    fetch('status.csv').then(r => r.text()).then(csv => {
-        const rows = parseCSV(csv);
-        // Chart data
-        const labels = rows.map((_, i) => rows.length - i); // Use index as label
-        const data = rows.map(r => parseInt(r[1])); // ms
-        const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
-        // Chart.js
-        new Chart(document.getElementById('statusChart').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Response Time (ms)',
-                    data: data,
-                    fill: false,
-                    borderColor: '#1976d2',
-                    backgroundColor: '#1976d2',
-                    pointBackgroundColor: bgColors,
-                    pointRadius: 5,
-                    tension: 0.2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'ms' } },
-                    x: { title: { display: true, text: 'Check #' } }
+
+    let REFRESH_INTERVAL = 300; // 5 minutes
+
+    fetch('status.csv')
+        .then(r => r.text())
+        .then(csv => {
+            const rows = parseCSV(csv);
+
+            // Chart 
+            const labels = rows.map((_, i) => rows.length - i);
+            const data = rows.map(r => parseInt(r[1]));
+            const bgColors = rows.map(r =>
+                r[2] === 'success' && r[3] === 'found'
+                    ? '#4CAF50'
+                    : r[2] === 'success'
+                        ? '#FFC107'
+                        : '#f44336'
+            );
+
+            new Chart(document.getElementById('statusChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: data,
+                        fill: false,
+                        borderColor: '#1976d2',
+                        backgroundColor: '#1976d2',
+                        pointBackgroundColor: bgColors,
+                        pointRadius: 5,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'ms' } },
+                        x: { title: { display: true, text: 'Check #' } }
+                    }
                 }
+            });
+
+            // Table 
+            const tbody = document.querySelector('#recent-table tbody');
+            tbody.innerHTML = '';
+            rows.slice(-10).reverse().forEach(r => {
+                const ms = parseInt(r[1]);
+                const time = new Date(r[0]).toLocaleTimeString([], {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                const statusCell = r[2] === 'success'
+                    ? '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"><i class="fa-solid fa-circle-check"></i> Up</span>'
+                    : '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
+
+                const keywordCell = r[3] === 'found'
+                    ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>`
+                    : `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-200">
+                        <td class="p-1.5">${time}</td>
+                        <td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td>
+                        <td class="p-1.5">${statusCell}</td>
+                        <td class="p-1.5">${keywordCell}</td>
+                    </tr>`;
+            });
+
+            // === Min/Max Response Times ===
+            const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
+            document.getElementById('resp-min-max').textContent =
+                `${Math.min(...responseTimes).toLocaleString()}ms | ${Math.max(...responseTimes).toLocaleString()}ms`;
+
+            // === Auto-Refresh Logic (No Timer UI) ===
+            if (rows.length > 0) {
+                const lastDate = new Date(rows[rows.length - 1][0]);
+                const now = new Date();
+                const secondsSince = Math.floor((now - lastDate) / 1000);
+
+                const refreshIn = Math.max(5, REFRESH_INTERVAL - secondsSince);
+
+                setTimeout(() => location.reload(), refreshIn * 1000);
             }
         });
-        // Table
-        const tbody = document.querySelector('#recent-table tbody');
-        tbody.innerHTML = '';
-        rows.slice(-10).reverse().forEach(r => {
-            const statusCell = r[2]==='success' ? '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"><i class="fa-solid fa-circle-check"></i> Up</span>' : '<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800"><i class="fa-solid fa-circle-xmark"></i> Down</span>';
-            const keywordCell = r[3]==='found' ? `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"><i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b></span>` : `<span class="inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"><i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b></span>`;
-            const ms = parseInt(r[1]);
-            const time = new Date(r[0]).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            tbody.innerHTML += `<tr class="border-b border-slate-200"><td class="p-1.5">${time}</td><td class="p-1.5">${isNaN(ms) ? '' : ms.toLocaleString()} ms</td><td class="p-1.5">${statusCell}</td><td class="p-1.5">${keywordCell}</td></tr>`;
-        });
-        // Calculate min and max response times
-        const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
-        const minTime = Math.min(...responseTimes);
-        const maxTime = Math.max(...responseTimes);
-        document.getElementById('resp-min-max').textContent = `${minTime.toLocaleString()}ms | ${maxTime.toLocaleString()}ms`;
-        // Refresh timer based on latest entry
-        if (rows.length > 0) {
-            const lastDate = new Date(rows[rows.length-1][0]);
-            const now = new Date();
-            const secondsSinceLast = Math.floor((now - lastDate) / 1000);
-            // If more than 5 minutes have passed, start at 5 minutes
-            secondsLeft = secondsSinceLast >= REFRESH_INTERVAL ? REFRESH_INTERVAL : Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
-        }
-    });
-    function updateBar() {
-        secondsLeft--;
-        if (secondsLeft <= 0) {
-            secondsLeft = REFRESH_INTERVAL; // Reset to 5 minutes
-            location.reload();
-        }
-        const percent = (secondsLeft / REFRESH_INTERVAL) * 100;
-        bar.style.width = percent + '%';
-        const min = Math.floor(secondsLeft / 60);
-        const sec = secondsLeft % 60;
-        timer.textContent = `checking in: ${min}:${sec.toString().padStart(2, '0')}`;
-        // Glaze effect: animate left to right every second
-        glaze.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%)';
-        glaze.style.left = '0';
-        glaze.style.transition = 'none';
-        setTimeout(() => {
-            glaze.style.transition = 'left 0.8s cubic-bezier(0.4,0,0.2,1)';
-            glaze.style.left = `${percent}%`;
-        }, 10);
-        setTimeout(() => {
-            glaze.style.transition = 'none';
-            glaze.style.left = '0';
-        }, 900);
-    }
-    setInterval(updateBar, 1000);
+
+ 
 </script>
 </body>
 </html>
