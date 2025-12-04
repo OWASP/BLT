@@ -226,6 +226,55 @@
 
                 setTimeout(() => location.reload(), refreshIn * 1000);
             }
+            // === Update Top Badges from Latest CSV Entry ===
+            if (rows.length > 0) {
+                const latest = rows[rows.length - 1];
+                const latestTime = new Date(latest[0]);
+                const latestMs = parseInt(latest[1]);
+                const latestStatus = latest[2];
+                const latestKeyword = latest[3];
+
+                // Update last-check timestamps
+                document.getElementById('last-check-iso').textContent = latest[0];
+                document.getElementById('last-check').textContent =
+                    latestTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('last-check-ago').textContent = timeAgo(latestTime);
+
+                // Update resp-ms badge
+                if (!isNaN(latestMs)) {
+                    document.getElementById('resp-ms').textContent = latestMs.toLocaleString() + ' ms';
+                }
+
+                // Update status badge
+                const statusBadge = document.getElementById('status-badge');
+                if (latestStatus === 'success') {
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Up';
+                    statusBadge.className =
+                        'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800';
+                } else {
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Down';
+                    statusBadge.className =
+                        'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800';
+                }
+
+                // Update keyword badge
+                const keywordBadge = document.getElementById('keyword-badge');
+                if (latestKeyword === 'found') {
+                    keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
+                    keywordBadge.className =
+                        'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800';
+                } else {
+                    keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
+                    keywordBadge.className =
+                        'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800';
+                }
+            }
+
+        })
+        .catch(err => {
+            console.error('Failed to fetch status.csv:', err);
+            // Retry in 30 seconds
+            setTimeout(() => location.reload(), 30000);
         });
 
  
