@@ -145,7 +145,10 @@
     let REFRESH_INTERVAL = 300; // 5 minutes
 
     fetch('status.csv')
-        .then(r => r.text())
+         .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+            return r.text();
+     })
         .then(csv => {
             const rows = parseCSV(csv);
 
