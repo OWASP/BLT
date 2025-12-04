@@ -148,11 +148,11 @@
          .then(r => {
             if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`);
             return r.text();
-     })
-        .then(csv => {
+        })
+         .then(csv => {
             const rows = parseCSV(csv);
 
-            // Chart 
+            // Chart
             const labels = rows.map((_, i) => rows.length - i);
             const data = rows.map(r => parseInt(r[1]));
             const bgColors = rows.map(r =>
@@ -188,7 +188,7 @@
                 }
             });
 
-            // Table 
+            // Table
             const tbody = document.querySelector('#recent-table tbody');
             tbody.innerHTML = '';
             rows.slice(-10).reverse().forEach(r => {
@@ -216,8 +216,13 @@
 
             // === Min/Max Response Times ===
             const responseTimes = rows.map(r => parseInt(r[1])).filter(t => !isNaN(t));
-            document.getElementById('resp-min-max').textContent =
-                `${Math.min(...responseTimes).toLocaleString()}ms | ${Math.max(...responseTimes).toLocaleString()}ms`;
+            let minMaxText;
+            if (responseTimes.length === 0) {
+                minMaxText = "N/A | N/A";
+            } else {
+                minMaxText = `${Math.min(...responseTimes).toLocaleString()}ms | ${Math.max(...responseTimes).toLocaleString()}ms`;
+            }
+            document.getElementById('resp-min-max').textContent = minMaxText;
 
             // === Auto-Refresh Logic (No Timer UI) ===
             if (rows.length > 0) {
@@ -225,7 +230,14 @@
                 const now = new Date();
                 const secondsSince = Math.floor((now - lastDate) / 1000);
 
-                const refreshIn = Math.max(5, REFRESH_INTERVAL - secondsSince);
+                let refreshIn;
+                if (secondsSince < 0) {
+                    // Last entry is in the future; refresh soon to recover
+                    refreshIn = 5;
+                } else {
+                    // Cap refresh interval between 5 and REFRESH_INTERVAL seconds
+                    refreshIn = Math.min(REFRESH_INTERVAL, Math.max(5, REFRESH_INTERVAL - secondsSince));
+                }
 
                 setTimeout(() => location.reload(), refreshIn * 1000);
             }
@@ -280,7 +292,7 @@
             setTimeout(() => location.reload(), 30000);
         });
 
- 
+
 </script>
 </body>
 </html>
