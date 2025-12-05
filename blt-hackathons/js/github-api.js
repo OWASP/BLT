@@ -135,7 +135,7 @@ class GitHubAPI {
         const allPRs = [];
         let page = 1;
         const perPage = 100;
-        const maxPages = 20; // Increased to allow more PRs to be fetched
+        const maxPages = 20;
 
         while (page <= maxPages) {
             const url = `${this.baseURL}/repos/${owner}/${repo}/pulls?state=all&sort=updated&direction=desc&per_page=${perPage}&page=${page}`;
@@ -147,13 +147,16 @@ class GitHubAPI {
                     break;
                 }
 
-                // Filter PRs by date range - only include PRs merged during hackathon
+                // Filter PRs by date range - include ALL PRs within timeframe (merged or not)
                 for (const pr of prs) {
                     const createdAt = new Date(pr.created_at);
                     const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
 
-                    // Only include PRs that were merged during the hackathon timeframe
-                    if (mergedAt && mergedAt >= startDate && mergedAt <= endDate) {
+                    // Include if created during hackathon OR merged during hackathon
+                    const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
+                    const relevantByMerge = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
+
+                    if (relevantByCreation || relevantByMerge) {
                         allPRs.push({
                             ...pr,
                             repository: `${owner}/${repo}`
@@ -332,7 +335,7 @@ class GitHubAPI {
     }
 
     /**
-     * Process PRs and generate statistics
+     * Process PRs and generate statistics - matching Python implementation logic
      */
     processPRData(prs, startDate, endDate) {
         const stats = {
@@ -351,16 +354,30 @@ class GitHubAPI {
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
+        // Group PRs by user
+        const leaderboard = {};
+
         // Process each PR
         prs.forEach(pr => {
-            // Only count PRs that were merged during the hackathon timeframe
+            // Count all PRs in timeframe first
+            const createdAt = new Date(pr.created_at);
             const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
-            if (!mergedAt || mergedAt < startDate || mergedAt > endDate) {
-                return; // Skip PRs not merged in timeframe
+            
+            // Include if created during hackathon OR merged during hackathon
+            const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
+            const relevantByMerge = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
+            
+            if (!relevantByCreation && !relevantByMerge) {
+                return; // Skip PRs not relevant to timeframe
             }
 
             stats.totalPRs++;
-            stats.mergedPRs++; // All PRs here are merged due to filtering above
+            
+            // Only count merged PRs that were merged during hackathon
+            const isMerged = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
+            if (isMerged) {
+                stats.mergedPRs++;
+            }
 
             // Track by user - filter out bots and Copilot
             const username = pr.user.login;
@@ -370,29 +387,45 @@ class GitHubAPI {
                 pr.title.toLowerCase().includes('copilot');
 
             if (!isBot && !isCopilot) {
-                if (!stats.participants.has(username)) {
-                    stats.participants.set(username, {
-                        username: username,
+                // Group by GitHub username
+                const contributorId = `contributor_${username}`;
+
+                if (leaderboard[contributorId]) {
+                    leaderboard[contributorId].count += isMerged ? 1 : 0;
+                    leaderboard[contributorId].prs.push(pr);
+                    if (isMerged) {
+                        leaderboard[contributorId].mergedCount += 1;
+                    }
+                } else {
+                    leaderboard[contributorId] = {
+                        user: {
+                            username: username,
+                            email: "",
+                            id: contributorId,
+                        },
+                        count: isMerged ? 1 : 0,
+                        prs: [pr],
+                        is_contributor: true,
                         avatar: pr.user.avatar_url,
                         url: pr.user.html_url,
-                        prs: [],
-                        mergedCount: 0,
                         reviews: [],
                         reviewCount: 0,
-                        is_contributor: false
-                    });
+                        mergedCount: isMerged ? 1 : 0
+                    };
                 }
-
-                const participant = stats.participants.get(username);
-                participant.prs.push(pr);
-                participant.mergedCount++;
             }
 
-            // Track daily activity based on merge date
-            const mergedDate = new Date(pr.merged_at).toISOString().split('T')[0];
-            if (stats.dailyActivity[mergedDate]) {
-                stats.dailyActivity[mergedDate].total++;
-                stats.dailyActivity[mergedDate].merged++; // All are merged
+            // Track daily activity
+            const createdDate = new Date(pr.created_at).toISOString().split('T')[0];
+            if (stats.dailyActivity[createdDate] && relevantByCreation) {
+                stats.dailyActivity[createdDate].total++;
+            }
+            
+            if (isMerged) {
+                const mergedDate = new Date(pr.merged_at).toISOString().split('T')[0];
+                if (stats.dailyActivity[mergedDate]) {
+                    stats.dailyActivity[mergedDate].merged++;
+                }
             }
 
             // Track repo statistics
@@ -401,14 +434,23 @@ class GitHubAPI {
                 stats.repoStats[repo] = { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             }
             stats.repoStats[repo].total++;
-            stats.repoStats[repo].merged++; // All PRs here are merged
+            if (isMerged) {
+                stats.repoStats[repo].merged++;
+            }
+        });
+
+        // Convert leaderboard object to Map for consistency with existing code
+        Object.values(leaderboard).forEach(participant => {
+            // Update mergedCount to match count
+            participant.mergedCount = participant.count;
+            stats.participants.set(participant.user.username, participant);
         });
 
         return stats;
     }
 
     /**
-     * Process review data and integrate with participant stats
+     * Process review data and integrate with participant stats - matching Python logic
      */
     processReviewData(reviews, participants) {
         reviews.forEach(review => {
@@ -417,16 +459,22 @@ class GitHubAPI {
             const isCopilot = username.toLowerCase().includes('copilot');
 
             if (!isBot && !isCopilot && review.state !== 'DISMISSED') {
+                // Use same contributor ID format as PR processing
                 if (!participants.has(username)) {
                     participants.set(username, {
-                        username: username,
+                        user: {
+                            username: username,
+                            email: "",
+                            id: `contributor_${username}`,
+                        },
+                        count: 0,
+                        prs: [],
+                        is_contributor: true,
                         avatar: review.user.avatar_url,
                         url: review.user.html_url,
-                        prs: [],
-                        mergedCount: 0,
                         reviews: [],
                         reviewCount: 0,
-                        is_contributor: true
+                        mergedCount: 0
                     });
                 }
 
@@ -441,22 +489,53 @@ class GitHubAPI {
     }
 
     /**
-     * Generate leaderboard from participants
+     * Generate leaderboard from participants - matching Python return structure
      */
     generateLeaderboard(participants, limit = 10) {
+        console.log("part", participants);
         return Array.from(participants.values())
             .filter(p => p.mergedCount > 0) // Only show participants with merged PRs
             .sort((a, b) => b.mergedCount - a.mergedCount)
-            .slice(0, limit);
+            .slice(0, limit)
+            .map(p => ({
+                user: p.user || {
+                    username: p.username,
+                    email: "",
+                    id: p.user?.id || `contributor_${p.username}`
+                },
+                count: p.mergedCount,
+                prs: p.prs,
+                is_contributor: p.is_contributor,
+                // Keep original structure for rendering
+                username: p.user?.username || p.username,
+                avatar: p.avatar,
+                url: p.url,
+                mergedCount: p.mergedCount
+            }));
     }
 
     /**
-     * Generate review leaderboard from participants
+     * Generate review leaderboard from participants - matching Python return structure
      */
     generateReviewLeaderboard(participants, limit = 10) {
         return Array.from(participants.values())
             .filter(p => p.reviewCount > 0) // Only show participants with reviews
             .sort((a, b) => b.reviewCount - a.reviewCount)
-            .slice(0, limit);
+            .slice(0, limit)
+            .map(p => ({
+                user: p.user || {
+                    username: p.username,
+                    email: "",
+                    id: p.user?.id || `contributor_${p.username}`
+                },
+                count: p.reviewCount,
+                reviews: p.reviews,
+                is_contributor: p.is_contributor,
+                // Keep original structure for rendering
+                username: p.user?.username || p.username,
+                avatar: p.avatar,
+                url: p.url,
+                reviewCount: p.reviewCount
+            }));
     }
 }
