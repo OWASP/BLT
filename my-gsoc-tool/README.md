@@ -330,8 +330,9 @@ If you encounter issues or have questions:
 The following users have forked this project:
 
 - [mdkaifansari04/MY-GSOC-TOOL](https://github.com/mdkaifansari04/MY-GSOC-TOOL) - ⭐ 0 stars
+- [Nachiket-Roy/MY-GSOC-TOOL](https://github.com/Nachiket-Roy/MY-GSOC-TOOL) - ⭐ 0 stars
 
-_Last updated: 2025-12-04 00:21:45 UTC_
+_Last updated: 2025-12-05 00:22:04 UTC_
 <!-- FORKS_END -->
 
 ---
