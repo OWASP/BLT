@@ -141,11 +141,6 @@ jobs:
                 <div class="flex items-center justify-center gap-1.5 text-sm sm:text-base">
                   <span class="text-gray-600"><i class="fa-solid fa-key"></i> Keyword</span>
                   <span id="keyword-badge" class="inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium"></span>
-                  <span id="refresh-timer" class="text-blue-600 font-medium"></span>
-                </div>
-                <div id="refresh-bar-container" class="relative w-full h-3 bg-slate-200 rounded-full overflow-hidden mt-2">
-                  <div id="refresh-bar" class="absolute left-0 top-0 h-full w-full bg-blue-600 transition-all duration-1000 ease-linear"></div>
-                  <div id="refresh-glaze" class="absolute top-0 left-0 h-full w-[30px] pointer-events-none"></div>
                 </div>
               </div>
               <div class="bg-slate-100 rounded-lg p-2 sm:p-2.5 px-1.5 pt-2.5 pb-1 my-2.5">
@@ -230,17 +225,12 @@ jobs:
                   keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800';
               }
 
-              // Parse status.csv for chart, table, and refresh timer
+              // Parse status.csv for chart and table
               function parseCSV(csv) {
                   const lines = csv.trim().split('\n');
                   // Remove all header rows if present
                   return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
               }
-              let REFRESH_INTERVAL = 300; // seconds (5 minutes)
-              let secondsLeft = REFRESH_INTERVAL;
-              const timer = document.getElementById('refresh-timer');
-              const bar = document.getElementById('refresh-bar');
-              const glaze = document.getElementById('refresh-glaze');
               fetch('status.csv').then(r => r.text()).then(csv => {
                   const rows = parseCSV(csv);
                   // Chart data
@@ -287,40 +277,7 @@ jobs:
                   const minTime = Math.min(...responseTimes);
                   const maxTime = Math.max(...responseTimes);
                   document.getElementById('resp-min-max').textContent = `${minTime.toLocaleString()}ms | ${maxTime.toLocaleString()}ms`;
-                  // Refresh timer based on latest entry
-                  if (rows.length > 0) {
-                      const lastDate = new Date(rows[rows.length-1][0]);
-                      const now = new Date();
-                      const secondsSinceLast = Math.floor((now - lastDate) / 1000);
-                      // If more than 5 minutes have passed, start at 5 minutes
-                      secondsLeft = secondsSinceLast >= REFRESH_INTERVAL ? REFRESH_INTERVAL : Math.max(0, REFRESH_INTERVAL - secondsSinceLast);
-                  }
               });
-              function updateBar() {
-                  secondsLeft--;
-                  if (secondsLeft <= 0) {
-                      secondsLeft = REFRESH_INTERVAL; // Reset to 5 minutes
-                      location.reload();
-                  }
-                  const percent = (secondsLeft / REFRESH_INTERVAL) * 100;
-                  bar.style.width = percent + '%';
-                  const min = Math.floor(secondsLeft / 60);
-                  const sec = secondsLeft % 60;
-                  timer.textContent = `checking in: ${min}:${sec.toString().padStart(2, '0')}`;
-                  // Glaze effect: animate left to right every second
-                  glaze.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.0) 100%)';
-                  glaze.style.left = '0';
-                  glaze.style.transition = 'none';
-                  setTimeout(() => {
-                      glaze.style.transition = 'left 0.8s cubic-bezier(0.4,0,0.2,1)';
-                      glaze.style.left = `${percent}%`;
-                  }, 10);
-                  setTimeout(() => {
-                      glaze.style.transition = 'none';
-                      glaze.style.left = '0';
-                  }, 900);
-              }
-              setInterval(updateBar, 1000);
           </script>
           </body>
           </html>
