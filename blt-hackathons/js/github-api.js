@@ -33,7 +33,8 @@ class GitHubAPI {
             const cached = this.cache.get(url);
             const age = Date.now() - cached.timestamp;
             // Cache for 5 minutes
-            if (age < 5 * 60 * 1000) {
+            //  if (age < 5 * 60 * 1000) {
+            if (age < 1000) {
                 return cached.data;
             }
         }
@@ -77,22 +78,26 @@ class GitHubAPI {
     async fetchIssues(owner, repo, startDate, endDate) {
         const allIssues = [];
         let page = 1;
-        const perPage = 100;
+        const perPage = 100; // GitHub max is 100
         const maxPages = 20;
 
         while (page <= maxPages) {
-            const url = `${this.baseURL}/repos/${owner}/${repo}/issues?state=all&sort=updated&direction=desc&per_page=${perPage}&page=${page}`;
+            // Sort by CREATED (not updated) to get chronological order
+            const url = `${this.baseURL}/repos/${owner}/${repo}/issues?state=all&sort=created&direction=desc&per_page=${perPage}&page=${page}`;
 
             try {
                 const issues = await this.makeRequest(url);
+                console.log(`Page ${page} - Fetched ${issues.length} issues`);
 
                 if (!issues || issues.length === 0) {
+                    console.log("No more issues to fetch");
                     break;
                 }
 
-                // Filter issues by date range and exclude pull requests
+                let foundOldIssue = false;
+
                 for (const issue of issues) {
-                    // Skip pull requests (they have a pull_request property)
+                    // Skip pull requests (GitHub API returns PRs as issues)
                     if (issue.pull_request) {
                         continue;
                     }
@@ -100,7 +105,7 @@ class GitHubAPI {
                     const createdAt = new Date(issue.created_at);
                     const closedAt = issue.closed_at ? new Date(issue.closed_at) : null;
 
-                    // Include if created or closed during hackathon
+                    // Check if issue is relevant by creation OR close date
                     const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
                     const relevantByClosure = closedAt && closedAt >= startDate && closedAt <= endDate;
 
@@ -111,11 +116,17 @@ class GitHubAPI {
                         });
                     }
 
-                    // If issues are too old, stop fetching
-                    if (createdAt < startDate && (!closedAt || closedAt < startDate)) {
-                        page = maxPages + 1; // Break outer loop
+                    // Early exit: If issue was created before startDate, we've gone too far back
+                    // (since we're sorting by created date descending)
+                    if (createdAt < startDate) {
+                        console.log(`Found issue created before ${startDate.toISOString()}, stopping pagination`);
+                        foundOldIssue = true;
                         break;
                     }
+                }
+
+                if (foundOldIssue) {
+                    break; // Exit while loop
                 }
 
                 page++;
@@ -124,6 +135,9 @@ class GitHubAPI {
                 break;
             }
         }
+
+        console.log(`Total relevant issues found: ${allIssues.length}`);
+        console.log("all issues", allIssues);
 
         return allIssues;
     }
@@ -134,25 +148,30 @@ class GitHubAPI {
     async fetchPullRequests(owner, repo, startDate, endDate) {
         const allPRs = [];
         let page = 1;
-        const perPage = 100;
+        const perPage = 100; // max is 100 item per page
         const maxPages = 20;
+        startDate = new Date(startDate);
+        endDate = new Date(endDate);
 
         while (page <= maxPages) {
-            const url = `${this.baseURL}/repos/${owner}/${repo}/pulls?state=all&sort=updated&direction=desc&per_page=${perPage}&page=${page}`;
+            // Sort by CREATED (not updated) to get chronological order
+            const url = `${this.baseURL}/repos/${owner}/${repo}/pulls?state=all&sort=created&direction=desc&per_page=${perPage}&page=${page}`;
 
             try {
                 const prs = await this.makeRequest(url);
 
                 if (!prs || prs.length === 0) {
+                    console.log("No more PRs to fetch");
                     break;
                 }
 
-                // Filter PRs by date range - include ALL PRs within timeframe (merged or not)
+                let foundOldPR = false;
+
                 for (const pr of prs) {
                     const createdAt = new Date(pr.created_at);
                     const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
 
-                    // Include if created during hackathon OR merged during hackathon
+                    // Check if PR is relevant by creation OR merge date
                     const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
                     const relevantByMerge = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
 
@@ -163,11 +182,17 @@ class GitHubAPI {
                         });
                     }
 
-                    // If PRs are too old, stop fetching
-                    if (createdAt < startDate && (!mergedAt || mergedAt < startDate)) {
-                        page = maxPages + 1; // Break outer loop
+                    // Early exit: If PR was created before startDate, we've gone too far back
+                    // (since we're sorting by created date descending)
+                    if (createdAt < startDate) {
+                        console.log(`Found PR created before ${startDate.toISOString()}, stopping pagination`);
+                        foundOldPR = true;
                         break;
                     }
+                }
+
+                if (foundOldPR) {
+                    break; // Exit while loop
                 }
 
                 page++;
@@ -176,7 +201,6 @@ class GitHubAPI {
                 break;
             }
         }
-
         return allPRs;
     }
 
@@ -276,6 +300,8 @@ class GitHubAPI {
 
         const results = await Promise.allSettled(promises);
 
+        console.log("results", results);
+
         // Combine all successful results
         const allPRs = [];
         results.forEach((result, index) => {
@@ -339,45 +365,31 @@ class GitHubAPI {
      */
     processPRData(prs, startDate, endDate) {
         const stats = {
-            totalPRs: 0,
+            totalPRs: prs.length,
             mergedPRs: 0,
             participants: new Map(),
             dailyActivity: {},
             repoStats: {}
         };
 
-        // Initialize daily activity for date range
-        const currentDate = new Date(startDate);
-        while (currentDate <= endDate) {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            stats.dailyActivity[dateStr] = { total: 0, merged: 0 };
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
+        startDate = new Date(startDate);
+        endDate = new Date(endDate);
 
         // Group PRs by user
         const leaderboard = {};
 
         // Process each PR
         prs.forEach(pr => {
-            // Count all PRs in timeframe first
-            const createdAt = new Date(pr.created_at);
             const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
-            
-            // Include if created during hackathon OR merged during hackathon
-            const relevantByCreation = createdAt >= startDate && createdAt <= endDate;
+            const isMerged = !!mergedAt;
+            // Include if merged during hackathon
             const relevantByMerge = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
-            
-            if (!relevantByCreation && !relevantByMerge) {
+
+            if (!relevantByMerge) {
                 return; // Skip PRs not relevant to timeframe
             }
 
-            stats.totalPRs++;
-            
-            // Only count merged PRs that were merged during hackathon
-            const isMerged = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
-            if (isMerged) {
-                stats.mergedPRs++;
-            }
+            stats.mergedPRs++;
 
             // Track by user - filter out bots and Copilot
             const username = pr.user.login;
@@ -391,7 +403,7 @@ class GitHubAPI {
                 const contributorId = `contributor_${username}`;
 
                 if (leaderboard[contributorId]) {
-                    leaderboard[contributorId].count += isMerged ? 1 : 0;
+                    leaderboard[contributorId].count += 1; // Count ALL PRs
                     leaderboard[contributorId].prs.push(pr);
                     if (isMerged) {
                         leaderboard[contributorId].mergedCount += 1;
@@ -403,7 +415,7 @@ class GitHubAPI {
                             email: "",
                             id: contributorId,
                         },
-                        count: isMerged ? 1 : 0,
+                        count: 1, // Count ALL PRs
                         prs: [pr],
                         is_contributor: true,
                         avatar: pr.user.avatar_url,
@@ -420,7 +432,7 @@ class GitHubAPI {
             if (stats.dailyActivity[createdDate] && relevantByCreation) {
                 stats.dailyActivity[createdDate].total++;
             }
-            
+
             if (isMerged) {
                 const mergedDate = new Date(pr.merged_at).toISOString().split('T')[0];
                 if (stats.dailyActivity[mergedDate]) {
@@ -441,8 +453,7 @@ class GitHubAPI {
 
         // Convert leaderboard object to Map for consistency with existing code
         Object.values(leaderboard).forEach(participant => {
-            // Update mergedCount to match count
-            participant.mergedCount = participant.count;
+            // Don't overwrite mergedCount - keep it separate from total count
             stats.participants.set(participant.user.username, participant);
         });
 
@@ -492,7 +503,7 @@ class GitHubAPI {
      * Generate leaderboard from participants - matching Python return structure
      */
     generateLeaderboard(participants, limit = 10) {
-        console.log("part", participants);
+        console.log("leader part", participants);
         return Array.from(participants.values())
             .filter(p => p.mergedCount > 0) // Only show participants with merged PRs
             .sort((a, b) => b.mergedCount - a.mergedCount)
