@@ -33,8 +33,7 @@ class GitHubAPI {
             const cached = this.cache.get(url);
             const age = Date.now() - cached.timestamp;
             // Cache for 5 minutes
-            //  if (age < 5 * 60 * 1000) {
-            if (age < 1000) {
+            if (age < 5 * 60 * 1000) {
                 return cached.data;
             }
         }
@@ -414,6 +413,7 @@ class GitHubAPI {
 
             // Track daily activity
             const createdDate = new Date(pr.created_at).toISOString().split('T')[0];
+            const relevantByCreation = new Date(pr.created_at) >= startDate && new Date(pr.created_at) <= endDate;
             if (stats.dailyActivity[createdDate] && relevantByCreation) {
                 stats.dailyActivity[createdDate].total++;
             }
