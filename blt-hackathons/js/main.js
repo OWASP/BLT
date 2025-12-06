@@ -217,8 +217,6 @@ class HackathonDashboard {
     }
 
     renderReviewLeaderBoard(participants) {
-        console.log("participants", participants);
-
         const reviewLeaderboard = this.api.generateReviewLeaderboard(
             participants,
             this.config.display.maxLeaderboardEntries
@@ -258,7 +256,7 @@ class HackathonDashboard {
                                 <div class="flex items-center text-xs text-gray-500 mt-1">
                                     <span class="flex items-center">
                                         <i class="fas fa-eye mr-1"></i>
-                                        ${review.repository}
+                                         ${this.escapeHtml(review.repository)}
                                     </span>
                                     <span class="mx-2">•</span>
                                     <span class="flex items-center">

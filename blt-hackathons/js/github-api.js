@@ -87,7 +87,6 @@ class GitHubAPI {
             try {
                 const issues = await this.makeRequest(url);
                 if (!issues || issues.length === 0) {
-                    console.log("No more issues to fetch");
                     break;
                 }
 
@@ -152,7 +151,6 @@ class GitHubAPI {
                 const prs = await this.makeRequest(url);
 
                 if (!prs || prs.length === 0) {
-                    console.log("No more PRs to fetch");
                     break;
                 }
 
@@ -176,7 +174,6 @@ class GitHubAPI {
                     // Early exit: If PR was created before startDate, we've gone too far back
                     // (since we're sorting by created date descending)
                     if (createdAt < startDate) {
-                        console.log(`Found PR created before ${startDate.toISOString()}, stopping pagination`);
                         foundOldPR = true;
                         break;
                     }
@@ -232,25 +229,28 @@ class GitHubAPI {
 
         for (const repoPath of repositories) {
             const [owner, repo] = repoPath.split('/');
-
             const prs = await this.fetchPullRequests(owner, repo, startDate, endDate);
 
-            for (const pr of prs) {
-                const reviews = await this.fetchReviews(owner, repo, pr.number);
+            // Parallelize review fetching for all PRs
+            const reviewPromises = prs.map(pr => this.fetchReviews(owner, repo, pr.number));
+            const reviewResults = await Promise.allSettled(reviewPromises);
 
-                for (const review of reviews) {
-                    const submittedAt = new Date(review.submitted_at);
-
-                    if (submittedAt >= startDate && submittedAt <= endDate) {
-                        allReviews.push({
-                            ...review,
-                            repository: `${owner}/${repo}`,
-                            pull_request_title: pr.title,
-                            pull_request_url: pr.html_url
-                        });
-                    }
+            reviewResults.forEach((result, index) => {
+                if (result.status === 'fulfilled') {
+                    const pr = prs[index];
+                    result.value.forEach(review => {
+                        const submittedAt = new Date(review.submitted_at);
+                        if (submittedAt >= startDate && submittedAt <= endDate) {
+                            allReviews.push({
+                                ...review,
+                                repository: repoPath,
+                                pull_request_title: pr.title,
+                                pull_request_url: pr.html_url
+                            });
+                        }
+                    });
                 }
-            }
+            });
         }
 
         return allReviews;
@@ -290,8 +290,6 @@ class GitHubAPI {
         });
 
         const results = await Promise.allSettled(promises);
-
-        console.log("results", results);
 
         // Combine all successful results
         const allPRs = [];
@@ -409,6 +407,14 @@ class GitHubAPI {
                         mergedCount: isMerged ? 1 : 0
                     };
                 }
+            }
+
+            // Initialize daily activity for date range
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                stats.dailyActivity[dateStr] = { total: 0, merged: 0 };
+                currentDate.setDate(currentDate.getDate() + 1);
             }
 
             // Track daily activity
