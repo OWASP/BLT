@@ -87,15 +87,12 @@ class GitHubAPI {
 
             try {
                 const issues = await this.makeRequest(url);
-                console.log(`Page ${page} - Fetched ${issues.length} issues`);
-
                 if (!issues || issues.length === 0) {
                     console.log("No more issues to fetch");
                     break;
                 }
 
                 let foundOldIssue = false;
-
                 for (const issue of issues) {
                     // Skip pull requests (GitHub API returns PRs as issues)
                     if (issue.pull_request) {
@@ -119,7 +116,6 @@ class GitHubAPI {
                     // Early exit: If issue was created before startDate, we've gone too far back
                     // (since we're sorting by created date descending)
                     if (createdAt < startDate) {
-                        console.log(`Found issue created before ${startDate.toISOString()}, stopping pagination`);
                         foundOldIssue = true;
                         break;
                     }
@@ -135,10 +131,6 @@ class GitHubAPI {
                 break;
             }
         }
-
-        console.log(`Total relevant issues found: ${allIssues.length}`);
-        console.log("all issues", allIssues);
-
         return allIssues;
     }
 
@@ -371,7 +363,6 @@ class GitHubAPI {
             dailyActivity: {},
             repoStats: {}
         };
-
         startDate = new Date(startDate);
         endDate = new Date(endDate);
 
@@ -380,16 +371,10 @@ class GitHubAPI {
 
         // Process each PR
         prs.forEach(pr => {
-            const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
-            const isMerged = !!mergedAt;
-            // Include if merged during hackathon
-            const relevantByMerge = mergedAt && mergedAt >= startDate && mergedAt <= endDate;
-
-            if (!relevantByMerge) {
-                return; // Skip PRs not relevant to timeframe
+            const isMerged = pr.merged_at !== null;
+            if (isMerged) {
+                stats.mergedPRs++;
             }
-
-            stats.mergedPRs++;
 
             // Track by user - filter out bots and Copilot
             const username = pr.user.login;
@@ -503,7 +488,6 @@ class GitHubAPI {
      * Generate leaderboard from participants - matching Python return structure
      */
     generateLeaderboard(participants, limit = 10) {
-        console.log("leader part", participants);
         return Array.from(participants.values())
             .filter(p => p.mergedCount > 0) // Only show participants with merged PRs
             .sort((a, b) => b.mergedCount - a.mergedCount)
