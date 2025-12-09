@@ -108,7 +108,7 @@ export function renderMentorInfo(config) {
                 const mentorIndex = e.target.getAttribute("data-mentor-index");
                 const field = e.target.getAttribute("data-field");
                 if (mentorIndex !== null && field) {
-                    localConfig.mentors[mentorIndex][field] = e.target.value;
+                    localConfig.mentors[parseInt(mentorIndex, 10)][field] = e.target.value;
                 }
             });
         }
