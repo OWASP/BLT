@@ -22,6 +22,11 @@ export function renderMentorInfo(config) {
         feedback: config.feedback || []
     }
 
+    // Helper function to get default mentor name
+    const getDefaultMentorName = () => {
+        return (localConfig.mentors[0] && localConfig.mentors[0].name) || '';
+    };
+
     feedback.forEach((item) => {
         if (!item._id) {
             item._id = Date.now() + Math.random();
@@ -44,7 +49,7 @@ export function renderMentorInfo(config) {
             feedbackList.innerHTML = feedback.map(item => `
                 <div class="feedback-item">
                     <div class="feedback-header">
-                        <strong>${item.from || (localConfig.mentors[0] && localConfig.mentors[0].name) || ''}</strong>
+                        <strong>${item.from || getDefaultMentorName()}</strong>
                         <span class="feedback-date">${formatDate(item.date)}</span>
                     </div>
                     <div class="feedback-content">${item.content}</div>
@@ -107,8 +112,11 @@ export function renderMentorInfo(config) {
             mentorForm.addEventListener("input", (e) => {
                 const mentorIndex = e.target.getAttribute("data-mentor-index");
                 const field = e.target.getAttribute("data-field");
-                if (mentorIndex !== null && field) {
-                    localConfig.mentors[parseInt(mentorIndex, 10)][field] = e.target.value;
+                if (mentorIndex != null && mentorIndex !== '' && field) {
+                    const index = parseInt(mentorIndex, 10);
+                    if (!isNaN(index) && localConfig.mentors[index]) {
+                        localConfig.mentors[index][field] = e.target.value;
+                    }
                 }
             });
         }
@@ -182,7 +190,7 @@ export function renderMentorInfo(config) {
         if (e.target.id === "addFeedback") {
             feedback.push({
                 _id: Date.now() + Math.random(),
-                from: (localConfig.mentors[0] && localConfig.mentors[0].name) || '',
+                from: getDefaultMentorName(),
                 date: "",
                 content: ""
             });
