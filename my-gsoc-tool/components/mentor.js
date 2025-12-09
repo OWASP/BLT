@@ -112,9 +112,9 @@ export function renderMentorInfo(config) {
             mentorForm.addEventListener("input", (e) => {
                 const mentorIndex = e.target.getAttribute("data-mentor-index");
                 const field = e.target.getAttribute("data-field");
-                if (mentorIndex != null && mentorIndex !== '' && field) {
+                if (mentorIndex && field) {
                     const index = parseInt(mentorIndex, 10);
-                    if (!isNaN(index) && localConfig.mentors[index]) {
+                    if (!isNaN(index) && index >= 0 && index < localConfig.mentors.length) {
                         localConfig.mentors[index][field] = e.target.value;
                     }
                 }
