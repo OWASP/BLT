@@ -1,10 +1,18 @@
 {
-  "mentor": {
-    "avatar": "assets/images/sample-mentor.svg",
-    "name": "Mentor Name",
-    "role": "Project Mentor",
-    "email": "mentor@example.com"
-  },
+  "mentors": [
+    {
+      "avatar": "assets/images/sample-mentor.svg",
+      "name": "Mentor Name",
+      "role": "Project Mentor",
+      "email": "mentor@example.com"
+    },
+    {
+      "avatar": "assets/images/sample-mentor.svg",
+      "name": "Mentor Name 2",
+      "role": "Co-Mentor",
+      "email": "mentor2@example.com"
+    }
+  ],
   "feedback": [
     {
       "from": "Mentor Name",
