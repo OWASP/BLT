@@ -52,11 +52,18 @@ jobs:
             keyword_status="not_found"
           fi
 
-          if [ "$keyword_status" == "found" ]; then
+          # Check for Cloudflare captcha message
+          cloudflare_captcha=false
+          if echo "$content" | grep -qi "Verify you are human by completing the action below"; then
+            cloudflare_captcha=true
+          fi
+
+          # Success if keyword found OR Cloudflare captcha detected (site is live)
+          if [ "$keyword_status" == "found" ] || [ "$cloudflare_captcha" == "true" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
             echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
-            echo "keyword_status=found" >> $GITHUB_OUTPUT
+            echo "keyword_status=$keyword_status" >> $GITHUB_OUTPUT
           else
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
