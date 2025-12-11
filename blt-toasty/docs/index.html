@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Toasty - The smart, context aware AI code reviewer from OWASP BLT">
+    <meta name="keywords" content="OWASP, BLT, AI, code review, security, Django, Python">
+    <title>Toasty - AI Code Reviewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <h1>🍞 Toasty</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#getting-started">Getting Started</a></li>
+                    <li><a href="#documentation">Documentation</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Toasty</h1>
+                    <p class="hero-subtitle">The smart, context aware AI code reviewer from OWASP BLT</p>
+                    <div class="hero-buttons">
+                        <a href="https://github.com/OWASP-BLT/Toasty" class="btn btn-primary" target="_blank">View on GitHub</a>
+                        <a href="#getting-started" class="btn btn-secondary">Get Started</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI-Powered Reviews</h3>
+                        <p>Leverage advanced AI to provide intelligent, context-aware code reviews that understand your codebase.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Security Focused</h3>
+                        <p>Built by OWASP BLT with security best practices in mind. Identify vulnerabilities and security issues automatically.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast & Efficient</h3>
+                        <p>Quick analysis and feedback to keep your development workflow smooth and productive.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h3>Easy Integration</h3>
+                        <p>Seamlessly integrates with your existing workflow using Django and modern Python tools.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Context Aware</h3>
+                        <p>Understands the full context of your code changes, not just individual lines.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>Open Source</h3>
+                        <p>Fully open source and community-driven. Contribute and customize to fit your needs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="getting-started" class="getting-started">
+            <div class="container">
+                <h2 class="section-title">Getting Started</h2>
+                <div class="getting-started-content">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Clone the Repository</h3>
+                            <pre><code>git clone https://github.com/OWASP-BLT/Toasty.git
+cd Toasty</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Install Dependencies</h3>
+                            <pre><code>poetry install</code></pre>
+                            <p>Make sure you have Python 3.13+ and Poetry installed on your system.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Configure Environment</h3>
+                            <pre><code>cp .env.example .env
+# Edit .env with your configuration</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Run the Application</h3>
+                            <pre><code>python manage.py migrate
+python manage.py runserver</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="documentation" class="documentation">
+            <div class="container">
+                <h2 class="section-title">Documentation</h2>
+                <div class="doc-grid">
+                    <div class="doc-card">
+                        <h3>📚 Core Features</h3>
+                        <ul>
+                            <li>AI-powered code analysis using Google Gemini</li>
+                            <li>Vector database integration with Qdrant</li>
+                            <li>Security scanning with Bandit</li>
+                            <li>Asynchronous task processing with Celery</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>🛠️ Technology Stack</h3>
+                        <ul>
+                            <li><strong>Framework:</strong> Django 5.2+</li>
+                            <li><strong>AI/ML:</strong> LangChain, Google GenAI</li>
+                            <li><strong>Database:</strong> Qdrant (Vector DB)</li>
+                            <li><strong>Task Queue:</strong> Celery with Redis</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>🤝 Contributing</h3>
+                        <p>We welcome contributions! Check out our GitHub repository for:</p>
+                        <ul>
+                            <li>Issue tracking and bug reports</li>
+                            <li>Feature requests</li>
+                            <li>Pull request guidelines</li>
+                            <li>Development setup instructions</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>📖 Resources</h3>
+                        <ul>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub Repository</a></li>
+                            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank">OWASP BLT Project</a></li>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank">Report Issues</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about">
+            <div class="container">
+                <h2 class="section-title">About OWASP BLT</h2>
+                <p class="about-text">
+                    Toasty is part of the OWASP Bug Logging Tool (BLT) project, which aims to provide
+                    open-source security tools and resources for developers worldwide. The OWASP Foundation
+                    is a nonprofit organization dedicated to improving the security of software.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🍞 Toasty</h3>
+                    <p>The smart, context aware AI code reviewer from OWASP BLT</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub</a></li>
+                        <li><a href="https://owasp.org/" target="_blank">OWASP Foundation</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank">Issues</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>License</h4>
+                    <p>Open Source - Check repository for license details</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 OWASP BLT. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

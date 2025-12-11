@@ -1,0 +1,5 @@
+# GitHub Pages configuration
+# This file tells GitHub Pages not to process files with Jekyll
+
+# Disable Jekyll processing
+markdown: kramdown
