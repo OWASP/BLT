@@ -1,0 +1,54 @@
+# Wrangler configuration for Toasty Cloudflare Worker
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "toasty-backend"
+main = "worker.py"
+compatibility_date = "2024-12-10"
+
+# Python Workers configuration
+# Cloudflare Workers supports Python through the Python Workers runtime
+[build]
+command = ""
+
+# Environment variables
+[env.production]
+name = "toasty-backend-prod"
+
+[env.staging]
+name = "toasty-backend-staging"
+
+[env.development]
+name = "toasty-backend-dev"
+
+# Worker settings
+workers_dev = true
+route = ""
+zone_id = ""
+
+# Specify that this is a Python worker
+compatibility_flags = ["python_workers"]
+
+# Routes for the worker (configure based on your domain)
+# [[routes]]
+# pattern = "api.toasty.example.com/*"
+# zone_name = "example.com"
+
+# KV Namespaces for storage (if needed)
+# [[kv_namespaces]]
+# binding = "TOASTY_KV"
+# id = ""
+
+# Durable Objects (if needed for stateful operations)
+# [[durable_objects.bindings]]
+# name = "TOASTY_DO"
+# class_name = "ToastyDurableObject"
+
+# R2 Buckets (if needed for file storage)
+# [[r2_buckets]]
+# binding = "TOASTY_BUCKET"
+# bucket_name = "toasty-files"
+
+# Environment variables (secrets should be set via wrangler secret put)
+[vars]
+ENVIRONMENT = "development"
+LOG_LEVEL = "info"
