@@ -222,7 +222,7 @@ section {
 }
 
 .step-content code {
-    font-family: 'Courier New', monospace;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
     color: var(--text-color);
 }
 
