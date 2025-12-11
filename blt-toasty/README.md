@@ -60,7 +60,7 @@ For detailed information, see [cloudflare-worker/README.md](cloudflare-worker/RE
 
 ### Prerequisites
 
-- Python 3.13+
+- Python >=3.13,<4.0.0
 - Poetry (for Django app)
 - Node.js and npm (for Cloudflare Worker)
 - Wrangler CLI (for Cloudflare Worker deployment)

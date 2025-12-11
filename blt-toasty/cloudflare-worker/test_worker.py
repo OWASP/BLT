@@ -10,23 +10,51 @@ import json
 
 def test_route_parsing():
     """Test URL path parsing logic."""
+    def parse_path(url):
+        """Parse path from URL (matching worker.py logic)."""
+        url_without_protocol = url.split('://', 1)[1] if '://' in url else url
+        path_start = url_without_protocol.find('/')
+        
+        if path_start == -1:
+            path = '/'
+        else:
+            path_with_query = url_without_protocol[path_start:]
+            path = path_with_query.split('?')[0].split('#')[0]
+            if not path.startswith('/'):
+                path = '/' + path
+            if len(path) > 1 and path.endswith('/'):
+                path = path[:-1]
+        return path
+    
     # Test case 1: Root path
     url1 = "https://toasty.example.workers.dev/"
-    parts1 = url1.split('/')
-    path1 = '/' + '/'.join(parts1[3:]) if len(parts1) > 3 else '/'
+    path1 = parse_path(url1)
     assert path1 == '/', f"Expected '/', got '{path1}'"
     
     # Test case 2: Health endpoint
     url2 = "https://toasty.example.workers.dev/health"
-    parts2 = url2.split('/')
-    path2 = '/' + '/'.join(parts2[3:]) if len(parts2) > 3 else '/'
+    path2 = parse_path(url2)
     assert path2 == '/health', f"Expected '/health', got '{path2}'"
     
     # Test case 3: API endpoint
     url3 = "https://toasty.example.workers.dev/api/review"
-    parts3 = url3.split('/')
-    path3 = '/' + '/'.join(parts3[3:]) if len(parts3) > 3 else '/'
+    path3 = parse_path(url3)
     assert path3 == '/api/review', f"Expected '/api/review', got '{path3}'"
+    
+    # Test case 4: URL with query parameters
+    url4 = "https://toasty.example.workers.dev/api/status?debug=true"
+    path4 = parse_path(url4)
+    assert path4 == '/api/status', f"Expected '/api/status', got '{path4}'"
+    
+    # Test case 5: URL with fragment
+    url5 = "https://toasty.example.workers.dev/health#section"
+    path5 = parse_path(url5)
+    assert path5 == '/health', f"Expected '/health', got '{path5}'"
+    
+    # Test case 6: URL with trailing slash
+    url6 = "https://toasty.example.workers.dev/api/review/"
+    path6 = parse_path(url6)
+    assert path6 == '/api/review', f"Expected '/api/review', got '{path6}'"
     
     print("✓ All route parsing tests passed")
 

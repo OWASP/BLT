@@ -25,13 +25,24 @@ async def on_fetch(request, env):
     
     # Parse the URL to get the path
     try:
-        # Extract path from URL
-        url_parts = url.split('/')
-        # Get path after domain (format: https://domain.com/path)
-        if len(url_parts) > 3:
-            path = '/' + '/'.join(url_parts[3:])
-        else:
+        # Extract path from URL (handle query params and fragments)
+        # Format: https://domain.com/path?query#fragment
+        url_without_protocol = url.split('://', 1)[1] if '://' in url else url
+        path_start = url_without_protocol.find('/')
+        
+        if path_start == -1:
             path = '/'
+        else:
+            # Get everything after the domain
+            path_with_query = url_without_protocol[path_start:]
+            # Remove query parameters and fragments
+            path = path_with_query.split('?')[0].split('#')[0]
+            # Ensure path starts with /
+            if not path.startswith('/'):
+                path = '/' + path
+            # Remove trailing slash for consistent matching (except root)
+            if len(path) > 1 and path.endswith('/'):
+                path = path[:-1]
     except Exception as e:
         return create_error_response(f"Error parsing URL: {str(e)}", 500)
     
