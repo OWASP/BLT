@@ -302,6 +302,13 @@ body {
 }
 
 /* Mentor Section */
+#mentor-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
 .mentor-card {
     display: flex;
     align-items: center;
@@ -309,7 +316,6 @@ body {
     padding: 20px;
     background: var(--bg-color);
     border-radius: 12px;
-    margin-bottom: 25px;
 }
 
 .mentor-avatar {

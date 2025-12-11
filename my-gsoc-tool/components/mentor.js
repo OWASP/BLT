@@ -9,15 +9,23 @@ export function renderMentorInfo(config) {
 
     if (!feedback) feedback = [];
 
+    // Support both old single mentor format and new mentors array format
+    const mentors = config.mentors || (config.mentor ? [config.mentor] : []);
+    
     const localConfig = {
-        mentor: {
-            avatar: config.mentor.avatar,
-            name: config.mentor.name,
-            role: config.mentor.role,
-            email: config.mentor.email,
-        },
+        mentors: mentors.map(mentor => ({
+            avatar: mentor.avatar,
+            name: mentor.name,
+            role: mentor.role,
+            email: mentor.email,
+        })),
         feedback: config.feedback || []
     }
+
+    // Helper function to get default mentor name
+    const getDefaultMentorName = () => {
+        return (localConfig.mentors[0] && localConfig.mentors[0].name) || '';
+    };
 
     feedback.forEach((item) => {
         if (!item._id) {
@@ -26,22 +34,22 @@ export function renderMentorInfo(config) {
     });
 
     if (!IS_EDITABLE) {
-        mentorDetails.innerHTML = `
+        mentorDetails.innerHTML = localConfig.mentors.map((mentor, index) => `
             <div class="mentor-card">
-                <img src="${config.mentor.avatar}" alt="${config.mentor.name}" class="mentor-avatar">
+                <img src="${mentor.avatar}" alt="${mentor.name}" class="mentor-avatar">
                 <div class="mentor-info">
-                    <h3>${config.mentor.name}</h3>
-                    <p>${config.mentor.role}</p>
-                    ${config.mentor.email ? `<p><i class="fas fa-envelope"></i> ${config.mentor.email}</p>` : ''}
+                    <h3>${mentor.name}</h3>
+                    <p>${mentor.role}</p>
+                    ${mentor.email ? `<p><i class="fas fa-envelope"></i> ${mentor.email}</p>` : ''}
                 </div>
             </div>
-        `;
+        `).join('');
 
         if (feedback.length > 0) {
             feedbackList.innerHTML = feedback.map(item => `
                 <div class="feedback-item">
                     <div class="feedback-header">
-                        <strong>${item.from || config.mentor.name}</strong>
+                        <strong>${item.from || getDefaultMentorName()}</strong>
                         <span class="feedback-date">${formatDate(item.date)}</span>
                     </div>
                     <div class="feedback-content">${item.content}</div>
@@ -54,13 +62,15 @@ export function renderMentorInfo(config) {
         return;
     }
 
-    mentorDetails.innerHTML = `
-        <div class="mentor-card flex gap-4 items-start">
-            <form id="mentorForm">
+    mentorDetails.innerHTML = localConfig.mentors.map((mentor, index) => `
+        <div class="mentor-card flex gap-4 items-start mb-4">
+            <form id="mentorForm${index}" class="w-full">
+                <h4 class="text-lg font-semibold mb-2">Mentor ${index + 1}</h4>
                 <input 
                     type="text"
                     class="input-field"
-                    value="${localConfig.mentor.avatar}"
+                    value="${mentor.avatar}"
+                    data-mentor-index="${index}"
                     data-field="avatar"
                     placeholder="Mentor Avatar URL"
                 />
@@ -68,7 +78,8 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${localConfig.mentor.name}"
+                    value="${mentor.name}"
+                    data-mentor-index="${index}"
                     data-field="name"
                     placeholder="Mentor Name"
                 />
@@ -76,7 +87,8 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${localConfig.mentor.role}"
+                    value="${mentor.role}"
+                    data-mentor-index="${index}"
                     data-field="role"
                     placeholder="Mentor Role"
                 />
@@ -84,19 +96,30 @@ export function renderMentorInfo(config) {
                 <input 
                     type="text"
                     class="input-field mt-2"
-                    value="${localConfig.mentor.email || ''}"
+                    value="${mentor.email || ''}"
+                    data-mentor-index="${index}"
                     data-field="email"
                     placeholder="Mentor Email"
                 />
             </form>
         </div>
-    `;
+    `).join('');
 
-    const mentorForm = document.getElementById("mentorForm");
-    mentorForm.addEventListener("input", (e) => {
-        const field = e.target.name;
-        const value = e.target.value;
-        localConfig.mentor[field] = value;
+    // Add event listeners to all mentor forms
+    localConfig.mentors.forEach((mentor, index) => {
+        const mentorForm = document.getElementById(`mentorForm${index}`);
+        if (mentorForm) {
+            mentorForm.addEventListener("input", (e) => {
+                const mentorIndex = e.target.getAttribute("data-mentor-index");
+                const field = e.target.getAttribute("data-field");
+                if (mentorIndex && field) {
+                    const index = parseInt(mentorIndex, 10);
+                    if (!isNaN(index) && index >= 0 && index < localConfig.mentors.length) {
+                        localConfig.mentors[index][field] = e.target.value;
+                    }
+                }
+            });
+        }
     });
 
     // Feedback editable UI
@@ -167,7 +190,7 @@ export function renderMentorInfo(config) {
         if (e.target.id === "addFeedback") {
             feedback.push({
                 _id: Date.now() + Math.random(),
-                from: config.mentor.name,
+                from: getDefaultMentorName(),
                 date: "",
                 content: ""
             });
