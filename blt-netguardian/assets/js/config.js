@@ -4,8 +4,9 @@
  */
 
 const CONFIG = {
-    // Change this to your deployed Cloudflare Worker URL
-    API_BASE_URL: 'https://blt-netguardian.your-subdomain.workers.dev',
+    // IMPORTANT: Change this to your deployed Cloudflare Worker URL
+    // After deploying with 'wrangler publish', update this with your actual URL
+    API_BASE_URL: 'https://blt-netguardian.your-subdomain.workers.dev',  // TODO: Update this!
     
     // For local development with wrangler dev
     // API_BASE_URL: 'http://localhost:8787',

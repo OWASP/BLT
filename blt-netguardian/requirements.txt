@@ -1,29 +1,20 @@
-# Core dependencies for Cloudflare Python Worker
-cloudflare-workers==0.1.0
+# Note: Cloudflare Workers Python runtime has limited package support
+# Most packages must be compatible with the Workers environment
+# For production, only include packages supported by Workers runtime
 
-# Web framework support
-flask==3.0.0
-werkzeug==3.0.1
+# Data handling (basic types only - no external deps in Workers)
+# python-dateutil==2.8.2  # Built-in datetime is sufficient
 
-# Data handling and validation
-pydantic==2.5.0
-python-dateutil==2.8.2
-
-# JSON and data serialization
-orjson==3.9.10
-
-# HTTP client for external API calls
-httpx==0.25.2
-
-# Cryptography for security
-cryptography==41.0.7
-
-# Database/KV store (for Cloudflare KV simulation in dev)
-redis==5.0.1
-
-# Task queue support
-celery==5.3.4
-
-# Testing
+# Testing (for local development only)
 pytest==7.4.3
 pytest-asyncio==0.21.1
+
+# Note: The following are NOT compatible with Cloudflare Workers:
+# - Flask, Werkzeug (traditional web frameworks)
+# - Redis, Celery (require persistent connections)
+# - Heavy libraries (cryptography, httpx, etc.)
+#
+# Cloudflare Workers provides:
+# - Built-in KV storage (no external DB needed)
+# - Built-in fetch API (no httpx needed)
+# - Workers runtime handles HTTP (no Flask needed)

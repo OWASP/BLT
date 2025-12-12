@@ -36,8 +36,10 @@ class BLTWorker:
         method = request.method
         
         # CORS headers for all responses
+        # TODO: Restrict to specific domain in production for security
+        # For production, use: 'Access-Control-Allow-Origin': 'https://owasp-blt.github.io'
         cors_headers = {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': '*',  # Allow all origins for development
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
@@ -410,14 +412,18 @@ class BLTWorker:
         )
 
 
-# Mock Response class for Cloudflare Workers
+# Note: In actual Cloudflare Workers Python runtime, use the built-in Response
+# This is a mock for development and testing purposes
 class Response:
-    """Simple Response class compatible with Cloudflare Workers."""
+    """Mock Response class for development. In production, Workers provides Response."""
     
     def __init__(self, body, status=200, headers=None):
         self.body = body
         self.status = status
         self.headers = headers or {}
+    
+    # In production, use: from js import Response
+    # Or rely on Workers runtime's built-in Response
 
 
 # Main worker entry point
