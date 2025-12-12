@@ -60,15 +60,36 @@ Live web interface for submitting scan targets and monitoring job status:
 
 ## Architecture
 
+BLT-NetGuardian uses a split architecture:
+- **Frontend**: Static HTML/CSS/JS hosted on **GitHub Pages**
+- **Backend**: Python API worker running on **Cloudflare Workers**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Cloudflare Worker                        │
+│                     GitHub Pages                            │
+│                   (Frontend - Static)                       │
 │                                                             │
 │  ┌──────────────┐  ┌─────────────┐  ┌──────────────────┐  │
-│  │   API Layer  │  │  Web UI     │  │  Job Coordinator │  │
-│  └──────┬───────┘  └──────┬──────┘  └────────┬─────────┘  │
-│         │                  │                   │             │
-│         └──────────────────┴───────────────────┘             │
+│  │  index.html  │  │ dashboard   │  │ vulnerabilities  │  │
+│  │  (Main UI)   │  │   .html     │  │    .html         │  │
+│  └──────────────┘  └─────────────┘  └──────────────────┘  │
+│                                                             │
+│         │                                                   │
+└─────────┼───────────────────────────────────────────────────┘
+          │ HTTPS/REST API
+          ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Cloudflare Worker (Backend)                    │
+│                    Python API Only                          │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │               API Endpoints                          │  │
+│  │  • /api/tasks/queue                                  │  │
+│  │  • /api/targets/register                            │  │
+│  │  • /api/results/ingest                              │  │
+│  │  • /api/jobs/status                                 │  │
+│  │  • /api/vulnerabilities                             │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                            │                                 │
 │         ┌──────────────────┴──────────────────┐             │
 │         │     Scanner Coordinator             │             │
@@ -159,31 +180,33 @@ GET /api/jobs/status?job_id=job123
 
 ## Installation & Deployment
 
-### Prerequisites
+### Quick Start
 
-- [Node.js](https://nodejs.org/) v16+
+BLT-NetGuardian is split into two parts:
+
+1. **Frontend (GitHub Pages)** - Already live at `https://owasp-blt.github.io/BLT-NetGuardian/`
+2. **Backend (Cloudflare Workers)** - Requires deployment
+
+### Deploy the Backend (Cloudflare Workers)
+
+#### Prerequisites
+
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
 - Cloudflare account
 
-### Local Development
+#### Steps
 
-1. Clone the repository:
+1. Install Wrangler:
 ```bash
-git clone https://github.com/OWASP-BLT/BLT-NetGuardian.git
-cd BLT-NetGuardian
+npm install -g wrangler
 ```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Configure Wrangler:
+2. Login to Cloudflare:
 ```bash
 wrangler login
 ```
 
-4. Create KV namespaces:
+3. Create KV namespaces:
 ```bash
 wrangler kv:namespace create "JOB_STATE"
 wrangler kv:namespace create "TASK_QUEUE"
@@ -191,18 +214,41 @@ wrangler kv:namespace create "VULN_DB"
 wrangler kv:namespace create "TARGET_REGISTRY"
 ```
 
-5. Update `wrangler.toml` with your KV namespace IDs
+4. Update `wrangler.toml` with your KV namespace IDs
 
-6. Run locally:
-```bash
-wrangler dev
-```
-
-### Production Deployment
-
+5. Deploy:
 ```bash
 wrangler publish
 ```
+
+6. Update `assets/js/config.js` with your Worker URL:
+```javascript
+API_BASE_URL: 'https://blt-netguardian.your-subdomain.workers.dev'
+```
+
+7. Commit and push the config change to deploy to GitHub Pages
+
+### Local Development
+
+#### Frontend
+```bash
+# Serve static files
+python -m http.server 8000
+# Visit http://localhost:8000
+```
+
+#### Backend
+```bash
+wrangler dev
+# API available at http://localhost:8787
+```
+
+Update `assets/js/config.js` to use local backend:
+```javascript
+API_BASE_URL: 'http://localhost:8787'
+```
+
+For detailed deployment instructions, see [DEPLOY.md](DEPLOY.md)
 
 ## Configuration
 

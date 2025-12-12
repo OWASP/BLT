@@ -1,0 +1,5 @@
+# GitHub Pages configuration for BLT-NetGuardian
+theme: jekyll-theme-minimal
+title: BLT-NetGuardian
+description: Comprehensive Security Pipeline & Vulnerability Scanner
+show_downloads: false

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-NetGuardian Security Pipeline</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ BLT-NetGuardian</h1>
+            <p>Comprehensive Security Pipeline & Vulnerability Scanner</p>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Submit Scan Target</h2>
+                <form id="scanForm">
+                    <div class="form-group">
+                        <label for="targetType">Target Type:</label>
+                        <select id="targetType" name="targetType" required>
+                            <option value="web2">Web2 (Website/Web App)</option>
+                            <option value="web3">Web3 (Smart Contract)</option>
+                            <option value="api">API Endpoint</option>
+                            <option value="repo">Code Repository</option>
+                            <option value="contract">Smart Contract</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target">Target URL/Address:</label>
+                        <input type="text" id="target" name="target" 
+                               placeholder="e.g., https://example.com or 0x123..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scanTypes">Scan Types:</label>
+                        <select id="scanTypes" name="scanTypes" multiple size="5">
+                            <option value="crawler" selected>Web Crawler</option>
+                            <option value="static_analysis">Static Analysis</option>
+                            <option value="contract_audit">Contract Audit</option>
+                            <option value="vulnerability_scan">Vulnerability Scan</option>
+                            <option value="penetration_test">Penetration Test</option>
+                        </select>
+                        <small style="color: #666;">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Additional Notes (Optional):</label>
+                        <textarea id="notes" name="notes" 
+                                  placeholder="Any specific areas to focus on or context..."></textarea>
+                    </div>
+                    
+                    <button type="submit">🚀 Start Security Scan</button>
+                </form>
+                
+                <div id="message" class="message"></div>
+            </div>
+            
+            <div class="section">
+                <h2>Security Pipeline Features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <h3>🕷️ Web2 Crawlers</h3>
+                        <p>Automated crawling and vulnerability detection for web applications</p>
+                    </div>
+                    <div class="feature">
+                        <h3>⛓️ Web3 Monitors</h3>
+                        <p>Blockchain and smart contract security monitoring</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🔍 Static Analysis</h3>
+                        <p>Code analysis for security vulnerabilities and best practices</p>
+                    </div>
+                    <div class="feature">
+                        <h3>📜 Contract Scanners</h3>
+                        <p>Comprehensive smart contract auditing and analysis</p>
+                    </div>
+                    <div class="feature">
+                        <h3>👥 Volunteer Agents</h3>
+                        <p>Community-driven security testing and validation</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🤖 LLM Triage</h3>
+                        <p>AI-powered vulnerability classification and prioritization</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Quick Actions</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="window.location.href='dashboard.html'">📊 View Dashboard</button>
+                    <button onclick="checkStatus()">🔄 Check Job Status</button>
+                    <button onclick="window.location.href='vulnerabilities.html'">🐛 View Vulnerabilities</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
