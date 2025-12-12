@@ -15,12 +15,18 @@
                 <div class="logo">
                     <h1>🍞 Toasty</h1>
                 </div>
+                <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
                 <ul class="nav-links">
                     <li><a href="#home">Home</a></li>
                     <li><a href="#features">Features</a></li>
+                    <li><a href="#github-review">Review Code</a></li>
                     <li><a href="#getting-started">Getting Started</a></li>
                     <li><a href="#documentation">Documentation</a></li>
-                    <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                 </ul>
             </div>
         </nav>
@@ -33,8 +39,43 @@
                     <h1 class="hero-title">Toasty</h1>
                     <p class="hero-subtitle">The smart, context aware AI code reviewer from OWASP BLT</p>
                     <div class="hero-buttons">
-                        <a href="https://github.com/OWASP-BLT/Toasty" class="btn btn-primary" target="_blank">View on GitHub</a>
+                        <a href="#github-review" class="btn btn-primary">Review Code</a>
+                        <a href="https://github.com/OWASP-BLT/Toasty" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
                         <a href="#getting-started" class="btn btn-secondary">Get Started</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="github-review" class="github-review">
+            <div class="container">
+                <h2 class="section-title">Review Your Code</h2>
+                <div class="review-content">
+                    <p class="review-description">
+                        Enter a GitHub repository, issue, or pull request URL to get an AI-powered code review.
+                    </p>
+                    <div class="review-form">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="github-url" 
+                                class="github-input" 
+                                placeholder="https://github.com/owner/repo or https://github.com/owner/repo/issues/123"
+                                aria-label="GitHub URL"
+                            >
+                            <button class="btn btn-review" onclick="handleReviewSubmit()">
+                                🔍 Review Code
+                            </button>
+                        </div>
+                        <div class="connect-section">
+                            <p class="connect-text">Or connect your GitHub account for seamless integration</p>
+                            <button class="btn btn-github-connect" onclick="handleGitHubConnect()">
+                                <svg class="github-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                                </svg>
+                                Connect to GitHub
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,9 +194,9 @@ python manage.py runserver</code></pre>
                     <div class="doc-card">
                         <h3>📖 Resources</h3>
                         <ul>
-                            <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub Repository</a></li>
-                            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank">OWASP BLT Project</a></li>
-                            <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank">Report Issues</a></li>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer">OWASP BLT Project</a></li>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></li>
                         </ul>
                     </div>
                 </div>
@@ -184,9 +225,9 @@ python manage.py runserver</code></pre>
                 <div class="footer-section">
                     <h4>Links</h4>
                     <ul>
-                        <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank">GitHub</a></li>
-                        <li><a href="https://owasp.org/" target="_blank">OWASP Foundation</a></li>
-                        <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank">Issues</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                        <li><a href="https://owasp.org/" target="_blank" rel="noopener noreferrer">OWASP Foundation</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -199,5 +240,70 @@ python manage.py runserver</code></pre>
             </div>
         </div>
     </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    navLinks.classList.toggle('active');
+                    menuToggle.classList.toggle('active');
+                });
+
+                // Close menu when clicking on a link
+                const links = document.querySelectorAll('.nav-links a');
+                links.forEach(link => {
+                    link.addEventListener('click', function() {
+                        navLinks.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    });
+                });
+            }
+        });
+
+        // Handle review submission
+        function handleReviewSubmit() {
+            const input = document.getElementById('github-url');
+            const url = input.value.trim();
+            
+            if (!url) {
+                alert('Please enter a GitHub URL');
+                return;
+            }
+            
+            // Basic GitHub URL validation
+            const githubPattern = /^https?:\/\/(www\.)?github\.com\/.+/i;
+            if (!githubPattern.test(url)) {
+                alert('Please enter a valid GitHub URL');
+                return;
+            }
+            
+            // For now, show a message. In production, this would call the API
+            alert('Code review feature coming soon! This will analyze: ' + url);
+            console.log('Review requested for:', url);
+        }
+
+        // Handle GitHub connection
+        function handleGitHubConnect() {
+            // For now, show a message. In production, this would initiate OAuth flow
+            alert('GitHub OAuth integration coming soon! This will connect your GitHub account for seamless code reviews.');
+            console.log('GitHub connection requested');
+        }
+
+        // Handle Enter key in input field
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('github-url');
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleReviewSubmit();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
