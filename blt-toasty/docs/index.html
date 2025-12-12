@@ -270,26 +270,26 @@ python manage.py runserver</code></pre>
             const url = input.value.trim();
             
             if (!url) {
-                alert('Please enter a GitHub URL');
+                alert('Please enter a GitHub URL\n\nExpected format:\n• Repository: https://github.com/owner/repo\n• Issue: https://github.com/owner/repo/issues/123\n• Pull Request: https://github.com/owner/repo/pull/456');
                 return;
             }
             
             // Basic GitHub URL validation
             const githubPattern = /^https?:\/\/(www\.)?github\.com\/.+/i;
             if (!githubPattern.test(url)) {
-                alert('Please enter a valid GitHub URL');
+                alert('Invalid GitHub URL format\n\nPlease enter a valid GitHub URL starting with:\nhttps://github.com/');
                 return;
             }
             
             // For now, show a message. In production, this would call the API
-            alert('Code review feature coming soon! This will analyze: ' + url);
+            alert('Code review feature coming soon!\n\nWe will analyze your repository, issue, or pull request and provide AI-powered feedback.');
             console.log('Review requested for:', url);
         }
 
         // Handle GitHub connection
         function handleGitHubConnect() {
             // For now, show a message. In production, this would initiate OAuth flow
-            alert('GitHub OAuth integration coming soon! This will connect your GitHub account for seamless code reviews.');
+            alert('GitHub OAuth integration coming soon!\n\nConnect your account for seamless code reviews.');
             console.log('GitHub connection requested');
         }
 

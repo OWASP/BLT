@@ -11,9 +11,12 @@
     --accent-color: #ffa62b;
     --text-color: #333;
     --text-light: #666;
+    --text-placeholder: #aaa;
     --bg-color: #ffffff;
     --bg-light: #f8f9fa;
     --border-color: #e0e0e0;
+    --github-bg: #24292e;
+    --github-bg-hover: #2f363d;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     --shadow-hover: 0 5px 20px rgba(0, 0, 0, 0.15);
 }
@@ -212,7 +215,7 @@ section {
 }
 
 .github-input::placeholder {
-    color: #aaa;
+    color: var(--text-placeholder);
 }
 
 .btn-review {
@@ -240,7 +243,7 @@ section {
 }
 
 .btn-github-connect {
-    background-color: #24292e;
+    background-color: var(--github-bg);
     color: white;
     display: inline-flex;
     align-items: center;
@@ -249,7 +252,7 @@ section {
 }
 
 .btn-github-connect:hover {
-    background-color: #2f363d;
+    background-color: var(--github-bg-hover);
     transform: translateY(-2px);
 }
 
