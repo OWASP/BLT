@@ -1,0 +1,44 @@
+name = "blt-netguardian"
+main = "src/worker.py"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+# KV Namespaces for job state and task storage
+[[kv_namespaces]]
+binding = "JOB_STATE"
+id = "job_state_namespace"
+preview_id = "job_state_preview"
+
+[[kv_namespaces]]
+binding = "TASK_QUEUE"
+id = "task_queue_namespace"
+preview_id = "task_queue_preview"
+
+[[kv_namespaces]]
+binding = "VULN_DB"
+id = "vuln_db_namespace"
+preview_id = "vuln_db_preview"
+
+[[kv_namespaces]]
+binding = "TARGET_REGISTRY"
+id = "target_registry_namespace"
+preview_id = "target_registry_preview"
+
+# Durable Objects for stateful operations
+[[durable_objects.bindings]]
+name = "TASK_COORDINATOR"
+class_name = "TaskCoordinator"
+script_name = "blt-netguardian"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+MAX_WORKERS = "10"
+TASK_TIMEOUT = "300"
+
+# Build configuration
+[build]
+command = "python -m pip install -r requirements.txt"
+
+[build.upload]
+format = "service-worker"

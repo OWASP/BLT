@@ -1,0 +1,29 @@
+# Core dependencies for Cloudflare Python Worker
+cloudflare-workers==0.1.0
+
+# Web framework support
+flask==3.0.0
+werkzeug==3.0.1
+
+# Data handling and validation
+pydantic==2.5.0
+python-dateutil==2.8.2
+
+# JSON and data serialization
+orjson==3.9.10
+
+# HTTP client for external API calls
+httpx==0.25.2
+
+# Cryptography for security
+cryptography==41.0.7
+
+# Database/KV store (for Cloudflare KV simulation in dev)
+redis==5.0.1
+
+# Task queue support
+celery==5.3.4
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
