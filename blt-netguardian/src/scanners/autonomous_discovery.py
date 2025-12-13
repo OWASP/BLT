@@ -176,9 +176,12 @@ class AutonomousDiscovery:
         """Determine the type of target from the suggestion."""
         suggestion_lower = suggestion.lower()
         
+        # Ethereum address length constant
+        ETHEREUM_ADDRESS_LENGTH = 42
+        
         if 'github.com' in suggestion_lower:
             return 'repository'
-        elif suggestion_lower.startswith('0x') and len(suggestion) == 42:
+        elif suggestion_lower.startswith('0x') and len(suggestion) == ETHEREUM_ADDRESS_LENGTH:
             return 'smart_contract'
         elif any(ext in suggestion_lower for ext in ['.com', '.io', '.org', '.net', '.dev']):
             return 'domain'

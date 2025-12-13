@@ -65,10 +65,10 @@ async function handleSuggestionSubmit(e) {
         showMessage(
             messageDiv, 
             'error', 
-            `❌ Error: ${error.message}. The suggestion has been queued locally and will be submitted when the backend is available.`
+            `❌ Error: ${error.message}. Your suggestion has been saved and will be submitted when the backend is available.`
         );
         
-        // Queue locally for demo
+        // Queue locally as fallback
         queueLocalSuggestion(suggestion, priority);
         
     } finally {

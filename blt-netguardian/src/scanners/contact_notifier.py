@@ -247,11 +247,13 @@ class ContactNotifier:
         target = target.replace('https://', '').replace('http://', '')
         target = target.split('/')[0]
         
-        # Handle GitHub repos
+        # Handle GitHub repos specially
         if 'github.com' in target:
             parts = target.split('/')
-            if len(parts) >= 3:
-                return parts[1] + '.github.io'  # User's GitHub pages domain
+            # For github.com/user/repo, extract the username (parts[1])
+            # But only if we have enough parts
+            if len(parts) >= 2 and parts[0] == 'github.com':
+                return f"{parts[1]}.github.io"
         
         return target if '.' in target else None
     

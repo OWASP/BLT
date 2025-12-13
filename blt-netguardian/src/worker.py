@@ -199,9 +199,10 @@ class BLTWorker:
             # Get current scanning target
             current_target = await self.discovery.get_current_scanning_target()
             
-            # Calculate today's stats (in production, query from KV with date filter)
-            scanned_today = 1247  # Demo value
-            vulnerabilities_found = 23  # Demo value
+            # TODO: Replace with actual data from KV store in production
+            # For demo/development, using placeholder values
+            scanned_today = 1247
+            vulnerabilities_found = 23
             
             return self.json_response({
                 'status': 'active',
@@ -416,7 +417,8 @@ class BLTWorker:
             contact_result = None
             if result.vulnerabilities:
                 # Get target info
-                target_data = await self.target_registry.get(task.get('target_id') if task_data else None)
+                task_dict = json.loads(task_data.value) if task_data else {}
+                target_data = await self.target_registry.get(task_dict.get('target_id'))
                 if target_data:
                     target_info = json.loads(target_data.value if hasattr(target_data, 'value') else target_data)
                     target_url = target_info.get('target_url', 'unknown')
