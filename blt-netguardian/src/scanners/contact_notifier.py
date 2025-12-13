@@ -91,8 +91,9 @@ class ContactNotifier:
         if whois_info and whois_info.get('email'):
             contacts['whois'] = whois_info
         
-        # GitHub specific
-        if 'github.com' in target:
+        # GitHub specific - check if it's actually a GitHub URL
+        # Note: startswith() ensures github.com is at the beginning, not arbitrary position
+        if target.startswith('github.com/') or target.startswith('https://github.com/') or target.startswith('http://github.com/'):
             github_contact = await self.get_github_security_contact(target)
             if github_contact:
                 contacts['github'] = github_contact
@@ -244,16 +245,22 @@ class ContactNotifier:
     
     def extract_domain(self, target: str) -> Optional[str]:
         """Extract domain from target string."""
+        # Remove protocol
         target = target.replace('https://', '').replace('http://', '')
+        # Get just the domain part (before any path)
         target = target.split('/')[0]
         
-        # Handle GitHub repos specially
-        if 'github.com' in target:
+        # Handle GitHub repos specially - must start with github.com
+        # Note: Using startswith() ensures github.com is at the beginning for proper domain extraction
+        if target.startswith('github.com'):
             parts = target.split('/')
             # For github.com/user/repo, extract the username (parts[1])
             # But only if we have enough parts
-            if len(parts) >= 2 and parts[0] == 'github.com':
-                return f"{parts[1]}.github.io"
+            if len(parts) >= 2:
+                # Strip github.com to get remaining parts
+                remaining = target[len('github.com'):].lstrip('/').split('/')
+                if remaining and remaining[0]:
+                    return f"{remaining[0]}.github.io"
         
         return target if '.' in target else None
     

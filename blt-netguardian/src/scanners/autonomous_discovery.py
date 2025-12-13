@@ -179,7 +179,10 @@ class AutonomousDiscovery:
         # Ethereum address length constant
         ETHEREUM_ADDRESS_LENGTH = 42
         
-        if 'github.com' in suggestion_lower:
+        # Check for GitHub URL - must start with github.com (after protocol removal)
+        # Note: Using startswith() to ensure github.com is at URL beginning (not arbitrary position)
+        normalized = suggestion_lower.replace('https://', '').replace('http://', '')
+        if normalized.startswith('github.com/'):
             return 'repository'
         elif suggestion_lower.startswith('0x') and len(suggestion) == ETHEREUM_ADDRESS_LENGTH:
             return 'smart_contract'
