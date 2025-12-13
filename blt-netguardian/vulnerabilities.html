@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerabilities - BLT-NetGuardian</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐛 Vulnerability Database</h1>
+            <p>Discovered Security Issues</p>
+        </header>
+        
+        <div class="content">
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="window.location.href='index.html'">← Back to Home</button>
+                <button onclick="refreshVulnerabilities()">🔄 Refresh</button>
+                
+                <select id="severityFilter" onchange="filterBySeverity()" style="margin-left: auto;">
+                    <option value="">All Severities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                    <option value="info">Info</option>
+                </select>
+            </div>
+            
+            <div class="section">
+                <h2>Vulnerability Summary</h2>
+                <div class="stats">
+                    <div class="stat-card" style="border-left-color: #dc3545;">
+                        <h3 id="criticalCount">-</h3>
+                        <p>Critical</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #fd7e14;">
+                        <h3 id="highCount">-</h3>
+                        <p>High</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #ffc107;">
+                        <h3 id="mediumCount">-</h3>
+                        <p>Medium</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #28a745;">
+                        <h3 id="lowCount">-</h3>
+                        <p>Low</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Vulnerability List</h2>
+                <div class="table-container">
+                    <div id="vulnsLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading vulnerabilities...</p>
+                    </div>
+                    <table id="vulnsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Severity</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Component</th>
+                                <th>CVE</th>
+                                <th>CVSS</th>
+                                <th>Discovered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vulnsTableBody">
+                        </tbody>
+                    </table>
+                    <div id="vulnsEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">
+                        No vulnerabilities found. Great job! 🎉
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/vulnerabilities.js"></script>
+</body>
+</html>

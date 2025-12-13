@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-NetGuardian - Autonomous Security Scanner</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ BLT-NetGuardian</h1>
+            <p>Autonomous Internet Security Scanner</p>
+            <p class="subtitle">Continuously scanning the web for security vulnerabilities</p>
+        </header>
+        
+        <div class="content">
+            <!-- Live Scanning Status -->
+            <div class="section">
+                <h2>🔴 Live Scanning Status</h2>
+                <div class="scanning-status">
+                    <div class="status-card active">
+                        <div class="status-indicator"></div>
+                        <div class="status-info">
+                            <h3>Scanner Active</h3>
+                            <p id="scanningTarget">Currently scanning: <span class="highlight">example.com</span></p>
+                            <p id="scannedCount">Total scanned today: <span class="highlight">1,247</span> targets</p>
+                            <p id="foundVulns">Vulnerabilities found: <span class="highlight critical">23</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggest a Target -->
+            <div class="section">
+                <h2>💡 Suggest a Target</h2>
+                <p style="margin-bottom: 20px; color: #666;">
+                    Help guide the bot by suggesting websites, domains, or repositories for security scanning.
+                </p>
+                <form id="suggestionForm" class="suggestion-form">
+                    <div class="suggestion-input-group">
+                        <input type="text" id="suggestion" name="suggestion" 
+                               placeholder="Enter a domain, URL, or GitHub repo (e.g., example.com or github.com/user/repo)" required>
+                        <button type="submit">🎯 Suggest Target</button>
+                    </div>
+                    <div class="suggestion-options">
+                        <label>
+                            <input type="checkbox" id="priority" name="priority">
+                            Mark as priority for immediate scanning
+                        </label>
+                    </div>
+                </form>
+                
+                <div id="suggestionMessage" class="message"></div>
+            </div>
+
+            <!-- Autonomous Discovery Stats -->
+            <div class="section">
+                <h2>📊 Autonomous Discovery</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🌐</div>
+                        <h3 id="domainCount">12,458</h3>
+                        <p>Domains Discovered</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <h3 id="repoCount">3,721</h3>
+                        <p>Repositories Found</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔍</div>
+                        <h3 id="activeScans">47</h3>
+                        <p>Active Scans</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <h3 id="contactedCount">156</h3>
+                        <p>Contacts Made</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Discoveries -->
+            <div class="section">
+                <h2>🔎 Recent Discoveries</h2>
+                <div class="discoveries-list" id="discoveriesList">
+                    <div class="discovery-item">
+                        <div class="discovery-info">
+                            <span class="discovery-type">Domain</span>
+                            <span class="discovery-target">newstartup.io</span>
+                            <span class="discovery-time">2 minutes ago</span>
+                        </div>
+                        <div class="discovery-status">
+                            <span class="status queued">Queued for scan</span>
+                        </div>
+                    </div>
+                    <div class="discovery-item">
+                        <div class="discovery-info">
+                            <span class="discovery-type">Repository</span>
+                            <span class="discovery-target">github.com/acme/webapp</span>
+                            <span class="discovery-time">8 minutes ago</span>
+                        </div>
+                        <div class="discovery-status">
+                            <span class="status running">Scanning...</span>
+                        </div>
+                    </div>
+                    <div class="discovery-item vulnerability-found">
+                        <div class="discovery-info">
+                            <span class="discovery-type">Domain</span>
+                            <span class="discovery-target">oldcompany.com</span>
+                            <span class="discovery-time">15 minutes ago</span>
+                        </div>
+                        <div class="discovery-status">
+                            <span class="severity high">2 High</span>
+                            <span class="severity medium">5 Medium</span>
+                            <span class="status contacted">Contact attempted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discovery Methods -->
+            <div class="section">
+                <h2>🤖 Autonomous Discovery Methods</h2>
+                <div class="features">
+                    <div class="feature">
+                        <h3>🌐 Domain Discovery</h3>
+                        <p>Certificate Transparency logs, DNS zone transfers, subdomain enumeration</p>
+                    </div>
+                    <div class="feature">
+                        <h3>📦 Repository Scanning</h3>
+                        <p>GitHub trending, recently updated repos, public package registries</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🕸️ Web Crawling</h3>
+                        <p>Link discovery, sitemap parsing, robots.txt analysis</p>
+                    </div>
+                    <div class="feature">
+                        <h3>⛓️ Blockchain Monitoring</h3>
+                        <p>New smart contracts, DeFi protocols, NFT projects</p>
+                    </div>
+                    <div class="feature">
+                        <h3>📡 API Discovery</h3>
+                        <p>Public API directories, OpenAPI specs, GraphQL endpoints</p>
+                    </div>
+                    <div class="feature">
+                        <h3>📧 Contact & Notify</h3>
+                        <p>WHOIS lookup, security contacts, responsible disclosure</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section">
+                <h2>Quick Actions</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="window.location.href='dashboard.html'">📊 View Dashboard</button>
+                    <button onclick="window.location.href='vulnerabilities.html'">🐛 View Vulnerabilities</button>
+                    <button onclick="viewDiscoveryQueue()">📋 Discovery Queue</button>
+                    <button onclick="viewContactLog()">📧 Contact Log</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/autonomous.js"></script>
+</body>
+</html>

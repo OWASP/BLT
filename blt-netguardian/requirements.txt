@@ -1,0 +1,20 @@
+# Note: Cloudflare Workers Python runtime has limited package support
+# Most packages must be compatible with the Workers environment
+# For production, only include packages supported by Workers runtime
+
+# Data handling (basic types only - no external deps in Workers)
+# python-dateutil==2.8.2  # Built-in datetime is sufficient
+
+# Testing (for local development only)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Note: The following are NOT compatible with Cloudflare Workers:
+# - Flask, Werkzeug (traditional web frameworks)
+# - Redis, Celery (require persistent connections)
+# - Heavy libraries (cryptography, httpx, etc.)
+#
+# Cloudflare Workers provides:
+# - Built-in KV storage (no external DB needed)
+# - Built-in fetch API (no httpx needed)
+# - Workers runtime handles HTTP (no Flask needed)

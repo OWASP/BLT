@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-NetGuardian Dashboard</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 BLT-NetGuardian Dashboard</h1>
+            <p>Monitor Security Scans and Jobs</p>
+        </header>
+        
+        <div class="content">
+            <div style="margin-bottom: 20px;">
+                <button onclick="window.location.href='index.html'">← Back to Home</button>
+                <button onclick="refreshDashboard()">🔄 Refresh</button>
+            </div>
+            
+            <div class="section">
+                <h2>Statistics</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="totalJobs">-</h3>
+                        <p>Total Jobs</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="activeJobs">-</h3>
+                        <p>Active Jobs</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalVulnerabilities">-</h3>
+                        <p>Vulnerabilities Found</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="criticalVulns">-</h3>
+                        <p>Critical Issues</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section" id="currentJobSection" style="display: none;">
+                <h2>Current Job Status</h2>
+                <div id="currentJobStatus"></div>
+            </div>
+            
+            <div class="section">
+                <h2>Recent Jobs</h2>
+                <div class="table-container">
+                    <div id="jobsLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading jobs...</p>
+                    </div>
+                    <table id="jobsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Target</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                        </tbody>
+                    </table>
+                    <div id="jobsEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">
+                        No jobs found. <a href="index.html">Submit a new scan</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>
