@@ -324,6 +324,19 @@ API_BASE_URL: 'http://localhost:8787'
 
 For detailed deployment instructions, see [DEPLOY.md](DEPLOY.md)
 
+## Security Tools Reference
+
+BLT-NetGuardian can integrate with a wide variety of security scanning tools. For a comprehensive list of vulnerability scanning tools and resources, see [SECURITY_TOOLS.md](SECURITY_TOOLS.md).
+
+The document includes tools for:
+- Static Application Security Testing (SAST)
+- Dynamic Application Security Testing (DAST)
+- Dependency and Supply Chain Security
+- Container and Infrastructure Security
+- Smart Contract Security
+- Secret Detection
+- And many more categories
+
 ## Configuration
 
 Edit `wrangler.toml` to configure:
