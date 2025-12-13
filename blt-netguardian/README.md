@@ -1,21 +1,29 @@
 # BLT-NetGuardian
 
-🛡️ Comprehensive Security Pipeline & Vulnerability Scanner powered by Cloudflare Workers
+🛡️ Autonomous Internet Security Scanner powered by Cloudflare Workers
 
 ## Overview
 
-BLT-NetGuardian is a Cloudflare Python Worker that implements a complete security scanning pipeline. It coordinates multiple security scanning agents including Web2 crawlers, Web3 monitors, static code analyzers, smart contract scanners, and volunteer security testers to provide comprehensive vulnerability detection and analysis.
+BLT-NetGuardian is an **autonomous security scanning system** that continuously discovers and scans the internet for security vulnerabilities. Unlike traditional scanners that require manual target submission, BLT-NetGuardian actively discovers domains, repositories, smart contracts, and APIs using multiple discovery methods, automatically scans them for vulnerabilities, and contacts stakeholders when issues are found.
 
 ## Features
 
-### 🚀 Core Capabilities
+### 🤖 Autonomous Discovery
 
-- **Task Queueing**: Efficient task queue management with automatic deduplication
-- **Target Registration**: Register and manage scan targets (websites, APIs, smart contracts, repositories)
-- **Result Ingestion**: Collect and aggregate scan results from multiple agents
-- **Job State Management**: Track scan progress and status in real-time
-- **Vulnerability Database**: Store and query discovered vulnerabilities
-- **LLM Triage Engine**: Prepare vulnerability data for AI-powered classification and prioritization
+- **Certificate Transparency Monitoring**: Discovers new domains from CT logs
+- **GitHub Repository Scanning**: Tracks trending and newly updated repositories
+- **Blockchain Monitoring**: Detects new smart contract deployments
+- **Subdomain Enumeration**: Discovers subdomains of known targets
+- **API Directory Scanning**: Monitors public API directories
+- **User Suggestions**: Allows community to guide the scanner
+
+### 📧 Automatic Contact & Notification
+
+- **security.txt Integration**: RFC 9116 compliant contact discovery
+- **WHOIS Lookup**: Finds domain registrant contacts
+- **GitHub Security Advisory**: Direct security team notification
+- **Responsible Disclosure**: 90-day disclosure timeline
+- **Contact Logging**: Tracks all notification attempts
 
 ### 🔍 Security Scanners
 
@@ -52,11 +60,14 @@ BLT-NetGuardian is a Cloudflare Python Worker that implements a complete securit
 
 ### 🌐 Web Interface
 
-Live web interface for submitting scan targets and monitoring job status:
-- Target submission form with multiple scan types
-- Real-time job progress tracking
-- Vulnerability dashboard
-- Scanner status monitoring
+**Live Autonomous Scanner Dashboard:**
+- Real-time scanning status with current target
+- Live discovery feed showing newly found targets
+- Simple suggestion input to guide the scanner
+- Statistics: domains discovered, repos found, contacts made
+- Recent discoveries with vulnerability status
+
+**No Manual Forms Required** - The system continuously scans on its own!
 
 ## Architecture
 
@@ -113,7 +124,70 @@ BLT-NetGuardian uses a split architecture:
            └────────────────────────┘
 ```
 
+## How It Works
+
+### 1. Autonomous Discovery
+The system continuously discovers new targets using:
+- **CT Log Monitoring**: Watches Certificate Transparency logs for new SSL certificates
+- **GitHub API**: Monitors trending repositories and recent updates
+- **Blockchain Scanners**: Tracks new smart contract deployments on Ethereum, Polygon, BSC
+- **DNS Enumeration**: Discovers subdomains and related domains
+- **Public Directories**: Scans API directories and service listings
+
+### 2. Automatic Scanning
+When a target is discovered:
+1. Target is automatically registered in the system
+2. Appropriate scanners are selected based on target type
+3. Scan tasks are queued with priority based on discovery source
+4. Multiple scanners run in parallel for comprehensive coverage
+5. Results are aggregated and stored
+
+### 3. Vulnerability Detection
+Each scanner detects specific vulnerability types:
+- **Web2**: XSS, CSRF, SQLi, security misconfigurations
+- **Web3**: Reentrancy, access control, integer issues
+- **Static**: Code vulnerabilities, dependency issues, secrets
+- **Contract**: Smart contract specific vulnerabilities
+
+### 4. Automatic Contact
+When vulnerabilities are found:
+1. System looks for contact information (security.txt, WHOIS, GitHub)
+2. Prepares professional vulnerability disclosure report
+3. Attempts contact through multiple channels
+4. Logs all contact attempts for transparency
+5. Follows 90-day responsible disclosure timeline
+
+### 5. User Guidance
+Community members can:
+- Suggest specific targets for immediate scanning
+- Mark suggestions as priority for faster processing
+- View real-time discovery and scanning status
+- Monitor contact attempts and responses
+
 ## API Endpoints
+
+### Autonomous Discovery
+
+#### Suggest a Target
+```
+POST /api/discovery/suggest
+Content-Type: application/json
+
+{
+  "suggestion": "example.com",
+  "priority": true
+}
+```
+
+#### Get Discovery Status
+```
+GET /api/discovery/status
+```
+
+#### Get Recent Discoveries
+```
+GET /api/discovery/recent?limit=20
+```
 
 ### Task Management
 

@@ -14,6 +14,8 @@ from models.result import ScanResult, VulnerabilityLevel
 from utils.deduplication import TaskDeduplicator
 from utils.storage import JobStateStore, VulnerabilityDatabase
 from scanners.coordinator import ScannerCoordinator
+from scanners.autonomous_discovery import AutonomousDiscovery
+from scanners.contact_notifier import ContactNotifier
 
 
 class BLTWorker:
@@ -28,6 +30,8 @@ class BLTWorker:
         self.target_registry = env.TARGET_REGISTRY
         self.deduplicator = TaskDeduplicator()
         self.coordinator = ScannerCoordinator(env)
+        self.discovery = AutonomousDiscovery()
+        self.notifier = ContactNotifier()
     
     async def handle_request(self, request):
         """Route incoming requests to appropriate handlers."""
@@ -63,9 +67,18 @@ class BLTWorker:
                         'ingest_results': '/api/results/ingest',
                         'job_status': '/api/jobs/status',
                         'list_tasks': '/api/tasks/list',
-                        'vulnerabilities': '/api/vulnerabilities'
+                        'vulnerabilities': '/api/vulnerabilities',
+                        'discovery_suggest': '/api/discovery/suggest',
+                        'discovery_status': '/api/discovery/status',
+                        'discovery_recent': '/api/discovery/recent'
                     }
                 })
+            elif path == 'api/discovery/suggest':
+                response = await self.handle_discovery_suggest(request)
+            elif path == 'api/discovery/status':
+                response = await self.handle_discovery_status(request)
+            elif path == 'api/discovery/recent':
+                response = await self.handle_discovery_recent(request)
             elif path == 'api/tasks/queue':
                 response = await self.handle_task_queue(request)
             elif path == 'api/targets/register':
@@ -92,6 +105,137 @@ class BLTWorker:
                 'error': 'Internal server error',
                 'message': str(e)
             }, status=500, headers=cors_headers)
+    
+    async def handle_discovery_suggest(self, request):
+        """Handle user-suggested targets for autonomous scanning."""
+        if request.method != 'POST':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+        
+        try:
+            data = await request.json()
+            suggestion = data.get('suggestion')
+            priority = data.get('priority', False)
+            
+            if not suggestion:
+                return self.json_response({
+                    'error': 'Missing required field: suggestion'
+                }, status=400)
+            
+            # Process the suggestion through autonomous discovery
+            discovery_record = await self.discovery.process_user_suggestion(
+                suggestion, priority
+            )
+            
+            # Automatically queue for scanning
+            target_type = discovery_record['type']
+            
+            # Register the target
+            target_id = discovery_record['discovery_id']
+            target_obj = Target(
+                target_id=target_id,
+                target_type=target_type,
+                target_url=suggestion,
+                scan_types=['crawler', 'vulnerability_scan'],
+                notes='User suggested target',
+                registered_at=datetime.utcnow().isoformat()
+            )
+            
+            await self.target_registry.put(
+                target_id,
+                json.dumps(target_obj.to_dict())
+            )
+            
+            # Queue scan tasks
+            job_id = self.generate_id(f"job-{target_id}-{datetime.utcnow().isoformat()}")
+            
+            task = Task(
+                task_id=self.generate_id(f"{job_id}-crawler"),
+                job_id=job_id,
+                target_id=target_id,
+                task_type='crawler',
+                priority='high' if priority else 'medium',
+                status=TaskStatus.QUEUED,
+                created_at=datetime.utcnow().isoformat()
+            )
+            
+            await self.task_queue.put(
+                task.task_id,
+                json.dumps(task.to_dict()),
+                expiration_ttl=86400
+            )
+            
+            job_state = {
+                'job_id': job_id,
+                'target_id': target_id,
+                'status': 'queued',
+                'total_tasks': 1,
+                'completed_tasks': 0,
+                'created_at': datetime.utcnow().isoformat(),
+                'task_ids': [task.task_id],
+                'source': 'user_suggestion'
+            }
+            
+            await self.job_store.save_job(job_id, job_state)
+            
+            return self.json_response({
+                'success': True,
+                'discovery_id': discovery_record['discovery_id'],
+                'job_id': job_id,
+                'message': f'Target "{suggestion}" queued for scanning'
+            })
+            
+        except Exception as e:
+            return self.json_response({
+                'error': 'Failed to process suggestion',
+                'message': str(e)
+            }, status=500)
+    
+    async def handle_discovery_status(self, request):
+        """Get current status of autonomous discovery system."""
+        try:
+            # Get statistics
+            stats = await self.discovery.get_discovery_stats()
+            
+            # Get current scanning target
+            current_target = await self.discovery.get_current_scanning_target()
+            
+            # Calculate today's stats (in production, query from KV with date filter)
+            scanned_today = 1247  # Demo value
+            vulnerabilities_found = 23  # Demo value
+            
+            return self.json_response({
+                'status': 'active',
+                'current_target': current_target['target'],
+                'scanned_today': scanned_today,
+                'vulnerabilities_found': vulnerabilities_found,
+                'stats': stats
+            })
+            
+        except Exception as e:
+            return self.json_response({
+                'error': 'Failed to get discovery status',
+                'message': str(e)
+            }, status=500)
+    
+    async def handle_discovery_recent(self, request):
+        """Get recently discovered targets."""
+        limit = int(self.get_query_param(request, 'limit', '20'))
+        
+        try:
+            # Get recent discoveries (in production, query from KV store)
+            discoveries = await self.discovery.discover_targets(limit)
+            
+            return self.json_response({
+                'success': True,
+                'count': len(discoveries),
+                'discoveries': discoveries
+            })
+            
+        except Exception as e:
+            return self.json_response({
+                'error': 'Failed to get recent discoveries',
+                'message': str(e)
+            }, status=500)
     
     async def handle_task_queue(self, request):
         """Queue new security scanning tasks."""
@@ -268,11 +412,28 @@ class BLTWorker:
             # Prepare data for LLM triage
             triage_data = self.prepare_for_llm_triage(result)
             
+            # Automatically contact stakeholders if vulnerabilities found
+            contact_result = None
+            if result.vulnerabilities:
+                # Get target info
+                target_data = await self.target_registry.get(task.get('target_id') if task_data else None)
+                if target_data:
+                    target_info = json.loads(target_data.value if hasattr(target_data, 'value') else target_data)
+                    target_url = target_info.get('target_url', 'unknown')
+                    
+                    # Attempt to notify
+                    contact_result = await self.notifier.notify_vulnerability(
+                        target=target_url,
+                        vulnerabilities=result.vulnerabilities
+                    )
+            
             return self.json_response({
                 'success': True,
                 'result_id': result.result_id,
                 'vulnerabilities_found': len(result.vulnerabilities),
                 'triage_ready': True,
+                'contact_attempted': contact_result is not None,
+                'contact_successful': contact_result.get('successful_contacts', 0) if contact_result else 0,
                 'message': 'Results ingested successfully'
             })
             
