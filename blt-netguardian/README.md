@@ -2,6 +2,12 @@
 
 🛡️ Autonomous Internet Security Scanner powered by Cloudflare Workers
 
+## Deploy to Cloudflare
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
+
+Click the button above to deploy BLT-NetGuardian to your Cloudflare account in one click!
+
 ## Overview
 
 BLT-NetGuardian is an **autonomous security scanning system** that continuously discovers and scans the internet for security vulnerabilities. Unlike traditional scanners that require manual target submission, BLT-NetGuardian actively discovers domains, repositories, smart contracts, and APIs using multiple discovery methods, automatically scans them for vulnerabilities, and contacts stakeholders when issues are found.
@@ -254,21 +260,35 @@ GET /api/jobs/status?job_id=job123
 
 ## Installation & Deployment
 
-### Quick Start
+### Quick Start - One-Click Deploy
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
+
+**Quick Deploy**: Click the button above to instantly deploy the backend to your Cloudflare account!
 
 BLT-NetGuardian is split into two parts:
 
 1. **Frontend (GitHub Pages)** - Already live at `https://owasp-blt.github.io/BLT-NetGuardian/`
-2. **Backend (Cloudflare Workers)** - Requires deployment
+2. **Backend (Cloudflare Workers)** - Deploy with one click or manually (instructions below)
 
 ### Deploy the Backend (Cloudflare Workers)
 
-#### Prerequisites
+#### Option 1: One-Click Deploy (Recommended)
+
+Simply click the "Deploy to Cloudflare Workers" button above. This will:
+- Fork the repository to your GitHub account (if needed)
+- Guide you through connecting your Cloudflare account
+- Automatically create required KV namespaces
+- Deploy the worker to your Cloudflare account
+
+#### Option 2: Manual Deployment
+
+##### Prerequisites
 
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
 - Cloudflare account
 
-#### Steps
+##### Steps
 
 1. Install Wrangler:
 ```bash

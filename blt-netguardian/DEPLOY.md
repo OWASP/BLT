@@ -1,5 +1,17 @@
 # Deployment Guide for BLT-NetGuardian
 
+## Quick Deploy - One-Click Button
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-NetGuardian)
+
+**Fastest Way**: Click the button above to deploy instantly to your Cloudflare account! The one-click deploy will:
+- Fork the repository to your GitHub account (if needed)
+- Guide you through connecting your Cloudflare account
+- Automatically create required KV namespaces
+- Deploy the worker to your Cloudflare account
+
+For advanced configuration and manual deployment options, continue reading below.
+
 ## Architecture Overview
 
 BLT-NetGuardian uses a split architecture:
@@ -41,24 +53,30 @@ const CONFIG = {
 
 ## Backend Deployment (Cloudflare Workers)
 
-### Prerequisites
+### Option 1: One-Click Deploy (Recommended)
+
+Use the "Deploy to Cloudflare Workers" button at the top of this document for the fastest deployment experience.
+
+### Option 2: Manual Deployment with Wrangler CLI
+
+#### Prerequisites
 
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) installed
 - Cloudflare account
 
-### 1. Install Wrangler
+#### 1. Install Wrangler
 
 ```bash
 npm install -g wrangler
 ```
 
-### 2. Login to Cloudflare
+#### 2. Login to Cloudflare
 
 ```bash
 wrangler login
 ```
 
-### 3. Create KV Namespaces
+#### 3. Create KV Namespaces
 
 ```bash
 # Production namespaces
@@ -74,7 +92,7 @@ wrangler kv:namespace create "VULN_DB" --preview
 wrangler kv:namespace create "TARGET_REGISTRY" --preview
 ```
 
-### 4. Update wrangler.toml
+#### 4. Update wrangler.toml
 
 Update the `id` and `preview_id` fields in `wrangler.toml` with the IDs from step 3:
 
@@ -85,7 +103,7 @@ id = "your-namespace-id-here"
 preview_id = "your-preview-id-here"
 ```
 
-### 5. Deploy to Cloudflare
+#### 5. Deploy to Cloudflare
 
 ```bash
 wrangler publish
@@ -96,7 +114,7 @@ Your API will be available at:
 https://blt-netguardian.your-subdomain.workers.dev
 ```
 
-### 6. Test the API
+#### 6. Test the API
 
 ```bash
 curl https://blt-netguardian.your-subdomain.workers.dev/
