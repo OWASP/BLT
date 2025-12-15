@@ -110,7 +110,7 @@
           </div>
         </div>
       </section>
-      
+
       <!-- Available Commands -->
       <section class="bg-white rounded-lg shadow p-6 mb-8">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Available Commands</h2>
@@ -171,6 +171,63 @@
           </div>
         </div>
       </section>
+
+      <!-- Technical Architecture -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Under the Hood</h2>
+        <div class="max-w-4xl mx-auto">
+          <div class="bg-gray-50 p-6 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Socket Mode Connection</h3>
+            <div class="flex items-center justify-center space-x-8 text-sm">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-slack text-2xl text-blue-600"></i>
+                </div>
+                <span class="text-gray-600">Slack Servers</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> WebSocket </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fas fa-robot text-2xl text-red-600"></i>
+                </div>
+                <span class="text-gray-600">BLT-Sammich</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> REST API </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-github text-2xl text-white"></i>
+                </div>
+                <span class="text-gray-600">GitHub API</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Why Socket Mode?</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• Works behind firewalls (outbound connection)</li>
+                <li>• No public URL needed for development</li>
+                <li>• Real-time bidirectional communication</li>
+                <li>• Perfect for internal team tools</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Built With</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• <strong>Slack Bolt:</strong> Python framework for Slack apps</li>
+                <li>• <strong>PyGithub:</strong> GitHub REST API integration</li>
+                <li>• <strong>Poetry:</strong> Dependency management</li>
+                <li>• <strong>Plugin Architecture:</strong> Modular command system</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
     <!-- Footer -->
     <footer class="bg-white border-t mt-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
