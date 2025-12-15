@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="hackathon-title">BLT-Sammich</title>
+    <meta name="description" content="A slack bot that can help manage and track your projects and contributions" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .trophy-gold {
+        color: #ffd700;
+      }
+      .trophy-silver {
+        color: #c0c0c0;
+      }
+      .trophy-bronze {
+        color: #cd7f32;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <img src="./static/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
+            <h1 class="text-xl font-bold text-gray-900" id="nav-title">BLT-Sammich</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span id="hackathon-status" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"></main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
+        <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Hackathon" class="text-red-600 hover:underline" target="_blank">BLT-Hackathon</a></p>
+      </div>
+    </footer>
+  </body>
+</html>
