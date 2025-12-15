@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="hackathon-title">BLT-Sammich</title>
+    <meta name="description" content="A slack bot that can help manage and track your projects and contributions" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .trophy-gold {
+        color: #ffd700;
+      }
+      .trophy-silver {
+        color: #c0c0c0;
+      }
+      .trophy-bronze {
+        color: #cd7f32;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <img src="./static/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
+            <h1 class="text-xl font-bold text-gray-900" id="nav-title">BLT-Sammich</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer">
+              <button><i class="fab fa-github mr-2"></i> Contribute</button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Hero Section -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8 text-center">
+        <div class="max-w-3xl mx-auto">
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">BLT-Sammich Slack Bot</h1>
+          <p class="text-xl text-gray-600 mb-6">A feature-rich Slack bot that bridges your team communication with GitHub workflows, contributor tracking, and OWASP project discovery - all from within Slack.</p>
+          <div class="flex justify-center space-x-4">
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fab fa-slack mr-2"></i>
+              Slack Integration
+            </span>
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fab fa-github mr-2"></i>
+              GitHub API
+            </span>
+            <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg">
+              <i class="fas fa-shield-alt mr-2"></i>
+              OWASP Community
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">How It Works</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-comment-slash text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Type Slash Commands</h3>
+            <p class="text-gray-600">Use simple commands like <code class="bg-gray-100 px-2 py-1 rounded">/contributors</code> directly in any Slack channel</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-exchange-alt text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Real-time Processing</h3>
+            <p class="text-gray-600">Bot fetches live data from GitHub API and OWASP repositories via WebSocket connection</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-chart-bar text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Instant Results</h3>
+            <p class="text-gray-600">Get formatted responses with contributor stats, project info, and repository links</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Available Commands -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Available Commands</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Contributors Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/contributors</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Track Contributor Activity</h4>
+            <p class="text-gray-600 text-sm mb-3">Shows PR merges, issues resolved, and comments from the last 7 days</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              📊 Contributors Activity<br />
+              • john_dev: 3 PRs, 2 issues, 5 comments<br />
+              • jane_contributor: 1 PR, 4 issues, 2 comments
+            </div>
+          </div>
+
+          <!-- GitHub Issue Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/ghissue [title]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Create GitHub Issues</h4>
+            <p class="text-gray-600 text-sm mb-3">Instantly create GitHub issues from Slack conversations</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /ghissue Fix mobile login bug<br />
+              ✅ Issue created: <span class="text-blue-600">github.com/repo/issues/123</span>
+            </div>
+          </div>
+
+          <!-- Project Discovery Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/project [name]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Discover OWASP Projects</h4>
+            <p class="text-gray-600 text-sm mb-3">Browse 800+ OWASP projects with descriptions and links</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /project zap<br />
+              🔍 OWASP ZAP - Web security scanner<br />
+              📋 Features, docs, and community links
+            </div>
+          </div>
+
+          <!-- Repository Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/repo [technology]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Find Repos by Tech Stack</h4>
+            <p class="text-gray-600 text-sm mb-3">Get repositories matching your programming skills and interests</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /repo python<br />
+              🐍 Python repositories where you can contribute:<br />
+              • OWASP-Project-A • Security-Tool-B
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technical Architecture -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Under the Hood</h2>
+        <div class="max-w-4xl mx-auto">
+          <div class="bg-gray-50 p-6 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Socket Mode Connection</h3>
+            <div class="flex items-center justify-center space-x-8 text-sm">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-slack text-2xl text-blue-600"></i>
+                </div>
+                <span class="text-gray-600">Slack Servers</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> WebSocket </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fas fa-robot text-2xl text-red-600"></i>
+                </div>
+                <span class="text-gray-600">BLT-Sammich</span>
+              </div>
+              <div class="flex-1 border-t-2 border-dashed border-gray-300 relative">
+                <span class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-50 px-2 text-xs text-gray-500"> REST API </span>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center mb-2">
+                  <i class="fab fa-github text-2xl text-white"></i>
+                </div>
+                <span class="text-gray-600">GitHub API</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Why Socket Mode?</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• Works behind firewalls (outbound connection)</li>
+                <li>• No public URL needed for development</li>
+                <li>• Real-time bidirectional communication</li>
+                <li>• Perfect for internal team tools</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Built With</h4>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• <strong>Slack Bolt:</strong> Python framework for Slack apps</li>
+                <li>• <strong>PyGithub:</strong> GitHub REST API integration</li>
+                <li>• <strong>Poetry:</strong> Dependency management</li>
+                <li>• <strong>Plugin Architecture:</strong> Modular command system</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Getting Started -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Getting Started</h2>
+        <div class="max-w-4xl mx-auto">
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">For Users</h3>
+              <ol class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">1</span>
+                  <span>Join your team's Slack workspace</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">2</span>
+                  <span>Find the BLT-Sammich bot in your workspace</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">3</span>
+                  <span>Start using commands like <code class="bg-gray-100 px-1 rounded">/contributors</code></span>
+                </li>
+              </ol>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">For Developers</h3>
+              <ol class="space-y-3 text-gray-600">
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">1</span>
+                  <span>Clone the repository and install dependencies</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">2</span>
+                  <span>Create Slack app and get tokens</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">3</span>
+                  <span>Run locally with <code class="bg-gray-100 px-1 rounded">python app.py</code></span>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="mt-8 text-center">
+            <a href="https://github.com/OWASP-BLT/BLT-Sammich" class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" target="_blank">
+              <i class="fab fa-github mr-2"></i>
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- OWASP Connection -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Part of the OWASP Ecosystem</h2>
+        <div class="max-w-3xl mx-auto text-center">
+          <p class="text-gray-600 mb-6">BLT-Sammich is built for the <strong>OWASP BLT (Bug Logging Tool)</strong> community. It helps teams manage security projects, track contributions, and discover the vast ecosystem of OWASP security tools.</p>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Security First</h4>
+              <p class="text-sm text-gray-600">Built with security best practices for the cybersecurity community</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Open Source</h4>
+              <p class="text-sm text-gray-600">Fully open source, transparent, and community-driven development</p>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-red-600 mb-2">Community</h4>
+              <p class="text-sm text-gray-600">Connects developers with 800+ OWASP projects and active contributors</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
+        <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Sammich" class="text-red-600 hover:underline" target="_blank">BLT-Sammich</a></p>
+      </div>
+    </footer>
+  </body>
+</html>
