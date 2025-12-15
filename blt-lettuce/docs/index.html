@@ -98,29 +98,60 @@
         </div>
       </section>
 
-      <!-- How It Works -->
-      <section class="bg-white rounded-lg shadow p-6 mb-8" id="how-it-works">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
-        <div class="max-w-4xl mx-auto space-y-4">
-          <div class="flex flex-col md:flex-row gap-6 p-6 border rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-lg">1</div>
-            <div>
-              <h3 class="text-lg font-bold text-gray-900 mb-1">User Joins or Initiates</h3>
-              <p class="text-gray-600">A new member joins OWASP Slack, or any member runs <code class="bg-gray-100 px-2 py-0.5 rounded text-red-600">/lettuce</code> to start finding projects.</p>
+      <!-- Bot Interactions (Features) -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="interactions">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Bot Interactions</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Smart Welcome Interaction -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm border border-red-100">Event: team_join</span>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Automatic Welcome</h4>
+            <p class="text-gray-600 text-sm mb-3">Detects when a new user joins the workspace and sends a personalized welcome DM with resources.</p>
+            <div class="bg-gray-50 p-3 rounded text-xs font-mono border border-gray-100">
+              <span class="text-green-600">✔ User joins workspace</span><br />
+              🤖 Bot: "Welcome to the OWASP Slack Community!"<br />
+              <span class="text-gray-400 italic">(Followed by project recommendations)</span>
             </div>
           </div>
-          <div class="flex flex-col md:flex-row gap-6 p-6 border rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-lg">2</div>
-            <div>
-              <h3 class="text-lg font-bold text-gray-900 mb-1">Interactive Questions</h3>
-              <p class="text-gray-600">The bot asks simple questions to understand interests—documentation, coding, breaking apps, or community building.</p>
+
+          <!-- Contribution Assistance Interaction -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm border border-red-100">Keyword: "contribute"</span>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Contribution Guide</h4>
+            <p class="text-gray-600 text-sm mb-3">Mentioning "contribute" or "contributing" in any channel triggers a helpful guide response.</p>
+            <div class="bg-gray-50 p-3 rounded text-xs font-mono border border-gray-100">
+              👤 User: "I want to contribute to this project..."<br />
+              🤖 Bot: "Hello! Please check channel #contribution-guides..."
             </div>
           </div>
-          <div class="flex flex-col md:flex-row gap-6 p-6 border rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-lg">3</div>
-            <div>
-              <h3 class="text-lg font-bold text-gray-900 mb-1">Smart Matching</h3>
-              <p class="text-gray-600">Queries cached metadata from GitHub to find active projects that need help and match the user's profile.</p>
+
+          <!-- Direct Message Interaction -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm border border-red-100">Event: message (IM)</span>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Direct Message Handler</h4>
+            <p class="text-gray-600 text-sm mb-3">Responds to direct messages and logs interactions for community managers.</p>
+            <div class="bg-gray-50 p-3 rounded text-xs font-mono border border-gray-100">
+              👤 User (DM): "Hello bot"<br />
+              🤖 Bot: "Hello @User, you said: Hello bot"
+            </div>
+          </div>
+
+          <!-- Deployment Update Interaction -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm border border-red-100">Webhook: /update_server</span>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Auto-Deployment Updates</h4>
+            <p class="text-gray-600 text-sm mb-3">Automatically notifies the team when a new version of the bot is deployed via webhook.</p>
+            <div class="bg-gray-50 p-3 rounded text-xs font-mono border border-gray-100">
+              🚀 Deployed version 1.9<br />
+              📝 Latest commit: "Fix bug in welcome message"
             </div>
           </div>
         </div>
