@@ -110,7 +110,67 @@
           </div>
         </div>
       </section>
+      
+      <!-- Available Commands -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Available Commands</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Contributors Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/contributors</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Track Contributor Activity</h4>
+            <p class="text-gray-600 text-sm mb-3">Shows PR merges, issues resolved, and comments from the last 7 days</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              📊 Contributors Activity<br />
+              • john_dev: 3 PRs, 2 issues, 5 comments<br />
+              • jane_contributor: 1 PR, 4 issues, 2 comments
+            </div>
+          </div>
 
+          <!-- GitHub Issue Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/ghissue [title]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Create GitHub Issues</h4>
+            <p class="text-gray-600 text-sm mb-3">Instantly create GitHub issues from Slack conversations</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /ghissue Fix mobile login bug<br />
+              ✅ Issue created: <span class="text-blue-600">github.com/repo/issues/123</span>
+            </div>
+          </div>
+
+          <!-- Project Discovery Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/project [name]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Discover OWASP Projects</h4>
+            <p class="text-gray-600 text-sm mb-3">Browse 800+ OWASP projects with descriptions and links</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /project zap<br />
+              🔍 OWASP ZAP - Web security scanner<br />
+              📋 Features, docs, and community links
+            </div>
+          </div>
+
+          <!-- Repository Command -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <code class="bg-red-50 text-red-600 px-3 py-1 rounded font-mono text-sm">/repo [technology]</code>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Find Repos by Tech Stack</h4>
+            <p class="text-gray-600 text-sm mb-3">Get repositories matching your programming skills and interests</p>
+            <div class="bg-gray-50 p-2 rounded text-xs font-mono">
+              /repo python<br />
+              🐍 Python repositories where you can contribute:<br />
+              • OWASP-Project-A • Security-Tool-B
+            </div>
+          </div>
+        </div>
+      </section>
     <!-- Footer -->
     <footer class="bg-white border-t mt-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
