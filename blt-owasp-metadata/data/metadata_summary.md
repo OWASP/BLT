@@ -5,7 +5,6 @@
 | Field | Count |
 |---|---|
 | Country | 1 |
-| Organizer | 1 |
 | Postal Code | 4 |
 | State | 1 |
 | University | 1 |
@@ -18,7 +17,7 @@
 | displaytext | 2 |
 | headerimage | 3 |
 | lang | 1 |
-| layout | 1074 |
+| layout | 1075 |
 | leaders | 1 |
 | level | 688 |
 | maintenance | 2 |
@@ -55,12 +54,12 @@
 | audience | 291 |
 | code_repositories | 176 |
 | download_links | 263 |
-| leaders_list | 757 |
+| leaders_list | 756 |
 | license | 60 |
 | project_classification | 298 |
 | sidebar_type | 107 |
 | social_facebook | 75 |
-| social_linkedin | 143 |
+| social_linkedin | 144 |
 | social_meetup | 323 |
 | social_twitter | 155 |
 | social_youtube | 73 |
