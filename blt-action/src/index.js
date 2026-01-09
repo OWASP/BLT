@@ -97,6 +97,31 @@ const run = async () => {
                 console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                 try {
                     const assigneeLogin = comment.user.login;
+                    
+                    // Check if there's already an open PR linked to this issue
+                    console.log(`Checking for open PRs linked to issue #${issue.number}`);
+
+                    // Search for open PRs referencing this issue
+                    const query = `repo:${owner}/${repoName} is:pr is:open ${issue.number} in:body`;
+                    const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
+                    
+                    if (pullRequests.data.total_count > 0) {
+                        console.log(`Found ${pullRequests.data.total_count} open PR(s) linked to issue #${issue.number}`);
+                        
+                        // Get PR details
+                        const prList = pullRequests.data.items.map(pr => {
+                            const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
+                            return `- #${pr.number} by @${pr.user.login} (${prAge} days old)`;
+                        }).join('\n');
+                        
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `**This issue already has open pull request(s) linked to it:**\n\n${prList}\n\nPlease verify with the PR author(s) regarding the status of these pull requests before taking over this issue.\n\nIf the existing PR(s) are stale or abandoned, please coordinate with the PR author(s) and maintainers before proceeding.${attribution}`
+                        });
+                        return;
+                    }
 
                     // Get assigned issues
                     const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
@@ -404,7 +429,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: event.issue.number,
-                                body: `⏰ This issue has been automatically unassigned from ${event.issue.assignee.login} due to 24 hours of inactivity. The issue is now available for anyone to work on again.${attribution}`
+                                body: `⏰ This issue has been automatically unassigned from @${event.issue.assignee.login} due to 24 hours of inactivity without a linked pull request.\n\n**Next Steps:**\n1. If you were working on this, you can reassign it by typing \`/assign\`\n2. If you have a WIP pull request, please link it to this issue\n3. The issue is now available for others to work on\n\nNote: If there's an existing PR linked to this issue that needs attention, please coordinate with the PR author.${attribution}`
                             });
                         } else {
                             console.log(`Issue #${event.issue.number} does not have the "assigned" label, skipping unassign.`);
