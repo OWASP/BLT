@@ -118,16 +118,17 @@ const run = async () => {
 
                     for (const e of timelineEvents) {
                         if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
-
-                        // Only consider PRs from this repository (cross-refs can come from other repos).
-                        const sourceFullName = e.source?.repository?.full_name;
-                        if (sourceFullName && sourceFullName !== currentRepo) continue;
-
+                        
+                        try {
+                        /// Fetch source issue to get repository info
+                        const sourceIssue = await octokit.issues.get({ url: e.source.issue.url });
+                        const sourceRepo = sourceIssue.data.repository?.full_name;
+                        if (sourceRepo && sourceRepo !== currentRepo) continue; // Skip cross-repo
+                        
                         const prNumber = e.source.issue.number;
                         if (seenPrNumbers.has(prNumber)) continue;
                         seenPrNumbers.add(prNumber);
 
-                        try {
                             const pr = await octokit.pulls.get({
                                 owner,
                                 repo: repoName,
