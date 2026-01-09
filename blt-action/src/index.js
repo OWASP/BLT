@@ -101,48 +101,55 @@ const run = async () => {
                         return;
                     }
                     const assigneeLogin = comment.user.login;
-                    
+
                     // Check if there's already an open PR linked to this issue using timeline events
                     console.log(`Checking for open PRs linked to issue #${issue.number}`);
-                    
+
                     const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
                         owner,
                         repo: repoName,
                         issue_number: issue.number,
                         per_page: 100,
                     });
-                    
+
                     const linkedOpenPRs = [];
+                    const seenPrNumbers = new Set();
+                    const currentRepo = `${owner}/${repoName}`;
 
                     for (const e of timelineEvents) {
-                    if (
-                        e.event === "cross-referenced" &&
-                        e.source?.issue?.pull_request
-                    ) {
+                        if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
+
+                        // Only consider PRs from this repository (cross-refs can come from other repos).
+                        const sourceFullName = e.source?.repository?.full_name;
+                        if (sourceFullName && sourceFullName !== currentRepo) continue;
+
                         const prNumber = e.source.issue.number;
+                        if (seenPrNumbers.has(prNumber)) continue;
+                        seenPrNumbers.add(prNumber);
 
-                        const pr = await octokit.pulls.get({
-                        owner,
-                        repo: repoName,
-                        pull_number: prNumber
-                        });
-
-                        if (pr.data.state === "open") {
-                        linkedOpenPRs.push(pr.data);
+                        try {
+                            const pr = await octokit.pulls.get({
+                                owner,
+                                repo: repoName,
+                                pull_number: prNumber
+                            });
+                            if (pr.data.state === "open") linkedOpenPRs.push(pr.data);
+                        } catch (err) {
+                            // If the PR isn't accessible/found, don't fail the entire assignment.
+                            console.log(`Skipping linked PR #${prNumber}: ${err?.status || err?.message || err}`);
                         }
                     }
-                    }
-                    
+
                     if (linkedOpenPRs.length > 0) {
                         console.log(`Found ${linkedOpenPRs.length} open PR(s) linked to issue #${issue.number}`);
-                        
+
                         // Get PR details
                         const prList = linkedOpenPRs.map(pr => {
                             const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
                             const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
                             return `- #${pr.number} by ${author} (${prAge} days old)`;
-                         });
-                        
+                        });
+
                         await octokit.issues.createComment({
                             owner,
                             repo: repoName,
@@ -261,7 +268,7 @@ const run = async () => {
                     const sender = comment.user.login; // GitHub username of the commenter
                     let receiver = kudosCommand[1]; // Receiver from the command
                     const kudosComment = kudosCommand.slice(2).join(' ') || 'Great work!'; // Optional comment
-                    
+
                     // Strip @ symbol from receiver if present
                     receiver = receiver.replace(/^@/, '');
 
@@ -295,11 +302,11 @@ const run = async () => {
                             issue_number: issueNumber,
                             body: `✅ Kudos tracked on [BLT profile](https://owaspblt.org/profile/${receiver})!${attribution}`
                         });
-                        
+
                         console.log(`Kudos successfully tracked on BLT for ${receiver}`);
                     } catch (apiError) {
                         console.log(`Note: Kudos not tracked on BLT (user may not have a profile): ${apiError.message}`);
-                        
+
                         // Post informational message about BLT profile (only if it's a 404 or similar)
                         if (apiError.response && (apiError.response.status === 404 || apiError.response.status === 400)) {
                             await octokit.issues.createComment({
@@ -346,7 +353,7 @@ const run = async () => {
                     try {
                         // Check if the user has GitHub Sponsors enabled by making a HEAD request
                         const sponsorCheckResponse = await axios.head(sponsorUrl).catch(() => null);
-                        
+
                         if (!sponsorCheckResponse) {
                             await octokit.issues.createComment({
                                 owner,
@@ -458,7 +465,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: event.issue.number,
-                                body: `⏰ This issue has been automatically unassigned from @${event.issue.assignee.login} due to 24 hours of inactivity without a linked pull request.\n\n**Next Steps:**\n1. If you were working on this, you can reassign it by typing \`/assign\`\n2. If you have a WIP pull request, please link it to this issue\n3. The issue is now available for others to work on\n\nNote: If there's an existing PR linked to this issue that needs attention, please coordinate with the PR author.${attribution}`
+                                body: `⏰ This issue has been automatically unassigned from @${event.issue.assignee.login} due to 24 hours of inactivity without an *open* linked pull request.\n\n**Next Steps:**\n1. If you were working on this, you can reassign it by typing \`/assign\`\n2. If you have a WIP pull request, please link it to this issue\n3. The issue is now available for others to work on\n\nNote: If there's an existing PR linked to this issue that needs attention, please coordinate with the PR author.${attribution}`
                             });
                         } else {
                             console.log(`Issue #${event.issue.number} does not have the "assigned" label, skipping unassign.`);
