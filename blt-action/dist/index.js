@@ -43845,7 +43845,7 @@ const run = async () => {
                     console.log(`Checking for open PRs linked to issue #${issue.number}`);
 
                     // Search for open PRs referencing this issue
-                    const query = `repo:${owner}/${repoName} is:pr is:open ${issue.number} in:body`;
+                    const query = `repo:${owner}/${repoName} is:pr is:open "#${issue.number}" in:title,body`;
                     const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
                     
                     if (pullRequests.data.total_count > 0) {
@@ -43854,8 +43854,9 @@ const run = async () => {
                         // Get PR details
                         const prList = pullRequests.data.items.map(pr => {
                             const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
-                            return `- #${pr.number} by @${pr.user.login} (${prAge} days old)`;
-                        }).join('\n');
+                            const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
+                            return `- #${pr.number} by ${author} (${prAge} days old)`;
+                        });
                         
                         await octokit.issues.createComment({
                             owner,

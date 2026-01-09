@@ -111,8 +111,9 @@ const run = async () => {
                         // Get PR details
                         const prList = pullRequests.data.items.map(pr => {
                             const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
-                            return `- #${pr.number} by @${pr.user.login} (${prAge} days old)`;
-                        }).join('\n');
+                            const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
+                            return `- #${pr.number} by ${author} (${prAge} days old)`;
+                        });
                         
                         await octokit.issues.createComment({
                             owner,
