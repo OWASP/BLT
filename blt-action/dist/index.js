@@ -43758,7 +43758,7 @@ async function hasOpenLinkedPR(
 
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
-        { owner, repo: repoName, issue_number: issueNumber, per_page: 100 }
+        { owner, repo: repoName, issue_number: issueNumber, per_page: 100, headers: { accept: 'application/vnd.github.mockingbird-preview+json' }}
     );
 
     for (const e of timelineEvents) {
@@ -43789,6 +43789,11 @@ async function hasOpenLinkedPR(
                 }
             }
         } catch (err) {
+            // 404 = PR deleted; safe to skip. Other failures = permission/rate-limit/transient;
+            // rethrow to let callers safely skip assignment/unassignment during verification failure.
+            if (err?.status && err.status !== 404) {
+                throw err;
+            }
             console.log(
                 `Skipping linked PR #${prNumber}: ${err?.status || err?.message || 'unknown error'}`
             );
@@ -43879,7 +43884,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `You have been unassigned from this issue. It's now open for others. You can reassign it anytime by typing /assign.${attribution}`
+                                body: `You have been unassigned from this issue. It's now open for others. You can reassign it anytime by typing \`/assign\`.${attribution}`
                             });
                         }
                     } else {
@@ -43891,12 +43896,12 @@ const run = async () => {
             }
 
             if (shouldAssign) {
-                console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                 try {
                     if (!issue) {
                         console.log('Skipping /assign: no issue context for this event.');
                         return; // This is fine - no issue context means no stale checks needed
                     }
+                    console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                     const assigneeLogin = comment.user.login;
 
                     // Check if there's already an open PR linked to this issue using timeline events
@@ -44112,15 +44117,26 @@ const run = async () => {
                     console.log(`Generating tip link from ${sender} to ${receiver} for $${amountValue}`);
 
                     try {
-                        // Check if the user has GitHub Sponsors enabled by making a HEAD request
-                        const sponsorCheckResponse = await axios.head(sponsorUrl).catch(() => null);
+                        const sponsorCheckResponse = await axios.head(sponsorUrl, {
+                            timeout: 8000,
+                            validateStatus: () => true, // don't throw; we inspect status
+                        });
 
-                        if (!sponsorCheckResponse) {
+                        if (sponsorCheckResponse.status === 404) {
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue ? issue.number : pull_request.number,
                                 body: `⚠️ @${receiver} does not appear to have GitHub Sponsors enabled. Please verify the username or ask them to set up GitHub Sponsors first.\n\nLearn more: https://github.com/sponsors${attribution}`
+                            });
+                            return;
+                        }
+                        if (sponsorCheckResponse.status < 200 || sponsorCheckResponse.status >= 400) {
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue ? issue.number : pull_request.number,
+                                body: `⚠️ Could not verify GitHub Sponsors for @${receiver} right now (status ${sponsorCheckResponse.status}). Please try again later or visit ${sponsorUrl}.${attribution}`
                             });
                             return;
                         }
