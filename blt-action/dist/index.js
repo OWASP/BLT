@@ -43767,12 +43767,12 @@ async function hasOpenLinkedPR(
         }
 
         const prNumber = e.source?.issue?.number;
-        if (!prNumber || seen.has(prNumber)) continue;
-        seen.add(prNumber);
 
         // Ensure the PR belongs to the same repository
         const sourceRepo = e.source?.repository?.full_name;
         if (sourceRepo && sourceRepo !== currentRepo) continue;
+        if (!prNumber || seen.has(prNumber)) continue;
+        seen.add(prNumber);
 
         try {
             const pr = await octokit.pulls.get({
