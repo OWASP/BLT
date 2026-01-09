@@ -44126,7 +44126,9 @@ const run = async () => {
                             validateStatus: () => true, // don't throw; we inspect status
                         });
 
-                        if (sponsorCheckResponse.status === 404) {
+                        const status = sponsorCheckResponse.status;
+
+                        if (status === 404) {
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
@@ -44135,16 +44137,12 @@ const run = async () => {
                             });
                             return;
                         }
-                        if (sponsorCheckResponse.status >= 300 && sponsorCheckResponse.status < 400) {
-                            // Redirects are typically followed by axios, but log if we see one
-                            console.log(`Redirect status ${sponsorCheckResponse.status} for sponsor check - treating as success`);
-                        }
-                        else if (sponsorCheckResponse.status < 200 || sponsorCheckResponse.status >= 400) {
+                        if (status < 200 || status >= 300) {
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue ? issue.number : pull_request.number,
-                                body: `⚠️ Could not verify GitHub Sponsors for @${receiver} right now (status ${sponsorCheckResponse.status}). Please try again later or visit ${sponsorUrl}.${attribution}`
+                                body: `⚠️ Could not verify GitHub Sponsors for @${receiver} right now (status ${status}). Please try again later or visit ${sponsorUrl}.${attribution}`
                             });
                             return;
                         }
