@@ -43974,7 +43974,7 @@ const run = async () => {
                                     owner,
                                     repo: repoName,
                                     issue_number: issue.number,
-                                    body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.`
+                                    body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.${attribution}`
                                 });
 
                                 return; // Stop here - assignment blocked
@@ -43982,6 +43982,12 @@ const run = async () => {
 
                             // If already assigned to the same user → proceed silently
                             console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
+                            await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `ℹ️ You are already assigned to this issue.${attribution}`
+                        });
                             return; // Stop here - nothing to do
                         }
 
