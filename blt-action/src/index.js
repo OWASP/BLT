@@ -102,7 +102,7 @@ const run = async () => {
                     console.log(`Checking for open PRs linked to issue #${issue.number}`);
 
                     // Search for open PRs referencing this issue
-                    const query = `repo:${owner}/${repoName} is:pr is:open ${issue.number} in:body`;
+                    const query = `repo:${owner}/${repoName} is:pr is:open "#${issue.number}" in:title,body`;
                     const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
                     
                     if (pullRequests.data.total_count > 0) {
