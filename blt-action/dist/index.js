@@ -43789,9 +43789,8 @@ async function hasOpenLinkedPR(
                 }
             }
         } catch (err) {
-            // 404 = PR deleted; safe to skip. Other failures = permission/rate-limit/transient;
-            // rethrow to let callers safely skip assignment/unassignment during verification failure.
-            if (err?.status && err.status !== 404) {
+            // 404 = PR deleted; safe to skip. 
+            if ( err.status !== 404) {
                 throw err;
             }
             console.log(
