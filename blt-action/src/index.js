@@ -15,7 +15,7 @@ async function hasOpenLinkedPR(
 
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
-        { owner, repo: repoName, issue_number: issueNumber, per_page: 100, headers: { accept: 'application/vnd.github+json','X-GitHub-Api-Version': '2022-11-28' } }
+        { owner, repo: repoName, issue_number: issueNumber, per_page: 100, headers: { accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } }
     );
 
     for (const e of timelineEvents) {
@@ -96,6 +96,10 @@ const run = async () => {
             const shouldTip = commentBody.startsWith(tipKeyword);
 
             if (shouldUnassign) {
+                if (!issue) {
+                    console.log('Skipping /unassign: no issue context for this event.');
+                    return;
+                }
                 console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
 
                 try {
