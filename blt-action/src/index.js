@@ -3,29 +3,40 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 async function hasOpenLinkedPR(octokit, owner, repoName, issueNumber) {
-    try {
-        const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
-            owner,
-            repo: repoName,
-            issue_number: issueNumber,
-            per_page: 100,
-        });
+    const timelineEvents = await octokit.paginate(
+        octokit.issues.listEventsForTimeline,
+        { owner, repo: repoName, issue_number: issueNumber, per_page: 100 }
+    );
 
-        const currentRepo = `${owner}/${repoName}`;
-        
-        return timelineEvents.some(e => {
-            if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) return false;
-            
-            const sourceFullName = e.source?.repository?.full_name;
-            if (sourceFullName && sourceFullName !== currentRepo) return false;
-            
-            return e.source.issue.state === "open";
-        });
-    } catch (error) {
-        console.log(`Error checking for open PRs: ${error.message}`);
-        return false; // Fail safe: assume no PR if check fails
+    const currentRepo = `${owner}/${repoName}`;
+    const seen = new Set();
+
+    for (const e of timelineEvents) {
+        if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
+
+        const sourceRepo = e.source?.repository?.full_name;
+        if (sourceRepo && sourceRepo !== currentRepo) continue;
+
+        const prNumber = e.source.issue.number;
+        if (!prNumber || seen.has(prNumber)) continue;
+        seen.add(prNumber);
+
+        try {
+            const pr = await octokit.pulls.get({
+                owner,
+                repo: repoName,
+                pull_number: prNumber
+            });
+
+            if (pr.data.state === "open") return true;
+        } catch {
+            continue;
+        }
     }
+
+    return false;
 }
+
 
 const run = async () => {
     try {
@@ -143,16 +154,16 @@ const run = async () => {
 
                     for (const e of timelineEvents) {
                         if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
-                        
+
                         try {
-                        /// Fetch source issue to get repository info
-                        const sourceIssue = await octokit.issues.get({ url: e.source.issue.url });
-                        const sourceRepo = sourceIssue.data.repository?.full_name;
-                        if (sourceRepo && sourceRepo !== currentRepo) continue; // Skip cross-repo
-                        
-                        const prNumber = e.source.issue.number;
-                        if (seenPrNumbers.has(prNumber)) continue;
-                        seenPrNumbers.add(prNumber);
+                            /// Fetch source issue to get repository info
+                            const sourceIssue = await octokit.issues.get({ url: e.source.issue.url });
+                            const sourceRepo = sourceIssue.data.repository?.full_name;
+                            if (sourceRepo && sourceRepo !== currentRepo) continue; // Skip cross-repo
+
+                            const prNumber = e.source.issue.number;
+                            if (seenPrNumbers.has(prNumber)) continue;
+                            seenPrNumbers.add(prNumber);
 
                             const pr = await octokit.pulls.get({
                                 owner,
@@ -447,8 +458,8 @@ const run = async () => {
                                 per_page: 100,
                             });
 
-                            const hasOpenLinkedPR = await hasOpenLinkedPR(octokit, owner, repoName, event.issue.number);
-                            if (hasOpenLinkedPR) {
+                            const hasOpenPR = await hasOpenLinkedPR(octokit, owner, repoName, event.issue.number);
+                            if (hasOpenPR) {
                                 console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
                                 continue;
                             }
