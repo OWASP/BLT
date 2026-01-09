@@ -43799,8 +43799,6 @@ async function hasOpenLinkedPR(
     return returnDetails ? openPRs : false;
 }
 
-
-
 const run = async () => {
     try {
         console.log("Starting GitHub Action...");
@@ -43826,6 +43824,8 @@ const run = async () => {
         const giphyKeyword = '/giphy';
         const kudosKeyword = '/kudos';
         const tipKeyword = '/tip';
+
+        let skipStaleCheck = false;
 
         if ((eventName === 'issue_comment' && issue && comment) || (eventName === 'pull_request_review_comment' && pull_request && comment)) {
             console.log('Processing comment...');
@@ -43881,7 +43881,7 @@ const run = async () => {
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `You have been unassigned from this issue. It’s now open for others. You can reassign it anytime by typing /assign.${attribution}`
+                                body: `You have been unassigned from this issue. It's now open for others. You can reassign it anytime by typing /assign.${attribution}`
                             });
                         }
                     } else {
@@ -43897,113 +43897,109 @@ const run = async () => {
                 try {
                     if (!issue) {
                         console.log('Skipping /assign: no issue context for this event.');
-                        return;
-                    }
-                    const assigneeLogin = comment.user.login;
+                        skipStaleCheck = true;
+                    } else {
+                        const assigneeLogin = comment.user.login;
 
-                    // Check if there's already an open PR linked to this issue using timeline events
-                    console.log(`Checking for open PRs linked to issue #${issue.number}`);
-                    const linkedOpenPRs = await hasOpenLinkedPR(octokit, owner, repoName, issue.number, true);
+                        // Check if there's already an open PR linked to this issue using timeline events
+                        console.log(`Checking for open PRs linked to issue #${issue.number}`);
+                        const linkedOpenPRs = await hasOpenLinkedPR(octokit, owner, repoName, issue.number, true);
 
-                    if (linkedOpenPRs.length > 0) {
-                        console.log(`Found ${linkedOpenPRs.length} open PR(s) linked to issue #${issue.number}`);
+                        if (linkedOpenPRs.length > 0) {
+                            console.log(`Found ${linkedOpenPRs.length} open PR(s) linked to issue #${issue.number}`);
 
-                        // Get PR details
-                        const prList = linkedOpenPRs.map(pr => {
-                            const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
-                            const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
-                            return `- #${pr.number} by ${author} (${prAge} days old)`;
-                        });
-
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue.number,
-                            body: `**This issue already has open pull request(s) linked to it:**\n\n${prList.join('\n')}\n\nPlease verify with the PR author(s) regarding the status of these pull requests before taking over this issue.\n\n**Next Steps:**\n- If the existing PR(s) are stale or abandoned, coordinate with the PR author(s) and maintainers\n- After coordination, a maintainer can manually assign this issue if appropriate\n- Consider collaborating with the existing PR author(s) instead of duplicating work${attribution}`
-                        });
-                        return;
-                    }
-
-                    // Get assigned issues
-                    const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
-                        owner,
-                        repo: repoName,
-                        state: 'open',
-                        assignee: assigneeLogin
-                    });
-
-                    // Check if user has unresolved issues without a PR
-                    let issuesWithoutPR = [];
-                    for (const assignedIssue of assignedIssues) {
-                        if (assignedIssue.number === issue.number) continue;
-
-                        const query = `repo:${owner}/${repoName} is:pr is:open ${assignedIssue.number} in:body`;
-                        const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
-
-                        if (pullRequests.data.total_count === 0) {
-                            console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
-                            issuesWithoutPR.push(assignedIssue.number);
-                        }
-                    }
-
-                    if (issuesWithoutPR.length > 0) {
-                        const issueList = issuesWithoutPR.join(', #');
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue.number,
-                            body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
-                        });
-                        return;
-                    }
-
-                    // prevent multiple assignees
-                    const currentAssignees = issue.assignees || [];
-
-                    if (currentAssignees.length > 0) {
-                        const currentAssignee = currentAssignees[0].login;
-
-                        if (currentAssignee !== assigneeLogin) {
-                            console.log(`Issue #${issue.number} is already assigned to ${currentAssignee}`);
+                            // Get PR details
+                            const prList = linkedOpenPRs.map(pr => {
+                                const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
+                                const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
+                                return `- #${pr.number} by ${author} (${prAge} days old)`;
+                            });
 
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.`
+                                body: `**This issue already has open pull request(s) linked to it:**\n\n${prList.join('\n')}\n\nPlease verify with the PR author(s) regarding the status of these pull requests before taking over this issue.\n\n**Next Steps:**\n- If the existing PR(s) are stale or abandoned, coordinate with the PR author(s) and maintainers\n- After coordination, a maintainer can manually assign this issue if appropriate\n- Consider collaborating with the existing PR author(s) instead of duplicating work${attribution}`
+                            });
+                        } else {
+                            // Get assigned issues
+                            const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                                owner,
+                                repo: repoName,
+                                state: 'open',
+                                assignee: assigneeLogin
                             });
 
-                            return; // prevent assignment
+                            // Check if user has unresolved issues without a PR
+                            let issuesWithoutPR = [];
+                            for (const assignedIssue of assignedIssues) {
+                                if (assignedIssue.number === issue.number) continue;
+
+                                const query = `repo:${owner}/${repoName} is:pr is:open ${assignedIssue.number} in:body`;
+                                const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
+
+                                if (pullRequests.data.total_count === 0) {
+                                    console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
+                                    issuesWithoutPR.push(assignedIssue.number);
+                                }
+                            }
+
+                            if (issuesWithoutPR.length > 0) {
+                                const issueList = issuesWithoutPR.join(', #');
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue.number,
+                                    body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
+                                });
+                            } else {
+                                // prevent multiple assignees
+                                const currentAssignees = issue.assignees || [];
+
+                                if (currentAssignees.length > 0) {
+                                    const currentAssignee = currentAssignees[0].login;
+
+                                    if (currentAssignee !== assigneeLogin) {
+                                        console.log(`Issue #${issue.number} is already assigned to ${currentAssignee}`);
+
+                                        await octokit.issues.createComment({
+                                            owner,
+                                            repo: repoName,
+                                            issue_number: issue.number,
+                                            body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.`
+                                        });
+
+                                    } else {
+                                        // If already assigned to the same user → proceed silently
+                                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
+                                    }
+                                } else {
+                                    // Assign user to the issue
+                                    await octokit.issues.addAssignees({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        assignees: [assigneeLogin]
+                                    });
+
+                                    // Add "assigned" label
+                                    await octokit.issues.addLabels({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        labels: ["assigned"]
+                                    });
+
+                                    await octokit.issues.createComment({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.${attribution}`
+                                    });
+                                }
+                            }
                         }
-
-                        // If already assigned to the same user → proceed silently
-                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
-                        return;
                     }
-
-                    // Assign user to the issue
-                    await octokit.issues.addAssignees({
-                        owner,
-                        repo: repoName,
-                        issue_number: issue.number,
-                        assignees: [assigneeLogin]
-                    });
-
-                    // Add "assigned" label
-                    await octokit.issues.addLabels({
-                        owner,
-                        repo: repoName,
-                        issue_number: issue.number,
-                        labels: ["assigned"]
-                    });
-
-                    await octokit.issues.createComment({
-                        owner,
-                        repo: repoName,
-                        issue_number: issue.number,
-                        body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.${attribution}`
-                    });
-
                 } catch (error) {
                     console.error(`Error assigning issue #${issue.number}:`, error);
                 }
@@ -44107,47 +44103,45 @@ const run = async () => {
                             issue_number: issue ? issue.number : pull_request.number,
                             body: `⚠️ Invalid amount format. Use: \`/tip @username $amount\` (e.g., \`/tip @user $5\` or \`/tip @user $10.50\`)${attribution}`
                         });
-                        return;
-                    }
+                    } else {
+                        const amountValue = amountMatch[1];
+                        const sponsorUrl = `https://github.com/sponsors/${receiver}`;
 
-                    const amountValue = amountMatch[1];
-                    const sponsorUrl = `https://github.com/sponsors/${receiver}`;
+                        console.log(`Generating tip link from ${sender} to ${receiver} for $${amountValue}`);
 
-                    console.log(`Generating tip link from ${sender} to ${receiver} for $${amountValue}`);
+                        try {
+                            // Check if the user has GitHub Sponsors enabled by making a HEAD request
+                            const sponsorCheckResponse = await axios.head(sponsorUrl).catch(() => null);
 
-                    try {
-                        // Check if the user has GitHub Sponsors enabled by making a HEAD request
-                        const sponsorCheckResponse = await axios.head(sponsorUrl).catch(() => null);
-
-                        if (!sponsorCheckResponse) {
+                            if (!sponsorCheckResponse) {
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue ? issue.number : pull_request.number,
+                                    body: `⚠️ @${receiver} does not appear to have GitHub Sponsors enabled. Please verify the username or ask them to set up GitHub Sponsors first.\n\nLearn more: https://github.com/sponsors${attribution}`
+                                });
+                            } else {
+                                // Post success message with sponsor link
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue ? issue.number : pull_request.number,
+                                    body: `💰 **Tip Request from @${sender} to @${receiver}**\n\n` +
+                                        `Amount: **$${amountValue}**\n\n` +
+                                        `To complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n` +
+                                        `🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n` +
+                                        `*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*${attribution}`
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Error processing tip command:', error);
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue ? issue.number : pull_request.number,
-                                body: `⚠️ @${receiver} does not appear to have GitHub Sponsors enabled. Please verify the username or ask them to set up GitHub Sponsors first.\n\nLearn more: https://github.com/sponsors${attribution}`
+                                body: `⚠️ Failed to process tip request. Please try again later or visit https://github.com/sponsors/${receiver} directly.${attribution}`
                             });
-                            return;
                         }
-
-                        // Post success message with sponsor link
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue ? issue.number : pull_request.number,
-                            body: `💰 **Tip Request from @${sender} to @${receiver}**\n\n` +
-                                `Amount: **$${amountValue}**\n\n` +
-                                `To complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n` +
-                                `🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n` +
-                                `*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*${attribution}`
-                        });
-                    } catch (error) {
-                        console.error('Error processing tip command:', error);
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue ? issue.number : pull_request.number,
-                            body: `⚠️ Failed to process tip request. Please try again later or visit https://github.com/sponsors/${receiver} directly.${attribution}`
-                        });
                     }
                 } else {
                     console.log('Invalid /tip command format.');
@@ -44159,6 +44153,12 @@ const run = async () => {
                     });
                 }
             }
+        }
+
+        // Only skip stale checks if there's no issue context for /assign
+        if (skipStaleCheck) {
+            console.log('Skipping stale assignment checks due to missing issue context.');
+            return;
         }
 
         console.log('Checking for stale assignments...');
@@ -44235,7 +44235,6 @@ const run = async () => {
 };
 
 run();
-
 module.exports = __webpack_exports__;
 /******/ })()
 ;
