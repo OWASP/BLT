@@ -2,24 +2,34 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
 
-async function hasOpenLinkedPR(octokit, owner, repoName, issueNumber) {
+async function hasOpenLinkedPR(
+    octokit,
+    owner,
+    repoName,
+    issueNumber,
+    returnDetails = false
+) {
+    const openPRs = [];
+    const currentRepo = `${owner}/${repoName}`;
+    const seen = new Set();
+
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
         { owner, repo: repoName, issue_number: issueNumber, per_page: 100 }
     );
 
-    const currentRepo = `${owner}/${repoName}`;
-    const seen = new Set();
-
     for (const e of timelineEvents) {
-        if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
+        if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) {
+            continue;
+        }
 
-        const sourceRepo = e.source?.repository?.full_name;
-        if (sourceRepo && sourceRepo !== currentRepo) continue;
-
-        const prNumber = e.source.issue.number;
+        const prNumber = e.source?.issue?.number;
         if (!prNumber || seen.has(prNumber)) continue;
         seen.add(prNumber);
+
+        // Ensure the PR belongs to the same repository
+        const sourceRepo = e.source?.repository?.full_name;
+        if (sourceRepo && sourceRepo !== currentRepo) continue;
 
         try {
             const pr = await octokit.pulls.get({
@@ -28,14 +38,24 @@ async function hasOpenLinkedPR(octokit, owner, repoName, issueNumber) {
                 pull_number: prNumber
             });
 
-            if (pr.data.state === "open") return true;
-        } catch {
+            if (pr.data.state === "open") {
+                if (returnDetails) {
+                    openPRs.push(pr.data);
+                } else {
+                    return true; // short-circuit for boolean use case
+                }
+            }
+        } catch (err) {
+            console.log(
+                `Skipping linked PR #${prNumber}: ${err?.status || err?.message || 'unknown error'}`
+            );
             continue;
         }
     }
 
-    return false;
+    return returnDetails ? openPRs : false;
 }
+
 
 
 const run = async () => {
@@ -140,42 +160,7 @@ const run = async () => {
 
                     // Check if there's already an open PR linked to this issue using timeline events
                     console.log(`Checking for open PRs linked to issue #${issue.number}`);
-
-                    const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
-                        owner,
-                        repo: repoName,
-                        issue_number: issue.number,
-                        per_page: 100,
-                    });
-
-                    const linkedOpenPRs = [];
-                    const seenPrNumbers = new Set();
-                    const currentRepo = `${owner}/${repoName}`;
-
-                    for (const e of timelineEvents) {
-                        if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) continue;
-
-                        try {
-                            /// Fetch source issue to get repository info
-                            const sourceIssue = await octokit.issues.get({ url: e.source.issue.url });
-                            const sourceRepo = sourceIssue.data.repository?.full_name;
-                            if (sourceRepo && sourceRepo !== currentRepo) continue; // Skip cross-repo
-
-                            const prNumber = e.source.issue.number;
-                            if (seenPrNumbers.has(prNumber)) continue;
-                            seenPrNumbers.add(prNumber);
-
-                            const pr = await octokit.pulls.get({
-                                owner,
-                                repo: repoName,
-                                pull_number: prNumber
-                            });
-                            if (pr.data.state === "open") linkedOpenPRs.push(pr.data);
-                        } catch (err) {
-                            // If the PR isn't accessible/found, don't fail the entire assignment.
-                            console.log(`Skipping linked PR #${prNumber}: ${err?.status || err?.message || err}`);
-                        }
-                    }
+                    const linkedOpenPRs = await hasOpenLinkedPR(octokit, owner, repoName, issue.number, true);
 
                     if (linkedOpenPRs.length > 0) {
                         console.log(`Found ${linkedOpenPRs.length} open PR(s) linked to issue #${issue.number}`);
@@ -451,13 +436,6 @@ const run = async () => {
                     if (daysInactive > 1) {
                         console.log(`Unassigning issue #${event.issue.number} due to inactivity`);
                         try {
-                            const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
-                                owner,
-                                repo: repoName,
-                                issue_number: event.issue.number,
-                                per_page: 100,
-                            });
-
                             const hasOpenPR = await hasOpenLinkedPR(octokit, owner, repoName, event.issue.number);
                             if (hasOpenPR) {
                                 console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
