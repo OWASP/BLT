@@ -15,7 +15,7 @@ async function hasOpenLinkedPR(
 
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
-        { owner, repo: repoName, issue_number: issueNumber, per_page: 100, headers: { accept: 'application/vnd.github.mockingbird-preview+json' }}
+        { owner, repo: repoName, issue_number: issueNumber, per_page: 100, headers: { accept: 'application/vnd.github+json' }}
     );
 
     for (const e of timelineEvents) {
@@ -131,7 +131,7 @@ const run = async () => {
                         });
 
                         const unassignMessageExists = existingComments.data.some(comment =>
-                            comment.body.includes('⏰ This issue has been automatically unassigned from  due to 24 hours of inactivity.') ||
+                            comment.body.includes('⏰ This issue has been automatically unassigned from due to 24 hours of inactivity.') ||
                             comment.body.includes('You have been unassigned from this issue.')
                         );
 
