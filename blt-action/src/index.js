@@ -2,6 +2,31 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
 
+async function hasOpenLinkedPR(octokit, owner, repoName, issueNumber) {
+    try {
+        const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
+            owner,
+            repo: repoName,
+            issue_number: issueNumber,
+            per_page: 100,
+        });
+
+        const currentRepo = `${owner}/${repoName}`;
+        
+        return timelineEvents.some(e => {
+            if (e.event !== "cross-referenced" || !e.source?.issue?.pull_request) return false;
+            
+            const sourceFullName = e.source?.repository?.full_name;
+            if (sourceFullName && sourceFullName !== currentRepo) return false;
+            
+            return e.source.issue.state === "open";
+        });
+    } catch (error) {
+        console.log(`Error checking for open PRs: ${error.message}`);
+        return false; // Fail safe: assume no PR if check fails
+    }
+}
+
 const run = async () => {
     try {
         console.log("Starting GitHub Action...");
@@ -422,13 +447,7 @@ const run = async () => {
                                 per_page: 100,
                             });
 
-                            const hasOpenLinkedPR = timelineEvents.some(e =>
-                                e.event === "cross-referenced" &&
-                                e.source &&
-                                e.source.issue &&
-                                e.source.issue.pull_request &&
-                                e.source.issue.state === "open"
-                            );
+                            const hasOpenLinkedPR = await hasOpenLinkedPR(octokit, owner, repoName, event.issue.number);
                             if (hasOpenLinkedPR) {
                                 console.log(`Issue #${event.issue.number} has an open pull request (cross-referenced), skipping unassign.`);
                                 continue;
