@@ -138,7 +138,6 @@ const run = async () => {
                         
                         // Get PR details
                         const prList = linkedOpenPRs.map(e => {
-                            const pr = e.source.issue;
                             const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
                             const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
                             return `- #${pr.number} by ${author} (${prAge} days old)`;
