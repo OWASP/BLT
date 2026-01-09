@@ -27,7 +27,7 @@ async function hasOpenLinkedPR(
 
         // Ensure the PR belongs to the same repository
         const sourceRepo = e.source?.repository?.full_name;
-        if (sourceRepo !== currentRepo) continue; // Fixed: skip if undefined or different
+        if (sourceRepo !== currentRepo) continue; // skip if undefined or different
         if (!prNumber || seen.has(prNumber)) continue;
         seen.add(prNumber);
 
@@ -47,7 +47,7 @@ async function hasOpenLinkedPR(
             }
         } catch (err) {
             // 404 = PR deleted; safe to skip. 
-            if ( err.status !== 404) {
+            if (err.status !== 404) {
                 console.error(`Error fetching PR #${prNumber}:`, err?.status || err?.message || 'unknown error');
                 throw err;
             }
@@ -197,7 +197,7 @@ const run = async () => {
                     for (const assignedIssue of assignedIssues) {
                         if (assignedIssue.number === issue.number) continue;
 
-                        // FIXED: Use the correct helper function instead of search API
+                        // Use the correct helper function instead of search API
                         if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
                             console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
                             issuesWithoutPR.push(assignedIssue.number);
