@@ -48,6 +48,7 @@ async function hasOpenLinkedPR(
         } catch (err) {
             // 404 = PR deleted; safe to skip. 
             if ( err.status !== 404) {
+                console.error(`Error fetching PR #${prNumber}:`, err?.status || err?.message || 'unknown error');
                 throw err;
             }
             console.log(
@@ -155,7 +156,7 @@ const run = async () => {
                 try {
                     if (!issue) {
                         console.log('Skipping /assign: no issue context for this event.');
-                        return; // This is fine - no issue context means no stale checks needed
+                        return; // Skip /assign for events without issue context (e.g., PR review comments on files)
                     }
                     console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                     const assigneeLogin = comment.user.login;
