@@ -43839,30 +43839,59 @@ const run = async () => {
             if (shouldAssign) {
                 console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                 try {
+                    if (!issue) {
+                        console.log('Skipping /assign: no issue context for this event.');
+                        return;
+                    }
                     const assigneeLogin = comment.user.login;
                     
-                    // Check if there's already an open PR linked to this issue
+                    // Check if there's already an open PR linked to this issue using timeline events
                     console.log(`Checking for open PRs linked to issue #${issue.number}`);
-
-                    // Search for open PRs referencing this issue
-                    const query = `repo:${owner}/${repoName} is:pr is:open "#${issue.number}" in:title,body`;
-                    const pullRequests = await octokit.search.issuesAndPullRequests({ q: query });
                     
-                    if (pullRequests.data.total_count > 0) {
-                        console.log(`Found ${pullRequests.data.total_count} open PR(s) linked to issue #${issue.number}`);
+                    const timelineEvents = await octokit.paginate(octokit.issues.listEventsForTimeline, {
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        per_page: 100,
+                    });
+                    
+                    const linkedOpenPRs = [];
+
+                    for (const e of timelineEvents) {
+                    if (
+                        e.event === "cross-referenced" &&
+                        e.source?.issue?.pull_request
+                    ) {
+                        const prNumber = e.source.issue.number;
+
+                        const pr = await octokit.pulls.get({
+                        owner,
+                        repo: repoName,
+                        pull_number: prNumber
+                        });
+
+                        if (pr.data.state === "open") {
+                        linkedOpenPRs.push(pr.data);
+                        }
+                    }
+                    }
+                    
+                    if (linkedOpenPRs.length > 0) {
+                        console.log(`Found ${linkedOpenPRs.length} open PR(s) linked to issue #${issue.number}`);
                         
                         // Get PR details
-                        const prList = pullRequests.data.items.map(pr => {
+                        const prList = linkedOpenPRs.map(e => {
+                            const pr = e.source.issue;
                             const prAge = Math.floor((new Date() - new Date(pr.created_at)) / (1000 * 3600 * 24));
                             const author = pr.user?.login ? `@${pr.user.login}` : '[deleted user]';
                             return `- #${pr.number} by ${author} (${prAge} days old)`;
-                        });
+                         });
                         
                         await octokit.issues.createComment({
                             owner,
                             repo: repoName,
                             issue_number: issue.number,
-                            body: `**This issue already has open pull request(s) linked to it:**\n\n${prList}\n\nPlease verify with the PR author(s) regarding the status of these pull requests before taking over this issue.\n\nIf the existing PR(s) are stale or abandoned, please coordinate with the PR author(s) and maintainers before proceeding.${attribution}`
+                            body: `**This issue already has open pull request(s) linked to it:**\n\n${prList.join('\n')}\n\nPlease verify with the PR author(s) regarding the status of these pull requests before taking over this issue.\n\n**Next Steps:**\n- If the existing PR(s) are stale or abandoned, coordinate with the PR author(s) and maintainers\n- After coordination, a maintainer can manually assign this issue if appropriate\n- Consider collaborating with the existing PR author(s) instead of duplicating work${attribution}`
                         });
                         return;
                     }
