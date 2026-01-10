@@ -113,7 +113,7 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
             });
 
             const prData = pr.data;
-            const prAge = Math.floor((new Date() - new Date(prData.created_at)) / (1000 * 3600 * 24));
+            const daysSinceUpdated = Math.floor((new Date() - new Date(prData.updated_at)) / (1000 * 3600 * 24));
 
             const prInfo = {
                 number: prData.number,
@@ -121,7 +121,7 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
                 author: prData.user?.login || '[deleted user]',
                 created_at: prData.created_at,
                 updated_at: prData.updated_at,
-                age: prAge,
+                age: daysSinceUpdated,
                 url: prData.html_url,
                 merged: prData.merged || false
             };
@@ -276,26 +276,14 @@ const run = async () => {
                             }
 
                             if (stalePRs.length > 0 && issue.assignees?.length > 0) {
-                                // Remove current assignee due to stale PRs
-                                await octokit.issues.removeAssignees({
-                                    owner,
-                                    repo: repoName,
-                                    issue_number: issue.number,
-                                    assignees: issue.assignees.map(a => a.login)
-                                });
-
+                                // Mark takeover intent; perform mutations only after new-assignee eligibility checks pass.
                                 shouldSkipNormalAssignmentCheck = true;
 
                                 const prList = stalePRs.map(pr =>
                                     `- #${pr.number} by @${pr.author} (${pr.age} days old, stale)`
                                 ).join('\n');
 
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo: repoName,
-                                    issue_number: issue.number,
-                                    body: `⏰ Previous assignee removed due to stale PR(s):\n\n${prList}\n\n@${assigneeLogin} is taking over.${attribution}`
-                                });
+                                // Post takeover note later, after we successfully unassign + assign.
                             }
                         }
 
@@ -347,6 +335,19 @@ const run = async () => {
                                 });
                                 return; // Stop here - assignment blocked
                             }
+                            // Now it's safe to unassign previous assignee(s) (and keep label consistency)
+                            await octokit.issues.removeAssignees({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                assignees: issue.assignees.map(a => a.login)
+                            });
+                            await octokit.issues.removeLabel({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                name: "assigned"
+                            }).catch(() => console.log("Label already removed or not found."));
 
                             // Assign user to the issue
                             await octokit.issues.addAssignees({
@@ -364,7 +365,16 @@ const run = async () => {
                                 labels: ["assigned"]
                             });
 
-                            // No need for additional comment - we already posted the takeover message
+                            // Post takeover message after successful assignment
+                            const prList = stalePRs.map(pr =>
+                                `- #${pr.number} by @${pr.author} (${pr.age} days old, stale)`
+                            ).join('\n');
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                body: `⏰ Previous assignee removed due to stale PR(s):\n\n${prList}\n\n@${assigneeLogin} is taking over.${attribution}`
+                            });
                             return; // Done with assignment
                         }
 
