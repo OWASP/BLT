@@ -43746,6 +43746,7 @@ const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
 
 const STALE_PR_THRESHOLD_DAYS = 60;
+
 async function hasOpenLinkedPR(
     octokit,
     owner,
@@ -43985,106 +43986,108 @@ const run = async () => {
                     if (!issue) {
                         console.log('Skipping /assign: no issue context for this event.');
                         // Skip assignment - no issue context for this event
-                    } else {
-                        console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
-                        const assigneeLogin = comment.user.login;
+                        return;
+                    }
+                    
+                    console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
+                    const assigneeLogin = comment.user.login;
 
-                        // Step 3: Updated assignment logic with 60-day stale PR handling
-                        // Get all linked PRs (open and closed)
-                        const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, issue.number);
+                    // Step 3: Updated assignment logic with 60-day stale PR handling
+                    // Get all linked PRs (open and closed)
+                    const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, issue.number);
 
-                        // Define state variables at the correct scope
-                        let stalePRs = [];
-                        let activePRs = [];
-                        let shouldSkipNormalAssignmentCheck = false;
+                    // Define state variables at the correct scope
+                    let stalePRs = [];
+                    let activePRs = [];
+                    let shouldSkipNormalAssignmentCheck = false;
 
-                        // Check for open PRs
-                        if (linkedPRs.open.length > 0) {
-                            stalePRs = linkedPRs.open.filter(pr => pr.age >= STALE_PR_THRESHOLD_DAYS);
-                            activePRs = linkedPRs.open.filter(pr => pr.age < STALE_PR_THRESHOLD_DAYS);
+                    // Check for open PRs
+                    if (linkedPRs.open.length > 0) {
+                        stalePRs = linkedPRs.open.filter(pr => pr.age >= STALE_PR_THRESHOLD_DAYS);
+                        activePRs = linkedPRs.open.filter(pr => pr.age < STALE_PR_THRESHOLD_DAYS);
 
-                            if (activePRs.length > 0) {
-                                // Block assignment - recent open PRs exist
-                                const prList = activePRs.map(pr =>
-                                    `- #${pr.number} by @${pr.author} (${pr.age} days old)`
-                                ).join('\n');
-
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo: repoName,
-                                    issue_number: issue.number,
-                                    body: `**This issue has active open pull request(s):**\n\n${prList}\n\nPlease coordinate with the PR author(s) before taking over this issue.${attribution}`
-                                });
-                                return; // Block assignment
-                            }
-
-                            if (stalePRs.length > 0 && issue.assignees?.length > 0) {
-                                // Mark takeover intent; perform mutations only after new-assignee eligibility checks pass.
-                                shouldSkipNormalAssignmentCheck = true;
-
-                                const prList = stalePRs.map(pr =>
-                                    `- #${pr.number} by @${pr.author} (${pr.age} days old, stale)`
-                                ).join('\n');
-
-                                // Post takeover note later, after we successfully unassign + assign.
-                            }
-                        }
-
-                        // Show closed PR history if exists (but only if we're proceeding with assignment)
-                        if (linkedPRs.closed.length > 0) {
-                            const closedList = linkedPRs.closed.map(pr => {
-                                const status = pr.merged ? '✅ merged' : '❌ closed';
-                                return `- #${pr.number} by @${pr.author} (${status}, ${pr.age} days ago)`;
-                            }).join('\n');
+                        if (activePRs.length > 0) {
+                            // Block assignment - recent open PRs exist
+                            const prList = activePRs.map(pr =>
+                                `- #${pr.number} by @${pr.author} (${pr.age} days old)`
+                            ).join('\n');
 
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `📋 **Previous work on this issue:**\n\n${closedList}\n\nPlease review the previous PR(s) to understand the context and avoid duplicate work.${attribution}`
+                                body: `**This issue has active open pull request(s):**\n\n${prList}\n\nPlease coordinate with the PR author(s) before taking over this issue.${attribution}`
                             });
+                            return; // Block assignment
                         }
 
-                        // Check if we should proceed with takeover assignment (stale PRs + removed assignee)
-                        if (shouldSkipNormalAssignmentCheck) {
-                            // Direct assignment after removing previous assignee
-                            // Get assigned issues for the new assignee
-                            const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                        if (stalePRs.length > 0 && issue.assignees?.length > 0) {
+                            // Mark takeover intent; perform mutations only after new-assignee eligibility checks pass.
+                            shouldSkipNormalAssignmentCheck = true;
+                        }
+                    }
+
+                    // Show closed PR history if exists (but only if we're proceeding with assignment)
+                    if (linkedPRs.closed.length > 0) {
+                        const closedList = linkedPRs.closed.map(pr => {
+                            const status = pr.merged ? '✅ merged' : '❌ closed';
+                            return `- #${pr.number} by @${pr.author} (${status}, ${pr.age} days ago)`;
+                        }).join('\n');
+
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `📋 **Previous work on this issue:**\n\n${closedList}\n\nPlease review the previous PR(s) to understand the context and avoid duplicate work.${attribution}`
+                        });
+                    }
+
+                    // Check if we should proceed with takeover assignment (stale PRs + removed assignee)
+                    if (shouldSkipNormalAssignmentCheck) {
+                        // Direct assignment after removing previous assignee
+                        // Get assigned issues for the new assignee
+                        const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                            owner,
+                            repo: repoName,
+                            state: 'open',
+                            assignee: assigneeLogin
+                        });
+
+                        // Check if user has unresolved issues without a PR
+                        let issuesWithoutPR = [];
+                        for (const assignedIssue of assignedIssues) {
+                            if (assignedIssue.number === issue.number) continue;
+
+                            // Use the fixed helper function
+                            if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
+                                console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
+                                issuesWithoutPR.push(assignedIssue.number);
+                            }
+                        }
+
+                        if (issuesWithoutPR.length > 0) {
+                            const issueList = issuesWithoutPR.join(', #');
+                            await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
-                                state: 'open',
-                                assignee: assigneeLogin
+                                issue_number: issue.number,
+                                body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
                             });
+                            return; // Stop here - assignment blocked
+                        }
 
-                            // Check if user has unresolved issues without a PR
-                            let issuesWithoutPR = [];
-                            for (const assignedIssue of assignedIssues) {
-                                if (assignedIssue.number === issue.number) continue;
+                        // Store original assignees for potential rollback
+                        const originalAssignees = issue.assignees || [];
 
-                                // Use the fixed helper function
-                                if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
-                                    console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
-                                    issuesWithoutPR.push(assignedIssue.number);
-                                }
-                            }
-
-                            if (issuesWithoutPR.length > 0) {
-                                const issueList = issuesWithoutPR.join(', #');
-                                await octokit.issues.createComment({
-                                    owner,
-                                    repo: repoName,
-                                    issue_number: issue.number,
-                                    body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
-                                });
-                                return; // Stop here - assignment blocked
-                            }
+                        try {
                             // Now it's safe to unassign previous assignee(s) (and keep label consistency)
                             await octokit.issues.removeAssignees({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                assignees: issue.assignees.map(a => a.login)
+                                assignees: originalAssignees.map(a => a.login)
                             });
+
                             await octokit.issues.removeLabel({
                                 owner,
                                 repo: repoName,
@@ -44119,70 +44122,128 @@ const run = async () => {
                                 body: `⏰ Previous assignee removed due to stale PR(s):\n\n${prList}\n\n@${assigneeLogin} is taking over.${attribution}`
                             });
                             return; // Done with assignment
-                        }
+                        } catch (error) {
+                            console.error(`Failed to complete takeover assignment for issue #${issue.number}:`, error);
 
-                        // NORMAL ASSIGNMENT FLOW (no stale PR takeover)
-                        // Get assigned issues
-                        const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
-                            owner,
-                            repo: repoName,
-                            state: 'open',
-                            assignee: assigneeLogin
-                        });
+                            // Attempt to restore original state
+                            try {
+                                if (originalAssignees.length > 0) {
+                                    // Try to reassign original assignees
+                                    await octokit.issues.addAssignees({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        assignees: originalAssignees.map(a => a.login)
+                                    });
 
-                        // Check if user has unresolved issues without a PR
-                        let issuesWithoutPR = [];
-                        for (const assignedIssue of assignedIssues) {
-                            if (assignedIssue.number === issue.number) continue;
+                                    // Re-add the assigned label
+                                    await octokit.issues.addLabels({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        labels: ["assigned"]
+                                    });
 
-                            // Use the fixed helper function
-                            if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
-                                console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
-                                issuesWithoutPR.push(assignedIssue.number);
-                            }
-                        }
+                                    await octokit.issues.createComment({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        body: `⚠️ **Takeover failed**: Could not assign @${assigneeLogin} to this issue.\n\nError: ${error.message || 'Unknown error'}\n\nIssue has been restored to original assignee @${originalAssignees[0].login}.${attribution}`
+                                    });
+                                } else {
+                                    // No original assignees - just add the label
+                                    await octokit.issues.addLabels({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        labels: ["assigned"]
+                                    }).catch(() => console.log("Label operation failed during restore"));
 
-                        if (issuesWithoutPR.length > 0) {
-                            const issueList = issuesWithoutPR.join(', #');
-                            await octokit.issues.createComment({
-                                owner,
-                                repo: repoName,
-                                issue_number: issue.number,
-                                body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
-                            });
-                            return; // Stop here -- assignment blocked
-                        }
+                                    await octokit.issues.createComment({
+                                        owner,
+                                        repo: repoName,
+                                        issue_number: issue.number,
+                                        body: `⚠️ **Takeover failed**: Could not assign @${assigneeLogin} to this issue.\n\nError: ${error.message || 'Unknown error'}\n\nIssue has been left unassigned. Please try again or contact maintainers.${attribution}`
+                                    });
+                                }
+                            } catch (restoreError) {
+                                console.error(`Failed to restore original state for issue #${issue.number}:`, restoreError);
 
-                        // prevent multiple assignees
-                        const currentAssignees = issue.assignees || [];
-
-                        if (currentAssignees.length > 0) {
-                            const currentAssignee = currentAssignees[0].login;
-
-                            if (currentAssignee !== assigneeLogin) {
-                                console.log(`Issue #${issue.number} is already assigned to ${currentAssignee}`);
-
+                                // Last resort - notify about broken state
                                 await octokit.issues.createComment({
                                     owner,
                                     repo: repoName,
                                     issue_number: issue.number,
-                                    body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.${attribution}`
+                                    body: `🚨 **Critical assignment error**: Takeover failed and could not restore original state.\n\nError: ${error.message || 'Unknown error'}\nRestore error: ${restoreError.message || 'Unknown error'}\n\nPlease contact maintainers to manually fix this issue's assignment.${attribution}`
                                 });
-
-                                return; // Stop here -- assignment blocked
                             }
+                            return; // Stop here - assignment failed
+                        }
+                    }
 
-                            // If already assigned to the same user → proceed silently
-                            console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Notifying user.`);
+                    // NORMAL ASSIGNMENT FLOW (no stale PR takeover)
+                    // Get assigned issues
+                    const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                        owner,
+                        repo: repoName,
+                        state: 'open',
+                        assignee: assigneeLogin
+                    });
+
+                    // Check if user has unresolved issues without a PR
+                    let issuesWithoutPR = [];
+                    for (const assignedIssue of assignedIssues) {
+                        if (assignedIssue.number === issue.number) continue;
+
+                        // Use the fixed helper function
+                        if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
+                            console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
+                            issuesWithoutPR.push(assignedIssue.number);
+                        }
+                    }
+
+                    if (issuesWithoutPR.length > 0) {
+                        const issueList = issuesWithoutPR.join(', #');
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
+                        });
+                        return; // Stop here -- assignment blocked
+                    }
+
+                    // prevent multiple assignees
+                    const currentAssignees = issue.assignees || [];
+
+                    if (currentAssignees.length > 0) {
+                        const currentAssignee = currentAssignees[0].login;
+
+                        if (currentAssignee !== assigneeLogin) {
+                            console.log(`Issue #${issue.number} is already assigned to ${currentAssignee}`);
+
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
                                 issue_number: issue.number,
-                                body: `ℹ️ You are already assigned to this issue.${attribution}`
+                                body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.${attribution}`
                             });
-                            return; // Stop here -- nothing to do
+
+                            return; // Stop here -- assignment blocked
                         }
 
+                        // If already assigned to the same user → proceed silently
+                        console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Notifying user.`);
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `ℹ️ You are already assigned to this issue.${attribution}`
+                        });
+                        return; // Stop here -- nothing to do
+                    }
+
+                    try {
                         // Assign user to the issue
                         await octokit.issues.addAssignees({
                             owner,
@@ -44205,6 +44266,36 @@ const run = async () => {
                             issue_number: issue.number,
                             body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.${attribution}`
                         });
+                    } catch (error) {
+                        console.error(`Failed to assign @${assigneeLogin} to issue #${issue.number}:`, error);
+                        
+                        // Clean up any partial changes
+                        try {
+                            // Remove assignee if it was partially added
+                            await octokit.issues.removeAssignees({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                assignees: [assigneeLogin]
+                            }).catch(() => { /* Ignore if not assigned */ });
+                            
+                            // Remove label if it was partially added
+                            await octokit.issues.removeLabel({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                name: "assigned"
+                            }).catch(() => { /* Ignore if not present */ });
+                            
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                body: `⚠️ **Assignment failed**: Could not assign @${assigneeLogin} to this issue.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again or contact maintainers.${attribution}`
+                            });
+                        } catch (cleanupError) {
+                            console.error(`Failed to clean up after assignment error for issue #${issue.number}:`, cleanupError);
+                        }
                     }
                 } catch (error) {
                     console.error(`Error in assignment flow${issue ? ` for issue #${issue.number}` : ''}:`, error);
