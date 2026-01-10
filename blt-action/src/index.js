@@ -15,15 +15,15 @@ async function hasOpenLinkedPR(
 
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
-        { 
-            owner, 
-            repo: repoName, 
-            issue_number: issueNumber, 
-            per_page: 100, 
-            headers: { 
-                accept: 'application/vnd.github+json', 
-                'X-GitHub-Api-Version': '2022-11-28' 
-            } 
+        {
+            owner,
+            repo: repoName,
+            issue_number: issueNumber,
+            per_page: 100,
+            headers: {
+                accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
         }
     );
 
@@ -33,13 +33,13 @@ async function hasOpenLinkedPR(
         }
 
         const prNumber = e.source?.issue?.number;
-        
+
         // Use the source repository from the event or assume current repo
         const sourceRepo = e.source?.repository?.full_name || currentRepo;
-        
+
         // Only skip if explicitly from different repo
         if (sourceRepo !== currentRepo) continue;
-        
+
         if (!prNumber || seen.has(prNumber)) continue;
         seen.add(prNumber);
 
@@ -59,12 +59,12 @@ async function hasOpenLinkedPR(
             }
         } catch (err) {
             // 404 = PR deleted; safe to skip. 
-            if (err.status !== 404) {
-                console.error(`Error fetching PR #${prNumber}:`, err?.status || err?.message || 'unknown error');
+            const errInfo = err?.status || err?.message || 'unknown error';
+            if (err.status === 404) {
+                console.log(`Skipping deleted PR #${prNumber}`);
+            } else {
+                console.error(`Error fetching PR #${prNumber}, skipping: ${errInfo}`);
             }
-            console.log(
-                `Skipping linked PR #${prNumber}: ${err?.status || err?.message || 'unknown error'}`
-            );
             continue;
         }
     }
@@ -79,15 +79,15 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
 
     const timelineEvents = await octokit.paginate(
         octokit.issues.listEventsForTimeline,
-        { 
-            owner, 
-            repo: repoName, 
-            issue_number: issueNumber, 
+        {
+            owner,
+            repo: repoName,
+            issue_number: issueNumber,
             per_page: 100,
-            headers: { 
-                accept: 'application/vnd.github+json', 
-                'X-GitHub-Api-Version': '2022-11-28' 
-            } 
+            headers: {
+                accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
         }
     );
 
@@ -98,7 +98,7 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
 
         const prNumber = e.source?.issue?.number;
         const sourceRepo = e.source?.repository?.full_name || currentRepo;
-        
+
         // Only process PRs from the same repository
         if (sourceRepo !== currentRepo) continue;
         if (!prNumber || seen.has(prNumber)) continue;
@@ -113,7 +113,7 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
 
             const prData = pr.data;
             const prAge = Math.floor((new Date() - new Date(prData.created_at)) / (1000 * 3600 * 24));
-            
+
             const prInfo = {
                 number: prData.number,
                 state: prData.state,
@@ -245,21 +245,26 @@ const run = async () => {
                         console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                         const assigneeLogin = comment.user.login;
 
-                        // Updated assignment logic with 60-day stale PR handling
+                        // Step 3: Updated assignment logic with 60-day stale PR handling
                         // Get all linked PRs (open and closed)
                         const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, issue.number);
-                        
+
+                        // Define state variables at the correct scope
+                        let stalePRs = [];
+                        let activePRs = [];
+                        let shouldSkipNormalAssignmentCheck = false;
+
                         // Check for open PRs
                         if (linkedPRs.open.length > 0) {
-                            const stalePRs = linkedPRs.open.filter(pr => pr.age >= 60);
-                            const activePRs = linkedPRs.open.filter(pr => pr.age < 60);
-                            
+                            stalePRs = linkedPRs.open.filter(pr => pr.age >= 60);
+                            activePRs = linkedPRs.open.filter(pr => pr.age < 60);
+
                             if (activePRs.length > 0) {
                                 // Block assignment - recent open PRs exist
-                                const prList = activePRs.map(pr => 
+                                const prList = activePRs.map(pr =>
                                     `- #${pr.number} by @${pr.author} (${pr.age} days old)`
                                 ).join('\n');
-                                
+
                                 await octokit.issues.createComment({
                                     owner,
                                     repo: repoName,
@@ -268,48 +273,38 @@ const run = async () => {
                                 });
                                 return; // Block assignment
                             }
-                            
-                            if (stalePRs.length > 0) {
-                                // Allow takeover - all open PRs are stale (60+ days)
-                                const prList = stalePRs.map(pr => 
-                                    `- #${pr.number} by @${pr.author} (${pr.age} days old, appears stale)`
+
+                            if (stalePRs.length > 0 && issue.assignees?.length > 0) {
+                                // Remove current assignee due to stale PRs
+                                await octokit.issues.removeAssignees({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue.number,
+                                    assignees: issue.assignees.map(a => a.login)
+                                });
+
+                                shouldSkipNormalAssignmentCheck = true;
+
+                                const prList = stalePRs.map(pr =>
+                                    `- #${pr.number} by @${pr.author} (${pr.age} days old, stale)`
                                 ).join('\n');
-                                
-                                // Auto-unassign current assignee if exists
-                                if (issue.assignees && issue.assignees.length > 0) {
-                                    await octokit.issues.removeAssignees({
-                                        owner,
-                                        repo: repoName,
-                                        issue_number: issue.number,
-                                        assignees: issue.assignees.map(a => a.login)
-                                    });
-                                    
-                                    await octokit.issues.createComment({
-                                        owner,
-                                        repo: repoName,
-                                        issue_number: issue.number,
-                                        body: `⏰ Previous assignee has been removed due to stale PR(s) (60+ days old).\n\n**Stale PR(s):**\n${prList}\n\n@${assigneeLogin} is taking over this issue.${attribution}`
-                                    });
-                                } else {
-                                    // Just inform about stale PRs
-                                    await octokit.issues.createComment({
-                                        owner,
-                                        repo: repoName,
-                                        issue_number: issue.number,
-                                        body: `ℹ️ **Note:** This issue has stale PR(s):\n\n${prList}\n\nYou may want to check these PRs or coordinate with maintainers before proceeding.${attribution}`
-                                    });
-                                }
-                                // Continue with assignment below...
+
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue.number,
+                                    body: `⏰ Previous assignee removed due to stale PR(s):\n\n${prList}\n\n@${assigneeLogin} is taking over.${attribution}`
+                                });
                             }
                         }
 
-                        // Show closed PR history if exists
-                        if (linkedPRs.closed.length > 0) {
+                        // Show closed PR history if exists (but only if we're proceeding with assignment)
+                        if (linkedPRs.closed.length > 0 && activePRs.length === 0) {
                             const closedList = linkedPRs.closed.map(pr => {
                                 const status = pr.merged ? '✅ merged' : '❌ closed';
                                 return `- #${pr.number} by @${pr.author} (${status}, ${pr.age} days ago)`;
                             }).join('\n');
-                            
+
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
@@ -318,6 +313,61 @@ const run = async () => {
                             });
                         }
 
+                        // Check if we should proceed with takeover assignment (stale PRs + removed assignee)
+                        if (shouldSkipNormalAssignmentCheck) {
+                            // Direct assignment after removing previous assignee
+                            // Get assigned issues for the new assignee
+                            const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
+                                owner,
+                                repo: repoName,
+                                state: 'open',
+                                assignee: assigneeLogin
+                            });
+
+                            // Check if user has unresolved issues without a PR
+                            let issuesWithoutPR = [];
+                            for (const assignedIssue of assignedIssues) {
+                                if (assignedIssue.number === issue.number) continue;
+
+                                // Use the fixed helper function
+                                if (!(await hasOpenLinkedPR(octokit, owner, repoName, assignedIssue.number))) {
+                                    console.log(`Issue #${assignedIssue.number} does not have an open pull request`);
+                                    issuesWithoutPR.push(assignedIssue.number);
+                                }
+                            }
+
+                            if (issuesWithoutPR.length > 0) {
+                                const issueList = issuesWithoutPR.join(', #');
+                                await octokit.issues.createComment({
+                                    owner,
+                                    repo: repoName,
+                                    issue_number: issue.number,
+                                    body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
+                                });
+                                return; // Stop here - assignment blocked
+                            }
+
+                            // Assign user to the issue
+                            await octokit.issues.addAssignees({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                assignees: [assigneeLogin]
+                            });
+
+                            // Add "assigned" label
+                            await octokit.issues.addLabels({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                labels: ["assigned"]
+                            });
+
+                            // No need for additional comment - we already posted the takeover message
+                            return; // Done with assignment
+                        }
+
+                        // NORMAL ASSIGNMENT FLOW (no stale PR takeover)
                         // Get assigned issues
                         const assignedIssues = await octokit.paginate(octokit.issues.listForRepo, {
                             owner,
@@ -368,7 +418,7 @@ const run = async () => {
                                 return; // Stop here - assignment blocked
                             }
 
-                            // If already assigned to the same user - proceed silently
+                            // If already assigned to the same user → proceed silently
                             console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
                             await octokit.issues.createComment({
                                 owner,
@@ -402,9 +452,8 @@ const run = async () => {
                             body: `Hello @${assigneeLogin}! You've been assigned to [${repository} issue #${issue.number}](https://github.com/${repository}/issues/${issue.number}). You have 24 hours to complete a pull request.${attribution}`
                         });
                     }
-
                 } catch (error) {
-                    console.error(`Error assigning issue #${issue.number}:`, error);
+                    console.error(`Error in assignment flow${issue ? ` for issue #${issue.number}` : ''}:`, error);
                 }
             } else if (shouldGiphy) {
                 const searchText = commentBody.replace(giphyKeyword, '').trim();
@@ -600,17 +649,17 @@ const run = async () => {
                             // Use the new function to check for open PRs
                             const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, event.issue.number);
                             const hasOpenPR = linkedPRs.open.length > 0;
-                            
+
                             if (hasOpenPR) {
                                 console.log(`Issue #${event.issue.number} has ${linkedPRs.open.length} open PR(s), checking if any are active...`);
-                                
+
                                 // Check if any open PRs are less than 60 days old
                                 const activePRs = linkedPRs.open.filter(pr => pr.age < 60);
                                 if (activePRs.length > 0) {
                                     console.log(`Issue #${event.issue.number} has active PR(s), skipping unassign.`);
                                     continue;
                                 }
-                                
+
                                 // All open PRs are stale (60+ days) - allow unassignment
                                 console.log(`All open PRs for issue #${event.issue.number} are stale (60+ days), proceeding with unassignment.`);
                             }
