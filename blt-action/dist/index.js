@@ -43745,6 +43745,7 @@ const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
 
+const STALE_PR_THRESHOLD_DAYS = 60;
 async function hasOpenLinkedPR(
     octokit,
     owner,
@@ -43983,7 +43984,7 @@ const run = async () => {
                 try {
                     if (!issue) {
                         console.log('Skipping /assign: no issue context for this event.');
-                        // Skip assignment but continue with other processing
+                        // Skip assignment - no issue context for this event
                     } else {
                         console.log(`Assigning issue #${issue.number} to ${comment.user.login}`);
                         const assigneeLogin = comment.user.login;
@@ -43999,8 +44000,8 @@ const run = async () => {
 
                         // Check for open PRs
                         if (linkedPRs.open.length > 0) {
-                            stalePRs = linkedPRs.open.filter(pr => pr.age >= 60);
-                            activePRs = linkedPRs.open.filter(pr => pr.age < 60);
+                            stalePRs = linkedPRs.open.filter(pr => pr.age >= STALE_PR_THRESHOLD_DAYS);
+                            activePRs = linkedPRs.open.filter(pr => pr.age < STALE_PR_THRESHOLD_DAYS);
 
                             if (activePRs.length > 0) {
                                 // Block assignment - recent open PRs exist
@@ -44042,7 +44043,7 @@ const run = async () => {
                         }
 
                         // Show closed PR history if exists (but only if we're proceeding with assignment)
-                        if (linkedPRs.closed.length > 0 && activePRs.length === 0) {
+                        if (linkedPRs.closed.length > 0) {
                             const closedList = linkedPRs.closed.map(pr => {
                                 const status = pr.merged ? '✅ merged' : '❌ closed';
                                 return `- #${pr.number} by @${pr.author} (${status}, ${pr.age} days ago)`;
@@ -44162,7 +44163,7 @@ const run = async () => {
                             }
 
                             // If already assigned to the same user → proceed silently
-                            console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Skipping redundant assignment`);
+                            console.log(`Issue #${issue.number} is already assigned to ${assigneeLogin}. Notifying user.`);
                             await octokit.issues.createComment({
                                 owner,
                                 repo: repoName,
@@ -44397,7 +44398,7 @@ const run = async () => {
                                 console.log(`Issue #${event.issue.number} has ${linkedPRs.open.length} open PR(s), checking if any are active...`);
 
                                 // Check if any open PRs are less than 60 days old
-                                const activePRs = linkedPRs.open.filter(pr => pr.age < 60);
+                                const activePRs = linkedPRs.open.filter(pr => pr.age < STALE_PR_THRESHOLD_DAYS);
                                 if (activePRs.length > 0) {
                                     console.log(`Issue #${event.issue.number} has active PR(s), skipping unassign.`);
                                     continue;
