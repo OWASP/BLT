@@ -396,7 +396,7 @@ const run = async () => {
                                 issue_number: issue.number,
                                 body: `You cannot be assigned to this issue because you are already assigned to the following issues without an open pull request: #${issueList}. Please submit a pull request for these issues before getting assigned to a new one.${attribution}`
                             });
-                            return; // Stop here - assignment blocked
+                            return; // Stop here -- assignment blocked
                         }
 
                         // prevent multiple assignees
@@ -415,7 +415,7 @@ const run = async () => {
                                     body: `⚠️ This issue is already assigned to @${currentAssignee}. Please pick another issue.${attribution}`
                                 });
 
-                                return; // Stop here - assignment blocked
+                                return; // Stop here -- assignment blocked
                             }
 
                             // If already assigned to the same user → proceed silently
@@ -426,7 +426,7 @@ const run = async () => {
                                 issue_number: issue.number,
                                 body: `ℹ️ You are already assigned to this issue.${attribution}`
                             });
-                            return; // Stop here - nothing to do
+                            return; // Stop here -- nothing to do
                         }
 
                         // Assign user to the issue
