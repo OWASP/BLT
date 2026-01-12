@@ -77,7 +77,8 @@ def json_response(
     json_body = json.dumps(data)
     
     # Create headers object for JavaScript
-    js_headers = Headers.new(response_headers)
+    # Convert dict to list of tuples for Headers.new (expects Sequence)
+    js_headers = Headers.new(list(response_headers.items()))
     
     return Response.new(json_body, status=status, headers=js_headers)
 

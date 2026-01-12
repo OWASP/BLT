@@ -3,7 +3,7 @@ Health check handler.
 """
 
 from typing import Any, Dict
-from ..utils import json_response
+from utils import json_response
 
 
 async def handle_health(
