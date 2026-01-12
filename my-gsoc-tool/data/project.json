@@ -1,9 +1,0 @@
-{
-  "project": {
-    "title": "Your GSoC Project Title",
-    "description": "Brief description of your GSoC project and its goals",
-    "organization": "Your Organization Name",
-    "timeline": "May 20XX - August 20XX",
-    "repository": "https://github.com/ORG/REPO"
-  }
-}

@@ -29,7 +29,6 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
-    position: relative;
 }
 
 /* Header Section */
@@ -89,28 +88,6 @@ body {
 .social-links a:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
-}
-
-.token-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: fit-content;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px 10px;
-    border-radius: 8px;
-    max-width: 230px;
-}
-
-.token-section input:disabled {
-    background: #e8f5e8;
-    color: #2e7d32;
-}
-
-.token-section .token-help {
-    font-size: 12px;
-    opacity: 0.8;
-    margin-top: 3px;
 }
 
 /* Card Styles */
@@ -467,9 +444,6 @@ body {
     font-weight: 600;
     transition: all 0.3s;
     margin-top: 15px;
-    cursor: pointer;
-    border: none;
-    font-size: 14px;
 }
 
 .btn-primary {
@@ -477,21 +451,23 @@ body {
     color: white;
 }
 
+.btn-primary:hover {
+    background: #3367d6;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
 
 .btn-secondary {
     background: var(--secondary-color);
     color: white;
 }
 
-.btn-danger {
-    background: #ff4444;
-    color: white;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 6px;
+.btn-secondary:hover {
+    background: #2d8e47;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
 }
+
 /* Footer */
 .dashboard-footer {
     text-align: center;
@@ -504,51 +480,6 @@ body {
 .dashboard-footer p {
     margin: 5px 0;
 }
-
-.edit-section {
-    margin-top: 20px;
-}
-
-.edit-section form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.editable-blog-post {
-    border: 1px solid var(--border-color);
-    padding: 16px;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    background: var(--card-background);
-}
-
-.input-field, .text-area-field {
-    width: 100%;
-    margin: 6px 0;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: var(--input-background);
-    color: var(--text-primary);
-}
-
-.text-area-field {
-    height: 70px;
-    resize: vertical;
-}
-
-.edit-inline {
-    display: flex;
-    gap: 10px;
-}
-
-
-.input-field.small {
-    flex: 1;
-}
-
-
 
 /* Responsive Design */
 @media (max-width: 768px) {
