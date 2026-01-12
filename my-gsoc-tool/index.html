@@ -6,21 +6,9 @@
     <title>GSoC Student Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body>
     <div class="container">
-        <div class="bg-white fixed top-5 -right-1 z-10 p-4 flex items-center justify-between rounded-md">
-            <button id="edit-mode-btn" class="btn-primary relative right-14" style="display: none;">
-                <i class="fas fa-edit"></i> Enter Edit Mode
-            </button>
-            <div id="token-section" class="token-section flex flex-col" style="display: none;">
-                <input class="input-field border p-2 rounded w-full"  type="password" id="github-token" placeholder="GitHub Token (repo scope)" />
-                <button id="save-token-btn" class="btn-secondary w-full">Save</button>
-                <button id="remove-token-btn" class="btn-danger w-full">Remove</button>
-                <p class="token-help pt-1">Need a token? <a class="!text-black" href="https://github.com/settings/tokens" target="_blank">Generate one here</a></p>
-            </div>
-        </div>
         <!-- Header Section -->
         <header class="dashboard-header">
             <div class="header-content">
@@ -31,9 +19,6 @@
                     <div class="social-links" id="social-links">
                         <!-- Dynamic social links -->
                     </div>
-                </div>
-                <div id="social-edit-section">
-                    <!-- Dynamic social edit links -->
                 </div>
             </div>
         </header>
@@ -48,7 +33,6 @@
                     <span id="organization" class="meta-item"><i class="fas fa-building"></i> Organization: Loading...</span>
                     <span id="timeline" class="meta-item"><i class="fas fa-calendar"></i> Timeline: Loading...</span>
                 </div>
-                <div class="edit-section" id="project-edit-section"></div>
             </div>
         </section>
 
@@ -83,7 +67,6 @@
             <!-- Slack Participation -->
             <section class="card slack-section">
                 <h2><i class="fab fa-slack"></i> Community Participation</h2>
-                <div class="edit-section" id="community-edit-section"></div>
                 <div id="slack-info">
                     <p class="slack-description">Active in organization communication channels</p>
                     <div id="slack-channels" class="channel-list">
@@ -143,7 +126,6 @@
         </footer>
     </div>
 
-    <script type="module" src="index.js"></script>
-    <script type="module" src="libs/api.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>

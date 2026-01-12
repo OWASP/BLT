@@ -1,11 +1,34 @@
 {
   "student": {
-    "name": "Your Name",
-    "bio": "Google Summer of Code Contributor",
-    "avatar": "assets/images/sample-avatar.svg",
-    "github": "https://github.com/YOUR-USERNAME",
-    "email": "your.email@example.com",
-    "blog": "https://yourblog.dev",
-    "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
+    "name": "Alex Johnson",
+    "bio": "GSoC 2024 @ OWASP | Open Source Enthusiast | Full-Stack Developer",
+    "avatar": "https://github.com/alexjohnson.png",
+    "github": "https://github.com/alexjohnson",
+    "email": "alex.johnson@example.com",
+    "blog": "https://alexjohnson.dev/blog",
+    "linkedin": "https://linkedin.com/in/alexjohnson"
+  },
+  "project": {
+    "title": "Enhanced Security Testing Dashboard for BLT",
+    "description": "Developing a comprehensive security testing dashboard that integrates vulnerability scanning, penetration testing results, and automated security reports. The project aims to make security testing more accessible and actionable for developers.",
+    "organization": "OWASP Foundation",
+    "timeline": "May 27, 2024 - August 26, 2024",
+    "repository": "https://github.com/OWASP-BLT/BLT"
+  },
+  "slack": {
+    "workspaceUrl": "https://owasp.slack.com/join/shared_invite/zt-example123",
+    "channels": [
+      "general",
+      "gsoc-2024",
+      "blt-development",
+      "security-testing"
+    ]
+  },
+  "mentor": {
+    "name": "Dr. Sarah Chen",
+    "email": "sarah.chen@owasp.org",
+    "avatar": "https://github.com/sarahchen.png",
+    "role": "OWASP BLT Lead Maintainer & GSoC Mentor",
+    "github": "https://github.com/sarahchen"
   }
 }

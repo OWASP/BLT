@@ -1,11 +1,33 @@
 {
   "student": {
     "name": "Your Name",
-    "email": "your.email@example.com",
     "bio": "Google Summer of Code Contributor",
-    "avatar": "assets/images/sample-avatar.svg",
+    "avatar": "https://github.com/YOUR-USERNAME.png",
     "github": "https://github.com/YOUR-USERNAME",
+    "email": "your.email@example.com",
     "blog": "https://yourblog.dev",
     "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
+  },
+  "project": {
+    "title": "Your GSoC Project Title",
+    "description": "A brief description of your GSoC project and what you're working on. Explain the problem you're solving and the impact of your work.",
+    "organization": "Your Organization Name",
+    "timeline": "May 2024 - August 2024",
+    "repository": "https://github.com/ORG/REPO"
+  },
+  "slack": {
+    "workspaceUrl": "https://your-org.slack.com/join/shared_invite/xxx",
+    "channels": [
+      "general",
+      "gsoc-2024",
+      "your-project-channel"
+    ]
+  },
+  "mentor": {
+    "name": "Mentor Name",
+    "email": "mentor@example.com",
+    "avatar": "https://github.com/MENTOR-USERNAME.png",
+    "role": "Project Mentor",
+    "github": "https://github.com/MENTOR-USERNAME"
   }
 }
