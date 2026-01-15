@@ -248,26 +248,45 @@ function renderBlogPosts(posts, config) {
 // Render mentor info
 function renderMentorInfo(config, feedback) {
     const mentorDetails = document.getElementById('mentor-details');
-    mentorDetails.innerHTML = `
-        <img src="${config.mentor.avatar}" alt="${config.mentor.name}" class="mentor-avatar">
-        <div class="mentor-info">
-            <h3>${config.mentor.name}</h3>
-            <p>${config.mentor.role}</p>
-            ${config.mentor.email ? `<p><i class="fas fa-envelope"></i> ${config.mentor.email}</p>` : ''}
-        </div>
-    `;
+    
+    // Support both old 'mentor' and new 'mentors' format for backward compatibility
+    const mentor = config.mentor || (config.mentors && config.mentors.length > 0 ? config.mentors[0] : null);
+    
+    if (mentor) {
+        mentorDetails.innerHTML = `
+            <img src="${mentor.avatar || 'assets/images/sample-mentor.svg'}" alt="${mentor.name}" class="mentor-avatar">
+            <div class="mentor-info">
+                <h3>${mentor.name}</h3>
+                <p>${mentor.role || 'Mentor'}</p>
+                ${mentor.email ? `<p><i class="fas fa-envelope"></i> ${mentor.email}</p>` : ''}
+            </div>
+        `;
+    } else {
+        mentorDetails.innerHTML = '<p style="color: var(--text-secondary);">Mentor information not configured.</p>';
+    }
 
     const feedbackList = document.getElementById('feedback-list');
     if (feedback && feedback.length > 0) {
-        feedbackList.innerHTML = feedback.map(item => `
+        // Get mentor name from config (support both old 'mentor' and new 'mentors' format)
+        const mentorName = config.mentor?.name || (config.mentors && config.mentors.length > 0 ? config.mentors[0].name : 'Mentor');
+        
+        feedbackList.innerHTML = feedback.map(item => {
+            // Replace placeholder "Mentor Name" with actual mentor name, or use provided name
+            let displayName = item.from;
+            if (!displayName || displayName === "Mentor Name") {
+                displayName = mentorName;
+            }
+            
+            return `
             <div class="feedback-item">
                 <div class="feedback-header">
-                    <strong>${item.from || config.mentor.name}</strong>
+                    <strong>${displayName}</strong>
                     <span class="feedback-date">${formatDate(item.date)}</span>
                 </div>
                 <div class="feedback-content">${item.content}</div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } else {
         feedbackList.innerHTML = '<p style="color: var(--text-secondary);">No feedback yet. Feedback will appear here as your mentor provides input.</p>';
     }
