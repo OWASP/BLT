@@ -259,35 +259,68 @@ function renderMentorInfo(config, feedback) {
         mentors = [config.mentor];
     }
     
-    if (mentors.length === 0) {
+    // Always show 3 mentor slots, with defaults for unfilled slots
+    const defaultMentors = [
+        { name: 'Lead Mentor', role: 'Lead Mentor', isPlaceholder: true },
+        { name: 'Co-Mentor 1', role: 'Co-Mentor', isPlaceholder: true },
+        { name: 'Co-Mentor 2', role: 'Co-Mentor', isPlaceholder: true }
+    ];
+    
+    // Fill in actual mentors, preserving order (first = lead, rest = co-mentors)
+    const displayMentors = defaultMentors.map((defaultMentor, index) => {
+        if (index < mentors.length) {
+            return mentors[index];
+        }
+        return defaultMentor;
+    });
+    
+    if (displayMentors.length === 0) {
         mentorDetails.innerHTML = '<p style="color: var(--text-secondary);">Mentor information not configured.</p>';
     } else {
-        mentorDetails.innerHTML = mentors.map(mentor => `
-            <div class="mentor-card">
+        mentorDetails.innerHTML = displayMentors.map((mentor, index) => {
+            // Check if this is a placeholder (default mentor that wasn't filled in)
+            // Also check if mentor has default placeholder name (Co-Mentor 1, Co-Mentor 2, Lead Mentor) without email/github
+            const hasDefaultPlaceholderName = (mentor.name === 'Lead Mentor' || mentor.name === 'Co-Mentor 1' || mentor.name === 'Co-Mentor 2') && 
+                                              (!mentor.email || mentor.email === '') && 
+                                              (!mentor.github || mentor.github === '');
+            const isPlaceholder = mentor.isPlaceholder || (index >= mentors.length) || hasDefaultPlaceholderName;
+            const placeholderStyle = isPlaceholder ? 'style="opacity: 0.6; font-style: italic;"' : '';
+            const blankIndicator = isPlaceholder ? '<span style="color: var(--text-secondary); font-size: 0.85em; font-weight: normal;">(blank)</span>' : '';
+            
+            return `
+            <div class="mentor-card" ${placeholderStyle}>
                 <img src="${mentor.avatar || 'assets/images/sample-mentor.svg'}" alt="${mentor.name}" class="mentor-avatar">
                 <div class="mentor-info">
-                    <h3>${mentor.name}</h3>
-                    <p>${mentor.role || 'Mentor'}</p>
+                    <h3>${mentor.name} ${blankIndicator}</h3>
+                    <p>${mentor.role || (index === 0 ? 'Lead Mentor' : 'Co-Mentor')}</p>
                     ${mentor.email ? `<p><i class="fas fa-envelope"></i> ${mentor.email}</p>` : ''}
                     ${mentor.github ? `<p><a href="${mentor.github}" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a></p>` : ''}
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     const feedbackList = document.getElementById('feedback-list');
     if (feedback && feedback.length > 0) {
-        // Get mentor names for fallback (use first mentor as default)
-        const defaultMentorName = mentors.length > 0 ? mentors[0].name : 'Mentor';
-        const mentorNames = mentors.map(m => m.name);
+        // Get all mentor names (actual mentors only, not placeholders)
+        const actualMentorNames = mentors.map(m => m.name);
         
-        feedbackList.innerHTML = feedback.map(item => {
-            // Replace placeholder "Mentor Name" with actual mentor name, or use provided name
+        feedbackList.innerHTML = feedback.map((item, index) => {
+            // Replace placeholder "Mentor Name" with actual mentor name
             let displayName = item.from;
             if (!displayName || displayName === "Mentor Name") {
-                displayName = defaultMentorName;
-            } else if (mentorNames.includes(displayName)) {
-                // Keep the provided name if it matches one of the mentors
+                // Cycle through available mentors as fallback, starting with lead mentor
+                if (actualMentorNames.length > 0) {
+                    const mentorIndex = index % actualMentorNames.length;
+                    displayName = actualMentorNames[mentorIndex];
+                } else {
+                    // Fallback to placeholder names if no actual mentors configured
+                    const placeholderNames = ['Lead Mentor', 'Co-Mentor 1', 'Co-Mentor 2'];
+                    displayName = placeholderNames[index % placeholderNames.length];
+                }
+            } else if (actualMentorNames.includes(displayName)) {
+                // Keep the provided name if it matches one of the actual mentors
                 displayName = displayName;
             }
             
