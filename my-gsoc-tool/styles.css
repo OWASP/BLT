@@ -279,9 +279,10 @@ body {
 }
 
 /* Mentor Section */
-#mentor-details {
+#mentor-details,
+.mentors-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
     margin-bottom: 25px;
 }
@@ -293,6 +294,13 @@ body {
     padding: 20px;
     background: var(--bg-color);
     border-radius: 12px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mentor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .mentor-avatar {

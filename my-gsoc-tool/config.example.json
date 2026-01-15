@@ -24,11 +24,27 @@
       "security-testing"
     ]
   },
-  "mentor": {
-    "name": "Dr. Sarah Chen",
-    "email": "sarah.chen@owasp.org",
-    "avatar": "https://github.com/sarahchen.png",
-    "role": "OWASP BLT Lead Maintainer & GSoC Mentor",
-    "github": "https://github.com/sarahchen"
-  }
+  "mentors": [
+    {
+      "name": "Dr. Sarah Chen",
+      "email": "sarah.chen@owasp.org",
+      "avatar": "https://github.com/sarahchen.png",
+      "role": "Lead Mentor",
+      "github": "https://github.com/sarahchen"
+    },
+    {
+      "name": "John Doe",
+      "email": "john.doe@owasp.org",
+      "avatar": "https://github.com/johndoe.png",
+      "role": "Co-Mentor",
+      "github": "https://github.com/johndoe"
+    },
+    {
+      "name": "Jane Smith",
+      "email": "jane.smith@owasp.org",
+      "avatar": "https://github.com/janesmith.png",
+      "role": "Co-Mentor",
+      "github": "https://github.com/janesmith"
+    }
+  ]
 }

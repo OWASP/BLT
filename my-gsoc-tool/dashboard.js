@@ -36,12 +36,14 @@ function getDefaultConfig() {
             workspaceUrl: "",
             channels: []
         },
-        mentor: {
-            name: "Mentor Name",
-            email: "",
-            avatar: "https://via.placeholder.com/80",
-            role: "Project Mentor"
-        }
+        mentors: [
+            {
+                name: "Mentor Name",
+                email: "",
+                avatar: "https://via.placeholder.com/80",
+                role: "Lead Mentor"
+            }
+        ]
     };
 }
 
@@ -248,26 +250,57 @@ function renderBlogPosts(posts, config) {
 // Render mentor info
 function renderMentorInfo(config, feedback) {
     const mentorDetails = document.getElementById('mentor-details');
-    mentorDetails.innerHTML = `
-        <img src="${config.mentor.avatar}" alt="${config.mentor.name}" class="mentor-avatar">
-        <div class="mentor-info">
-            <h3>${config.mentor.name}</h3>
-            <p>${config.mentor.role}</p>
-            ${config.mentor.email ? `<p><i class="fas fa-envelope"></i> ${config.mentor.email}</p>` : ''}
-        </div>
-    `;
+    
+    // Support both old format (mentor) and new format (mentors array) for backward compatibility
+    let mentors = [];
+    if (config.mentors && Array.isArray(config.mentors)) {
+        mentors = config.mentors;
+    } else if (config.mentor) {
+        mentors = [config.mentor];
+    }
+    
+    if (mentors.length === 0) {
+        mentorDetails.innerHTML = '<p style="color: var(--text-secondary);">Mentor information not configured.</p>';
+    } else {
+        mentorDetails.innerHTML = mentors.map(mentor => `
+            <div class="mentor-card">
+                <img src="${mentor.avatar || 'assets/images/sample-mentor.svg'}" alt="${mentor.name}" class="mentor-avatar">
+                <div class="mentor-info">
+                    <h3>${mentor.name}</h3>
+                    <p>${mentor.role || 'Mentor'}</p>
+                    ${mentor.email ? `<p><i class="fas fa-envelope"></i> ${mentor.email}</p>` : ''}
+                    ${mentor.github ? `<p><a href="${mentor.github}" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a></p>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
 
     const feedbackList = document.getElementById('feedback-list');
     if (feedback && feedback.length > 0) {
-        feedbackList.innerHTML = feedback.map(item => `
+        // Get mentor names for fallback (use first mentor as default)
+        const defaultMentorName = mentors.length > 0 ? mentors[0].name : 'Mentor';
+        const mentorNames = mentors.map(m => m.name);
+        
+        feedbackList.innerHTML = feedback.map(item => {
+            // Replace placeholder "Mentor Name" with actual mentor name, or use provided name
+            let displayName = item.from;
+            if (!displayName || displayName === "Mentor Name") {
+                displayName = defaultMentorName;
+            } else if (mentorNames.includes(displayName)) {
+                // Keep the provided name if it matches one of the mentors
+                displayName = displayName;
+            }
+            
+            return `
             <div class="feedback-item">
                 <div class="feedback-header">
-                    <strong>${item.from || config.mentor.name}</strong>
+                    <strong>${displayName}</strong>
                     <span class="feedback-date">${formatDate(item.date)}</span>
                 </div>
                 <div class="feedback-content">${item.content}</div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } else {
         feedbackList.innerHTML = '<p style="color: var(--text-secondary);">No feedback yet. Feedback will appear here as your mentor provides input.</p>';
     }

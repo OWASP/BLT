@@ -56,12 +56,22 @@ Edit `config.json` with your information:
     "workspaceUrl": "https://your-org.slack.com/join/shared_invite/xxx",
     "channels": ["general", "gsoc-2024", "your-project-channel"]
   },
-  "mentor": {
-    "name": "Mentor Name",
-    "email": "mentor@example.com",
-    "avatar": "https://github.com/MENTOR-USERNAME.png",
-    "role": "Project Mentor"
-  }
+  "mentors": [
+    {
+      "name": "Mentor Name",
+      "email": "mentor@example.com",
+      "avatar": "https://github.com/MENTOR-USERNAME.png",
+      "role": "Lead Mentor",
+      "github": "https://github.com/MENTOR-USERNAME"
+    },
+    {
+      "name": "Co-Mentor Name",
+      "email": "co-mentor@example.com",
+      "avatar": "https://github.com/CO-MENTOR-USERNAME.png",
+      "role": "Co-Mentor",
+      "github": "https://github.com/CO-MENTOR-USERNAME"
+    }
+  ]
 }
 ```
 
