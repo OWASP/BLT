@@ -179,10 +179,25 @@ const run = async () => {
             const shouldTip = commentBody.startsWith(tipKeyword);
 
             if (shouldUnassign) {
-                if (!issue) {
-                    console.log('Skipping /unassign: no issue context for this event.');
+                if (!issue || issue.pull_request) {
+                    console.log('Skipping /unassign: no issue context (or PR context detected).');
+                    
+                    // Add feedback comment for PR context
+                    if (issue && issue.pull_request) {
+                        await octokit.issues.createComment({
+                            owner,
+                            repo: repoName,
+                            issue_number: issue.number,
+                            body: `⚠️ **Assignment commands only work on issues**\n\n` +
+                                `The \`/unassign\` command cannot be used on pull requests. ` +
+                                `If you want to unassign yourself from the related issue, please navigate to the issue and use \`/unassign\` there.\n\n` +
+                                `💡 **Tip:** Assignment commands (\`/assign\`, \`/unassign\`) are only available on issue comments.${attribution}`
+                        });
+                    }
+                    
                     return;
                 }
+                
                 console.log(`Unassigning issue #${issue.number} from ${comment.user.login}`);
 
                 try {
@@ -240,9 +255,23 @@ const run = async () => {
 
             if (shouldAssign) {
                 try {
-                    if (!issue) {
-                        console.log('Skipping /assign: no issue context for this event.');
-                        // Skip assignment - no issue context for this event
+                    if (!issue || issue.pull_request) {
+                        console.log('Skipping /assign: no issue context (or PR context detected).');
+                        
+                        // Add feedback comment for PR context
+                        if (issue && issue.pull_request) {
+                            await octokit.issues.createComment({
+                                owner,
+                                repo: repoName,
+                                issue_number: issue.number,
+                                body: `⚠️ **Assignment commands only work on issues**\n\n` +
+                                    `The \`/assign\` command cannot be used on pull requests. ` +
+                                    `Pull requests are linked to issues, and assignment should be done on the issue itself.\n\n` +
+                                    `💡 **Tip:** Please navigate to the related issue and use \`/assign\` there to get assigned.${attribution}`
+                            });
+                        }
+                        
+                        // Skip assignment - no issue context or PR detected
                         return;
                     }
                     
