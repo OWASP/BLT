@@ -9,8 +9,10 @@
 | State | 1 |
 | University | 1 |
 | altfooter | 34 |
+| authors | 1 |
 | auto-migrated | 129 |
 | city | 2 |
+| contributors | 1 |
 | country | 474 |
 | currency | 34 |
 | dates | 1 |
@@ -51,15 +53,15 @@
 
 | Field | Count |
 |---|---|
-| audience | 293 |
-| code_repositories | 176 |
-| download_links | 265 |
+| audience | 292 |
+| code_repositories | 177 |
+| download_links | 264 |
 | leaders_list | 762 |
 | license | 60 |
 | project_classification | 300 |
-| sidebar_type | 107 |
+| sidebar_type | 108 |
 | social_facebook | 75 |
-| social_linkedin | 144 |
+| social_linkedin | 145 |
 | social_meetup | 323 |
 | social_twitter | 155 |
 | social_youtube | 73 |
