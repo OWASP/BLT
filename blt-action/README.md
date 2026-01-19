@@ -21,6 +21,7 @@
 - **Manual Unassignment**: Users can unassign themselves using `/unassign`.
 - **Assignment Validation**: Prevents users from being assigned to multiple issues without active pull requests.
 - **Smart PR Tracking**: Automatically checks for linked pull requests before unassigning users.
+- **Bot Protection**: Automatically filters out bot accounts and GitHub Apps from triggering assignment/unassignment commands, preventing automated tools from being assigned to issues.
 
 ### Automated Workflow Management
 - **Time-Based Unassignment**: Automatically unassigns users from issues after 24 hours of inactivity if no pull request is linked, keeping issues available for others.
@@ -166,6 +167,8 @@ To use the `/giphy` command:
   - Check if you have any other open assigned issues without pull requests
   - Assign you if eligible and add an "assigned" label
   - Give you 24 hours to submit a pull request
+
+  **Note**: Only human users can use assignment commands. Bot accounts and GitHub Apps are automatically excluded from assignment/unassignment.
   
 - **Unassign yourself**: Comment `/unassign` on the issue
   - Removes you from the issue
