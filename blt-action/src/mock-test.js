@@ -489,7 +489,7 @@ describe('GitHub API Mock Test', () => {
 
       const appComment = {
         body: '/unassign',
-        user: { login: 'some-app[bot]', type: 'App' },
+        user: { login: 'some-app[bot]', type: 'Bot' },
       };
 
       assert.strictEqual(isHumanCommenter(botComment), false);
