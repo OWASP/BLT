@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
-
+const { isHumanCommenter, extractUserInfo } = require('./utils');
 const STALE_PR_THRESHOLD_DAYS = 60;
 const CLOSED_PR_GRACE_PERIOD_MS = 12 * 60 * 60 * 1000;
 const CLOSED_PR_LABEL = 'pr-closed-pending-unassign';
@@ -562,6 +562,12 @@ const run = async () => {
             const shouldGiphy = commentBody.startsWith(giphyKeyword);
             const shouldKudos = commentBody.startsWith(kudosKeyword);
             const shouldTip = commentBody.startsWith(tipKeyword);
+
+            if ((shouldAssign || shouldUnassign) && !isHumanCommenter(comment)) {
+                const { login, type } = extractUserInfo(comment);
+                console.log(`Skipping command from non-user account: ${login} (type=${type})`);
+                return; // Block bots and GitHub Apps from triggering assignment/unassignment
+            }
 
             if (shouldUnassign) {
                 if (!issue) {

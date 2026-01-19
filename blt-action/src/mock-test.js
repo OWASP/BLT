@@ -449,4 +449,113 @@ describe('GitHub API Mock Test', () => {
       scope.done();
     });
   });
+
+  describe('Human commenter guard for /assign and /unassign', () => {
+    const { isHumanCommenter } = require('../src/utils');
+
+    const assignKeywords = [
+      '/assign',
+      'assign to me',
+      'assign this to me',
+      'assign it to me',
+      'assign me this',
+      'work on this',
+      'i can try fixing this',
+      'i am interested in doing this',
+      'be assigned this',
+      'i am interested in contributing',
+    ];
+
+    it('treats normal GitHub users as human commenters', () => {
+      const humanAssignComment = {
+        body: '/assign',
+        user: { login: 'alice', type: 'User' },
+      };
+
+      const humanUnassignComment = {
+        body: '/unassign',
+        user: { login: 'alice', type: 'User' },
+      };
+
+      assert.strictEqual(isHumanCommenter(humanAssignComment), true);
+      assert.strictEqual(isHumanCommenter(humanUnassignComment), true);
+    });
+
+    it('treats bots and GitHub Apps as non-human commenters', () => {
+      const botComment = {
+        body: '/assign',
+        user: { login: 'coderabbitai', type: 'Bot' },
+      };
+
+      const appComment = {
+        body: '/unassign',
+        user: { login: 'some-app[bot]', type: 'App' },
+      };
+
+      assert.strictEqual(isHumanCommenter(botComment), false);
+      assert.strictEqual(isHumanCommenter(appComment), false);
+    });
+
+    it('does not allow bots to trigger /assign or /unassign, even with valid phrases', () => {
+      const botAssignComment = {
+        body: 'assign me this',
+        user: { login: 'coderabbitai', type: 'Bot' },
+      };
+
+      const botUnassignComment = {
+        body: '/unassign please',
+        user: { login: 'coderabbitai', type: 'Bot' },
+      };
+
+      const assignBody = (botAssignComment.body || '').toLowerCase();
+      const unassignBody = (botUnassignComment.body || '').toLowerCase();
+
+      const shouldAssign = assignKeywords.some(keyword =>
+        assignBody.includes(keyword)
+      );
+      const shouldUnassign = unassignBody.startsWith('/unassign');
+
+      // Commands are present…
+      assert.strictEqual(shouldAssign, true);
+      assert.strictEqual(shouldUnassign, true);
+
+      // …but the human guard blocks them.
+      assert.strictEqual(isHumanCommenter(botAssignComment), false);
+      assert.strictEqual(isHumanCommenter(botUnassignComment), false);
+    });
+
+    it('allows human users to trigger /assign and /unassign commands', () => {
+      const humanAssignComment = {
+        body: 'i can try fixing this',
+        user: { login: 'alice', type: 'User' },
+      };
+
+      const humanUnassignComment = {
+        body: '/unassign me',
+        user: { login: 'alice', type: 'User' },
+      };
+
+      const assignBody = (humanAssignComment.body || '').toLowerCase();
+      const unassignBody = (humanUnassignComment.body || '').toLowerCase();
+
+      const shouldAssign = assignKeywords.some(keyword =>
+        assignBody.includes(keyword)
+      );
+      const shouldUnassign = unassignBody.startsWith('/unassign');
+
+      assert.strictEqual(shouldAssign, true);
+      assert.strictEqual(shouldUnassign, true);
+      assert.strictEqual(isHumanCommenter(humanAssignComment), true);
+      assert.strictEqual(isHumanCommenter(humanUnassignComment), true);
+    });
+
+    it('treats mannequin accounts as human commenters', () => {
+      const mannequinComment = {
+        body: '/assign',
+        user: { login: 'ghost', type: 'Mannequin' },
+      };
+
+      assert.strictEqual(isHumanCommenter(mannequinComment), true);
+    });
+  });
 });
