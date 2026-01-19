@@ -55,7 +55,7 @@ The unit tests use Mocha and Nock to test individual components of the action. A
 - ✅ Giphy API error handling
 - ✅ Kudos API error handling
 
-#### 8.   (5 tests)
+#### 8. Human Commenter Guard (5 tests)
 
 - ✅ treats normal GitHub users as human commenters
 - ✅ treats bots and GitHub Apps as non-human commenters
@@ -164,7 +164,7 @@ grep -q "/kudos" src/index.js && echo "✓ /kudos implemented"
 | Attribution | 2 | ✅ |
 | Error Handling | 3 | ✅ |
 | Human Commenter Guard | 5 | ✅ |
-| **Total** | **17** | **✅** |
+| **Total** | **22** | **✅** |
 
 ## Features Tested
 
