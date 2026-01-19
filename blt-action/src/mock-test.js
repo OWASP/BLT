@@ -457,7 +457,7 @@ describe('GitHub API Mock Test', () => {
     afterEach(() => {
       nock.cleanAll();
     });
-
+    
     describe('Assignment Commands on Pull Requests', () => {
       it('should post feedback comment when /assign is used on a PR comment', async () => {
         const owner = 'testowner';
@@ -491,6 +491,39 @@ describe('GitHub API Mock Test', () => {
 
         // Verify the API was called as expected
         assert.ok(commentScope.isDone(), 'Feedback comment should be posted to PR');
+      });
+      
+      it('should post feedback when natural language assignment phrase is used on PR', async () => {
+          // Mock the comment creation for feedback
+          const feedbackScope = nock('https://api.github.com')
+            .post('/repos/test-owner/test-repo/issues/2/comments', (body) => {
+              return body.body.includes('Assignment commands only work on issues');
+            })
+            .reply(201, { id: 456 });
+
+          // Test with a natural language phrase
+          await axios.post('http://localhost:3000/webhook', {
+            action: 'created',
+            issue: {
+              number: 2,
+              title: 'Test PR',
+              state: 'open',
+              pull_request: { url: 'https://api.github.com/repos/test-owner/test-repo/pulls/2' }
+            },
+            comment: {
+              id: 123,
+              body: 'assign to me',
+              user: { login: 'test-user' }
+            },
+            repository: {
+              name: 'test-repo',
+              owner: { login: 'test-owner' }
+            }
+          }, {
+            headers: { 'X-GitHub-Event': 'issue_comment' }
+          });
+
+          assert.ok(feedbackScope.isDone(), 'Should post feedback for natural language assignment phrase on PR');
       });
 
       it('should post feedback comment when /unassign is used on a PR comment', async () => {
@@ -661,5 +694,6 @@ describe('GitHub API Mock Test', () => {
         assert.ok(assignScope.isDone(), 'Assignment should work on regular issues');
       });
     });
+    
   });
 });

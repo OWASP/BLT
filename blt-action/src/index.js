@@ -179,22 +179,28 @@ const run = async () => {
             const shouldTip = commentBody.startsWith(tipKeyword);
 
             if (shouldUnassign) {
-                if (!issue || issue.pull_request) {
-                    console.log('Skipping /unassign: no issue context (or PR context detected).');
-                    
-                    // Add feedback comment for PR context
-                    if (issue && issue.pull_request) {
-                        await octokit.issues.createComment({
-                            owner,
-                            repo: repoName,
-                            issue_number: issue.number,
-                            body: `⚠️ **Assignment commands only work on issues**\n\n` +
-                                `The \`/unassign\` command cannot be used on pull requests. ` +
-                                `If you want to unassign yourself from the related issue, please navigate to the issue and use \`/unassign\` there.\n\n` +
-                                `💡 **Tip:** Assignment commands (\`/assign\`, \`/unassign\`) are only available on issue comments.${attribution}`
-                        });
+                // Check if this is a PR context (either PR comment or PR review comment)
+                const isPRContext = (issue && issue.pull_request) || (!issue && pull_request);
+                
+                if (!issue && !pull_request) {
+                    console.log('No issue or pull request context, skipping unassignment');
+                    return;
+                }
+                
+                if (isPRContext) {
+                    try {
+                    const targetNumber = issue ? issue.number : pull_request.number;
+                    await octokit.issues.createComment({
+                        owner,
+                        repo,
+                        issue_number: targetNumber,
+                        body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
+                    });
+                    console.log('Posted PR feedback comment for /unassign command');
+                    } catch (error) {
+                    console.error('Failed to post PR feedback comment for /unassign:', error.message);
+                    // Continue execution - don't block the workflow
                     }
-                    
                     return;
                 }
                 
@@ -255,23 +261,28 @@ const run = async () => {
 
             if (shouldAssign) {
                 try {
-                    if (!issue || issue.pull_request) {
-                        console.log('Skipping /assign: no issue context (or PR context detected).');
-                        
-                        // Add feedback comment for PR context
-                        if (issue && issue.pull_request) {
-                            await octokit.issues.createComment({
-                                owner,
-                                repo: repoName,
-                                issue_number: issue.number,
-                                body: `⚠️ **Assignment commands only work on issues**\n\n` +
-                                    `The \`/assign\` command cannot be used on pull requests. ` +
-                                    `Pull requests are linked to issues, and assignment should be done on the issue itself.\n\n` +
-                                    `💡 **Tip:** Please navigate to the related issue and use \`/assign\` there to get assigned.${attribution}`
-                            });
+                    // Check if this is a PR context (either PR comment or PR review comment)
+                    const isPRContext = (issue && issue.pull_request) || (!issue && pull_request);
+                    
+                    if (!issue && !pull_request) {
+                        console.log('No issue or pull request context, skipping assignment');
+                        return;
+                    }
+                    
+                    if (isPRContext) {
+                        try {
+                        const targetNumber = issue ? issue.number : pull_request.number;
+                        await octokit.issues.createComment({
+                            owner,
+                            repo,
+                            issue_number: targetNumber,
+                            body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
+                        });
+                        console.log('Posted PR feedback comment for /assign command');
+                        } catch (error) {
+                        console.error('Failed to post PR feedback comment for /assign:', error.message);
+                        // Continue execution - don't block the workflow
                         }
-                        
-                        // Skip assignment - no issue context or PR detected
                         return;
                     }
                     
