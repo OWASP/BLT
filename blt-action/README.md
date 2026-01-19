@@ -50,7 +50,7 @@
 
 The BLT-Action operates through multiple triggers:
 
-1. **Comment-Triggered Actions**: When users comment on issues or pull requests with specific commands (`/assign`, `/unassign`, `/giphy`, `/kudos`, `/tip`), the action processes these commands immediately.
+1. **Comment-Triggered Actions**: When users comment on issues with specific commands (`/assign`, `/unassign`), the action processes these commands immediately. These commands do not work for pull requests.
 
 2. **Scheduled Monitoring**: A daily cron job (configurable) checks all assigned issues for inactivity:
    - Identifies issues assigned for more than 24 hours without updates
@@ -224,7 +224,7 @@ This ensures transparency and helps users understand that comments are automated
 
 ### Event Triggers
 The action responds to the following GitHub events:
-- `issue_comment.created`: For commands on issue comments
+- `issue_comment.created`: For commands on issue and PR comments
 - `pull_request_review_comment.created`: For commands on PR review comments
 - `schedule`: Daily cron job for stale issue checking
 - `workflow_dispatch`: Manual trigger option

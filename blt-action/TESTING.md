@@ -55,6 +55,15 @@ The unit tests use Mocha and Nock to test individual components of the action. A
 - ✅ Giphy API error handling
 - ✅ Kudos API error handling
 
+#### 8. PR Assignment Command Feedback (7 tests)
+- ✅ Feedback comment when `/assign` used on PR
+- ✅ Feedback comment when `/unassign` used on PR
+- ✅ No assignment API call when `/assign` used on PR
+- ✅ Attribution footer in PR feedback comments
+- ✅ PR context detection via `issue.pull_request`
+- ✅ Fixed guard condition evaluation
+- ✅ Assignment works on regular issues only
+
 ### Integration Tests (`.github/workflows/integration-test.yml`)
 
 Integration tests verify that all components work together correctly and that the action is properly configured.
@@ -155,7 +164,8 @@ grep -q "/kudos" src/index.js && echo "✓ /kudos implemented"
 | Command Detection | 3 | ✅ |
 | Attribution | 2 | ✅ |
 | Error Handling | 3 | ✅ |
-| **Total** | **17** | **✅** |
+| PR Assignment Feedback | 7 | ✅ |
+| **Total** | **24** | **✅** |
 
 ## Features Tested
 
