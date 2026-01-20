@@ -43746,7 +43746,7 @@ const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
 
 const STALE_PR_THRESHOLD_DAYS = 60;
-const CLOSED_PR_GRACE_PERIOD_MS = 6 * 60 * 60 * 1000;
+const CLOSED_PR_GRACE_PERIOD_MS = 12 * 60 * 60 * 1000;
 const CLOSED_PR_LABEL = 'pr-closed-pending-unassign';
 const CLOSED_PR_LABEL_COLOR = 'ff9800';
 const CLOSED_PR_COMMENT_MARKER = '<!-- closed-pr-warning -->';
@@ -43900,18 +43900,21 @@ async function ensureClosedPRLabel(octokit, owner, repoName) {
                 repo: repoName,
                 name: CLOSED_PR_LABEL,
                 color: CLOSED_PR_LABEL_COLOR,
-                description: 'PR was closed, assignee will be removed after 6 hours'
+                description: 'PR was closed, assignee will be removed after 12 hours'
             });
             console.log(`Created label: ${CLOSED_PR_LABEL}`);
+        } else {
+            console.log(`Failed to get label ${CLOSED_PR_LABEL} for ${owner}/${repoName}: ${e.message || e.stack}`);
+            throw e;
         }
     }
 }
 
 function extractLinkedIssuesFromPRBody(prBody) {
     if (!prBody) return [];
-    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/gi;
+    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:#(\d+)|https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/(\d+))/gi;
     const matches = [...prBody.matchAll(regex)];
-    return [...new Set(matches.map(m => parseInt(m[1])))];
+    return [...new Set(matches.map(m => parseInt(m[1] || m[2])))];
 }
 
 async function findLinkedIssuesFromTimeline(octokit, owner, repoName, prNumber) {
@@ -43984,7 +43987,7 @@ async function handleClosedPR(octokit, owner, repoName, pr, attribution) {
                 `PR Closed - Unassignment Pending\n\n` +
                 `Hi @${pr.user.login},\n\n` +
                 `Your PR #${pr.number} linked to this issue was closed.\n\n` +
-                `You have 6 hours to open a new PR for this issue, or you'll be automatically unassigned.\n\n` +
+                `You have 12 hours to open a new PR for this issue, or you'll be automatically unassigned.\n\n` +
                 `If you're still working on this, simply open a new PR and this warning will be cancelled.\n\n` +
                 `Timestamp: ${timestamp}${attribution}`;
             
@@ -44130,7 +44133,10 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
                 continue;
             }
             
-            const { hasOpen, prNumber, error } = await hasOpenPR(octokit, owner, repoName, issue.number);
+            const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, issue.number);
+            const hasOpen = linkedPRs.open.length > 0;
+            const prNumber = linkedPRs.open.length > 0 ? linkedPRs.open[0].number : null;
+            const error = linkedPRs.error;
             
             if (error) {
                 console.log(`API error checking for open PRs, skipping to be safe`);
@@ -44167,16 +44173,26 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
             
             console.log(`Grace period expired and no open PR, unassigning`);
             
-            const assignees = issue.assignees.map(a => a.login);
-            if (assignees.length > 0) {
-                await octokit.rest.issues.removeAssignees({
-                    owner,
-                    repo: repoName,
-                    issue_number: issue.number,
-                    assignees: assignees
-                });
-                
-                console.log(`Unassigned: ${assignees.join(', ')}`);
+            // Extract PR author from warning comment
+            const prAuthorMatch = warningComment.body.match(/Hi @([^,]+),/);
+            const prAuthor = prAuthorMatch ? prAuthorMatch[1] : null;
+            
+            if (prAuthor) {
+                const isAssigned = issue.assignees.some(a => a.login === prAuthor);
+                if (isAssigned) {
+                    await octokit.rest.issues.removeAssignees({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        assignees: [prAuthor]
+                    });
+                    
+                    console.log(`Unassigned: ${prAuthor}`);
+                } else {
+                    console.log(`PR author ${prAuthor} not assigned to issue, skipping unassignment`);
+                }
+            } else {
+                console.log(`Could not extract PR author from warning comment, skipping unassignment`);
             }
             
             try {
@@ -44201,7 +44217,7 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
                 owner,
                 repo: repoName,
                 issue_number: issue.number,
-                body: `Your PR was closed over 6 hours ago and no new PR was opened. You've been unassigned from this issue.\n\n` +
+                body: `Your PR was closed over 12 hours ago and no new PR was opened. You've been unassigned from this issue.\n\n` +
                       `Feel free to comment /assign if you'd like to work on this again.${attribution}`
             });
             
