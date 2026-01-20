@@ -12,7 +12,7 @@ The BLT-Action has comprehensive test coverage across unit tests, integration te
 
 The unit tests use Mocha and Nock to test individual components of the action. All tests use mocked HTTP requests to test functionality without requiring actual API calls.
 
-**Total: 22 tests across 6 categories**
+**Total: 22 tests across 8 categories**
 
 #### 1. Assignment Management (3 tests)
 - ✅ User assignment to issues
