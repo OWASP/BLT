@@ -192,7 +192,7 @@ const run = async () => {
                     const targetNumber = issue ? issue.number : pull_request.number;
                     await octokit.issues.createComment({
                         owner,
-                        repo,
+                        repo: repoName,
                         issue_number: targetNumber,
                         body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
                     });
@@ -274,7 +274,7 @@ const run = async () => {
                         const targetNumber = issue ? issue.number : pull_request.number;
                         await octokit.issues.createComment({
                             owner,
-                            repo,
+                            repo: repoName,
                             issue_number: targetNumber,
                             body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
                         });
