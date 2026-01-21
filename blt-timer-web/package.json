@@ -26,7 +26,7 @@
     "eslint": "^8.53.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6",
-    "wrangler": "^3.15.0"
+    "wrangler": "^3.114.17"
   },
   "dependencies": {
     "hono": "^3.11.2"
