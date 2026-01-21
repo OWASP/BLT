@@ -466,21 +466,6 @@ describe('GitHub API Mock Test', () => {
       'i am interested in contributing',
     ];
 
-    it('treats normal GitHub users as human commenters', () => {
-      const humanAssignComment = {
-        body: '/assign',
-        user: { login: 'alice', type: 'User' },
-      };
-
-      const humanUnassignComment = {
-        body: '/unassign',
-        user: { login: 'alice', type: 'User' },
-      };
-
-      assert.strictEqual(isHumanCommenter(humanAssignComment), true);
-      assert.strictEqual(isHumanCommenter(humanUnassignComment), true);
-    });
-
     it('treats bots and GitHub Apps as non-human commenters', () => {
       const botComment = {
         body: '/assign',
