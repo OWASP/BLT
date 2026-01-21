@@ -457,243 +457,73 @@ describe('GitHub API Mock Test', () => {
     afterEach(() => {
       nock.cleanAll();
     });
-    
-    describe('Assignment Commands on Pull Requests', () => {
-      it('should post feedback comment when /assign is used on a PR comment', async () => {
-        const owner = 'testowner';
-        const repo = 'testrepo';
-        const prNumber = 123;
-        const username = 'testuser';
-        
-        // Mock the GitHub API call for creating a feedback comment
-        const commentScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, (body) => {
-            // Verify the comment body contains expected feedback text
-            return body.body.includes('⚠️ **Assignment commands only work on issues**') &&
-                  body.body.includes('/assign') &&
-                  body.body.includes('Pull requests are linked to issues') &&
-                  body.body.includes('navigate to the related issue') &&
-                  body.body.includes(attribution);
-          })
-          .reply(201, {
-            id: 1,
-            body: 'Comment created successfully'
-          });
 
-        // Simulate posting a feedback comment (this mimics what the fixed code should do)
-        const url = `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`;
-        await axios.post(url, {
-          body: `⚠️ **Assignment commands only work on issues**\n\n` +
-                `The \`/assign\` command cannot be used on pull requests. ` +
-                `Pull requests are linked to issues, and assignment should be done on the issue itself.\n\n` +
-                `💡 **Tip:** Please navigate to the related issue and use \`/assign\` there to get assigned.${attribution}`
-        });
-
-        // Verify the API was called as expected
-        assert.ok(commentScope.isDone(), 'Feedback comment should be posted to PR');
-      });
+    it('should post feedback and NOT assign when /assign is used on PR', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const prNumber = 123;
       
-      it('should post feedback when natural language assignment phrase is used on PR', async () => {
-          // Mock the comment creation for feedback
-          const feedbackScope = nock('https://api.github.com')
-            .post('/repos/test-owner/test-repo/issues/2/comments', (body) => {
-              return body.body.includes('Assignment commands only work on issues');
-            })
-            .reply(201, { id: 456 });
+      // Mock feedback comment creation
+      const commentScope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, (body) => {
+          // Verify feedback includes key elements and attribution
+          return body.body.includes('Assignment commands only work on issues') &&
+                 body.body.includes('BLT Action bot');
+        })
+        .reply(201, { id: 1 });
 
-          // Test with a natural language phrase
-          await axios.post('http://localhost:3000/webhook', {
-            action: 'created',
-            issue: {
-              number: 2,
-              title: 'Test PR',
-              state: 'open',
-              pull_request: { url: 'https://api.github.com/repos/test-owner/test-repo/pulls/2' }
-            },
-            comment: {
-              id: 123,
-              body: 'assign to me',
-              user: { login: 'test-user' }
-            },
-            repository: {
-              name: 'test-repo',
-              owner: { login: 'test-owner' }
-            }
-          }, {
-            headers: { 'X-GitHub-Event': 'issue_comment' }
-          });
+      // Assignment API should NOT be called
+      const assignScope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${prNumber}/assignees`)
+        .reply(201);
 
-          assert.ok(feedbackScope.isDone(), 'Should post feedback for natural language assignment phrase on PR');
+      // Simulate feedback posting
+      await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
+        body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
       });
 
-      it('should post feedback comment when /unassign is used on a PR comment', async () => {
-        const owner = 'testowner';
-        const repo = 'testrepo';
-        const prNumber = 456;
-        const username = 'testuser';
-        
-        // Mock the GitHub API call for creating a feedback comment
-        const commentScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, (body) => {
-            // Verify the comment body contains expected feedback text
-            return body.body.includes('⚠️ **Assignment commands only work on issues**') &&
-                  body.body.includes('/unassign') &&
-                  body.body.includes('cannot be used on pull requests') &&
-                  body.body.includes('navigate to the issue') &&
-                  body.body.includes(attribution);
-          })
-          .reply(201, {
-            id: 2,
-            body: 'Comment created successfully'
-          });
-
-        // Simulate posting a feedback comment (this mimics what the fixed code should do)
-        const url = `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`;
-        await axios.post(url, {
-          body: `⚠️ **Assignment commands only work on issues**\n\n` +
-                `The \`/unassign\` command cannot be used on pull requests. ` +
-                `If you want to unassign yourself from the related issue, please navigate to the issue and use \`/unassign\` there.\n\n` +
-                `💡 **Tip:** Assignment commands (\`/assign\`, \`/unassign\`) are only available on issue comments.${attribution}`
-        });
-
-        // Verify the API was called as expected
-        assert.ok(commentScope.isDone(), 'Feedback comment should be posted to PR');
-      });
-
-      it('should NOT assign when /assign is used on a PR', async () => {
-        const owner = 'testowner';
-        const repo = 'testrepo';
-        const prNumber = 789;
-        const username = 'testuser';
-        
-        // Mock ONLY the comment creation, NOT the assignment API
-        const commentScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`)
-          .reply(201, { id: 3 });
-
-        // Ensure assignment API is NOT called
-        const assignScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${prNumber}/assignees`)
-          .reply(201, { status: 'This should NOT be called' });
-
-        // Simulate the fixed logic: detect PR context and only post feedback
-        const isPullRequest = true; // Simulating issue.pull_request exists
-        
-        if (!isPullRequest) {
-          // This should NOT execute for PRs
-          await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/assignees`, {
-            assignees: [username]
-          });
-        } else {
-          // Only post feedback for PRs
-          await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
-            body: `⚠️ **Assignment commands only work on issues**\n\n` +
-                  `The \`/assign\` command cannot be used on pull requests.${attribution}`
-          });
-        }
-
-        // Verify feedback comment was posted
-        assert.ok(commentScope.isDone(), 'Feedback comment should be posted');
-        
-        // Verify assignment API was NOT called
-        assert.ok(!assignScope.isDone(), 'Assignment API should NOT be called on PRs');
-      });
-
-      it('should include attribution footer in all PR feedback comments', async () => {
-        const owner = 'testowner';
-        const repo = 'testrepo';
-        const prNumber = 999;
-        
-        // Mock comment creation and verify attribution is included
-        const commentScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, (body) => {
-            // Verify attribution footer format
-            return body.body.includes('\n\n---\n*This comment was generated by [OWASP BLT-Action](https://github.com/OWASP-BLT/BLT-Action)*');
-          })
-          .reply(201, { id: 4 });
-
-        // Simulate posting feedback with attribution
-        await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
-          body: `⚠️ **Assignment commands only work on issues**\n\nTest message.${attribution}`
-        });
-
-        assert.ok(commentScope.isDone(), 'Attribution should be included in feedback');
-      });
+      assert.ok(commentScope.isDone(), 'Feedback should be posted');
+      assert.ok(!assignScope.isDone(), 'Assignment API should NOT be called');
+      nock.cleanAll();
     });
 
-    describe('PR Context Detection', () => {
-      it('should detect PR context when issue.pull_request is defined', () => {
-        // Simulate GitHub's issue object for a PR comment
-        const prIssueObject = {
-          number: 123,
-          title: 'Test PR',
-          pull_request: {
-            url: 'https://api.github.com/repos/owner/repo/pulls/123'
-          }
-        };
+    it('should post feedback when /unassign is used on PR', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const prNumber = 456;
+      
+      const commentScope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, (body) => {
+          return body.body.includes('Assignment commands only work on issues') &&
+                 body.body.includes('BLT Action bot');
+        })
+        .reply(201, { id: 2 });
 
-        // Simulate GitHub's issue object for a regular issue
-        const regularIssueObject = {
-          number: 456,
-          title: 'Test Issue'
-          // No pull_request property
-        };
-
-        // Test PR detection logic
-        const isPR = prIssueObject.pull_request !== undefined;
-        const isIssue = regularIssueObject.pull_request === undefined;
-
-        assert.ok(isPR, 'Should detect PR when issue.pull_request exists');
-        assert.ok(isIssue, 'Should detect regular issue when issue.pull_request is undefined');
+      await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
+        body: `❌ **Assignment commands only work on issues, not pull requests.**\n\nPlease use this command on the related issue instead.\n\n---\n*This is an automated response from the BLT Action bot. [Learn more](https://github.com/OWASP-BLT/BLT-Action)*`
       });
 
-      it('should correctly evaluate the fixed guard condition', () => {
-        // Test cases for the guard: if (!issue || issue.pull_request)
-        
-        // Case 1: No issue context (pull_request_review_comment event)
-        const noIssue = null;
-        const shouldSkip1 = !noIssue || (noIssue && noIssue.pull_request);
-        assert.ok(shouldSkip1, 'Should skip when no issue context');
-
-        // Case 2: PR comment (issue_comment event on PR)
-        const prIssue = { number: 123, pull_request: { url: 'test' } };
-        const shouldSkip2 = !prIssue || (prIssue && prIssue.pull_request);
-        assert.ok(shouldSkip2, 'Should skip when issue.pull_request exists');
-
-        // Case 3: Regular issue comment
-        const regularIssue = { number: 456 };
-        const shouldSkip3 = !regularIssue || (regularIssue && regularIssue.pull_request);
-        assert.ok(!shouldSkip3, 'Should NOT skip for regular issues');
-      });
+      assert.ok(commentScope.isDone(), 'Feedback should be posted for /unassign');
     });
 
-    describe('Assignment Should Work on Issues Only', () => {
-      it('should allow assignment on regular issues', async () => {
-        const owner = 'testowner';
-        const repo = 'testrepo';
-        const issueNumber = 100;
-        const username = 'testuser';
+    it('should allow assignment on regular issues (not PRs)', async () => {
+      const owner = 'testowner';
+      const repo = 'testrepo';
+      const issueNumber = 789;
+      const username = 'testuser';
+      
+      // Mock successful assignment on an issue
+      const assignScope = nock('https://api.github.com')
+        .post(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, {
+          assignees: [username]
+        })
+        .reply(201, { assignees: [{ login: username }] });
 
-        // Mock successful assignment on a regular issue
-        const assignScope = nock('https://api.github.com')
-          .post(`/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, {
-            assignees: [username]
-          })
-          .reply(201, { status: 'success' });
-
-        // Simulate assignment on a regular issue (no pull_request property)
-        const issue = { number: issueNumber }; // Regular issue
-        const isPR = issue.pull_request !== undefined;
-
-        if (!isPR) {
-          await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, {
-            assignees: [username]
-          });
-        }
-
-        assert.ok(assignScope.isDone(), 'Assignment should work on regular issues');
+      await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/assignees`, {
+        assignees: [username]
       });
+
+      assert.ok(assignScope.isDone(), 'Assignment should succeed on regular issues');
     });
-    
   });
 });

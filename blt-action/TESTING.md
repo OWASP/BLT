@@ -12,7 +12,7 @@ The BLT-Action has comprehensive test coverage across unit tests, integration te
 
 The unit tests use Mocha and Nock to test individual components of the action. All tests use mocked HTTP requests to test functionality without requiring actual API calls.
 
-**Total: 17 tests across 6 categories**
+**Total: 20 tests across 8 categories**
 
 #### 1. Assignment Management (3 tests)
 - ✅ User assignment to issues
@@ -55,14 +55,10 @@ The unit tests use Mocha and Nock to test individual components of the action. A
 - ✅ Giphy API error handling
 - ✅ Kudos API error handling
 
-#### 8. PR Assignment Command Feedback (7 tests)
-- ✅ Feedback comment when `/assign` used on PR
-- ✅ Feedback comment when `/unassign` used on PR
-- ✅ No assignment API call when `/assign` used on PR
-- ✅ Attribution footer in PR feedback comments
-- ✅ PR context detection via `issue.pull_request`
-- ✅ Fixed guard condition evaluation
-- ✅ Assignment works on regular issues only
+#### 8. PR Assignment Command Feedback (3 tests)
+- ✅ Should post feedback and NOT assign when /assign is used on PR
+- ✅ Should post feedback when /unassign is used on PR
+- ✅ Should allow assignment on regular issues (not PRs)
 
 ### Integration Tests (`.github/workflows/integration-test.yml`)
 
@@ -164,8 +160,8 @@ grep -q "/kudos" src/index.js && echo "✓ /kudos implemented"
 | Command Detection | 3 | ✅ |
 | Attribution | 2 | ✅ |
 | Error Handling | 3 | ✅ |
-| PR Assignment Feedback | 7 | ✅ |
-| **Total** | **24** | **✅** |
+| PR Assignment Feedback | 3 | ✅ |
+| **Total** | **20** | **✅** |
 
 ## Features Tested
 
