@@ -79,7 +79,7 @@ async function hasOpenLinkedPR(
 }
 
 async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
-    const allPRs = { open: [], closed: [] };
+    const allPRs = { open: [], closed: [], error: false };
     const currentRepo = `${owner}/${repoName}`;
     const seen = new Set();
 
@@ -139,6 +139,7 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
         } catch (err) {
             if (err.status !== 404) {
                 console.error(`Error fetching PR #${prNumber}:`, err?.status || err?.message);
+                allPRs.error = true;
             }
             continue;
         }
@@ -167,11 +168,27 @@ async function ensureClosedPRLabel(octokit, owner, repoName) {
     }
 }
 
-function extractLinkedIssuesFromPRBody(prBody) {
+function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
     if (!prBody) return [];
-    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:#(\d+)|https?:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/(\d+))/gi;
+    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
     const matches = [...prBody.matchAll(regex)];
-    return [...new Set(matches.map(m => parseInt(m[1] || m[2])))];
+    const issues = [];
+    
+    for (const match of matches) {
+        if (match[1]) {
+            issues.push(parseInt(match[1]));
+        } else if (match[2] && match[3] && match[4]) {
+            const urlOwner = match[2];
+            const urlRepo = match[3];
+            const issueNumber = parseInt(match[4]);
+            
+            if (urlOwner === currentOwner && urlRepo === currentRepo) {
+                issues.push(issueNumber);
+            }
+        }
+    }
+    
+    return [...new Set(issues)];
 }
 
 async function findLinkedIssuesFromTimeline(octokit, owner, repoName, prNumber) {
@@ -206,7 +223,7 @@ async function handleClosedPR(octokit, owner, repoName, pr, attribution) {
     
     await ensureClosedPRLabel(octokit, owner, repoName);
     
-    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body);
+    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body, owner, repoName);
     const timelineIssues = await findLinkedIssuesFromTimeline(octokit, owner, repoName, pr.number);
     const linkedIssues = [...new Set([...bodyIssues, ...timelineIssues])];
     
@@ -265,7 +282,7 @@ async function handleClosedPR(octokit, owner, repoName, pr, attribution) {
 async function handleOpenedPR(octokit, owner, repoName, pr, attribution) {
     console.log(`PR #${pr.number} was opened by @${pr.user.login}`);
     
-    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body);
+    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body, owner, repoName);
     const timelineIssues = await findLinkedIssuesFromTimeline(octokit, owner, repoName, pr.number);
     const linkedIssues = [...new Set([...bodyIssues, ...timelineIssues])];
     
