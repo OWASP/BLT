@@ -44177,6 +44177,7 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
             const prAuthorMatch = warningComment.body.match(/Hi @([^,]+),/);
             const prAuthor = prAuthorMatch ? prAuthorMatch[1] : null;
             
+            let unassigned = false;
             if (prAuthor) {
                 const isAssigned = issue.assignees.some(a => a.login === prAuthor);
                 if (isAssigned) {
@@ -44186,7 +44187,7 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
                         issue_number: issue.number,
                         assignees: [prAuthor]
                     });
-                    
+                    unassigned = true;
                     console.log(`Unassigned: ${prAuthor}`);
                 } else {
                     console.log(`PR author ${prAuthor} not assigned to issue, skipping unassignment`);
@@ -44213,12 +44214,16 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
                 comment_id: warningComment.id 
             });
             
+            const finalMessage = unassigned
+                ? `Your PR was closed over 12 hours ago and no new PR was opened. You've been unassigned from this issue.\n\n` +
+                `Feel free to comment /assign if you'd like to work on this again.${attribution}`
+                : `Grace period expired and no new PR was opened. No assignee was removed because the original assignee could not be verified.\n\n` +
+                `Feel free to comment /assign if you'd like to work on this again.${attribution}`;
             await octokit.rest.issues.createComment({
                 owner,
                 repo: repoName,
                 issue_number: issue.number,
-                body: `Your PR was closed over 12 hours ago and no new PR was opened. You've been unassigned from this issue.\n\n` +
-                      `Feel free to comment /assign if you'd like to work on this again.${attribution}`
+                body: finalMessage
             });
             
             console.log(`Unassignment complete for issue #${issue.number}`);
