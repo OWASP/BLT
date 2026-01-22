@@ -176,7 +176,7 @@ function extractLinkedIssuesFromPRBody(prBody) {
 
 async function findLinkedIssuesFromTimeline(octokit, owner, repoName, prNumber) {
     try {
-        const timeline = await octokit.rest.issues.listEventsForTimeline({
+        const timeline = await octokit.paginate(octokit.rest.issues.listEventsForTimeline, {
             owner,
             repo: repoName,
             issue_number: prNumber,
@@ -184,7 +184,7 @@ async function findLinkedIssuesFromTimeline(octokit, owner, repoName, prNumber) 
         });
         
         const linked = new Set();
-        for (const event of timeline.data) {
+        for (const event of timeline) {
             if (event.event === 'connected' && event.issue && !event.issue.pull_request) {
                 linked.add(event.issue.number);
             }
@@ -305,14 +305,15 @@ async function handleOpenedPR(octokit, owner, repoName, pr, attribution) {
                 console.log(`Label already removed from issue #${issueNumber}`);
             }
             
-            const comments = await octokit.rest.issues.listComments({
+            const comments = await octokit.paginate(octokit.rest.issues.listComments, {
                 owner,
                 repo: repoName,
                 issue_number: issueNumber,
                 per_page: 100
             });
             
-            const warningComment = comments.data.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
+            const sortedComments = comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const warningComment = sortedComments.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
             if (warningComment) {
                 await octokit.rest.issues.deleteComment({
                     owner,
@@ -354,14 +355,15 @@ async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution)
         try {
             console.log(`Processing issue #${issue.number}: ${issue.title}`);
             
-            const comments = await octokit.rest.issues.listComments({
+            const comments = await octokit.paginate(octokit.rest.issues.listComments, {
                 owner,
                 repo: repoName,
                 issue_number: issue.number,
                 per_page: 100
             });
             
-            const warningComment = comments.data.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
+            const sortedComments = comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const warningComment = sortedComments.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
             if (!warningComment) {
                 console.log(`No warning comment found, removing label`);
                 try {
