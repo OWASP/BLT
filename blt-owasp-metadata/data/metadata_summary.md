@@ -21,13 +21,13 @@
 | lang | 1 |
 | layout | 1081 |
 | leaders | 1 |
-| level | 690 |
+| level | 691 |
 | maintenance | 2 |
 | meeting-plaform | 1 |
 | meeting-platform | 6 |
 | meetup | 1 |
 | meetup group | 2 |
-| meetup-group | 516 |
+| meetup-group | 515 |
 | order | 4 |
 | permalink | 3 |
 | pitch | 315 |
@@ -54,14 +54,14 @@
 | Field | Count |
 |---|---|
 | audience | 292 |
-| code_repositories | 177 |
-| download_links | 264 |
+| code_repositories | 178 |
+| download_links | 263 |
 | leaders_list | 762 |
 | license | 60 |
 | project_classification | 300 |
 | sidebar_type | 108 |
 | social_facebook | 75 |
 | social_linkedin | 145 |
-| social_meetup | 323 |
+| social_meetup | 322 |
 | social_twitter | 155 |
 | social_youtube | 73 |
