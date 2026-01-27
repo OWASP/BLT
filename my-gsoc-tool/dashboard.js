@@ -36,12 +36,14 @@ function getDefaultConfig() {
             workspaceUrl: "",
             channels: []
         },
-        mentor: {
-            name: "Mentor Name",
-            email: "",
-            avatar: "https://via.placeholder.com/80",
-            role: "Project Mentor"
-        }
+        mentors: [
+            {
+                name: "Mentor Name",
+                email: "",
+                avatar: "https://via.placeholder.com/80",
+                role: "Lead Mentor"
+            }
+        ]
     };
 }
 

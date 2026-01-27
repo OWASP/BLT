@@ -56,12 +56,22 @@ Edit `config.json` with your information:
     "workspaceUrl": "https://your-org.slack.com/join/shared_invite/xxx",
     "channels": ["general", "gsoc-2024", "your-project-channel"]
   },
-  "mentor": {
-    "name": "Mentor Name",
-    "email": "mentor@example.com",
-    "avatar": "https://github.com/MENTOR-USERNAME.png",
-    "role": "Project Mentor"
-  }
+  "mentors": [
+    {
+      "name": "Mentor Name",
+      "email": "mentor@example.com",
+      "avatar": "https://github.com/MENTOR-USERNAME.png",
+      "role": "Lead Mentor",
+      "github": "https://github.com/MENTOR-USERNAME"
+    },
+    {
+      "name": "Co-Mentor Name",
+      "email": "co-mentor@example.com",
+      "avatar": "https://github.com/CO-MENTOR-USERNAME.png",
+      "role": "Co-Mentor",
+      "github": "https://github.com/CO-MENTOR-USERNAME"
+    }
+  ]
 }
 ```
 
@@ -261,7 +271,7 @@ The following users have forked this project:
 - [DishaA06/MY-GSOC-TOOL](https://github.com/DishaA06/MY-GSOC-TOOL) - ⭐ 0 stars
 - [e-esakman/MY-GSOC-TOOL](https://github.com/e-esakman/MY-GSOC-TOOL) - ⭐ 0 stars
 
-_Last updated: 2026-01-21 00:23:46 UTC_
+_Last updated: 2026-01-27 00:24:43 UTC_
 <!-- FORKS_END -->
 
 ---
