@@ -20,9 +20,9 @@ Synthesizes community direction (Discussion #5495). Each standalone project fits
 
 ### Project B — Security Contribution Gamification & Recognition
 
-**One line:** Consume verified security contributions to award BACON/badges, reputation tiers, leaderboards, and challenges.
-
 [View full details →](Project-B.md)
+
+**One line:** Consume verified security contributions to award BACON/badges, reputation tiers, leaderboards, and challenges.
 
 ---
 
