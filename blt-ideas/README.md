@@ -1,6 +1,6 @@
 # Project Ideas — Brief Overview
 
-A short reference of BLT GSoC project options. For full technical details, milestones, and scope see [second_review.md](second_review.md).
+A short reference of BLT GSoC project options. 
 
 ---
 
