@@ -96,5 +96,3 @@ Choose by primary goal (one project per slot):
 - **Project E and A:** E (PR readiness) is independent. Optionally, “PR ready” from E could later feed into A’s pipeline (e.g. only consider PRs for GHSC once readiness is READY or after manual triage), but that integration is out of scope for a single 350h slot.
 
 ---
-
-*Full specs, milestones, APIs, and MVP scope are in [second_review.md](second_review.md).*
