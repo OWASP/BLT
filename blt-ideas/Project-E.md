@@ -1,29 +1,50 @@
-Project E: Security-Focused PR Readiness Tracker & Contributor Dashboard for GSoC 2026 (175h standalone, expandable).  
+ # Project E — PR Readiness & Security Dashboard
 
-**Overview & Security Scope:**  
-- Aggregates CI/CD results, GitHub Actions, and automated SAST/DAST scans to provide a **security-aware PR readiness status**.  
-- Analyzes discussion threads to detect **blocking comments, unresolved security concerns, and actionable feedback**.  
-- Flags PRs with failing security checks, outdated dependencies, or unresolved vulnerabilities.  
-- Provides a **contributor-facing dashboard** showing PR status (READY, ACTION_REQUIRED, CI_FAILING, SECURITY_ISSUES).  
-- Lays the foundation for **AI-assisted triage** to prioritize high-risk PRs for maintainers.  
+## Overview
+A 175-hour GSoC project focused on giving contributors and maintainers a clear view of **PR readiness, CI/CD status, and discussion/reviewer insights**. Integrates security-focused checks to ensure high-quality contributions.
 
-**Expanded Scope:**  
-- Integration with BLT GitHub workflows for automated tracking of security-related PR issues.  
-- Optionally combines with **Project F (Forum Revamp & Engagement Automation)** to create a unified 350-hour project linking contributor workflows with community engagement.  
-- Supports future integration with Project A (CVE detection) and Project B (reward & recognition) for a **security-first contribution pipeline**.  
+## Goals
+- Aggregate CI/CD results from GitHub Actions and other check-runs.
+- Analyze PR discussions to classify **actionable vs non-actionable comments**.
+- Detect reviewer intent (blocking vs suggestions vs nitpicks).
+- Include basic **security scanning status** per PR (SAST, DAST, Secret Scan, Dependency Scan).
+- Provide contributors with a **single dashboard** view:
+  - READY / ACTION_REQUIRED / CI_FAILING
+  - Security warnings or flagged issues
+  - Resolved vs unresolved comments
 
-**Mockup / Visualization:**  
-- Dashboard mockup can show:  
-  - PR list with status badges (CI, Security, Discussion)  
-  - Highlighted actionable comments  
-  - Security risk scoring  
-  - Filters for contributor, severity, or type of security check  
+## Mockup
+![PR Readiness & Security Dashboard]![Mockup img](https://github.com/user-attachments/assets/192ff514-3539-427f-8224-176ae60c18fd)
 
-**Goal:**  
-- Improve visibility of PR security and quality issues for contributors and maintainers.  
-- Reduce manual triage, accelerate safe merges, and enforce security best practices across BLT repositories.  
 
-**Next Steps:**  
-- Add detailed mockup design  
-- Expand discussion analysis models for reviewer intent and security relevance  
-- Integrate security scan results into dashboard in real-time
+> Note: This is a preliminary design to illustrate the dashboard layout and key elements.
+
+## Security & Bug Focus
+- Highlight PRs with **failing security checks**.
+- Track **vulnerabilities** detected by integrated SAST/DAST tools.
+- Ensure contributors are aware of **potential risky changes** before merge.
+- Optional: Integrate with BLT Security Bot for **AI-assisted remediation suggestions**.
+
+## Benefits
+- Helps contributors identify exactly what needs attention before merge.
+- Maintainers get a **quick overview** of PR quality and potential security issues.
+- Reduces human error in reviewing PRs for both functionality and security.
+- Can be extended post-GSoC with integration into **SOC dashboards** and **BACON reward system**.
+
+## Roadmap
+1. **MVP (GSoC Proposal):**
+   - Aggregate CI results
+   - Discussion analysis (comment classification)
+   - Basic security check integration
+   - Single-page web dashboard
+2. **Future Enhancements (Post-GSoC):**
+   - AI-assisted remediation triager integration
+   - SOC and PR Health dashboards
+   - Reviewer intent prediction improvement
+   - Integration with Project F (Forum / engagement bots)
+
+---
+
+*Last Updated: January 2026*
+
+
