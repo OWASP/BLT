@@ -4,21 +4,11 @@ A short reference of BLT GSoC project options.
 
 ---
 
-## At a glance
-
-- **Five standalone project options (A–E):** each is a full 350-hour GSoC project on its own.
-- **One add-on (“light C”):** not a standalone project. It extends **Project B** with read-only APIs and optional webhooks so future education tools can use badges/leaderboards to gate or unlock content. The **recommended** single 350-hour project is **B + light C** — i.e. Project B plus this add-on.
-- **Other combinations:** C and D can be combined into one 350-hour project (education + knowledge sharing). A and B are kept as separate projects.
-
----
-
 ## Purpose
 
-Synthesizes community direction (Discussion #5495) and outlines five GSoC project options (A–E). Each standalone project fits one 350-hour slot. One recommended combination is **Project B plus the light C add-on** in a single slot.
+Synthesizes community direction (Discussion #5495). Each standalone project fits one 350-hour slot. 
 
 ---
-
-## The five standalone options (A, B, C, D, E)
 
 ### Project A — CVE Detection & Validation Pipeline
 
@@ -34,7 +24,7 @@ Synthesizes community direction (Discussion #5495) and outlines five GSoC projec
 
 **Description:** Listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON, badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and security challenges. Includes admin audit and basic fraud controls. Does not do detection or NVD; assumes a feed of verified contributions (real or mocked).
 
-**Add-on: light C (education bridge)**  
+**Add-on (optional): light C (education bridge)**  
 Project B can be extended with a **light C** add-on in the same 350-hour slot. Light C is *not* a separate project: it adds read-only APIs and an optional webhook that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can use these to unlock courses or show contributor standing. No labs, no curriculum — just the APIs so B’s outputs can drive education tooling. The **recommended** proposal is **B + light C** as one project.
 
 ---
@@ -72,8 +62,6 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 | C | Education platform | New contributors | Content, mentoring | Medium (content burden) |
 | D | Knowledge sharing | OSS ecosystem | Aggregated data, governance | Medium (privacy) |
 | E | PR readiness & workflow | Contributors, maintainers | GitHub API, (optional) BLT auth | Medium (API limits, parsers) |
-
-*The recommended single project is **B + light C**: Project B plus the education-bridge add-on described above.*
 
 ---
 
