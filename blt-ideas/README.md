@@ -53,6 +53,22 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 
 ---
 
+### Project F — UI/UX Standardization & Component System
+
+**One line:** Comprehensive UI/UX overhaul with design guidelines, responsive templates, and reusable component library to eliminate recurring UI fixes.
+
+**Description:** Addresses the 25-40 monthly UI fix PRs by establishing a unified design system and component architecture. Creates strict design guidelines, responsive layout standards, and a library of reusable component templates. Includes comprehensive documentation, implementation guidelines, and migration strategy for existing UI elements. Focuses on accessibility compliance, cross-browser compatibility, and mobile responsiveness. Delivers a maintainable foundation that prevents future UI inconsistencies and reduces maintenance overhead.
+
+---
+
+### Project G — Architecture Modernization & Repository Restructuring
+
+**One line:** Systematic dependency cleanup, repository splitting, and infrastructure documentation for improved maintainability and deployment workflows.
+
+**Description:** Comprehensive architectural review and modernization of the BLT website ecosystem. Identifies and removes unnecessary dependencies, splits monolithic components into focused repositories, and documents all systems and workflows. Includes DevOps pipeline optimization, deployment automation, and clear architectural decision records. Creates migration guides, dependency management strategies, and monitoring solutions. Establishes patterns for future development and reduces technical debt through systematic cleanup and documentation.
+
+---
+
 ## Differentiation (standalone options)
 
 | Project | Focus | Beneficiaries | Dependencies | Risk level |
@@ -62,6 +78,8 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 | C | Education platform | New contributors | Content, mentoring | Medium (content burden) |
 | D | Knowledge sharing | OSS ecosystem | Aggregated data, governance | Medium (privacy) |
 | E | PR readiness & workflow | Contributors, maintainers | GitHub API, (optional) BLT auth | Medium (API limits, parsers) |
+| F | UI/UX standardization | All users, maintainers | Design resources, frontend expertise | Low (implementation complexity) |
+| G | Architecture modernization | Maintainers, developers | Infrastructure access, migration planning | Medium (system complexity) |
 
 ---
 
@@ -73,6 +91,8 @@ Choose by primary goal (one project per slot):
 - **CVE detection & verification pipeline** (GHSC, NVD, maintainer verification UI/API) → **Project A**
 - **PR readiness & merge workflow** (CI aggregation, discussion analysis, reviewer intent, web dashboard) → **Project E**
 - **Structured education & knowledge sharing** (labs, playbooks, dashboards, approval workflow) → **Project C + D** (combined into one 350h project)
+- **UI/UX consistency & design system** (responsive templates, component library, design guidelines) → **Project F**
+- **Infrastructure modernization & cleanup** (dependency removal, repository restructuring, documentation) → **Project G**
 
 ---
 
