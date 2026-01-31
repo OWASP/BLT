@@ -69,16 +69,18 @@ Extends Project E with a security-focused triage layer that analyzes PR diffs, C
 
 ### Project H — BLT Growth: Sizzle-First Contributor Progress & AI-Guided Issue Recommendation
 
-**One line:** Time-aware contributor growth system that uses Sizzle (time tracking) to drive personal progress, AI-guided "what to work on next," and maintainer capacity visibility.
+**One line:** Time-aware contributor growth system that uses Sizzle (time tracking) to drive personal progress, AI-guided "what to work on next," and proactive mentoring on PR merge.
 
-**Description:** A single 350-hour project that answers "where am I in my journey?" and "what should I work on next, and why?" for each contributor. **Progress tracker** shows where contributors actually spent time (Sizzle), skill focus inferred from Sizzle `focus_tag` (when set) and Issue labels (fallback) — e.g., XSS → SQLi → auth progression — and a **meaningful contribution** signal (alignment with BLT core vs slop) — so progress = quality + alignment, not just PR count. **AI-guided issue recommendation** suggests concrete next issues with **why this issue** (fit, impact, BLT alignment), **what you'll learn** (e.g., "parameterized queries," "auth context"), and **estimated time** (~8h from Sizzle patterns), using Sizzle + contribution history + goal alignment. Supports **sustainable pace**, **re-engagement** (nudges after gaps), and gives **maintainers** capacity visibility (where community time is invested) and smart issue–contributor matching (who has demonstrated deep Sizzle + quality work in area X) to reduce overload. Includes **minimal, backward-compatible Sizzle extensions** (optional `focus_tag` for skill tracking, `github_pr_url` for PR time) so "time per skill" and "time per PR" are first-class, not inferred. AI uses Gemini free tier (or local model) for recommendation reasoning, alignment scoring, and skill inference. Distinct from Project B (B = rewards/leaderboards; H = personal growth + direction). Optionally feeds "meaningful contribution" signal to Project B for reward weighting. Fully integrated into BLT's existing Django/DRF infrastructure (TimeLog, Issue, UserProfile models) with RESTful APIs for external tool consumption.
+**Description:** A single 350-hour project that answers "where am I in my journey?" and "what should I work on next, and why?" for each contributor. Two delivery modes: (1) **Dashboard-based recommendations** where contributors pull AI-guided suggestions, and (2) **PR merged guidance** where the AI proactively reaches out when a PR is merged with "here's what you learned" + "here's your next challenge." **Progress tracker** shows where contributors actually spent time (Sizzle), skill focus inferred from Sizzle `focus_tag` (when set) and Issue labels (fallback) — e.g., XSS → SQLi → auth progression — and a **meaningful contribution** signal (alignment with BLT core vs slop). **AI-guided issue recommendation** suggests concrete next issues with **why this issue**, **what you'll learn**, and **estimated time** (~8h from Sizzle patterns). Gives **maintainers** capacity visibility and smart issue–contributor matching. Includes **Celery async infrastructure** for reliable LLM calls and **webhook extension** for PR merged events. AI uses Gemini free tier (or local model). Distinct from Project B (rewards) and Project F (leaderboards); H = personal growth + direction.
 
 **Scope notes:**
 
-- Sizzle alignment (~33h): Add optional `focus_tag` and `github_pr_url` to TimeLog (backward-compatible).
-- Progress tracker: Journey view, skill focus (from Sizzle + Issue labels), meaningful vs slop signal.
-- AI recommendations: Gemini free tier (or local); "why this issue" + "what you'll learn" + time-bounded (e.g., "~8h from Sizzle").
-- Maintainer value: Capacity view (where time goes), smart issue–contributor matching.
+- Sizzle alignment (~33h): Add optional `focus_tag` and `github_pr_url` to TimeLog.
+- Async infrastructure (~25h): Celery + Redis for background LLM calls.
+- Progress tracker (~70h): Journey view, skill focus, meaningful vs slop signal.
+- AI recommendations (~50h): Gemini free tier; "why this issue" + "what you'll learn."
+- PR merged guidance (~40h): Webhook extension + Celery task + AI guidance + notification delivery.
+- Dashboard & APIs (~95h): Web UI, REST endpoints, testing, docs.
 
 ---
 
