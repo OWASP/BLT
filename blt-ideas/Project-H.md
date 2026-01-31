@@ -24,7 +24,9 @@ Current challenges in BLT:
 
 ## Solution: BLT Growth
 
-A **Sizzle-first contributor growth system** with **two delivery modes**:
+A **Sizzle-first contributor growth system** with **two delivery modes**.
+
+**Why Sizzle-first?** Time tracking reveals actual investment in learning and contribution quality — a 2-hour typo fix vs. a 20-hour security feature both count as "1 PR," but Sizzle captures the meaningful difference.
 
 ### Delivery Mode 1: Dashboard-Based Recommendations (Pull)
 Contributors visit the **Growth Dashboard** to see:
