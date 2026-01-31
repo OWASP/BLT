@@ -124,59 +124,6 @@ Add two optional fields to `TimeLog` model:
 
 ---
 
-## Deliverables (350h Scope)
-
-### Phase 1: Sizzle Alignment (~33h)
-- Add `focus_tag` and `github_pr_url` to TimeLog model
-- Migration, serializer, API, UI (dropdown for focus, PR URL field)
-- Tests and docs
-
-### Phase 2: Async Infrastructure (~25h)
-- Set up Celery with Redis as message broker
-- Configure `blt/celery.py` and worker process
-- Task decorators, error handling, retry logic
-- Integration with existing Django settings
-
-### Phase 3: Data Models & Services (~70h)
-- ContributorGrowthProfile, ContributionAnalysis, IssueRecommendation models
-- GrowthTrackerService (analyze contributions, infer skills)
-- IssueRecommenderService (generate recommendations, score issues)
-- SizzleIntegratorService (time per skill, focus timeline, enrich recommendations)
-
-### Phase 4: AI/LLM Integration (~50h)
-- Gemini free tier setup (or Ollama)
-- Prompts for recommendation reasoning, alignment scoring, skill inference
-- Prompts for PR merged guidance (what you learned, next challenge)
-- Error handling, rate limiting, caching
-
-### Phase 5: PR Merged Guidance (~40h)
-- Extend `github_webhook()` to handle `pull_request.closed` + `merged=true`
-- Celery task to analyze merged PR and update GrowthProfile
-- AI call to generate "what you learned" + "next challenge" guidance
-- Deliver via BLT's Notification model (in-app notification)
-
-### Phase 6: APIs (~35h)
-- GrowthProfileViewSet, ContributionAnalysisViewSet, RecommendedIssuesViewSet
-- Serializers, permissions, filtering
-- Time breakdown API
-
-### Phase 7: Frontend (~60h)
-- Growth dashboard (progress, scores, recommended issues)
-- Contribution history page
-- Sizzle time charts (time per skill, focus over time)
-- Notification display for PR merged guidance
-- Responsive design, UI polish
-
-### Phase 8: Testing & Documentation (~37h)
-- Unit tests (services, models, Celery tasks)
-- API tests
-- Webhook integration tests (mock GitHub events)
-- User docs, API docs, developer guide
-
-**Total: 350h**
-
----
-
 ## Differentiation from Other Projects
 
 | Aspect | Project B (Rewards) | Project F (Quality Leaderboards) | **Project H (BLT Growth)** |
@@ -226,21 +173,6 @@ Add two optional fields to `TimeLog` model:
 
 ---
 
-## Future Extensions (Out of 350h Scope)
-
-The following are **Phase 2** features that build on the foundation established in this project:
-
-- **Full event-driven mentoring:** AI guidance on issue claimed, PR opened (not just PR merged)
-- **GitHub comment delivery:** Post AI guidance as GitHub PR comments (in addition to in-app notifications)
-- **Auto-create TimeLogs:** GitHub webhooks that automatically start/stop Sizzle timers on issue assignment / PR open
-- **Burnout detection:** Analyze Sizzle patterns to detect unsustainable pace and suggest breaks
-- **Mentorship matching:** Pair experienced contributors with learners based on skill areas
-- **Learning paths:** Structured sequences of issues for skill progression (e.g., "XSS track: 5 issues, ~40h")
-- **Slack/Discord integration:** Deliver AI guidance via Slack or Discord bots
-- **Codebase-aware recommendations:** Use RAG to index BLT codebase and provide code-level guidance ("start in `auth.py:45`")
-
----
-
 ## Why This Project Matters
 
 1. **Addresses real pain:** Maintainer burden, AI slop, lack of growth direction — all confirmed by BLT contributors
@@ -253,32 +185,6 @@ The following are **Phase 2** features that build on the foundation established 
 
 ---
 
-## Getting Started (For GSoC Contributors)
-
-### Prerequisites
-- Familiarity with Django, Django REST Framework
-- Basic understanding of LLMs (Gemini API or Ollama)
-- Experience with GitHub API and webhooks
-- Basic knowledge of Celery or async task queues
-- Optional: React/Vue for frontend (or Django templates)
-
-### Mentorship Needs
-- **BLT maintainer:** Guidance on BLT core goals, Sizzle usage patterns, contributor pain points
-- **AI/ML mentor:** Help with Gemini prompts, recommendation quality, alignment scoring
-- **UX mentor:** Dashboard design, contributor-facing UI, maintainer capacity view
-
-### Community Bonding Period
-- Study Sizzle (TimeLog model, existing UI)
-- Study existing webhook infrastructure (`website/views/user.py:github_webhook()`)
-- Set up local Celery + Redis environment
-- Interview 5–10 BLT contributors: "What would help you grow?"
-- Draft initial prompts for Gemini (recommendation reasoning + PR merged guidance)
-- Wireframe growth dashboard and notification UI
-
----
-
-## Infrastructure References (from codebase analysis)
-
 | Component | Location | Notes |
 |-----------|----------|-------|
 | **GitHub webhook handler** | `website/views/user.py:github_webhook()` | Extend to handle `pull_request.closed` + `merged=true` |
@@ -287,31 +193,4 @@ The following are **Phase 2** features that build on the foundation established 
 | **Signal pattern** | `website/social_signals.py` | Follow for event-driven architecture |
 | **Sizzle (TimeLog)** | `website/models.py`, `website/views/organization.py` | Extend with `focus_tag`, `github_pr_url` |
 
-**New files to create:**
-- `blt/celery.py` — Celery app configuration
-- `website/tasks.py` — Celery tasks for LLM calls and notification delivery
-- `website/services/growth_tracker.py` — GrowthTrackerService
-- `website/services/issue_recommender.py` — IssueRecommenderService
-
 ---
-
-## References
-
-- **BLT repo:** https://github.com/OWASP-BLT/BLT
-- **Discussion #5495:** Community direction (2025-2026)
-- **Sizzle (TimeLog):** `website/models.py` (TimeLog model), `website/views/organization.py` (TimeLogListView)
-- **Gemini free tier:** https://ai.google.dev/pricing
-- **Celery docs:** https://docs.celeryq.dev/
-- **Similar concept (PR readiness):** [Good To Go](https://dsifry.github.io/goodtogo/) (inspiration for time-bounded, goal-aligned recommendations)
-
----
-
-## Contact
-
-For questions about this project idea:
-- **Maintainer:** [Tag maintainer in OWASP-BLT/BLT-GSoC-Ideas discussions]
-- **Contributor (draft author):** @Pritz395
-
----
-
-**Last updated:** January 2026
