@@ -102,7 +102,8 @@ The project surfaces explainable security hardening insights derived from PR dif
   - Repository-level trends
 
 ## Mockup
-![Security Triage Dashboard Mockup](https://github.com/user-attachments/assets/192ff514-3539-427f-8224-176ae60c18fd)
+![Security Triage Dashboard Mockup]<img width="1536" height="1024" alt="file_00000000141871faac4b24d245bb778f (2)" src="https://github.com/user-attachments/assets/1a67c51a-f1f1-4887-ab76-a2f2fd409d14" />
+
 
 > Illustrative mockup — final UX will evolve based on maintainer feedback.
 
