@@ -25,7 +25,7 @@ Synthesizes community direction (Discussion #5495). Each standalone project fits
 **Description:** Listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON, badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and security challenges. Includes admin audit and basic fraud controls. Does not do detection or NVD; assumes a feed of verified contributions (real or mocked).
 
 **Add-on (optional): light C (education bridge)**  
-Project B can be extended with a **light C** add-on in the same 350-hour slot. Light C is *not* a separate project: it adds read-only APIs and an optional webhook that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can use these to unlock courses or show contributor standing. No labs, no curriculum — just the APIs so B’s outputs can drive education tooling. The **recommended** proposal is **B + light C** as one project.
+Project B can be extended with a **light C** add-on in the same 350-hour slot. Light C is *not* a separate project: it adds read-only APIs and an optional webhook that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can use these to unlock courses or show contributor standing. No labs, no curriculum — just the APIs so B's outputs can drive education tooling. The **recommended** proposal is **B + light C** as one project.
 
 ---
 
@@ -49,7 +49,7 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 
 **One line:** Web-based PR readiness checker with CI aggregation, discussion analysis, reviewer intent detection, and a contributor-facing dashboard.
 
-**Description:** A single 350-hour project that answers “when is this PR actually ready?” in one place. **CI aggregation** combines all GitHub check runs and commit statuses into one pass/fail/pending state. **Discussion analysis** classifies review comments (e.g. actionable vs non-actionable vs resolved) and tracks thread resolution so contributors know what still needs a response. **Reviewer intent detection** distinguishes blocking feedback from suggestions and nitpicks (with support for common bots like CodeRabbit, Cursor, etc.). Contributors drop PRs into a **web dashboard** to track readiness across multiple PRs, re-check after addressing feedback, and get a clear status (e.g. READY, ACTION_REQUIRED, CI_FAILING). Aligns with GSoC goals around contributor tooling and AI-assisted workflows; can integrate with BLT’s GitHub workflows and optionally feed into verification pipelines (e.g. Project A) later. Inspired by the [Good To Go](https://dsifry.github.io/goodtogo/) approach (deterministic PR readiness) but adds a BLT-hosted web UI and deeper discussion/reviewer-intent analysis.
+**Description:** A single 350-hour project that answers "when is this PR actually ready?" in one place. **CI aggregation** combines all GitHub check runs and commit statuses into one pass/fail/pending state. **Discussion analysis** classifies review comments (e.g. actionable vs non-actionable vs resolved) and tracks thread resolution so contributors know what still needs a response. **Reviewer intent detection** distinguishes blocking feedback from suggestions and nitpicks (with support for common bots like CodeRabbit, Cursor, etc.). Contributors drop PRs into a **web dashboard** to track readiness across multiple PRs, re-check after addressing feedback, and get a clear status (e.g. READY, ACTION_REQUIRED, CI_FAILING). Aligns with GSoC goals around contributor tooling and AI-assisted workflows; can integrate with BLT's GitHub workflows and optionally feed into verification pipelines (e.g. Project A) later. Inspired by the [Good To Go](https://dsifry.github.io/goodtogo/) approach (deterministic PR readiness) but adds a BLT-hosted web UI and deeper discussion/reviewer-intent analysis.
 
 #### Project E (Extension) — AI-Assisted Security Remediation Triage
 
@@ -62,8 +62,24 @@ Extends Project E with a security-focused triage layer that analyzes PR diffs, C
 **Scope-notes:**  
 - Deterministic rules first; optional ML assistance for prioritization  
 - Human-in-the-loop review to reduce false positives  
-- Builds directly on Project E’s CI aggregation and discussion analysis  
+- Builds directly on Project E's CI aggregation and discussion analysis  
 - Optional future integration with Project A is out of scope
+
+---
+
+### Project H — BLT Growth: Sizzle-First Contributor Progress & AI-Guided Issue Recommendation
+
+**One line:** Time-aware contributor growth system that uses Sizzle (time tracking) to drive personal progress, AI-guided "what to work on next," and maintainer capacity visibility.
+
+**Description:** A single 350-hour project that answers "where am I in my journey?" and "what should I work on next, and why?" for each contributor. **Progress tracker** shows where contributors actually spent time (Sizzle), skill focus inferred from Sizzle `focus_tag` (when set) and Issue labels (fallback) — e.g., XSS → SQLi → auth progression — and a **meaningful contribution** signal (alignment with BLT core vs slop) — so progress = quality + alignment, not just PR count. **AI-guided issue recommendation** suggests concrete next issues with **why this issue** (fit, impact, BLT alignment), **what you'll learn** (e.g., "parameterized queries," "auth context"), and **estimated time** (~8h from Sizzle patterns), using Sizzle + contribution history + goal alignment. Supports **sustainable pace**, **re-engagement** (nudges after gaps), and gives **maintainers** capacity visibility (where community time is invested) and smart issue–contributor matching (who has demonstrated deep Sizzle + quality work in area X) to reduce overload. Includes **minimal, backward-compatible Sizzle extensions** (optional `focus_tag` for skill tracking, `github_pr_url` for PR time) so "time per skill" and "time per PR" are first-class, not inferred. AI uses Gemini free tier (or local model) for recommendation reasoning, alignment scoring, and skill inference. Distinct from Project B (B = rewards/leaderboards; H = personal growth + direction). Optionally feeds "meaningful contribution" signal to Project B for reward weighting. Fully integrated into BLT's existing Django/DRF infrastructure (TimeLog, Issue, UserProfile models) with RESTful APIs for external tool consumption.
+
+**Scope notes:**
+
+- Sizzle alignment (~33h): Add optional `focus_tag` and `github_pr_url` to TimeLog (backward-compatible).
+- Progress tracker: Journey view, skill focus (from Sizzle + Issue labels), meaningful vs slop signal.
+- AI recommendations: Gemini free tier (or local); "why this issue" + "what you'll learn" + time-bounded (e.g., "~8h from Sizzle").
+- Maintainer value: Capacity view (where time goes), smart issue–contributor matching.
+
 ---
 
 ## Differentiation (standalone options)
@@ -75,6 +91,7 @@ Extends Project E with a security-focused triage layer that analyzes PR diffs, C
 | C | Education platform | New contributors | Content, mentoring | Medium (content burden) |
 | D | Knowledge sharing | OSS ecosystem | Aggregated data, governance | Medium (privacy) |
 | E | PR readiness & workflow | Contributors, maintainers | GitHub API, (optional) BLT auth | Medium (API limits, parsers) |
+| H | Contributor growth + time-aware recommendations | Individual contributors, maintainers | Sizzle (time tracking), Gemini free tier (or local LLM), GitHub API | Medium (Sizzle adoption, LLM quality) |
 
 ---
 
@@ -86,14 +103,16 @@ Choose by primary goal (one project per slot):
 - **CVE detection & verification pipeline** (GHSC, NVD, maintainer verification UI/API) → **Project A**
 - **PR readiness & merge workflow** (CI aggregation, discussion analysis, reviewer intent, web dashboard) → **Project E**
 - **Structured education & knowledge sharing** (labs, playbooks, dashboards, approval workflow) → **Project C + D** (combined into one 350h project)
+- **Contributor growth, time-aware progress, and AI-guided "what to work on next"** (Sizzle-first, personal dashboard, maintainer capacity) → **Project H (BLT Growth)**
 
 ---
 
 ## Cross-cutting notes
 
-- **Decoupling B from A:** B is designed around a generic “verified security contribution” event; it does not require Project A. Fixtures or a small admin UI can supply events during GSoC; A→B integration is optional later.
+- **Decoupling B from A:** B is designed around a generic "verified security contribution" event; it does not require Project A. Fixtures or a small admin UI can supply events during GSoC; A→B integration is optional later.
 - **A + B in one 350-hour slot:** Not recommended; both need focused scope, testing, and pilot time. Treat as two separate projects.
 - **C + D combined:** One 350-hour project is possible: education platform (tracks, labs, quizzes, review) plus knowledge-sharing (anonymization, dashboards, playbooks, approval workflow). Shares data and governance concerns.
-- **Project E and A:** E (PR readiness) is independent. Optionally, “PR ready” from E could later feed into A’s pipeline (e.g. only consider PRs for GHSC once readiness is READY or after manual triage), but that integration is out of scope for a single 350h slot.
+- **Project E and A:** E (PR readiness) is independent. Optionally, "PR ready" from E could later feed into A's pipeline (e.g. only consider PRs for GHSC once readiness is READY or after manual triage), but that integration is out of scope for a single 350h slot.
+- **Project H and B:** H (BLT Growth) focuses on personal growth and AI-guided recommendations; B focuses on rewards and leaderboards. H can optionally feed a "meaningful contribution" or alignment score to B for reward weighting, but H does not implement BACON or leaderboards itself. They are complementary: B = "you earned X"; H = "here's your growth path and what to do next."
 
 ---
