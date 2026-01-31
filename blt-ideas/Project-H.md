@@ -1,3 +1,5 @@
+---
+
 ### Project H — First-Time Contributor Experience & AI-Assisted Security Guide
 
 **One line:** Security-first onboarding, documentation clarity, and an AI-assisted guide to help contributors understand BLT and OWASP expectations before contributing.
@@ -15,3 +17,4 @@ clarification, and linking to authoritative sources.
 - Documentation surfacing and fixes (repair broken links, define canonical entry points)
 - Contribution clarity pages (e.g. “What counts as a security contribution?”, “Why PRs get rejected”)
 - Embedded AI Security Guide for contextual, beginner-friendly explanations grounded in BLT + OWASP content
+  
