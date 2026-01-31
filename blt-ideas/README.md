@@ -45,7 +45,7 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 
 ---
 
-### Project E — PR Readiness Tracker & Contributor Dashboard
+### Project E — PR Readiness Tracker & Contributor Dashboard 
 
 **One line:** Web-based PR readiness checker with CI aggregation, discussion analysis, reviewer intent detection, and a contributor-facing dashboard.
 
