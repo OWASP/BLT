@@ -75,12 +75,12 @@ Extends Project E with a security-focused triage layer that analyzes PR diffs, C
 
 **Scope notes:**
 
-- Sizzle alignment (~33h): Add optional `focus_tag` and `github_pr_url` to TimeLog.
-- Async infrastructure (~25h): Celery + Redis for background LLM calls.
-- Progress tracker (~70h): Journey view, skill focus, meaningful vs slop signal.
-- AI recommendations (~50h): Gemini free tier; "why this issue" + "what you'll learn."
-- PR merged guidance (~40h): Webhook extension + Celery task + AI guidance + notification delivery.
-- Dashboard & APIs (~95h): Web UI, REST endpoints, testing, docs.
+- Sizzle alignment: Add optional `focus_tag` and `github_pr_url` to TimeLog.
+- Async infrastructure: Celery + Redis for background LLM calls.
+- Progress tracker: Journey view, skill focus, meaningful vs slop signal.
+- AI recommendations: Gemini free tier; "why this issue" + "what you'll learn."
+- PR merged guidance: Webhook extension + Celery task + AI guidance + notification delivery.
+- Dashboard & APIs: Web UI, REST endpoints, testing, docs.
 
 ---
 
