@@ -79,34 +79,6 @@ When a PR is merged:
 
 ---
 
-## Technical Approach
-
-### Architecture
-- **Built into BLT repo:** Django/DRF infrastructure (TimeLog, Issue, UserProfile models)
-- **New models:** ContributorGrowthProfile, ContributionAnalysis, IssueRecommendation
-- **New services:** GrowthTrackerService, IssueRecommenderService, SizzleIntegratorService
-- **APIs:** RESTful endpoints for growth profile, analyses, recommended issues, time breakdown
-- **Frontend:** Growth dashboard, contribution history, Sizzle time charts (Django templates + optional React/Vue)
-- **Async infrastructure:** Celery + Redis for background LLM calls (required for PR merged guidance)
-- **Webhook extension:** Extend existing `github_webhook()` to handle PR merged events
-
-### Sizzle Extensions (Minimal, Backward-Compatible)
-Add two optional fields to `TimeLog` model:
-1. **`focus_tag`** (CharField, optional): User selects skill focus at timer start/stop (e.g., "XSS", "SQLi", "Auth", "Docs", "Other")
-   - Makes "time per skill" **first-class** instead of inferred
-2. **`github_pr_url`** (URLField, optional): Associate time with PRs as well as issues
-   - Enables "time-to-merge," "time per PR" metrics
-
-**Effort:** ~33h / 350h (~9% of scope)
-
-### AI Integration
-- **LLM:** Gemini free tier (or local model like Ollama) for:
-  - Recommendation reasoning ("why this issue")
-  - Alignment scoring (BLT core vs out-of-scope)
-  - Skill inference (from contribution history)
-- **Prompts:** "Given contributor's Sizzle (25h XSS, 10h SQLi) + past PRs, recommend next issue from open BLT issues with reasoning"
-- **No paid API required:** Gemini free tier or self-hosted
-
 ### Data Flow
 
 **Dashboard Flow (Pull):**
@@ -184,15 +156,5 @@ Add two optional fields to `TimeLog` model:
 5. **Immediate value:** Dashboard + PR merged guidance delivers value from day one
 6. **Foundation for full mentoring:** Celery infrastructure enables future expansion to issue claimed, PR opened, and other events
 7. **Scalable:** RESTful APIs mean external tools (e.g., IDE extensions, Slack bots) can consume growth data
-
----
-
-| Component | Location | Notes |
-|-----------|----------|-------|
-| **GitHub webhook handler** | `website/views/user.py:github_webhook()` | Extend to handle `pull_request.closed` + `merged=true` |
-| **Notification model** | `website/models.py` (line ~2390) | Use for in-app delivery of PR merged guidance |
-| **GitHub comment pattern** | `website/views/bounty.py` (line ~380-390) | Reference for GitHub API integration |
-| **Signal pattern** | `website/social_signals.py` | Follow for event-driven architecture |
-| **Sizzle (TimeLog)** | `website/models.py`, `website/views/organization.py` | Extend with `focus_tag`, `github_pr_url` |
 
 ---
