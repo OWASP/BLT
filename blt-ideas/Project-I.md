@@ -1,6 +1,6 @@
 ---
 
-### Project H — First-Time Contributor Experience & AI-Assisted Security Guide
+### Project I — First-Time Contributor Experience & AI-Assisted Security Guide
 
 **One line:** Security-first onboarding, documentation clarity, and an AI-assisted guide to help contributors understand BLT and OWASP expectations before contributing.
 
