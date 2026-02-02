@@ -141,3 +141,6 @@ This removes duplicate logic and keeps the scope manageable.
 * Documentation and usage guides
 * Scoring explanation docs
 * Final polish and mentor review
+
+####  Mock up 
+<img width="1152" height="707" alt="mock-up" src="https://github.com/user-attachments/assets/cf3839dd-2fe0-4605-9977-ff3f454afa1d" />
