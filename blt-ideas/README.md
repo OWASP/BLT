@@ -1,12 +1,12 @@
 # Project Ideas — Brief Overview
 
-A short reference of BLT GSoC project options. 
+A short reference of BLT GSoC project options.
 
 ---
 
 ## Purpose
 
-Synthesizes community direction (Discussion #5495). Each standalone project fits one 350-hour slot. 
+Synthesizes community direction (Discussion #5495). Each standalone project fits one 350-hour slot.
 
 ---
 
@@ -25,7 +25,7 @@ Synthesizes community direction (Discussion #5495). Each standalone project fits
 **Description:** Listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON, badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and security challenges. Includes admin audit and basic fraud controls. Does not do detection or NVD; assumes a feed of verified contributions (real or mocked).
 
 **Add-on (optional): light C (education bridge)**  
-Project B can be extended with a **light C** add-on in the same 350-hour slot. Light C is *not* a separate project: it adds read-only APIs and an optional webhook that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can use these to unlock courses or show contributor standing. No labs, no curriculum — just the APIs so B's outputs can drive education tooling. The **recommended** proposal is **B + light C** as one project.
+Project B can be extended with a **light C** add-on in the same 350-hour slot. Light C is _not_ a separate project: it adds read-only APIs and an optional webhook that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can use these to unlock courses or show contributor standing. No labs, no curriculum — just the APIs so B's outputs can drive education tooling. The **recommended** proposal is **B + light C** as one project.
 
 ---
 
@@ -56,13 +56,14 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 **One line:**  
 Advisory security triage for PRs that flags risky patterns and surfaces explainable remediation guidance via GitHub and a BLT dashboard.
 
-**Description:** 
-Extends Project E with a security-focused triage layer that analyzes PR diffs, CI results, and review context to identify potential security hardening issues (e.g., unsafe TLS configuration, token handling, CI/CD injection risks). Findings are *advisory only* and exposed as GitHub check annotations/comments and a BLT-hosted web view. No exploit storage, no automated blocking, and no CVE detection.
+**Description:**
+Extends Project E with a security-focused triage layer that analyzes PR diffs, CI results, and review context to identify potential security hardening issues (e.g., unsafe TLS configuration, token handling, CI/CD injection risks). Findings are _advisory only_ and exposed as GitHub check annotations/comments and a BLT-hosted web view. No exploit storage, no automated blocking, and no CVE detection.
 
-**Scope-notes:**  
-- Deterministic rules first; optional ML assistance for prioritization  
-- Human-in-the-loop review to reduce false positives  
-- Builds directly on Project E's CI aggregation and discussion analysis  
+**Scope-notes:**
+
+- Deterministic rules first; optional ML assistance for prioritization
+- Human-in-the-loop review to reduce false positives
+- Builds directly on Project E's CI aggregation and discussion analysis
 - Optional future integration with Project A is out of scope
 
 ---
@@ -84,16 +85,27 @@ Extends Project E with a security-focused triage layer that analyzes PR diffs, C
 
 ---
 
+### Project M — CVE Remediation Pipeline (sits on top of discovery from Project A and/or Project G (NetGuardian))
+
+[View full details →](Project-M.md)
+
+**One line:** Full remediation lifecycle from discovery to AI-verified fix: consumes findings from discovery (performed by Project A and/or Project G (NetGuardian), or both) via webhooks, tracks merged fixes, verifies root cause is addressed and identifies related patterns, and emits verified remediation events to B.
+
+**Description:** A 350-hour project with a **different purpose** from Project A. Discovery in the ideas list can be performed by **either Project A or Project G (NetGuardian), or both** — A and G overlap on discovery. Project M does **remediation** only: it consumes findings from whichever discovery source(s) exist (A and/or G) via webhooks and manages the full lifecycle from discovered → merged → AI verified. Core value: fix quality (AI verification that root cause is addressed, similar patterns elsewhere), remediation dashboard, and verified events to Project B. Does not conflict with Project E (E = pre-merge readiness: CI, discussion, reviewer intent; M = post-merge: did the fix truly resolve the CVE, related patterns, ready to count for B).
+
+---
+
 ## Differentiation (standalone options)
 
-| Project | Focus | Beneficiaries | Dependencies | Risk level |
-|---------|--------|---------------|--------------|------------|
-| A | Detection + validation | Maintainers, contributors | NVD, scanning | High (false positives) |
-| B | Rewards + recognition | Active contributors | Verified signals (or mocks) | Medium (gaming, economics) |
-| C | Education platform | New contributors | Content, mentoring | Medium (content burden) |
-| D | Knowledge sharing | OSS ecosystem | Aggregated data, governance | Medium (privacy) |
-| E | PR readiness & workflow | Contributors, maintainers | GitHub API, (optional) BLT auth | Medium (API limits, parsers) |
-| H | Contributor growth + time-aware recommendations | Individual contributors, maintainers | Sizzle (time tracking), Gemini free tier (or local LLM), GitHub API | Medium (Sizzle adoption, LLM quality) |
+| Project | Focus                                                     | Beneficiaries                        | Dependencies                                                        | Risk level                            |
+| ------- | --------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- | ------------------------------------- |
+| A       | Detection + validation                                    | Maintainers, contributors            | NVD, scanning                                                       | High (false positives)                |
+| B       | Rewards + recognition                                     | Active contributors                  | Verified signals (or mocks)                                         | Medium (gaming, economics)            |
+| C       | Education platform                                        | New contributors                     | Content, mentoring                                                  | Medium (content burden)               |
+| D       | Knowledge sharing                                         | OSS ecosystem                        | Aggregated data, governance                                         | Medium (privacy)                      |
+| E       | PR readiness & workflow                                   | Contributors, maintainers            | GitHub API, (optional) BLT auth                                     | Medium (API limits, parsers)          |
+| H       | Contributor growth + time-aware recommendations           | Individual contributors, maintainers | Sizzle (time tracking), Gemini free tier (or local LLM), GitHub API | Medium (Sizzle adoption, LLM quality) |
+| M       | Remediation lifecycle (discovered → merged → AI verified) | Maintainers, contributors            | Discovery (A and/or G) webhooks, Gemini free tier (or local LLM)    | Medium (AI verification quality)      |
 
 ---
 
@@ -106,15 +118,20 @@ Choose by primary goal (one project per slot):
 - **PR readiness & merge workflow** (CI aggregation, discussion analysis, reviewer intent, web dashboard) → **Project E**
 - **Structured education & knowledge sharing** (labs, playbooks, dashboards, approval workflow) → **Project C + D** (combined into one 350h project)
 - **Contributor growth, time-aware progress, and AI-guided "what to work on next"** (Sizzle-first, personal dashboard, maintainer capacity) → **Project H (BLT Growth)**
+- **CVE remediation lifecycle on top of discovery (A and/or G)** (discovered → merged → AI verified, fix quality, remediation dashboard, events to B) → **Project M (CVE Remediation Pipeline)**
 
 ---
 
 ## Cross-cutting notes
 
+- **A and G overlap on discovery:** Project A (CVE Detection & Validation Pipeline) and Project G (NetGuardian) both perform discovery (A = scanner/GitHub → NVD → GHSC; G = distributed scanning). They can overlap; discovery in the ideas list can be performed by either A or G or both. Project M (CVE Remediation Pipeline) consumes findings from whichever discovery source(s) exist.
 - **Decoupling B from A:** B is designed around a generic "verified security contribution" event; it does not require Project A. Fixtures or a small admin UI can supply events during GSoC; A→B integration is optional later.
 - **A + B in one 350-hour slot:** Not recommended; both need focused scope, testing, and pilot time. Treat as two separate projects.
 - **C + D combined:** One 350-hour project is possible: education platform (tracks, labs, quizzes, review) plus knowledge-sharing (anonymization, dashboards, playbooks, approval workflow). Shares data and governance concerns.
 - **Project E and A:** E (PR readiness) is independent. Optionally, "PR ready" from E could later feed into A's pipeline (e.g. only consider PRs for GHSC once readiness is READY or after manual triage), but that integration is out of scope for a single 350h slot.
 - **Project H and B:** H (BLT Growth) focuses on personal growth and AI-guided recommendations; B focuses on rewards and leaderboards. H can optionally feed a "meaningful contribution" or alignment score to B for reward weighting, but H does not implement BACON or leaderboards itself. They are complementary: B = "you earned X"; H = "here's your growth path and what to do next."
+- **Project M and discovery (A and/or G):** Discovery can be performed by **Project A and/or Project G (NetGuardian), or both** — A and G overlap on discovery. M consumes findings from whichever source(s) exist via webhooks and manages the remediation lifecycle (discovered → merged → AI verified), then emits verified remediation events to B. M has a different purpose from A (A = discovery/validation; M = remediation).
+- **Project M and E:** E is pre-merge (CI, discussion, reviewer intent); M is post-merge (fix correctness, related patterns, ready to count for B). No conflict.
+- **Project M and B:** M emits verified remediation events to B; B consumes M's output. M does not implement BACON or leaderboards.
 
 ---
