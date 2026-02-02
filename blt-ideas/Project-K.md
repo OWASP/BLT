@@ -1,4 +1,4 @@
-# Core BLT Migration to BLT Cloudflare from Django to Next.js/TypeScript
+# Core BLT frontend Migration to BLT Cloudflare from Django to Next.js/TypeScript
 
 ## INTRODUCTION
 
