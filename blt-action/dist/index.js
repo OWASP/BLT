@@ -36555,33 +36555,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 5804:
-/***/ ((module) => {
-
-/**
- * Determines if a comment was made by a human user.
- */
-function isHumanCommenter(comment) {
-    return (
-        comment &&
-        comment.user &&
-        (comment.user.type === 'User' || comment.user.type === 'Mannequin')
-    );
-}
-
-/**
- * Safely extracts user login and type from a comment.
- */
-function extractUserInfo(comment) {
-    const login = comment?.user?.login ?? "unknown";
-    const type = comment?.user?.type ?? "unknown";
-    return { login, type };
-}
-
-module.exports = { isHumanCommenter, extractUserInfo };
-
-/***/ }),
-
 /***/ 2078:
 /***/ ((module) => {
 
@@ -43771,7 +43744,19 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
-const { isHumanCommenter, extractUserInfo } = __nccwpck_require__(5804);
+function isHumanCommenter(comment) {
+    return (
+        comment &&
+        comment.user &&
+        (comment.user.type === 'User' || comment.user.type === 'Mannequin')
+    );
+}
+
+function extractUserInfo(comment) {
+    const login = comment?.user?.login ?? "unknown";
+    const type = comment?.user?.type ?? "unknown";
+    return { login, type };
+}
 const STALE_PR_THRESHOLD_DAYS = 60;
 const CLOSED_PR_GRACE_PERIOD_MS = 12 * 60 * 60 * 1000;
 const CLOSED_PR_LABEL = 'pr-closed-pending-unassign';
