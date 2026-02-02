@@ -1,29 +1,19 @@
-Project E: Security-Focused PR Readiness Tracker & Contributor Dashboard for GSoC 2026 (175h standalone, expandable).  
+### Project E — PR Readiness Tracker & Contributor Dashboard
 
-**Overview & Security Scope:**  
-- Aggregates CI/CD results, GitHub Actions, and automated SAST/DAST scans to provide a **security-aware PR readiness status**.  
-- Analyzes discussion threads to detect **blocking comments, unresolved security concerns, and actionable feedback**.  
-- Flags PRs with failing security checks, outdated dependencies, or unresolved vulnerabilities.  
-- Provides a **contributor-facing dashboard** showing PR status (READY, ACTION_REQUIRED, CI_FAILING, SECURITY_ISSUES).  
-- Lays the foundation for **AI-assisted triage** to prioritize high-risk PRs for maintainers.  
+**One line:** Web-based PR readiness checker with CI aggregation, discussion analysis, reviewer intent detection, and a contributor-facing dashboard.
 
-**Expanded Scope:**  
-- Integration with BLT GitHub workflows for automated tracking of security-related PR issues.  
-- Optionally combines with **Project F (Forum Revamp & Engagement Automation)** to create a unified 350-hour project linking contributor workflows with community engagement.  
-- Supports future integration with Project A (CVE detection) and Project B (reward & recognition) for a **security-first contribution pipeline**.  
+**Description:** A single 350-hour project that answers "when is this PR actually ready?" in one place. **CI aggregation** combines all GitHub check runs and commit statuses into one pass/fail/pending state. **Discussion analysis** classifies review comments (e.g. actionable vs non-actionable vs resolved) and tracks thread resolution so contributors know what still needs a response. **Reviewer intent detection** distinguishes blocking feedback from suggestions and nitpicks (with support for common bots like CodeRabbit, Cursor, etc.). Contributors drop PRs into a **web dashboard** to track readiness across multiple PRs, re-check after addressing feedback, and get a clear status (e.g. READY, ACTION_REQUIRED, CI_FAILING). Aligns with GSoC goals around contributor tooling and AI-assisted workflows; can integrate with BLT's GitHub workflows and optionally feed into verification pipelines (e.g. Project A) later. Inspired by the [Good To Go](https://dsifry.github.io/goodtogo/) approach (deterministic PR readiness) but adds a BLT-hosted web UI and deeper discussion/reviewer-intent analysis.
 
-**Mockup / Visualization:**  
-- Dashboard mockup can show:  
-  - PR list with status badges (CI, Security, Discussion)  
-  - Highlighted actionable comments  
-  - Security risk scoring  
-  - Filters for contributor, severity, or type of security check  
+#### Project E (Extension) — AI-Assisted Security Remediation Triage
 
-**Goal:**  
-- Improve visibility of PR security and quality issues for contributors and maintainers.  
-- Reduce manual triage, accelerate safe merges, and enforce security best practices across BLT repositories.  
+**One line:**  
+Advisory security triage for PRs that flags risky patterns and surfaces explainable remediation guidance via GitHub and a BLT dashboard.
 
-**Next Steps:**  
-- Add detailed mockup design  
-- Expand discussion analysis models for reviewer intent and security relevance  
-- Integrate security scan results into dashboard in real-time
+**Description:** 
+Extends Project E with a security-focused triage layer that analyzes PR diffs, CI results, and review context to identify potential security hardening issues (e.g., unsafe TLS configuration, token handling, CI/CD injection risks). Findings are *advisory only* and exposed as GitHub check annotations/comments and a BLT-hosted web view. No exploit storage, no automated blocking, and no CVE detection.
+
+**Scope-notes:**  
+- Deterministic rules first; optional ML assistance for prioritization  
+- Human-in-the-loop review to reduce false positives  
+- Builds directly on Project E's CI aggregation and discussion analysis  
+- Optional future integration with Project A is out of scope
