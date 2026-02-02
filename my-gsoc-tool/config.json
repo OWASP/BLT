@@ -1,33 +1,33 @@
 {
   "student": {
-    "name": "Your Name",
+    "name": "Sumit Kesarwani",
     "bio": "Google Summer of Code Contributor",
-    "avatar": "https://github.com/YOUR-USERNAME.png",
-    "github": "https://github.com/YOUR-USERNAME",
-    "email": "your.email@example.com",
+    "avatar": "https://github.com/Sumit6307.png",
+    "github": "https://github.com/Sumit6307",
+    "email": "sumitkesar6307@gmail.com",
     "blog": "https://yourblog.dev",
-    "linkedin": "https://linkedin.com/in/YOUR-PROFILE"
+    "linkedin": "https://www.linkedin.com/in/sumit-kesarwani-35b63a286"
   },
   "project": {
-    "title": "Your GSoC Project Title",
-    "description": "A brief description of your GSoC project and what you're working on. Explain the problem you're solving and the impact of your work.",
-    "organization": "Your Organization Name",
-    "timeline": "May 2024 - August 2024",
-    "repository": "https://github.com/ORG/REPO"
+    "title": "OWASP BLT",
+    "description": "Contributing to OWASP Bug Logging Tool - A platform for bug logging and security",
+    "organization": "OWASP Foundation",
+    "timeline": "May 20XX - August 20XX",
+    "repository": "https://github.com/OWASP-BLT/BLT"
   },
   "slack": {
     "workspaceUrl": "https://your-org.slack.com/join/shared_invite/xxx",
     "channels": [
       "general",
-      "gsoc-2024",
+      "gsoc-2026",
       "your-project-channel"
     ]
   },
   "mentor": {
-    "name": "Mentor Name",
+    "name": "Donnie Brown",
     "email": "mentor@example.com",
-    "avatar": "https://github.com/MENTOR-USERNAME.png",
+    "avatar": "https://github.com/DonnieBLT.png",
     "role": "Project Mentor",
-    "github": "https://github.com/MENTOR-USERNAME"
+    "github": "https://github.com/DonnieBLT"
   }
 }
