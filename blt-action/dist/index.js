@@ -43746,6 +43746,10 @@ const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
 
 const STALE_PR_THRESHOLD_DAYS = 60;
+const CLOSED_PR_GRACE_PERIOD_MS = 12 * 60 * 60 * 1000;
+const CLOSED_PR_LABEL = 'pr-closed-pending-unassign';
+const CLOSED_PR_LABEL_COLOR = 'ff9800';
+const CLOSED_PR_COMMENT_MARKER = '<!-- closed-pr-warning -->';
 
 async function hasOpenLinkedPR(
     octokit,
@@ -43818,7 +43822,7 @@ async function hasOpenLinkedPR(
 }
 
 async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
-    const allPRs = { open: [], closed: [] };
+    const allPRs = { open: [], closed: [], error: false };
     const currentRepo = `${owner}/${repoName}`;
     const seen = new Set();
 
@@ -43878,12 +43882,376 @@ async function getLinkedPRsWithDetails(octokit, owner, repoName, issueNumber) {
         } catch (err) {
             if (err.status !== 404) {
                 console.error(`Error fetching PR #${prNumber}:`, err?.status || err?.message);
+                allPRs.error = true;
             }
             continue;
         }
     }
 
     return allPRs;
+}
+
+async function ensureClosedPRLabel(octokit, owner, repoName) {
+    try {
+        await octokit.rest.issues.getLabel({ owner, repo: repoName, name: CLOSED_PR_LABEL });
+    } catch (e) {
+        if (e.status === 404) {
+            await octokit.rest.issues.createLabel({
+                owner,
+                repo: repoName,
+                name: CLOSED_PR_LABEL,
+                color: CLOSED_PR_LABEL_COLOR,
+                description: 'PR was closed, assignee will be removed after 12 hours'
+            });
+            console.log(`Created label: ${CLOSED_PR_LABEL}`);
+        } else {
+            console.log(`Failed to get label ${CLOSED_PR_LABEL} for ${owner}/${repoName}: ${e.message || e.stack}`);
+            throw e;
+        }
+    }
+}
+
+function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
+    if (!prBody) return [];
+    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
+    const matches = [...prBody.matchAll(regex)];
+    const issues = [];
+    
+    for (const match of matches) {
+        if (match[1]) {
+            issues.push(parseInt(match[1]));
+        } else if (match[2] && match[3] && match[4]) {
+            const urlOwner = match[2];
+            const urlRepo = match[3];
+            const issueNumber = parseInt(match[4]);
+            
+            if (urlOwner === currentOwner && urlRepo === currentRepo) {
+                issues.push(issueNumber);
+            }
+        }
+    }
+    
+    return [...new Set(issues)];
+}
+
+async function findLinkedIssuesFromTimeline(octokit, owner, repoName, prNumber) {
+    try {
+        const timeline = await octokit.paginate(octokit.rest.issues.listEventsForTimeline, {
+            owner,
+            repo: repoName,
+            issue_number: prNumber,
+            per_page: 100
+        });
+        
+        const linked = new Set();
+        for (const event of timeline) {
+            if (event.event === 'connected' && event.issue && !event.issue.pull_request) {
+                linked.add(event.issue.number);
+            }
+        }
+        return Array.from(linked);
+    } catch (e) {
+        console.log(`Failed to get timeline for PR #${prNumber}: ${e.message}`);
+        return [];
+    }
+}
+
+async function handleClosedPR(octokit, owner, repoName, pr, attribution) {
+    if (pr.merged) {
+        console.log(`PR #${pr.number} was merged, no action needed`);
+        return;
+    }
+    
+    console.log(`PR #${pr.number} was closed (not merged) by @${pr.user.login}`);
+    
+    await ensureClosedPRLabel(octokit, owner, repoName);
+    
+    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body, owner, repoName);
+    const timelineIssues = await findLinkedIssuesFromTimeline(octokit, owner, repoName, pr.number);
+    const linkedIssues = [...new Set([...bodyIssues, ...timelineIssues])];
+    
+    if (linkedIssues.length === 0) {
+        console.log('No linked issues found');
+        return;
+    }
+    
+    console.log(`Found linked issues: ${linkedIssues.join(', ')}`);
+    
+    for (const issueNumber of linkedIssues) {
+        try {
+            const issue = await octokit.rest.issues.get({ owner, repo: repoName, issue_number: issueNumber });
+            
+            if (issue.data.state !== 'open') {
+                console.log(`Issue #${issueNumber}: closed, skipping`);
+                continue;
+            }
+            
+            const isAssigned = issue.data.assignees.some(a => a.login === pr.user.login);
+            if (!isAssigned) {
+                console.log(`Issue #${issueNumber}: PR author not assigned, skipping`);
+                continue;
+            }
+            
+            await octokit.rest.issues.addLabels({
+                owner,
+                repo: repoName,
+                issue_number: issueNumber,
+                labels: [CLOSED_PR_LABEL]
+            });
+            
+            const timestamp = new Date().toISOString();
+            const commentBody = `${CLOSED_PR_COMMENT_MARKER}\n` +
+                `PR Closed - Unassignment Pending\n\n` +
+                `Hi @${pr.user.login},\n\n` +
+                `Your PR #${pr.number} linked to this issue was closed.\n\n` +
+                `You have 12 hours to open a new PR for this issue, or you'll be automatically unassigned.\n\n` +
+                `If you're still working on this, simply open a new PR and this warning will be cancelled.\n\n` +
+                `Timestamp: ${timestamp}${attribution}`;
+            
+            await octokit.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: issueNumber,
+                body: commentBody
+            });
+            
+            console.log(`Issue #${issueNumber}: Added label and warning comment`);
+        } catch (e) {
+            console.log(`Failed to process issue #${issueNumber}: ${e.message}`);
+        }
+    }
+}
+
+async function handleOpenedPR(octokit, owner, repoName, pr, attribution) {
+    console.log(`PR #${pr.number} was opened by @${pr.user.login}`);
+    
+    const bodyIssues = extractLinkedIssuesFromPRBody(pr.body, owner, repoName);
+    const timelineIssues = await findLinkedIssuesFromTimeline(octokit, owner, repoName, pr.number);
+    const linkedIssues = [...new Set([...bodyIssues, ...timelineIssues])];
+    
+    if (linkedIssues.length === 0) {
+        console.log('No linked issues found');
+        return;
+    }
+    
+    console.log(`Found linked issues: ${linkedIssues.join(', ')}`);
+    
+    for (const issueNumber of linkedIssues) {
+        try {
+            const issue = await octokit.rest.issues.get({ owner, repo: repoName, issue_number: issueNumber });
+            
+            if (issue.data.state !== 'open') {
+                console.log(`Issue #${issueNumber}: closed, skipping`);
+                continue;
+            }
+            
+            const hasLabel = issue.data.labels.some(l => l.name === CLOSED_PR_LABEL);
+            if (!hasLabel) {
+                console.log(`Issue #${issueNumber}: No pending label, skipping`);
+                continue;
+            }
+            
+            try {
+                await octokit.rest.issues.removeLabel({
+                    owner,
+                    repo: repoName,
+                    issue_number: issueNumber,
+                    name: CLOSED_PR_LABEL
+                });
+            } catch (labelError) {
+                if (labelError.status !== 404 && labelError.statusCode !== 404) {
+                    throw labelError;
+                }
+                console.log(`Label already removed from issue #${issueNumber}`);
+            }
+            
+            const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+                owner,
+                repo: repoName,
+                issue_number: issueNumber,
+                per_page: 100
+            });
+            
+            const sortedComments = comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const warningComment = sortedComments.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
+            if (warningComment) {
+                await octokit.rest.issues.deleteComment({
+                    owner,
+                    repo: repoName,
+                    comment_id: warningComment.id
+                });
+            }
+            
+            await octokit.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: issueNumber,
+                body: `New PR #${pr.number} opened. Unassignment cancelled.${attribution}`
+            });
+            
+            console.log(`Issue #${issueNumber}: Removed label and warning, posted success comment`);
+        } catch (e) {
+            console.log(`Failed to process issue #${issueNumber}: ${e.message}`);
+        }
+    }
+}
+
+async function enforceClosedPRGracePeriod(octokit, owner, repoName, attribution) {
+    console.log('Running closed PR grace period enforcement...');
+    
+    const issues = await octokit.paginate(octokit.rest.issues.listForRepo, {
+        owner,
+        repo: repoName,
+        state: 'open',
+        labels: CLOSED_PR_LABEL,
+        per_page: 100
+    });
+    
+    console.log(`Found ${issues.length} issues with pending unassignment`);
+    
+    const now = Date.now();
+    
+    for (const issue of issues) {
+        try {
+            console.log(`Processing issue #${issue.number}: ${issue.title}`);
+            
+            const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+                owner,
+                repo: repoName,
+                issue_number: issue.number,
+                per_page: 100
+            });
+            
+            const sortedComments = comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const warningComment = sortedComments.find(c => c.body?.includes(CLOSED_PR_COMMENT_MARKER));
+            if (!warningComment) {
+                console.log(`No warning comment found, removing label`);
+                try {
+                    await octokit.rest.issues.removeLabel({ 
+                        owner, 
+                        repo: repoName, 
+                        issue_number: issue.number, 
+                        name: CLOSED_PR_LABEL 
+                    });
+                } catch (labelError) {
+                    if (labelError.status !== 404 && labelError.statusCode !== 404) {
+                        throw labelError;
+                    }
+                }
+                continue;
+            }
+            
+            const commentTime = new Date(warningComment.created_at).getTime();
+            const elapsed = now - commentTime;
+            const hoursElapsed = (elapsed / (60 * 60 * 1000)).toFixed(1);
+            
+            console.log(`Warning posted ${hoursElapsed} hours ago`);
+            
+            if (elapsed < CLOSED_PR_GRACE_PERIOD_MS) {
+                console.log(`Grace period not expired yet, skipping`);
+                continue;
+            }
+            
+            const linkedPRs = await getLinkedPRsWithDetails(octokit, owner, repoName, issue.number);
+            const hasOpen = linkedPRs.open.length > 0;
+            const prNumber = linkedPRs.open.length > 0 ? linkedPRs.open[0].number : null;
+            const error = linkedPRs.error;
+            
+            if (error) {
+                console.log(`API error checking for open PRs, skipping to be safe`);
+                continue;
+            }
+            
+            if (hasOpen) {
+                console.log(`Found open PR #${prNumber}, removing label`);
+                try {
+                    await octokit.rest.issues.removeLabel({ 
+                        owner, 
+                        repo: repoName, 
+                        issue_number: issue.number, 
+                        name: CLOSED_PR_LABEL 
+                    });
+                } catch (labelError) {
+                    if (labelError.status !== 404 && labelError.statusCode !== 404) {
+                        throw labelError;
+                    }
+                }
+                await octokit.rest.issues.deleteComment({ 
+                    owner, 
+                    repo: repoName, 
+                    comment_id: warningComment.id 
+                });
+                await octokit.rest.issues.createComment({
+                    owner,
+                    repo: repoName,
+                    issue_number: issue.number,
+                    body: `Open PR #${prNumber} found. Unassignment cancelled.${attribution}`
+                });
+                continue;
+            }
+            
+            console.log(`Grace period expired and no open PR, unassigning`);
+            
+            // Extract PR author from warning comment
+            const prAuthorMatch = warningComment.body.match(/Hi @([^,]+),/);
+            const prAuthor = prAuthorMatch ? prAuthorMatch[1] : null;
+            
+            let unassigned = false;
+            if (prAuthor) {
+                const isAssigned = issue.assignees.some(a => a.login === prAuthor);
+                if (isAssigned) {
+                    await octokit.rest.issues.removeAssignees({
+                        owner,
+                        repo: repoName,
+                        issue_number: issue.number,
+                        assignees: [prAuthor]
+                    });
+                    unassigned = true;
+                    console.log(`Unassigned: ${prAuthor}`);
+                } else {
+                    console.log(`PR author ${prAuthor} not assigned to issue, skipping unassignment`);
+                }
+            } else {
+                console.log(`Could not extract PR author from warning comment, skipping unassignment`);
+            }
+            
+            try {
+                await octokit.rest.issues.removeLabel({ 
+                    owner, 
+                    repo: repoName, 
+                    issue_number: issue.number, 
+                    name: CLOSED_PR_LABEL 
+                });
+            } catch (labelError) {
+                if (labelError.status !== 404 && labelError.statusCode !== 404) {
+                    throw labelError;
+                }
+            }
+            await octokit.rest.issues.deleteComment({ 
+                owner, 
+                repo: repoName, 
+                comment_id: warningComment.id 
+            });
+            
+            const finalMessage = unassigned
+                ? `Your PR was closed over 12 hours ago and no new PR was opened. You've been unassigned from this issue.\n\n` +
+                `Feel free to comment /assign if you'd like to work on this again.${attribution}`
+                : `Grace period expired and no new PR was opened. No assignee was removed because the original assignee could not be verified.\n\n` +
+                `Feel free to comment /assign if you'd like to work on this again.${attribution}`;
+            await octokit.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: issue.number,
+                body: finalMessage
+            });
+            
+            console.log(`Unassignment complete for issue #${issue.number}`);
+        } catch (e) {
+            console.log(`Failed to process issue #${issue.number}: ${e.message}`);
+        }
+    }
+    
+    console.log('Closed PR grace period enforcement complete');
 }
 
 const run = async () => {
@@ -43902,8 +44270,25 @@ const run = async () => {
 
         console.log(`Processing event: ${eventName} in repository ${repository}`);
 
-        // Attribution footer for all comments
         const attribution = '\n\n---\n*This comment was generated by [OWASP BLT-Action](https://github.com/OWASP-BLT/BLT-Action)*';
+
+        if (eventName === 'pull_request_target' && pull_request) {
+            const action = payload.action;
+            
+            if (action === 'closed') {
+                await handleClosedPR(octokit, owner, repoName, pull_request, attribution);
+                return;
+            }
+            
+            if (action === 'opened' || action === 'reopened') {
+                await handleOpenedPR(octokit, owner, repoName, pull_request, attribution);
+                return;
+            }
+        }
+
+        if (eventName === 'schedule' || eventName === 'workflow_dispatch') {
+            await enforceClosedPRGracePeriod(octokit, owner, repoName, attribution);
+        }
 
         // Assignment keywords
         const assignKeywords = ['/assign', 'assign to me', 'assign this to me', 'assign it to me', 'assign me this', 'work on this', 'i can try fixing this', 'i am interested in doing this', 'be assigned this', 'i am interested in contributing'];
