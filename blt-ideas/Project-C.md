@@ -14,34 +14,73 @@ The focus is on security thinking, inspired by OWASP Top 10, ethical hacking wor
 - Apply or select the secure fix
 (Correct remediation pattern + explanation)
 
+**Goals**
+- Deliver 6–8 hands-on labs that teach real security reasoning (OWASP Top 5 focus)
+- Establish a safe, anonymized security intelligence pipeline for public sharing
+- Create a feedback loop where real patterns improve labs and playbooks
+- Maintain backward compatibility with existing theory-based labs
+- Enable future gamification and integrations (BACON/badges, NetGuardian mapping)
+
+**Core Features (brief)**
+- Multi-step lab validation (Identify → Explain → Fix) with partial credit
+- Lab schema, hints, difficulty ratings, and progress tracking
+- Data anonymization + aggregation for BLT issues/PRs
+- Public dashboard for trends and severity distribution
+- Monthly/quarterly reports with two-person approval workflow
+- Remediation playbooks converted into mini interactive challenges
+
 **Proposed Timeline**
 - Phase 1 (Weeks 1–4 | ~100 hours):
-Multi-step validation framework, content schema, data anonymization pipeline, and UI foundations
-  - Implement multi-step validation (identify, explain, fix)
-  - Define reusable content schema for security labs
-  - Add UI support for step-wise progress and feedback
-  - Maintain backward compatibility with existing labs
-  - Implement data anonymization pipeline for BLT issues/PRs (strip PII, sanitize code snippets, aggregate patterns)
-  - AI-assisted support:
-      - Help draft concise explanations for vulnerabilities and fixes
+  - Week 1: Lab schema + validation foundations
+    - Finalize Identify/Explain/Fix schema and validation rubric
+    - Define partial credit rules and scoring breakdown
+    - Draft example lab templates to validate the schema
+  - Week 2: Validation backend + data anonymization start
+    - Implement backend validation endpoints and scoring logic
+    - Add persistence for attempts, scores, and feedback
+    - Start anonymization pipeline (PII stripping + snippet sanitization)
+  - Week 3: UI foundations + backward compatibility
+    - Build step-wise UI flow (Identify → Explain → Fix)
+    - Implement hints, progress tracking, and step feedback
+    - Ensure existing theory labs continue to render correctly
+  - Week 4: Anonymization + intelligence model setup
+    - Complete aggregation logic and safe storage for anonymized data
+    - Draft intelligence models (SecurityIntelligence, report metadata)
+    - Validate anonymized outputs with sample datasets
+  - AI-assisted support: help draft concise explanations
 
 - Phase 2 (Weeks 5–8 | ~120 hours):
-Core hands-on labs covering SQL Injection, XSS, and Configuration Security using the identify → explain → fix workflow
-  - Create hands-on labs for:
-    - SQL Injection
-    - XSS
-    - CSRF, IDOR, Authentication flaws
-  - Include exploitation reasoning and secure remediation patterns
-  - Add progress tracking, hints, and lab difficulty ratings
+  - Week 5: SQL Injection labs
+    - Create basic SQLi lab (union-based) with exploit reasoning
+    - Create advanced SQLi lab (blind/time-based) with fixes
+    - Add lab-specific hints and validation cases
+  - Week 6: XSS labs
+    - Build stored XSS lab (DOM analysis → sanitization fix)
+    - Build reflected XSS lab (context analysis → CSP fix)
+    - Add secure remediation explanations and comparisons
+  - Week 7: Auth & Access Control labs
+    - CSRF lab (token absence → token implementation)
+    - IDOR lab (authorization checks → secure access)
+    - Session/auth flaws lab with impact analysis
+  - Week 8: Integration + quality pass
+    - Add difficulty ratings and prerequisites
+    - Enable lab metrics (completion, accuracy, hints used)
+    - End-to-end lab testing + feedback iteration
 
 - Phase 3 (Weeks 9–11 | ~110 hours):
-  - Create scheduled security challenges/puzzles and learning progress tracking
-  - Build unified dashboard for labs, challenges, and skill coverage
-  - Build public security intelligence dashboard from anonymized data (vulnerability trends, severity distribution, remediation metrics)
-  - Create automated monthly/quarterly reporting system with two-person approval workflow
-  - Transform top remediation patterns into playbooks and interactive content
-  - Optional AI support:
-      - Suggest next labs based on skill gaps
+  - Week 9: Public intelligence dashboard
+    - Define dashboard KPIs (top categories, severity trends, remediation time)
+    - Build aggregated visualizations from anonymized data
+    - Ensure pre-disclosure filtering and safe data exposure
+  - Week 10: Reporting + approvals
+    - Generate monthly/quarterly reports (Markdown/PDF)
+    - Implement two-person approval workflow + admin review UI
+    - Add notifications for review/approval steps
+  - Week 11: Playbooks + unified dashboard
+    - Create 3 remediation playbooks from anonymized patterns
+    - Convert playbooks into mini-challenges with examples
+    - Build unified learning dashboard (progress + skill coverage)
+  - Optional AI support: suggest next labs based on skill gaps
 
 - Phase 4 (Week 12 | ~20 hours): 
   - E2E testing (labs, dashboards, reports)
@@ -60,3 +99,7 @@ Core hands-on labs covering SQL Injection, XSS, and Configuration Security using
 - Enable two-person approval workflow for sensitive security content
 - Establish public API for community access to security intelligence
 - Can later evolve into a dedicated security learning playground, enabling richer lab types, additional vulnerability categories, and deeper practice
+
+---
+
+_Last Updated: February 2026_
