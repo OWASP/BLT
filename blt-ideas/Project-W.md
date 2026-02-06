@@ -77,32 +77,6 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 
 ---
 
-## API surface (sketch)
-
-Base path: `/api/v1/campaigns/`
-
-- `GET /api/v1/campaigns/` — list campaigns (filter by org, status, template).
-- `POST /api/v1/campaigns/` — create a new campaign (org admins/maintainers).
-- `GET /api/v1/campaigns/{id}/` — campaign detail.
-- `PATCH /api/v1/campaigns/{id}/` — update title/description/status/dates.
-- `DELETE /api/v1/campaigns/{id}/` — cancel campaign.
-
-Progress + recap:
-
-- `GET /api/v1/campaigns/{id}/progress/`  
-  Returns goal vs achieved, and counts of issues opened/closed during the campaign window.
-- `GET /api/v1/campaigns/{id}/recap/`  
-  Returns a Markdown recap (summary, key stats, issue list) for copy‑paste into GitHub Discussions or blogs.
-
-Templates:
-
-- `GET /api/v1/campaign-templates/` — list templates.
-- `GET /api/v1/campaign-templates/{key}/` — template detail for the creation wizard.
-
-Auth: reuse existing Django session + CSRF for web; org‑scoped permissions for creation/management.
-
----
-
 ## UX flows
 
 ### Maintainer (Founder Frank / Open Source Oliver)
@@ -138,10 +112,6 @@ Auth: reuse existing Django session + CSRF for web; org‑scoped permissions for
 
 ## Integration points
 
-- **Issues / repos / orgs**: reuse existing `Issue`, `Repo`, `Organization`, and `User` models to scope campaigns.
-- **Issue lifecycle**: hook into existing signals/webhooks to:
-  - attach issues that match the campaign’s repo+label filters,
-  - mark `resolved_at` when issues close during the window.
 - **Security views**:
   - Org‑level “Campaigns” list,
   - Per‑campaign landing page route + templates.
