@@ -1,4 +1,4 @@
-**Blt-education & Knowledge Sharing: Hands-On Code-Centric Security Labs & Community Intelligence (350 hr)**
+# **Blt-education & Knowledge Sharing: Hands-On Code-Centric Security Labs & Community Intelligence (350 hr)**
 
 #### This project transforms BLT's existing theory-heavy labs into hands-on, code-centric security exercises while establishing a community-driven knowledge sharing pipeline.
 Learners analyze real vulnerable code and configurations, identify security flaws, reason about how they could be exploited, and then apply secure fixes. Anonymized vulnerability patterns are aggregated into public dashboards, monthly reports, and remediation playbooks—creating a feedback loop where learning informs intelligence sharing and vice versa.
@@ -28,6 +28,21 @@ The focus is on security thinking, inspired by OWASP Top 10, ethical hacking wor
 - Public dashboard for trends and severity distribution
 - Monthly/quarterly reports with two-person approval workflow
 - Remediation playbooks converted into mini interactive challenges
+
+**Unified Architecture**
+```mermaid
+graph LR
+    A[BLT Vulnerability Data] --> B[Data Anonymization Pipeline]
+    B --> C[Security Intelligence DB]
+    C --> D[Public Dashboards]
+    C --> E[Automated Reports]
+    C --> F[Remediation Playbooks]
+    F --> G[Interactive Security Labs]
+    G --> H[Skill Tracking System]
+    H --> I[Learning Dashboard]
+    D --> I
+    E --> I
+```
 
 **Proposed Timeline**
 - Phase 1 (Weeks 1–4 | ~100 hours):
