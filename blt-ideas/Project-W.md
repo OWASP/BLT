@@ -126,7 +126,7 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 **Must‑have (MVP):**
 
 - Campaign / CampaignIssue / CampaignTemplate models + migrations.
-- 3 templates: Auth Hardening, CVE Fix Week, Secure Defaults Upgrade.
+- templates: Auth Hardening, CVE Fix Week, Secure Defaults Upgrade.
 - Maintainer creation wizard (simple but solid).
 - Contributor‑facing landing page with progress bar.
 - Progress tracking wired to real issue state changes.
