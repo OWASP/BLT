@@ -1,4 +1,4 @@
-**Blt-education & Knowledge Sharing: Hands-On Code-Centric Security Labs & Community Intelligence (350 hr)**
+# **Blt-education & Knowledge Sharing: Hands-On Code-Centric Security Labs & Community Intelligence (350 hr)**
 
 #### This project transforms BLT's existing theory-heavy labs into hands-on, code-centric security exercises while establishing a community-driven knowledge sharing pipeline.
 Learners analyze real vulnerable code and configurations, identify security flaws, reason about how they could be exploited, and then apply secure fixes. Anonymized vulnerability patterns are aggregated into public dashboards, monthly reports, and remediation playbooks—creating a feedback loop where learning informs intelligence sharing and vice versa.
@@ -13,6 +13,36 @@ The focus is on security thinking, inspired by OWASP Top 10, ethical hacking wor
 
 - Apply or select the secure fix
 (Correct remediation pattern + explanation)
+
+**Goals**
+- Deliver 6–8 hands-on labs that teach real security reasoning (OWASP Top 5 focus)
+- Establish a safe, anonymized security intelligence pipeline for public sharing
+- Create a feedback loop where real patterns improve labs and playbooks
+- Maintain backward compatibility with existing theory-based labs
+- Enable future gamification and integrations (BACON/badges, NetGuardian mapping)
+
+**Core Features (brief)**
+- Multi-step lab validation (Identify → Explain → Fix) with partial credit
+- Lab schema, hints, difficulty ratings, and progress tracking
+- Data anonymization + aggregation for BLT issues/PRs
+- Public dashboard for trends and severity distribution
+- Monthly/quarterly reports with two-person approval workflow
+- Remediation playbooks converted into mini interactive challenges
+
+**Unified Architecture**
+```mermaid
+graph LR
+    A[BLT Vulnerability Data] --> B[Data Anonymization Pipeline]
+    B --> C[Security Intelligence DB]
+    C --> D[Public Dashboards]
+    C --> E[Automated Reports]
+    C --> F[Remediation Playbooks]
+    F --> G[Interactive Security Labs]
+    G --> H[Skill Tracking System]
+    H --> I[Learning Dashboard]
+    D --> I
+    E --> I
+```
 
 **Proposed Timeline**
 - Phase 1 (Weeks 1–4 | ~100 hours):
@@ -60,3 +90,7 @@ Core hands-on labs covering SQL Injection, XSS, and Configuration Security using
 - Enable two-person approval workflow for sensitive security content
 - Establish public API for community access to security intelligence
 - Can later evolve into a dedicated security learning playground, enabling richer lab types, additional vulnerability categories, and deeper practice
+
+---
+
+_Last Updated: February 2026_
