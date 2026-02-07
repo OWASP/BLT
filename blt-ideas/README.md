@@ -264,6 +264,18 @@ Idea B can be extended with a **light C** add-on in the same 350-hour slot. Ligh
 | J | Vulnerability intelligence | BLT users, security teams | Public CVE feeds, security advisories | Medium (data quality, aggregation) |
 | N | AI-assisted onboarding & security learning (RAG) | New users, contributors, maintainers | OWASP public resources, GitHub Discussions (read-only), Public CVE feeds | Low–Medium (hallucinations) |
 | L | Automated bounty & reward pipeline | Contributors, maintainers, organizations | GitHub API, payment gateway, social media APIs | Medium (payment processing, automation complexity) |
+| M | CVE remediation lifecycle | Maintainers, contributors | Idea A and/or G (discovery), AI verification | Medium (AI accuracy, pattern detection) |
+| K | Frontend migration to Next.js | All users, developers | Django API backend, Cloudflare Pages | Medium (migration complexity, feature parity) |
+| O | Browser extension modernization | Bug reporters, contributors | Browser APIs, BLT API | Low–Medium (cross-browser compatibility) |
+| P | API v2 migration to Django Ninja | API consumers, developers | Existing DRF v1 API | Medium (migration path, SDK generation) |
+| Q | AI triage & disclosure assistant | Maintainers, security researchers | BLT/GitHub events, vector store | Medium (PII detection, false positives) |
+| R | Flutter mobile app | Mobile contributors | BLT API, Firebase/push notifications | Medium (offline mode, platform consistency) |
+| S | CVE explorer & mirror | BLT users, security teams | NVD, GitHub Advisory feeds | Medium (sync reliability, API rate limits) |
+| T | Target registry | Security researchers, maintainers | Public disclosure policies, security.txt | Low (moderation overhead) |
+| U | Pre-contribution security guidance | New contributors | GitHub API, AI models | Low–Medium (guidance quality, adoption) |
+| V | Event-driven gamification engine | All contributors, maintainers | BLT events, Celery/Redis | Medium (ledger consistency, event replay) |
+| W | Security campaigns | Maintainers, contributors | Issue tracking, campaign templates | Low (scope definition, engagement) |
+| X | RepoTrust security score | Founders, maintainers | BLT data, dependency health APIs | Medium (scoring fairness, signal quality) |
 
 ---
 
@@ -282,6 +294,18 @@ Choose by primary goal (one idea per slot):
 - **First-time contributor experience** (onboarding, documentation clarity, AI-assisted security guide) → **Idea I**
 - **Vulnerability intelligence & news** (CVE aggregation, dashboard, API, newsletter) → **Idea J**
 - **Automated bounty & reward pipeline** (GitHub integration, social automation, native payment processing) → **Idea L**
+- **CVE remediation lifecycle** (AI-verified fixes, pattern detection, verified events to Idea B) → **Idea M**
+- **Frontend modernization** (Next.js/TypeScript, Cloudflare Pages, edge optimization) → **Idea K**
+- **Browser extension for bug reporting** (modernized extension, AI-assisted reporting) → **Idea O**
+- **API v2 development** (Django Ninja migration, OpenAPI-first SDKs, secure endpoints) → **Idea P**
+- **AI triage assistant** (event ingestion, duplicate detection, responsible disclosure) → **Idea Q (Toasty)**
+- **Mobile contributor companion** (Flutter app, bug reporting, BACON tracking) → **Idea R**
+- **CVE explorer & mirror** (multi-source aggregation, search, watchlists) → **Idea S**
+- **Target registry** (passive directory, disclosure policies, security-friendly projects) → **Idea T**
+- **Pre-contribution guidance** (security intent & risk awareness before coding) → **Idea U**
+- **Event-driven gamification** (Pub/Sub architecture, rule engine, double-entry ledger) → **Idea V**
+- **Security campaigns** (time-bound sprints, curated issues, progress tracking) → **Idea W**
+- **RepoTrust score** (0-100 security health score, explainable signals, actionable guidance) → **Idea X**
 
 ---
 
