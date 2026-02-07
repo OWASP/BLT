@@ -1,7 +1,7 @@
 # Project L — Pre-Contribution Security Intent & Risk Guidance (350h)
 
 **Organization:** OWASP Bug Logging Tool (BLT)  
-**Program:** Google Summer of Code (GSoC)  
+**Program:** Google Summer of Code (development program)  
 **Project Type:** Single 350-hour project
 
 ---

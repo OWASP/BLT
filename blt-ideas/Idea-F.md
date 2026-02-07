@@ -3,7 +3,7 @@
 **One line:** A quality-driven contributor reputation and leaderboard system that ranks trust and impact instead of raw activity.
 
 **Description:**
-BLT runs hackathons and pre-GSoC programs where we repeatedly face issues with incorrect leaderboards, spam PRs, low-quality comments, and gaming of the system. Contributors often inflate scores by opening irrelevant issues, posting useless comments on PRs, or exploiting unclear scoring rules. The /leaderboard command and website leaderboards also suffer from incorrect timeline windows, inconsistent data, and a heavy focus on quantity over quality, with little guidance around best practices, code of conduct, or what actually makes a good contribution.
+BLT runs hackathons and pre-development programs where we repeatedly face issues with incorrect leaderboards, spam PRs, low-quality comments, and gaming of the system. Contributors often inflate scores by opening irrelevant issues, posting useless comments on PRs, or exploiting unclear scoring rules. The /leaderboard command and website leaderboards also suffer from incorrect timeline windows, inconsistent data, and a heavy focus on quantity over quality, with little guidance around best practices, code of conduct, or what actually makes a good contribution.
 
 This project proposes a proper, long-term fix to these problems.
 
@@ -11,7 +11,7 @@ The system introduces a Contributor Security Reputation Graph that evaluates con
 
 ###  Problem (Why this project exists)
 
-BLT runs hackathons and pre-GSoC programs, but we repeatedly face the same issues:
+BLT runs hackathons and pre-development programs, but we repeatedly face the same issues:
 
 * Incorrect leaderboards
 * Spam PRs and irrelevant issue creation

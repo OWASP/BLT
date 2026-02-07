@@ -4,7 +4,7 @@
 
 **One line:** Full remediation lifecycle from discovery to AI-verified fix: consumes findings from discovery (performed by Project A and/or Project G (NetGuardian), or both) via webhooks, tracks merged fixes, verifies root cause is addressed and identifies related patterns, and emits verified remediation events to B.
 
-**Project Type:** Single 350-hour GSoC project
+**Project Type:** Single 350-hour development effort
 
 **Note:** Discovery in the ideas list can be performed by **either Project A or Project G (NetGuardian), or both** — A and G overlap on discovery (scanner/GitHub → NVD vs. distributed scanning). Project M has a **different purpose**: it does _remediation_ only. M consumes findings from whichever discovery source(s) exist (A and/or G) via webhooks and manages the full lifecycle from discovered → merged → AI verified. The core value is fix quality and a remediation dashboard; M emits verified events to B.
 

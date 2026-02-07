@@ -1,6 +1,6 @@
-# Toasty — AI Triage & Responsible Disclosure Assistant (GSoC 2026 — 350 hours)
+# Toasty — AI Triage & Responsible Disclosure Assistant (2026 — 350 hours)
 
-## GSoC Plan (4 × 4 weeks, 350 hours)
+## development program Plan (4 × 4 weeks, 350 hours)
 
 ### Phase 1 (Weeks 1–4) — Foundations and Event Ingestion
 **Goal:** Stand up Toasty as a reliable service wired to BLT/GitHub events; deliver safe, useful summaries early.

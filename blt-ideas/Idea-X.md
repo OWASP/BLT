@@ -97,7 +97,7 @@ Auth: existing Django session + CSRF; only enrolled repos return data. Org‑sco
 
 ---
 
-## GSoC scope (350h)
+## development program scope (350h)
 
 **Must-have (MVP):**
 
@@ -117,7 +117,7 @@ Auth: existing Django session + CSRF; only enrolled repos return data. Org‑sco
 
 ---
 
-## Evaluation metrics (for GSoC)
+## Evaluation metrics (for development program)
 
 - **Adoption:** ≥10–15 opt-in repos across 3+ orgs with snapshots and breakdowns.
 - **Usefulness:** Maintainer rating ≥4/5 on "The guidance (breakdown + 'how to improve') is actionable."
@@ -142,7 +142,7 @@ Auth: existing Django session + CSRF; only enrolled repos return data. Org‑sco
 
 ---
 
-## Why it fits GSoC
+## Why it fits development program
 
 - Focused, standalone scope: model + ETL + nightly job + API + minimal UI + pilot. Not the full dashboard—just the score and its plumbing.
 - Clear MVP and success criteria; 350h is enough to nail methodology, correctness, and adoption.

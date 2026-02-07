@@ -121,7 +121,7 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 
 ---
 
-## GSoC scope (350h)
+## development program scope (350h)
 
 **Must‑have (MVP):**
 
@@ -161,7 +161,7 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 
 ---
 
-## Why it fits GSoC
+## Why it fits development program
 
 - Clear, self‑contained 350‑hour scope with a well‑defined MVP.
 - Real, validated pain point from Discussion #5495: small projects and founders wanting concrete, time‑boxed security pushes.

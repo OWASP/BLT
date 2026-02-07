@@ -6,7 +6,7 @@
 
 ## Overview
 
-**Description:** A **350-hour GSoC project** that transforms security contributions into an engaging reward ecosystem. The system listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON tokens, achievement badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and gamified security challenges. Includes comprehensive admin audit capabilities and robust fraud controls.
+**Description:** A **350-hour development effort** that transforms security contributions into an engaging reward ecosystem. The system listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON tokens, achievement badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and gamified security challenges. Includes comprehensive admin audit capabilities and robust fraud controls.
 
 The project operates independently of detection systems—it assumes a feed of verified contributions (real or mocked) and focuses purely on recognition, engagement, and community building through gamification.
 
@@ -271,7 +271,7 @@ Build a **comprehensive gamification engine** that transforms security work into
 
 ---
 
-## Future Enhancements (Post-GSoC)
+## Future Enhancements (Post-development)
 
 ### Advanced Gamification
 
