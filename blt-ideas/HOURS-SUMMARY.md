@@ -11,6 +11,7 @@
 | **E-Ext** - Security Triage | 350 | ✅ Well-scoped | Builds on Project E |
 | **G** - NetGuardian | 330 | ✅ Well-scoped | Security domain needs expertise |
 | **H** - BLT Growth | 350 | ✅ Well-scoped | Sizzle-first approach is clear |
+| **L** - Bounty Pipeline | 350 | ✅ Well-scoped | Payment systems need careful implementation |
 
 ## ⚡ May Be Faster with AI (250-320 hours)
 
@@ -44,7 +45,7 @@
 - TypeScript/component migration
 - Data pipeline setup
 
-**Projects:** K, J, E, H
+**Projects:** K, J, E, H, L
 
 ### ⚙️ Medium Impact (30-50% faster)
 - Infrastructure code
@@ -67,7 +68,7 @@
 
 > "Some projects can be done with one prompt in four hours" - While this is an exaggeration, **AI coding significantly accelerates UI/API-heavy projects** (K, J, E, H) but has limited impact on projects requiring **security expertise and domain knowledge** (A, F, G).
 
-Projects C, E, G, and H are **best calibrated** for 350 hours considering AI assistance.
+Projects C, E, G, H, and L are **best calibrated** for 350 hours considering AI assistance.
 
 ---
 

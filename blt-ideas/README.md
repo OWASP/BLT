@@ -138,6 +138,16 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 
 ---
 
+### Project L — Automated Bounty & Reward Pipeline System
+
+[View full details →](Project-L.md)
+
+**One line:** Complete automated pipeline for bug bounties and rewards with GitHub integration, social media automation, and native payment processing.
+
+**Description:** Comprehensive dual-system approach combining automated vulnerability reporting with bacon rewards and a native bounty management system. Features GitHub integration via `/bounty - $X` commands, automated issue listing on website, contributor registration system, maintainer verification workflows, and `/reward` command for automated payouts. Includes bacon reward distribution for verified organizations, automated X (Twitter) posting for community presence, and native payment gateway integration. Creates two complementary systems: vulnerability reporting with bacon incentivization, and bounty management kinda like an open source Opire/Algora for faster adoption and community growth.
+
+---
+
 ## Differentiation (standalone options)
 
 | Project | Focus | Beneficiaries | Dependencies | Risk level |
@@ -154,6 +164,7 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 | I | First-time contributor onboarding | New contributors | BLT documentation, OWASP resources | Low (content organization) |
 | J | Vulnerability intelligence | BLT users, security teams | Public CVE feeds, security advisories | Medium (data quality, aggregation) |
 | N | AI-assisted onboarding & security learning (RAG) | New users, contributors, maintainers | OWASP public resources, GitHub Discussions (read-only), Public CVE feeds | Low–Medium (hallucinations) |
+| L | Automated bounty & reward pipeline | Contributors, maintainers, organizations | GitHub API, payment gateway, social media APIs | Medium (payment processing, automation complexity) |
 
 ---
 
@@ -171,6 +182,7 @@ Choose by primary goal (one project per slot):
 - **Distributed security scanning platform** (volunteer clients, real vulnerability detection, responsible disclosure) → **Project G (NetGuardian)**
 - **First-time contributor experience** (onboarding, documentation clarity, AI-assisted security guide) → **Project I**
 - **Vulnerability intelligence & news** (CVE aggregation, dashboard, API, newsletter) → **Project J**
+- **Automated bounty & reward pipeline** (GitHub integration, social automation, native payment processing) → **Project L**
 
 ---
 
@@ -188,6 +200,7 @@ Choose by primary goal (one project per slot):
 - **Project G independence:** G (NetGuardian) is a standalone security scanning platform. It can optionally feed findings to Project A for validation, but operates independently with its own scanning infrastructure and volunteer network.
 - **Project I impact:** I (first-time contributor experience) improves onboarding across all projects by establishing clear documentation, navigation, and expectations. Benefits all other projects by reducing low-quality or insecure contributions.
 - **Project J as intelligence layer:** J (vulnerability intelligence) aggregates public security data for awareness and visibility. Does not perform detection or validation like Project A, but can complement it by providing context on disclosed vulnerabilities.
+- **Project L automation scope:** L (automated bounty & reward pipeline) focuses on workflow automation and payment processing. Integrates with existing BLT bot infrastructure and can complement Project B's reward system by providing the bounty management layer. Social media automation increases community visibility across all projects.
 
 ---
 
