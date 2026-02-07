@@ -130,6 +130,13 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 **Description:** Builds a BLT cybersecurity intelligence platform that transforms public CVEs, advisories, and security news into a personalized vulnerability intelligence dashboard, API, and newsletter for OWASP BLT users. Each vulnerability is presented as part of a broader security intelligence view—linking CVEs, advisories, and reported incidents to affected technology stacks, risk categories, and observed attack patterns. The platform helps users quickly understand what happened, who was impacted, and why it matters, without performing vulnerability detection, validation, or disclosure workflows.
 
 ---
+### Project N — RAG AI Bot for Intelligent Onboarding & Security Learning
+
+[View full details →](Project-N.md)
+
+**One line:** Replace the inoperative chatbot with a RAG-powered AI assistant for user/contributor onboarding, CVE result clarification, security education without disclosing vulnerabilities and other features.
+
+---
 
 ### Project L — Automated Bounty & Reward Pipeline System
 
@@ -156,6 +163,7 @@ Project B can be extended with a **light C** add-on in the same 350-hour slot. L
 | H | Contributor growth + time-aware recommendations | Individual contributors, maintainers | Sizzle (time tracking), Gemini free tier (or local LLM), GitHub API | Medium (Sizzle adoption, LLM quality) |
 | I | First-time contributor onboarding | New contributors | BLT documentation, OWASP resources | Low (content organization) |
 | J | Vulnerability intelligence | BLT users, security teams | Public CVE feeds, security advisories | Medium (data quality, aggregation) |
+| N | AI-assisted onboarding & security learning (RAG) | New users, contributors, maintainers | OWASP public resources, GitHub Discussions (read-only), Public CVE feeds | Low–Medium (hallucinations) |
 | L | Automated bounty & reward pipeline | Contributors, maintainers, organizations | GitHub API, payment gateway, social media APIs | Medium (payment processing, automation complexity) |
 
 ---
