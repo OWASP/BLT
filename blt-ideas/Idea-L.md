@@ -1,10 +1,10 @@
-# Project L — Automated Bounty & Reward Pipeline System (350h)
+# Idea L — Automated Bounty & Reward Pipeline System (350h)
 
 ## Overview
 
 A **350-hour development effort** that creates a complete automated pipeline for bug bounties and rewards, integrating with existing BLT bot infrastructure to streamline bounty management, payment processing, and community engagement.
 
-The project addresses the need for native bounty systems similar to Opire/Algora while maintaining BLT's unique bacon reward ecosystem and automated social media presence for community growth.
+The idea addresses the need for native bounty systems similar to Opire/Algora while maintaining BLT's unique bacon reward ecosystem and automated social media presence for community growth.
 
 ---
 

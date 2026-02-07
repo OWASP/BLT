@@ -1,6 +1,6 @@
 # **Blt-education & Knowledge Sharing: Hands-On Code-Centric Security Labs & Community Intelligence (350 hr)**
 
-#### This project transforms BLT's existing theory-heavy labs into hands-on, code-centric security exercises while establishing a community-driven knowledge sharing pipeline.
+#### This idea transforms BLT's existing theory-heavy labs into hands-on, code-centric security exercises while establishing a community-driven knowledge sharing pipeline.
 Learners analyze real vulnerable code and configurations, identify security flaws, reason about how they could be exploited, and then apply secure fixes. Anonymized vulnerability patterns are aggregated into public dashboards, monthly reports, and remediation playbooks—creating a feedback loop where learning informs intelligence sharing and vice versa.
 The focus is on security thinking, inspired by OWASP Top 10, ethical hacking workflows, and CTF-style reasoning, but scoped for maintainability and learning depth. 
 

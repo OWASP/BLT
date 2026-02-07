@@ -1,4 +1,4 @@
-# Project U — Unified Event-Driven Gamification Engine (350h)
+# Idea U — Unified Event-Driven Gamification Engine (350h)
 
 **Repository:** OWASP/BLT-API
 
@@ -10,7 +10,7 @@ Architect and implement a robust, event-driven engine to handle all reputation, 
 
 As BLT scales with Projects B (Rewards), F (Reputation), and H (Growth), hardcoding reward logic into view functions (e.g., "awarding points inside the PR merge handler") creates brittle, unmaintainable code.
 
-**Project U** implements a dedicated **Gamification Service** that listens for localized platform events (e.g., `PR_MERGED`, `VULN_VERIFIED`, `REVIEW_COMPLETED`), processes them through a configurable **Rule Engine**, and records transactions in a **Double-Entry Ledger**. This ensures data consistency, prevents "infinite money" bugs, and allows maintainers to tweak the "Game Economy" (e.g., changing point values) without redeploying backend code.
+**Idea U** implements a dedicated **Gamification Service** that listens for localized platform events (e.g., `PR_MERGED`, `VULN_VERIFIED`, `REVIEW_COMPLETED`), processes them through a configurable **Rule Engine**, and records transactions in a **Double-Entry Ledger**. This ensures data consistency, prevents "infinite money" bugs, and allows maintainers to tweak the "Game Economy" (e.g., changing point values) without redeploying backend code.
 
 ---
 

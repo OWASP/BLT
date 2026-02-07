@@ -1,4 +1,4 @@
-# Project B — Security Contribution Gamification & Recognition (350h)
+# Idea B — Security Contribution Gamification & Recognition (350h)
 
 **One line:** Consume verified security contributions to award BACON/badges, reputation tiers, leaderboards, and challenges.
 
@@ -8,10 +8,10 @@
 
 **Description:** A **350-hour development effort** that transforms security contributions into an engaging reward ecosystem. The system listens for verified GHSC (or equivalent) events and awards rewards idempotently: BACON tokens, achievement badges, reputation tiers (Beginner → Trusted), severity-weighted leaderboards, and gamified security challenges. Includes comprehensive admin audit capabilities and robust fraud controls.
 
-The project operates independently of detection systems—it assumes a feed of verified contributions (real or mocked) and focuses purely on recognition, engagement, and community building through gamification.
+The idea operates independently of detection systems—it assumes a feed of verified contributions (real or mocked) and focuses purely on recognition, engagement, and community building through gamification.
 
 **Add-on (optional): Light C (Education Bridge)**  
-Project B includes a **light C** add-on within the same 350-hour slot. This education bridge provides read-only APIs and optional webhooks that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can consume these APIs to unlock courses, show contributor standing, or gate advanced content. No labs or curriculum development—just the integration layer.
+Idea B includes a **light C** add-on within the same 350-hour slot. This education bridge provides read-only APIs and optional webhooks that expose badge/reputation and leaderboard data (no raw CVE or vulnerability details). Future education platforms can consume these APIs to unlock courses, show contributor standing, or gate advanced content. No labs or curriculum development—just the integration layer.
 
 ---
 
@@ -249,21 +249,21 @@ Build a **comprehensive gamification engine** that transforms security work into
 
 ---
 
-## Cross-Project Relationships
+## Cross-Idea Relationships
 
-### Independence from Project A (CVE Detection)
+### Independence from Idea A (CVE Detection)
 
 - **Decoupled Design:** Operates with any verified contribution source
 - **Mock Support:** Can function with simulated data during development
-- **Future Integration:** Optional connection to Project A's verification pipeline
+- **Future Integration:** Optional connection to Idea A's verification pipeline
 
-### Synergy with Project F (Reputation Graph)
+### Synergy with Idea F (Reputation Graph)
 
 - **Complementary Systems:** F provides trust scoring; B provides rewards
 - **Data Sharing:** B can consume F's quality signals for reward weighting
 - **Independent Operation:** Both systems function standalone
 
-### Integration with Project H (Growth Tracking)
+### Integration with Idea H (Growth Tracking)
 
 - **Distinct Focus:** B = recognition; H = personal development guidance
 - **Data Exchange:** H can use B's achievement data for growth recommendations

@@ -1,8 +1,8 @@
-# Project L — Pre-Contribution Security Intent & Risk Guidance (350h)
+# Idea L — Pre-Contribution Security Intent & Risk Guidance (350h)
 
 **Organization:** OWASP Bug Logging Tool (BLT)  
 **Program:** Google Summer of Code (development program)  
-**Project Type:** Single 350-hour project
+**Idea Type:** Single 350-hour project
 
 ---
 
@@ -24,15 +24,15 @@ Currently, BLT has **no mechanism that helps contributors understand security ri
 
 ---
 
-## 2. Project Goal
+## 2. Idea Goal
 
-The goal of this project is to build a **pre-contribution advisory system** that:
+The goal of this idea is to build a **pre-contribution advisory system** that:
 - Helps contributors understand security expectations *before opening a PR*
 - Gives maintainers early visibility into potentially risky upcoming work
 - Reduces insecure or misaligned contributions
 - Improves contributor learning without blocking participation
 
-This project focuses on **prevention and clarity**, not enforcement.
+This idea focuses on **prevention and clarity**, not enforcement.
 
 ---
 
@@ -252,7 +252,7 @@ No external scanners, vulnerability feeds, or machine learning models are requir
 
 ## 11. Summary
 
-This project introduces a **pre-contribution security awareness layer** for BLT.
+This idea introduces a **pre-contribution security awareness layer** for BLT.
 
 By guiding contributors **before code is written**, it:
 - Prevents common security mistakes

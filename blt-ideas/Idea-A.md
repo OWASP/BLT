@@ -1,4 +1,4 @@
-### Project A — CVE Detection & Validation Pipeline
+### Idea A — CVE Detection & Validation Pipeline
 
 **One line:** Opt-in pipeline from scanner/GitHub → NVD validation → GHSC model and verification UI/API.
 

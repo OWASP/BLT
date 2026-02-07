@@ -1,6 +1,6 @@
 # NetGuardian: Zero-Trust Encrypted Web Scanner & Triage-Lite Platform (2026 — 350hr)
 
-## Project Overview
+## Idea Overview
 BLT-NetGuardian is a production-ready, privacy-preserving security scanning workflow that finds verifiable web vulnerabilities and safely hands them off inside BLT with minimal reviewer effort. It ships end-to-end encrypted ingestion (Zero Trust), a real detection pack (web vulns + Semgrep SAST), a volunteer CLI client for distributed scanning, a normalized finding schema with basic validation/dedup, disclosure helpers (security.txt), and a professional remediation report (CSV/PDF) — scoped to 350 hours.
 
 ## Core Objectives

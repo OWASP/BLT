@@ -1,4 +1,4 @@
-# Project X — RepoTrust Score
+# Idea X — RepoTrust Score
 
 ## One line
 
@@ -91,7 +91,7 @@ Auth: existing Django session + CSRF; only enrolled repos return data. Org‑sco
 ## Integration points
 
 - **Repos / orgs:** reuse existing `Repo`, `Organization`; enrollment and snapshot storage in `website/security/` (e.g. `repo_trust.py`).
-- **Signals:** issue/PR lifecycle, release tags, GHSC/verified events (Project A when available), OSV/GHSA/Dependabot for dependency health.
+- **Signals:** issue/PR lifecycle, release tags, GHSC/verified events (Idea A when available), OSV/GHSA/Dependabot for dependency health.
 - **UI:** repo header badge, "Why?" modal, optional "top improving repos" for org (no cross-org leaderboard).
 - **Nightly:** management command to recompute snapshots for enrolled repos only.
 
@@ -130,7 +130,7 @@ Auth: existing Django session + CSRF; only enrolled repos return data. Org‑sco
 **Pros**
 
 - Directly serves Founder Frank ("which dependency?") and Open Source Oliver ("how are we doing?").
-- Works today with basic signals; gets stronger when Project A's verified-fix pipeline exists.
+- Works today with basic signals; gets stronger when Idea A's verified-fix pipeline exists.
 - Explainable and fair: published weights, no popularity, no cross-org shaming.
 - Natural building block for a future Founder Dashboard / Command Center; complements B (e.g. "top improving repos").
 

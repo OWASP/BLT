@@ -1,8 +1,8 @@
-# Project E-S — AI-Assisted Security Remediation Triage Platform (350h)
+# Idea E-S — AI-Assisted Security Remediation Triage Platform (350h)
 
 ## Overview
 A 350-hour development effort focused on providing advisory security triage for pull requests, helping contributors and maintainers understand security-relevant changes and how to remediate them, without blocking merges or making authoritative vulnerability claims.  
-The project surfaces explainable security hardening insights derived from PR diffs, CI signals, and review context, presented via GitHub annotations and a BLT-hosted dashboard.
+The idea surfaces explainable security hardening insights derived from PR diffs, CI signals, and review context, presented via GitHub annotations and a BLT-hosted dashboard.
 
 ## Goals
 - Analyze PR diffs to detect security-relevant changes
@@ -50,11 +50,11 @@ The project surfaces explainable security hardening insights derived from PR dif
   - Repository-level trends
 
 ## Mockup
-![Security Triage Dashboard Mockup]:# Project E-S — AI-Assisted Security Remediation Triage Platform (350h)
+![Security Triage Dashboard Mockup]:# Idea E-S — AI-Assisted Security Remediation Triage Platform (350h)
 
 ## Overview
 A 350-hour development effort focused on providing advisory security triage for pull requests, helping contributors and maintainers understand security-relevant changes and how to remediate them, without blocking merges or making authoritative vulnerability claims.  
-The project surfaces explainable security hardening insights derived from PR diffs, CI signals, and review context, presented via GitHub annotations and a BLT-hosted dashboard.
+The idea surfaces explainable security hardening insights derived from PR diffs, CI signals, and review context, presented via GitHub annotations and a BLT-hosted dashboard.
 
 ## Goals
 - Analyze PR diffs to detect security-relevant changes
@@ -187,7 +187,7 @@ The project surfaces explainable security hardening insights derived from PR dif
 ## Future Enhancements (Post-development)
 - Active learning from maintainer feedback
 - Deeper security analytics
-- Optional integration with Project A verification pipelines
+- Optional integration with Idea A verification pipelines
 - SOC-style security dashboards
 
 _Last Updated: January 2026_
@@ -274,7 +274,7 @@ _Last Updated: January 2026_
 ## Future Enhancements (Post-development)
 - Active learning from maintainer feedback
 - Deeper security analytics
-- Optional integration with Project A verification pipelines
+- Optional integration with Idea A verification pipelines
 - SOC-style security dashboards
 
 _Last Updated: January 2026_

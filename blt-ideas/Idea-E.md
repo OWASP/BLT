@@ -1,8 +1,8 @@
-# Project E — PR Readiness & Security Dashboard (350h)
+# Idea E — PR Readiness & Security Dashboard (350h)
 
 ## Overview
 A **350-hour development effort** focused on giving contributors and maintainers a clear, actionable view of **PR readiness, CI/CD health, and security status**.  
-The project extends the original 175h scope by deepening security analysis, improving triage workflows, and scaling the dashboard for real-world maintainer usage.
+The idea extends the original 175h scope by deepening security analysis, improving triage workflows, and scaling the dashboard for real-world maintainer usage.
 
 The goal is to reduce review friction, surface real risks early, and help maintainers make faster, safer merge decisions.
 

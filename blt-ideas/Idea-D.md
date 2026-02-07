@@ -1,4 +1,4 @@
-### Project D — Knowledge Sharing & Community Impact (standalone)
+### Idea D — Knowledge Sharing & Community Impact (standalone)
 
 **One line:** Anonymized aggregation, public dashboards, reports, and remediation playbooks.
 
