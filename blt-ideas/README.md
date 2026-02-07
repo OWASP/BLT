@@ -247,6 +247,22 @@ Idea B can be extended with a **light C** add-on in the same 350-hour slot. Ligh
 
 ---
 
+### Idea Y — SecureCall: Privacy-First Video Call Note Taker for Bug Disclosure Discussions
+
+[View full details →](Idea-Y.md)
+
+**One line:** A secure video call note taker that doesn't save transcriptions and can be useful when talking securely about bug disclosures.
+
+---
+
+### Idea Z — BLT-MCP: Model Context Protocol Server for Complete BLT Interface
+
+[View full details →](Idea-Z.md)
+
+**One line:** A Model Context Protocol (MCP) server that provides comprehensive, AI-agent-friendly access to all aspects of BLT including issues, repos, contributions, rewards, and workflows.
+
+---
+
 ## Differentiation (standalone options)
 
 | Idea | Focus | Beneficiaries | Dependencies | Risk level |
@@ -264,6 +280,8 @@ Idea B can be extended with a **light C** add-on in the same 350-hour slot. Ligh
 | J | Vulnerability intelligence | BLT users, security teams | Public CVE feeds, security advisories | Medium (data quality, aggregation) |
 | N | AI-assisted onboarding & security learning (RAG) | New users, contributors, maintainers | OWASP public resources, GitHub Discussions (read-only), Public CVE feeds | Low–Medium (hallucinations) |
 | L | Automated bounty & reward pipeline | Contributors, maintainers, organizations | GitHub API, payment gateway, social media APIs | Medium (payment processing, automation complexity) |
+| Y | Privacy-first video call note taker | Security researchers, maintainers | WebRTC, speech-to-text API, LLM | Medium (privacy trust, external APIs) |
+| Z | MCP server for BLT | AI agents, developers, automation tools | BLT backend, OAuth 2.0 | Medium (protocol maturity, abuse prevention) |
 
 ---
 
@@ -282,6 +300,8 @@ Choose by primary goal (one idea per slot):
 - **First-time contributor experience** (onboarding, documentation clarity, AI-assisted security guide) → **Idea I**
 - **Vulnerability intelligence & news** (CVE aggregation, dashboard, API, newsletter) → **Idea J**
 - **Automated bounty & reward pipeline** (GitHub integration, social automation, native payment processing) → **Idea L**
+- **Privacy-first secure video calls** (ephemeral note-taking for disclosure discussions, zero persistence) → **Idea Y**
+- **AI-agent-friendly platform integration** (MCP server, resources/tools/prompts, Claude Desktop support) → **Idea Z**
 
 ---
 
@@ -301,6 +321,8 @@ Choose by primary goal (one idea per slot):
 - **Idea I impact:** I (first-time contributor experience) improves onboarding across all ideas by establishing clear documentation, navigation, and expectations. Benefits all other ideas by reducing low-quality or insecure contributions.
 - **Idea J as intelligence layer:** J (vulnerability intelligence) aggregates public security data for awareness and visibility. Does not perform detection or validation like Idea A, but can complement it by providing context on disclosed vulnerabilities.
 - **Idea L automation scope:** L (automated bounty & reward pipeline) focuses on workflow automation and payment processing. Integrates with existing BLT bot infrastructure and can complement Idea B's reward system by providing the bounty management layer. Social media automation increases community visibility across all ideas.
+- **Idea Y for disclosure security:** Y (SecureCall) provides privacy-first video call note-taking specifically for sensitive bug disclosure discussions. Natural fit for Idea A (CVE Detection) workflows and Idea M (Remediation Pipeline) where maintainers and researchers need to discuss vulnerabilities without retention risk. Ephemeral architecture ensures no long-term storage of exploit details.
+- **Idea Z as integration layer:** Z (BLT-MCP) provides standardized, AI-agent-friendly access to all BLT features. Complements multiple ideas by exposing their capabilities through MCP protocol: Idea B (rewards/badges), Idea F (reputation scores), Idea H (AI recommendations), Idea N (RAG bot). Positions BLT as MCP-native platform for AI agents like Claude Desktop.
 
 ---
 
