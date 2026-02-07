@@ -46,56 +46,32 @@ graph LR
 
 **Proposed Timeline**
 - Phase 1 (Weeks 1–4 | ~100 hours):
-  - Week 1: Lab schema + validation foundations
-    - Finalize Identify/Explain/Fix schema and validation rubric
-    - Define partial credit rules and scoring breakdown
-    - Draft example lab templates to validate the schema
-  - Week 2: Validation backend + data anonymization start
-    - Implement backend validation endpoints and scoring logic
-    - Add persistence for attempts, scores, and feedback
-    - Start anonymization pipeline (PII stripping + snippet sanitization)
-  - Week 3: UI foundations + backward compatibility
-    - Build step-wise UI flow (Identify → Explain → Fix)
-    - Implement hints, progress tracking, and step feedback
-    - Ensure existing theory labs continue to render correctly
-  - Week 4: Anonymization + intelligence model setup
-    - Complete aggregation logic and safe storage for anonymized data
-    - Draft intelligence models (SecurityIntelligence, report metadata)
-    - Validate anonymized outputs with sample datasets
-  - AI-assisted support: help draft concise explanations
+Multi-step validation framework, content schema, data anonymization pipeline, and UI foundations
+  - Implement multi-step validation (identify, explain, fix)
+  - Define reusable content schema for security labs
+  - Add UI support for step-wise progress and feedback
+  - Maintain backward compatibility with existing labs
+  - Implement data anonymization pipeline for BLT issues/PRs (strip PII, sanitize code snippets, aggregate patterns)
+  - AI-assisted support:
+      - Help draft concise explanations for vulnerabilities and fixes
 
 - Phase 2 (Weeks 5–8 | ~120 hours):
-  - Week 5: SQL Injection labs
-    - Create basic SQLi lab (union-based) with exploit reasoning
-    - Create advanced SQLi lab (blind/time-based) with fixes
-    - Add lab-specific hints and validation cases
-  - Week 6: XSS labs
-    - Build stored XSS lab (DOM analysis → sanitization fix)
-    - Build reflected XSS lab (context analysis → CSP fix)
-    - Add secure remediation explanations and comparisons
-  - Week 7: Auth & Access Control labs
-    - CSRF lab (token absence → token implementation)
-    - IDOR lab (authorization checks → secure access)
-    - Session/auth flaws lab with impact analysis
-  - Week 8: Integration + quality pass
-    - Add difficulty ratings and prerequisites
-    - Enable lab metrics (completion, accuracy, hints used)
-    - End-to-end lab testing + feedback iteration
+Core hands-on labs covering SQL Injection, XSS, and Configuration Security using the identify → explain → fix workflow
+  - Create hands-on labs for:
+    - SQL Injection
+    - XSS
+    - CSRF, IDOR, Authentication flaws
+  - Include exploitation reasoning and secure remediation patterns
+  - Add progress tracking, hints, and lab difficulty ratings
 
 - Phase 3 (Weeks 9–11 | ~110 hours):
-  - Week 9: Public intelligence dashboard
-    - Define dashboard KPIs (top categories, severity trends, remediation time)
-    - Build aggregated visualizations from anonymized data
-    - Ensure pre-disclosure filtering and safe data exposure
-  - Week 10: Reporting + approvals
-    - Generate monthly/quarterly reports (Markdown/PDF)
-    - Implement two-person approval workflow + admin review UI
-    - Add notifications for review/approval steps
-  - Week 11: Playbooks + unified dashboard
-    - Create 3 remediation playbooks from anonymized patterns
-    - Convert playbooks into mini-challenges with examples
-    - Build unified learning dashboard (progress + skill coverage)
-  - Optional AI support: suggest next labs based on skill gaps
+  - Create scheduled security challenges/puzzles and learning progress tracking
+  - Build unified dashboard for labs, challenges, and skill coverage
+  - Build public security intelligence dashboard from anonymized data (vulnerability trends, severity distribution, remediation metrics)
+  - Create automated monthly/quarterly reporting system with two-person approval workflow
+  - Transform top remediation patterns into playbooks and interactive content
+  - Optional AI support:
+      - Suggest next labs based on skill gaps
 
 - Phase 4 (Week 12 | ~20 hours): 
   - E2E testing (labs, dashboards, reports)
