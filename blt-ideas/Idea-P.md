@@ -80,4 +80,4 @@ Deliver a secure, fast, maintainable **v2 API on Django Ninja** alongside the ex
 
 ## Notes on scope flexibility (AI + cross-project synergy)
 - **AI acceleration:** Some tasks (schema generation, contract test scaffolding, docs, and OpenAPI examples) can become significantly faster with AI-assisted development, potentially reducing total effort and compressing later phases.
-- **Mergeability / clubbing with other projects:** This proposal can be **paired or partially merged** with related initiatives (e.g., **Project K**) by sharing OpenAPI tooling, auth/scopes groundwork, SDK generation pipelines, and common security hardening patterns—making both projects easier to deliver with less duplicated work.
+- **Mergeability / clubbing with other projects:** This proposal can be **paired or partially merged** with related initiatives (e.g., **Idea K**) by sharing OpenAPI tooling, auth/scopes groundwork, SDK generation pipelines, and common security hardening patterns—making both projects easier to deliver with less duplicated work.

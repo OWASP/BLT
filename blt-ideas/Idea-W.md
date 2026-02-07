@@ -1,4 +1,4 @@
-# Project W — BLT Security Campaigns
+# Idea W — BLT Security Campaigns
 
 ## One line
 
@@ -115,13 +115,13 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 - **Security views**:
   - Org‑level “Campaigns” list,
   - Per‑campaign landing page route + templates.
-- **Optional Project B tie‑in**:
+- **Optional Idea B tie‑in**:
   - Extra recognition (badges, tagged rewards) for campaign contributions,
   - “Campaign Champion” highlight on leaderboards filtered by campaign.
 
 ---
 
-## GSoC scope (350h)
+## development program scope (350h)
 
 **Must‑have (MVP):**
 
@@ -137,7 +137,7 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 
 - More templates and smarter label suggestions in the wizard.
 - Real‑time updates (e.g. WebSockets) instead of page refresh.
-- Deeper Project B integration (campaign‑scoped badges/rewards).
+- Deeper Idea B integration (campaign‑scoped badges/rewards).
 
 ---
 
@@ -161,7 +161,7 @@ This keeps campaign state explicit, allows flexible scoping via repos + labels, 
 
 ---
 
-## Why it fits GSoC
+## Why it fits development program
 
 - Clear, self‑contained 350‑hour scope with a well‑defined MVP.
 - Real, validated pain point from Discussion #5495: small projects and founders wanting concrete, time‑boxed security pushes.

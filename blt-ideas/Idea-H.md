@@ -1,10 +1,10 @@
-# Project H — BLT Growth: Sizzle-First Contributor Progress & AI-Guided Issue Recommendation
+# Idea H — BLT Growth: Sizzle-First Contributor Progress & AI-Guided Issue Recommendation
 
 ## Overview
 
 **One line:** Time-aware contributor growth system that uses Sizzle (time tracking) to drive personal progress, AI-guided "what to work on next," and maintainer capacity visibility.
 
-**Project Type:** Single 350-hour GSoC project
+**Idea Type:** Single 350-hour development effort
 
 **Primary Goal:** Answer "where am I in my journey?" and "what should I work on next, and why?" for each contributor using time-aware progress tracking and AI-guided recommendations.
 
@@ -100,7 +100,7 @@ When a PR is merged:
 
 ## Differentiation from Other Projects
 
-| Aspect | Project B (Rewards) | Project F (Quality Leaderboards) | **Project H (BLT Growth)** |
+| Aspect | Idea B (Rewards) | Idea F (Quality Leaderboards) | **Idea H (BLT Growth)** |
 |--------|---------------------|----------------------------------|----------------------------|
 | **Focus** | Rewards (BACON, badges) | Ranking by quality | Personal growth + direction |
 | **Question** | "What did you earn?" | "Who's best?" | "What's my progress? What's next?" |
@@ -147,12 +147,12 @@ When a PR is merged:
 
 ---
 
-## Why This Project Matters
+## Why This Idea Matters
 
 1. **Addresses real pain:** Maintainer burden, AI slop, lack of growth direction — all confirmed by BLT contributors
 2. **Unique angle:** No other OSS project uses time tracking (Sizzle) as the main lens for contributor growth
 3. **Proactive mentoring:** PR merged guidance gives contributors a **mentor-style experience** — AI reaches out when they accomplish something, not just when they ask
-4. **AI + Security + Education:** Blends AI (recommendations), security (BLT core alignment), and education (what you'll learn) — aligns with GSoC 2026 themes
+4. **AI + Security + Education:** Blends AI (recommendations), security (BLT core alignment), and education (what you'll learn) — aligns with 2026 themes
 5. **Immediate value:** Dashboard + PR merged guidance delivers value from day one
 6. **Foundation for full mentoring:** Celery infrastructure enables future expansion to issue claimed, PR opened, and other events
 7. **Scalable:** RESTful APIs mean external tools (e.g., IDE extensions, Slack bots) can consume growth data

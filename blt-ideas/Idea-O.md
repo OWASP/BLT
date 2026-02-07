@@ -1,8 +1,8 @@
 **BLT-Smart-Reporter AI Explainer**
-This project modernizes and stabilizes the existing OWASP BLT browser extension, restores currently broken functionality (including trademark search and reporting workflows), and upgrades it into a reliable, cross-browser, AI-assisted vulnerability reporting tool.
+This idea modernizes and stabilizes the existing OWASP BLT browser extension, restores currently broken functionality (including trademark search and reporting workflows), and upgrades it into a reliable, cross-browser, AI-assisted vulnerability reporting tool.
 
 **Core Objectives**
-This project focuses first on:
+This idea focuses first on:
 - restoring existing features
 - fixing reliability issues
 - adding smart reporting

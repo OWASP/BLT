@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-The OWASP Bug Logging Tool (BLT) is a critical platform for security researchers to report, track, and manage vulnerability discoveries across organizations. This project proposes a comprehensive migration of the BLT platform from its current Django-based monolithic architecture to a modern, edge-optimized Next.js/TypeScript stack deployed on Cloudflare Pages. The migration will transform Django template-based pages into React components while maintaining full feature parity with the existing Django REST API backend. With the exponential growth in edge computing and the need for zero-latency global access to security vulnerability data, this migration positions BLT to serve a worldwide community of security researchers with instant page loads, improved SEO, and enhanced developer experience through strict TypeScript type safety.
+The OWASP Bug Logging Tool (BLT) is a critical platform for security researchers to report, track, and manage vulnerability discoveries across organizations. This idea proposes a comprehensive migration of the BLT platform from its current Django-based monolithic architecture to a modern, edge-optimized Next.js/TypeScript stack deployed on Cloudflare Pages. The migration will transform Django template-based pages into React components while maintaining full feature parity with the existing Django REST API backend. With the exponential growth in edge computing and the need for zero-latency global access to security vulnerability data, this migration positions BLT to serve a worldwide community of security researchers with instant page loads, improved SEO, and enhanced developer experience through strict TypeScript type safety.
 
 ## OBJECTIVE
 
