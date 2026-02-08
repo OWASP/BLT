@@ -3,8 +3,8 @@ Stats handler for the BLT API.
 """
 
 from typing import Any, Dict
-from ..utils import json_response, error_response
-from ..client import create_client
+from utils import json_response, error_response
+from client import create_client
 
 
 async def handle_stats(

@@ -63,3 +63,7 @@ Thumbs.db
 
 # Build artifacts
 *.wasm
+
+# Lock files
+pyproject.toml.lock
+uv.lock

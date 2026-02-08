@@ -11,10 +11,10 @@ try:
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False
-    from .utils import Response, Headers
+    from utils import Response, Headers
 
-from .router import Router
-from .handlers import (
+from router import Router
+from handlers import (
     handle_issues,
     handle_users,
     handle_domains,
@@ -27,7 +27,7 @@ from .handlers import (
     handle_repos,
     handle_health,
 )
-from .utils import json_response, error_response, cors_headers
+from utils import json_response, error_response, cors_headers
 
 
 # Initialize the router
