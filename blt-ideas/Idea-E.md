@@ -100,7 +100,9 @@ Important:
 - Advisory and prioritization only
 
 ## Mockup
-![PR Risk & Readiness Dashboard Mockup](https://github.com/user-attachments/assets/192ff514-3539-427f-8224-176ae60c18fd)
+
+![PR Risk & Readiness Dashboard Mockup]<img width="1536" height="1024" alt="file_0000000017c47209a8d98b9659b8ad9d (1)" src="https://github.com/user-attachments/assets/61a3e989-1bc3-43a7-a2ff-887228d69ac4" />
+
 
 > Illustrative mockup — final UX will evolve based on maintainer feedback.
 
