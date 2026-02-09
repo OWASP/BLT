@@ -12,7 +12,7 @@ The BLT-Action has comprehensive test coverage across unit tests, integration te
 
 The unit tests use Mocha and Nock to test individual components of the action. All tests use mocked HTTP requests to test functionality without requiring actual API calls.
 
-**Total: 17 tests across 6 categories**
+**Total: 21 tests across 8 categories**
 
 #### 1. Assignment Management (3 tests)
 - ✅ User assignment to issues
@@ -54,6 +54,13 @@ The unit tests use Mocha and Nock to test individual components of the action. A
 - ✅ GitHub API error handling
 - ✅ Giphy API error handling
 - ✅ Kudos API error handling
+
+#### 8. Human Commenter Guard (4 tests)
+
+- ✅ treats bots and GitHub Apps as non-human commenters
+- ✅ does not allow bots to trigger /assign or /unassign, even with valid phrases
+- ✅ allows human users to trigger /assign and /unassign commands
+- ✅ treats mannequin accounts as human commenters
 
 ### Integration Tests (`.github/workflows/integration-test.yml`)
 
@@ -155,7 +162,8 @@ grep -q "/kudos" src/index.js && echo "✓ /kudos implemented"
 | Command Detection | 3 | ✅ |
 | Attribution | 2 | ✅ |
 | Error Handling | 3 | ✅ |
-| **Total** | **17** | **✅** |
+| Human Commenter Guard | 4 | ✅ |
+| **Total** | **21** | **✅** |
 
 ## Features Tested
 

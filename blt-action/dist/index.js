@@ -43744,7 +43744,19 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
 const axios = __nccwpck_require__(7269);
+function isHumanCommenter(comment) {
+    return (
+        comment &&
+        comment.user &&
+        (comment.user.type === 'User' || comment.user.type === 'Mannequin')
+    );
+}
 
+function extractUserInfo(comment) {
+    const login = comment?.user?.login ?? "unknown";
+    const type = comment?.user?.type ?? "unknown";
+    return { login, type };
+}
 const STALE_PR_THRESHOLD_DAYS = 60;
 const CLOSED_PR_GRACE_PERIOD_MS = 12 * 60 * 60 * 1000;
 const CLOSED_PR_LABEL = 'pr-closed-pending-unassign';
@@ -44305,6 +44317,12 @@ const run = async () => {
             const shouldGiphy = commentBody.startsWith(giphyKeyword);
             const shouldKudos = commentBody.startsWith(kudosKeyword);
             const shouldTip = commentBody.startsWith(tipKeyword);
+
+            if ((shouldAssign || shouldUnassign) && !isHumanCommenter(comment)) {
+                const { login, type } = extractUserInfo(comment);
+                console.log(`Skipping command from non-user account: ${login} (type=${type})`);
+                return; // Block bots and GitHub Apps from triggering assignment/unassignment
+            }
 
             if (shouldUnassign) {
                 if (!issue) {
