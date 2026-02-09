@@ -1,0 +1,23 @@
+{
+  "name": "blt-leaf",
+  "version": "1.0.0",
+  "description": "PR Readiness Checker - Track and monitor GitHub Pull Request status",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create pr-tracker",
+    "db:init": "wrangler d1 execute pr-tracker --file=./schema.sql"
+  },
+  "keywords": [
+    "github",
+    "pull-request",
+    "cloudflare",
+    "workers",
+    "pr-tracker"
+  ],
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
