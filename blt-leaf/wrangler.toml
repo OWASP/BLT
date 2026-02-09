@@ -9,3 +9,7 @@ database_id = "pr-tracker-db"
 
 [vars]
 ENVIRONMENT = "production"
+
+# Configure assets (static files)
+[assets]
+directory = "./public"

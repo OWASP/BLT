@@ -278,12 +278,16 @@ async def on_fetch(request, env):
     if request.method == 'OPTIONS':
         return Response.new('', headers=cors_headers)
     
-    # Serve HTML for root path
-    if path == '/':
-        with open('src/index.html', 'r') as f:
-            html_content = f.read()
-        headers = {**cors_headers, 'Content-Type': 'text/html'}
-        return Response.new(html_content, headers=headers)
+    # Serve HTML for root path  
+    if path == '/' or path == '/index.html':
+        # Use env.ASSETS to serve static files if available
+        if hasattr(env, 'ASSETS'):
+            return await env.ASSETS.fetch(request)
+        else:
+            # Fallback: return simple message
+            return Response.new('Please configure assets in wrangler.toml', 
+                              status=200,
+                              headers={**cors_headers, 'Content-Type': 'text/html'})
     
     # API endpoints
     if path == '/api/prs' and request.method == 'GET':
@@ -310,6 +314,10 @@ async def on_fetch(request, env):
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
+    
+    # Try to serve from assets
+    if hasattr(env, 'ASSETS'):
+        return await env.ASSETS.fetch(request)
     
     # 404
     return Response.new('Not Found', status=404, headers=cors_headers)

@@ -2,6 +2,21 @@
 
 A simple one-page application to track and monitor GitHub Pull Request readiness status.
 
+## Project Structure
+
+```
+BLT-Leaf/
+├── public/              # Static assets served by Cloudflare Workers
+│   └── index.html      # Main frontend application
+├── src/                # Backend Python code
+│   └── index.py        # Cloudflare Worker main handler
+├── schema.sql          # Database schema for D1
+├── wrangler.toml       # Cloudflare Workers configuration
+├── package.json        # npm scripts for deployment
+├── DEPLOYMENT.md       # Detailed deployment instructions
+└── README.md          # This file
+```
+
 ## Features
 
 - 📝 **Track PRs**: Add GitHub PR URLs to track their status
