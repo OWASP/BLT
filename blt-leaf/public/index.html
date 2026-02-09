@@ -393,6 +393,13 @@
         let allPrs = [];
         let repos = [];
 
+        // Utility function to escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Utility function to calculate time ago
         function timeAgo(dateString) {
             const date = new Date(dateString);
@@ -421,9 +428,13 @@
         // Show error message
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `<div class="error">${message}</div>`;
+            errorDiv.textContent = '';  // Clear first
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error';
+            errorElement.textContent = message;  // Use textContent to prevent XSS
+            errorDiv.appendChild(errorElement);
             setTimeout(() => {
-                errorDiv.innerHTML = '';
+                errorDiv.textContent = '';
             }, 5000);
         }
 
@@ -456,8 +467,10 @@
             
             // Clear existing repo items (except "All")
             const allItem = repoList.querySelector('[data-repo="all"]');
-            repoList.innerHTML = '';
-            repoList.appendChild(allItem);
+            // Remove all children except the "All" item
+            while (repoList.children.length > 1) {
+                repoList.removeChild(repoList.lastChild);
+            }
             
             // Add repo items
             repos.forEach(repo => {
@@ -566,13 +579,21 @@
                     mergeableText = '⚠ Unstable';
                 }
                 
+                // Validate and sanitize avatar URL - ensure it's from GitHub
+                const avatarUrl = pr.author_avatar && 
+                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || 
+                     pr.author_avatar.startsWith('https://github.com/'))
+                    ? pr.author_avatar 
+                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect width="40" height="40" fill="%2330363d"/%3E%3C/svg%3E';
+                
+                // Build PR card with escaped user content
                 prCard.innerHTML = `
                     <div class="pr-header">
-                        <img src="${pr.author_avatar}" alt="${pr.author_login}" class="avatar">
+                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%2330363d%22/%3E%3C/svg%3E'">
                         <div class="pr-title">
-                            <h3><a href="${pr.pr_url}" target="_blank" style="color: inherit; text-decoration: none;">${pr.title}</a></h3>
+                            <h3><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${escapeHtml(pr.title)}</a></h3>
                             <div class="pr-meta">
-                                ${pr.repo_owner}/${pr.repo_name} #${pr.pr_number} by ${pr.author_login}
+                                ${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}
                             </div>
                         </div>
                         <div>
@@ -584,7 +605,7 @@
                     <div class="pr-details">
                         <div class="detail-item">
                             <div class="detail-label">Merge Status</div>
-                            <div class="detail-value">${mergeableText}</div>
+                            <div class="detail-value">${escapeHtml(mergeableText)}</div>
                         </div>
                         
                         <div class="detail-item">
@@ -594,7 +615,7 @@
                         
                         <div class="detail-item">
                             <div class="detail-label">Last Updated</div>
-                            <div class="detail-value time-ago">${timeAgo(pr.last_updated_at)}</div>
+                            <div class="detail-value time-ago">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
                         </div>
                         
                         <div class="detail-item">

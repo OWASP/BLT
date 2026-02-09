@@ -21,22 +21,31 @@ async def fetch_pr_data(owner, repo, pr_number):
         # Fetch PR details
         pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
         pr_response = await fetch(pr_url)
+        
+        # Check for rate limiting and errors
+        if pr_response.status == 403 or pr_response.status == 429:
+            raise Exception("GitHub API rate limit exceeded. Please try again later.")
+        elif pr_response.status == 404:
+            raise Exception("PR not found or repository is private")
+        elif pr_response.status >= 400:
+            raise Exception(f"GitHub API error: {pr_response.status}")
+            
         pr_data = await pr_response.json()
         
         # Fetch PR files
         files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
         files_response = await fetch(files_url)
-        files_data = await files_response.json()
+        files_data = await files_response.json() if files_response.status == 200 else []
         
         # Fetch PR reviews
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         reviews_response = await fetch(reviews_url)
-        reviews_data = await reviews_response.json()
+        reviews_data = await reviews_response.json() if reviews_response.status == 200 else []
         
         # Fetch check runs
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         checks_response = await fetch(checks_url)
-        checks_data = await checks_response.json()
+        checks_data = await checks_response.json() if checks_response.status == 200 else {}
         
         # Process check runs
         checks_passed = 0
@@ -52,14 +61,19 @@ async def fetch_pr_data(owner, repo, pr_number):
                 elif check['conclusion'] in ['skipped', 'neutral']:
                     checks_skipped += 1
         
-        # Determine review status
+        # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'none'
         if reviews_data:
+            # Sort reviews by submitted_at to get chronological order
+            sorted_reviews = sorted(reviews_data, key=lambda x: x.get('submitted_at', ''))
+            
+            # Get latest review per user
             latest_reviews = {}
-            for review in reviews_data:
+            for review in sorted_reviews:
                 user = review['user']['login']
                 latest_reviews[user] = review['state']
             
+            # Determine overall status: changes_requested takes precedence over approved
             if 'CHANGES_REQUESTED' in latest_reviews.values():
                 review_status = 'changes_requested'
             elif 'APPROVED' in latest_reviews.values():
@@ -82,8 +96,10 @@ async def fetch_pr_data(owner, repo, pr_number):
             'last_updated_at': pr_data.get('updated_at', '')
         }
     except Exception as e:
-        print(f"Error fetching PR data: {str(e)}")
-        return None
+        # Return more informative error for debugging
+        error_msg = f"Error fetching PR data: {str(e)}"
+        # In Cloudflare Workers, console.error is preferred
+        raise Exception(error_msg)
 
 async def handle_add_pr(request, env):
     """Handle adding a new PR"""
@@ -268,6 +284,8 @@ async def on_fetch(request, env):
     path = url.pathname
     
     # CORS headers
+    # NOTE: '*' allows all origins for public access. In production, consider
+    # restricting to specific domains by setting this to your domain(s).
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
