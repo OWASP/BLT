@@ -1,0 +1,2 @@
+# No external Python dependencies required
+# Cloudflare Workers Python runtime includes standard library

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR Readiness Checker - BLT-Leaf</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 1rem 2rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: #58a6ff;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .repo-list {
+            list-style: none;
+        }
+
+        .repo-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .repo-item:hover {
+            background: #1c2128;
+            border-color: #58a6ff;
+        }
+
+        .repo-item.active {
+            background: #1c2128;
+            border-color: #58a6ff;
+        }
+
+        .repo-name {
+            font-weight: 600;
+            color: #58a6ff;
+            font-size: 0.9rem;
+        }
+
+        .repo-count {
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-top: 0.25rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 800px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 0.75rem;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 0.95rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #238636;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2ea043;
+        }
+
+        .btn:disabled {
+            background: #21262d;
+            color: #8b949e;
+            cursor: not-allowed;
+        }
+
+        .pr-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .pr-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .pr-card:hover {
+            border-color: #58a6ff;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.1);
+        }
+
+        .pr-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #30363d;
+        }
+
+        .pr-title {
+            flex: 1;
+        }
+
+        .pr-title h3 {
+            font-size: 1.1rem;
+            color: #58a6ff;
+            margin-bottom: 0.25rem;
+        }
+
+        .pr-meta {
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .pr-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-open {
+            background: #238636;
+            color: white;
+        }
+
+        .badge-closed {
+            background: #da3633;
+            color: white;
+        }
+
+        .badge-merged {
+            background: #a371f7;
+            color: white;
+        }
+
+        .badge-approved {
+            background: #238636;
+            color: white;
+        }
+
+        .badge-changes {
+            background: #da3633;
+            color: white;
+        }
+
+        .badge-pending {
+            background: #d29922;
+            color: white;
+        }
+
+        .badge-none {
+            background: #6e7681;
+            color: white;
+        }
+
+        .checks-summary {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .check-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: #0d1117;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        .check-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .check-success {
+            background: #238636;
+        }
+
+        .check-failure {
+            background: #da3633;
+        }
+
+        .check-skipped {
+            background: #8b949e;
+        }
+
+        .time-ago {
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #8b949e;
+        }
+
+        .error {
+            background: #da3633;
+            color: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #8b949e;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #30363d;
+            color: #c9d1d9;
+        }
+
+        .pr-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .repo-all {
+            font-weight: 600;
+            color: #58a6ff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍃 PR Readiness Checker</h1>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Repositories</h2>
+            <ul class="repo-list" id="repoList">
+                <li class="repo-item active" data-repo="all">
+                    <div class="repo-name repo-all">All Repositories</div>
+                    <div class="repo-count" id="allReposCount">0 PRs</div>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="prUrlInput" 
+                        placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)"
+                        autocomplete="off"
+                    />
+                    <button class="btn" id="addPrBtn">Add PR</button>
+                </div>
+                <div id="errorMessage"></div>
+            </div>
+
+            <div id="prListContainer">
+                <div class="empty-state">
+                    <h3>No PRs Added Yet</h3>
+                    <p>Add a GitHub PR URL above to start tracking</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global state
+        let currentRepo = 'all';
+        let allPrs = [];
+        let repos = [];
+
+        // Utility function to calculate time ago
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+            
+            for (const [name, value] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / value);
+                if (interval >= 1) {
+                    return `${interval} ${name}${interval === 1 ? '' : 's'} ago`;
+                }
+            }
+            
+            return 'just now';
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<div class="error">${message}</div>`;
+            setTimeout(() => {
+                errorDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Load repos
+        async function loadRepos() {
+            try {
+                const response = await fetch('/api/repos');
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                repos = data.repos;
+                renderRepoList();
+            } catch (error) {
+                console.error('Error loading repos:', error);
+            }
+        }
+
+        // Render repo list
+        function renderRepoList() {
+            const repoList = document.getElementById('repoList');
+            const allReposCount = document.getElementById('allReposCount');
+            
+            // Update all repos count
+            const totalPrs = allPrs.length;
+            allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
+            
+            // Clear existing repo items (except "All")
+            const allItem = repoList.querySelector('[data-repo="all"]');
+            repoList.innerHTML = '';
+            repoList.appendChild(allItem);
+            
+            // Add repo items
+            repos.forEach(repo => {
+                const li = document.createElement('li');
+                li.className = 'repo-item';
+                li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
+                
+                li.innerHTML = `
+                    <div class="repo-name">${repo.repo_owner}/${repo.repo_name}</div>
+                    <div class="repo-count">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                `;
+                
+                li.addEventListener('click', () => {
+                    currentRepo = li.dataset.repo;
+                    document.querySelectorAll('.repo-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    li.classList.add('active');
+                    loadPrs();
+                });
+                
+                repoList.appendChild(li);
+            });
+        }
+
+        // Load PRs
+        async function loadPrs() {
+            const container = document.getElementById('prListContainer');
+            container.innerHTML = '<div class="loading">Loading PRs...</div>';
+            
+            try {
+                const url = currentRepo === 'all' 
+                    ? '/api/prs' 
+                    : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    container.innerHTML = '<div class="empty-state"><h3>Error loading PRs</h3></div>';
+                    return;
+                }
+                
+                allPrs = data.prs;
+                renderPrList();
+            } catch (error) {
+                console.error('Error loading PRs:', error);
+                showError('Failed to load PRs');
+                container.innerHTML = '<div class="empty-state"><h3>Error loading PRs</h3></div>';
+            }
+        }
+
+        // Render PR list
+        function renderPrList() {
+            const container = document.getElementById('prListContainer');
+            
+            if (allPrs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No PRs Found</h3>
+                        <p>Add a GitHub PR URL above to start tracking</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '<div class="pr-list" id="prList"></div>';
+            const prList = document.getElementById('prList');
+            
+            allPrs.forEach(pr => {
+                const prCard = document.createElement('div');
+                prCard.className = 'pr-card';
+                
+                // Determine state badge
+                let stateBadge = '';
+                if (pr.is_merged) {
+                    stateBadge = '<span class="badge badge-merged">Merged</span>';
+                } else if (pr.state === 'open') {
+                    stateBadge = '<span class="badge badge-open">Open</span>';
+                } else {
+                    stateBadge = '<span class="badge badge-closed">Closed</span>';
+                }
+                
+                // Determine review badge
+                let reviewBadge = '';
+                if (pr.review_status === 'approved') {
+                    reviewBadge = '<span class="badge badge-approved">Approved</span>';
+                } else if (pr.review_status === 'changes_requested') {
+                    reviewBadge = '<span class="badge badge-changes">Changes Requested</span>';
+                } else if (pr.review_status === 'pending') {
+                    reviewBadge = '<span class="badge badge-pending">Pending Review</span>';
+                } else {
+                    reviewBadge = '<span class="badge badge-none">No Reviews</span>';
+                }
+                
+                // Determine mergeable state
+                let mergeableText = pr.mergeable_state || 'unknown';
+                if (mergeableText === 'clean') {
+                    mergeableText = '✓ Ready to merge';
+                } else if (mergeableText === 'dirty') {
+                    mergeableText = '✗ Conflicts';
+                } else if (mergeableText === 'blocked') {
+                    mergeableText = '⊘ Blocked';
+                } else if (mergeableText === 'unstable') {
+                    mergeableText = '⚠ Unstable';
+                }
+                
+                prCard.innerHTML = `
+                    <div class="pr-header">
+                        <img src="${pr.author_avatar}" alt="${pr.author_login}" class="avatar">
+                        <div class="pr-title">
+                            <h3><a href="${pr.pr_url}" target="_blank" style="color: inherit; text-decoration: none;">${pr.title}</a></h3>
+                            <div class="pr-meta">
+                                ${pr.repo_owner}/${pr.repo_name} #${pr.pr_number} by ${pr.author_login}
+                            </div>
+                        </div>
+                        <div>
+                            ${stateBadge}
+                            ${reviewBadge}
+                        </div>
+                    </div>
+                    
+                    <div class="pr-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Merge Status</div>
+                            <div class="detail-value">${mergeableText}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Files Changed</div>
+                            <div class="detail-value">${pr.files_changed}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Last Updated</div>
+                            <div class="detail-value time-ago">${timeAgo(pr.last_updated_at)}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Checks</div>
+                            <div class="checks-summary">
+                                <div class="check-stat">
+                                    <div class="check-icon check-success"></div>
+                                    <span>${pr.checks_passed} passed</span>
+                                </div>
+                                <div class="check-stat">
+                                    <div class="check-icon check-failure"></div>
+                                    <span>${pr.checks_failed} failed</span>
+                                </div>
+                                <div class="check-stat">
+                                    <div class="check-icon check-skipped"></div>
+                                    <span>${pr.checks_skipped} skipped</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pr-actions">
+                        <button class="refresh-btn" data-pr-id="${pr.id}">Refresh</button>
+                    </div>
+                `;
+                
+                prList.appendChild(prCard);
+            });
+            
+            // Add refresh button listeners
+            document.querySelectorAll('.refresh-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const prId = e.target.dataset.prId;
+                    await refreshPr(prId);
+                });
+            });
+        }
+
+        // Add PR
+        async function addPr() {
+            const input = document.getElementById('prUrlInput');
+            const btn = document.getElementById('addPrBtn');
+            const prUrl = input.value.trim();
+            
+            if (!prUrl) {
+                showError('Please enter a PR URL');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            
+            try {
+                const response = await fetch('/api/prs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pr_url: prUrl })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    input.value = '';
+                    await loadRepos();
+                    await loadPrs();
+                }
+            } catch (error) {
+                console.error('Error adding PR:', error);
+                showError('Failed to add PR');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add PR';
+            }
+        }
+
+        // Refresh PR
+        async function refreshPr(prId) {
+            try {
+                const response = await fetch('/api/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pr_id: prId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    await loadPrs();
+                }
+            } catch (error) {
+                console.error('Error refreshing PR:', error);
+                showError('Failed to refresh PR');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('addPrBtn').addEventListener('click', addPr);
+        document.getElementById('prUrlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addPr();
+            }
+        });
+
+        // Handle "All Repositories" click
+        document.querySelector('[data-repo="all"]').addEventListener('click', () => {
+            currentRepo = 'all';
+            document.querySelectorAll('.repo-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector('[data-repo="all"]').classList.add('active');
+            loadPrs();
+        });
+
+        // Initial load
+        loadRepos();
+        loadPrs();
+    </script>
+</body>
+</html>
