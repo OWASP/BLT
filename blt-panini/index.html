@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banned Apps</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            900: '#111827',
+                            800: '#1f2937',
+                            700: '#374151',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-center flex-grow">Search Banned Apps by Country</h1>
+            <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="max-w-xl mx-auto mb-6">
+            <div class="flex border-b border-gray-200 dark:border-gray-700">
+                <button id="listViewBtn" class="py-2 px-4 font-medium text-red-600 border-b-2 border-red-600 transition-colors duration-200">List View</button>
+                <button id="mapViewBtn" class="py-2 px-4 font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 transition-colors duration-200">Map View</button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="max-w-xl mx-auto mb-8">
+            <input type="text" id="countrySearch" placeholder="Enter country name..." class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors duration-200 shadow-sm">
+        </div>
+
+        <!-- List View -->
+        <div id="listView">
+            <div id="resultsSection">
+                <h2 class="text-2xl font-semibold mb-4 ml-1">Banned Apps Results</h2>
+                <div id="appsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+            <!-- No Results Message -->
+            <div id="noResults" class="hidden text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-gray-600 dark:text-gray-400 text-lg">No banned apps found for this country.</p>
+            </div>
+        </div>
+
+        <!-- Map View -->
+        <div id="mapView" class="hidden relative">
+            <div id="map" class="h-[600px] w-full rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-0"></div>
+            
+            <!-- Floating Country Info Panel -->
+            <div id="countryInfo" class="absolute top-4 right-4 z-[400] w-80 max-h-[550px] overflow-y-auto bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-5 hidden transition-all duration-300 transform translate-x-0">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 id="countryName" class="text-xl font-bold text-gray-900 dark:text-white"></h3>
+                    <button id="closeInfoBtn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <p id="bannedAppsCount" class="text-sm font-semibold text-red-600 mb-4 bg-red-50 dark:bg-red-900/20 py-1 px-2 rounded inline-block"></p>
+                <div id="bannedAppsList" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
