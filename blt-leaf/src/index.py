@@ -108,8 +108,7 @@ def db_not_configured_error():
     """Return a standard error response for when database is not configured"""
     return Response.new(
         json.dumps({
-            'error': 'Database not configured',
-            'message': 'Please configure a D1 database in wrangler.toml to use this feature. See DEPLOYMENT.md for instructions.'
+            'error': 'Database not configured. Please set up a D1 database to use PR tracking features. See the documentation for setup instructions.'
         }), 
         {'status': 503, 'headers': {'Content-Type': 'application/json'}}
     )
