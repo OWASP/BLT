@@ -2,7 +2,7 @@ from js import Response, fetch, Headers, URL, Object, Date
 from pyodide.ffi import to_js
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Track if schema initialization has been attempted in this worker instance
 # This is safe in Cloudflare Workers Python as each isolate runs single-threaded
@@ -54,6 +54,7 @@ async def init_database_schema(env):
     
     This function is idempotent and safe to call multiple times.
     Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    Includes migration logic to add missing columns to existing tables.
     A module-level flag prevents redundant calls within the same worker instance.
     """
     global _schema_init_attempted
@@ -87,11 +88,29 @@ async def init_database_schema(env):
                 checks_skipped INTEGER DEFAULT 0,
                 review_status TEXT,
                 last_updated_at TEXT,
+                last_refreshed_at TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         await create_table.run()
+        
+        # Migration: Add last_refreshed_at column if it doesn't exist
+        # Check if column exists by querying PRAGMA table_info
+        try:
+            pragma_result = db.prepare('PRAGMA table_info(prs)')
+            columns_result = await pragma_result.all()
+            columns = columns_result.results.to_py() if hasattr(columns_result, 'results') else []
+            
+            # Check if last_refreshed_at column exists
+            column_names = [col['name'] for col in columns if isinstance(col, dict)]
+            if 'last_refreshed_at' not in column_names:
+                print("Migrating database: Adding last_refreshed_at column")
+                alter_table = db.prepare('ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT')
+                await alter_table.run()
+        except Exception as migration_error:
+            # Column may already exist or migration failed - log but continue
+            print(f"Note: Migration check for last_refreshed_at: {str(migration_error)}")
         
         # Create indexes (idempotent with IF NOT EXISTS)
         index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
@@ -361,13 +380,18 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
+        # Generate timestamps in Python for consistency and testability
+        # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
+        current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        
         # Update database
         stmt = db.prepare('''
             UPDATE prs SET
                 title = ?, state = ?, is_merged = ?, mergeable_state = ?,
                 files_changed = ?, checks_passed = ?, checks_failed = ?,
                 checks_skipped = ?, review_status = ?, last_updated_at = ?,
-                updated_at = CURRENT_TIMESTAMP
+                last_refreshed_at = ?,
+                updated_at = ?
             WHERE id = ?
         ''').bind(
             pr_data['title'],
@@ -380,6 +404,8 @@ async def handle_refresh_pr(request, env):
             pr_data['checks_skipped'],
             pr_data['review_status'],
             pr_data['last_updated_at'],
+            current_timestamp,
+            current_timestamp,
             pr_id
         )
         
