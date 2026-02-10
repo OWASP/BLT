@@ -15,6 +15,8 @@ The easiest way to deploy BLT-Leaf is using the Deploy to Cloudflare button:
 
 **No manual configuration required!** The database is automatically set up and the application is ready to track PRs.
 
+**After deployment:** Click the **⚙️ Settings** button in the application header to verify your database configuration status.
+
 ---
 
 ## Manual Deployment
@@ -43,6 +45,8 @@ wrangler deploy
 ```
 
 The worker will deploy successfully and serve the HTML interface. However, the PR tracking features (add, list, refresh) will not work until you configure a database.
+
+**To check your database status:** After deployment, click the **⚙️ Settings** button in the application header. The settings page will show whether your database is configured and provide setup instructions if needed.
 
 ### Full Setup (With Database)
 
@@ -99,6 +103,10 @@ wrangler dev
 ```bash
 wrangler deploy
 ```
+
+7. **Verify Setup**
+
+After deployment, open your worker URL and click the **⚙️ Settings** button in the header to verify that your database is properly configured. The status indicator should show "Database Connected" in green.
 
 ## Testing the Application
 

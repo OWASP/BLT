@@ -16,6 +16,8 @@ The deploy button will automatically:
 
 No manual configuration required!
 
+**Note:** After deployment, you can check the database status by clicking the **⚙️ Settings** button in the application header.
+
 ## Project Structure
 
 ```
@@ -141,6 +143,26 @@ wrangler deploy
    - Author information
 3. **Filter by Repo**: Click on a repository in the sidebar to filter PRs
 4. **Refresh Data**: Use the refresh button to update PR information from GitHub
+5. **Settings**: Click the ⚙️ Settings button in the header to:
+   - Check database configuration status
+   - View setup instructions
+   - Get help with database configuration
+
+## Database Configuration
+
+The application works in two modes:
+
+**Without Database (Limited Mode):**
+- Can deploy and view the interface
+- Cannot add or track PRs
+- Settings page shows "Database Not Configured" status
+
+**With Database (Full Mode):**
+- Full PR tracking functionality
+- Can add, view, and refresh PRs
+- Settings page shows "Database Connected" status
+
+To set up the database, click the **⚙️ Settings** button in the application header and follow the step-by-step instructions provided there.
 
 ## API Endpoints
 
