@@ -12,8 +12,8 @@ This GitHub Action provides automated issue assignment, engagement features, and
 
 ## Features
 
-- **Assignment Management**: Users self-assign issues via `/assign` or natural language phrases
-- **Unassignment**: Users can unassign issues via `/unassign`
+- **Assignment Management**: Human users self-assign via `/assign` or natural language phrases (bot accounts and GitHub Apps are excluded)
+- **Unassignment**: Human users can unassign via `/unassign` or natural language phrases (bot accounts and GitHub Apps are excluded)
 - **Stale Issue Handling**: Auto-unassigns after 24 hours of inactivity without a PR
 - **GIF Integration**: Post GIFs using `/giphy [search term]` on issues or PRs
 - **Kudos System**: Send appreciation using `/kudos @username [message]` (works with any GitHub username) - integrates with OWASP BLT API
