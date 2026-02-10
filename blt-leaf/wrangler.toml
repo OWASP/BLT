@@ -3,10 +3,12 @@ main = "src/index.py"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
-[[d1_databases]]
-binding = "DB"
-database_name = "pr_tracker"
-database_id = "00000000-0000-0000-0000-000000000000"  # Placeholder - will be replaced during deployment
+# D1 Database Configuration (Optional)
+# Uncomment and configure after creating your D1 database:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "pr_tracker"
+# database_id = "YOUR_DATABASE_ID_HERE"  # Replace with actual database ID from: wrangler d1 create pr-tracker
 
 [vars]
 ENVIRONMENT = "production"

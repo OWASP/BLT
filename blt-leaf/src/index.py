@@ -21,7 +21,11 @@ def parse_pr_url(pr_url):
     return None
 
 def get_db(env):
-    """Helper to get DB binding from env, handling different env types"""
+    """Helper to get DB binding from env, handling different env types.
+    
+    Returns None if database is not configured instead of raising an exception.
+    This allows the worker to deploy without a database for initial setup.
+    """
     # Try common binding names
     for name in ['pr_tracker', 'DB']:
         # Try attribute access
@@ -34,9 +38,8 @@ def get_db(env):
             except (KeyError, TypeError):
                 pass
     
-    # Log available attributes for debugging if still not found
-    print(f"DEBUG: env attributes: {dir(env)}")
-    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
+    # Database not configured - return None
+    return None
 
 async def init_database_schema(env):
     """Initialize database schema if it doesn't exist.
@@ -44,18 +47,23 @@ async def init_database_schema(env):
     This function is idempotent and safe to call multiple times.
     Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
     A module-level flag prevents redundant calls within the same worker instance.
+    
+    Returns True if database is available, False otherwise.
     """
     global _schema_init_attempted
     
     # Skip if already attempted in this worker instance
     if _schema_init_attempted:
-        return
+        return True
     
     _schema_init_attempted = True
     
+    db = get_db(env)
+    if not db:
+        # Database not configured - this is OK, just means limited functionality
+        return False
+    
     try:
-        db = get_db(env)
-        
         # Create the prs table (idempotent with IF NOT EXISTS)
         create_table = db.prepare('''
             CREATE TABLE IF NOT EXISTS prs (
@@ -89,10 +97,22 @@ async def init_database_schema(env):
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
         
+        return True
     except Exception as e:
         # Log the error but don't crash - schema may already exist
         print(f"Note: Schema initialization check: {str(e)}")
         # Schema likely already exists, which is fine
+        return True
+
+def db_not_configured_error():
+    """Return a standard error response for when database is not configured"""
+    return Response.new(
+        json.dumps({
+            'error': 'Database not configured',
+            'message': 'Please configure a D1 database in wrangler.toml to use this feature. See DEPLOYMENT.md for instructions.'
+        }), 
+        {'status': 503, 'headers': {'Content-Type': 'application/json'}}
+    )
 
 async def fetch_with_headers(url, headers=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
@@ -207,6 +227,11 @@ async def fetch_pr_data(owner, repo, pr_number):
 async def handle_add_pr(request, env):
     """Handle adding a new PR"""
     try:
+        # Check if database is configured
+        db = get_db(env)
+        if not db:
+            return db_not_configured_error()
+        
         data = (await request.json()).to_py()
         pr_url = data.get('pr_url')
         
@@ -227,7 +252,6 @@ async def handle_add_pr(request, env):
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
         # Insert or update in database
-        db = get_db(env)
         stmt = db.prepare('''
             INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                            is_merged, mergeable_state, files_changed, author_login, 
@@ -276,20 +300,22 @@ async def handle_add_pr(request, env):
 async def handle_list_prs(env, repo_filter=None):
     """List all PRs, optionally filtered by repo"""
     try:
+        # Check if database is configured
+        db = get_db(env)
+        if not db:
+            return db_not_configured_error()
+        
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                db = get_db(env)
                 stmt = db.prepare('''
                     SELECT * FROM prs 
                     WHERE repo_owner = ? AND repo_name = ?
                     ORDER BY last_updated_at DESC
                 ''').bind(parts[0], parts[1])
             else:
-                db = get_db(env)
                 stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         else:
-            db = get_db(env)
             stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         
         result = await stmt.all()
@@ -305,7 +331,11 @@ async def handle_list_prs(env, repo_filter=None):
 async def handle_list_repos(env):
     """List all unique repos"""
     try:
+        # Check if database is configured
         db = get_db(env)
+        if not db:
+            return db_not_configured_error()
+        
         stmt = db.prepare('''
             SELECT DISTINCT repo_owner, repo_name, 
                    COUNT(*) as pr_count
@@ -327,6 +357,11 @@ async def handle_list_repos(env):
 async def handle_refresh_pr(request, env):
     """Refresh a specific PR's data"""
     try:
+        # Check if database is configured
+        db = get_db(env)
+        if not db:
+            return db_not_configured_error()
+        
         data = (await request.json()).to_py()
         pr_id = data.get('pr_id')
         
@@ -335,7 +370,6 @@ async def handle_refresh_pr(request, env):
                               {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
         # Get PR URL from database
-        db = get_db(env)
         stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number FROM prs WHERE id = ?').bind(pr_id)
         result = await stmt.first()
         
@@ -350,7 +384,6 @@ async def handle_refresh_pr(request, env):
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
         # Update database
-        db = get_db(env)
         stmt = db.prepare('''
             UPDATE prs SET
                 title = ?, state = ?, is_merged = ?, mergeable_state = ?,
