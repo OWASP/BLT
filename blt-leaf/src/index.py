@@ -4,6 +4,10 @@ import json
 import re
 from datetime import datetime
 
+# Track if schema initialization has been attempted in this worker instance
+# This is safe in Cloudflare Workers Python as each isolate runs single-threaded
+_schema_init_attempted = False
+
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -33,6 +37,62 @@ def get_db(env):
     # Log available attributes for debugging if still not found
     print(f"DEBUG: env attributes: {dir(env)}")
     raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
+
+async def init_database_schema(env):
+    """Initialize database schema if it doesn't exist.
+    
+    This function is idempotent and safe to call multiple times.
+    Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    A module-level flag prevents redundant calls within the same worker instance.
+    """
+    global _schema_init_attempted
+    
+    # Skip if already attempted in this worker instance
+    if _schema_init_attempted:
+        return
+    
+    _schema_init_attempted = True
+    
+    try:
+        db = get_db(env)
+        
+        # Create the prs table (idempotent with IF NOT EXISTS)
+        create_table = db.prepare('''
+            CREATE TABLE IF NOT EXISTS prs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pr_url TEXT NOT NULL UNIQUE,
+                repo_owner TEXT NOT NULL,
+                repo_name TEXT NOT NULL,
+                pr_number INTEGER NOT NULL,
+                title TEXT,
+                state TEXT,
+                is_merged INTEGER DEFAULT 0,
+                mergeable_state TEXT,
+                files_changed INTEGER DEFAULT 0,
+                author_login TEXT,
+                author_avatar TEXT,
+                checks_passed INTEGER DEFAULT 0,
+                checks_failed INTEGER DEFAULT 0,
+                checks_skipped INTEGER DEFAULT 0,
+                review_status TEXT,
+                last_updated_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        await create_table.run()
+        
+        # Create indexes (idempotent with IF NOT EXISTS)
+        index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
+        await index1.run()
+        
+        index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
+        await index2.run()
+        
+    except Exception as e:
+        # Log the error but don't crash - schema may already exist
+        print(f"Note: Schema initialization check: {str(e)}")
+        # Schema likely already exists, which is fine
 
 async def fetch_with_headers(url, headers=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
@@ -347,6 +407,10 @@ async def on_fetch(request, env):
             # Fallback: return simple message
             return Response.new('Please configure assets in wrangler.toml', 
                               {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
+    
+    # Initialize database schema on first API request (idempotent, safe to call multiple times)
+    if path.startswith('/api/'):
+        await init_database_schema(env)
     
     # API endpoints
     if path == '/api/prs' and request.method == 'GET':

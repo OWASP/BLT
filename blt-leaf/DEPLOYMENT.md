@@ -1,5 +1,26 @@
 # Deployment Guide
 
+## One-Click Deployment (Recommended)
+
+The easiest way to deploy BLT-Leaf is using the Deploy to Cloudflare button:
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-Leaf)
+
+**What happens when you click the button:**
+1. You'll be prompted to log in to Cloudflare (or create a free account)
+2. Cloudflare will fork this repository to your GitHub account
+3. A new D1 database will be automatically provisioned
+4. The database schema will be initialized on the first request
+5. Your application will be deployed and ready to use
+
+**No manual configuration required!** The database is automatically set up and the application is ready to track PRs.
+
+---
+
+## Manual Deployment
+
+If you prefer manual deployment or need more control, follow these steps:
+
 ## Quick Start
 
 1. **Install Wrangler**
@@ -23,14 +44,21 @@ Copy the database ID from the output and update `wrangler.toml`:
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "pr-tracker"
-database_id = "YOUR_DATABASE_ID_HERE"
+database_name = "pr_tracker"
+database_id = "YOUR_DATABASE_ID_HERE"  # Add this line with your actual database ID
 ```
 
+**Note:** If you're deploying via the Deploy to Cloudflare button, this step is done automatically.
+
 4. **Initialize Database Schema**
+
+The database schema is automatically initialized when you first access the application. However, if you prefer to initialize it manually, you can run:
+
 ```bash
 wrangler d1 execute pr-tracker --file=./schema.sql
 ```
+
+**Note:** If you're deploying via the Deploy to Cloudflare button, schema initialization happens automatically on first use.
 
 5. **Test Locally**
 ```bash
