@@ -486,6 +486,21 @@
             line-height: 1.6;
         }
 
+        .muted-text {
+            color: #8b949e;
+        }
+
+        .code-block {
+            background: #21262d;
+            color: #58a6ff;
+            padding: 0.5rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            white-space: pre;
+        }
+
         .pr-actions {
             display: flex;
             justify-content: flex-end;
@@ -559,17 +574,20 @@
                 <div class="info-box">
                     <ol>
                         <li>Create a D1 database using Wrangler CLI:
-                            <br><code>wrangler d1 create pr-tracker</code>
+                            <div class="code-block">wrangler d1 create pr-tracker</div>
                         </li>
                         <li>Copy the database ID from the output</li>
                         <li>Update your <code>wrangler.toml</code> file by uncommenting the database section:
-                            <br><code>[[d1_databases]]<br>binding = "DB"<br>database_name = "pr_tracker"<br>database_id = "your-database-id"</code>
+                            <div class="code-block">[[d1_databases]]
+binding = "DB"
+database_name = "pr_tracker"
+database_id = "your-database-id"</div>
                         </li>
                         <li>Initialize the database schema:
-                            <br><code>wrangler d1 execute pr-tracker --file=./schema.sql</code>
+                            <div class="code-block">wrangler d1 execute pr-tracker --file=./schema.sql</div>
                         </li>
                         <li>Redeploy your worker:
-                            <br><code>wrangler deploy</code>
+                            <div class="code-block">wrangler deploy</div>
                         </li>
                     </ol>
                 </div>
@@ -937,7 +955,7 @@
                             <span class="status-dot"></span>
                             Database Connected
                         </div>
-                        <p style="color: #8b949e;">Your D1 database is properly configured and ready to use.</p>
+                        <p class="muted-text">Your D1 database is properly configured and ready to use.</p>
                     `;
                 } else {
                     statusDiv.innerHTML = `
@@ -945,7 +963,7 @@
                             <span class="status-dot"></span>
                             Database Not Configured
                         </div>
-                        <p style="color: #8b949e;">No database is currently configured. Follow the instructions below to set up your database.</p>
+                        <p class="muted-text">No database is currently configured. Follow the instructions below to set up your database.</p>
                     `;
                 }
             } catch (error) {
@@ -956,7 +974,7 @@
                         <span class="status-dot"></span>
                         Unable to Check Status
                     </div>
-                    <p style="color: #8b949e;">Could not determine database status. Please check your connection.</p>
+                    <p class="muted-text">Could not determine database status. Please check your connection.</p>
                 `;
             }
         }
