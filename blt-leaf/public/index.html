@@ -413,11 +413,17 @@
     <header>
         <h1>🍃 PR Readiness Checker</h1>
         <div class="rate-limit-section">
-            <div class="rate-limit-label">GitHub API Rate Limit:</div>
-            <div class="rate-limit-bar">
+            <div class="rate-limit-label" id="rateLimitLabel">GitHub API Rate Limit:</div>
+            <div class="rate-limit-bar"
+                 role="progressbar"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="0"
+                 aria-labelledby="rateLimitLabel"
+                 aria-describedby="rateLimitText">
                 <div class="rate-limit-fill" id="rateLimitFill"></div>
             </div>
-            <div class="rate-limit-text" id="rateLimitText">Loading...</div>
+            <div class="rate-limit-text" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
         </div>
     </header>
 
@@ -478,19 +484,22 @@
                     return;
                 }
 
-                const { limit, remaining, used } = data;
-                const percentageUsed = (used / limit) * 100;
+                const { limit, remaining } = data;
                 const percentageRemaining = (remaining / limit) * 100;
 
                 // Update progress bar
                 const fillElement = document.getElementById('rateLimitFill');
                 fillElement.style.width = `${percentageRemaining}%`;
+                
+                // Update ARIA attributes for accessibility
+                const barElement = document.querySelector('.rate-limit-bar');
+                barElement.setAttribute('aria-valuenow', Math.round(percentageRemaining));
 
                 // Update color based on remaining percentage
                 fillElement.className = 'rate-limit-fill';
                 if (percentageRemaining < 20) {
                     fillElement.classList.add('critical');
-                } else if (percentageRemaining < 50) {
+                } else if (percentageRemaining <= 50) {
                     fillElement.classList.add('warning');
                 }
 
@@ -849,8 +858,10 @@
         loadRepos();
         loadPrs();
 
-        // Refresh rate limit every 60 seconds (60000 milliseconds)
-        setInterval(loadRateLimit, 60000);
+        // Refresh rate limit every 10 minutes (600000 milliseconds) to reduce API consumption
+        // The backend caches results for 5 minutes, so this is a reasonable polling interval
+        // Rate limit also updates after PR add/refresh operations
+        setInterval(loadRateLimit, 600000);
     </script>
 </body>
 

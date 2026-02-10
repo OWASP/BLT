@@ -8,6 +8,14 @@ from datetime import datetime
 # This is safe in Cloudflare Workers Python as each isolate runs single-threaded
 _schema_init_attempted = False
 
+# In-memory cache for rate limit data (per worker isolate)
+_rate_limit_cache = {
+    'data': None,
+    'timestamp': 0
+}
+# Cache TTL in seconds (5 minutes)
+_RATE_LIMIT_CACHE_TTL = 300
+
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -396,7 +404,23 @@ async def handle_rate_limit(env):
             - reset: Unix timestamp when the limit resets
             - used: Number of requests used
     """
+    global _rate_limit_cache
+    
     try:
+        # Check cache first to avoid excessive API calls
+        import time
+        current_time = time.time()
+        
+        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
+            # Return cached data
+            return Response.new(
+                json.dumps(_rate_limit_cache['data']), 
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+                }}
+            )
+        
         headers = {
             'User-Agent': 'PR-Tracker/1.0',
             'Accept': 'application/vnd.github+json',
@@ -409,8 +433,13 @@ async def handle_rate_limit(env):
         
         if response.status != 200:
             error_msg = await response.text()
-            return Response.new(json.dumps({'error': f'GitHub API Error: {response.status}'}), 
-                              {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
+            return Response.new(
+                json.dumps({
+                    'error': f'GitHub API Error: {response.status}',
+                    'details': error_msg
+                }), 
+                {'status': response.status, 'headers': {'Content-Type': 'application/json'}}
+            )
         
         rate_data = (await response.json()).to_py()
         
@@ -424,8 +453,17 @@ async def handle_rate_limit(env):
             'used': core_limit.get('used', 0)
         }
         
-        return Response.new(json.dumps(result), 
-                          {'headers': {'Content-Type': 'application/json'}})
+        # Update cache
+        _rate_limit_cache['data'] = result
+        _rate_limit_cache['timestamp'] = current_time
+        
+        return Response.new(
+            json.dumps(result), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+            }}
+        )
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
