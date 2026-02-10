@@ -381,6 +381,7 @@ async def handle_refresh_pr(request, env):
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
         # Generate timestamps in Python for consistency and testability
+        # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
         current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         
         # Update database
