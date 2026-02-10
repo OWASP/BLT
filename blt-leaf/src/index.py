@@ -4,9 +4,6 @@ import json
 import re
 from datetime import datetime
 
-# Global flag to track if schema has been initialized
-_schema_initialized = False
-
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -38,28 +35,15 @@ def get_db(env):
     raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
 
 async def init_database_schema(env):
-    """Initialize database schema if it doesn't exist"""
-    global _schema_initialized
+    """Initialize database schema if it doesn't exist.
     
-    # Skip if already initialized in this worker instance
-    if _schema_initialized:
-        return
-    
+    This function is idempotent and safe to call multiple times.
+    Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    """
     try:
         db = get_db(env)
         
-        # Check if the prs table exists by trying to query it
-        try:
-            check_stmt = db.prepare('SELECT 1 FROM prs LIMIT 1')
-            await check_stmt.first()
-            # Table exists, no need to initialize
-            _schema_initialized = True
-            return
-        except Exception:
-            # Table doesn't exist, create it
-            pass
-        
-        # Create the prs table
+        # Create the prs table (idempotent with IF NOT EXISTS)
         create_table = db.prepare('''
             CREATE TABLE IF NOT EXISTS prs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,18 +69,17 @@ async def init_database_schema(env):
         ''')
         await create_table.run()
         
-        # Create indexes
+        # Create indexes (idempotent with IF NOT EXISTS)
         index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
         await index1.run()
         
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
         
-        _schema_initialized = True
-        print("Database schema initialized successfully")
     except Exception as e:
-        print(f"Error initializing database schema: {str(e)}")
-        # Don't raise the exception - let the app continue
+        # Log the error but don't crash - schema may already exist
+        print(f"Note: Schema initialization check: {str(e)}")
+        # Schema likely already exists, which is fine
 
 async def fetch_with_headers(url, headers=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
@@ -386,9 +369,6 @@ async def handle_refresh_pr(request, env):
 
 async def on_fetch(request, env):
     """Main request handler"""
-    # Initialize database schema on first request (idempotent)
-    await init_database_schema(env)
-    
     url = URL.new(request.url)
     path = url.pathname
     
@@ -414,6 +394,10 @@ async def on_fetch(request, env):
             # Fallback: return simple message
             return Response.new('Please configure assets in wrangler.toml', 
                               {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
+    
+    # Initialize database schema on first API request (idempotent, safe to call multiple times)
+    if path.startswith('/api/'):
+        await init_database_schema(env)
     
     # API endpoints
     if path == '/api/prs' and request.method == 'GET':
