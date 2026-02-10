@@ -476,15 +476,34 @@
         async function loadRateLimit() {
             try {
                 const response = await fetch('/api/rate-limit');
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    console.error('Rate limit API returned non-OK status:', response.status);
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+                
                 const data = await response.json();
 
                 if (data.error) {
                     console.error('Error loading rate limit:', data.error);
+                    if (data.details) {
+                        console.error('Error details:', data.details);
+                    }
                     document.getElementById('rateLimitText').textContent = 'N/A';
                     return;
                 }
 
                 const { limit, remaining } = data;
+                
+                // Validate data
+                if (typeof limit !== 'number' || typeof remaining !== 'number') {
+                    console.error('Invalid rate limit data:', data);
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+                
                 const percentageRemaining = (remaining / limit) * 100;
 
                 // Update progress bar
@@ -507,7 +526,7 @@
                 document.getElementById('rateLimitText').textContent = `${remaining} / ${limit}`;
             } catch (error) {
                 console.error('Error loading rate limit:', error);
-                document.getElementById('rateLimitText').textContent = 'Error';
+                document.getElementById('rateLimitText').textContent = 'N/A';
             }
         }
 

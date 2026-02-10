@@ -1,8 +1,7 @@
-from js import Response, fetch, Headers, URL, Object
+from js import Response, fetch, Headers, URL, Object, Date
 from pyodide.ffi import to_js
 import json
 import re
-import time
 from datetime import datetime
 
 # Track if schema initialization has been attempted in this worker instance
@@ -409,7 +408,8 @@ async def handle_rate_limit(env):
     
     try:
         # Check cache first to avoid excessive API calls
-        current_time = time.time()
+        # Use JavaScript Date API for Cloudflare Workers compatibility
+        current_time = Date.now() / 1000  # Convert milliseconds to seconds
         
         if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
             # Return cached data
