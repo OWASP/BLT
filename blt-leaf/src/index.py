@@ -380,6 +380,42 @@ async def handle_refresh_pr(request, env):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+async def handle_rate_limit(env):
+    """Fetch GitHub API rate limit status"""
+    try:
+        headers = {
+            'User-Agent': 'PR-Tracker/1.0',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+        
+        # Fetch rate limit from GitHub API
+        rate_limit_url = "https://api.github.com/rate_limit"
+        response = await fetch_with_headers(rate_limit_url, headers)
+        
+        if response.status != 200:
+            error_msg = await response.text()
+            return Response.new(json.dumps({'error': f'GitHub API Error: {response.status}'}), 
+                              {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
+        
+        rate_data = (await response.json()).to_py()
+        
+        # Extract core rate limit info
+        core_limit = rate_data.get('resources', {}).get('core', {})
+        
+        result = {
+            'limit': core_limit.get('limit', 60),
+            'remaining': core_limit.get('remaining', 0),
+            'reset': core_limit.get('reset', 0),
+            'used': core_limit.get('used', 0)
+        }
+        
+        return Response.new(json.dumps(result), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
 async def on_fetch(request, env):
     """Main request handler"""
     url = URL.new(request.url)
@@ -434,6 +470,12 @@ async def on_fetch(request, env):
     
     if path == '/api/refresh' and request.method == 'POST':
         response = await handle_refresh_pr(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/rate-limit' and request.method == 'GET':
+        response = await handle_rate_limit(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response

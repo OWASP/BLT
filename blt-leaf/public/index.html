@@ -350,12 +350,65 @@
             font-weight: 600;
             color: #58a6ff;
         }
+
+        .rate-limit-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .rate-limit-label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            white-space: nowrap;
+        }
+
+        .rate-limit-bar {
+            flex: 1;
+            max-width: 300px;
+            height: 8px;
+            background: #21262d;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #238636, #2ea043);
+            border-radius: 4px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .rate-limit-fill.warning {
+            background: linear-gradient(90deg, #d29922, #e0a727);
+        }
+
+        .rate-limit-fill.critical {
+            background: linear-gradient(90deg, #da3633, #f85149);
+        }
+
+        .rate-limit-text {
+            font-size: 0.8rem;
+            color: #c9d1d9;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: right;
+        }
     </style>
 </head>
 
 <body>
     <header>
         <h1>🍃 PR Readiness Checker</h1>
+        <div class="rate-limit-section">
+            <div class="rate-limit-label">GitHub API Rate Limit:</div>
+            <div class="rate-limit-bar">
+                <div class="rate-limit-fill" id="rateLimitFill"></div>
+            </div>
+            <div class="rate-limit-text" id="rateLimitText">Loading...</div>
+        </div>
     </header>
 
     <div class="container">
@@ -401,6 +454,42 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Load and display GitHub rate limit
+        async function loadRateLimit() {
+            try {
+                const response = await fetch('/api/rate-limit');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading rate limit:', data.error);
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+
+                const { limit, remaining, used } = data;
+                const percentageUsed = (used / limit) * 100;
+                const percentageRemaining = (remaining / limit) * 100;
+
+                // Update progress bar
+                const fillElement = document.getElementById('rateLimitFill');
+                fillElement.style.width = `${percentageRemaining}%`;
+
+                // Update color based on remaining percentage
+                fillElement.className = 'rate-limit-fill';
+                if (percentageRemaining < 20) {
+                    fillElement.classList.add('critical');
+                } else if (percentageRemaining < 50) {
+                    fillElement.classList.add('warning');
+                }
+
+                // Update text
+                document.getElementById('rateLimitText').textContent = `${remaining} / ${limit}`;
+            } catch (error) {
+                console.error('Error loading rate limit:', error);
+                document.getElementById('rateLimitText').textContent = 'Error';
+            }
         }
 
         // Utility function to calculate time ago
@@ -688,6 +777,8 @@
                     input.value = '';
                     await loadRepos();
                     await loadPrs();
+                    // Refresh rate limit after adding PR
+                    await loadRateLimit();
                 }
             } catch (error) {
                 console.error('Error adding PR:', error);
@@ -715,6 +806,8 @@
                     showError(data.error);
                 } else {
                     await loadPrs();
+                    // Refresh rate limit after refreshing PR
+                    await loadRateLimit();
                 }
             } catch (error) {
                 console.error('Error refreshing PR:', error);
@@ -742,8 +835,12 @@
 
         // Initial load
 
+        loadRateLimit();
         loadRepos();
         loadPrs();
+
+        // Refresh rate limit every 60 seconds
+        setInterval(loadRateLimit, 60000);
     </script>
 </body>
 
