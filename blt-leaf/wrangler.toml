@@ -6,7 +6,7 @@ compatibility_flags = ["python_workers"]
 [[d1_databases]]
 binding = "DB"
 database_name = "pr_tracker"
-# database_id is omitted to enable automatic provisioning with Deploy to Cloudflare
+database_id = "00000000-0000-0000-0000-000000000000"  # Placeholder - will be replaced during deployment
 
 [vars]
 ENVIRONMENT = "production"

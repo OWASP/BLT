@@ -45,10 +45,10 @@ Copy the database ID from the output and update `wrangler.toml`:
 [[d1_databases]]
 binding = "DB"
 database_name = "pr_tracker"
-database_id = "YOUR_DATABASE_ID_HERE"  # Add this line with your actual database ID
+database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID
 ```
 
-**Note:** If you're deploying via the Deploy to Cloudflare button, this step is done automatically.
+**Note:** The repository includes a placeholder database_id. If you're deploying via the Deploy to Cloudflare button, the database_id is automatically replaced during deployment. For manual deployment, replace the placeholder with your actual database ID from the previous step.
 
 4. **Initialize Database Schema**
 
