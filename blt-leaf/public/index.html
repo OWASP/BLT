@@ -294,6 +294,16 @@
             background: #8b949e;
         }
 
+        .check-stat a {
+            color: inherit;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .check-stat a:hover {
+            color: #58a6ff;
+        }
+
         .time-ago {
             color: #8b949e;
             font-size: 0.85rem;
@@ -630,7 +640,7 @@
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-failure"></div>
-                                    <span>${pr.checks_failed} failed</span>
+                                    <span>${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${pr.pr_number}/checks" target="_blank" rel="noopener noreferrer">${pr.checks_failed} failed</a>` : `${pr.checks_failed} failed`}</span>
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-skipped"></div>
