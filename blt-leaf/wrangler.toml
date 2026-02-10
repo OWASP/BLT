@@ -4,11 +4,20 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
 # D1 Database Configuration (Optional)
-# Uncomment and configure after creating your D1 database:
+# To enable database functionality, uncomment the section below and add your database ID.
+# You only need to do this once - the database ID can be obtained from:
+# 1. Creating a new database: wrangler d1 create pr-tracker
+# 2. Or listing existing databases: wrangler d1 list
+# 
+# Alternative: Use Cloudflare Dashboard
+# - Navigate to Workers & Pages > D1
+# - Create or select your database
+# - Copy the database ID and paste it below
+#
 # [[d1_databases]]
 # binding = "DB"
 # database_name = "pr_tracker"
-# database_id = "YOUR_DATABASE_ID_HERE"  # Replace with actual database ID from: wrangler d1 create pr-tracker
+# database_id = ""  # Paste your database ID here
 
 [vars]
 ENVIRONMENT = "production"

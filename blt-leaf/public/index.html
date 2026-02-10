@@ -501,6 +501,21 @@
             white-space: pre;
         }
 
+        .info-box ul {
+            margin-left: 1.5rem;
+            color: #8b949e;
+            list-style-type: disc;
+        }
+
+        .info-box a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+
         .pr-actions {
             display: flex;
             justify-content: flex-end;
@@ -569,20 +584,36 @@
 
             <div class="settings-section">
                 <h3>Database Setup Instructions</h3>
-                <p>To enable full PR tracking functionality, you need to configure a D1 database. Follow these steps:</p>
+                <p>To enable full PR tracking functionality, you need to configure a D1 database. Choose one of the following methods:</p>
                 
+                <h4 style="color: #58a6ff; margin-top: 1.5rem; margin-bottom: 0.5rem;">Method 1: Using Cloudflare Dashboard (No File Editing)</h4>
                 <div class="info-box">
                     <ol>
-                        <li>Create a D1 database using Wrangler CLI:
+                        <li>Log in to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">Cloudflare Dashboard</a></li>
+                        <li>Navigate to <strong>Workers & Pages</strong> → <strong>D1</strong></li>
+                        <li>Click <strong>Create Database</strong> and name it "pr-tracker"</li>
+                        <li>Copy the database ID from the database details page</li>
+                        <li>In your worker settings:
+                            <ul style="margin-top: 0.5rem;">
+                                <li>Go to <strong>Settings</strong> → <strong>Variables</strong></li>
+                                <li>Add D1 Database Binding: name "DB", database "pr-tracker"</li>
+                            </ul>
+                        </li>
+                        <li>Initialize the schema using Wrangler CLI:
+                            <div class="code-block">wrangler d1 execute pr-tracker --file=./schema.sql</div>
+                        </li>
+                        <li>Your database is now configured - refresh this page!</li>
+                    </ol>
+                </div>
+
+                <h4 style="color: #58a6ff; margin-top: 1.5rem; margin-bottom: 0.5rem;">Method 2: Using Wrangler CLI</h4>
+                <div class="info-box">
+                    <ol>
+                        <li>Create a D1 database:
                             <div class="code-block">wrangler d1 create pr-tracker</div>
                         </li>
                         <li>Copy the database ID from the output</li>
-                        <li>Update your <code>wrangler.toml</code> file by uncommenting the database section:
-                            <div class="code-block">[[d1_databases]]
-binding = "DB"
-database_name = "pr_tracker"
-database_id = "your-database-id"</div>
-                        </li>
+                        <li>Update <code>wrangler.toml</code> by uncommenting the database section and pasting your database ID</li>
                         <li>Initialize the database schema:
                             <div class="code-block">wrangler d1 execute pr-tracker --file=./schema.sql</div>
                         </li>
@@ -592,12 +623,12 @@ database_id = "your-database-id"</div>
                     </ol>
                 </div>
 
-                <p><strong>Note:</strong> Database configuration requires redeployment. After following these steps, refresh this page to see the updated status.</p>
+                <p><strong>Note:</strong> After configuration, refresh this page to see the updated database status.</p>
             </div>
 
             <div class="settings-section">
-                <h3>Alternative: Deploy to Cloudflare Button</h3>
-                <p>For automatic setup, use the "Deploy to Cloudflare" button in the repository README. This will automatically provision and configure the database for you.</p>
+                <h3>Alternative: One-Click Deploy</h3>
+                <p>For automatic setup with zero configuration, use the "Deploy to Cloudflare" button in the repository README. This will automatically provision and configure the database for you.</p>
             </div>
         </div>
     </div>

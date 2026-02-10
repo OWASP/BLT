@@ -50,7 +50,37 @@ The worker will deploy successfully and serve the HTML interface. However, the P
 
 ### Full Setup (With Database)
 
-To enable full PR tracking functionality:
+To enable full PR tracking functionality, choose one of these methods:
+
+#### Method 1: Using Cloudflare Dashboard (No File Editing Required)
+
+1. **Deploy the Worker**
+```bash
+npm install -g wrangler
+wrangler login
+wrangler deploy
+```
+
+2. **Configure Database via Dashboard**
+   - Log in to [Cloudflare Dashboard](https://dash.cloudflare.com)
+   - Navigate to **Workers & Pages** → **D1**
+   - Click **Create Database** and name it "pr-tracker"
+   - Go to your worker's **Settings** → **Variables**
+   - Add a **D1 Database Binding**:
+     - Variable name: `DB`
+     - D1 database: Select "pr-tracker"
+   - Click **Save**
+
+3. **Initialize Database Schema**
+```bash
+wrangler d1 execute pr-tracker --file=./schema.sql
+```
+
+4. **Verify Setup**
+
+Open your worker URL and click the **⚙️ Settings** button in the header. The status indicator should show "Database Connected" in green.
+
+#### Method 2: Using Wrangler CLI
 
 1. **Install Wrangler**
 ```bash
@@ -69,13 +99,13 @@ wrangler login
 wrangler d1 create pr-tracker
 ```
 
-Copy the database ID from the output and update `wrangler.toml` by uncommenting the database section and replacing the placeholder:
+Copy the database ID from the output and update `wrangler.toml` by uncommenting the database section and pasting your database ID:
 ```toml
 # Change from this (commented):
 # [[d1_databases]]
 # binding = "DB"
 # database_name = "pr_tracker"
-# database_id = "YOUR_DATABASE_ID_HERE"
+# database_id = ""
 
 # To this (uncommented with your actual ID):
 [[d1_databases]]
@@ -86,13 +116,9 @@ database_id = "abc123-your-actual-database-id-here"
 
 4. **Initialize Database Schema**
 
-The database schema is automatically initialized when you first access the application. However, if you prefer to initialize it manually, you can run:
-
 ```bash
 wrangler d1 execute pr-tracker --file=./schema.sql
 ```
-
-**Note:** If you're deploying via the Deploy to Cloudflare button, schema initialization happens automatically on first use.
 
 5. **Test Locally**
 ```bash

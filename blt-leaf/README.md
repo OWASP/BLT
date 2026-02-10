@@ -102,17 +102,22 @@ npm install -g wrangler
 wrangler login
 ```
 
-4. Create the D1 database:
-```bash
-wrangler d1 create pr-tracker
-```
+4. Configure the database using **one of these methods**:
 
-5. Update `wrangler.toml` with your database ID from the previous step (uncomment the [[d1_databases]] section and add your database ID).
+   **Option A: Cloudflare Dashboard (No file editing)**
+   - Create database at [Cloudflare Dashboard](https://dash.cloudflare.com) → Workers & Pages → D1
+   - Add D1 binding to your worker via dashboard Settings → Variables
+   
+   **Option B: Wrangler CLI**
+   - Create database: `wrangler d1 create pr-tracker`
+   - Update `wrangler.toml` with the database ID
 
-6. Initialize the database schema:
+5. Initialize the database schema:
 ```bash
 wrangler d1 execute pr-tracker --file=./schema.sql
 ```
+
+For detailed instructions on both methods, see [DEPLOYMENT.md](DEPLOYMENT.md) or click the **⚙️ Settings** button in the deployed application.
 
 ### Development
 
