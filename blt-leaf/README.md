@@ -16,8 +16,6 @@ The deploy button will automatically:
 
 No manual configuration required!
 
-**Note:** After deployment, you can check the database status by clicking the **⚙️ Settings** button in the application header.
-
 ## Project Structure
 
 ```
@@ -55,9 +53,7 @@ BLT-Leaf/
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
 - Cloudflare account
 
-### Quick Deployment (Without Database)
-
-For a quick deployment to test the worker:
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -75,49 +71,17 @@ npm install -g wrangler
 wrangler login
 ```
 
-4. Deploy:
+4. Create the D1 database:
 ```bash
-wrangler deploy
+wrangler d1 create pr-tracker
 ```
 
-The worker will deploy successfully and serve the HTML interface. To enable full PR tracking functionality, configure a D1 database (see below).
+5. Update `wrangler.toml` with your database ID from the previous step.
 
-### Full Installation (With Database)
-
-To enable PR tracking features:
-
-1. Clone the repository:
-```bash
-git clone https://github.com/OWASP-BLT/BLT-Leaf.git
-cd BLT-Leaf
-```
-
-2. Install Wrangler (if not already installed):
-```bash
-npm install -g wrangler
-```
-
-3. Login to Cloudflare:
-```bash
-wrangler login
-```
-
-4. Configure the database using **one of these methods**:
-
-   **Option A: Cloudflare Dashboard (No file editing)**
-   - Create database at [Cloudflare Dashboard](https://dash.cloudflare.com) → Workers & Pages → D1
-   - Add D1 binding to your worker via dashboard Settings → Variables
-   
-   **Option B: Wrangler CLI**
-   - Create database: `wrangler d1 create pr-tracker`
-   - Update `wrangler.toml` with the database ID
-
-5. Initialize the database schema:
+6. Initialize the database schema:
 ```bash
 wrangler d1 execute pr-tracker --file=./schema.sql
 ```
-
-For detailed instructions on both methods, see [DEPLOYMENT.md](DEPLOYMENT.md) or click the **⚙️ Settings** button in the deployed application.
 
 ### Development
 
@@ -148,26 +112,6 @@ wrangler deploy
    - Author information
 3. **Filter by Repo**: Click on a repository in the sidebar to filter PRs
 4. **Refresh Data**: Use the refresh button to update PR information from GitHub
-5. **Settings**: Click the ⚙️ Settings button in the header to:
-   - Check database configuration status
-   - View setup instructions
-   - Get help with database configuration
-
-## Database Configuration
-
-The application works in two modes:
-
-**Without Database (Limited Mode):**
-- Can deploy and view the interface
-- Cannot add or track PRs
-- Settings page shows "Database Not Configured" status
-
-**With Database (Full Mode):**
-- Full PR tracking functionality
-- Can add, view, and refresh PRs
-- Settings page shows "Database Connected" status
-
-To set up the database, click the **⚙️ Settings** button in the application header and follow the step-by-step instructions provided there.
 
 ## API Endpoints
 

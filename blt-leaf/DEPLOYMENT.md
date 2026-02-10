@@ -15,72 +15,13 @@ The easiest way to deploy BLT-Leaf is using the Deploy to Cloudflare button:
 
 **No manual configuration required!** The database is automatically set up and the application is ready to track PRs.
 
-**After deployment:** Click the **⚙️ Settings** button in the application header to verify your database configuration status.
-
 ---
 
 ## Manual Deployment
 
 If you prefer manual deployment or need more control, follow these steps:
 
-### Quick Start (Without Database)
-
-For a quick deployment to verify the worker is running (without database functionality):
-
-1. **Install Wrangler**
-```bash
-npm install -g wrangler
-# or
-npm install
-```
-
-2. **Login to Cloudflare**
-```bash
-wrangler login
-```
-
-3. **Deploy to Production**
-```bash
-wrangler deploy
-```
-
-The worker will deploy successfully and serve the HTML interface. However, the PR tracking features (add, list, refresh) will not work until you configure a database.
-
-**To check your database status:** After deployment, click the **⚙️ Settings** button in the application header. The settings page will show whether your database is configured and provide setup instructions if needed.
-
-### Full Setup (With Database)
-
-To enable full PR tracking functionality, choose one of these methods:
-
-#### Method 1: Using Cloudflare Dashboard (No File Editing Required)
-
-1. **Deploy the Worker**
-```bash
-npm install -g wrangler
-wrangler login
-wrangler deploy
-```
-
-2. **Configure Database via Dashboard**
-   - Log in to [Cloudflare Dashboard](https://dash.cloudflare.com)
-   - Navigate to **Workers & Pages** → **D1**
-   - Click **Create Database** and name it "pr-tracker"
-   - Go to your worker's **Settings** → **Variables**
-   - Add a **D1 Database Binding**:
-     - Variable name: `DB`
-     - D1 database: Select "pr-tracker"
-   - Click **Save**
-
-3. **Initialize Database Schema**
-```bash
-wrangler d1 execute pr-tracker --file=./schema.sql
-```
-
-4. **Verify Setup**
-
-Open your worker URL and click the **⚙️ Settings** button in the header. The status indicator should show "Database Connected" in green.
-
-#### Method 2: Using Wrangler CLI
+## Quick Start
 
 1. **Install Wrangler**
 ```bash
@@ -99,26 +40,25 @@ wrangler login
 wrangler d1 create pr-tracker
 ```
 
-Copy the database ID from the output and update `wrangler.toml` by uncommenting the database section and pasting your database ID:
+Copy the database ID from the output and update `wrangler.toml`:
 ```toml
-# Change from this (commented):
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "pr_tracker"
-# database_id = ""
-
-# To this (uncommented with your actual ID):
 [[d1_databases]]
 binding = "DB"
 database_name = "pr_tracker"
-database_id = "abc123-your-actual-database-id-here"
+database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID
 ```
 
+**Note:** The repository includes a placeholder database_id. If you're deploying via the Deploy to Cloudflare button, the database_id is automatically replaced during deployment. For manual deployment, replace the placeholder with your actual database ID from the previous step.
+
 4. **Initialize Database Schema**
+
+The database schema is automatically initialized when you first access the application. However, if you prefer to initialize it manually, you can run:
 
 ```bash
 wrangler d1 execute pr-tracker --file=./schema.sql
 ```
+
+**Note:** If you're deploying via the Deploy to Cloudflare button, schema initialization happens automatically on first use.
 
 5. **Test Locally**
 ```bash
@@ -129,10 +69,6 @@ wrangler dev
 ```bash
 wrangler deploy
 ```
-
-7. **Verify Setup**
-
-After deployment, open your worker URL and click the **⚙️ Settings** button in the header to verify that your database is properly configured. The status indicator should show "Database Connected" in green.
 
 ## Testing the Application
 

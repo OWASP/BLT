@@ -25,30 +25,11 @@
             background: #161b22;
             border-bottom: 1px solid #30363d;
             padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         header h1 {
             font-size: 1.5rem;
             color: #58a6ff;
-        }
-
-        .settings-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .settings-btn:hover {
-            background: #30363d;
-            border-color: #58a6ff;
         }
 
         .container {
@@ -359,171 +340,6 @@
             color: #c9d1d9;
         }
 
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-header h2 {
-            color: #58a6ff;
-            font-size: 1.5rem;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #8b949e;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .close-btn:hover {
-            color: #c9d1d9;
-        }
-
-        .settings-section {
-            margin-bottom: 2rem;
-        }
-
-        .settings-section h3 {
-            color: #c9d1d9;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-
-        .settings-section h4 {
-            color: #58a6ff;
-            font-size: 1rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .settings-section p {
-            color: #8b949e;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .status-indicator.connected {
-            background: rgba(35, 134, 54, 0.2);
-            color: #3fb950;
-            border: 1px solid #238636;
-        }
-
-        .status-indicator.disconnected {
-            background: rgba(218, 54, 51, 0.2);
-            color: #f85149;
-            border: 1px solid #da3633;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .info-box {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-box code {
-            background: #21262d;
-            color: #58a6ff;
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-        }
-
-        .info-box ol {
-            margin-left: 1.5rem;
-            color: #8b949e;
-        }
-
-        .info-box li {
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-        }
-
-        .muted-text {
-            color: #8b949e;
-        }
-
-        .code-block {
-            background: #21262d;
-            color: #58a6ff;
-            padding: 0.5rem;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            white-space: pre;
-        }
-
-        .info-box ul {
-            margin-left: 1.5rem;
-            margin-top: 0.5rem;
-            color: #8b949e;
-            list-style-type: disc;
-        }
-
-        .info-box a {
-            color: #58a6ff;
-            text-decoration: none;
-        }
-
-        .info-box a:hover {
-            text-decoration: underline;
-        }
-
         .pr-actions {
             display: flex;
             justify-content: flex-end;
@@ -540,7 +356,6 @@
 <body>
     <header>
         <h1>🍃 PR Readiness Checker</h1>
-        <button class="settings-btn" id="settingsBtn">⚙️ Settings</button>
     </header>
 
     <div class="container">
@@ -573,72 +388,6 @@
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Settings</h2>
-                <button class="close-btn" id="closeSettingsBtn">&times;</button>
-            </div>
-
-            <div class="settings-section">
-                <h3>Database Status</h3>
-                <div id="dbStatus">
-                    <div class="loading">Checking database status...</div>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h3>Database Setup Instructions</h3>
-                <p><strong>Database configuration is required for this application to function.</strong> Choose one of the following methods:</p>
-                
-                <h4>Method 1: Using Cloudflare Dashboard (Recommended - No File Editing)</h4>
-                <div class="info-box">
-                    <ol>
-                        <li>Log in to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a></li>
-                        <li>Navigate to <strong>Workers & Pages</strong> → <strong>D1</strong></li>
-                        <li>Click <strong>Create Database</strong> and name it "pr-tracker"</li>
-                        <li>Copy the database ID from the database details page</li>
-                        <li>In your worker settings:
-                            <ul>
-                                <li>Go to <strong>Settings</strong> → <strong>Variables</strong></li>
-                                <li>Add D1 Database Binding: name "DB", database "pr-tracker"</li>
-                            </ul>
-                        </li>
-                        <li>Initialize the schema using Wrangler CLI:
-                            <div class="code-block">wrangler d1 execute pr-tracker --file=./schema.sql</div>
-                        </li>
-                        <li>Your database is now configured - refresh this page!</li>
-                    </ol>
-                </div>
-
-                <h4>Method 2: Using Wrangler CLI</h4>
-                <div class="info-box">
-                    <ol>
-                        <li>Create a D1 database:
-                            <div class="code-block">wrangler d1 create pr-tracker</div>
-                        </li>
-                        <li>Copy the database ID from the output</li>
-                        <li>Update <code>wrangler.toml</code> by uncommenting the database section and pasting your database ID</li>
-                        <li>Initialize the database schema:
-                            <div class="code-block">wrangler d1 execute pr-tracker --file=./schema.sql</div>
-                        </li>
-                        <li>Redeploy your worker:
-                            <div class="code-block">wrangler deploy</div>
-                        </li>
-                    </ol>
-                </div>
-
-                <p><strong>Note:</strong> After configuration, refresh this page to see the updated database status.</p>
-            </div>
-
-            <div class="settings-section">
-                <h3>Alternative: One-Click Deploy</h3>
-                <p>For automatic setup with zero configuration, use the "Deploy to Cloudflare" button in the repository README. This will automatically provision and configure the database for you.</p>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -978,61 +727,6 @@
         document.getElementById('prUrlInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addPr();
-            }
-        });
-
-        // Settings Modal Functions
-        async function checkDatabaseStatus() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                
-                const statusDiv = document.getElementById('dbStatus');
-                if (data.database_configured) {
-                    statusDiv.innerHTML = `
-                        <div class="status-indicator connected">
-                            <span class="status-dot"></span>
-                            Database Connected
-                        </div>
-                        <p class="muted-text">Your D1 database is properly configured and ready to use.</p>
-                    `;
-                } else {
-                    statusDiv.innerHTML = `
-                        <div class="status-indicator disconnected">
-                            <span class="status-dot"></span>
-                            Database Not Configured
-                        </div>
-                        <p class="muted-text"><strong>Database configuration is required.</strong> The application will not function without a database. Please follow the instructions below to set up your database.</p>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error checking database status:', error);
-                const statusDiv = document.getElementById('dbStatus');
-                statusDiv.innerHTML = `
-                    <div class="status-indicator disconnected">
-                        <span class="status-dot"></span>
-                        Unable to Check Status
-                    </div>
-                    <p class="muted-text">Could not determine database status. Please check your connection.</p>
-                `;
-            }
-        }
-
-        // Settings button click handler
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.add('show');
-            checkDatabaseStatus();
-        });
-
-        // Close settings modal
-        document.getElementById('closeSettingsBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.remove('show');
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('settingsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'settingsModal') {
-                document.getElementById('settingsModal').classList.remove('show');
             }
         });
 
