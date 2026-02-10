@@ -3,9 +3,10 @@ main = "src/index.py"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
-# D1 Database should be configured via Cloudflare Dashboard
-# Navigate to: Workers & Pages > Your Worker > Settings > Variables
-# Add D1 Database Binding with name "DB" pointing to your pr-tracker database
+[[d1_databases]]
+binding = "DB"
+database_name = "pr_tracker"
+database_id = "014201e7-6c0e-4b6a-8c0e-c53d18305dca"
 
 [vars]
 ENVIRONMENT = "production"
