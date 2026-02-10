@@ -381,7 +381,18 @@ async def handle_refresh_pr(request, env):
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
 async def handle_rate_limit(env):
-    """Fetch GitHub API rate limit status"""
+    """Fetch GitHub API rate limit status
+    
+    Args:
+        env: Cloudflare Worker environment object containing bindings
+        
+    Returns:
+        Response object with JSON containing:
+            - limit: Maximum number of requests per hour
+            - remaining: Number of requests remaining
+            - reset: Unix timestamp when the limit resets
+            - used: Number of requests used
+    """
     try:
         headers = {
             'User-Agent': 'PR-Tracker/1.0',
