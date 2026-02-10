@@ -524,6 +524,8 @@ describe('GitHub API Mock Test', () => {
       });
 
       assert.ok(assignScope.isDone(), 'Assignment should succeed on regular issues');
+    });
+  });
 
   describe('Human commenter guard for /assign and /unassign', () => {
     function isHumanCommenter(comment) {
