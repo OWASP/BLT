@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -97,6 +98,9 @@
 
         .input-section {
             margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .input-group {
@@ -348,6 +352,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>🍃 PR Readiness Checker</h1>
@@ -367,13 +372,15 @@
         <main class="main-content">
             <div class="input-section">
                 <div class="input-group">
-                    <input 
-                        type="text" 
-                        id="prUrlInput" 
+                    <input type="text" id="prUrlInput"
                         placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)"
-                        autocomplete="off"
-                    />
+                        autocomplete="off" />
                     <button class="btn" id="addPrBtn">Add PR</button>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="githubToken"
+                        placeholder="GitHub Personal Access Token (Optional - for higher rate limits)"
+                        autocomplete="off" />
                 </div>
                 <div id="errorMessage"></div>
             </div>
@@ -405,7 +412,7 @@
             const date = new Date(dateString);
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
-            
+
             const intervals = {
                 year: 31536000,
                 month: 2592000,
@@ -414,14 +421,14 @@
                 hour: 3600,
                 minute: 60
             };
-            
+
             for (const [name, value] of Object.entries(intervals)) {
                 const interval = Math.floor(seconds / value);
                 if (interval >= 1) {
                     return `${interval} ${name}${interval === 1 ? '' : 's'} ago`;
                 }
             }
-            
+
             return 'just now';
         }
 
@@ -443,12 +450,12 @@
             try {
                 const response = await fetch('/api/repos');
                 const data = await response.json();
-                
+
                 if (data.error) {
                     showError(data.error);
                     return;
                 }
-                
+
                 repos = data.repos;
                 renderRepoList();
             } catch (error) {
@@ -460,29 +467,29 @@
         function renderRepoList() {
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
-            
+
             // Update all repos count
             const totalPrs = allPrs.length;
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
-            
+
             // Clear existing repo items (except "All")
             const allItem = repoList.querySelector('[data-repo="all"]');
             // Remove all children except the "All" item
             while (repoList.children.length > 1) {
                 repoList.removeChild(repoList.lastChild);
             }
-            
+
             // Add repo items
             repos.forEach(repo => {
                 const li = document.createElement('li');
                 li.className = 'repo-item';
                 li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
-                
+
                 li.innerHTML = `
                     <div class="repo-name">${repo.repo_owner}/${repo.repo_name}</div>
                     <div class="repo-count">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
                 `;
-                
+
                 li.addEventListener('click', () => {
                     currentRepo = li.dataset.repo;
                     document.querySelectorAll('.repo-item').forEach(item => {
@@ -491,7 +498,7 @@
                     li.classList.add('active');
                     loadPrs();
                 });
-                
+
                 repoList.appendChild(li);
             });
         }
@@ -500,21 +507,21 @@
         async function loadPrs() {
             const container = document.getElementById('prListContainer');
             container.innerHTML = '<div class="loading">Loading PRs...</div>';
-            
+
             try {
-                const url = currentRepo === 'all' 
-                    ? '/api/prs' 
+                const url = currentRepo === 'all'
+                    ? '/api/prs'
                     : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
-                
+
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 if (data.error) {
                     showError(data.error);
                     container.innerHTML = '<div class="empty-state"><h3>Error loading PRs</h3></div>';
                     return;
                 }
-                
+
                 allPrs = data.prs;
                 renderPrList();
             } catch (error) {
@@ -527,7 +534,7 @@
         // Render PR list
         function renderPrList() {
             const container = document.getElementById('prListContainer');
-            
+
             if (allPrs.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -537,14 +544,14 @@
                 `;
                 return;
             }
-            
+
             container.innerHTML = '<div class="pr-list" id="prList"></div>';
             const prList = document.getElementById('prList');
-            
+
             allPrs.forEach(pr => {
                 const prCard = document.createElement('div');
                 prCard.className = 'pr-card';
-                
+
                 // Determine state badge
                 let stateBadge = '';
                 if (pr.is_merged) {
@@ -554,7 +561,7 @@
                 } else {
                     stateBadge = '<span class="badge badge-closed">Closed</span>';
                 }
-                
+
                 // Determine review badge
                 let reviewBadge = '';
                 if (pr.review_status === 'approved') {
@@ -566,7 +573,7 @@
                 } else {
                     reviewBadge = '<span class="badge badge-none">No Reviews</span>';
                 }
-                
+
                 // Determine mergeable state
                 let mergeableText = pr.mergeable_state || 'unknown';
                 if (mergeableText === 'clean') {
@@ -578,14 +585,14 @@
                 } else if (mergeableText === 'unstable') {
                     mergeableText = '⚠ Unstable';
                 }
-                
+
                 // Validate and sanitize avatar URL - ensure it's from GitHub
-                const avatarUrl = pr.author_avatar && 
-                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || 
-                     pr.author_avatar.startsWith('https://github.com/'))
-                    ? pr.author_avatar 
+                const avatarUrl = pr.author_avatar &&
+                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') ||
+                        pr.author_avatar.startsWith('https://github.com/'))
+                    ? pr.author_avatar
                     : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect width="40" height="40" fill="%2330363d"/%3E%3C/svg%3E';
-                
+
                 // Build PR card with escaped user content
                 prCard.innerHTML = `
                     <div class="pr-header">
@@ -641,10 +648,10 @@
                         <button class="refresh-btn" data-pr-id="${pr.id}">Refresh</button>
                     </div>
                 `;
-                
+
                 prList.appendChild(prCard);
             });
-            
+
             // Add refresh button listeners
             document.querySelectorAll('.refresh-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
@@ -657,28 +664,35 @@
         // Add PR
         async function addPr() {
             const input = document.getElementById('prUrlInput');
+            const tokenInput = document.getElementById('githubToken');
             const btn = document.getElementById('addPrBtn');
             const prUrl = input.value.trim();
-            
+            const token = tokenInput.value.trim();
+
+            if (token) {
+                localStorage.setItem('github_token', token);
+            }
+
             if (!prUrl) {
                 showError('Please enter a PR URL');
                 return;
             }
-            
+
             btn.disabled = true;
             btn.textContent = 'Adding...';
-            
+
             try {
                 const response = await fetch('/api/prs', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                     },
                     body: JSON.stringify({ pr_url: prUrl })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.error) {
                     showError(data.error);
                 } else {
@@ -701,13 +715,14 @@
                 const response = await fetch('/api/refresh', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...(localStorage.getItem('github_token') ? { 'Authorization': `Bearer ${localStorage.getItem('github_token')}` } : {})
                     },
                     body: JSON.stringify({ pr_id: prId })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.error) {
                     showError(data.error);
                 } else {
@@ -738,8 +753,13 @@
         });
 
         // Initial load
+        const savedToken = localStorage.getItem('github_token');
+        if (savedToken) {
+            document.getElementById('githubToken').value = savedToken;
+        }
         loadRepos();
         loadPrs();
     </script>
 </body>
+
 </html>
