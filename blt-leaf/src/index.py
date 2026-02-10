@@ -344,6 +344,9 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR not found'}), 
                               {'status': 404, 'headers': {'Content-Type': 'application/json'}})
         
+        # Convert JsProxy to Python dict to make it subscriptable
+        result = result.to_py()
+        
         # Fetch fresh data from GitHub
         pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
         if not pr_data:
