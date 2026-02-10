@@ -53,7 +53,36 @@ BLT-Leaf/
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
 - Cloudflare account
 
-### Installation
+### Quick Deployment (Without Database)
+
+For a quick deployment to test the worker:
+
+1. Clone the repository:
+```bash
+git clone https://github.com/OWASP-BLT/BLT-Leaf.git
+cd BLT-Leaf
+```
+
+2. Install Wrangler (if not already installed):
+```bash
+npm install -g wrangler
+```
+
+3. Login to Cloudflare:
+```bash
+wrangler login
+```
+
+4. Deploy:
+```bash
+wrangler deploy
+```
+
+The worker will deploy successfully and serve the HTML interface. To enable full PR tracking functionality, configure a D1 database (see below).
+
+### Full Installation (With Database)
+
+To enable PR tracking features:
 
 1. Clone the repository:
 ```bash
@@ -76,7 +105,7 @@ wrangler login
 wrangler d1 create pr-tracker
 ```
 
-5. Update `wrangler.toml` with your database ID from the previous step.
+5. Update `wrangler.toml` with your database ID from the previous step (uncomment the [[d1_databases]] section and add your database ID).
 
 6. Initialize the database schema:
 ```bash

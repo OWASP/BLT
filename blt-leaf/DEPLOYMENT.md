@@ -21,7 +21,32 @@ The easiest way to deploy BLT-Leaf is using the Deploy to Cloudflare button:
 
 If you prefer manual deployment or need more control, follow these steps:
 
-## Quick Start
+### Quick Start (Without Database)
+
+For a quick deployment to verify the worker is running (without database functionality):
+
+1. **Install Wrangler**
+```bash
+npm install -g wrangler
+# or
+npm install
+```
+
+2. **Login to Cloudflare**
+```bash
+wrangler login
+```
+
+3. **Deploy to Production**
+```bash
+wrangler deploy
+```
+
+The worker will deploy successfully and serve the HTML interface. However, the PR tracking features (add, list, refresh) will not work until you configure a database.
+
+### Full Setup (With Database)
+
+To enable full PR tracking functionality:
 
 1. **Install Wrangler**
 ```bash
@@ -42,13 +67,12 @@ wrangler d1 create pr-tracker
 
 Copy the database ID from the output and update `wrangler.toml`:
 ```toml
+# Uncomment these lines and replace the database_id
 [[d1_databases]]
 binding = "DB"
 database_name = "pr_tracker"
 database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID
 ```
-
-**Note:** The repository includes a placeholder database_id. If you're deploying via the Deploy to Cloudflare button, the database_id is automatically replaced during deployment. For manual deployment, replace the placeholder with your actual database ID from the previous step.
 
 4. **Initialize Database Schema**
 
