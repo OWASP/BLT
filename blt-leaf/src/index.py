@@ -4,6 +4,10 @@ import json
 import re
 from datetime import datetime
 
+# Track if schema initialization has been attempted in this worker instance
+# This is safe in Cloudflare Workers Python as each isolate runs single-threaded
+_schema_init_attempted = False
+
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -39,7 +43,16 @@ async def init_database_schema(env):
     
     This function is idempotent and safe to call multiple times.
     Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    A module-level flag prevents redundant calls within the same worker instance.
     """
+    global _schema_init_attempted
+    
+    # Skip if already attempted in this worker instance
+    if _schema_init_attempted:
+        return
+    
+    _schema_init_attempted = True
+    
     try:
         db = get_db(env)
         
