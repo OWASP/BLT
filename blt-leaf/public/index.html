@@ -640,7 +640,7 @@
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-failure"></div>
-                                    <span>${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${pr.pr_number}/checks" target="_blank" rel="noopener noreferrer">${pr.checks_failed} failed</a>` : `${pr.checks_failed} failed`}</span>
+                                    <span>${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-skipped"></div>
