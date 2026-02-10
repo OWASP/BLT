@@ -65,13 +65,19 @@ wrangler login
 wrangler d1 create pr-tracker
 ```
 
-Copy the database ID from the output and update `wrangler.toml`:
+Copy the database ID from the output and update `wrangler.toml` by uncommenting the database section and replacing the placeholder:
 ```toml
-# Uncomment these lines and replace the database_id
+# Change from this (commented):
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "pr_tracker"
+# database_id = "YOUR_DATABASE_ID_HERE"
+
+# To this (uncommented with your actual ID):
 [[d1_databases]]
 binding = "DB"
 database_name = "pr_tracker"
-database_id = "YOUR_DATABASE_ID_HERE"  # Replace with your actual database ID
+database_id = "abc123-your-actual-database-id-here"
 ```
 
 4. **Initialize Database Schema**
