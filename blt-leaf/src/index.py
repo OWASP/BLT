@@ -412,6 +412,19 @@ async def handle_refresh_pr(request, env):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+async def handle_status(env):
+    """Check database status"""
+    try:
+        db = get_db(env)
+        return Response.new(json.dumps({
+            'database_configured': db is not None,
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
 async def on_fetch(request, env):
     """Main request handler"""
     url = URL.new(request.url)
@@ -466,6 +479,12 @@ async def on_fetch(request, env):
     
     if path == '/api/refresh' and request.method == 'POST':
         response = await handle_refresh_pr(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/status' and request.method == 'GET':
+        response = await handle_status(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
