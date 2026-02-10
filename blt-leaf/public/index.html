@@ -350,6 +350,32 @@
             color: #c9d1d9;
         }
 
+        .refresh-btn.refreshing {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #8b949e;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-timestamp {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
         .pr-actions {
             display: flex;
             justify-content: flex-end;
@@ -769,6 +795,7 @@
                     
                     <div class="pr-actions">
                         <button class="refresh-btn" data-pr-id="${pr.id}">Refresh</button>
+                        ${pr.last_refreshed_at ? `<span class="refresh-timestamp">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
                     </div>
                 `;
 
@@ -829,6 +856,30 @@
 
         // Refresh PR
         async function refreshPr(prId) {
+            // Find button using proper escaping
+            const buttons = document.querySelectorAll('.refresh-btn');
+            let btn = null;
+            for (const button of buttons) {
+                // dataset values are strings, ensure prId is also a string for comparison
+                if (button.dataset.prId === String(prId)) {
+                    btn = button;
+                    break;
+                }
+            }
+            if (!btn) return;
+            
+            // Add spinner using DOM manipulation to avoid XSS
+            const originalText = btn.textContent;
+            btn.classList.add('refreshing');
+            btn.textContent = '';
+            
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            btn.appendChild(spinner);
+            
+            const text = document.createTextNode('Refreshing...');
+            btn.appendChild(text);
+            
             try {
                 const response = await fetch('/api/refresh', {
                     method: 'POST',
@@ -842,6 +893,8 @@
 
                 if (data.error) {
                     showError(data.error);
+                    btn.textContent = originalText;
+                    btn.classList.remove('refreshing');
                 } else {
                     await loadPrs();
                     // Refresh rate limit after refreshing PR
@@ -850,6 +903,8 @@
             } catch (error) {
                 console.error('Error refreshing PR:', error);
                 showError('Failed to refresh PR');
+                btn.textContent = originalText;
+                btn.classList.remove('refreshing');
             }
         }
 
