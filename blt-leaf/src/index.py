@@ -46,17 +46,13 @@ async def fetch_with_headers(url, headers=None):
     else:
         return await fetch(url)
 
-async def fetch_pr_data(owner, repo, pr_number, token=None):
+async def fetch_pr_data(owner, repo, pr_number):
     """Fetch PR data from GitHub API"""
     headers = {
         'User-Agent': 'PR-Tracker/1.0',
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
-    
-    if token:
-        token = token.strip()
-        headers['Authorization'] = f"Bearer {token}" if not token.startswith('Bearer ') else token
         
     try:
         # Fetch PR details
@@ -67,7 +63,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             rl_limit = pr_response.headers.get('x-ratelimit-limit', 'unknown')
             rl_remaining = pr_response.headers.get('x-ratelimit-remaining', 'unknown')
             error_body = await pr_response.text()
-            print(f"DEBUG: GitHub API Error. Status: {pr_response.status}. Token used: {bool(token)}. Body: {error_body}")
+            error_body = await pr_response.text()
+            print(f"DEBUG: GitHub API Error. Status: {pr_response.status}. Body: {error_body}")
             print(f"DEBUG: Sent headers due to error: User-Agent={headers.get('User-Agent', 'MISSING')}")
             raise Exception(f"GitHub API Error {pr_response.status}: {error_body} (Limit: {rl_limit}, Remaining: {rl_remaining})")
         elif pr_response.status == 404:
@@ -163,12 +160,8 @@ async def handle_add_pr(request, env):
             return Response.new(json.dumps({'error': 'Invalid GitHub PR URL'}), 
                               {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        # Get token from headers
-        auth_header = request.headers.get('Authorization')
-        token = auth_header.replace('Bearer ', '') if auth_header and auth_header.startswith('Bearer ') else None
-        
         # Fetch PR data from GitHub
-        pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'], token)
+        pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'])
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
@@ -290,12 +283,8 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR not found'}), 
                               {'status': 404, 'headers': {'Content-Type': 'application/json'}})
         
-        # Get token from headers
-        auth_header = request.headers.get('Authorization')
-        token = auth_header.replace('Bearer ', '') if auth_header and auth_header.startswith('Bearer ') else None
-        
         # Fetch fresh data from GitHub
-        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'], token)
+        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})

@@ -377,11 +377,7 @@
                         autocomplete="off" />
                     <button class="btn" id="addPrBtn">Add PR</button>
                 </div>
-                <div class="input-group">
-                    <input type="password" id="githubToken"
-                        placeholder="GitHub Personal Access Token (Optional - for higher rate limits)"
-                        autocomplete="off" />
-                </div>
+
                 <div id="errorMessage"></div>
             </div>
 
@@ -664,14 +660,8 @@
         // Add PR
         async function addPr() {
             const input = document.getElementById('prUrlInput');
-            const tokenInput = document.getElementById('githubToken');
             const btn = document.getElementById('addPrBtn');
             const prUrl = input.value.trim();
-            const token = tokenInput.value.trim();
-
-            if (token) {
-                localStorage.setItem('github_token', token);
-            }
 
             if (!prUrl) {
                 showError('Please enter a PR URL');
@@ -685,8 +675,7 @@
                 const response = await fetch('/api/prs', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ pr_url: prUrl })
                 });
@@ -715,8 +704,7 @@
                 const response = await fetch('/api/refresh', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        ...(localStorage.getItem('github_token') ? { 'Authorization': `Bearer ${localStorage.getItem('github_token')}` } : {})
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ pr_id: prId })
                 });
@@ -753,10 +741,7 @@
         });
 
         // Initial load
-        const savedToken = localStorage.getItem('github_token');
-        if (savedToken) {
-            document.getElementById('githubToken').value = savedToken;
-        }
+
         loadRepos();
         loadPrs();
     </script>
