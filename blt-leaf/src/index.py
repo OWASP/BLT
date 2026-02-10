@@ -21,7 +21,10 @@ def parse_pr_url(pr_url):
     return None
 
 def get_db(env):
-    """Helper to get DB binding from env, handling different env types"""
+    """Helper to get DB binding from env, handling different env types.
+    
+    Raises an exception if database is not configured.
+    """
     # Try common binding names
     for name in ['pr_tracker', 'DB']:
         # Try attribute access
@@ -34,9 +37,9 @@ def get_db(env):
             except (KeyError, TypeError):
                 pass
     
-    # Log available attributes for debugging if still not found
+    # Database not configured - raise error
     print(f"DEBUG: env attributes: {dir(env)}")
-    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
+    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env. Please configure a D1 database.")
 
 async def init_database_schema(env):
     """Initialize database schema if it doesn't exist.
@@ -276,20 +279,18 @@ async def handle_add_pr(request, env):
 async def handle_list_prs(env, repo_filter=None):
     """List all PRs, optionally filtered by repo"""
     try:
+        db = get_db(env)
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                db = get_db(env)
                 stmt = db.prepare('''
                     SELECT * FROM prs 
                     WHERE repo_owner = ? AND repo_name = ?
                     ORDER BY last_updated_at DESC
                 ''').bind(parts[0], parts[1])
             else:
-                db = get_db(env)
                 stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         else:
-            db = get_db(env)
             stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         
         result = await stmt.all()
@@ -343,6 +344,9 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR not found'}), 
                               {'status': 404, 'headers': {'Content-Type': 'application/json'}})
         
+        # Convert JsProxy to Python dict to make it subscriptable
+        result = result.to_py()
+        
         # Fetch fresh data from GitHub
         pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
         if not pr_data:
@@ -350,7 +354,6 @@ async def handle_refresh_pr(request, env):
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
         # Update database
-        db = get_db(env)
         stmt = db.prepare('''
             UPDATE prs SET
                 title = ?, state = ?, is_merged = ?, mergeable_state = ?,
@@ -426,6 +429,24 @@ async def handle_rate_limit(env):
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+async def handle_status(env):
+    """Check database status"""
+    try:
+        db = get_db(env)
+        # If we got here, database is configured (would have thrown exception otherwise)
+        return Response.new(json.dumps({
+            'database_configured': True,
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        # Database not configured
+        return Response.new(json.dumps({
+            'database_configured': False,
+            'error': str(e),
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
 
 async def on_fetch(request, env):
     """Main request handler"""
@@ -487,6 +508,8 @@ async def on_fetch(request, env):
     
     if path == '/api/rate-limit' and request.method == 'GET':
         response = await handle_rate_limit(env)
+    if path == '/api/status' and request.method == 'GET':
+        response = await handle_status(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
