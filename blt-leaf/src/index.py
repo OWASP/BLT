@@ -1,4 +1,4 @@
-from js import Response, fetch, Headers, URL, Object
+from js import Response, fetch, Headers, URL, Object, Date
 from pyodide.ffi import to_js
 import json
 import re
@@ -7,6 +7,14 @@ from datetime import datetime
 # Track if schema initialization has been attempted in this worker instance
 # This is safe in Cloudflare Workers Python as each isolate runs single-threaded
 _schema_init_attempted = False
+
+# In-memory cache for rate limit data (per worker isolate)
+_rate_limit_cache = {
+    'data': None,
+    'timestamp': 0
+}
+# Cache TTL in seconds (5 minutes)
+_RATE_LIMIT_CACHE_TTL = 300
 
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
@@ -383,6 +391,82 @@ async def handle_refresh_pr(request, env):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+async def handle_rate_limit(env):
+    """Fetch GitHub API rate limit status
+    
+    Args:
+        env: Cloudflare Worker environment object containing bindings
+        
+    Returns:
+        Response object with JSON containing:
+            - limit: Maximum number of requests per hour
+            - remaining: Number of requests remaining
+            - reset: Unix timestamp when the limit resets
+            - used: Number of requests used
+    """
+    global _rate_limit_cache
+    
+    try:
+        # Check cache first to avoid excessive API calls
+        # Use JavaScript Date API for Cloudflare Workers compatibility
+        current_time = Date.now() / 1000  # Convert milliseconds to seconds
+        
+        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
+            # Return cached data
+            return Response.new(
+                json.dumps(_rate_limit_cache['data']), 
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+                }}
+            )
+        
+        headers = {
+            'User-Agent': 'PR-Tracker/1.0',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+        
+        # Fetch rate limit from GitHub API
+        rate_limit_url = "https://api.github.com/rate_limit"
+        response = await fetch_with_headers(rate_limit_url, headers)
+        
+        if response.status != 200:
+            error_msg = await response.text()
+            return Response.new(
+                json.dumps({
+                    'error': f'GitHub API Error: {response.status}',
+                    'details': error_msg
+                }), 
+                {'status': response.status, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        rate_data = (await response.json()).to_py()
+        
+        # Extract core rate limit info
+        core_limit = rate_data.get('resources', {}).get('core', {})
+        
+        result = {
+            'limit': core_limit.get('limit', 60),
+            'remaining': core_limit.get('remaining', 0),
+            'reset': core_limit.get('reset', 0),
+            'used': core_limit.get('used', 0)
+        }
+        
+        # Update cache
+        _rate_limit_cache['data'] = result
+        _rate_limit_cache['timestamp'] = current_time
+        
+        return Response.new(
+            json.dumps(result), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+            }}
+        )
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 async def handle_status(env):
     """Check database status"""
     try:
@@ -460,6 +544,8 @@ async def on_fetch(request, env):
             response.headers.set(key, value)
         return response
     
+    if path == '/api/rate-limit' and request.method == 'GET':
+        response = await handle_rate_limit(env)
     if path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
         for key, value in cors_headers.items():
