@@ -424,6 +424,13 @@
             margin-bottom: 1rem;
         }
 
+        .settings-section h4 {
+            color: #58a6ff;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
         .settings-section p {
             color: #8b949e;
             line-height: 1.6;
@@ -503,6 +510,7 @@
 
         .info-box ul {
             margin-left: 1.5rem;
+            margin-top: 0.5rem;
             color: #8b949e;
             list-style-type: disc;
         }
@@ -586,15 +594,15 @@
                 <h3>Database Setup Instructions</h3>
                 <p>To enable full PR tracking functionality, you need to configure a D1 database. Choose one of the following methods:</p>
                 
-                <h4 style="color: #58a6ff; margin-top: 1.5rem; margin-bottom: 0.5rem;">Method 1: Using Cloudflare Dashboard (No File Editing)</h4>
+                <h4>Method 1: Using Cloudflare Dashboard (No File Editing)</h4>
                 <div class="info-box">
                     <ol>
-                        <li>Log in to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" style="color: #58a6ff;">Cloudflare Dashboard</a></li>
+                        <li>Log in to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a></li>
                         <li>Navigate to <strong>Workers & Pages</strong> → <strong>D1</strong></li>
                         <li>Click <strong>Create Database</strong> and name it "pr-tracker"</li>
                         <li>Copy the database ID from the database details page</li>
                         <li>In your worker settings:
-                            <ul style="margin-top: 0.5rem;">
+                            <ul>
                                 <li>Go to <strong>Settings</strong> → <strong>Variables</strong></li>
                                 <li>Add D1 Database Binding: name "DB", database "pr-tracker"</li>
                             </ul>
@@ -606,7 +614,7 @@
                     </ol>
                 </div>
 
-                <h4 style="color: #58a6ff; margin-top: 1.5rem; margin-bottom: 0.5rem;">Method 2: Using Wrangler CLI</h4>
+                <h4>Method 2: Using Wrangler CLI</h4>
                 <div class="info-box">
                     <ol>
                         <li>Create a D1 database:

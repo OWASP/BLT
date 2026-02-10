@@ -17,7 +17,7 @@ compatibility_flags = ["python_workers"]
 # [[d1_databases]]
 # binding = "DB"
 # database_name = "pr_tracker"
-# database_id = ""  # Paste your database ID here
+# database_id = "your-database-id-here"  # Replace with your actual database ID
 
 [vars]
 ENVIRONMENT = "production"
