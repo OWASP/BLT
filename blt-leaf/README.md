@@ -2,6 +2,20 @@
 
 A simple one-page application to track and monitor GitHub Pull Request readiness status.
 
+## Quick Deploy
+
+Deploy this application to Cloudflare Workers with one click:
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-Leaf)
+
+The deploy button will automatically:
+- Create a new Cloudflare Workers project
+- Provision a D1 database
+- Initialize the database schema
+- Deploy the application
+
+No manual configuration required!
+
 ## Project Structure
 
 ```

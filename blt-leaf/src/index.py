@@ -34,6 +34,59 @@ def get_db(env):
     print(f"DEBUG: env attributes: {dir(env)}")
     raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
 
+async def init_database_schema(env):
+    """Initialize database schema if it doesn't exist"""
+    try:
+        db = get_db(env)
+        
+        # Check if the prs table exists by trying to query it
+        try:
+            check_stmt = db.prepare('SELECT 1 FROM prs LIMIT 1')
+            await check_stmt.first()
+            # Table exists, no need to initialize
+            return
+        except:
+            # Table doesn't exist, create it
+            pass
+        
+        # Create the prs table
+        create_table = db.prepare('''
+            CREATE TABLE IF NOT EXISTS prs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pr_url TEXT NOT NULL UNIQUE,
+                repo_owner TEXT NOT NULL,
+                repo_name TEXT NOT NULL,
+                pr_number INTEGER NOT NULL,
+                title TEXT,
+                state TEXT,
+                is_merged INTEGER DEFAULT 0,
+                mergeable_state TEXT,
+                files_changed INTEGER DEFAULT 0,
+                author_login TEXT,
+                author_avatar TEXT,
+                checks_passed INTEGER DEFAULT 0,
+                checks_failed INTEGER DEFAULT 0,
+                checks_skipped INTEGER DEFAULT 0,
+                review_status TEXT,
+                last_updated_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        await create_table.run()
+        
+        # Create indexes
+        index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
+        await index1.run()
+        
+        index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
+        await index2.run()
+        
+        print("Database schema initialized successfully")
+    except Exception as e:
+        print(f"Error initializing database schema: {str(e)}")
+        # Don't raise the exception - let the app continue
+
 async def fetch_with_headers(url, headers=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
     if headers:
@@ -322,6 +375,9 @@ async def handle_refresh_pr(request, env):
 
 async def on_fetch(request, env):
     """Main request handler"""
+    # Initialize database schema on first request (idempotent)
+    await init_database_schema(env)
+    
     url = URL.new(request.url)
     path = url.pathname
     
