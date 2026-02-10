@@ -4,6 +4,9 @@ import json
 import re
 from datetime import datetime
 
+# Global flag to track if schema has been initialized
+_schema_initialized = False
+
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -36,6 +39,12 @@ def get_db(env):
 
 async def init_database_schema(env):
     """Initialize database schema if it doesn't exist"""
+    global _schema_initialized
+    
+    # Skip if already initialized in this worker instance
+    if _schema_initialized:
+        return
+    
     try:
         db = get_db(env)
         
@@ -44,8 +53,9 @@ async def init_database_schema(env):
             check_stmt = db.prepare('SELECT 1 FROM prs LIMIT 1')
             await check_stmt.first()
             # Table exists, no need to initialize
+            _schema_initialized = True
             return
-        except:
+        except Exception:
             # Table doesn't exist, create it
             pass
         
@@ -82,6 +92,7 @@ async def init_database_schema(env):
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
         
+        _schema_initialized = True
         print("Database schema initialized successfully")
     except Exception as e:
         print(f"Error initializing database schema: {str(e)}")
