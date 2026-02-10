@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# BLT-Leaf Local Development Setup Script
+echo "🍃 BLT-Leaf Local Setup"
+echo "========================"
+
+# Check wrangler is installed
+if ! command -v wrangler &> /dev/null; then
+    echo "❌ Wrangler not found. Install it with: npm install -g wrangler"
+    exit 1
+fi
+
+# Login check
+echo ""
+echo "📋 Step 1: Checking Cloudflare login..."
+wrangler whoami 2>/dev/null || wrangler login
+
+# Create D1 database
+echo ""
+echo "📋 Step 2: Creating D1 database..."
+DB_OUTPUT=$(wrangler d1 create pr-tracker 2>&1)
+echo "$DB_OUTPUT"
+
+# Extract database_id
+DB_ID=$(echo "$DB_OUTPUT" | grep "database_id" | awk -F'"' '{print $2}')
+
+if [ -n "$DB_ID" ]; then
+    echo ""
+    echo "📋 Step 3: Updating wrangler.toml with database_id..."
+    sed -i "s/database_id = \".*\"/database_id = \"$DB_ID\"/" wrangler.toml
+    echo "✅ wrangler.toml updated with database_id: $DB_ID"
+else
+    echo ""
+    echo "⚠️  Could not auto-update wrangler.toml."
+    echo "    Please manually update 'database_id' in wrangler.toml with your real database ID."
+fi
+
+# Apply schema locally
+echo ""
+echo "📋 Step 4: Applying database schema locally..."
+wrangler d1 execute pr-tracker --local --file=./schema.sql
+echo "✅ Schema applied successfully"
+
+# Setup .env file
+echo ""
+echo "📋 Step 5: Setting up .env file..."
+if [ ! -f .env ]; then
+    cp env.example .env
+    echo "✅ Created .env file from env.example"
+    echo "💡 Optional: Add your GITHUB_TOKEN to .env to increase API rate limit from 60 to 5,000/hour"
+else
+    echo "✅ .env file already exists"
+fi
+
+echo ""
+echo "🎉 Setup complete!"
+echo "👉 Run 'wrangler dev' to start the local development server"
+echo "🌐 Open http://localhost:8787 in your browser"
