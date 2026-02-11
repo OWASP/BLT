@@ -59,15 +59,3 @@ echo ""
 echo "🎉 Setup complete!"
 echo "👉 Run 'wrangler dev' to start the local development server"
 echo "🌐 Open http://localhost:8787 in your browser"
-```
-
-## Update it on GitHub website:
-
-1. Go to `https://github.com/S3DFX-CYBER/BLT-Leaf`
-2. Switch to `fix-local-d1-setup` branch
-3. Click `setup-local.sh`
-4. Click **pencil icon ✏️** to edit
-5. Replace **everything** with the script above
-6. Commit message:
-```
-fix: Handle existing D1 database and auto-fetch database ID
