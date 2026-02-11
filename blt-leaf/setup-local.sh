@@ -41,7 +41,7 @@ fi
 # Apply schema locally
 echo ""
 echo "📋 Step 4: Applying database schema locally..."
-wrangler d1 execute pr-tracker --local --file=./schema.sql
+wrangler d1 execute DB --local --file=./schema.sql  # <-- Changed this line
 echo "✅ Schema applied successfully"
 
 # Setup .env file
