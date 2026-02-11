@@ -517,6 +517,12 @@ async def on_fetch(request, env):
     url = URL.new(request.url)
     path = url.pathname
     
+    # Strip /leaf prefix
+    if path == '/leaf':
+        path = '/'
+    elif path.startswith('/leaf/'):
+        path = path[5:]  # Remove '/leaf' (5 characters)
+    
     # CORS headers
     # NOTE: '*' allows all origins for public access. In production, consider
     # restricting to specific domains by setting this to your domain(s).
