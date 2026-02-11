@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PR Readiness Checker - BLT-Leaf</title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <!-- Font Awesome -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -18,28 +23,31 @@
     </style>
 </head>
 
-<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
-    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5">
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5 dark:border-slate-700 dark:bg-slate-800">
         <div class="flex justify-between item-center">
             <div class="mx-auto flex w-full flex-col gap-3 px-4 py-3 sm:px-6">
                 <div class="flex items-center gap-2.5">
                     <img width="30" src="./static/logo.png" alt="BLT-LEAF logo" onerror="this.style.display='none'" />
-                    <h1 class="font-semibold">BLT-LEAF</h1>
+                    <h1 class="font-semibold dark:text-white">BLT-LEAF</h1>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                    <div class="text-xs font-medium text-slate-500" id="rateLimitLabel">GitHub API Rate Limit:</div>
-                    <div class="rate-limit-bar h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-200" role="progressbar"
+                    <div class="text-xs font-medium text-slate-500 dark:text-slate-400" id="rateLimitLabel">GitHub API Rate Limit:</div>
+                    <div class="rate-limit-bar h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" role="progressbar"
                         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="rateLimitLabel"
                         aria-describedby="rateLimitText">
                         <div class="h-full w-0 rounded-full bg-[#E10000] transition-all duration-300" id="rateLimitFill"></div>
                     </div>
-                    <div class="text-xs font-semibold text-slate-700" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
+                    <div class="text-xs font-semibold text-slate-700 dark:text-slate-300" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
                 </div>
             </div>
-          <div class="flex items-center space-x-4">
-            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer">
-              <button class="flex gap-1 items-center"><i class="fab fa-github mr-2"></i> Contribute</button>
+          <div class="flex items-center space-x-3">
+            <button id="themeToggle" class="rounded-lg p-2.5 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700" aria-label="Toggle theme">
+              <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <a class="flex gap-1 items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer">
+              <i class="fab fa-github mr-2"></i> Contribute
             </a>
           </div>
         </div>
@@ -54,26 +62,26 @@
     </div>
 
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
-        <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r">
+        <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Repositories</h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories</h2>
                 <ul id="repoList" class="space-y-2">
-                    <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2" data-repo="all">
-                        <div class="repo-name text-sm font-semibold text-[#BC0000]">All Repositories</div>
-                        <div class="repo-count mt-0.5 text-xs text-slate-500" id="allReposCount">0 PRs</div>
+                    <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
+                        <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
+                        <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
                     </li>
                 </ul>
             </div>  
         </aside>
 
-        <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 ">
+        <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
             <section class="mb-6 space-y-3">
                 <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
-                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3]"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
                         placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)" autocomplete="off" />
                     <button id="addPrBtn"
-                        class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700">
+                        class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700 dark:disabled:border-red-800 dark:disabled:bg-red-950 dark:disabled:text-red-400">
                         Add PR
                     </button>
                 </div>
@@ -81,9 +89,9 @@
             </section>
 
             <div id="prListContainer">
-                <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                    <h3 class="text-xl font-semibold text-slate-900">No PRs Added Yet</h3>
-                    <p class="mt-2 text-sm text-slate-500">Add a GitHub PR URL above to start tracking</p>
+                <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
+                    <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p>
                 </div>
             </div>
         </main>
@@ -95,8 +103,8 @@
         let repos = [];
 
         const repoItemBaseClasses = ['repo-item', 'cursor-pointer', 'rounded-lg', 'border', 'px-3', 'py-2', 'transition-colors'];
-        const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50'];
-        const repoItemActiveClasses = ['active', 'border-[#f5b0b0]', 'bg-[#fff1f1]'];
+        const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50', 'dark:border-slate-700', 'dark:bg-slate-800', 'dark:hover:border-slate-600', 'dark:hover:bg-slate-700'];
+        const repoItemActiveClasses = ['active', 'border-[#f5b0b0]', 'bg-[#fff1f1]', 'dark:border-red-900', 'dark:bg-red-950/30'];
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -111,7 +119,7 @@
 
             const nameEl = item.querySelector('.repo-name');
             if (nameEl) {
-                nameEl.className = `repo-name text-sm font-semibold ${isActive ? 'text-[#BC0000]' : 'text-slate-800'}`;
+                nameEl.className = `repo-name text-sm font-semibold ${isActive ? 'text-[#BC0000] dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`;
             }
         }
 
@@ -237,8 +245,8 @@
                 setRepoItemActiveState(li, currentRepo === li.dataset.repo);
 
                 li.innerHTML = `
-                    <div class="repo-name text-sm font-semibold text-slate-800">${repo.repo_owner}/${repo.repo_name}</div>
-                    <div class="repo-count mt-0.5 text-xs text-slate-500">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                    <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200">${repo.repo_owner}/${repo.repo_name}</div>
+                    <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
                 `;
 
                 li.addEventListener('click', () => {
@@ -256,8 +264,8 @@
         async function loadPrs() {
             const container = document.getElementById('prListContainer');
             container.innerHTML = `
-                <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500">
-                    <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500"></span>
+                <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                    <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-400"></span>
                     Loading PRs...
                 </div>
             `;
@@ -269,7 +277,7 @@
 
                 if (data.error) {
                     showError(data.error);
-                    container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center"><h3 class="text-lg font-semibold text-slate-900">Error loading PRs</h3></div>';
+                    container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800"><h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Error loading PRs</h3></div>';
                     return;
                 }
 
@@ -278,7 +286,7 @@
             } catch (error) {
                 console.error('Error loading PRs:', error);
                 showError('Failed to load PRs');
-                container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center"><h3 class="text-lg font-semibold text-slate-900">Error loading PRs</h3></div>';
+                container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800"><h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Error loading PRs</h3></div>';
             }
         }
 
@@ -287,9 +295,9 @@
 
             if (allPrs.length === 0) {
                 container.innerHTML = `
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                        <h3 class="text-xl font-semibold text-slate-900">No PRs Found</h3>
-                        <p class="mt-2 text-sm text-slate-500">Add a GitHub PR URL above to start tracking</p>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
+                        <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Found</h3>
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p>
                     </div>
                 `;
                 return;
@@ -300,26 +308,26 @@
 
             allPrs.forEach(pr => {
                 const prCard = document.createElement('div');
-                prCard.className = 'rounded-xl border border-slate-200 bg-white p-5';
+                prCard.className = 'rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800';
 
                 let stateBadge = '';
                 if (pr.is_merged) {
-                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2.5 py-1 text-xs font-semibold text-[#BC0000]">Merged</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2.5 py-1 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
                 } else if (pr.state === 'open') {
-                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Open</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
                 } else {
-                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Closed</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
                 }
 
                 let reviewBadge = '';
                 if (pr.review_status === 'approved') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Approved</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Approved</span>';
                 } else if (pr.review_status === 'changes_requested') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Changes Requested</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Changes Requested</span>';
                 } else if (pr.review_status === 'pending') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">Pending Review</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">Pending Review</span>';
                 } else {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">No Reviews</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">No Reviews</span>';
                 }
 
                 let mergeableText = pr.mergeable_state || 'unknown';
@@ -335,40 +343,40 @@
 
                 prCard.innerHTML = `
                     <div class="mb-4 flex flex-wrap items-start gap-3 sm:flex-nowrap">
-                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-10 w-10 rounded-full border border-slate-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-600" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                         <div class="min-w-0 flex-1">
-                            <h3 class="truncate text-base font-semibold text-slate-900"><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-[#BC0000]">${escapeHtml(pr.title)}</a></h3>
-                            <div class="mt-1 text-sm text-slate-500">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}</div>
+                            <h3 class="truncate text-base font-semibold text-slate-900 dark:text-slate-100"><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-[#BC0000] dark:hover:text-red-400">${escapeHtml(pr.title)}</a></h3>
+                            <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}</div>
                         </div>
                         <div class="shrink-0">${stateBadge}${reviewBadge}</div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Merge Status</div>
-                            <div class="mt-1 text-sm font-semibold text-slate-800">${escapeHtml(mergeableText)}</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Merge Status</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(mergeableText)}</div>
                         </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Files Changed</div>
-                            <div class="mt-1 text-sm font-semibold text-slate-800">${pr.files_changed}</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Files Changed</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">${pr.files_changed}</div>
                         </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Last Updated</div>
-                            <div class="mt-1 text-sm text-slate-600">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Last Updated</div>
+                            <div class="mt-1 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
                         </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Checks</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Checks</div>
                             <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-2 py-1 text-emerald-700">
-                                    <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-2 py-1 text-emerald-700 dark:border-emerald-900 dark:bg-slate-800 dark:text-emerald-400">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500"></span>
                                     <span>${pr.checks_passed} passed</span>
                                 </div>
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-2 py-1 text-red-700">
-                                    <span class="h-2 w-2 rounded-full bg-red-600"></span>
-                                    <span>${pr.checks_failed > 0 ? `<a class="underline hover:text-[#BC0000]" href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-2 py-1 text-red-700 dark:border-red-900 dark:bg-slate-800 dark:text-red-400">
+                                    <span class="h-2 w-2 rounded-full bg-red-600 dark:bg-red-500"></span>
+                                    <span>${pr.checks_failed > 0 ? `<a class="underline hover:text-[#BC0000] dark:hover:text-red-300" href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
                                 </div>
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
-                                    <span class="h-2 w-2 rounded-full bg-slate-500"></span>
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                    <span class="h-2 w-2 rounded-full bg-slate-500 dark:bg-slate-400"></span>
                                     <span>${pr.checks_skipped} skipped</span>
                                 </div>
                             </div>
@@ -376,8 +384,8 @@
                     </div>
 
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <button class="refresh-btn rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900" data-pr-id="${pr.id}">Refresh</button>
-                        ${pr.last_refreshed_at ? `<span class="text-xs text-slate-500">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
+                        <button class="refresh-btn rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100" data-pr-id="${pr.id}">Refresh</button>
+                        ${pr.last_refreshed_at ? `<span class="text-xs text-slate-500 dark:text-slate-400">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
                     </div>
                 `;
 
@@ -491,6 +499,39 @@
             loadPrs();
         });
 
+        // Theme toggle functionality
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        initTheme();
         loadRateLimit();
         loadRepos();
         loadPrs();
