@@ -29,3 +29,57 @@ Each job object in the `jobs` array has exactly these 15 fields (aligned with BL
 | `views_count` | number | View count (as of last sync) |
 
 Root shape: `{"jobs": [...], "count": N, "generated_at": "<iso8601>"}`.
+
+## Frontend
+
+- `index.html`: Job list page
+  - Loads `data/jobs.json`
+  - Client-side search (`q`) over title, description, organization name, and location
+  - Filters:
+    - `job_type`: `full-time`, `part-time`, `contract`, `internship`, `freelance`
+    - `location`: case-insensitive substring match
+  - Empty state with optional “Clear filters” when filters are active.
+- `job.html`: Job detail page
+  - Reads `id` from the query string (`job.html?id=<pk>`)
+  - Renders:
+    - Organization logo/name
+    - Title, location, job type, salary range, created_at
+    - Description, requirements, application instructions
+    - Apply buttons:
+      - `mailto:` if `application_email` is set
+      - External link if `application_url` is set
+    - “Applications Closed” if there is no active apply method.
+
+Both pages use **Tailwind CSS via CDN** for styling.
+
+## Deployment (GitHub Pages)
+
+This repository is designed to be deployed as a static site using **GitHub Pages**.
+
+1. Go to the repository settings in GitHub: **Settings → Pages**.
+2. Under “Build and deployment”, choose:
+   - **Source**: `Deploy from a branch`
+   - **Branch**: `main`, folder `/ (root)`.
+3. Save. GitHub Pages will build and serve the site from `index.html`.
+
+After a successful deploy, your site will be available at a URL like:
+
+- `https://<your-username>.github.io/BLT-Jobs/`
+
+or at the custom domain configured by the OWASP BLT organization once they point DNS at the Pages site.
+
+### Local Preview
+
+For quick local testing, you can serve the repository with a simple HTTP server, for example:
+
+```bash
+python -m http.server 8000
+```
+
+Then open:
+
+- `http://localhost:8000/index.html` – job list
+- `http://localhost:8000/job.html?id=<some-job-id>` – job detail
+
+Note: `fetch("data/jobs.json")` requires running over HTTP/HTTPS; opening `index.html` directly from the filesystem (`file://`) will not work.
+
