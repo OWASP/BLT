@@ -73,14 +73,14 @@ wrangler login
 
 4. Create the D1 database:
 ```bash
-wrangler d1 create pr-tracker
+wrangler d1 create pr_tracker
 ```
 
 5. Update `wrangler.toml` with your database ID from the previous step.
 
 6. Initialize the database schema:
 ```bash
-wrangler d1 execute pr-tracker --file=./schema.sql
+wrangler d1 execute pr_tracker --file=./schema.sql
 ```
 
 ### Development
