@@ -8,61 +8,149 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <div class="p-6 lg:p-8">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-        <div>
-          <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">
-            Find Your Next Opportunity
-          </h1>
-          <p class="text-lg text-gray-600 dark:text-gray-400">
-            Explore exciting job opportunities from leading organizations in cybersecurity and technology
-          </p>
-        </div>
-      </div>
-
-      <!-- Search & Filters -->
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 transition-colors duration-200"
-      >
-        <form
-          id="filtersForm"
-          class="flex flex-col lg:flex-row gap-4"
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="https://owaspblt.org/" class="flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#e74c3c] text-white font-bold">
+            B
+          </span>
+          <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            OWASP BLT
+          </span>
+        </a>
+        <button
+          id="themeToggle"
+          type="button"
+          class="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Toggle dark mode"
         >
-          <input
-            id="searchInput"
-            type="text"
-            placeholder="Search by job title, skills, or company..."
-            class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-          />
+          <span id="themeToggleIcon" class="text-sm">🌙</span>
+        </button>
+      </div>
+    </header>
 
-          <select
-            id="typeFilter"
-            class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+    <main class="flex-1">
+      <div class="p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+          <!-- Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+            <div>
+              <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">
+                Find Your Next Opportunity
+              </h1>
+              <p class="text-lg text-gray-600 dark:text-gray-400">
+                Explore exciting job opportunities from leading organizations in cybersecurity and technology
+              </p>
+            </div>
+          </div>
+
+          <!-- Search & Filters -->
+          <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 transition-colors duration-200"
           >
-            <option value="">All Types</option>
-            <option value="full-time">Full Time</option>
-            <option value="part-time">Part Time</option>
-            <option value="contract">Contract</option>
-            <option value="internship">Internship</option>
-            <option value="freelance">Freelance</option>
-          </select>
+            <form
+              id="filtersForm"
+              class="flex flex-col lg:flex-row gap-4"
+            >
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Search by job title, skills, or company..."
+                class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+              />
 
-          <input
-            id="locationFilter"
-            type="text"
-            placeholder="Location..."
-            class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-          />
+              <select
+                id="typeFilter"
+                class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+              >
+                <option value="">All Types</option>
+                <option value="full-time">Full Time</option>
+                <option value="part-time">Part Time</option>
+                <option value="contract">Contract</option>
+                <option value="internship">Internship</option>
+                <option value="freelance">Freelance</option>
+              </select>
 
-          <button
-            type="submit"
-            class="px-6 py-3 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105"
+              <input
+                id="locationFilter"
+                type="text"
+                placeholder="Location..."
+                class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+              />
+
+              <button
+                type="submit"
+                class="px-6 py-3 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105"
+              >
+                <span class="inline-flex items-center">
+                  <svg
+                    class="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    ></path>
+                  </svg>
+                  Search
+                </span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Results Count -->
+          <div id="resultsSummary" class="mb-6 hidden">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              <span
+                id="resultsCount"
+                class="font-semibold text-gray-900 dark:text-gray-100"
+              ></span>
+              <span id="resultsLabel" class="text-gray-600 dark:text-gray-400"></span>
+            </p>
+          </div>
+
+          <!-- Job Listings -->
+          <div id="jobList" class="space-y-4"></div>
+
+          <!-- Empty State -->
+          <div
+            id="emptyState"
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors duration-200 hidden"
           >
-            <span class="inline-flex items-center">
+            <svg
+              class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              No jobs found
+            </h3>
+            <p
+              id="emptyStateMessage"
+              class="text-gray-600 dark:text-gray-400 mb-4"
+            >
+              Check back later for new opportunities
+            </p>
+            <button
+              id="clearFiltersButton"
+              type="button"
+              class="inline-flex items-center text-[#e74c3c] hover:text-red-700 dark:text-[#e74c3c] dark:hover:text-[#f8c471] font-semibold transition-colors duration-200 hidden"
+            >
               <svg
-                class="w-5 h-5 mr-2"
+                class="w-4 h-4 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -71,80 +159,18 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  d="M6 18L18 6M6 6l12 12"
                 ></path>
               </svg>
-              Search
-            </span>
-          </button>
-        </form>
+              Clear filters
+            </button>
+          </div>
+        </div>
       </div>
-
-      <!-- Results Count -->
-      <div id="resultsSummary" class="mb-6 hidden">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          <span
-            id="resultsCount"
-            class="font-semibold text-gray-900 dark:text-gray-100"
-          ></span>
-          <span id="resultsLabel" class="text-gray-600 dark:text-gray-400"></span>
-        </p>
-      </div>
-
-      <!-- Job Listings -->
-      <div id="jobList" class="space-y-4"></div>
-
-      <!-- Empty State -->
-      <div
-        id="emptyState"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors duration-200 hidden"
-      >
-        <svg
-          class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          ></path>
-        </svg>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          No jobs found
-        </h3>
-        <p
-          id="emptyStateMessage"
-          class="text-gray-600 dark:text-gray-400 mb-4"
-        >
-          Check back later for new opportunities
-        </p>
-        <button
-          id="clearFiltersButton"
-          type="button"
-          class="inline-flex items-center text-[#e74c3c] hover:text-red-700 dark:text-[#e74c3c] dark:hover:text-[#f8c471] font-semibold transition-colors duration-200 hidden"
-        >
-          <svg
-            class="w-4 h-4 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-          Clear filters
-        </button>
-      </div>
-    </div>
+    </main>
   </div>
 
+  <script src="assets/js/theme.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>
