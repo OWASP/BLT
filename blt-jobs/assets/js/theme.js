@@ -1,34 +1,17 @@
-function applyStoredTheme() {
-  const stored = localStorage.getItem("theme");
-  const prefersDark = window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
+document.addEventListener("DOMContentLoaded", () => {
+  const htmlElement = document.documentElement;
 
-  const isDark = stored === "dark" || (!stored && prefersDark);
-
-  document.documentElement.classList.toggle("dark", isDark);
-
-  const icon = document.getElementById("themeToggleIcon");
-  if (icon) {
-    icon.textContent = isDark ? "☀️" : "🌙";
-  }
-}
-
-function initThemeToggle() {
-  applyStoredTheme();
-
-  const button = document.getElementById("themeToggle");
-  if (!button) return;
-
-  button.addEventListener("click", () => {
-    const isDark = document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-
-    const icon = document.getElementById("themeToggleIcon");
-    if (icon) {
-      icon.textContent = isDark ? "☀️" : "🌙";
+  document.addEventListener("click", (event) => {
+    const toggleButton = event.target.closest("#theme-toggle");
+    if (!toggleButton) {
+      return;
     }
-  });
-}
 
-document.addEventListener("DOMContentLoaded", initThemeToggle);
+    const isDark = htmlElement.classList.toggle("dark");
+    const newTheme = isDark ? "dark" : "light";
+
+    // Save user preference
+    localStorage.setItem("theme", newTheme);
+  });
+});
 
