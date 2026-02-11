@@ -26,6 +26,7 @@ from handlers import (
     handle_contributors,
     handle_repos,
     handle_health,
+    handle_homepage,
 )
 from utils import json_response, error_response, cors_headers
 
@@ -35,8 +36,8 @@ router = Router()
 
 # Register routes
 
-# Health check
-router.add_route("GET", "/", handle_health)
+# Homepage and health check
+router.add_route("GET", "/", handle_homepage)
 router.add_route("GET", "/health", handle_health)
 
 # Issues API
