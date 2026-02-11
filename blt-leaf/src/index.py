@@ -1,8 +1,20 @@
-from js import Response, fetch, Headers, URL, Object
+from js import Response, fetch, Headers, URL, Object, Date
 from pyodide.ffi import to_js
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
+
+# Track if schema initialization has been attempted in this worker instance
+# This is safe in Cloudflare Workers Python as each isolate runs single-threaded
+_schema_init_attempted = False
+
+# In-memory cache for rate limit data (per worker isolate)
+_rate_limit_cache = {
+    'data': None,
+    'timestamp': 0
+}
+# Cache TTL in seconds (5 minutes)
+_RATE_LIMIT_CACHE_TTL = 300
 
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
@@ -17,7 +29,10 @@ def parse_pr_url(pr_url):
     return None
 
 def get_db(env):
-    """Helper to get DB binding from env, handling different env types"""
+    """Helper to get DB binding from env, handling different env types.
+    
+    Raises an exception if database is not configured.
+    """
     # Try common binding names
     for name in ['pr_tracker', 'DB']:
         # Try attribute access
@@ -30,9 +45,84 @@ def get_db(env):
             except (KeyError, TypeError):
                 pass
     
-    # Log available attributes for debugging if still not found
+    # Database not configured - raise error
     print(f"DEBUG: env attributes: {dir(env)}")
-    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env")
+    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env. Please configure a D1 database.")
+
+async def init_database_schema(env):
+    """Initialize database schema if it doesn't exist.
+    
+    This function is idempotent and safe to call multiple times.
+    Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    Includes migration logic to add missing columns to existing tables.
+    A module-level flag prevents redundant calls within the same worker instance.
+    """
+    global _schema_init_attempted
+    
+    # Skip if already attempted in this worker instance
+    if _schema_init_attempted:
+        return
+    
+    _schema_init_attempted = True
+    
+    try:
+        db = get_db(env)
+        
+        # Create the prs table (idempotent with IF NOT EXISTS)
+        create_table = db.prepare('''
+            CREATE TABLE IF NOT EXISTS prs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pr_url TEXT NOT NULL UNIQUE,
+                repo_owner TEXT NOT NULL,
+                repo_name TEXT NOT NULL,
+                pr_number INTEGER NOT NULL,
+                title TEXT,
+                state TEXT,
+                is_merged INTEGER DEFAULT 0,
+                mergeable_state TEXT,
+                files_changed INTEGER DEFAULT 0,
+                author_login TEXT,
+                author_avatar TEXT,
+                checks_passed INTEGER DEFAULT 0,
+                checks_failed INTEGER DEFAULT 0,
+                checks_skipped INTEGER DEFAULT 0,
+                review_status TEXT,
+                last_updated_at TEXT,
+                last_refreshed_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        await create_table.run()
+        
+        # Migration: Add last_refreshed_at column if it doesn't exist
+        # Check if column exists by querying PRAGMA table_info
+        try:
+            pragma_result = db.prepare('PRAGMA table_info(prs)')
+            columns_result = await pragma_result.all()
+            columns = columns_result.results.to_py() if hasattr(columns_result, 'results') else []
+            
+            # Check if last_refreshed_at column exists
+            column_names = [col['name'] for col in columns if isinstance(col, dict)]
+            if 'last_refreshed_at' not in column_names:
+                print("Migrating database: Adding last_refreshed_at column")
+                alter_table = db.prepare('ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT')
+                await alter_table.run()
+        except Exception as migration_error:
+            # Column may already exist or migration failed - log but continue
+            print(f"Note: Migration check for last_refreshed_at: {str(migration_error)}")
+        
+        # Create indexes (idempotent with IF NOT EXISTS)
+        index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
+        await index1.run()
+        
+        index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
+        await index2.run()
+        
+    except Exception as e:
+        # Log the error but don't crash - schema may already exist
+        print(f"Note: Schema initialization check: {str(e)}")
+        # Schema likely already exists, which is fine
 
 async def fetch_with_headers(url, headers=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
@@ -216,20 +306,18 @@ async def handle_add_pr(request, env):
 async def handle_list_prs(env, repo_filter=None):
     """List all PRs, optionally filtered by repo"""
     try:
+        db = get_db(env)
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                db = get_db(env)
                 stmt = db.prepare('''
                     SELECT * FROM prs 
                     WHERE repo_owner = ? AND repo_name = ?
                     ORDER BY last_updated_at DESC
                 ''').bind(parts[0], parts[1])
             else:
-                db = get_db(env)
                 stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         else:
-            db = get_db(env)
             stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
         
         result = await stmt.all()
@@ -283,20 +371,27 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR not found'}), 
                               {'status': 404, 'headers': {'Content-Type': 'application/json'}})
         
+        # Convert JsProxy to Python dict to make it subscriptable
+        result = result.to_py()
+        
         # Fetch fresh data from GitHub
         pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
+        # Generate timestamps in Python for consistency and testability
+        # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
+        current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        
         # Update database
-        db = get_db(env)
         stmt = db.prepare('''
             UPDATE prs SET
                 title = ?, state = ?, is_merged = ?, mergeable_state = ?,
                 files_changed = ?, checks_passed = ?, checks_failed = ?,
                 checks_skipped = ?, review_status = ?, last_updated_at = ?,
-                updated_at = CURRENT_TIMESTAMP
+                last_refreshed_at = ?,
+                updated_at = ?
             WHERE id = ?
         ''').bind(
             pr_data['title'],
@@ -309,6 +404,8 @@ async def handle_refresh_pr(request, env):
             pr_data['checks_skipped'],
             pr_data['review_status'],
             pr_data['last_updated_at'],
+            current_timestamp,
+            current_timestamp,
             pr_id
         )
         
@@ -319,6 +416,101 @@ async def handle_refresh_pr(request, env):
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_rate_limit(env):
+    """Fetch GitHub API rate limit status
+    
+    Args:
+        env: Cloudflare Worker environment object containing bindings
+        
+    Returns:
+        Response object with JSON containing:
+            - limit: Maximum number of requests per hour
+            - remaining: Number of requests remaining
+            - reset: Unix timestamp when the limit resets
+            - used: Number of requests used
+    """
+    global _rate_limit_cache
+    
+    try:
+        # Check cache first to avoid excessive API calls
+        # Use JavaScript Date API for Cloudflare Workers compatibility
+        current_time = Date.now() / 1000  # Convert milliseconds to seconds
+        
+        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
+            # Return cached data
+            return Response.new(
+                json.dumps(_rate_limit_cache['data']), 
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+                }}
+            )
+        
+        headers = {
+            'User-Agent': 'PR-Tracker/1.0',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+        
+        # Fetch rate limit from GitHub API
+        rate_limit_url = "https://api.github.com/rate_limit"
+        response = await fetch_with_headers(rate_limit_url, headers)
+        
+        if response.status != 200:
+            error_msg = await response.text()
+            return Response.new(
+                json.dumps({
+                    'error': f'GitHub API Error: {response.status}',
+                    'details': error_msg
+                }), 
+                {'status': response.status, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        rate_data = (await response.json()).to_py()
+        
+        # Extract core rate limit info
+        core_limit = rate_data.get('resources', {}).get('core', {})
+        
+        result = {
+            'limit': core_limit.get('limit', 60),
+            'remaining': core_limit.get('remaining', 0),
+            'reset': core_limit.get('reset', 0),
+            'used': core_limit.get('used', 0)
+        }
+        
+        # Update cache
+        _rate_limit_cache['data'] = result
+        _rate_limit_cache['timestamp'] = current_time
+        
+        return Response.new(
+            json.dumps(result), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+            }}
+        )
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+async def handle_status(env):
+    """Check database status"""
+    try:
+        db = get_db(env)
+        # If we got here, database is configured (would have thrown exception otherwise)
+        return Response.new(json.dumps({
+            'database_configured': True,
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        # Database not configured
+        return Response.new(json.dumps({
+            'database_configured': False,
+            'error': str(e),
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
 
 async def on_fetch(request, env):
     """Main request handler"""
@@ -348,6 +540,10 @@ async def on_fetch(request, env):
             return Response.new('Please configure assets in wrangler.toml', 
                               {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
     
+    # Initialize database schema on first API request (idempotent, safe to call multiple times)
+    if path.startswith('/api/'):
+        await init_database_schema(env)
+    
     # API endpoints
     if path == '/api/prs' and request.method == 'GET':
         repo_filter = url.searchParams.get('repo')
@@ -370,6 +566,14 @@ async def on_fetch(request, env):
     
     if path == '/api/refresh' and request.method == 'POST':
         response = await handle_refresh_pr(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/rate-limit' and request.method == 'GET':
+        response = await handle_rate_limit(env)
+    if path == '/api/status' and request.method == 'GET':
+        response = await handle_status(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response

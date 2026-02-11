@@ -294,6 +294,16 @@
             background: #8b949e;
         }
 
+        .check-stat a {
+            color: inherit;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .check-stat a:hover {
+            color: #58a6ff;
+        }
+
         .time-ago {
             color: #8b949e;
             font-size: 0.85rem;
@@ -340,6 +350,32 @@
             color: #c9d1d9;
         }
 
+        .refresh-btn.refreshing {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #8b949e;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .refresh-timestamp {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
         .pr-actions {
             display: flex;
             justify-content: flex-end;
@@ -350,12 +386,71 @@
             font-weight: 600;
             color: #58a6ff;
         }
+
+        .rate-limit-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .rate-limit-label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            white-space: nowrap;
+        }
+
+        .rate-limit-bar {
+            flex: 1;
+            max-width: 300px;
+            height: 8px;
+            background: #21262d;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .rate-limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #238636, #2ea043);
+            border-radius: 4px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .rate-limit-fill.warning {
+            background: linear-gradient(90deg, #d29922, #e0a727);
+        }
+
+        .rate-limit-fill.critical {
+            background: linear-gradient(90deg, #da3633, #f85149);
+        }
+
+        .rate-limit-text {
+            font-size: 0.8rem;
+            color: #c9d1d9;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: right;
+        }
     </style>
 </head>
 
 <body>
     <header>
         <h1>🍃 PR Readiness Checker</h1>
+        <div class="rate-limit-section">
+            <div class="rate-limit-label" id="rateLimitLabel">GitHub API Rate Limit:</div>
+            <div class="rate-limit-bar"
+                 role="progressbar"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="0"
+                 aria-labelledby="rateLimitLabel"
+                 aria-describedby="rateLimitText">
+                <div class="rate-limit-fill" id="rateLimitFill"></div>
+            </div>
+            <div class="rate-limit-text" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
+        </div>
     </header>
 
     <div class="container">
@@ -401,6 +496,64 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Load and display GitHub rate limit
+        async function loadRateLimit() {
+            try {
+                const response = await fetch('/api/rate-limit');
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    console.error('Rate limit API returned non-OK status:', response.status);
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading rate limit:', data.error);
+                    if (data.details) {
+                        console.error('Error details:', data.details);
+                    }
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+
+                const { limit, remaining } = data;
+                
+                // Validate data
+                if (typeof limit !== 'number' || typeof remaining !== 'number') {
+                    console.error('Invalid rate limit data:', data);
+                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    return;
+                }
+                
+                const percentageRemaining = (remaining / limit) * 100;
+
+                // Update progress bar
+                const fillElement = document.getElementById('rateLimitFill');
+                fillElement.style.width = `${percentageRemaining}%`;
+                
+                // Update ARIA attributes for accessibility
+                const barElement = document.querySelector('.rate-limit-bar');
+                barElement.setAttribute('aria-valuenow', Math.round(percentageRemaining));
+
+                // Update color based on remaining percentage
+                fillElement.className = 'rate-limit-fill';
+                if (percentageRemaining < 20) {
+                    fillElement.classList.add('critical');
+                } else if (percentageRemaining <= 50) {
+                    fillElement.classList.add('warning');
+                }
+
+                // Update text
+                document.getElementById('rateLimitText').textContent = `${remaining} / ${limit}`;
+            } catch (error) {
+                console.error('Error loading rate limit:', error);
+                document.getElementById('rateLimitText').textContent = 'N/A';
+            }
         }
 
         // Utility function to calculate time ago
@@ -630,7 +783,7 @@
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-failure"></div>
-                                    <span>${pr.checks_failed} failed</span>
+                                    <span>${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
                                 </div>
                                 <div class="check-stat">
                                     <div class="check-icon check-skipped"></div>
@@ -642,6 +795,7 @@
                     
                     <div class="pr-actions">
                         <button class="refresh-btn" data-pr-id="${pr.id}">Refresh</button>
+                        ${pr.last_refreshed_at ? `<span class="refresh-timestamp">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
                     </div>
                 `;
 
@@ -688,6 +842,8 @@
                     input.value = '';
                     await loadRepos();
                     await loadPrs();
+                    // Refresh rate limit after adding PR
+                    await loadRateLimit();
                 }
             } catch (error) {
                 console.error('Error adding PR:', error);
@@ -700,6 +856,30 @@
 
         // Refresh PR
         async function refreshPr(prId) {
+            // Find button using proper escaping
+            const buttons = document.querySelectorAll('.refresh-btn');
+            let btn = null;
+            for (const button of buttons) {
+                // dataset values are strings, ensure prId is also a string for comparison
+                if (button.dataset.prId === String(prId)) {
+                    btn = button;
+                    break;
+                }
+            }
+            if (!btn) return;
+            
+            // Add spinner using DOM manipulation to avoid XSS
+            const originalText = btn.textContent;
+            btn.classList.add('refreshing');
+            btn.textContent = '';
+            
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            btn.appendChild(spinner);
+            
+            const text = document.createTextNode('Refreshing...');
+            btn.appendChild(text);
+            
             try {
                 const response = await fetch('/api/refresh', {
                     method: 'POST',
@@ -713,12 +893,18 @@
 
                 if (data.error) {
                     showError(data.error);
+                    btn.textContent = originalText;
+                    btn.classList.remove('refreshing');
                 } else {
                     await loadPrs();
+                    // Refresh rate limit after refreshing PR
+                    await loadRateLimit();
                 }
             } catch (error) {
                 console.error('Error refreshing PR:', error);
                 showError('Failed to refresh PR');
+                btn.textContent = originalText;
+                btn.classList.remove('refreshing');
             }
         }
 
@@ -742,8 +928,14 @@
 
         // Initial load
 
+        loadRateLimit();
         loadRepos();
         loadPrs();
+
+        // Refresh rate limit every 10 minutes (600000 milliseconds) to reduce API consumption
+        // The backend caches results for 5 minutes, so this is a reasonable polling interval
+        // Rate limit also updates after PR add/refresh operations
+        setInterval(loadRateLimit, 600000);
     </script>
 </body>
 
