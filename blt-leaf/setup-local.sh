@@ -15,24 +15,27 @@ echo ""
 echo "📋 Step 1: Checking Cloudflare login..."
 wrangler whoami 2>/dev/null || wrangler login
 
-# Create D1 database
+# Create or get existing D1 database
 echo ""
-echo "📋 Step 2: Creating D1 database..."
+echo "📋 Step 2: Setting up D1 database..."
 DB_OUTPUT=$(wrangler d1 create pr-tracker 2>&1)
-echo "$DB_OUTPUT"
 
-# Extract database_id
-DB_ID=$(echo "$DB_OUTPUT" | grep "database_id" | awk -F'"' '{print $2}')
+if echo "$DB_OUTPUT" | grep -q "already exists"; then
+    echo "ℹ️  Database already exists, fetching ID..."
+    DB_ID=$(wrangler d1 list 2>/dev/null | grep "pr-tracker" | awk '{print $4}')
+else
+    DB_ID=$(echo "$DB_OUTPUT" | grep "database_id" | awk -F'"' '{print $2}')
+fi
 
 if [ -n "$DB_ID" ]; then
+    echo "✅ Database ID found: $DB_ID"
     echo ""
     echo "📋 Step 3: Updating wrangler.toml with database_id..."
     sed -i "s/database_id = \".*\"/database_id = \"$DB_ID\"/" wrangler.toml
-    echo "✅ wrangler.toml updated with database_id: $DB_ID"
+    echo "✅ wrangler.toml updated"
 else
-    echo ""
-    echo "⚠️  Could not auto-update wrangler.toml."
-    echo "    Please manually update 'database_id' in wrangler.toml with your real database ID."
+    echo "❌ Could not find database ID. Please run 'wrangler d1 list' manually."
+    exit 1
 fi
 
 # Apply schema locally
@@ -56,3 +59,15 @@ echo ""
 echo "🎉 Setup complete!"
 echo "👉 Run 'wrangler dev' to start the local development server"
 echo "🌐 Open http://localhost:8787 in your browser"
+```
+
+## Update it on GitHub website:
+
+1. Go to `https://github.com/S3DFX-CYBER/BLT-Leaf`
+2. Switch to `fix-local-d1-setup` branch
+3. Click `setup-local.sh`
+4. Click **pencil icon ✏️** to edit
+5. Replace **everything** with the script above
+6. Commit message:
+```
+fix: Handle existing D1 database and auto-fetch database ID
