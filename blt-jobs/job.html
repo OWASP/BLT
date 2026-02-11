@@ -1,10 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Job Details</title>
+  <!-- Tailwind via CDN; can be replaced with a build step later -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Ensure line-clamp utility works even without Tailwind plugin */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <div
+    id="jobRoot"
+    class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+  >
+    <!-- Initial loading state; replaced by job.js -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="text-center text-gray-600 dark:text-gray-300">
+        <svg
+          class="w-10 h-10 mx-auto mb-4 animate-spin text-gray-400"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+        <p class="text-lg">Loading job details…</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/job.js"></script>
 </body>
 </html>
+
