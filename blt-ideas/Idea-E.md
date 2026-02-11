@@ -1,4 +1,4 @@
-# Idea E — PR Risk Intelligence & Readiness Dashboard (350h)
+# Idea E(Extended) — PR Risk Intelligence & Readiness Dashboard (350h)
 
 ## Overview
 A 350-hour development effort focused on providing maintainers with decision-level intelligence for pull requests by combining readiness status, contextual risk scoring, and review signals.
