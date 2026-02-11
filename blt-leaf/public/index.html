@@ -5,550 +5,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PR Readiness Checker - BLT-Leaf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0d1117;
-            color: #c9d1d9;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            padding: 1rem 2rem;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            color: #58a6ff;
-        }
-
-        .container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: #161b22;
-            border-right: 1px solid #30363d;
-            padding: 1rem;
-            overflow-y: auto;
-        }
-
-        .sidebar h2 {
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            color: #8b949e;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .repo-list {
-            list-style: none;
-        }
-
-        .repo-item {
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .repo-item:hover {
-            background: #1c2128;
-            border-color: #58a6ff;
-        }
-
-        .repo-item.active {
-            background: #1c2128;
-            border-color: #58a6ff;
-        }
-
-        .repo-name {
-            font-weight: 600;
-            color: #58a6ff;
-            font-size: 0.9rem;
-        }
-
-        .repo-count {
-            font-size: 0.8rem;
-            color: #8b949e;
-            margin-top: 0.25rem;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .input-section {
-            margin-bottom: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 0.5rem;
-            max-width: 800px;
-        }
-
-        .input-group input {
-            flex: 1;
-            padding: 0.75rem;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #c9d1d9;
-            font-size: 0.95rem;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #58a6ff;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            background: #238636;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background: #2ea043;
-        }
-
-        .btn:disabled {
-            background: #21262d;
-            color: #8b949e;
-            cursor: not-allowed;
-        }
-
-        .pr-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .pr-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-        }
-
-        .pr-card:hover {
-            border-color: #58a6ff;
-            box-shadow: 0 0 10px rgba(88, 166, 255, 0.1);
-        }
-
-        .pr-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #30363d;
-        }
-
-        .pr-title {
-            flex: 1;
-        }
-
-        .pr-title h3 {
-            font-size: 1.1rem;
-            color: #58a6ff;
-            margin-bottom: 0.25rem;
-        }
-
-        .pr-meta {
-            font-size: 0.85rem;
-            color: #8b949e;
-        }
-
-        .pr-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .detail-label {
-            font-size: 0.8rem;
-            color: #8b949e;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .detail-value {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-open {
-            background: #238636;
-            color: white;
-        }
-
-        .badge-closed {
-            background: #da3633;
-            color: white;
-        }
-
-        .badge-merged {
-            background: #a371f7;
-            color: white;
-        }
-
-        .badge-approved {
-            background: #238636;
-            color: white;
-        }
-
-        .badge-changes {
-            background: #da3633;
-            color: white;
-        }
-
-        .badge-pending {
-            background: #d29922;
-            color: white;
-        }
-
-        .badge-none {
-            background: #6e7681;
-            color: white;
-        }
-
-        .checks-summary {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .check-stat {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: #0d1117;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-        }
-
-        .check-icon {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-        }
-
-        .check-success {
-            background: #238636;
-        }
-
-        .check-failure {
-            background: #da3633;
-        }
-
-        .check-skipped {
-            background: #8b949e;
-        }
-
-        .check-stat a {
-            color: inherit;
-            text-decoration: underline;
-            transition: color 0.2s;
-        }
-
-        .check-stat a:hover {
-            color: #58a6ff;
-        }
-
-        .time-ago {
-            color: #8b949e;
-            font-size: 0.85rem;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #8b949e;
-        }
-
-        .error {
-            background: #da3633;
-            color: white;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #8b949e;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .refresh-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #8b949e;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background: #30363d;
-            color: #c9d1d9;
-        }
-
-        .refresh-btn.refreshing {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #8b949e;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 0.5rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .refresh-timestamp {
-            margin-left: 0.5rem;
-            font-size: 0.75rem;
-            color: #8b949e;
-        }
-
-        .pr-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 1rem;
-        }
-
-        .repo-all {
-            font-weight: 600;
-            color: #58a6ff;
-        }
-
-        .rate-limit-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.75rem;
-        }
-
-        .rate-limit-label {
-            font-size: 0.85rem;
-            color: #8b949e;
-            white-space: nowrap;
-        }
-
-        .rate-limit-bar {
-            flex: 1;
-            max-width: 300px;
-            height: 8px;
-            background: #21262d;
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .rate-limit-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #238636, #2ea043);
-            border-radius: 4px;
-            transition: width 0.3s ease, background 0.3s ease;
-        }
-
-        .rate-limit-fill.warning {
-            background: linear-gradient(90deg, #d29922, #e0a727);
-        }
-
-        .rate-limit-fill.critical {
-            background: linear-gradient(90deg, #da3633, #f85149);
-        }
-
-        .rate-limit-text {
-            font-size: 0.8rem;
-            color: #c9d1d9;
-            font-weight: 600;
-            min-width: 80px;
-            text-align: right;
+        /* Fallback visibility if CDN is blocked */
+        .btn-fallback {
+            background: #E10000;
+            color: #fff;
+            border: 1px solid #BC0000;
         }
     </style>
 </head>
 
-<body>
-    <header>
-        <h1>🍃 PR Readiness Checker</h1>
-        <div class="rate-limit-section">
-            <div class="rate-limit-label" id="rateLimitLabel">GitHub API Rate Limit:</div>
-            <div class="rate-limit-bar"
-                 role="progressbar"
-                 aria-valuemin="0"
-                 aria-valuemax="100"
-                 aria-valuenow="0"
-                 aria-labelledby="rateLimitLabel"
-                 aria-describedby="rateLimitText">
-                <div class="rate-limit-fill" id="rateLimitFill"></div>
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5">
+        <div class="flex justify-between item-center">
+            <div class="mx-auto flex w-full flex-col gap-3 px-4 py-3 sm:px-6">
+                <div class="flex items-center gap-2.5">
+                    <img width="30" src="./static/logo.png" alt="BLT-LEAF logo" onerror="this.style.display='none'" />
+                    <h1 class="font-semibold">BLT-LEAF</h1>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="text-xs font-medium text-slate-500" id="rateLimitLabel">GitHub API Rate Limit:</div>
+                    <div class="rate-limit-bar h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-200" role="progressbar"
+                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="rateLimitLabel"
+                        aria-describedby="rateLimitText">
+                        <div class="h-full w-0 rounded-full bg-[#E10000] transition-all duration-300" id="rateLimitFill"></div>
+                    </div>
+                    <div class="text-xs font-semibold text-slate-700" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
+                </div>
             </div>
-            <div class="rate-limit-text" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
+          <div class="flex items-center space-x-4">
+            <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer">
+              <button class="flex gap-1 items-center"><i class="fab fa-github mr-2"></i> Contribute</button>
+            </a>
+          </div>
         </div>
     </header>
 
-    <div class="container">
-        <aside class="sidebar">
-            <h2>Repositories</h2>
-            <ul class="repo-list" id="repoList">
-                <li class="repo-item active" data-repo="all">
-                    <div class="repo-name repo-all">All Repositories</div>
-                    <div class="repo-count" id="allReposCount">0 PRs</div>
-                </li>
-            </ul>
+    <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
+        <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r">
+            <div class="p-4">
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Repositories</h2>
+                <ul id="repoList" class="space-y-2">
+                    <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2" data-repo="all">
+                        <div class="repo-name text-sm font-semibold text-[#BC0000]">All Repositories</div>
+                        <div class="repo-count mt-0.5 text-xs text-slate-500" id="allReposCount">0 PRs</div>
+                    </li>
+                </ul>
+            </div>  
         </aside>
 
-        <main class="main-content">
-            <div class="input-section">
-                <div class="input-group">
+        <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 ">
+            <section class="mb-6 space-y-3">
+                <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
-                        placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)"
-                        autocomplete="off" />
-                    <button class="btn" id="addPrBtn">Add PR</button>
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3]"
+                        placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)" autocomplete="off" />
+                    <button id="addPrBtn"
+                        class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700">
+                        Add PR
+                    </button>
                 </div>
-
-                <div id="errorMessage"></div>
-            </div>
+                <div id="errorMessage" class="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))]"></div>
+            </section>
 
             <div id="prListContainer">
-                <div class="empty-state">
-                    <h3>No PRs Added Yet</h3>
-                    <p>Add a GitHub PR URL above to start tracking</p>
+                <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                    <h3 class="text-xl font-semibold text-slate-900">No PRs Added Yet</h3>
+                    <p class="mt-2 text-sm text-slate-500">Add a GitHub PR URL above to start tracking</p>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        // Global state
         let currentRepo = 'all';
         let allPrs = [];
         let repos = [];
 
-        // Utility function to escape HTML to prevent XSS
+        const repoItemBaseClasses = ['repo-item', 'cursor-pointer', 'rounded-lg', 'border', 'px-3', 'py-2', 'transition-colors'];
+        const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50'];
+        const repoItemActiveClasses = ['active', 'border-[#f5b0b0]', 'bg-[#fff1f1]'];
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Load and display GitHub rate limit
+        function setRepoItemActiveState(item, isActive) {
+            item.className = '';
+            item.classList.add(...repoItemBaseClasses);
+            item.classList.add(...(isActive ? repoItemActiveClasses : repoItemIdleClasses));
+
+            const nameEl = item.querySelector('.repo-name');
+            if (nameEl) {
+                nameEl.className = `repo-name text-sm font-semibold ${isActive ? 'text-[#BC0000]' : 'text-slate-800'}`;
+            }
+        }
+
         async function loadRateLimit() {
             try {
                 const response = await fetch('/api/rate-limit');
-                
-                // Check if response is ok
                 if (!response.ok) {
-                    console.error('Rate limit API returned non-OK status:', response.status);
                     document.getElementById('rateLimitText').textContent = 'N/A';
                     return;
                 }
-                
-                const data = await response.json();
 
+                const data = await response.json();
                 if (data.error) {
-                    console.error('Error loading rate limit:', data.error);
-                    if (data.details) {
-                        console.error('Error details:', data.details);
-                    }
                     document.getElementById('rateLimitText').textContent = 'N/A';
                     return;
                 }
 
                 const { limit, remaining } = data;
-                
-                // Validate data
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
-                    console.error('Invalid rate limit data:', data);
                     document.getElementById('rateLimitText').textContent = 'N/A';
                     return;
                 }
-                
-                const percentageRemaining = (remaining / limit) * 100;
 
-                // Update progress bar
+                const percentageRemaining = (remaining / limit) * 100;
                 const fillElement = document.getElementById('rateLimitFill');
                 fillElement.style.width = `${percentageRemaining}%`;
-                
-                // Update ARIA attributes for accessibility
+
                 const barElement = document.querySelector('.rate-limit-bar');
                 barElement.setAttribute('aria-valuenow', Math.round(percentageRemaining));
 
-                // Update color based on remaining percentage
-                fillElement.className = 'rate-limit-fill';
+                fillElement.className = 'h-full rounded-full transition-all duration-300';
                 if (percentageRemaining < 20) {
-                    fillElement.classList.add('critical');
+                    fillElement.classList.add('bg-red-600');
                 } else if (percentageRemaining <= 50) {
-                    fillElement.classList.add('warning');
+                    fillElement.classList.add('bg-amber-500');
+                } else {
+                    fillElement.classList.add('bg-[#E10000]');
                 }
 
-                // Update text
                 document.getElementById('rateLimitText').textContent = `${remaining} / ${limit}`;
             } catch (error) {
                 console.error('Error loading rate limit:', error);
@@ -556,12 +150,10 @@
             }
         }
 
-        // Utility function to calculate time ago
         function timeAgo(dateString) {
             const date = new Date(dateString);
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
-
             const intervals = {
                 year: 31536000,
                 month: 2592000,
@@ -573,28 +165,36 @@
 
             for (const [name, value] of Object.entries(intervals)) {
                 const interval = Math.floor(seconds / value);
-                if (interval >= 1) {
-                    return `${interval} ${name}${interval === 1 ? '' : 's'} ago`;
-                }
+                if (interval >= 1) return `${interval} ${name}${interval === 1 ? '' : 's'} ago`;
             }
 
             return 'just now';
         }
 
-        // Show error message
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = '';  // Clear first
-            const errorElement = document.createElement('div');
-            errorElement.className = 'error';
-            errorElement.textContent = message;  // Use textContent to prevent XSS
-            errorDiv.appendChild(errorElement);
+            errorDiv.textContent = '';
+
+            const toastElement = document.createElement('div');
+            toastElement.className = 'flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-white px-3 py-2.5 text-sm text-red-900';
+
+            const iconElement = document.createElement('span');
+            iconElement.className = 'inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700';
+            iconElement.textContent = '!';
+
+            const textElement = document.createElement('div');
+            textElement.className = 'leading-5';
+            textElement.textContent = message;
+
+            toastElement.appendChild(iconElement);
+            toastElement.appendChild(textElement);
+            errorDiv.appendChild(toastElement);
+
             setTimeout(() => {
                 errorDiv.textContent = '';
             }, 5000);
         }
 
-        // Load repos
         async function loadRepos() {
             try {
                 const response = await fetch('/api/repos');
@@ -612,39 +212,32 @@
             }
         }
 
-        // Render repo list
         function renderRepoList() {
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
-
-            // Update all repos count
             const totalPrs = allPrs.length;
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
 
-            // Clear existing repo items (except "All")
-            const allItem = repoList.querySelector('[data-repo="all"]');
-            // Remove all children except the "All" item
-            while (repoList.children.length > 1) {
-                repoList.removeChild(repoList.lastChild);
-            }
+            while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
-            // Add repo items
+            const allItem = repoList.querySelector('[data-repo="all"]');
+            if (allItem) setRepoItemActiveState(allItem, currentRepo === 'all');
+
             repos.forEach(repo => {
                 const li = document.createElement('li');
-                li.className = 'repo-item';
                 li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
+                setRepoItemActiveState(li, currentRepo === li.dataset.repo);
 
                 li.innerHTML = `
-                    <div class="repo-name">${repo.repo_owner}/${repo.repo_name}</div>
-                    <div class="repo-count">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                    <div class="repo-name text-sm font-semibold text-slate-800">${repo.repo_owner}/${repo.repo_name}</div>
+                    <div class="repo-count mt-0.5 text-xs text-slate-500">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
                 `;
 
                 li.addEventListener('click', () => {
                     currentRepo = li.dataset.repo;
                     document.querySelectorAll('.repo-item').forEach(item => {
-                        item.classList.remove('active');
+                        setRepoItemActiveState(item, item.dataset.repo === currentRepo);
                     });
-                    li.classList.add('active');
                     loadPrs();
                 });
 
@@ -652,22 +245,23 @@
             });
         }
 
-        // Load PRs
         async function loadPrs() {
             const container = document.getElementById('prListContainer');
-            container.innerHTML = '<div class="loading">Loading PRs...</div>';
+            container.innerHTML = `
+                <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500">
+                    <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500"></span>
+                    Loading PRs...
+                </div>
+            `;
 
             try {
-                const url = currentRepo === 'all'
-                    ? '/api/prs'
-                    : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
-
+                const url = currentRepo === 'all' ? '/api/prs' : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.error) {
                     showError(data.error);
-                    container.innerHTML = '<div class="empty-state"><h3>Error loading PRs</h3></div>';
+                    container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center"><h3 class="text-lg font-semibold text-slate-900">Error loading PRs</h3></div>';
                     return;
                 }
 
@@ -676,133 +270,112 @@
             } catch (error) {
                 console.error('Error loading PRs:', error);
                 showError('Failed to load PRs');
-                container.innerHTML = '<div class="empty-state"><h3>Error loading PRs</h3></div>';
+                container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center"><h3 class="text-lg font-semibold text-slate-900">Error loading PRs</h3></div>';
             }
         }
 
-        // Render PR list
         function renderPrList() {
             const container = document.getElementById('prListContainer');
 
             if (allPrs.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No PRs Found</h3>
-                        <p>Add a GitHub PR URL above to start tracking</p>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                        <h3 class="text-xl font-semibold text-slate-900">No PRs Found</h3>
+                        <p class="mt-2 text-sm text-slate-500">Add a GitHub PR URL above to start tracking</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = '<div class="pr-list" id="prList"></div>';
+            container.innerHTML = '<div class="grid gap-4" id="prList"></div>';
             const prList = document.getElementById('prList');
 
             allPrs.forEach(pr => {
                 const prCard = document.createElement('div');
-                prCard.className = 'pr-card';
+                prCard.className = 'rounded-xl border border-slate-200 bg-white p-5';
 
-                // Determine state badge
                 let stateBadge = '';
                 if (pr.is_merged) {
-                    stateBadge = '<span class="badge badge-merged">Merged</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2.5 py-1 text-xs font-semibold text-[#BC0000]">Merged</span>';
                 } else if (pr.state === 'open') {
-                    stateBadge = '<span class="badge badge-open">Open</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Open</span>';
                 } else {
-                    stateBadge = '<span class="badge badge-closed">Closed</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Closed</span>';
                 }
 
-                // Determine review badge
                 let reviewBadge = '';
                 if (pr.review_status === 'approved') {
-                    reviewBadge = '<span class="badge badge-approved">Approved</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Approved</span>';
                 } else if (pr.review_status === 'changes_requested') {
-                    reviewBadge = '<span class="badge badge-changes">Changes Requested</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">Changes Requested</span>';
                 } else if (pr.review_status === 'pending') {
-                    reviewBadge = '<span class="badge badge-pending">Pending Review</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">Pending Review</span>';
                 } else {
-                    reviewBadge = '<span class="badge badge-none">No Reviews</span>';
+                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">No Reviews</span>';
                 }
 
-                // Determine mergeable state
                 let mergeableText = pr.mergeable_state || 'unknown';
-                if (mergeableText === 'clean') {
-                    mergeableText = '✓ Ready to merge';
-                } else if (mergeableText === 'dirty') {
-                    mergeableText = '✗ Conflicts';
-                } else if (mergeableText === 'blocked') {
-                    mergeableText = '⊘ Blocked';
-                } else if (mergeableText === 'unstable') {
-                    mergeableText = '⚠ Unstable';
-                }
+                if (mergeableText === 'clean') mergeableText = 'Ready to merge';
+                else if (mergeableText === 'dirty') mergeableText = 'Conflicts';
+                else if (mergeableText === 'blocked') mergeableText = 'Blocked';
+                else if (mergeableText === 'unstable') mergeableText = 'Unstable';
 
-                // Validate and sanitize avatar URL - ensure it's from GitHub
                 const avatarUrl = pr.author_avatar &&
-                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') ||
-                        pr.author_avatar.startsWith('https://github.com/'))
+                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || pr.author_avatar.startsWith('https://github.com/'))
                     ? pr.author_avatar
-                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect width="40" height="40" fill="%2330363d"/%3E%3C/svg%3E';
+                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect width="40" height="40" fill="%23E2E8F0"/%3E%3C/svg%3E';
 
-                // Build PR card with escaped user content
                 prCard.innerHTML = `
-                    <div class="pr-header">
-                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%2330363d%22/%3E%3C/svg%3E'">
-                        <div class="pr-title">
-                            <h3><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${escapeHtml(pr.title)}</a></h3>
-                            <div class="pr-meta">
-                                ${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}
-                            </div>
+                    <div class="mb-4 flex flex-wrap items-start gap-3 sm:flex-nowrap">
+                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-10 w-10 rounded-full border border-slate-200" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="truncate text-base font-semibold text-slate-900"><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-[#BC0000]">${escapeHtml(pr.title)}</a></h3>
+                            <div class="mt-1 text-sm text-slate-500">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}</div>
                         </div>
-                        <div>
-                            ${stateBadge}
-                            ${reviewBadge}
-                        </div>
+                        <div class="shrink-0">${stateBadge}${reviewBadge}</div>
                     </div>
-                    
-                    <div class="pr-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Merge Status</div>
-                            <div class="detail-value">${escapeHtml(mergeableText)}</div>
+
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Merge Status</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-800">${escapeHtml(mergeableText)}</div>
                         </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-label">Files Changed</div>
-                            <div class="detail-value">${pr.files_changed}</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Files Changed</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-800">${pr.files_changed}</div>
                         </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-label">Last Updated</div>
-                            <div class="detail-value time-ago">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Last Updated</div>
+                            <div class="mt-1 text-sm text-slate-600">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
                         </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-label">Checks</div>
-                            <div class="checks-summary">
-                                <div class="check-stat">
-                                    <div class="check-icon check-success"></div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Checks</div>
+                            <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-2 py-1 text-emerald-700">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
                                     <span>${pr.checks_passed} passed</span>
                                 </div>
-                                <div class="check-stat">
-                                    <div class="check-icon check-failure"></div>
-                                    <span>${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-2 py-1 text-red-700">
+                                    <span class="h-2 w-2 rounded-full bg-red-600"></span>
+                                    <span>${pr.checks_failed > 0 ? `<a class="underline hover:text-[#BC0000]" href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
                                 </div>
-                                <div class="check-stat">
-                                    <div class="check-icon check-skipped"></div>
+                                <div class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600">
+                                    <span class="h-2 w-2 rounded-full bg-slate-500"></span>
                                     <span>${pr.checks_skipped} skipped</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="pr-actions">
-                        <button class="refresh-btn" data-pr-id="${pr.id}">Refresh</button>
-                        ${pr.last_refreshed_at ? `<span class="refresh-timestamp">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
+
+                    <div class="mt-4 flex items-center justify-end gap-2">
+                        <button class="refresh-btn rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900" data-pr-id="${pr.id}">Refresh</button>
+                        ${pr.last_refreshed_at ? `<span class="text-xs text-slate-500">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
                     </div>
                 `;
 
                 prList.appendChild(prCard);
             });
 
-            // Add refresh button listeners
             document.querySelectorAll('.refresh-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const prId = e.target.dataset.prId;
@@ -811,7 +384,6 @@
             });
         }
 
-        // Add PR
         async function addPr() {
             const input = document.getElementById('prUrlInput');
             const btn = document.getElementById('addPrBtn');
@@ -835,14 +407,12 @@
                 });
 
                 const data = await response.json();
-
                 if (data.error) {
                     showError(data.error);
                 } else {
                     input.value = '';
                     await loadRepos();
                     await loadPrs();
-                    // Refresh rate limit after adding PR
                     await loadRateLimit();
                 }
             } catch (error) {
@@ -854,32 +424,26 @@
             }
         }
 
-        // Refresh PR
         async function refreshPr(prId) {
-            // Find button using proper escaping
             const buttons = document.querySelectorAll('.refresh-btn');
             let btn = null;
             for (const button of buttons) {
-                // dataset values are strings, ensure prId is also a string for comparison
                 if (button.dataset.prId === String(prId)) {
                     btn = button;
                     break;
                 }
             }
             if (!btn) return;
-            
-            // Add spinner using DOM manipulation to avoid XSS
+
             const originalText = btn.textContent;
-            btn.classList.add('refreshing');
+            btn.classList.add('pointer-events-none', 'opacity-70');
             btn.textContent = '';
-            
+
             const spinner = document.createElement('span');
-            spinner.className = 'spinner';
+            spinner.className = 'mr-1 inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600';
             btn.appendChild(spinner);
-            
-            const text = document.createTextNode('Refreshing...');
-            btn.appendChild(text);
-            
+            btn.appendChild(document.createTextNode('Refreshing...'));
+
             try {
                 const response = await fetch('/api/refresh', {
                     method: 'POST',
@@ -890,51 +454,38 @@
                 });
 
                 const data = await response.json();
-
                 if (data.error) {
                     showError(data.error);
                     btn.textContent = originalText;
-                    btn.classList.remove('refreshing');
+                    btn.classList.remove('pointer-events-none', 'opacity-70');
                 } else {
                     await loadPrs();
-                    // Refresh rate limit after refreshing PR
                     await loadRateLimit();
                 }
             } catch (error) {
                 console.error('Error refreshing PR:', error);
                 showError('Failed to refresh PR');
                 btn.textContent = originalText;
-                btn.classList.remove('refreshing');
+                btn.classList.remove('pointer-events-none', 'opacity-70');
             }
         }
 
-        // Event listeners
         document.getElementById('addPrBtn').addEventListener('click', addPr);
         document.getElementById('prUrlInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addPr();
-            }
+            if (e.key === 'Enter') addPr();
         });
 
-        // Handle "All Repositories" click
         document.querySelector('[data-repo="all"]').addEventListener('click', () => {
             currentRepo = 'all';
             document.querySelectorAll('.repo-item').forEach(item => {
-                item.classList.remove('active');
+                setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
-            document.querySelector('[data-repo="all"]').classList.add('active');
             loadPrs();
         });
-
-        // Initial load
 
         loadRateLimit();
         loadRepos();
         loadPrs();
-
-        // Refresh rate limit every 10 minutes (600000 milliseconds) to reduce API consumption
-        // The backend caches results for 5 minutes, so this is a reasonable polling interval
-        // Rate limit also updates after PR add/refresh operations
         setInterval(loadRateLimit, 600000);
     </script>
 </body>
