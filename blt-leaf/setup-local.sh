@@ -22,7 +22,7 @@ DB_OUTPUT=$(wrangler d1 create pr-tracker 2>&1)
 
 if echo "$DB_OUTPUT" | grep -q "already exists"; then
     echo "ℹ️  Database already exists, fetching ID..."
-    DB_ID=$(wrangler d1 list 2>/dev/null | grep "pr-tracker" | awk -F'|' '{gsub(/ /,"",$2); print $2}')
+    DB_ID=$(wrangler d1 list 2>/dev/null | grep "pr-tracker" | awk -F'│' '{gsub(/ /,"",$2); print $2}')
 else
     DB_ID=$(echo "$DB_OUTPUT" | grep "database_id" | awk -F'"' '{print $2}')
 fi
