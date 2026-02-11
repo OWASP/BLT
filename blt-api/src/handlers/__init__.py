@@ -16,6 +16,7 @@ from .leaderboard import handle_leaderboard
 from .contributors import handle_contributors
 from .repos import handle_repos
 from .health import handle_health
+from .homepage import handle_homepage
 
 __all__ = [
     "handle_issues",
@@ -29,4 +30,5 @@ __all__ = [
     "handle_contributors",
     "handle_repos",
     "handle_health",
+    "handle_homepage",
 ]

@@ -12,6 +12,12 @@
   <a href="#deployment">Deployment</a>
 </p>
 
+<p align="center">
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-API">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" />
+  </a>
+</p>
+
 ---
 
 ## Overview
