@@ -79,7 +79,8 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
   
   // Calculate status
   let status = 'unknown';
-  let statusColor = 'gray';
+  let statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
+  let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
   let responseTime = '--';
   let lastCheck = 'Never';
   
@@ -87,7 +88,19 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
     const isSuccess = lastRow[2] === 'success';
     const keywordFound = lastRow[3] === 'found';
     status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
-    statusColor = (isSuccess && keywordFound) ? 'green' : (isSuccess ? 'yellow' : 'red');
+    
+    // Set badge class and icon based on status
+    if (status === 'up') {
+      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+      statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
+    } else if (status === 'warning') {
+      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800';
+      statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
+    } else if (status === 'down') {
+      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+      statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
+    }
+    
     responseTime = parseInt(lastRow[1]).toLocaleString() + ' ms';
     
     const checkDate = new Date(lastRow[0]);
@@ -102,11 +115,8 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
           <h2 class="text-lg font-semibold truncate">${monitor.name}</h2>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
-            ${status === 'up' ? '<i class="fa-solid fa-circle-check"></i> Up' : 
-              status === 'warning' ? '<i class="fa-solid fa-triangle-exclamation"></i> Warning' :
-              status === 'down' ? '<i class="fa-solid fa-circle-xmark"></i> Down' : 
-              '<i class="fa-solid fa-question"></i> Unknown'}
+          <span class="${statusBadgeClass}">
+            ${statusIcon}
           </span>
         </div>
         <div class="text-sm text-gray-600 flex gap-4 flex-wrap">
