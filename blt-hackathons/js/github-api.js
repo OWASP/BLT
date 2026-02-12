@@ -209,6 +209,85 @@ class GitHubAPI {
     }
 
     /**
+     * Fetch all repositories for a GitHub organization
+     */
+    async fetchOrganizationRepos(orgName) {
+        const allRepos = [];
+        let page = 1;
+        const perPage = 100;
+        const maxPages = 10; // Limit to prevent excessive API calls
+
+        while (page <= maxPages) {
+            const url = `${this.baseURL}/orgs/${orgName}/repos?per_page=${perPage}&page=${page}`;
+            
+            try {
+                const repos = await this.makeRequest(url);
+                
+                if (!repos || repos.length === 0) {
+                    break;
+                }
+                
+                // Extract repository full names (owner/repo format)
+                repos.forEach(repo => {
+                    allRepos.push(repo.full_name);
+                });
+                
+                // If we got fewer than perPage repos, we've reached the end
+                if (repos.length < perPage) {
+                    break;
+                }
+                
+                page++;
+            } catch (error) {
+                console.error(`Error fetching repos for organization ${orgName}:`, error);
+                break;
+            }
+        }
+        
+        return allRepos;
+    }
+
+    /**
+     * Resolve all repositories from explicit list and organizations
+     * @param {Object} githubConfig - GitHub configuration object with repositories and/or organization
+     * @returns {Array} Array of repository paths in "owner/repo" format
+     */
+    async resolveRepositories(githubConfig) {
+        const repositories = githubConfig.repositories || [];
+        const organization = githubConfig.organization;
+        
+        // If no organization is specified, just return the explicit repositories
+        if (!organization) {
+            return repositories;
+        }
+        
+        try {
+            // Fetch all repositories from the organization
+            const orgRepos = await this.fetchOrganizationRepos(organization);
+            
+            // Check if organization fetch returned no repos
+            if (orgRepos.length === 0) {
+                console.warn(`⚠️ No repositories found for organization '${organization}'. This may indicate:`);
+                console.warn(`  - The organization does not exist or is misspelled`);
+                console.warn(`  - The organization has no public repositories`);
+                console.warn(`  - Your token lacks access to this organization's repositories`);
+                console.warn(`  Falling back to explicit repositories list.`);
+            }
+            
+            // Combine with explicit repositories, removing duplicates
+            const allRepos = [...new Set([...repositories, ...orgRepos])];
+            
+            console.log(`Resolved ${allRepos.length} repositories (${repositories.length} explicit + ${orgRepos.length} from org ${organization})`);
+            
+            return allRepos;
+        } catch (error) {
+            console.error(`Error resolving repositories for organization ${organization}:`, error);
+            // Fall back to explicit repositories if organization fetch fails
+            return repositories;
+        }
+    }
+
+    /**
      * Fetch reviews for a specific pull request
      */
     async fetchReviews(owner, repo, prNumber) {

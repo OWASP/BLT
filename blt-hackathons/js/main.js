@@ -8,6 +8,9 @@ class HackathonDashboard {
         this.config = config;
         this.api = new GitHubAPI(config.github.token);
         this.chart = null;
+        // Store resolved repositories (set during initialization)
+        // Contains the merged list of explicit repositories and organization repositories
+        this.repositories = null;
     }
 
     /**
@@ -23,20 +26,23 @@ class HackathonDashboard {
             const startDate = new Date(this.config.startTime);
             const endDate = new Date(this.config.endTime);
 
+            // Resolve repositories (including organization repos if specified)
+            const repositories = await this.api.resolveRepositories(this.config.github);
+
             // Fetch all PRs, issues, and reviews
             const [prs, issues, reviews] = await Promise.all([
                 this.api.getAllPullRequests(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllIssues(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllReviews(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 )
@@ -129,7 +135,9 @@ class HackathonDashboard {
         document.getElementById('pr-count').textContent = stats.totalPRs;
         document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
         document.getElementById('issue-count').textContent = stats.totalIssues || 0;
-        document.getElementById('repo-count').textContent = this.config.github.repositories.length;
+        // Use resolved repositories count if available, otherwise fall back to config
+        const repoCount = this.repositories ? this.repositories.length : (this.config.github.repositories || []).length;
+        document.getElementById('repo-count').textContent = repoCount;
     }
 
     /**
@@ -420,7 +428,9 @@ class HackathonDashboard {
      */
     renderRepositories(repoStats) {
         const container = document.getElementById('repositories-list');
-        const reposHtml = this.config.github.repositories.map(repoPath => {
+        // Use resolved repositories if available, otherwise fall back to config
+        const repositories = this.repositories || this.config.github.repositories || [];
+        const reposHtml = repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             return `

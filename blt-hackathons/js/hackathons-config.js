@@ -61,6 +61,38 @@ const HACKATHONS_CONFIG = {
             }
         },
         {
+            slug: "gsoc-warmup",
+            name: "GSoC Warmup",
+            description: `
+                Welcome to the GSoC Warmup hackathon! This is a preparation event for Google Summer of Code,
+                designed to help contributors get familiar with the BLT organization and its projects.
+                All repositories in the BLT organization count towards this hackathon!
+            `,
+            rules: `
+                1. All pull requests must be submitted during the hackathon period (Nov 01, 2025 - May 09, 2026)
+                2. PRs must be merged to count towards the leaderboard
+                3. All repositories in the BLT organization are eligible
+                4. Be respectful and follow each project's contribution guidelines
+                5. Have fun and learn something new!
+            `,
+            startTime: "2025-11-01T00:00:00Z",
+            endTime: "2026-05-09T23:59:59Z",
+            github: {
+                token: "",
+                // Organization field - all repos in this org will be tracked
+                organization: "OWASP-BLT",
+                // Can still specify additional repositories if needed
+                repositories: []
+            },
+            prizes: [],
+            sponsors: [],
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: 10,
+                showPRsInLeaderboard: true
+            }
+        },
+        {
             slug: "example-hackathon",
             name: "Example Hackathon",
             description: "This is an example hackathon to demonstrate the multi-hackathon feature.",
