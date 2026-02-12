@@ -256,6 +256,15 @@ async def handle_add_pr(request, env):
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
+        # Check if PR is merged or closed - reject if so
+        if pr_data['is_merged']:
+            return Response.new(json.dumps({'error': 'Cannot add merged PRs'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        if pr_data['state'] == 'closed':
+            return Response.new(json.dumps({'error': 'Cannot add closed PRs'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
         # Insert or update in database
         db = get_db(env)
         stmt = db.prepare('''
@@ -304,7 +313,7 @@ async def handle_add_pr(request, env):
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
 async def handle_list_prs(env, repo_filter=None):
-    """List all PRs, optionally filtered by repo"""
+    """List all PRs, optionally filtered by repo. Excludes merged and closed PRs."""
     try:
         db = get_db(env)
         if repo_filter:
@@ -313,12 +322,21 @@ async def handle_list_prs(env, repo_filter=None):
                 stmt = db.prepare('''
                     SELECT * FROM prs 
                     WHERE repo_owner = ? AND repo_name = ?
+                    AND is_merged = 0 AND state = 'open'
                     ORDER BY last_updated_at DESC
                 ''').bind(parts[0], parts[1])
             else:
-                stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
+                stmt = db.prepare('''
+                    SELECT * FROM prs 
+                    WHERE is_merged = 0 AND state = 'open'
+                    ORDER BY last_updated_at DESC
+                ''')
         else:
-            stmt = db.prepare('SELECT * FROM prs ORDER BY last_updated_at DESC')
+            stmt = db.prepare('''
+                SELECT * FROM prs 
+                WHERE is_merged = 0 AND state = 'open'
+                ORDER BY last_updated_at DESC
+            ''')
         
         result = await stmt.all()
         # Convert JS Array to Python list
@@ -331,13 +349,14 @@ async def handle_list_prs(env, repo_filter=None):
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
 async def handle_list_repos(env):
-    """List all unique repos"""
+    """List all unique repos with count of open PRs only"""
     try:
         db = get_db(env)
         stmt = db.prepare('''
             SELECT DISTINCT repo_owner, repo_name, 
                    COUNT(*) as pr_count
             FROM prs 
+            WHERE is_merged = 0 AND state = 'open'
             GROUP BY repo_owner, repo_name
             ORDER BY repo_owner, repo_name
         ''')
@@ -379,6 +398,20 @@ async def handle_refresh_pr(request, env):
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Check if PR is now merged or closed - delete it from database
+        if pr_data['is_merged'] or pr_data['state'] == 'closed':
+            # Delete the PR from database
+            delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
+            await delete_stmt.run()
+            
+            status_msg = 'merged' if pr_data['is_merged'] else 'closed'
+            return Response.new(json.dumps({
+                'success': True, 
+                'removed': True,
+                'message': f'PR has been {status_msg} and removed from tracking'
+            }), 
+                              {'headers': {'Content-Type': 'application/json'}})
         
         # Generate timestamps in Python for consistency and testability
         # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
