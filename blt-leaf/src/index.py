@@ -4,9 +4,6 @@ import json
 import re
 from datetime import datetime, timezone
 
-# SQL filter for open PRs only (excludes merged and closed PRs)
-OPEN_PRS_FILTER = "is_merged = 0 AND state = 'open'"
-
 # Track if schema initialization has been attempted in this worker instance
 # This is safe in Cloudflare Workers Python as each isolate runs single-threaded
 _schema_init_attempted = False
@@ -322,22 +319,22 @@ async def handle_list_prs(env, repo_filter=None):
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                stmt = db.prepare(f'''
+                stmt = db.prepare('''
                     SELECT * FROM prs 
                     WHERE repo_owner = ? AND repo_name = ?
-                    AND {OPEN_PRS_FILTER}
+                    AND is_merged = 0 AND state = 'open'
                     ORDER BY last_updated_at DESC
                 ''').bind(parts[0], parts[1])
             else:
-                stmt = db.prepare(f'''
+                stmt = db.prepare('''
                     SELECT * FROM prs 
-                    WHERE {OPEN_PRS_FILTER}
+                    WHERE is_merged = 0 AND state = 'open'
                     ORDER BY last_updated_at DESC
                 ''')
         else:
-            stmt = db.prepare(f'''
+            stmt = db.prepare('''
                 SELECT * FROM prs 
-                WHERE {OPEN_PRS_FILTER}
+                WHERE is_merged = 0 AND state = 'open'
                 ORDER BY last_updated_at DESC
             ''')
         
@@ -355,11 +352,11 @@ async def handle_list_repos(env):
     """List all unique repos with count of open PRs only"""
     try:
         db = get_db(env)
-        stmt = db.prepare(f'''
+        stmt = db.prepare('''
             SELECT DISTINCT repo_owner, repo_name, 
                    COUNT(*) as pr_count
             FROM prs 
-            WHERE {OPEN_PRS_FILTER}
+            WHERE is_merged = 0 AND state = 'open'
             GROUP BY repo_owner, repo_name
             ORDER BY repo_owner, repo_name
         ''')
