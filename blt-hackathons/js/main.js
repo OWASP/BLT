@@ -23,20 +23,23 @@ class HackathonDashboard {
             const startDate = new Date(this.config.startTime);
             const endDate = new Date(this.config.endTime);
 
+            // Resolve repositories (including organization repos if specified)
+            const repositories = await this.api.resolveRepositories(this.config.github);
+
             // Fetch all PRs, issues, and reviews
             const [prs, issues, reviews] = await Promise.all([
                 this.api.getAllPullRequests(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllIssues(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllReviews(
-                    this.config.github.repositories,
+                    repositories,
                     startDate,
                     endDate
                 )
