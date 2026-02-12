@@ -33,11 +33,22 @@ BLT-Leaf/
 
 ## Features
 
+### Core Functionality
 - 📝 **Track PRs**: Add GitHub PR URLs to track their status
 - 📊 **Detailed Metrics**: View merge status, files changed, check results, and review status
 - 👥 **Multi-Repo Support**: Track PRs across multiple repositories
 - 🔄 **Real-time Updates**: Refresh PR data from GitHub API
-- 🎨 **Clean Interface**: Simple, GitHub-themed UI with no external frameworks
+- 🎨 **Clean Interface**: Simple, GitHub-themed UI with dark mode support
+
+### PR Readiness Analysis (NEW)
+- 🎯 **Readiness Scoring**: Data-driven 0-100 score combining CI confidence and review health
+- 📈 **Timeline Tracking**: Complete chronological view of commits, reviews, and comments
+- 🔍 **Feedback Loop Detection**: Automatically tracks reviewer comments and author responses
+- 📊 **Response Rate Analysis**: Measures how quickly and thoroughly authors address feedback
+- ⚠️ **Stale Feedback Detection**: Identifies unaddressed comments older than 3 days
+- 🚫 **Smart Blocker Detection**: Auto-identifies issues preventing merge (failing checks, merge conflicts, etc.)
+- 💡 **Actionable Recommendations**: Context-aware suggestions for next steps
+- ✅ **Merge Ready Indicator**: Clear verdict on whether PR is safe to merge
 
 ## Tech Stack
 
@@ -101,6 +112,7 @@ wrangler deploy
 
 ## Usage
 
+### Basic Tracking
 1. **Add a PR**: Enter a GitHub PR URL in the format `https://github.com/owner/repo/pull/number`
    - Note: Only open PRs can be added. Merged or closed PRs will be rejected.
 2. **View Details**: See comprehensive PR information including:
@@ -114,8 +126,32 @@ wrangler deploy
 4. **Refresh Data**: Use the refresh button to update PR information from GitHub
    - Note: If a PR has been merged or closed since being added, it will be automatically removed from tracking.
 
+### PR Readiness Analysis
+5. **Check Readiness**: Click the "Check Readiness" button on any PR card to analyze:
+   - **Overall Score**: 0-100 combining CI confidence (60%) and review health (40%)
+   - **Score Breakdown**: See individual CI and review scores
+   - **Blockers**: Critical issues preventing merge (failing checks, conflicts, stale feedback)
+   - **Warnings**: Non-blocking concerns (awaiting approval, large PR size)
+   - **Recommendations**: Specific actionable next steps
+   - **Response Metrics**: Author responsiveness and feedback address rate
+
+### Readiness Classifications
+- ✅ **READY_TO_MERGE** (70-100): No blockers, all key metrics passing
+- 🟡 **NEARLY_READY** (60-69): Minor issues, mostly ready
+- 🟠 **NEEDS_WORK** (40-59): Significant issues need attention
+- 🔴 **NOT_READY** (<40): Major problems, not safe to merge
+
+### Review Health States
+- **APPROVED** (90-100): Reviews approved, ready to go
+- **ACTIVE** (70-85): Good progress with responsive author
+- **AWAITING_REVIEWER** (60-80): Author responded, waiting on reviewers
+- **AWAITING_AUTHOR** (35-55): Author needs to address feedback
+- **STALLED** (10-30): Unaddressed feedback >3 days old
+- **NO_ACTIVITY** (50): No reviews or feedback yet
+
 ## API Endpoints
 
+### Core Endpoints
 - `GET /` - Serves the HTML interface
 - `GET /api/repos` - List all repositories with open PRs
 - `GET /api/prs` - List all open PRs (optional `?repo=owner/name` filter)
@@ -123,6 +159,78 @@ wrangler deploy
   - Returns 400 error if PR is merged or closed
 - `POST /api/refresh` - Refresh a PR's data (body: `{"pr_id": 123}`)
   - Automatically removes PR if it has been merged or closed
+- `GET /api/rate-limit` - Check GitHub API rate limit status
+- `GET /api/status` - Check database configuration status
+
+### Analysis Endpoints (NEW)
+- `GET /api/prs/{id}/timeline` - Get complete PR event timeline
+  - Returns chronological list of commits, reviews, and comments
+  - Includes parsed timestamps and event metadata
+  
+- `GET /api/prs/{id}/review-analysis` - Analyze review feedback loops
+  - Detects reviewer feedback and author responses
+  - Calculates response rates and timing
+  - Identifies stale unaddressed feedback
+  - Returns review health classification and score
+  
+- `GET /api/prs/{id}/readiness` - Get comprehensive PR readiness analysis
+  - Combines CI confidence and review health scores
+  - Detects blockers (failing checks, conflicts, stale feedback)
+  - Provides warnings and actionable recommendations
+  - Returns merge-ready verdict with detailed breakdown
+
+### Response Examples
+
+#### Timeline Response
+```json
+{
+  "pr": { "id": 1, "title": "...", "author": "..." },
+  "timeline": [
+    {
+      "type": "commit",
+      "timestamp": "2024-01-15T10:30:00Z",
+      "author": "username",
+      "data": { "sha": "abc1234", "message": "Fix bug" }
+    },
+    {
+      "type": "review_comment",
+      "timestamp": "2024-01-15T11:00:00Z",
+      "author": "reviewer",
+      "data": { "body": "Please add tests", "path": "src/main.py" }
+    }
+  ],
+  "event_count": 15
+}
+```
+
+#### Readiness Response
+```json
+{
+  "pr": { "id": 1, "title": "...", "state": "open" },
+  "readiness": {
+    "overall_score": 78,
+    "ci_score": 100,
+    "review_score": 70,
+    "classification": "READY_TO_MERGE",
+    "merge_ready": true,
+    "blockers": [],
+    "warnings": ["Awaiting reviewer approval"],
+    "recommendations": ["Ping reviewers for re-review"]
+  },
+  "review_health": {
+    "classification": "AWAITING_REVIEWER",
+    "score": 70,
+    "response_rate": 1.0,
+    "total_feedback": 3,
+    "responded_feedback": 3
+  },
+  "ci_checks": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0
+  }
+}
+```
 
 ## Database Schema
 
@@ -151,6 +259,51 @@ CREATE TABLE prs (
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+## Readiness Scoring Algorithm
+
+### Overall Score Calculation
+```
+Overall Score = (CI Confidence × 60%) + (Review Health × 40%)
+```
+
+### CI Confidence Score (0-100)
+- **All passing**: 100 points
+- **Any failing**: Heavily penalized (0 points if all fail)
+- **Skipped checks**: Minor penalty (−20% per skipped)
+- **Pass rate**: `(passed / total) × 100 - (failed / total) × 80 - (skipped / total) × 20`
+
+### Review Health Score (0-100)
+Based on review state and responsiveness:
+- **APPROVED**: 95 points (reviews approved)
+- **ACTIVE**: 70-85 points (good back-and-forth, responsive author)
+- **AWAITING_REVIEWER**: 60-80 points (author responded, waiting on reviewers)
+- **AWAITING_AUTHOR**: 35-55 points (needs author response)
+- **STALLED**: 10-30 points (unaddressed feedback >3 days)
+- **NO_ACTIVITY**: 50 points (no reviews yet)
+
+### Feedback Loop Detection
+The system tracks reviewer-author interaction cycles:
+1. **Reviewer Action**: Review submission or comment
+2. **Author Response**: Commit, reply, or code change
+3. **Response Tracking**: Measures time between feedback and response
+4. **Staleness Detection**: Flags feedback >3 days without response
+
+### Automatic Blocker Detection
+- ❌ Failing CI checks
+- ❌ Merge conflicts (dirty mergeable state)
+- ❌ PR closed or already merged
+- ❌ Stale unaddressed feedback (>3 days)
+- ❌ Awaiting author response to change requests
+
+### Smart Recommendations
+Context-aware suggestions based on PR state:
+- Fix specific failing checks
+- Address reviewer comments
+- Resolve merge conflicts
+- Ping reviewers for approval
+- Split large PRs (>30 files)
+- Re-run flaky checks
 
 ## GitHub API
 
