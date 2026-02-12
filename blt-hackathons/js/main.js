@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (HACKATHONS_CONFIG && HACKATHONS_CONFIG.hackathons && HACKATHONS_CONFIG.hackathons.length > 0) {
             // Use first hackathon as default
             hackathonConfig = HACKATHONS_CONFIG.hackathons[0];
-            console.warn('No slug provided, using first hackathon:', hackathonConfig.name);
+            console.warn('No slug provided, using first available hackathon');
         } else {
             // Show error if no configuration available
             const banner = document.getElementById('banner-section');

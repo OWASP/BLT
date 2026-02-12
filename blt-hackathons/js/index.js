@@ -149,6 +149,9 @@ class HackathonIndex {
             const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
             const timeRemaining = this.getTimeRemaining(hackathon);
             const repoCount = hackathon.github.repositories.length;
+            const descriptionTrimmed = hackathon.description.trim();
+            const descriptionPreview = descriptionTrimmed.substring(0, 150);
+            const needsEllipsis = descriptionTrimmed.length > 150;
 
             return `
                 <div class="hackathon-card bg-white rounded-lg shadow-lg overflow-hidden" data-status="${status.status}">
@@ -171,7 +174,7 @@ class HackathonIndex {
                     
                     <div class="p-6">
                         <p class="text-gray-700 mb-4 line-clamp-3">
-                            ${this.escapeHtml(hackathon.description.trim().substring(0, 150))}...
+                            ${this.escapeHtml(descriptionPreview)}${needsEllipsis ? '...' : ''}
                         </p>
                         
                         <div class="flex items-center text-sm text-gray-600 mb-4">
