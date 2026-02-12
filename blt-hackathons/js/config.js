@@ -8,8 +8,8 @@ const HACKATHON_CONFIG = {
     // Basic Information
     name: "My Awesome Hackathon",
     description: `
-        Welcome to our hackathon! This is an exciting opportunity to contribute to open source projects,
-        collaborate with other developers, and win amazing prizes. Join us in making great software!
+        Welcome to our hackathon! This is an exciting opportunity to contribute to open source projects
+        and collaborate with other developers. Join us in making great software!
     `,
     
     // Optional rules section
@@ -50,32 +50,7 @@ const HACKATHON_CONFIG = {
     },
     
     // Prizes Configuration
-    prizes: [
-        {
-            position: 1,
-            title: "First Place",
-            description: "Amazing prize for the top contributor!",
-            value: "500" // Optional: prize value in USD
-        },
-        {
-            position: 2,
-            title: "Second Place",
-            description: "Great prize for the runner-up!",
-            value: "300"
-        },
-        {
-            position: 3,
-            title: "Third Place",
-            description: "Excellent prize for third place!",
-            value: "200"
-        },
-        {
-            position: 4,
-            title: "Best First-Time Contributor",
-            description: "Special prize for newcomers to open source!",
-            value: "100"
-        }
-    ],
+    prizes: [],
     
     // Sponsors Configuration (optional)
     sponsors: [

@@ -59,7 +59,6 @@ class HackathonDashboard {
             this.renderReviewLeaderBoard(stats.participants);
             this.renderChart(stats.dailyActivity, prs);
             this.renderRepositories(stats.repoStats);
-            this.renderPrizes();
             this.renderSponsors();
             this.hideLoading();
         } catch (error) {
@@ -469,45 +468,6 @@ class HackathonDashboard {
         }).join('');
 
         container.innerHTML = reposHtml || '<p class="text-gray-600">No repositories configured.</p>';
-    }
-
-    /**
-     * Render prizes
-     */
-    renderPrizes() {
-        const container = document.getElementById('prizes-list');
-        if (!this.config.prizes || this.config.prizes.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 italic">No prizes have been announced yet.</p>';
-            return;
-        }
-
-        container.innerHTML = this.config.prizes.map(prize => {
-            let icon, iconColor;
-            if (prize.position === 1) {
-                icon = 'fa-trophy';
-                iconColor = 'text-yellow-500';
-            } else if (prize.position === 2) {
-                icon = 'fa-trophy';
-                iconColor = 'text-gray-400';
-            } else if (prize.position === 3) {
-                icon = 'fa-trophy';
-                iconColor = 'text-orange-600';
-            } else {
-                icon = 'fa-award';
-                iconColor = 'text-blue-500';
-            }
-
-            return `
-                <div class="border-b pb-4 last:border-b-0 last:pb-0">
-                    <div class="flex items-center mb-2">
-                        <i class="fas ${icon} ${iconColor} mr-2 text-xl"></i>
-                        <h3 class="text-xl font-semibold">${this.escapeHtml(prize.title)}</h3>
-                    </div>
-                    <p class="text-gray-600 mb-2">${this.escapeHtml(prize.description)}</p>
-                    ${prize.value ? `<p class="font-medium text-red-600">$${prize.value}</p>` : ''}
-                </div>
-            `;
-        }).join('');
     }
 
     /**
