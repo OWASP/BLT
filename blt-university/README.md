@@ -179,7 +179,7 @@ Special thanks to:
 
 ## 📊 Stats
 
-- 📚 **Courses**: 3+ and growing
+- 📚 **Courses**: 6+ and growing
 - 👨‍🏫 **Instructors**: 2+ expert instructors
 - 🎯 **Categories**: 10 security specializations
 - 🆓 **Cost**: Always FREE

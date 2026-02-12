@@ -5,9 +5,10 @@ _site/
 .jekyll-metadata
 
 # Ruby
-vendor/
+vendor/bundle/
 .bundle/
 Gemfile.lock
+*.gem
 
 # macOS
 .DS_Store
