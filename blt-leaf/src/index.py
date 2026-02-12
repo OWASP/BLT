@@ -260,23 +260,41 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
     headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
     
     try:
-        # Fetch all timeline data in parallel
-        commits_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/commits'
-        reviews_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/reviews'
-        review_comments_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/comments'
-        issue_comments_url = f'{base_url}/repos/{owner}/{repo}/issues/{pr_number}/comments'
+        # Fetch all timeline data in parallel (with pagination)
+        commits_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=100'
+        reviews_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100'
+        review_comments_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/comments?per_page=100'
+        issue_comments_url = f'{base_url}/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100'
         
-        # Make parallel requests
-        commits_response = await fetch(commits_url, {'headers': headers})
-        reviews_response = await fetch(reviews_url, {'headers': headers})
-        review_comments_response = await fetch(review_comments_url, {'headers': headers})
-        issue_comments_response = await fetch(issue_comments_url, {'headers': headers})
+        # Make parallel requests with proper fetch options conversion
+        fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
+        commits_response = await fetch(commits_url, fetch_options)
+        reviews_response = await fetch(reviews_url, fetch_options)
+        review_comments_response = await fetch(review_comments_url, fetch_options)
+        issue_comments_response = await fetch(issue_comments_url, fetch_options)
         
-        # Parse responses
-        commits_data = (await commits_response.json()).to_py() if commits_response.ok else []
-        reviews_data = (await reviews_response.json()).to_py() if reviews_response.ok else []
-        review_comments_data = (await review_comments_response.json()).to_py() if review_comments_response.ok else []
-        issue_comments_data = (await issue_comments_response.json()).to_py() if issue_comments_response.ok else []
+        # Check all responses are OK before parsing
+        responses = [
+            ('commits', commits_url, commits_response),
+            ('reviews', reviews_url, reviews_response),
+            ('review_comments', review_comments_url, review_comments_response),
+            ('issue_comments', issue_comments_url, issue_comments_response)
+        ]
+        
+        for kind, url, resp in responses:
+            if not resp.ok:
+                status = getattr(resp, 'status', 'unknown')
+                status_text = getattr(resp, 'statusText', '')
+                raise Exception(
+                    f"GitHub API error fetching {kind} for PR {owner}/{repo}#{pr_number}: "
+                    f"status={status} {status_text} url={url}"
+                )
+        
+        # Parse responses (all are OK here)
+        commits_data = (await commits_response.json()).to_py()
+        reviews_data = (await reviews_response.json()).to_py()
+        review_comments_data = (await review_comments_response.json()).to_py()
+        issue_comments_data = (await issue_comments_response.json()).to_py()
         
         return {
             'commits': commits_data,
@@ -292,9 +310,9 @@ def parse_github_timestamp(timestamp_str):
     try:
         # GitHub timestamps are in format: 2024-01-15T10:30:45Z
         return datetime.strptime(timestamp_str.replace('Z', '+00:00'), '%Y-%m-%dT%H:%M:%S%z')
-    except Exception:
-        # Fallback to current time if parsing fails
-        return datetime.now(timezone.utc)
+    except Exception as exc:
+        # Raise error instead of silently using current time to avoid incorrect event ordering
+        raise ValueError(f"Invalid GitHub timestamp: {timestamp_str!r}") from exc
 
 def build_pr_timeline(timeline_data, pr_author):
     """
@@ -494,7 +512,7 @@ def analyze_review_progress(timeline, pr_author):
         'feedback_loops': feedback_loops,
         'total_feedback_count': total_feedback,
         'responded_count': responded_count,
-        'response_rate': round(response_rate, 2),
+        'response_rate': response_rate,
         'awaiting_author': awaiting_author,
         'awaiting_reviewer': awaiting_reviewer,
         'stale_feedback': stale_feedback,
@@ -639,7 +657,6 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     # CI blockers
     checks_failed = pr_data.get('checks_failed', 0)
     checks_skipped = pr_data.get('checks_skipped', 0)
-    checks_passed = pr_data.get('checks_passed', 0)
     
     if checks_failed > 0:
         blockers.append(f"{checks_failed} CI check(s) failing")

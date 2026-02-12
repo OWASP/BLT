@@ -407,8 +407,8 @@
 
             document.querySelectorAll('.readiness-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const prId = e.target.dataset.prId;
-                    await checkReadiness(prId, e.target);
+                    const prId = e.currentTarget.dataset.prId;
+                    await checkReadiness(prId, e.currentTarget);
                 });
             });
         }
@@ -435,7 +435,6 @@
 
                 const readiness = data.readiness;
                 const reviewHealth = data.review_health;
-                const ciChecks = data.ci_checks;
 
                 // Classification icons
                 const classIcons = {
