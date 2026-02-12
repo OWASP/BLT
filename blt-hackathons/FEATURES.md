@@ -72,6 +72,7 @@ display: {
 - Show PR statistics per repo
 - Direct links to GitHub
 - Quick access to pull requests
+- **NEW: Organization-wide tracking**
 
 **Repository Card Includes:**
 - Repository name and owner
@@ -79,7 +80,7 @@ display: {
 - Links to repository and PRs
 - Repository description (if available)
 
-**Configuration:**
+**Configuration - Individual Repositories:**
 ```javascript
 github: {
     repositories: [
@@ -88,6 +89,21 @@ github: {
     ]
 }
 ```
+
+**Configuration - Organization Tracking (NEW):**
+```javascript
+github: {
+    organization: "OWASP-BLT",  // Track all repos in this organization
+    repositories: []             // Optional: Add specific repos too
+}
+```
+
+**How Organization Tracking Works:**
+- Automatically fetches all repositories from the specified organization
+- Updates dynamically as repos are added/removed from the organization
+- Can be combined with explicit repository list
+- Deduplicates repositories automatically
+- Falls back to explicit repos if organization fetch fails
 
 ### 5. Prize Management
 

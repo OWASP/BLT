@@ -48,7 +48,7 @@ const EXAMPLE_CONFIG = {
         // Required scopes: public_repo (for public repos)
         token: "", // Add your token here
         
-        // Repositories to track
+        // Option 1: Track specific repositories
         // Format: "owner/repo-name"
         repositories: [
             "OWASP-BLT/BLT",
@@ -63,6 +63,13 @@ const EXAMPLE_CONFIG = {
             "OWASP-BLT/OWASP-BLT-Lyte",
             "OWASP-BLT/.github"
         ]
+        
+        // Option 2: Track ALL repositories in an organization
+        // Uncomment the line below to track all repos in an organization:
+        // organization: "OWASP-BLT"
+        
+        // Note: You can use both 'organization' and 'repositories' together.
+        // The system will track all org repos PLUS any additional repos you list.
     },
     
     // =====================
@@ -220,6 +227,18 @@ Make sure repositories are:
 1. Public (or your token has access)
 2. Active (has pull requests)
 3. Correctly spelled
+
+ORGANIZATION TRACKING:
+Instead of listing individual repositories, you can track all repositories
+in a GitHub organization by using the 'organization' field:
+
+github: {
+    token: "",
+    organization: "OWASP-BLT"  // Track all repos in this org
+}
+
+This is particularly useful for organizations with many repositories
+or when repositories are added/removed frequently.
 */
 
 // =====================

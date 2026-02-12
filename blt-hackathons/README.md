@@ -95,6 +95,20 @@ github: {
 }
 ```
 
+**New: Organization Support**
+
+You can now track all repositories in a GitHub organization instead of listing them individually:
+
+```javascript
+github: {
+    token: "",
+    organization: "OWASP-BLT",  // Track all repos in this organization
+    repositories: []  // Can still add specific repos if needed
+}
+```
+
+When an `organization` field is specified, the system will automatically fetch all repositories from that organization and track them for the hackathon. You can combine this with explicit repositories if needed.
+
 **GitHub Token (Recommended):**
 - Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
 - Create a new token with `public_repo` scope
