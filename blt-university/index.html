@@ -1,0 +1,119 @@
+---
+layout: default
+title: Home
+---
+
+<section class="hero">
+    <div class="container">
+        <h1>Welcome to BLT University</h1>
+        <p class="hero-subtitle">Your Open-Source Gateway to Cybersecurity Excellence</p>
+        <p class="hero-description">
+            Learn cybersecurity through GitHub-powered courses. Collaborate, contribute, and 
+            advance your skills with industry experts and a global community of learners.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ '/courses/' | relative_url }}" class="btn btn-primary">Browse Courses</a>
+            <a href="{{ '/enroll/' | relative_url }}" class="btn btn-secondary">Enroll Now</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2>Why Choose BLT University?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔓</div>
+                <h3>Open Source Education</h3>
+                <p>All courses are free and open-source. Learn, contribute, and help others learn.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Cybersecurity Focus</h3>
+                <p>Specialized curriculum covering all aspects of information security and ethical hacking.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🤝</div>
+                <h3>GitHub-Powered</h3>
+                <p>Learn through pull requests, issues, and GitHub Actions. Real-world collaboration skills.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Rich Content</h3>
+                <p>Videos, PDFs, interactive labs, meetups, and hands-on projects.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Expert Instructors</h3>
+                <p>Learn from experienced security professionals and industry leaders.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3>Global Community</h3>
+                <p>Connect with students and professionals from around the world.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="featured-courses">
+    <div class="container">
+        <h2>Featured Courses</h2>
+        <div class="course-grid">
+        {% assign featured = site.courses | where: "featured", true | limit: 3 %}
+        {% for course in featured %}
+            <div class="course-card">
+                <div class="course-card-header">
+                    <span class="course-category">{{ course.category }}</span>
+                    <span class="course-level">{{ course.level }}</span>
+                </div>
+                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
+                <p>{{ course.description | truncate: 120 }}</p>
+                <div class="course-card-footer">
+                    <span class="course-instructor">👤 {{ course.instructor }}</span>
+                    <span class="course-duration">⏱️ {{ course.duration }}</span>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        <div class="text-center">
+            <a href="{{ '/courses/' | relative_url }}" class="btn btn-primary">View All Courses</a>
+        </div>
+    </div>
+</section>
+
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">{{ site.courses.size }}</div>
+                <div class="stat-label">Courses Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ site.instructors.size }}</div>
+                <div class="stat-label">Expert Instructors</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ site.categories.size }}</div>
+                <div class="stat-label">Specializations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Open Source & Free</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <div class="container">
+        <h2>Ready to Start Your Security Journey?</h2>
+        <p>Join our community of learners and security professionals today.</p>
+        <a href="{{ '/enroll/' | relative_url }}" class="btn btn-primary btn-large">Get Started</a>
+    </div>
+</section>

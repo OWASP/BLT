@@ -1,0 +1,101 @@
+name: Student Enrollment
+description: Enroll in a BLT University course
+title: "[ENROLLMENT] Course Name - Your Name"
+labels: ["enrollment", "student"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Enrollment Request
+        Thank you for your interest in BLT University! Please fill out this form to enroll in a course.
+        
+  - type: input
+    id: student-name
+    attributes:
+      label: Your Name
+      description: Your full name
+      placeholder: John Doe
+    validations:
+      required: true
+      
+  - type: input
+    id: github-username
+    attributes:
+      label: GitHub Username
+      description: Your GitHub username
+      placeholder: johndoe
+    validations:
+      required: true
+      
+  - type: input
+    id: email
+    attributes:
+      label: Email Address
+      description: Your email address for course communications
+      placeholder: john.doe@example.com
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: course
+    attributes:
+      label: Course Selection
+      description: Which course would you like to enroll in?
+      options:
+        - Introduction to Web Application Security
+        - Advanced Penetration Testing
+        - Cryptography for Developers
+        - Network Security Fundamentals
+        - Secure Coding Practices
+        - Malware Analysis
+        - Cloud Security
+        - Mobile Application Security
+        - Incident Response
+        - Security Operations
+    validations:
+      required: true
+      
+  - type: textarea
+    id: background
+    attributes:
+      label: Background & Experience
+      description: Tell us about your security background and why you want to take this course
+      placeholder: I have 2 years of development experience and want to learn more about secure coding...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites Met
+      description: Confirm that you meet the course prerequisites listed on the course page
+      placeholder: Yes, I have experience with...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: time-commitment
+    attributes:
+      label: Time Commitment
+      description: Can you commit the required time per week for this course?
+      options:
+        - "Yes, I can commit the required time"
+        - "I may need flexibility"
+        - "I'm unsure"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms & Conditions
+      description: Please review and accept the following
+      options:
+        - label: I agree to follow the BLT University Code of Conduct
+          required: true
+        - label: I understand all course content is licensed under AGPL-3.0
+          required: true
+        - label: I will use the skills learned ethically and legally
+          required: true
+        - label: I commit to participating actively in the course
+          required: true

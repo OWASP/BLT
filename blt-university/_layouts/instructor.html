@@ -1,0 +1,46 @@
+---
+layout: default
+---
+
+<article class="instructor-profile">
+    <div class="instructor-header">
+        {% if page.avatar %}
+        <img src="{{ page.avatar }}" alt="{{ page.title }}" class="instructor-avatar">
+        {% endif %}
+        <div class="instructor-info">
+            <h1>{{ page.title }}</h1>
+            {% if page.expertise %}
+            <p class="instructor-expertise">{{ page.expertise }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="instructor-bio">
+        {{ content }}
+    </div>
+
+    {% if page.github or page.linkedin or page.twitter or page.website %}
+    <div class="instructor-social">
+        <h3>Connect</h3>
+        <ul>
+            {% if page.github %}<li><a href="https://github.com/{{ page.github }}" target="_blank">GitHub</a></li>{% endif %}
+            {% if page.linkedin %}<li><a href="https://linkedin.com/in/{{ page.linkedin }}" target="_blank">LinkedIn</a></li>{% endif %}
+            {% if page.twitter %}<li><a href="https://twitter.com/{{ page.twitter }}" target="_blank">Twitter</a></li>{% endif %}
+            {% if page.website %}<li><a href="{{ page.website }}" target="_blank">Website</a></li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="instructor-courses">
+        <h2>Courses Taught</h2>
+        <div class="course-grid">
+        {% assign instructor_courses = site.courses | where: "instructor", page.title %}
+        {% for course in instructor_courses %}
+            <div class="course-card">
+                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
+                <p>{{ course.category }} • {{ course.level }}</p>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</article>

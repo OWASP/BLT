@@ -1,0 +1,67 @@
+---
+layout: default
+title: Courses
+permalink: /courses/
+---
+
+<div class="page-header">
+    <div class="container">
+        <h1>Course Catalog</h1>
+        <p>Explore our comprehensive cybersecurity curriculum</p>
+    </div>
+</div>
+
+<div class="courses-page">
+    <div class="container">
+        <div class="courses-filters">
+            <div class="filter-group">
+                <label for="category-filter">Category:</label>
+                <select id="category-filter" class="filter-select">
+                    <option value="">All Categories</option>
+                    {% for category in site.categories %}
+                    <option value="{{ category | slugify }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="level-filter">Level:</label>
+                <select id="level-filter" class="filter-select">
+                    <option value="">All Levels</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <input type="text" id="search-filter" class="filter-input" placeholder="Search courses...">
+            </div>
+        </div>
+
+        <div class="courses-grid" id="courses-grid">
+        {% for course in site.courses %}
+            <div class="course-card" 
+                 data-category="{{ course.category | slugify }}" 
+                 data-level="{{ course.level | downcase }}"
+                 data-search="{{ course.title | downcase }} {{ course.description | downcase }} {{ course.instructor | downcase }}">
+                <div class="course-card-header">
+                    <span class="course-category">{{ course.category }}</span>
+                    <span class="course-level">{{ course.level }}</span>
+                </div>
+                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
+                <p>{{ course.description | truncate: 150 }}</p>
+                <div class="course-card-footer">
+                    <span class="course-instructor">👤 {{ course.instructor }}</span>
+                    <span class="course-duration">⏱️ {{ course.duration }}</span>
+                </div>
+                <a href="{{ course.url | relative_url }}" class="btn btn-small">View Course</a>
+            </div>
+        {% endfor %}
+        </div>
+        
+        <div id="no-results" class="no-results" style="display: none;">
+            <p>No courses found matching your criteria.</p>
+        </div>
+    </div>
+</div>

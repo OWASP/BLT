@@ -1,0 +1,80 @@
+---
+layout: default
+---
+
+<article class="course-page">
+    <div class="course-header">
+        <h1>{{ page.title }}</h1>
+        <div class="course-meta">
+            <span class="course-category">{{ page.category }}</span>
+            <span class="course-level">{{ page.level }}</span>
+            <span class="course-duration">{{ page.duration }}</span>
+        </div>
+    </div>
+
+    <div class="course-info">
+        <div class="course-description">
+            <h2>Course Description</h2>
+            {{ content }}
+        </div>
+
+        <aside class="course-sidebar">
+            <div class="enrollment-box">
+                <h3>Enroll Now</h3>
+                <p><strong>Instructor:</strong> {{ page.instructor }}</p>
+                <p><strong>Prerequisites:</strong> {{ page.prerequisites | default: "None" }}</p>
+                <a href="{{ '/enroll/' | relative_url }}?course={{ page.slug }}" class="btn btn-primary">Enroll in Course</a>
+            </div>
+
+            {% if page.resources %}
+            <div class="course-resources">
+                <h3>Resources</h3>
+                <ul>
+                {% for resource in page.resources %}
+                    <li>
+                        <a href="{{ resource.url }}" {% if resource.type == 'external' %}target="_blank" rel="noopener"{% endif %}>
+                            {% if resource.type == 'video' %}📹{% elsif resource.type == 'pdf' %}📄{% elsif resource.type == 'link' %}🔗{% endif %}
+                            {{ resource.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if page.schedule %}
+            <div class="course-schedule">
+                <h3>Schedule</h3>
+                <ul>
+                {% for session in page.schedule %}
+                    <li>
+                        <strong>{{ session.date }}</strong>: {{ session.topic }}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+
+    {% if page.syllabus %}
+    <div class="course-syllabus">
+        <h2>Syllabus</h2>
+        <ol>
+        {% for module in page.syllabus %}
+            <li>
+                <h3>{{ module.title }}</h3>
+                <p>{{ module.description }}</p>
+                {% if module.topics %}
+                <ul>
+                {% for topic in module.topics %}
+                    <li>{{ topic }}</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+</article>
