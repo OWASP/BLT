@@ -612,8 +612,8 @@ def calculate_ci_confidence(checks_passed, checks_failed, checks_skipped):
     fail_rate = checks_failed / total_checks
     skip_rate = checks_skipped / total_checks
     
-    # Weighted score: passes add, failures subtract heavily, skips slightly reduce
-    score = (pass_rate * 100) - (fail_rate * 80) - (skip_rate * 20)
+    # Weighted score: passes add, failures subtract (reduced for flaky test tolerance), skips slightly reduce
+    score = (pass_rate * 100) - (fail_rate * 50) - (skip_rate * 20)
     
     return max(0, min(100, int(score)))
 
@@ -646,21 +646,24 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
         pr_data.get('checks_skipped', 0)
     )
     
-    # Weighted combination: 60% CI, 40% Review
-    overall_score = int((ci_score * 0.6) + (review_score * 0.4))
+    # Weighted combination: 45% CI, 55% Review (reduced CI weight due to flaky tests)
+    overall_score = int((ci_score * 0.45) + (review_score * 0.55))
     
     # Identify blockers, warnings, recommendations
     blockers = []
     warnings = []
     recommendations = []
     
-    # CI blockers
+    # CI blockers (with tolerance for 1-2 flaky test failures)
     checks_failed = pr_data.get('checks_failed', 0)
     checks_skipped = pr_data.get('checks_skipped', 0)
     
-    if checks_failed > 0:
+    if checks_failed > 2:
         blockers.append(f"{checks_failed} CI check(s) failing")
         recommendations.append("Fix failing CI checks before merging")
+    elif checks_failed > 0:
+        warnings.append(f"{checks_failed} CI check(s) failing (possibly flaky tests)")
+        recommendations.append("Verify if failures are from known flaky tests (Selenium, Docker)")
     
     if checks_skipped > 0:
         warnings.append(f"{checks_skipped} CI check(s) skipped")
