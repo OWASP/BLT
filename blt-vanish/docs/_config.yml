@@ -1,0 +1,32 @@
+# GitHub Pages Configuration for SelfErase
+
+# Theme
+theme: minima
+
+# Site settings
+title: SelfErase
+description: >-
+  An open-source, privacy-first toolkit for managing and deleting 
+  personal data from data brokers
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site
+
+# GitHub Pages specific
+github_username: OWASP-BLT
+
+# Build settings
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Include custom files
+include:
+  - _redirects

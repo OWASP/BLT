@@ -110,13 +110,30 @@ For detailed security information, see [SECURITY.md](./SECURITY.md).
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Web App (Easiest)
+
+**Try SelfErase directly in your browser** without installing anything:
+
+👉 **[Launch Web App](https://owasp-blt.github.io/SelfErase/)**
+
+The web app provides:
+- 📝 Privacy profile creation and management
+- 🔐 AES-256 encryption for profile files
+- 📤 Upload/download encrypted profiles
+- 🎯 Data broker information and opt-out guides
+- 🛡️ All data stays in your browser - nothing sent to servers
+
+Perfect for quick use or trying out SelfErase before installing the native app.
+
+### Option 2: Native App (Full Features)
+
+#### Prerequisites
 
 - Flutter 3.x or later
 - Dart 3.x or later
 - (Optional) Cloudflare account for Workers deployment
 
-### Running the Local App
+#### Running the Local App
 
 ```bash
 # Clone the repository
@@ -193,10 +210,13 @@ SelfErase/
 │   ├── templates/         # Opt-out templates
 │   └── schema.json        # Data schema
 │
-├── docs/                  # Documentation
+├── docs/                  # Documentation & GitHub Pages site
+│   ├── index.html         # Web app & documentation
+│   ├── app.js             # Privacy profile manager
+│   ├── styles.css         # Site styling
 │   ├── architecture.md    # Detailed architecture
 │   ├── broker-guide.md    # How to add brokers
-│   └── api.md             # Workers API reference
+│   └── quick-start.md     # Getting started guide
 │
 ├── .github/
 │   └── workflows/         # CI/CD workflows
