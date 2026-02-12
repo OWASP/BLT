@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Find hackathon by slug
     let hackathonConfig;
-    if (slug) {
+    if (slug && typeof getHackathonBySlug === 'function') {
         hackathonConfig = getHackathonBySlug(slug);
     }
     
@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if legacy config exists (for backwards compatibility)
         if (typeof HACKATHON_CONFIG !== 'undefined') {
             hackathonConfig = HACKATHON_CONFIG;
-        } else if (HACKATHONS_CONFIG && HACKATHONS_CONFIG.hackathons && HACKATHONS_CONFIG.hackathons.length > 0) {
+        } else if (typeof HACKATHONS_CONFIG !== 'undefined' && HACKATHONS_CONFIG && HACKATHONS_CONFIG.hackathons && HACKATHONS_CONFIG.hackathons.length > 0) {
             // Use first hackathon as default
             hackathonConfig = HACKATHONS_CONFIG.hackathons[0];
             console.warn('No slug provided, using first available hackathon');

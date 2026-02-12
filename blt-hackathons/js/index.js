@@ -13,15 +13,17 @@ class HackathonIndex {
      * Initialize the index page
      */
     init() {
+        const global = this.config.global || {};
+        
         // Update site title
-        if (this.config.global.siteName) {
-            document.getElementById('site-title').textContent = this.config.global.siteName;
-            document.getElementById('hero-title').textContent = this.config.global.siteName;
-            document.title = this.config.global.siteName;
+        if (global.siteName) {
+            document.getElementById('site-title').textContent = global.siteName;
+            document.getElementById('hero-title').textContent = global.siteName;
+            document.title = global.siteName;
         }
 
-        if (this.config.global.siteDescription) {
-            document.getElementById('hero-description').textContent = this.config.global.siteDescription;
+        if (global.siteDescription) {
+            document.getElementById('hero-description').textContent = global.siteDescription;
         }
 
         // Render hackathons
@@ -182,7 +184,7 @@ class HackathonIndex {
                             <span>${repoCount} repositor${repoCount !== 1 ? 'ies' : 'y'}</span>
                         </div>
                         
-                        <a href="hackathon.html?slug=${hackathon.slug}" 
+                        <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 
                            class="block w-full text-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
                             View Dashboard
                             <i class="fas fa-arrow-right ml-2"></i>
