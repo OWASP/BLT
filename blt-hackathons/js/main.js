@@ -8,6 +8,7 @@ class HackathonDashboard {
         this.config = config;
         this.api = new GitHubAPI(config.github.token);
         this.chart = null;
+        this.repositories = null; // Store resolved repositories
     }
 
     /**
@@ -132,7 +133,7 @@ class HackathonDashboard {
         document.getElementById('pr-count').textContent = stats.totalPRs;
         document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
         document.getElementById('issue-count').textContent = stats.totalIssues || 0;
-        document.getElementById('repo-count').textContent = this.config.github.repositories.length;
+        document.getElementById('repo-count').textContent = this.repositories ? this.repositories.length : 0;
     }
 
     /**
@@ -423,7 +424,8 @@ class HackathonDashboard {
      */
     renderRepositories(repoStats) {
         const container = document.getElementById('repositories-list');
-        const reposHtml = this.config.github.repositories.map(repoPath => {
+        const repositories = this.repositories || this.config.github.repositories || [];
+        const reposHtml = repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             return `

@@ -62,7 +62,7 @@ const EXAMPLE_CONFIG = {
             "OWASP-BLT/BLT-Sammich",
             "OWASP-BLT/OWASP-BLT-Lyte",
             "OWASP-BLT/.github"
-        ]
+        ],
         
         // Option 2: Track ALL repositories in an organization
         // Uncomment the line below to track all repos in an organization:

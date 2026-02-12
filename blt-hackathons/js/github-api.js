@@ -265,6 +265,15 @@ class GitHubAPI {
             // Fetch all repositories from the organization
             const orgRepos = await this.fetchOrganizationRepos(organization);
             
+            // Check if organization fetch returned no repos
+            if (orgRepos.length === 0) {
+                console.warn(`⚠️ No repositories found for organization '${organization}'. This may indicate:`);
+                console.warn(`  - The organization does not exist or is misspelled`);
+                console.warn(`  - The organization has no public repositories`);
+                console.warn(`  - Your token lacks access to this organization's repositories`);
+                console.warn(`  Falling back to explicit repositories list.`);
+            }
+            
             // Combine with explicit repositories, removing duplicates
             const allRepos = [...new Set([...repositories, ...orgRepos])];
             

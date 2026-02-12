@@ -100,7 +100,7 @@ github: {
 
 **How Organization Tracking Works:**
 - Automatically fetches all repositories from the specified organization
-- Updates dynamically as repos are added/removed from the organization
+- Automatically detects repos added/removed from the organization on page load
 - Can be combined with explicit repository list
 - Deduplicates repositories automatically
 - Falls back to explicit repos if organization fetch fails

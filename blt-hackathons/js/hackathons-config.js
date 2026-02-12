@@ -62,9 +62,9 @@ const HACKATHONS_CONFIG = {
         },
         {
             slug: "gsoc-warmup",
-            name: "GSOC warmup",
+            name: "GSoC Warmup",
             description: `
-                Welcome to the GSOC warmup hackathon! This is a preparation event for Google Summer of Code,
+                Welcome to the GSoC Warmup hackathon! This is a preparation event for Google Summer of Code,
                 designed to help contributors get familiar with the BLT organization and its projects.
                 All repositories in the BLT organization count towards this hackathon!
             `,
