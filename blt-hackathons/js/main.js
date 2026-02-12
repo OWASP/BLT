@@ -8,7 +8,9 @@ class HackathonDashboard {
         this.config = config;
         this.api = new GitHubAPI(config.github.token);
         this.chart = null;
-        this.repositories = null; // Store resolved repositories
+        // Store resolved repositories (set during initialization)
+        // Contains the merged list of explicit repositories and organization repositories
+        this.repositories = null;
     }
 
     /**
@@ -133,7 +135,9 @@ class HackathonDashboard {
         document.getElementById('pr-count').textContent = stats.totalPRs;
         document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
         document.getElementById('issue-count').textContent = stats.totalIssues || 0;
-        document.getElementById('repo-count').textContent = this.repositories ? this.repositories.length : 0;
+        // Use resolved repositories count if available, otherwise fall back to config
+        const repoCount = this.repositories ? this.repositories.length : (this.config.github.repositories || []).length;
+        document.getElementById('repo-count').textContent = repoCount;
     }
 
     /**
@@ -424,6 +428,7 @@ class HackathonDashboard {
      */
     renderRepositories(repoStats) {
         const container = document.getElementById('repositories-list');
+        // Use resolved repositories if available, otherwise fall back to config
         const repositories = this.repositories || this.config.github.repositories || [];
         const reposHtml = repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
