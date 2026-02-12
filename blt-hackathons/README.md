@@ -7,6 +7,7 @@ A self-hosted GitHub Pages hackathon platform that lets you conduct a hackathon 
 
 ## ✨ Features
 
+- 🎯 **Multiple Hackathons** - Host multiple hackathons with individual pages and a unified index
 - 📊 **Real-time Leaderboards** - Automatically track and rank contributors based on merged pull requests
 - 📈 **Activity Charts** - Visualize pull request activity over time with beautiful charts
 - 🏆 **Prize Management** - Showcase prizes and awards for top contributors
@@ -17,16 +18,9 @@ A self-hosted GitHub Pages hackathon platform that lets you conduct a hackathon 
 
 ## 🎯 Quick Start
 
-### 1. Fork or Clone This Repository
+### Option 1: Single Hackathon (Legacy Mode)
 
-```bash
-git clone https://github.com/OWASP-BLT/BLT-Hackathon.git
-cd BLT-Hackathon
-```
-
-### 2. Configure Your Hackathon
-
-Edit `js/config.js` and customize the following:
+For a single hackathon, edit `js/config.js`:
 
 ```javascript
 const HACKATHON_CONFIG = {
@@ -40,25 +34,43 @@ const HACKATHON_CONFIG = {
             "owner/repo1",
             "owner/repo2"
         ]
-    },
-    prizes: [
+    }
+};
+```
+
+Then open `hackathon.html` directly.
+
+### Option 2: Multiple Hackathons (Recommended)
+
+For multiple hackathons, edit `js/hackathons-config.js`:
+
+```javascript
+const HACKATHONS_CONFIG = {
+    hackathons: [
         {
-            position: 1,
-            title: "First Place",
-            description: "Amazing prize!",
-            value: "500"
-        }
-        // Add more prizes...
+            slug: "hackathon-2024",  // Unique identifier for URL
+            name: "Hackathon 2024",
+            description: "Description...",
+            startTime: "2024-01-01T00:00:00Z",
+            endTime: "2024-01-31T23:59:59Z",
+            github: {
+                token: "",
+                repositories: ["owner/repo1"]
+            }
+        },
+        // Add more hackathons...
     ]
 };
 ```
 
-### 3. Deploy to GitHub Pages
+Your main page (`index.html`) will show all hackathons, and each hackathon will have its own page at `hackathon.html?slug=hackathon-2024`.
+
+### Deploy to GitHub Pages
 
 1. Push your changes to GitHub
 2. Go to your repository **Settings** → **Pages**
 3. Under "Source", select the branch you want to deploy (usually `main`)
-4. Your hackathon dashboard will be live at: `https://your-username.github.io/BLT-Hackathon/`
+4. Your hackathon platform will be live at: `https://your-username.github.io/BLT-Hackathon/`
 
 ## 📖 Configuration Guide
 
@@ -178,11 +190,30 @@ This can reduce the CSS from ~3MB to ~10KB.
 
 ### Multiple Hackathons
 
-To run multiple hackathons:
+The platform now supports hosting multiple hackathons on a single deployment:
 
-1. Create separate branches for each hackathon
-2. Configure GitHub Pages to deploy from different branches
-3. Each branch gets its own URL: `your-repo.github.io/branch-name/`
+1. **Configure multiple hackathons** in `js/hackathons-config.js`
+2. **Each hackathon gets a unique slug** used in the URL (e.g., `hackathon.html?slug=blt-2024`)
+3. **Main index page** at `/` lists all hackathons with filtering by status (ongoing, upcoming, ended)
+4. **Individual hackathon pages** accessible via slug show full dashboard with stats and leaderboard
+
+**Example configuration:**
+```javascript
+const HACKATHONS_CONFIG = {
+    hackathons: [
+        {
+            slug: "winter-2024",
+            name: "Winter Hackathon 2024",
+            // ... other config
+        },
+        {
+            slug: "spring-2024",
+            name: "Spring Hackathon 2024",
+            // ... other config
+        }
+    ]
+};
+```
 
 ### Custom Domain
 
@@ -192,7 +223,7 @@ To run multiple hackathons:
 
 ### Adding Analytics
 
-Add Google Analytics or other tracking by inserting the code before the closing `</head>` tag in `index.html`.
+Add Google Analytics or other tracking by inserting the code before the closing `</head>` tag in both `index.html` and `hackathon.html`.
 
 ## 🛠️ Development
 
@@ -214,12 +245,15 @@ npx serve
 
 ```
 BLT-Hackathon/
-├── index.html           # Main HTML file
+├── index.html                  # Main page listing all hackathons
+├── hackathon.html              # Individual hackathon dashboard
 ├── js/
-│   ├── config.js        # Hackathon configuration
-│   ├── github-api.js    # GitHub API integration
-│   └── main.js          # Dashboard logic
-├── images/              # Optional: images and logos
+│   ├── config.js               # Single hackathon configuration (legacy)
+│   ├── hackathons-config.js    # Multiple hackathons configuration
+│   ├── index.js                # Index page logic
+│   ├── github-api.js           # GitHub API integration
+│   └── main.js                 # Dashboard logic
+├── images/                     # Optional: images and logos
 └── README.md
 ```
 
