@@ -600,6 +600,44 @@ class HackathonDashboard {
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const dashboard = new HackathonDashboard(HACKATHON_CONFIG);
+    // Get slug from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+    
+    // Find hackathon by slug
+    let hackathonConfig;
+    if (slug) {
+        hackathonConfig = getHackathonBySlug(slug);
+    }
+    
+    // If no slug or hackathon not found, try to use the first hackathon or fall back to legacy config
+    if (!hackathonConfig) {
+        // Check if legacy config exists (for backwards compatibility)
+        if (typeof HACKATHON_CONFIG !== 'undefined') {
+            hackathonConfig = HACKATHON_CONFIG;
+        } else if (HACKATHONS_CONFIG && HACKATHONS_CONFIG.hackathons && HACKATHONS_CONFIG.hackathons.length > 0) {
+            // Use first hackathon as default
+            hackathonConfig = HACKATHONS_CONFIG.hackathons[0];
+            console.warn('No slug provided, using first hackathon:', hackathonConfig.name);
+        } else {
+            // Show error if no configuration available
+            const banner = document.getElementById('banner-section');
+            if (banner) {
+                banner.innerHTML = `
+                    <div class="text-center text-white p-4">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                        <h2 class="text-2xl font-bold mb-2">Hackathon Not Found</h2>
+                        <p class="text-lg mb-4">The requested hackathon could not be found.</p>
+                        <a href="index.html" class="inline-block px-6 py-3 bg-white text-red-600 rounded-lg font-medium hover:bg-gray-100">
+                            View All Hackathons
+                        </a>
+                    </div>
+                `;
+            }
+            return;
+        }
+    }
+    
+    const dashboard = new HackathonDashboard(hackathonConfig);
     dashboard.init();
 });
