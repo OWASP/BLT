@@ -113,19 +113,19 @@ function renderApps(apps) {
         card.className = 'bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col';
 
         card.innerHTML = `
-            <div class="p-6 flex-grow">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">${app.app_name}</h3>
-                    <span class="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                        ${app.country_name}
-                    </span>
-                </div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">${app.app_type}</p>
-                <p class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">${app.ban_reason}</p>
+            <div class="bg-gray-50 dark:bg-gray-700/30 px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-red-600 truncate mr-2">${app.app_name}</h3>
+                <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-bold rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 whitespace-nowrap">
+                    ${app.country_name}
+                </span>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-sm">
-                <span class="text-gray-500 dark:text-gray-400">Banned: ${new Date(app.ban_date).toLocaleDateString()}</span>
-                ${app.source_url ? `<a href="${app.source_url}" target="_blank" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium hover:underline inline-flex items-center">Source <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>` : ''}
+            <div class="p-6 flex-grow">
+                <p class="text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-widest">${app.app_type}</p>
+                <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">${app.ban_reason}</p>
+            </div>
+            <div class="bg-gray-50/50 dark:bg-gray-800 px-6 py-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center text-xs">
+                <span class="text-gray-500 dark:text-gray-400 font-medium">${new Date(app.ban_date).toLocaleDateString()}</span>
+                ${app.source_url ? `<a href="${app.source_url}" target="_blank" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold hover:underline inline-flex items-center">Details <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>` : ''}
             </div>
         `;
         appsGrid.appendChild(card);
@@ -267,19 +267,20 @@ function placeMarkersForApps(apps) {
             const count = countryApps.length;
 
             const markerHTML = `
-                <div class="relative w-10 h-10 group cursor-pointer transform hover:scale-110 transition-transform duration-200">
-                    <div class="absolute inset-0 bg-red-600 rounded-full opacity-75 animate-ping group-hover:animate-none"></div>
-                    <div class="absolute inset-0 bg-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800">
-                        <span class="text-white font-bold text-sm">${count}</span>
+                <div style="position: relative; width: 42px; height: 42px;">
+                    <div style="width: 42px; height: 42px; border-radius: 50% 50% 50% 0; background: #dc2626; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: 700; box-shadow: 0 0 10px rgba(0,0,0,0.25); ">
+                        <div style="transform: rotate(45deg);">
+                            ${count}
+                        </div>
                     </div>
                 </div>`;
 
             const marker = L.marker(center, {
                 icon: L.divIcon({
-                    className: "",
+                    className: "map-pin-marker",
                     html: markerHTML,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
+                    iconSize: [42, 42],
+                    iconAnchor: [21, 42]
                 })
             });
 
@@ -306,10 +307,18 @@ function showCountryInfo(countryName, apps) {
 
     const listDiv = document.getElementById('bannedAppsList');
     listDiv.innerHTML = apps.map(app => `
-        <div class="p-3 rounded bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-600">
-            <h4 class="font-bold text-red-600 dark:text-red-400 text-sm">${app.app_name}</h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase mt-0.5">${app.app_type}</p>
-            <p class="text-xs text-gray-700 dark:text-gray-300 mt-1 line-clamp-2">${app.ban_reason}</p>
+        <div class="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+            <div class="bg-gray-50 dark:bg-gray-700/50 px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
+                <h4 class="font-bold text-red-600 text-sm truncate mr-2">${app.app_name}</h4>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">${app.app_type}</span>
+            </div>
+            <div class="p-3 bg-white dark:bg-gray-800">
+                <p class="text-[13px] text-gray-700 dark:text-gray-300 leading-snug line-clamp-2">${app.ban_reason}</p>
+                <div class="mt-2 flex justify-between items-center">
+                    <span class="text-[10px] text-gray-400 font-medium italic">${new Date(app.ban_date).toLocaleDateString()}</span>
+                    ${app.source_url ? `<a href="${app.source_url}" target="_blank" class="text-[10px] text-red-600 hover:underline font-bold">Source</a>` : ''}
+                </div>
+            </div>
         </div>
     `).join('');
 
