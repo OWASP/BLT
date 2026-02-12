@@ -98,13 +98,13 @@ async def handle_homepage(
                 <div class="flex justify-center space-x-3">
                     <a href="https://blt.owasp.org" 
                        class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                       target="_blank">
+                       target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-external-link-alt mr-2"></i>
                         BLT Website
                     </a>
                     <a href="https://github.com/OWASP-BLT/BLT" 
                        class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                       target="_blank">
+                       target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-github mr-2"></i>
                         Main Repository
                     </a>
