@@ -102,8 +102,8 @@ wrangler deploy
 ## Usage
 
 1. **Add a PR**: Enter a GitHub PR URL in the format `https://github.com/owner/repo/pull/number`
+   - Note: Only open PRs can be added. Merged or closed PRs will be rejected.
 2. **View Details**: See comprehensive PR information including:
-   - Current state (Open/Closed/Merged)
    - Merge readiness
    - Files changed count
    - Check status (passed/failed/skipped)
@@ -112,14 +112,17 @@ wrangler deploy
    - Author information
 3. **Filter by Repo**: Click on a repository in the sidebar to filter PRs
 4. **Refresh Data**: Use the refresh button to update PR information from GitHub
+   - Note: If a PR has been merged or closed since being added, it will be automatically removed from tracking.
 
 ## API Endpoints
 
 - `GET /` - Serves the HTML interface
-- `GET /api/repos` - List all repositories with PRs
-- `GET /api/prs` - List all PRs (optional `?repo=owner/name` filter)
+- `GET /api/repos` - List all repositories with open PRs
+- `GET /api/prs` - List all open PRs (optional `?repo=owner/name` filter)
 - `POST /api/prs` - Add a new PR (body: `{"pr_url": "..."}`)
+  - Returns 400 error if PR is merged or closed
 - `POST /api/refresh` - Refresh a PR's data (body: `{"pr_id": 123}`)
+  - Automatically removes PR if it has been merged or closed
 
 ## Database Schema
 

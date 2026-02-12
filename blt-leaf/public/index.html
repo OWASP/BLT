@@ -475,6 +475,12 @@
                     btn.textContent = originalText;
                     btn.classList.remove('pointer-events-none', 'opacity-70');
                 } else {
+                    // Check if PR was removed due to being merged/closed
+                    if (data.removed) {
+                        showError(data.message || 'PR has been removed from tracking');
+                        // Reload repos to update counts and potentially remove empty repos
+                        await loadRepos();
+                    }
                     await loadPrs();
                     await loadRateLimit();
                 }
