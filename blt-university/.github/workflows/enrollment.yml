@@ -8,6 +8,9 @@ jobs:
   process-enrollment:
     if: contains(github.event.issue.labels.*.name, 'enrollment')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     
     steps:
       - name: Checkout repository

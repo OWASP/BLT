@@ -8,6 +8,9 @@ jobs:
   process-course-submission:
     if: contains(github.event.issue.labels.*.name, 'course-submission')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     
     steps:
       - name: Checkout repository
