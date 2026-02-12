@@ -1,0 +1,90 @@
+# BLT University Configuration
+title: BLT University
+description: >-
+  A cybersecurity-focused online university powered by GitHub Pages.
+  Learn, teach, and collaborate on security courses through open-source education.
+
+baseurl: "/BLT-University"
+url: "https://owasp-blt.github.io"
+
+# University Information
+university:
+  name: BLT University
+  tagline: "Open Source Cybersecurity Education"
+  email: contact@bltuniversity.org
+  established: 2026
+  
+# Build settings
+theme: minima
+markdown: kramdown
+permalink: pretty
+
+# Collections for courses
+collections:
+  courses:
+    output: true
+    permalink: /courses/:path/
+  instructors:
+    output: true
+    permalink: /instructors/:path/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "courses"
+    values:
+      layout: "course"
+  - scope:
+      path: ""
+      type: "instructors"
+    values:
+      layout: "instructor"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - README.md
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Courses
+    url: /courses/
+  - title: Enroll
+    url: /enroll/
+  - title: Instructors
+    url: /instructors/
+  - title: About
+    url: /about/
+
+# Course Categories
+categories:
+  - Web Security
+  - Network Security
+  - Cryptography
+  - Penetration Testing
+  - Secure Coding
+  - Malware Analysis
+  - Cloud Security
+  - Mobile Security
+  - Incident Response
+  - Security Operations

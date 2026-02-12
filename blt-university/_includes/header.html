@@ -1,0 +1,20 @@
+<header class="site-header">
+    <div class="container">
+        <div class="header-content">
+            <div class="site-branding">
+                <a href="{{ '/' | relative_url }}" class="site-title">
+                    🎓 {{ site.university.name }}
+                </a>
+                <p class="site-tagline">{{ site.university.tagline }}</p>
+            </div>
+            
+            <nav class="site-navigation">
+                <ul>
+                {% for item in site.navigation %}
+                    <li><a href="{{ item.url | relative_url }}" {% if page.url == item.url %}class="active"{% endif %}>{{ item.title }}</a></li>
+                {% endfor %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>

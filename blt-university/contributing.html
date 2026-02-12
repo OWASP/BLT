@@ -1,0 +1,182 @@
+---
+layout: default
+title: Contributing Guide
+permalink: /contributing/
+---
+
+<div class="page-header">
+    <div class="container">
+        <h1>Become an Instructor</h1>
+        <p>Share your cybersecurity expertise with our community</p>
+    </div>
+</div>
+
+<div class="contributing-page">
+    <div class="container">
+        <section class="contributing-section">
+            <h2>Why Teach at BLT University?</h2>
+            <ul>
+                <li>Share your knowledge with a global audience</li>
+                <li>Build your reputation in the cybersecurity community</li>
+                <li>Collaborate with other security professionals</li>
+                <li>Help make security education accessible to everyone</li>
+                <li>Keep your skills sharp by teaching others</li>
+            </ul>
+        </section>
+
+        <section class="contributing-section">
+            <h2>How to Create a Course</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Fork the Repository</h3>
+                    <p>Start by forking the <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank">BLT-University repository</a> on GitHub.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Create Your Instructor Profile</h3>
+                    <p>Add a new file in the <code>_instructors</code> directory:</p>
+                    <pre><code>---
+layout: instructor
+title: Your Name
+expertise: Your Area of Expertise
+avatar: /assets/images/instructors/yourname.jpg
+github: yourusername
+linkedin: yourprofile
+---
+
+Your bio and teaching philosophy goes here...</code></pre>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Create Your Course</h3>
+                    <p>Add a new file in the <code>_courses</code> directory:</p>
+                    <pre><code>---
+layout: course
+title: Your Course Title
+category: Course Category
+level: Beginner/Intermediate/Advanced
+duration: 4 weeks
+instructor: Your Name
+featured: false
+prerequisites: Any prerequisites
+description: Short course description
+
+resources:
+  - title: Introduction Video
+    url: https://youtube.com/watch?v=...
+    type: video
+  - title: Course Slides
+    url: /assets/courses/yourcourse/slides.pdf
+    type: pdf
+
+syllabus:
+  - title: Week 1 - Introduction
+    description: Course overview
+    topics:
+      - Topic 1
+      - Topic 2
+  - title: Week 2 - Deep Dive
+    description: Advanced concepts
+    topics:
+      - Topic 3
+      - Topic 4
+---
+
+# Course Content
+
+Your detailed course content goes here using Markdown...
+
+## Module 1: Introduction
+
+Content for module 1...
+
+## Module 2: Advanced Topics
+
+Content for module 2...</code></pre>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Submit a Pull Request</h3>
+                    <p>Once your course is ready, submit a pull request using the course submission template. Our team will review and provide feedback.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>Course Goes Live</h3>
+                    <p>After approval, your course will be merged and automatically published to the BLT University website!</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="contributing-section">
+            <h2>Course Guidelines</h2>
+            <ul>
+                <li><strong>Focus on Cybersecurity:</strong> All courses should be related to information security</li>
+                <li><strong>Clear Structure:</strong> Organize content with clear learning objectives</li>
+                <li><strong>Practical Examples:</strong> Include hands-on exercises and real-world scenarios</li>
+                <li><strong>Multiple Formats:</strong> Combine videos, documents, and interactive content</li>
+                <li><strong>Prerequisites:</strong> Clearly state any required prior knowledge</li>
+                <li><strong>Open License:</strong> All content must be compatible with AGPL-3.0</li>
+            </ul>
+        </section>
+
+        <section class="contributing-section">
+            <h2>Supported Content Types</h2>
+            <div class="content-grid">
+                <div class="content-item">
+                    <h3>📹 Videos</h3>
+                    <p>YouTube, Vimeo, or self-hosted videos</p>
+                </div>
+                <div class="content-item">
+                    <h3>📄 Documents</h3>
+                    <p>PDFs, slides, and written materials</p>
+                </div>
+                <div class="content-item">
+                    <h3>💻 Code</h3>
+                    <p>GitHub repositories and coding exercises</p>
+                </div>
+                <div class="content-item">
+                    <h3>🔗 Links</h3>
+                    <p>External resources and references</p>
+                </div>
+                <div class="content-item">
+                    <h3>📅 Events</h3>
+                    <p>Live meetups and virtual sessions</p>
+                </div>
+                <div class="content-item">
+                    <h3>✏️ Assignments</h3>
+                    <p>GitHub-based homework and projects</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="contributing-section">
+            <h2>Get Started</h2>
+            <div class="cta-buttons">
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" 
+                   class="btn btn-primary" 
+                   target="_blank">
+                    Submit Course Proposal
+                </a>
+                <a href="https://github.com/OWASP-BLT/BLT-University" 
+                   class="btn btn-secondary" 
+                   target="_blank">
+                    View on GitHub
+                </a>
+            </div>
+        </section>
+    </div>
+</div>

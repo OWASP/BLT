@@ -1,0 +1,40 @@
+---
+layout: default
+title: Instructors
+permalink: /instructors/
+---
+
+<div class="page-header">
+    <div class="container">
+        <h1>Our Instructors</h1>
+        <p>Learn from experienced cybersecurity professionals</p>
+    </div>
+</div>
+
+<div class="instructors-page">
+    <div class="container">
+        <div class="instructors-grid">
+        {% for instructor in site.instructors %}
+            <div class="instructor-card">
+                {% if instructor.avatar %}
+                <img src="{{ instructor.avatar }}" alt="{{ instructor.title }}" class="instructor-card-avatar">
+                {% else %}
+                <div class="instructor-card-avatar-placeholder">👤</div>
+                {% endif %}
+                <h3><a href="{{ instructor.url | relative_url }}">{{ instructor.title }}</a></h3>
+                {% if instructor.expertise %}
+                <p class="instructor-expertise">{{ instructor.expertise }}</p>
+                {% endif %}
+                <p class="instructor-bio">{{ instructor.content | strip_html | truncate: 120 }}</p>
+                <a href="{{ instructor.url | relative_url }}" class="btn btn-small">View Profile</a>
+            </div>
+        {% endfor %}
+        </div>
+        
+        <div class="become-instructor">
+            <h2>Become an Instructor</h2>
+            <p>Share your cybersecurity expertise with our global community.</p>
+            <a href="{{ '/contributing/' | relative_url }}" class="btn btn-primary">Learn How to Teach</a>
+        </div>
+    </div>
+</div>

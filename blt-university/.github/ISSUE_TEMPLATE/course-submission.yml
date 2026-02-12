@@ -1,0 +1,176 @@
+name: Course Submission
+description: Submit a new course to BLT University
+title: "[COURSE] Course Title"
+labels: ["course-submission", "instructor"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Course Submission
+        Thank you for your interest in teaching at BLT University! Please provide details about your proposed course.
+        
+  - type: input
+    id: instructor-name
+    attributes:
+      label: Instructor Name
+      description: Your full name
+      placeholder: Dr. Jane Smith
+    validations:
+      required: true
+      
+  - type: input
+    id: github-username
+    attributes:
+      label: GitHub Username
+      description: Your GitHub username
+      placeholder: janesmith
+    validations:
+      required: true
+      
+  - type: input
+    id: course-title
+    attributes:
+      label: Course Title
+      description: The title of your proposed course
+      placeholder: Advanced Kubernetes Security
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: category
+    attributes:
+      label: Course Category
+      description: Which category does your course fit into?
+      options:
+        - Web Security
+        - Network Security
+        - Cryptography
+        - Penetration Testing
+        - Secure Coding
+        - Malware Analysis
+        - Cloud Security
+        - Mobile Security
+        - Incident Response
+        - Security Operations
+        - Other
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: level
+    attributes:
+      label: Course Level
+      description: What level is this course?
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+    validations:
+      required: true
+      
+  - type: input
+    id: duration
+    attributes:
+      label: Course Duration
+      description: How long is the course?
+      placeholder: 8 weeks
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: Course Description
+      description: Provide a detailed description of your course (2-3 paragraphs)
+      placeholder: This course covers...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: learning-objectives
+    attributes:
+      label: Learning Objectives
+      description: What will students learn? (List 5-7 key objectives)
+      placeholder: |
+        1. Understand...
+        2. Implement...
+        3. Analyze...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: syllabus
+    attributes:
+      label: Course Syllabus
+      description: Provide a week-by-week breakdown of topics
+      placeholder: |
+        Week 1: Introduction to...
+        Week 2: Deep dive into...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: What knowledge or experience should students have before taking this course?
+      placeholder: Basic understanding of...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: resources
+    attributes:
+      label: Course Resources
+      description: What materials will you provide? (Videos, PDFs, labs, etc.)
+      placeholder: |
+        - Video lectures (15 hours)
+        - Lab environments
+        - PDF study guides
+    validations:
+      required: true
+      
+  - type: textarea
+    id: instructor-bio
+    attributes:
+      label: Instructor Biography
+      description: Tell us about your background and expertise (150-200 words)
+      placeholder: I have 10 years of experience in...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: instructor-credentials
+    attributes:
+      label: Credentials & Achievements
+      description: List relevant certifications, publications, speaking engagements, etc.
+      placeholder: |
+        - CISSP, OSCP certified
+        - Speaker at Black Hat 2023
+        - Published researcher
+    validations:
+      required: true
+      
+  - type: input
+    id: repository-link
+    attributes:
+      label: Course Repository (Optional)
+      description: If you've already started preparing materials, link to your repository
+      placeholder: https://github.com/username/course-name
+      
+  - type: checkboxes
+    id: commitments
+    attributes:
+      label: Instructor Commitments
+      description: Please confirm the following
+      options:
+        - label: I commit to creating high-quality course materials
+          required: true
+        - label: I will provide timely feedback to students
+          required: true
+        - label: I agree to license course content under AGPL-3.0
+          required: true
+        - label: I will maintain and update the course as needed
+          required: true
+        - label: I will follow BLT University teaching guidelines
+          required: true

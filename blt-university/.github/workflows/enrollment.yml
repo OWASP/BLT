@@ -1,0 +1,51 @@
+name: Process Enrollment
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  process-enrollment:
+    if: contains(github.event.issue.labels.*.name, 'enrollment')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Add welcome comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `👋 Welcome to BLT University, @${context.payload.issue.user.login}!
+            
+            Thank you for your enrollment request. Our team will review your application and respond within 2-3 business days.
+            
+            In the meantime:
+            - 🌟 Star this repository to stay updated
+            - 📖 Review the [course materials](${context.payload.repository.html_url}/tree/main/_courses)
+            - 💬 Join our [Discussions](${context.payload.repository.html_url}/discussions)
+            - 📚 Read our [Contributing Guide](${context.payload.repository.html_url}/blob/main/contributing.html)
+            
+            We're excited to have you join our community! 🎓`;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+      
+      - name: Add under-review label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['under-review']
+            });

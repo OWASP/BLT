@@ -1,0 +1,36 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>{{ site.university.name }}</h3>
+                <p>{{ site.description }}</p>
+                <p>Established {{ site.university.established }}</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ '/courses/' | relative_url }}">Browse Courses</a></li>
+                    <li><a href="{{ '/enroll/' | relative_url }}">Enroll</a></li>
+                    <li><a href="{{ '/instructors/' | relative_url }}">Meet Our Instructors</a></li>
+                    <li><a href="{{ '/about/' | relative_url }}">About Us</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Get Involved</h3>
+                <ul>
+                    <li><a href="https://github.com/OWASP-BLT/BLT-University">GitHub Repository</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml">Submit a Course</a></li>
+                    <li><a href="{{ '/contributing/' | relative_url }}">Become an Instructor</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>License</h3>
+                <p>All content is licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">AGPL-3.0</a></p>
+                <p>&copy; {{ site.time | date: "%Y" }} BLT University</p>
+            </div>
+        </div>
+    </div>
+</footer>
