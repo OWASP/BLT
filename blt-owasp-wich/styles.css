@@ -1,14 +1,17 @@
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #e74c3c;
-    --success-color: #27ae60;
-    --warning-color: #f39c12;
-    --info-color: #3498db;
-    --bg-color: #ecf0f1;
+    /* OWASP BLT Official Colors */
+    --primary-color: #142a3a;        /* OWASP Blue - dark blue for backgrounds and headings */
+    --secondary-color: #dc3545;      /* Red for attention and important elements */
+    --accent-color: #f5f03e;         /* Yellow highlight for accents */
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --cool-grey: #344851;            /* Cool grey for secondary sections */
+    --bg-color: #f8f9fa;
     --card-bg: #ffffff;
-    --text-color: #2c3e50;
-    --border-color: #bdc3c7;
-    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --text-color: #212529;
+    --border-color: #dee2e6;
+    --shadow: 0 2px 12px rgba(20, 42, 58, 0.15);
 }
 
 * {
@@ -19,7 +22,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, var(--bg-color) 0%, #d5dde0 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cool-grey) 100%);
     color: var(--text-color);
     line-height: 1.6;
     min-height: 100vh;
@@ -33,17 +36,42 @@ body {
 
 header {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     background: var(--card-bg);
     border-radius: 12px;
     box-shadow: var(--shadow);
     margin-bottom: 30px;
+    border-top: 4px solid var(--accent-color);
+}
+
+.owasp-badge {
+    display: inline-block;
+    background: var(--primary-color);
+    padding: 8px 20px;
+    border-radius: 25px;
+    margin-bottom: 20px;
+    border: 2px solid var(--accent-color);
+}
+
+.badge-text {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+.badge-project {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-left: 8px;
 }
 
 header h1 {
     font-size: 3em;
     color: var(--primary-color);
     margin-bottom: 10px;
+    font-weight: 700;
 }
 
 .subtitle {
@@ -87,7 +115,8 @@ main {
 }
 
 #repoUrl:focus {
-    border-color: var(--info-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(245, 240, 62, 0.2);
 }
 
 #checkBtn {
@@ -99,17 +128,19 @@ main {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
     display: flex;
     align-items: center;
     gap: 10px;
     min-width: 180px;
     justify-content: center;
+    box-shadow: 0 4px 6px rgba(220, 53, 69, 0.3);
 }
 
 #checkBtn:hover:not(:disabled) {
-    background: #c0392b;
+    background: #bd2130;
     transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
 }
 
 #checkBtn:active:not(:disabled) {
@@ -148,12 +179,12 @@ main {
 .token-section summary {
     cursor: pointer;
     font-weight: 600;
-    color: var(--info-color);
+    color: var(--primary-color);
     user-select: none;
 }
 
 .token-section summary:hover {
-    color: #2980b9;
+    color: var(--secondary-color);
 }
 
 #githubToken {
@@ -173,8 +204,9 @@ main {
 }
 
 .help-text a {
-    color: var(--info-color);
+    color: var(--secondary-color);
     text-decoration: none;
+    font-weight: 600;
 }
 
 .help-text a:hover {
@@ -334,17 +366,18 @@ main {
 
 .category-header {
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--cool-grey) 100%);
     color: white;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
     user-select: none;
+    border-left: 4px solid var(--accent-color);
 }
 
 .category-header:hover {
-    background: linear-gradient(135deg, #34495e 0%, var(--primary-color) 100%);
+    background: linear-gradient(135deg, var(--cool-grey) 0%, var(--primary-color) 100%);
 }
 
 .category-title {
@@ -468,12 +501,14 @@ main {
 }
 
 .info-section a {
-    color: var(--info-color);
+    color: var(--secondary-color);
     text-decoration: none;
+    font-weight: 600;
 }
 
 .info-section a:hover {
     text-decoration: underline;
+    color: var(--primary-color);
 }
 
 .categories-list {
@@ -487,7 +522,7 @@ main {
     background: #f8f9fa;
     padding: 15px;
     border-radius: 8px;
-    border-left: 4px solid var(--info-color);
+    border-left: 4px solid var(--primary-color);
 }
 
 .category-item strong {
@@ -495,7 +530,7 @@ main {
 }
 
 .category-item small {
-    color: #7f8c8d;
+    color: var(--cool-grey);
 }
 
 footer {
@@ -512,13 +547,14 @@ footer p {
 }
 
 footer a {
-    color: var(--info-color);
+    color: var(--secondary-color);
     text-decoration: none;
     font-weight: 600;
 }
 
 footer a:hover {
     text-decoration: underline;
+    color: var(--accent-color);
 }
 
 @media (max-width: 768px) {

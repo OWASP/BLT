@@ -2,15 +2,24 @@
 
 A comprehensive tool to check GitHub repositories and projects against OWASP standards and best practices. This tool evaluates 100 compliance points across 10 key categories to ensure your project meets quality, security, and governance standards.
 
-## Features
+## 🌐 Live Web Application
+
+**Try it now:** [https://owasp-blt.github.io/OWASP-Wich/](https://owasp-blt.github.io/OWASP-Wich/)
+
+The web-based compliance checker runs entirely in your browser using JavaScript. Simply paste a GitHub repository URL and get instant compliance results!
+
+![OWASP-Wich Interface](https://github.com/user-attachments/assets/b5fb2d43-0d0c-4bc2-9edf-d4e9e3c58a36)
+
+### Features
 
 - ✅ **100-Point Compliance Checklist** - Comprehensive evaluation across all aspects of project quality
 - 🔒 **Security-Focused** - Checks for OWASP Top 10, ASVS, and security best practices
 - 📊 **Detailed Reporting** - Category-wise breakdown with specific recommendations
 - 🔄 **GitHub Integration** - Direct repository analysis via GitHub API
-- 🌐 **Website Analysis** - Can also check project websites for OWASP compliance
-- 💻 **CLI Support** - Easy command-line interface for automation
+- 🌐 **Browser-Based** - No installation required, works directly in your browser
+- 💻 **CLI Support** - Also available as Python CLI tool for automation
 - 📈 **Scoring System** - Clear percentage-based scoring for quick assessment
+- 🎨 **OWASP BLT Theme** - Follows official OWASP BLT branding and design
 
 ## Compliance Categories
 
@@ -27,14 +36,34 @@ The tool checks 100 points across these categories:
 9. **Community & Support** (10 points) - Community engagement and support
 10. **Legal & Compliance** (5 points) - Licensing and legal compliance
 
-## Installation
+## Usage
 
-### Prerequisites
+### Web Application (Recommended)
+
+Visit **[https://owasp-blt.github.io/OWASP-Wich/](https://owasp-blt.github.io/OWASP-Wich/)** and:
+
+1. Enter a GitHub repository URL (e.g., `https://github.com/OWASP/owasp-mastg`)
+2. (Optional) Provide a GitHub personal access token for higher API rate limits
+3. Click "Check Compliance"
+4. View your detailed compliance report with scores and recommendations
+
+**Benefits:**
+- No installation required
+- Works in any modern browser
+- Real-time results
+- Interactive category exploration
+- Visual scoring with color-coded status
+
+### Python CLI Tool
+
+For automation and integration into CI/CD pipelines, you can also use the Python command-line tool.
+
+#### Prerequisites
 
 - Python 3.7 or higher
 - pip (Python package installer)
 
-### Setup
+#### Setup
 
 1. Clone the repository:
 ```bash
@@ -52,9 +81,7 @@ pip install -r requirements.txt
 export GITHUB_TOKEN="your_github_token_here"
 ```
 
-## Usage
-
-### Command Line Interface
+#### CLI Usage
 
 Basic usage:
 ```bash
@@ -73,7 +100,7 @@ python compliance_checker.py https://github.com/OWASP/BLT --token YOUR_GITHUB_TO
 python compliance_checker.py https://github.com/OWASP/BLT --json
 ```
 
-### As a Python Module
+#### As a Python Module
 
 ```python
 from compliance_checker import OWASPComplianceChecker
