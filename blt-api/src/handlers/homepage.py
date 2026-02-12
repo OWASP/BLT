@@ -60,7 +60,7 @@ async def handle_homepage(
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <img src="./static/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
+                    <img src="/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
                     <h1 class="text-xl font-bold text-gray-900">BLT API</h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -81,7 +81,7 @@ async def handle_homepage(
         <!-- Hero Section -->
         <section class="bg-white rounded-lg shadow p-8 mb-8 text-center">
             <div class="max-w-3xl mx-auto">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">🛡️ BLT API</h1>
+                <h1 class="text-4xl font-bold text-gray-900 mb-4"><i class="fas fa-shield-alt text-red-600 text-4xl mr-2"></i> BLT API</h1>
                 <p class="text-xl text-gray-600 mb-6">
                     OWASP Bug Logging Tool - Full-Featured REST API running on Cloudflare Workers for global low-latency access
                 </p>
