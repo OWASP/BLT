@@ -15,17 +15,16 @@ class HackathonDashboard {
      */
     async init() {
         this.showLoading();
-        
         try {
             // Update basic info
             this.updateBasicInfo();
-            
+
             // Fetch and process GitHub data
             const startDate = new Date(this.config.startTime);
             const endDate = new Date(this.config.endTime);
-            
-            // Fetch all PRs and issues
-            const [prs, issues] = await Promise.all([
+
+            // Fetch all PRs, issues, and reviews
+            const [prs, issues, reviews] = await Promise.all([
                 this.api.getAllPullRequests(
                     this.config.github.repositories,
                     startDate,
@@ -35,12 +34,20 @@ class HackathonDashboard {
                     this.config.github.repositories,
                     startDate,
                     endDate
+                ),
+                this.api.getAllReviews(
+                    this.config.github.repositories,
+                    startDate,
+                    endDate
                 )
             ]);
 
             // Process PR data
             const stats = this.api.processPRData(prs, startDate, endDate);
-            
+
+            // Process review data
+            this.api.processReviewData(reviews, stats.participants);
+
             // Process issue data
             const issueStats = this.api.processIssueData(issues, stats.repoStats);
             stats.totalIssues = issueStats.totalIssues;
@@ -49,11 +56,11 @@ class HackathonDashboard {
             // Update UI
             this.updateStats(stats);
             this.renderLeaderboard(stats.participants);
+            this.renderReviewLeaderBoard(stats.participants);
             this.renderChart(stats.dailyActivity, prs);
             this.renderRepositories(stats.repoStats);
             this.renderPrizes();
             this.renderSponsors();
-            
             this.hideLoading();
         } catch (error) {
             console.error('Error initializing dashboard:', error);
@@ -71,13 +78,13 @@ class HackathonDashboard {
         document.getElementById('hackathon-name').textContent = this.config.name;
 
         // Update description
-        document.getElementById('hackathon-description').innerHTML = 
+        document.getElementById('hackathon-description').innerHTML =
             `<p class="text-gray-700">${this.escapeHtml(this.config.description.trim())}</p>`;
 
         // Update rules if provided
         if (this.config.rules) {
             document.getElementById('rules-section').style.display = 'block';
-            document.getElementById('hackathon-rules').innerHTML = 
+            document.getElementById('hackathon-rules').innerHTML =
                 `<p class="text-gray-700">${this.escapeHtml(this.config.rules.trim())}</p>`;
         }
 
@@ -136,7 +143,7 @@ class HackathonDashboard {
         );
 
         const container = document.getElementById('leaderboard');
-        
+
         if (leaderboard.length === 0) {
             container.innerHTML = '<p class="text-gray-500 italic">No contributions yet. Be the first to contribute!</p>';
             return;
@@ -209,20 +216,102 @@ class HackathonDashboard {
         }).join('');
     }
 
+    renderReviewLeaderBoard(participants) {
+        const reviewLeaderboard = this.api.generateReviewLeaderboard(
+            participants,
+            this.config.display.maxLeaderboardEntries
+        );
+
+        const container = document.getElementById('review-leaderboard');
+
+        if (reviewLeaderboard.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 italic">No reviews yet. Be the first to review!</p>';
+            return;
+        }
+
+        container.innerHTML = reviewLeaderboard.map((participant, index) => {
+            const position = index + 1;
+            let trophyIcon = '';
+            let bgClass = '';
+
+            if (position === 1) {
+                trophyIcon = '<i class="fas fa-trophy trophy-gold"></i>';
+                bgClass = 'bg-yellow-50';
+            } else if (position === 2) {
+                trophyIcon = '<i class="fas fa-trophy trophy-silver"></i>';
+                bgClass = 'bg-gray-50';
+            } else if (position === 3) {
+                trophyIcon = '<i class="fas fa-trophy trophy-bronze"></i>';
+                bgClass = 'bg-orange-50';
+            }
+
+            const reviewsHtml = this.config.display.showReviewsInLeaderboard ? `
+                <div class="mt-2 pl-11">
+                    <div class="text-sm font-medium text-gray-700 mb-2">Recent Reviews:</div>
+                    <div class="space-y-2 max-h-48 overflow-y-auto">
+                        ${participant.reviews ? participant.reviews.slice(0, 5).map(review => `
+                            <a href="${review.html_url}" target="_blank" rel="noopener noreferrer"
+                               class="block p-2 bg-gray-50 hover:bg-gray-100 rounded border-l-4 border-green-600 transition">
+                                <div class="font-medium text-sm truncate">${this.escapeHtml(review.pull_request_title || 'PR Review')}</div>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-eye mr-1"></i>
+                                         ${this.escapeHtml(review.repository)}
+                                    </span>
+                                    <span class="mx-2">•</span>
+                                    <span class="flex items-center">
+                                        <i class="far fa-calendar-alt mr-1"></i>
+                                        ${new Date(review.submitted_at).toLocaleDateString()}
+                                    </span>
+                                    <span class="mx-2">•</span>
+                                    <span class="px-1 rounded text-xs ${this.getReviewStateClass(review.state)}">
+                                        ${review.state}
+                                    </span>
+                                </div>
+                            </a>
+                        `).join('') : ''}
+                    </div>
+                </div>
+            ` : '';
+
+            return `
+                <div class="p-4 ${bgClass} rounded-lg border border-gray-200">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 text-gray-600 rounded-full font-bold">
+                            ${position}
+                        </div>
+                        <img src="${participant.avatar}" alt="${participant.username}"
+                             class="w-8 h-8 rounded-full mr-3" width="32" height="32">
+                        <div class="flex-grow">
+                            <div class="font-medium flex items-center gap-2">
+                                <a href="${participant.url}" target="_blank" class="hover:text-red-600">
+                                    ${this.escapeHtml(participant.username)}
+                                </a>
+                                ${trophyIcon}
+                                ${participant.is_contributor ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Contributor</span>' : ''}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                ${participant.reviewCount} review${participant.reviewCount !== 1 ? 's' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${reviewsHtml}
+                </div>
+            `;
+        }).join('');
+    }
+
     /**
      * Render the PR activity chart with repository breakdown
      */
     renderChart(dailyActivity, prs) {
         const dates = Object.keys(dailyActivity).sort();
-        
         // Get unique repositories from PRs
         const repositories = [...new Set(prs.map(pr => pr.repository))];
-        
         // Pre-process PRs into a Map for O(1) lookups: date -> repo -> count
         const prsByDateAndRepo = new Map();
         prs.forEach(pr => {
             if (!pr.merged_at) return;
-            
             // Use merged_at date since we're showing merged PRs
             const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
             if (!prsByDateAndRepo.has(prDate)) {
@@ -232,18 +321,15 @@ class HackathonDashboard {
             const currentCount = dateMap.get(pr.repository) || 0;
             dateMap.set(pr.repository, currentCount + 1);
         });
-        
         // Create datasets for each repository
         const repoColors = this.generateColors(repositories.length);
         const datasets = [];
-        
         // Add datasets for PRs by repository
         repositories.forEach((repo, index) => {
             const data = dates.map(date => {
                 const dateMap = prsByDateAndRepo.get(date);
                 return dateMap ? (dateMap.get(repo) || 0) : 0;
             });
-            
             datasets.push({
                 label: repo,
                 data: data,
@@ -254,7 +340,6 @@ class HackathonDashboard {
         });
 
         const ctx = document.getElementById('prActivityChart').getContext('2d');
-        
         if (this.chart) {
             this.chart.destroy();
         }
@@ -319,18 +404,15 @@ class HackathonDashboard {
             'rgba(192, 132, 252, 0.8)', // violet
             'rgba(244, 63, 94, 0.8)',   // rose
         ];
-        
         // If we need more colors than predefined, generate random ones
         const MIN_COLOR_VALUE = 55;  // Minimum RGB value to avoid too dark colors
         const COLOR_RANGE = 200;     // Range of RGB values for reasonable brightness
-        
         while (colors.length < count) {
             const r = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
             const g = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
             const b = Math.floor(Math.random() * COLOR_RANGE + MIN_COLOR_VALUE);
             colors.push(`rgba(${r}, ${g}, ${b}, 0.8)`);
         }
-        
         return colors.slice(0, count);
     }
 
@@ -339,11 +421,9 @@ class HackathonDashboard {
      */
     renderRepositories(repoStats) {
         const container = document.getElementById('repositories-list');
-        
         const reposHtml = this.config.github.repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
-            
             return `
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex items-center justify-between mb-2">
@@ -396,7 +476,6 @@ class HackathonDashboard {
      */
     renderPrizes() {
         const container = document.getElementById('prizes-list');
-        
         if (!this.config.prizes || this.config.prizes.length === 0) {
             container.innerHTML = '<p class="text-gray-500 italic">No prizes have been announced yet.</p>';
             return;
@@ -436,13 +515,10 @@ class HackathonDashboard {
      */
     renderSponsors() {
         const container = document.getElementById('sponsors-list');
-        
         if (!this.config.sponsors || this.config.sponsors.length === 0) {
             let html = '<p class="text-gray-500 italic">No sponsors yet.</p>';
-            
             if (this.config.sponsorNote || this.config.sponsorLink) {
                 html += '<div class="mt-6 pt-6 border-t border-gray-200">';
-                
                 if (this.config.sponsorNote) {
                     html += `
                         <div class="mb-4">
@@ -451,7 +527,6 @@ class HackathonDashboard {
                         </div>
                     `;
                 }
-                
                 if (this.config.sponsorLink) {
                     html += `
                         <a href="${this.config.sponsorLink}" target="_blank"
@@ -461,10 +536,8 @@ class HackathonDashboard {
                         </a>
                     `;
                 }
-                
                 html += '</div>';
             }
-            
             container.innerHTML = html;
             return;
         }
@@ -473,7 +546,6 @@ class HackathonDashboard {
         const levels = ['platinum', 'gold', 'silver', 'bronze', 'partner'];
         const grouped = {};
         levels.forEach(level => { grouped[level] = []; });
-        
         this.config.sponsors.forEach(sponsor => {
             if (grouped[sponsor.level]) {
                 grouped[sponsor.level].push(sponsor);
@@ -538,6 +610,22 @@ class HackathonDashboard {
                 <p class="text-lg">${this.escapeHtml(message)}</p>
             </div>
         `;
+    }
+
+    /**
+     * Get CSS class for review state
+     */
+    getReviewStateClass(state) {
+        switch (state?.toLowerCase()) {
+            case 'approved':
+                return 'bg-green-100 text-green-700';
+            case 'changes_requested':
+                return 'bg-red-100 text-red-700';
+            case 'commented':
+                return 'bg-blue-100 text-blue-700';
+            default:
+                return 'bg-gray-100 text-gray-700';
+        }
     }
 
     /**
