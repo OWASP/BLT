@@ -41,6 +41,19 @@ function wireDocLinks(root) {
   }
 }
 
+function wireAssets(root) {
+  const base = getDocsBase();
+  const assets = root.querySelectorAll('[data-asset-src]');
+
+  for (const asset of assets) {
+    const path = asset.getAttribute('data-asset-src');
+    if (!path) continue;
+
+    const src = `${base}${path}`;
+    asset.setAttribute('src', src);
+  }
+}
+
 async function loadIncludes() {
   const nodes = document.querySelectorAll('[data-include]');
   for (const node of nodes) {
@@ -52,6 +65,7 @@ async function loadIncludes() {
       if (!res.ok) throw new Error(`Failed include: ${path}`);
       node.innerHTML = await res.text();
       wireDocLinks(node);
+      wireAssets(node);
     } catch (err) {
       node.innerHTML = '<p class="p-4 text-sm text-red-700">Unable to load shared navigation.</p>';
       console.error(err);
