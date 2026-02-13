@@ -4,31 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buttons | BLT Design Guide</title>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
-  <body>
-    <div class="layout">
-      <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
-      <main class="content">
-        <header class="page-head">
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 class="page-title">Buttons</h1>
-            <p class="page-subtitle">Primary-first action hierarchy using BLT red-600 and neutral secondary actions.</p>
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Buttons</h1>
+            <p class="mt-2 text-sm text-slate-600 sm:text-base">Primary-first action hierarchy using BLT red-600 and neutral secondary actions.</p>
           </div>
-          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+          <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
         </header>
 
-        <section class="surface padded">
-          <h3>Preview</h3>
-          <div class="preview" style="display:flex;gap:.75rem;flex-wrap:wrap;">
-            <button class="demo-btn primary">Primary Action</button>
-            <button class="demo-btn secondary">Secondary</button>
-            <button class="demo-btn secondary"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Item</button>
+        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 class="text-base font-semibold">Preview</h3>
+          <div class="mt-3 flex flex-wrap gap-3 rounded-lg border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4">
+            <button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">Primary Action</button>
+            <button class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Secondary</button>
+            <button class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Item</button>
           </div>
-          <pre class="code-block"><code>&lt;button class="demo-btn primary"&gt;Primary Action&lt;/button&gt;
-&lt;button class="demo-btn secondary"&gt;Secondary&lt;/button&gt;</code></pre>
+          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white"&gt;Primary Action&lt;/button&gt;
+&lt;button class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"&gt;Secondary&lt;/button&gt;</code></pre>
         </section>
       </main>
     </div>

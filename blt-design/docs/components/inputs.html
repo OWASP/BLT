@@ -4,40 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inputs | BLT Design Guide</title>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
-  <body>
-    <div class="layout">
-      <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
-      <main class="content">
-        <header class="page-head">
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 class="page-title">Inputs</h1>
-            <p class="page-subtitle">Baseline input style now live. Final spacing and shadow values will be tuned from your BLT-core references.</p>
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Inputs</h1>
+            <p class="mt-2 text-sm text-slate-600 sm:text-base">Baseline input style now live. Final spacing and shadow values will be tuned from your BLT-core references.</p>
           </div>
-          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+          <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
         </header>
 
-        <section class="surface padded">
-          <div class="grid two">
-            <label>
-              <span class="note">Email</span>
-              <input class="demo-input" type="email" placeholder="contributor@blt.dev" />
+        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="mb-1.5 block text-sm text-slate-600">Email</span>
+              <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-red-200 transition placeholder:text-slate-400 focus:border-red-500 focus:ring-4" type="email" placeholder="contributor@blt.dev" />
             </label>
-            <label>
-              <span class="note">Issue URL</span>
-              <input class="demo-input" type="url" placeholder="https://github.com/..." />
-            </label>
-          </div>
-          <div style="margin-top:1rem">
-            <label>
-              <span class="note">Description</span>
-              <textarea class="demo-input" rows="4" placeholder="Add issue details..."></textarea>
+            <label class="block">
+              <span class="mb-1.5 block text-sm text-slate-600">Issue URL</span>
+              <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-red-200 transition placeholder:text-slate-400 focus:border-red-500 focus:ring-4" type="url" placeholder="https://github.com/..." />
             </label>
           </div>
-          <p class="note" style="margin-top:1rem"><strong>TODO:</strong> Replace current defaults once you share the final BLT input padding/shadow spec.</p>
+          <div class="mt-4">
+            <label class="block">
+              <span class="mb-1.5 block text-sm text-slate-600">Description</span>
+              <textarea class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none ring-red-200 transition placeholder:text-slate-400 focus:border-red-500 focus:ring-4" rows="4" placeholder="Add issue details..."></textarea>
+            </label>
+          </div>
+          <p class="mt-4 text-sm text-slate-600"><strong>TODO:</strong> Replace current defaults once you share the final BLT input padding/shadow spec.</p>
         </section>
       </main>
     </div>
