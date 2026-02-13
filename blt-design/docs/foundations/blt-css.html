@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>blt.css Usage | BLT Design Guide</title>
+    <title>BLT CSS Reference | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
@@ -19,35 +19,70 @@
       <main class="px-4 py-8 sm:px-8 lg:px-10">
         <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">blt.css Usage</h1>
-            <p class="mt-2 text-sm text-slate-600 sm:text-base">Every BLT project should include this shared CSS contract before local overrides.</p>
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">BLT CSS Reference</h1>
+            <p class="mt-2 text-sm text-slate-600 sm:text-base">No required file. Copy-paste this style block into your page/layout and keep BLT tokens consistent.</p>
           </div>
           <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Contribute</a>
         </header>
 
         <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 class="text-base font-semibold">Expected Include Order</h3>
-          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;link rel="stylesheet" href="/path/to/tailwind.css" /&gt;
-&lt;link rel="stylesheet" href="/path/to/blt.css" /&gt;
-&lt;link rel="stylesheet" href="/path/to/project-overrides.css" /&gt;</code></pre>
-          <p class="mt-2 text-sm text-slate-600">Keep tokens and base components in <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">blt.css</code>. Put page-level customizations in project overrides.</p>
+          <h3 class="text-base font-semibold">Copy-Paste Style Block</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;style&gt;
+:root {
+  --blt-primary: #dc2626;
+  --blt-primary-hover: #b91c1c;
+  --blt-bg: #f8fafc;
+  --blt-surface: #ffffff;
+  --blt-border: #e2e8f0;
+  --blt-text: #0f172a;
+  --blt-muted: #475569;
+  --blt-radius: 0.75rem;
+}
+
+[data-theme="dark"] {
+  --blt-bg: #111827;
+  --blt-surface: #1f2937;
+  --blt-border: #374151;
+  --blt-text: #f9fafb;
+  --blt-muted: #d1d5db;
+}
+
+.blt-surface {
+  background: var(--blt-surface);
+  border: 1px solid var(--blt-border);
+  border-radius: var(--blt-radius);
+}
+
+.blt-btn-primary {
+  background: var(--blt-primary);
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  font-weight: 600;
+}
+
+.blt-btn-primary:hover {
+  background: var(--blt-primary-hover);
+}
+&lt;/style&gt;</code></pre>
+          <p class="mt-2 text-sm text-slate-600">Use with Tailwind components when needed. Keep brand primary anchored to <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">red-600 (#dc2626)</code>.</p>
         </section>
 
         <section class="mt-4 grid gap-4 sm:grid-cols-2">
           <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 class="text-base font-semibold">Do</h3>
             <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-              <li>Reuse shared tokens for radius, border, and spacing.</li>
-              <li>Respect red-600 as the primary action color.</li>
-              <li>Keep component classes stable for copy-paste usage.</li>
+              <li>Copy this block into shared layout files once.</li>
+              <li>Keep Tailwind utilities as the main styling method.</li>
+              <li>Use variables for consistent cross-page polish.</li>
             </ul>
           </article>
           <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 class="text-base font-semibold">Do Not</h3>
             <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-              <li>Hardcode random colors per page.</li>
-              <li>Add conflicting button/input styles in each feature.</li>
-              <li>Break visual hierarchy with inconsistent shadows.</li>
+              <li>Override primary red with unrelated brand colors.</li>
+              <li>Mix random dark shades across pages.</li>
+              <li>Create separate style rules for each page.</li>
             </ul>
           </article>
         </section>
