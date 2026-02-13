@@ -209,13 +209,10 @@
                     aVal = Number(aVal) || 0;
                     bVal = Number(bVal) || 0;
                 }
-                // Handle string comparisons (for all other columns)
-                else if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal ? bVal.toLowerCase() : '';
-                } else if (typeof bVal === 'string') {
-                    aVal = aVal ? String(aVal).toLowerCase() : '';
-                    bVal = bVal.toLowerCase();
+                // Handle string comparisons for all other columns
+                else {
+                    aVal = String(aVal || '').toLowerCase();
+                    bVal = String(bVal || '').toLowerCase();
                 }
                 
                 if (sortDirection === 'asc') {
@@ -447,7 +444,7 @@
                 row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
                 row.innerHTML = `
                     <td class="px-4 py-3">
-                        <div class="flex items-center gap-2 max-w-xs">
+                        <div class="flex items-center gap-2 min-w-0" style="max-width: 400px;">
                             <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                             <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate" title="${escapeHtml(pr.title)}">${escapeHtml(pr.title)}</a>
                         </div>
