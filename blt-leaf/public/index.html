@@ -197,20 +197,25 @@
                 sortDirection = 'desc';
             }
             
+            // Columns that should use numeric sorting
+            const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number'];
+            
             allPrs.sort((a, b) => {
                 let aVal = a[column];
                 let bVal = b[column];
                 
-                // Handle string comparisons
-                if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal ? bVal.toLowerCase() : '';
-                }
-                
-                // Handle numeric comparisons
-                if (typeof aVal === 'number' || !isNaN(aVal)) {
+                // Handle numeric columns
+                if (numericColumns.includes(column)) {
                     aVal = Number(aVal) || 0;
                     bVal = Number(bVal) || 0;
+                }
+                // Handle string comparisons (for all other columns)
+                else if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal ? bVal.toLowerCase() : '';
+                } else if (typeof bVal === 'string') {
+                    aVal = aVal ? String(aVal).toLowerCase() : '';
+                    bVal = bVal.toLowerCase();
                 }
                 
                 if (sortDirection === 'asc') {
