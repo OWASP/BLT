@@ -2,6 +2,7 @@ from js import Response, fetch, Headers, URL, Object, Date
 from pyodide.ffi import to_js
 import json
 import re
+import asyncio
 from datetime import datetime, timezone
 
 # Track if schema initialization has been attempted in this worker instance
@@ -354,6 +355,51 @@ async def fetch_pr_data(owner, repo, pr_number):
         # In Cloudflare Workers, console.error is preferred
         raise Exception(error_msg)
 
+async def fetch_paginated_data(url, headers):
+    """
+    Fetch all pages of data from a GitHub API endpoint following Link headers
+    
+    Args:
+        url: Initial URL to fetch
+        headers: Headers object to use for requests
+    
+    Returns:
+        List of all items across all pages
+    """
+    all_data = []
+    current_url = url
+    fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
+    
+    while current_url:
+        response = await fetch(current_url, fetch_options)
+        
+        if not response.ok:
+            status = getattr(response, 'status', 'unknown')
+            status_text = getattr(response, 'statusText', '')
+            raise Exception(
+                f"GitHub API error: status={status} {status_text} url={current_url}"
+            )
+        
+        page_data = (await response.json()).to_py()
+        all_data.extend(page_data)
+        
+        # Check for Link header to get next page
+        link_header = response.headers.get('link')
+        current_url = None
+        
+        if link_header:
+            # Parse Link header: <url>; rel="next", <url>; rel="last"
+            links = link_header.split(',')
+            for link in links:
+                if 'rel="next"' in link:
+                    # Extract URL from <url>
+                    url_match = link.split(';')[0].strip()
+                    if url_match.startswith('<') and url_match.endswith('>'):
+                        current_url = url_match[1:-1]
+                    break
+    
+    return all_data
+
 async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
     """
     Fetch all timeline data for a PR: commits, reviews, review comments, issue comments
@@ -386,35 +432,13 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
         review_comments_url = f'{base_url}/repos/{owner}/{repo}/pulls/{pr_number}/comments?per_page=100'
         issue_comments_url = f'{base_url}/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100'
         
-        # Make parallel requests with proper fetch options conversion
-        fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
-        commits_response = await fetch(commits_url, fetch_options)
-        reviews_response = await fetch(reviews_url, fetch_options)
-        review_comments_response = await fetch(review_comments_url, fetch_options)
-        issue_comments_response = await fetch(issue_comments_url, fetch_options)
-        
-        # Check all responses are OK before parsing
-        responses = [
-            ('commits', commits_url, commits_response),
-            ('reviews', reviews_url, reviews_response),
-            ('review_comments', review_comments_url, review_comments_response),
-            ('issue_comments', issue_comments_url, issue_comments_response)
-        ]
-        
-        for kind, url, resp in responses:
-            if not resp.ok:
-                status = getattr(resp, 'status', 'unknown')
-                status_text = getattr(resp, 'statusText', '')
-                raise Exception(
-                    f"GitHub API error fetching {kind} for PR {owner}/{repo}#{pr_number}: "
-                    f"status={status} {status_text} url={url}"
-                )
-        
-        # Parse responses (all are OK here)
-        commits_data = (await commits_response.json()).to_py()
-        reviews_data = (await reviews_response.json()).to_py()
-        review_comments_data = (await review_comments_response.json()).to_py()
-        issue_comments_data = (await issue_comments_response.json()).to_py()
+        # Make truly parallel requests using asyncio.gather
+        commits_data, reviews_data, review_comments_data, issue_comments_data = await asyncio.gather(
+            fetch_paginated_data(commits_url, headers),
+            fetch_paginated_data(reviews_url, headers),
+            fetch_paginated_data(review_comments_url, headers),
+            fetch_paginated_data(issue_comments_url, headers)
+        )
         
         return {
             'commits': commits_data,
@@ -434,13 +458,12 @@ def parse_github_timestamp(timestamp_str):
         # Raise error instead of silently using current time to avoid incorrect event ordering
         raise ValueError(f"Invalid GitHub timestamp: {timestamp_str!r}") from exc
 
-def build_pr_timeline(timeline_data, pr_author):
+def build_pr_timeline(timeline_data):
     """
     Build unified chronological timeline from PR events
     
     Args:
         timeline_data: Dict with commits, reviews, review_comments, issue_comments
-        pr_author: GitHub login of PR author
     
     Returns:
         List of event dicts sorted by timestamp:
@@ -1231,7 +1254,7 @@ async def handle_pr_timeline(request, env, path):
         )
         
         # Build unified timeline
-        timeline = build_pr_timeline(timeline_data, pr['author_login'])
+        timeline = build_pr_timeline(timeline_data)
         
         # Convert datetime objects to ISO strings for JSON serialization
         timeline_json = []
@@ -1316,7 +1339,7 @@ async def handle_pr_review_analysis(request, env, path):
         )
         
         # Build unified timeline
-        timeline = build_pr_timeline(timeline_data, pr['author_login'])
+        timeline = build_pr_timeline(timeline_data)
         
         # Analyze review progress
         review_data = analyze_review_progress(timeline, pr['author_login'])
@@ -1433,7 +1456,7 @@ async def handle_pr_readiness(request, env, path):
         )
         
         # Build unified timeline
-        timeline = build_pr_timeline(timeline_data, pr['author_login'])
+        timeline = build_pr_timeline(timeline_data)
         
         # Analyze review progress
         review_data = analyze_review_progress(timeline, pr['author_login'])
