@@ -233,8 +233,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'title': pr_data.get('title', ''),
             'state': pr_data.get('state', ''),
             'is_merged': 1 if pr_data.get('merged', False) else 0,
-            'mergeable_state': pr_data.get('mergeable_state', 'unknown'),
-            'files_changed': len(files_data),
+            'mergeable_state': pr_data.get('mergeable_state', ''),
+            'files_changed': len(files_data), 
             'author_login': pr_data['user']['login'],
             'author_avatar': pr_data['user']['avatar_url'],
             'checks_passed': checks_passed,
@@ -245,9 +245,9 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         }
     except Exception as e:
         # Return more informative error for debugging
-        print(f"Error fetching PR data: {str(e)}")
+        error_msg = f"Error fetching PR data: {str(e)}"
         # In Cloudflare Workers, console.error is preferred
-        return None
+        raise Exception(error_msg)
 
 async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
     """Helper to insert or update PR in database (Deduplicates logic)"""
@@ -462,7 +462,7 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR not found'}), 
                               {'status': 404, 'headers': {'Content-Type': 'application/json'}})
         
-        # Convert JsProxy to Python dict
+        # Convert JsProxy to Python dict to make it subscriptable
         result = result.to_py()
         
         # Fetch fresh data from GitHub (with Token)
@@ -471,8 +471,9 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 403, 'headers': {'Content-Type': 'application/json'}})
         
-        # Check if PR is now merged or closed
+        # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
+            # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
             await delete_stmt.run()
             
@@ -510,7 +511,6 @@ async def handle_rate_limit(env):
         # Check cache first to avoid excessive API calls
         # Use JavaScript Date API for Cloudflare Workers compatibility
         current_time = Date.now() / 1000  # Convert milliseconds to seconds
-
         
         if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
             # Return cached data
@@ -531,7 +531,6 @@ async def handle_rate_limit(env):
                               {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
         
         rate_data = (await response.json()).to_py()
-
         # Extract core rate limit info
         core_limit = rate_data.get('resources', {}).get('core', {})
         
@@ -576,7 +575,7 @@ async def on_fetch(request, env):
     url = URL.new(request.url)
     path = url.pathname
     
-     # Strip /leaf prefix
+    # Strip /leaf prefix
     if path == '/leaf': 
         path = '/'
     elif path.startswith('/leaf/'): 

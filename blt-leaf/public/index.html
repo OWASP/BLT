@@ -11,6 +11,7 @@
             darkMode: 'class'
         }
     </script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -221,15 +222,20 @@
                 sortDirection = 'desc';
             }
             
+            // Columns that should use numeric sorting
             const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number'];
+
             allPrs.sort((a, b) => {
                 let aVal = a[column];
                 let bVal = b[column];
                 
+                // Handle numeric columns
                 if (numericColumns.includes(column)) {
                     aVal = Number(aVal) || 0;
                     bVal = Number(bVal) || 0;
-                } else {
+                }
+                // Handle string comparisons for all other columns 
+                else {
                     aVal = String(aVal || '').toLowerCase();
                     bVal = String(bVal || '').toLowerCase();
                 }
@@ -676,5 +682,4 @@
         setInterval(loadRateLimit, 600000);
     </script>
 </body>
-
 </html>
