@@ -1335,9 +1335,11 @@ async def handle_pr_review_analysis(request, env, path):
             'review_analysis': {
                 'classification': classification,
                 'score': score,
+                'score_display': f"{score}%",
                 'total_feedback': review_data['total_feedback_count'],
                 'responded_feedback': review_data['responded_count'],
                 'response_rate': review_data['response_rate'],
+                'response_rate_display': f"{int(review_data['response_rate'] * 100)}%",
                 'awaiting_author': review_data['awaiting_author'],
                 'awaiting_reviewer': review_data['awaiting_reviewer'],
                 'stale_feedback_count': len(review_data['stale_feedback']),
@@ -1442,7 +1444,7 @@ async def handle_pr_readiness(request, env, path):
         # Calculate combined readiness
         readiness = calculate_pr_readiness(pr, review_classification, review_score)
         
-        # Build response data
+        # Build response data with percentage formatting
         response_data = {
             'pr': {
                 'id': pr['id'],
@@ -1455,13 +1457,20 @@ async def handle_pr_readiness(request, env, path):
                 'mergeable_state': pr['mergeable_state'],
                 'files_changed': pr['files_changed']
             },
-            'readiness': readiness,
+            'readiness': {
+                **readiness,
+                'overall_score_display': f"{readiness['overall_score']}%",
+                'ci_score_display': f"{readiness['ci_score']}%",
+                'review_score_display': f"{readiness.get('review_score', review_score)}%"
+            },
             'review_health': {
                 'classification': review_classification,
                 'score': review_score,
+                'score_display': f"{review_score}%",
                 'total_feedback': review_data['total_feedback_count'],
                 'responded_feedback': review_data['responded_count'],
                 'response_rate': review_data['response_rate'],
+                'response_rate_display': f"{int(review_data['response_rate'] * 100)}%",
                 'stale_feedback_count': len(review_data['stale_feedback'])
             },
             'ci_checks': {

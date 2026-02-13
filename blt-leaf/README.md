@@ -234,8 +234,11 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
   "pr": { "id": 1, "title": "...", "state": "open" },
   "readiness": {
     "overall_score": 78,
+    "overall_score_display": "78%",
     "ci_score": 100,
+    "ci_score_display": "100%",
     "review_score": 70,
+    "review_score_display": "70%",
     "classification": "READY_TO_MERGE",
     "merge_ready": true,
     "blockers": [],
@@ -245,7 +248,9 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
   "review_health": {
     "classification": "AWAITING_REVIEWER",
     "score": 70,
+    "score_display": "70%",
     "response_rate": 1.0,
+    "response_rate_display": "100%",
     "total_feedback": 3,
     "responded_feedback": 3
   },

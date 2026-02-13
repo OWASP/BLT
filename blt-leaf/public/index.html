@@ -457,22 +457,22 @@
                                 <span class="text-2xl">${classIcons[readiness.classification] || '📊'}</span>
                                 <div>
                                     <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">PR Readiness</h4>
-                                    <p class="mt-0.5 text-lg font-bold ${scoreColorClass}">${readiness.overall_score}/100 - ${readiness.classification.replace(/_/g, ' ')}</p>
+                                    <p class="mt-0.5 text-lg font-bold ${scoreColorClass}">${readiness.overall_score_display} - ${readiness.classification.replace(/_/g, ' ')}</p>
                                 </div>
                             </div>
                             
                             <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
                                 <div>
                                     <span class="text-slate-600 dark:text-slate-400">CI Confidence:</span>
-                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${readiness.ci_score}/100</span>
+                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${readiness.ci_score_display}</span>
                                 </div>
                                 <div>
                                     <span class="text-slate-600 dark:text-slate-400">Review Health:</span>
-                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${readiness.review_score}/100</span>
+                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${readiness.review_score_display}</span>
                                 </div>
                                 <div>
                                     <span class="text-slate-600 dark:text-slate-400">Response Rate:</span>
-                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${Math.round(reviewHealth.response_rate * 100)}%</span>
+                                    <span class="ml-1 font-semibold text-slate-900 dark:text-slate-100">${reviewHealth.response_rate_display}</span>
                                 </div>
                                 <div>
                                     <span class="text-slate-600 dark:text-slate-400">Feedback:</span>
