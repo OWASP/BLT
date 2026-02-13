@@ -80,3 +80,5 @@ BLT-NetGuardian is a production-ready, privacy-preserving security scanning work
 - Community-powered scaling: volunteer CLI enables distributed scanning without centralizing sensitive evidence.
 - Better disclosure hygiene: security.txt hints streamline responsible outreach.
 - Practical outputs for orgs: professional CSV/PDF remediation report supports remediation tracking.
+
+- Moved here https://github.com/orgs/OWASP-BLT/discussions/5710
