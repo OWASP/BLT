@@ -101,6 +101,8 @@
         let currentRepo = 'all';
         let allPrs = [];
         let repos = [];
+        let sortColumn = 'last_updated_at';
+        let sortDirection = 'desc';
 
         const repoItemBaseClasses = ['repo-item', 'cursor-pointer', 'rounded-lg', 'border', 'px-3', 'py-2', 'transition-colors'];
         const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50', 'dark:border-slate-700', 'dark:bg-slate-800', 'dark:hover:border-slate-600', 'dark:hover:bg-slate-700'];
@@ -185,6 +187,42 @@
             }
 
             return 'just now';
+        }
+
+        function sortPrs(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'desc';
+            }
+            
+            // Columns that should use numeric sorting
+            const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number'];
+            
+            allPrs.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                // Handle numeric columns
+                if (numericColumns.includes(column)) {
+                    aVal = Number(aVal) || 0;
+                    bVal = Number(bVal) || 0;
+                }
+                // Handle string comparisons for all other columns
+                else {
+                    aVal = String(aVal || '').toLowerCase();
+                    bVal = String(bVal || '').toLowerCase();
+                }
+                
+                if (sortDirection === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+            
+            renderPrList();
         }
 
         function showError(message) {
@@ -303,35 +341,96 @@
                 return;
             }
 
-            container.innerHTML = '<div class="grid gap-4" id="prList"></div>';
-            const prList = document.getElementById('prList');
+            const getSortIcon = (column) => {
+                if (sortColumn !== column) return '<i class="fas fa-sort text-slate-400"></i>';
+                return sortDirection === 'asc' 
+                    ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400"></i>'
+                    : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400"></i>';
+            };
 
+            container.innerHTML = `
+                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+                            <tr>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')">
+                                    <div class="flex items-center gap-2">
+                                        PR Title ${getSortIcon('title')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')">
+                                    <div class="flex items-center gap-2">
+                                        Repository ${getSortIcon('repo_owner')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')">
+                                    <div class="flex items-center gap-2">
+                                        Author ${getSortIcon('author_login')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('state')">
+                                    <div class="flex items-center gap-2">
+                                        State ${getSortIcon('state')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')">
+                                    <div class="flex items-center gap-2">
+                                        Review ${getSortIcon('review_status')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')">
+                                    <div class="flex items-center gap-2">
+                                        Mergeable ${getSortIcon('mergeable_state')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')">
+                                    <div class="flex items-center gap-2">
+                                        Files ${getSortIcon('files_changed')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')">
+                                    <div class="flex items-center gap-2">
+                                        Checks ${getSortIcon('checks_passed')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')">
+                                    <div class="flex items-center gap-2">
+                                        Updated ${getSortIcon('last_updated_at')}
+                                    </div>
+                                </th>
+                                <th class="px-4 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const tbody = document.getElementById('prTableBody');
             allPrs.forEach(pr => {
-                const prCard = document.createElement('div');
-                prCard.className = 'rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800';
-
                 let stateBadge = '';
                 if (pr.is_merged) {
-                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2.5 py-1 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
                 } else if (pr.state === 'open') {
-                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
                 } else {
-                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
+                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
                 }
 
                 let reviewBadge = '';
                 if (pr.review_status === 'approved') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Approved</span>';
+                    reviewBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Approved</span>';
                 } else if (pr.review_status === 'changes_requested') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Changes Requested</span>';
+                    reviewBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Changes</span>';
                 } else if (pr.review_status === 'pending') {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">Pending Review</span>';
+                    reviewBadge = '<span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">Pending</span>';
                 } else {
-                    reviewBadge = '<span class="ml-1 inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">No Reviews</span>';
+                    reviewBadge = '<span class="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">None</span>';
                 }
 
                 let mergeableText = pr.mergeable_state || 'unknown';
-                if (mergeableText === 'clean') mergeableText = 'Ready to merge';
+                if (mergeableText === 'clean') mergeableText = 'Ready';
                 else if (mergeableText === 'dirty') mergeableText = 'Conflicts';
                 else if (mergeableText === 'blocked') mergeableText = 'Blocked';
                 else if (mergeableText === 'unstable') mergeableText = 'Unstable';
@@ -339,57 +438,50 @@
                 const avatarUrl = pr.author_avatar &&
                     (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || pr.author_avatar.startsWith('https://github.com/'))
                     ? pr.author_avatar
-                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect width="40" height="40" fill="%23E2E8F0"/%3E%3C/svg%3E';
+                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect width="32" height="32" fill="%23E2E8F0"/%3E%3C/svg%3E';
 
-                prCard.innerHTML = `
-                    <div class="mb-4 flex flex-wrap items-start gap-3 sm:flex-nowrap">
-                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-600" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
-                        <div class="min-w-0 flex-1">
-                            <h3 class="truncate text-base font-semibold text-slate-900 dark:text-slate-100"><a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-[#BC0000] dark:hover:text-red-400">${escapeHtml(pr.title)}</a></h3>
-                            <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)} #${pr.pr_number} by ${escapeHtml(pr.author_login)}</div>
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
+                row.innerHTML = `
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2 min-w-0" style="max-width: 400px;">
+                            <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                            <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate" title="${escapeHtml(pr.title)}">${escapeHtml(pr.title)}</a>
                         </div>
-                        <div class="shrink-0">${stateBadge}${reviewBadge}</div>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Merge Status</div>
-                            <div class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">${escapeHtml(mergeableText)}</div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
+                        <div class="whitespace-nowrap">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-500">#${pr.pr_number}</div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600 dark:text-slate-400">${escapeHtml(pr.author_login)}</td>
+                    <td class="px-4 py-3">${stateBadge}</td>
+                    <td class="px-4 py-3">${reviewBadge}</td>
+                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">${escapeHtml(mergeableText)}</td>
+                    <td class="px-4 py-3 text-center text-slate-700 dark:text-slate-300">${pr.files_changed}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-1 text-xs">
+                            <span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                <i class="fas fa-check-circle"></i>${pr.checks_passed}
+                            </span>
+                            ${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 hover:border-red-300 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                                <i class="fas fa-times-circle"></i>${escapeHtml(String(pr.checks_failed))}
+                            </a>` : `<span class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                                <i class="fas fa-times-circle"></i>${pr.checks_failed}
+                            </span>`}
+                            ${pr.checks_skipped > 0 ? `<span class="inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-400">
+                                <i class="fas fa-minus-circle"></i>${pr.checks_skipped}
+                            </span>` : ''}
                         </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Files Changed</div>
-                            <div class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">${pr.files_changed}</div>
-                        </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Last Updated</div>
-                            <div class="mt-1 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(timeAgo(pr.last_updated_at))}</div>
-                        </div>
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-600 dark:bg-slate-900/50">
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Checks</div>
-                            <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-2 py-1 text-emerald-700 dark:border-emerald-900 dark:bg-slate-800 dark:text-emerald-400">
-                                    <span class="h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500"></span>
-                                    <span>${pr.checks_passed} passed</span>
-                                </div>
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-2 py-1 text-red-700 dark:border-red-900 dark:bg-slate-800 dark:text-red-400">
-                                    <span class="h-2 w-2 rounded-full bg-red-600 dark:bg-red-500"></span>
-                                    <span>${pr.checks_failed > 0 ? `<a class="underline hover:text-[#BC0000] dark:hover:text-red-300" href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer">${escapeHtml(String(pr.checks_failed))} failed</a>` : `${pr.checks_failed} failed`}</span>
-                                </div>
-                                <div class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                                    <span class="h-2 w-2 rounded-full bg-slate-500 dark:bg-slate-400"></span>
-                                    <span>${pr.checks_skipped} skipped</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex items-center justify-end gap-2">
-                        <button class="refresh-btn rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100" data-pr-id="${pr.id}">Refresh</button>
-                        ${pr.last_refreshed_at ? `<span class="text-xs text-slate-500 dark:text-slate-400">(refreshed ${escapeHtml(timeAgo(pr.last_refreshed_at))})</span>` : ''}
-                    </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
+                    <td class="px-4 py-3">
+                        <button class="refresh-btn rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100 whitespace-nowrap" data-pr-id="${pr.id}">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        ${pr.last_refreshed_at ? `<div class="mt-1 text-xs text-slate-500 dark:text-slate-400">${escapeHtml(timeAgo(pr.last_refreshed_at))}</div>` : ''}
+                    </td>
                 `;
-
-                prList.appendChild(prCard);
+                tbody.appendChild(row);
             });
 
             document.querySelectorAll('.refresh-btn').forEach(btn => {
@@ -536,6 +628,9 @@
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        // Make sortPrs globally accessible for onclick handlers
+        window.sortPrs = sortPrs;
 
         initTheme();
         loadRateLimit();
