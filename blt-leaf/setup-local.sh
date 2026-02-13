@@ -65,6 +65,14 @@ echo "📋 Step 3: Writing .env from .env.example (overwriting if present) and i
 
 TEMPLATE_FILE=".env.example"
 TARGET_FILE=".env"
+FORCE_OVERWRITE=0
+
+# Support --force to overwrite existing .env
+for arg in "${@-}"; do
+  if [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
+    FORCE_OVERWRITE=1
+  fi
+done
 
 if [ ! -f "$TEMPLATE_FILE" ]; then
     echo "⚠️  .env.example not found, creating a default template at $TEMPLATE_FILE"
@@ -78,10 +86,20 @@ CLOUDFLARE_ACCOUNT_ID=
 EOF
 fi
 
-# Produce .env by replacing or appending D1_DATABASE_ID value
-awk -v dbid="$DB_ID" 'BEGIN{FS=OFS="="; seen=0} /^\s*#/ {print; next} /^\s*$/ {print; next} {key=$1; gsub(/^[ \t]+|[ \t]+$/,"",key); if(key=="D1_DATABASE_ID"){print "D1_DATABASE_ID=" dbid; seen=1} else print $0} END{if(!seen) print "D1_DATABASE_ID=" dbid}' "$TEMPLATE_FILE" > "$TARGET_FILE"
-
-echo "✅ Wrote $TARGET_FILE (D1_DATABASE_ID set)"
+# If .env already exists and user did not request overwrite, preserve it and only update/add D1_DATABASE_ID
+if [ -f "$TARGET_FILE" ] && [ "$FORCE_OVERWRITE" -ne 1 ]; then
+    echo "✅ .env already exists — preserving existing values. Updating only D1_DATABASE_ID."
+    if grep -q '^D1_DATABASE_ID=' "$TARGET_FILE"; then
+        sed -i.bak -E "s/^D1_DATABASE_ID=.*/D1_DATABASE_ID=$DB_ID/" "$TARGET_FILE" && rm -f "$TARGET_FILE.bak"
+    else
+        echo "D1_DATABASE_ID=$DB_ID" >> "$TARGET_FILE"
+    fi
+    echo "✅ Updated $TARGET_FILE"
+else
+    # Produce .env by replacing or appending D1_DATABASE_ID value
+    awk -v dbid="$DB_ID" 'BEGIN{FS=OFS="="; seen=0} /^\s*#/ {print; next} /^\s*$/ {print; next} {key=$1; gsub(/^[ \t]+|[ \t]+$/,"",key); if(key=="D1_DATABASE_ID"){print "D1_DATABASE_ID=" dbid; seen=1} else print $0} END{if(!seen) print "D1_DATABASE_ID=" dbid}' "$TEMPLATE_FILE" > "$TARGET_FILE"
+    echo "✅ Wrote $TARGET_FILE (D1_DATABASE_ID set)"
+fi
 
 echo
 echo "📋 Step 4: Updating wrangler.toml to use D1_DATABASE_ID from environment..."
