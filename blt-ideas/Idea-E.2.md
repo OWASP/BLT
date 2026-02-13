@@ -190,3 +190,5 @@ Important:
 - SOC-style repository risk analytics
 
 _Last Updated: January 2026_
+
+moved here https://github.com/orgs/OWASP-BLT/discussions/5708
