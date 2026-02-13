@@ -93,4 +93,4 @@ Core hands-on labs covering SQL Injection, XSS, and Configuration Security using
 
 ---
 
-_Last Updated: February 2026_
+moved here https://github.com/orgs/OWASP-BLT/discussions/5705
