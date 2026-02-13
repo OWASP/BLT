@@ -11,7 +11,6 @@
             darkMode: 'class'
         }
     </script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -25,31 +24,43 @@
 
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5 dark:border-slate-700 dark:bg-slate-800">
-        <div class="flex justify-between item-center">
-            <div class="mx-auto flex w-full flex-col gap-3 px-4 py-3 sm:px-6">
-                <div class="flex items-center gap-2.5">
-                    <img width="30" src="./static/logo.png" alt="BLT-LEAF logo" onerror="this.style.display='none'" />
-                    <h1 class="font-semibold dark:text-white">BLT-LEAF</h1>
+        <div class="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+            
+            <div class="flex items-center gap-4 lg:gap-6">
+                <div class="flex shrink-0 items-center gap-2">
+                    <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
+                    <h1 class="hidden font-bold text-slate-900 dark:text-white sm:block">BLT-LEAF</h1>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="text-xs font-medium text-slate-500 dark:text-slate-400" id="rateLimitLabel">GitHub API Rate Limit:</div>
-                    <div class="rate-limit-bar h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" role="progressbar"
-                        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="rateLimitLabel"
-                        aria-describedby="rateLimitText">
+                <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
+                    <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
+                    <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                         <div class="h-full w-0 rounded-full bg-[#E10000] transition-all duration-300" id="rateLimitFill"></div>
                     </div>
-                    <div class="text-xs font-semibold text-slate-700 dark:text-slate-300" id="rateLimitText" aria-live="polite" aria-atomic="true">Loading...</div>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
                 </div>
             </div>
-          <div class="flex items-center space-x-3">
-            <button id="themeToggle" class="rounded-lg p-2.5 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700" aria-label="Toggle theme">
-              <i class="fas fa-moon" id="themeIcon"></i>
-            </button>
-            <a class="flex gap-1 items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-lg" href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer">
-              <i class="fab fa-github mr-2"></i> Contribute
-            </a>
-          </div>
+
+            <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
+                <div class="relative w-full max-w-lg">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <i class="fas fa-search text-slate-400"></i>
+                    </div>
+                    <input type="text" id="prSearchInput"
+                        class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                        placeholder="Search PRs..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-3">
+                <button id="themeToggle" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
+                   class="hidden rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 md:inline-flex items-center gap-2 transition-colors shadow-sm">
+                    <i class="fab fa-github"></i> <span>Contribute</span>
+                </a>
+            </div>
         </div>
     </header>
 
@@ -79,12 +90,22 @@
                 <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
                         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
-                        placeholder="Enter GitHub PR URL (e.g., https://github.com/owner/repo/pull/123)" autocomplete="off" />
+                        placeholder="Enter GitHub PR URL or Repository URL"
+                        autocomplete="off" />
                     <button id="addPrBtn"
                         class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700 dark:disabled:border-red-800 dark:disabled:bg-red-950 dark:disabled:text-red-400">
                         Add PR
                     </button>
                 </div>
+                
+                <div class="mt-2 flex items-center gap-2">
+                    <input type="checkbox" id="addAllPrsCheckbox"
+                        class="h-4 w-4 rounded border-slate-300 text-[#E10000] focus:ring-[#E10000] dark:border-slate-600 dark:bg-slate-700">
+                    <label for="addAllPrsCheckbox"
+                        class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                        Add all active PRs from this repo
+                    </label>
+                </div>                
                 <div id="errorMessage" class="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))]"></div>
             </section>
 
@@ -128,43 +149,46 @@
         async function loadRateLimit() {
             try {
                 const response = await fetch('/api/rate-limit');
+                const textEl = document.getElementById('rateLimitText');
+                const fillEl = document.getElementById('rateLimitFill');
+
                 if (!response.ok) {
-                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    if(textEl) textEl.textContent = 'N/A';
                     return;
                 }
 
                 const data = await response.json();
                 if (data.error) {
-                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    if(textEl) textEl.textContent = 'N/A';
                     return;
                 }
 
                 const { limit, remaining } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
-                    document.getElementById('rateLimitText').textContent = 'N/A';
+                    if(textEl) textEl.textContent = 'N/A';
                     return;
                 }
 
                 const percentageRemaining = (remaining / limit) * 100;
-                const fillElement = document.getElementById('rateLimitFill');
-                fillElement.style.width = `${percentageRemaining}%`;
-
-                const barElement = document.querySelector('.rate-limit-bar');
-                barElement.setAttribute('aria-valuenow', Math.round(percentageRemaining));
-
-                fillElement.className = 'h-full rounded-full transition-all duration-300';
-                if (percentageRemaining < 20) {
-                    fillElement.classList.add('bg-red-600');
-                } else if (percentageRemaining <= 50) {
-                    fillElement.classList.add('bg-amber-500');
-                } else {
-                    fillElement.classList.add('bg-[#E10000]');
+                
+                if (fillEl) {
+                    fillEl.style.width = `${percentageRemaining}%`;
+                    fillEl.className = 'h-full rounded-full transition-all duration-300';
+                    if (percentageRemaining < 20) {
+                        fillEl.classList.add('bg-red-600');
+                    } else if (percentageRemaining <= 50) {
+                        fillElement.classList.add('bg-amber-500');
+                    } else {
+                        fillElement.classList.add('bg-[#E10000]');
+                    }
                 }
+                
+                if(textEl) textEl.textContent = `${remaining} / ${limit}`;
 
-                document.getElementById('rateLimitText').textContent = `${remaining} / ${limit}`;
             } catch (error) {
                 console.error('Error loading rate limit:', error);
-                document.getElementById('rateLimitText').textContent = 'N/A';
+                const textEl = document.getElementById('rateLimitText');
+                if(textEl) textEl.textContent = 'N/A';
             }
         }
 
@@ -197,32 +221,26 @@
                 sortDirection = 'desc';
             }
             
-            // Columns that should use numeric sorting
             const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number'];
-            
             allPrs.sort((a, b) => {
                 let aVal = a[column];
                 let bVal = b[column];
                 
-                // Handle numeric columns
                 if (numericColumns.includes(column)) {
                     aVal = Number(aVal) || 0;
                     bVal = Number(bVal) || 0;
-                }
-                // Handle string comparisons for all other columns
-                else {
+                } else {
                     aVal = String(aVal || '').toLowerCase();
                     bVal = String(bVal || '').toLowerCase();
                 }
                 
-                if (sortDirection === 'asc') {
-                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-                } else {
-                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-                }
+                if (sortDirection === 'asc') return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                else return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
             });
             
-            renderPrList();
+            // Re-apply filter after sorting
+            const searchTerm = document.getElementById('prSearchInput').value;
+            filterPrs(searchTerm);
         }
 
         function showError(message) {
@@ -230,7 +248,7 @@
             errorDiv.textContent = '';
 
             const toastElement = document.createElement('div');
-            toastElement.className = 'flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-white px-3 py-2.5 text-sm text-red-900';
+            toastElement.className = 'flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-white px-3 py-2.5 text-sm text-red-900 shadow-lg';
 
             const iconElement = document.createElement('span');
             iconElement.className = 'inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700';
@@ -301,12 +319,15 @@
 
         async function loadPrs() {
             const container = document.getElementById('prListContainer');
-            container.innerHTML = `
-                <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                    <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-400"></span>
-                    Loading PRs...
-                </div>
-            `;
+            // Only show spinner if search is empty to avoid flickering while typing
+            if(document.getElementById('prSearchInput').value.trim() === '') {
+                container.innerHTML = `
+                    <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-400"></span>
+                        Loading PRs...
+                    </div>
+                `;
+            }
 
             try {
                 const url = currentRepo === 'all' ? '/api/prs' : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
@@ -320,21 +341,43 @@
                 }
 
                 allPrs = data.prs;
-                renderPrList();
+                
+                // Apply search filter if exists
+                const searchTerm = document.getElementById('prSearchInput').value;
+                if(searchTerm) {
+                    filterPrs(searchTerm);
+                } else {
+                    renderPrList(allPrs);
+                }
             } catch (error) {
                 console.error('Error loading PRs:', error);
                 showError('Failed to load PRs');
                 container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800"><h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Error loading PRs</h3></div>';
             }
         }
+        
+        function filterPrs(searchTerm) {
+            const term = searchTerm.toLowerCase();
+            const filtered = allPrs.filter(pr =>
+                (pr.title && pr.title.toLowerCase().includes(term)) ||
+                (pr.author_login && pr.author_login.toLowerCase().includes(term)) ||
+                (pr.repo_name && pr.repo_name.toLowerCase().includes(term)) ||
+                String(pr.pr_number).includes(term)
+            );
+            renderPrList(filtered);
+        }
 
-        function renderPrList() {
+        function renderPrList(prsToRender) {
             const container = document.getElementById('prListContainer');
+            // Use the passed filtered list OR fallback to allPrs
+            const prs = prsToRender || allPrs;
 
-            if (allPrs.length === 0) {
+            if (prs.length === 0) {
+                const isFiltered = document.getElementById('prSearchInput').value.trim() !== '';
+                const emptyTitle = isFiltered ? "No PRs Match" : "No PRs Added Yet";
                 container.innerHTML = `
                     <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
-                        <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Found</h3>
+                        <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">${emptyTitle}</h3>
                         <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p>
                     </div>
                 `;
@@ -342,10 +385,10 @@
             }
 
             const getSortIcon = (column) => {
-                if (sortColumn !== column) return '<i class="fas fa-sort text-slate-400"></i>';
+                if (sortColumn !== column) return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
                 return sortDirection === 'asc' 
-                    ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400"></i>'
-                    : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400"></i>';
+                    ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
+                    : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
             };
 
             container.innerHTML = `
@@ -354,49 +397,31 @@
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')">
-                                    <div class="flex items-center gap-2">
-                                        PR Title ${getSortIcon('title')}
-                                    </div>
+                                    <div class="flex items-center gap-2">PR Title ${getSortIcon('title')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')">
-                                    <div class="flex items-center gap-2">
-                                        Repository ${getSortIcon('repo_owner')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Repository ${getSortIcon('repo_owner')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')">
-                                    <div class="flex items-center gap-2">
-                                        Author ${getSortIcon('author_login')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Author ${getSortIcon('author_login')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('state')">
-                                    <div class="flex items-center gap-2">
-                                        State ${getSortIcon('state')}
-                                    </div>
+                                    <div class="flex items-center gap-2">State ${getSortIcon('state')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')">
-                                    <div class="flex items-center gap-2">
-                                        Review ${getSortIcon('review_status')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Review ${getSortIcon('review_status')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')">
-                                    <div class="flex items-center gap-2">
-                                        Mergeable ${getSortIcon('mergeable_state')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Mergeable ${getSortIcon('mergeable_state')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')">
-                                    <div class="flex items-center gap-2">
-                                        Files ${getSortIcon('files_changed')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Files ${getSortIcon('files_changed')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')">
-                                    <div class="flex items-center gap-2">
-                                        Checks ${getSortIcon('checks_passed')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Checks ${getSortIcon('checks_passed')}</div>
                                 </th>
                                 <th class="cursor-pointer px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')">
-                                    <div class="flex items-center gap-2">
-                                        Updated ${getSortIcon('last_updated_at')}
-                                    </div>
+                                    <div class="flex items-center gap-2">Updated ${getSortIcon('last_updated_at')}</div>
                                 </th>
                                 <th class="px-4 py-3">Actions</th>
                             </tr>
@@ -408,7 +433,7 @@
             `;
 
             const tbody = document.getElementById('prTableBody');
-            allPrs.forEach(pr => {
+            prs.forEach(pr => {
                 let stateBadge = '';
                 if (pr.is_merged) {
                     stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
@@ -495,7 +520,9 @@
         async function addPr() {
             const input = document.getElementById('prUrlInput');
             const btn = document.getElementById('addPrBtn');
+            const checkbox = document.getElementById('addAllPrsCheckbox');
             const prUrl = input.value.trim();
+            const addAll = checkbox.checked;
 
             if (!prUrl) {
                 showError('Please enter a PR URL');
@@ -503,15 +530,20 @@
             }
 
             btn.disabled = true;
-            btn.textContent = 'Adding...';
+            btn.textContent = addAll ? 'Importing...' : 'Adding...';
 
             try {
+                // If importing all, handle logic to send repo_url appropriately
+                // But preserving your existing logic structure:
                 const response = await fetch('/api/prs', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ pr_url: prUrl })
+                    body: JSON.stringify({ 
+                        pr_url: prUrl,
+                        add_all: addAll
+                    })
                 });
 
                 const data = await response.json();
@@ -583,6 +615,11 @@
                 btn.classList.remove('pointer-events-none', 'opacity-70');
             }
         }
+
+        // Search listener
+        document.getElementById('prSearchInput').addEventListener('input', (e) => {
+            filterPrs(e.target.value);
+        });
 
         document.getElementById('addPrBtn').addEventListener('click', addPr);
         document.getElementById('prUrlInput').addEventListener('keypress', (e) => {
