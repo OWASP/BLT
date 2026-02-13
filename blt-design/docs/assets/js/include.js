@@ -71,6 +71,7 @@ async function loadIncludes() {
       console.error(err);
     }
   }
+  wireAssets(document);
 }
 
 loadIncludes();
