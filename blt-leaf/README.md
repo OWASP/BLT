@@ -34,8 +34,8 @@ BLT-Leaf/
 ## Features
 
 ### Core Functionality
-- 📝 **Track PRs**: Add GitHub PR URLs to track their status
-- 📊 **Detailed Metrics**: View merge status, files changed, check results, and review status
+- 📝 **Track Open PRs**: Add GitHub PR URLs to track their readiness (open PRs only)
+- 📊 **Sortable Table View**: View PRs in a compact, sortable table with check results, review status, and files changed
 - 👥 **Multi-Repo Support**: Track PRs across multiple repositories
 - 🔄 **Real-time Updates**: Refresh PR data from GitHub API
 - 🎨 **Clean Interface**: Simple, GitHub-themed UI with dark mode support
@@ -140,19 +140,21 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
 ### Basic Tracking
 1. **Add a PR**: Enter a GitHub PR URL in the format `https://github.com/owner/repo/pull/number`
    - Note: Only open PRs can be added. Merged or closed PRs will be rejected.
-2. **View Details**: See comprehensive PR information including:
-   - Merge readiness
+2. **View Details**: See PRs in a sortable table with:
+   - Repository and PR number
+   - Author
+   - Review status
+   - Mergeable state
    - Files changed count
    - Check status (passed/failed/skipped)
-   - Review approval status
-   - Time since last update
-   - Author information
-3. **Filter by Repo**: Click on a repository in the sidebar to filter PRs
-4. **Refresh Data**: Use the refresh button to update PR information from GitHub
+   - Last updated time
+3. **Sort PRs**: Click any column header to sort by that column
+4. **Filter by Repo**: Click on a repository in the sidebar to filter PRs
+5. **Refresh Data**: Use the refresh button to update PR information from GitHub
    - Note: If a PR has been merged or closed since being added, it will be automatically removed from tracking.
 
 ### PR Readiness Analysis
-5. **Check Readiness**: Click the "Check Readiness" button on any PR card to analyze:
+6. **Check Readiness**: Click the "Check Readiness" button on any PR row to analyze:
    - **Overall Score**: 0-100 combining CI confidence (60%) and review health (40%)
    - **Score Breakdown**: See individual CI and review scores
    - **Blockers**: Critical issues preventing merge (failing checks, conflicts, stale feedback)
@@ -201,7 +203,7 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
 - `GET /api/prs/{id}/readiness` - Get comprehensive PR readiness analysis
   - Combines CI confidence and review health scores
   - Detects blockers (failing checks, conflicts, stale feedback)
-  - Provides warnings and actionable recommendations
+  - Provides actionable recommendations
   - Returns merge-ready verdict with detailed breakdown
 
 ### Response Examples
