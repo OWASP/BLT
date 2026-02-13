@@ -1,4 +1,5 @@
 # Idea H — BLT Growth: Sizzle-First Contributor Progress & AI-Guided Issue Recommendation
+moved here https://github.com/orgs/OWASP-BLT/discussions/5711
 
 ## Overview
 
