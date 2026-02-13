@@ -156,3 +156,4 @@ The system analyzes pull request diffs, CI security signals, and repository cont
 - Incremental architecture aligned with existing GitHub workflows
 
 _Last Updated: February 2026_
+moved here https://github.com/orgs/OWASP-BLT/discussions/5707
