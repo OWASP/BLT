@@ -1,9 +1,28 @@
 function getDocsBase() {
+  const markers = ['/docs/'];
+  const pathname = window.location.pathname;
+
+  for (const marker of markers) {
+    const idx = pathname.indexOf(marker);
+    if (idx !== -1) {
+      return pathname.slice(0, idx + marker.length);
+    }
+  }
+
+  return './docs/';
+}
+
+function getSiteBase() {
   const marker = '/docs/';
   const pathname = window.location.pathname;
   const idx = pathname.indexOf(marker);
-  if (idx === -1) return './';
-  return pathname.slice(0, idx + marker.length);
+
+  if (idx !== -1) {
+    return pathname.slice(0, idx + 1);
+  }
+
+  if (pathname.endsWith('/')) return pathname;
+  return pathname.replace(/\/[^/]*$/, '/');
 }
 
 function normalizePath(path) {
@@ -23,7 +42,9 @@ function setActive(link) {
 
 function wireDocLinks(root) {
   const base = getDocsBase();
+  const siteBase = getSiteBase();
   const links = root.querySelectorAll('[data-doc-link]');
+  const rootLinks = root.querySelectorAll('[data-root-link]');
   const current = normalizePath(window.location.pathname);
 
   for (const link of links) {
@@ -31,6 +52,20 @@ function wireDocLinks(root) {
     if (!path) continue;
 
     const href = `${base}${path}`;
+    link.setAttribute('href', href);
+
+    const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
+    if (current === targetPath) {
+      setActive(link);
+      link.setAttribute('aria-current', 'page');
+    }
+  }
+
+  for (const link of rootLinks) {
+    const path = link.getAttribute('data-root-link');
+    if (!path) continue;
+
+    const href = `${siteBase}${path}`;
     link.setAttribute('href', href);
 
     const targetPath = normalizePath(new URL(href, window.location.origin).pathname);
