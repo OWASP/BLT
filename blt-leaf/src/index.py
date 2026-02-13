@@ -16,6 +16,23 @@ _rate_limit_cache = {
 # Cache TTL in seconds (5 minutes)
 _RATE_LIMIT_CACHE_TTL = 300
 
+# Application-level rate limiting for readiness endpoints
+# Tracks requests per IP address with sliding window
+_readiness_rate_limit = {
+    # Structure: {'ip_address': {'count': int, 'window_start': float}}
+}
+# Rate limit: 10 requests per minute per IP for readiness endpoints
+_READINESS_RATE_LIMIT = 10
+_READINESS_RATE_WINDOW = 60  # seconds
+
+# In-memory cache for readiness results
+# Invalidated when PR is manually refreshed
+_readiness_cache = {
+    # Structure: {pr_id: {'data': dict, 'timestamp': float}}
+}
+# Cache TTL in seconds (10 minutes)
+_READINESS_CACHE_TTL = 600
+
 def parse_pr_url(pr_url):
     """Parse GitHub PR URL to extract owner, repo, and PR number"""
     pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
@@ -27,6 +44,109 @@ def parse_pr_url(pr_url):
             'pr_number': int(match.group(3))
         }
     return None
+
+def check_rate_limit(ip_address):
+    """Check if request from IP is within rate limit for readiness endpoints.
+    
+    Args:
+        ip_address: Client IP address
+        
+    Returns:
+        Tuple of (allowed: bool, retry_after: int)
+        - allowed: True if request is allowed, False if rate limited
+        - retry_after: Seconds to wait before retrying (0 if allowed)
+    """
+    global _readiness_rate_limit
+    
+    current_time = Date.now() / 1000  # Convert milliseconds to seconds
+    
+    if ip_address not in _readiness_rate_limit:
+        _readiness_rate_limit[ip_address] = {
+            'count': 1,
+            'window_start': current_time
+        }
+        print(f"Rate limit: New IP {ip_address} - count: 1")
+        return (True, 0)
+    
+    rate_data = _readiness_rate_limit[ip_address]
+    window_elapsed = current_time - rate_data['window_start']
+    
+    # Reset window if expired
+    if window_elapsed >= _READINESS_RATE_WINDOW:
+        _readiness_rate_limit[ip_address] = {
+            'count': 1,
+            'window_start': current_time
+        }
+        print(f"Rate limit: Window reset for {ip_address} - count: 1")
+        return (True, 0)
+    
+    # Check if within limit
+    if rate_data['count'] < _READINESS_RATE_LIMIT:
+        rate_data['count'] += 1
+        print(f"Rate limit: {ip_address} - count: {rate_data['count']}/{_READINESS_RATE_LIMIT}")
+        return (True, 0)
+    
+    # Rate limited - calculate retry_after
+    retry_after = int(_READINESS_RATE_WINDOW - window_elapsed) + 1
+    print(f"Rate limit: EXCEEDED for {ip_address} - retry after {retry_after}s")
+    return (False, retry_after)
+
+def get_readiness_cache(pr_id):
+    """Get cached readiness result for a PR if still valid.
+    
+    Args:
+        pr_id: PR ID
+        
+    Returns:
+        Cached data dict if valid, None if expired or not found
+    """
+    global _readiness_cache
+    
+    if pr_id not in _readiness_cache:
+        print(f"Cache: MISS for PR {pr_id} (not found)")
+        return None
+    
+    cache_entry = _readiness_cache[pr_id]
+    current_time = Date.now() / 1000
+    
+    # Check if cache is still valid
+    if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
+        age = int(current_time - cache_entry['timestamp'])
+        print(f"Cache: HIT for PR {pr_id} (age: {age}s)")
+        return cache_entry['data']
+    
+    # Cache expired - remove it
+    del _readiness_cache[pr_id]
+    print(f"Cache: MISS for PR {pr_id} (expired)")
+    return None
+
+def set_readiness_cache(pr_id, data):
+    """Cache readiness result for a PR.
+    
+    Args:
+        pr_id: PR ID
+        data: Readiness data to cache
+    """
+    global _readiness_cache
+    
+    current_time = Date.now() / 1000
+    _readiness_cache[pr_id] = {
+        'data': data,
+        'timestamp': current_time
+    }
+    print(f"Cache: Stored result for PR {pr_id}")
+
+def invalidate_readiness_cache(pr_id):
+    """Invalidate cached readiness result for a PR.
+    
+    Args:
+        pr_id: PR ID
+    """
+    global _readiness_cache
+    
+    if pr_id in _readiness_cache:
+        del _readiness_cache[pr_id]
+        print(f"Cache invalidated for PR {pr_id}")
 
 def get_db(env):
     """Helper to get DB binding from env, handling different env types.
@@ -900,6 +1020,9 @@ async def handle_refresh_pr(request, env):
         
         # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
+            # Invalidate readiness cache since PR state changed
+            invalidate_readiness_cache(pr_id)
+            
             # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
             await delete_stmt.run()
@@ -942,6 +1065,10 @@ async def handle_refresh_pr(request, env):
         )
         
         await stmt.run()
+        
+        # Invalidate readiness cache after successful refresh
+        # This ensures cached results don't become stale after new commits or review activity
+        invalidate_readiness_cache(pr_id)
         
         return Response.new(json.dumps({'success': True, 'data': pr_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
@@ -1048,10 +1175,41 @@ async def handle_pr_timeline(request, env, path):
     """
     GET /api/prs/{id}/timeline
     Fetch and return the full timeline for a PR
+    
+    Features:
+    - Application-level rate limiting (10 requests/minute per IP)
     """
     try:
         # Extract PR ID from path: /api/prs/123/timeline
         pr_id = path.split('/')[3]  # Split by / and get the ID
+        
+        # Get client IP for rate limiting
+        client_ip = (
+            request.headers.get('cf-connecting-ip') or
+            (request.headers.get('x-forwarded-for') or '').split(',')[0].strip() or
+            request.headers.get('x-real-ip') or
+            'unknown'
+        )
+        
+        # Check rate limit
+        allowed, retry_after = check_rate_limit(client_ip)
+        if not allowed:
+            return Response.new(
+                json.dumps({
+                    'error': 'Rate limit exceeded',
+                    'message': f'Too many requests. Please try again in {retry_after} seconds.',
+                    'retry_after': retry_after
+                }),
+                {
+                    'status': 429,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Retry-After': str(retry_after),
+                        'X-RateLimit-Limit': str(_READINESS_RATE_LIMIT),
+                        'X-RateLimit-Window': str(_READINESS_RATE_WINDOW)
+                    }
+                }
+            )
         
         # Get PR details from database
         db = get_db(env)
@@ -1102,10 +1260,41 @@ async def handle_pr_review_analysis(request, env, path):
     """
     GET /api/prs/{id}/review-analysis
     Analyze PR review progress and health
+    
+    Features:
+    - Application-level rate limiting (10 requests/minute per IP)
     """
     try:
         # Extract PR ID from path: /api/prs/123/review-analysis
         pr_id = path.split('/')[3]
+        
+        # Get client IP for rate limiting
+        client_ip = (
+            request.headers.get('cf-connecting-ip') or
+            (request.headers.get('x-forwarded-for') or '').split(',')[0].strip() or
+            request.headers.get('x-real-ip') or
+            'unknown'
+        )
+        
+        # Check rate limit
+        allowed, retry_after = check_rate_limit(client_ip)
+        if not allowed:
+            return Response.new(
+                json.dumps({
+                    'error': 'Rate limit exceeded',
+                    'message': f'Too many requests. Please try again in {retry_after} seconds.',
+                    'retry_after': retry_after
+                }),
+                {
+                    'status': 429,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Retry-After': str(retry_after),
+                        'X-RateLimit-Limit': str(_READINESS_RATE_LIMIT),
+                        'X-RateLimit-Window': str(_READINESS_RATE_WINDOW)
+                    }
+                }
+            )
         
         # Get PR details from database
         db = get_db(env)
@@ -1168,10 +1357,59 @@ async def handle_pr_readiness(request, env, path):
     """
     GET /api/prs/{id}/readiness
     Calculate overall PR readiness combining CI and review health
+    
+    Features:
+    - Application-level rate limiting (10 requests/minute per IP)
+    - Response caching (10 minutes TTL)
+    - Cache invalidation on PR refresh
     """
     try:
         # Extract PR ID from path: /api/prs/123/readiness
         pr_id = path.split('/')[3]
+        
+        # Get client IP for rate limiting
+        # Try multiple headers to support different proxy configurations
+        client_ip = (
+            request.headers.get('cf-connecting-ip') or  # Cloudflare
+            (request.headers.get('x-forwarded-for') or '').split(',')[0].strip() or
+            request.headers.get('x-real-ip') or
+            'unknown'
+        )
+        
+        # Check rate limit
+        allowed, retry_after = check_rate_limit(client_ip)
+        if not allowed:
+            return Response.new(
+                json.dumps({
+                    'error': 'Rate limit exceeded',
+                    'message': f'Too many requests. Please try again in {retry_after} seconds.',
+                    'retry_after': retry_after
+                }),
+                {
+                    'status': 429,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Retry-After': str(retry_after),
+                        'X-RateLimit-Limit': str(_READINESS_RATE_LIMIT),
+                        'X-RateLimit-Window': str(_READINESS_RATE_WINDOW)
+                    }
+                }
+            )
+        
+        # Check cache first
+        cached_result = get_readiness_cache(pr_id)
+        if cached_result:
+            # Return cached response with cache headers
+            return Response.new(
+                json.dumps(cached_result),
+                {
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'X-Cache': 'HIT',
+                        'Cache-Control': f'private, max-age={_READINESS_CACHE_TTL}'
+                    }
+                }
+            )
         
         # Get PR details from database
         db = get_db(env)
@@ -1204,7 +1442,8 @@ async def handle_pr_readiness(request, env, path):
         # Calculate combined readiness
         readiness = calculate_pr_readiness(pr, review_classification, review_score)
         
-        return Response.new(json.dumps({
+        # Build response data
+        response_data = {
             'pr': {
                 'id': pr['id'],
                 'title': pr['title'],
@@ -1230,8 +1469,21 @@ async def handle_pr_readiness(request, env, path):
                 'failed': pr['checks_failed'],
                 'skipped': pr['checks_skipped']
             }
-        }), 
-                          {'headers': {'Content-Type': 'application/json'}})
+        }
+        
+        # Cache the result
+        set_readiness_cache(pr_id, response_data)
+        
+        return Response.new(
+            json.dumps(response_data),
+            {
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'X-Cache': 'MISS',
+                    'Cache-Control': f'private, max-age={_READINESS_CACHE_TTL}'
+                }
+            }
+        )
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})

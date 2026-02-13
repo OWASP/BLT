@@ -48,6 +48,12 @@ BLT-Leaf/
 - ⚠️ **Stale Feedback Detection**: Identifies unaddressed comments older than 3 days
 - 🚫 **Smart Blocker Detection**: Auto-identifies issues preventing merge (failing checks, merge conflicts, etc.)
 - 💡 **Actionable Recommendations**: Context-aware suggestions for next steps
+
+### Performance & Protection
+- ⚡ **Response Caching**: 10-minute cache for readiness results with automatic cache headers
+- 🔄 **Smart Cache Invalidation**: Auto-clears cache when PRs are manually refreshed
+- 🛡️ **Rate Limiting**: Application-level protection (10 req/min per IP) for analysis endpoints
+- 📊 **GitHub API Optimization**: Intelligent caching minimizes API usage
 - ✅ **Merge Ready Indicator**: Clear verdict on whether PR is safe to merge
 
 ## Tech Stack
@@ -109,6 +115,25 @@ Deploy to Cloudflare Workers:
 ```bash
 wrangler deploy
 ```
+
+### Testing
+
+The application includes comprehensive test suites for rate limiting and caching features.
+
+**Quick Local Test** (watch wrangler console for logs):
+```bash
+node test-simple.js
+```
+
+**Full Production Test** (requires deployment):
+```bash
+npm run deploy
+node test-production.js https://your-worker.workers.dev
+```
+
+For detailed testing instructions and expected behavior, see [TESTING.md](TESTING.md).
+
+**Note**: Local development (`wrangler dev`) may not preserve worker state between requests. For accurate rate limiting and caching tests, deploy to production.
 
 ## Usage
 
