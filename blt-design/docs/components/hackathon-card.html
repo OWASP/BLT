@@ -4,14 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hackathon Card | BLT Design Guide</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
   <body>
     <div class="layout">
       <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
       <main class="content">
-        <h1>Hackathon Card</h1>
-        <p>Scaffold page ready. Hackathon card examples will be added next.</p>
+        <header class="page-head">
+          <div>
+            <h1 class="page-title">Hackathon Card</h1>
+            <p class="page-subtitle">Event card for hackathons, challenges, and contributor campaigns.</p>
+          </div>
+          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+        </header>
+
+        <section class="surface padded">
+          <div class="preview">
+            <article style="max-width:560px;border:1px solid #e2e8f0;border-radius:14px;padding:1rem;background:#fff;box-shadow:0 10px 20px -14px rgba(2,6,23,.28);">
+              <span class="badge"><i class="fa-solid fa-bolt"></i> Live Challenge</span>
+              <h3 style="margin:.7rem 0 .3rem;">BLT Security Hackathon</h3>
+              <p class="note" style="margin:0;">Find, report, and validate real issues. Earn points with clean reports and reproductions.</p>
+              <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-top:.8rem;color:#475569;font-size:.9rem;">
+                <span><i class="fa-regular fa-calendar"></i> Mar 20 - Apr 5</span>
+                <span><i class="fa-solid fa-users"></i> Open to all contributors</span>
+              </div>
+              <div style="margin-top:1rem;display:flex;gap:.6rem;">
+                <button class="demo-btn primary">Join Now</button>
+                <button class="demo-btn secondary">View Rules</button>
+              </div>
+            </article>
+          </div>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>

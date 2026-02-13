@@ -4,14 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Navbar | BLT Design Guide</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
   <body>
     <div class="layout">
       <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
       <main class="content">
-        <h1>Navbar</h1>
-        <p>Scaffold page ready. BLT navbar variants will be added next.</p>
+        <header class="page-head">
+          <div>
+            <h1 class="page-title">Navbar</h1>
+            <p class="page-subtitle">Simple, clean navbars with BLT branding and clear actions.</p>
+          </div>
+          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+        </header>
+
+        <section class="surface padded">
+          <h3>Full Logo Navbar</h3>
+          <div class="preview">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem 1rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
+              <strong><i class="fa-solid fa-bug" style="color:#dc2626"></i> BLT Core</strong>
+              <div style="display:flex;gap:.6rem;align-items:center;">
+                <a href="#" style="text-decoration:none;color:#475569">Docs</a>
+                <a href="#" style="text-decoration:none;color:#475569">Issues</a>
+                <button class="demo-btn primary">Submit Report</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-top:1rem" class="surface padded">
+          <h3>Compact Logo Navbar</h3>
+          <div class="preview">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.72rem .9rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
+              <strong><i class="fa-solid fa-shield-bug" style="color:#dc2626"></i></strong>
+              <button class="demo-btn secondary">Menu</button>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>

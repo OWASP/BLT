@@ -4,14 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Icons | BLT Design Guide</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
   <body>
     <div class="layout">
       <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
       <main class="content">
-        <h1>Icons</h1>
-        <p>Scaffold page ready. Font Awesome usage guidance will be added next.</p>
+        <header class="page-head">
+          <div>
+            <h1 class="page-title">Icons</h1>
+            <p class="page-subtitle">Use Font Awesome via CDN with consistent size and color intent.</p>
+          </div>
+          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+        </header>
+
+        <section class="surface padded">
+          <h3>CDN Include</h3>
+          <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" /&gt;</code></pre>
+        </section>
+
+        <section style="margin-top:1rem" class="surface padded">
+          <h3>Preview</h3>
+          <div class="preview" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:1.2rem;">
+            <span title="Bug"><i class="fa-solid fa-bug" style="color:#dc2626"></i></span>
+            <span title="Shield"><i class="fa-solid fa-shield"></i></span>
+            <span title="Trophy"><i class="fa-solid fa-trophy"></i></span>
+            <span title="Code"><i class="fa-solid fa-code"></i></span>
+            <span title="Github"><i class="fa-brands fa-github"></i></span>
+          </div>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>

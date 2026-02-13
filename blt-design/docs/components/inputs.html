@@ -4,14 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inputs | BLT Design Guide</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
   <body>
     <div class="layout">
       <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
       <main class="content">
-        <h1>Inputs</h1>
-        <p>Scaffold page ready. Final input spacing/shadow guidance pending maintainer input.</p>
+        <header class="page-head">
+          <div>
+            <h1 class="page-title">Inputs</h1>
+            <p class="page-subtitle">Baseline input style now live. Final spacing and shadow values will be tuned from your BLT-core references.</p>
+          </div>
+          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+        </header>
+
+        <section class="surface padded">
+          <div class="grid two">
+            <label>
+              <span class="note">Email</span>
+              <input class="demo-input" type="email" placeholder="contributor@blt.dev" />
+            </label>
+            <label>
+              <span class="note">Issue URL</span>
+              <input class="demo-input" type="url" placeholder="https://github.com/..." />
+            </label>
+          </div>
+          <div style="margin-top:1rem">
+            <label>
+              <span class="note">Description</span>
+              <textarea class="demo-input" rows="4" placeholder="Add issue details..."></textarea>
+            </label>
+          </div>
+          <p class="note" style="margin-top:1rem"><strong>TODO:</strong> Replace current defaults once you share the final BLT input padding/shadow spec.</p>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>

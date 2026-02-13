@@ -4,14 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buttons | BLT Design Guide</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../assets/css/base.css" />
   </head>
   <body>
     <div class="layout">
       <aside id="sidebar-root" data-include="../partials/sidebar.html"></aside>
       <main class="content">
-        <h1>Buttons</h1>
-        <p>Scaffold page ready. Primary and secondary button styles will be added next.</p>
+        <header class="page-head">
+          <div>
+            <h1 class="page-title">Buttons</h1>
+            <p class="page-subtitle">Primary-first action hierarchy using BLT red-600 and neutral secondary actions.</p>
+          </div>
+          <a class="gh-mini-btn" href="https://github.com/mdkaifansari04/BLT-Design/contribute" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github"></i>Contribute</a>
+        </header>
+
+        <section class="surface padded">
+          <h3>Preview</h3>
+          <div class="preview" style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            <button class="demo-btn primary">Primary Action</button>
+            <button class="demo-btn secondary">Secondary</button>
+            <button class="demo-btn secondary"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Item</button>
+          </div>
+          <pre class="code-block"><code>&lt;button class="demo-btn primary"&gt;Primary Action&lt;/button&gt;
+&lt;button class="demo-btn secondary"&gt;Secondary&lt;/button&gt;</code></pre>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>
