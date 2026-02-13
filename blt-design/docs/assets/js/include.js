@@ -89,6 +89,35 @@ function wireAssets(root) {
   }
 }
 
+function sanitizeIncludedHtml(html) {
+  // Includes are expected to be trusted local partials from this repository.
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('script').forEach((script) => script.remove());
+
+  doc.querySelectorAll('*').forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+
+      if (name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+
+      if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+
+  const fragment = document.createDocumentFragment();
+  while (doc.body.firstChild) {
+    fragment.appendChild(doc.body.firstChild);
+  }
+  return fragment;
+}
+
 async function loadIncludes() {
   const nodes = document.querySelectorAll('[data-include]');
   for (const node of nodes) {
@@ -98,7 +127,11 @@ async function loadIncludes() {
     try {
       const res = await fetch(path);
       if (!res.ok) throw new Error(`Failed include: ${path}`);
-      node.innerHTML = await res.text();
+
+      const html = await res.text();
+      const safeContent = sanitizeIncludedHtml(html);
+      node.replaceChildren(safeContent);
+
       wireDocLinks(node);
       wireAssets(node);
     } catch (err) {
