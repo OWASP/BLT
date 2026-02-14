@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typography | BLT Design Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6"><h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Typography</h1></header>
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-4xl font-bold">Heading 1</h2>
+          <p class="mt-1 text-sm text-slate-500">text-4xl font-bold</p>
+          <h3 class="mt-6 text-3xl font-bold">Heading 2</h3>
+          <p class="mt-1 text-sm text-slate-500">text-3xl font-bold</p>
+          <h4 class="mt-6 text-2xl font-bold">Heading 3</h4>
+          <p class="mt-1 text-sm text-slate-500">text-2xl font-bold</p>
+          <p class="mt-6 text-base">Body text: readable and neutral for content sections.</p>
+          <p class="mt-1 text-sm text-slate-500">text-base</p>
+        </section>
+      </main>
+    </div>
+    <script src="../assets/js/include.js" defer></script>
+  </body>
+</html>

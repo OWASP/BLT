@@ -31,12 +31,12 @@ function normalizePath(path) {
 
 function setActive(link) {
   link.classList.remove('border-transparent', 'text-slate-700');
-  link.classList.add('border-red-200', 'bg-red-50', 'font-semibold', 'text-red-700');
+  link.classList.add('border-[#E10101]/30', 'bg-[#feeae9]', 'font-semibold', 'text-[#E10101]');
 
   const icon = link.querySelector('i');
   if (icon) {
     icon.classList.remove('text-slate-500');
-    icon.classList.add('text-red-600');
+    icon.classList.add('text-[#E10101]');
   }
 }
 

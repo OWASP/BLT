@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT Sidebar | BLT Design Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">BLT Sidebar</h1>
+            <p class="mt-2 text-sm text-slate-600 sm:text-base">Official sidebar pattern with grouped navigation, active state, and icon hierarchy.</p>
+          </div>
+          <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/OWASP-BLT" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Contribute</a>
+        </header>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div class="w-full max-w-sm rounded-lg border border-gray-300 bg-white p-3 shadow-md dark:border-gray-600 dark:bg-gray-800">
+            <p class="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-[#E10101]">Organizations</p>
+            <a href="#" class="mt-1 flex items-center rounded-md bg-[#feeae9] px-2 py-2 text-sm font-semibold text-[#E10101]">
+              <span class="mr-2 inline-flex h-7 w-7 items-center justify-center rounded bg-[#fde0dd]"><i class="fas fa-building" aria-hidden="true"></i></span>Organizations
+            </a>
+            <div class="ml-7 mt-1 space-y-1">
+              <a href="#" class="flex items-center rounded-md px-2 py-2 text-sm text-gray-700 transition hover:bg-gray-100 hover:text-[#E10101] dark:text-gray-300"><i class="fas fa-plus mr-2" aria-hidden="true"></i>Register Organization</a>
+              <a href="#" class="flex items-center rounded-md px-2 py-2 text-sm text-gray-700 transition hover:bg-gray-100 hover:text-[#E10101] dark:text-gray-300"><i class="fas fa-globe mr-2" aria-hidden="true"></i>Domains</a>
+            </div>
+          </div>
+          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;a class="flex items-center rounded-md bg-[#feeae9] text-[#E10101]"&gt;
+  &lt;i class="fas fa-building" aria-hidden="true"&gt;&lt;/i&gt; Organizations
+&lt;/a&gt;
+&lt;a class="hover:text-[#E10101]"&gt;&lt;i class="fas fa-plus" aria-hidden="true"&gt;&lt;/i&gt; Register Organization&lt;/a&gt;</code></pre>
+        </section>
+      </main>
+    </div>
+    <script src="../assets/js/include.js" defer></script>
+  </body>
+</html>
