@@ -43,34 +43,36 @@ def json_error(message, status=400):
 
 def parse_pr_url(url):
     """
-    Validates that the URL is a GitHub PR and 
-    strictly belongs to OWASP-BLT.
+    Parse and validate GitHub PR URL with strict anchoring.
+    Accepts PRs from ANY GitHub organization.
+    
+    Args:
+        url: GitHub PR URL string
+        
+    Returns:
+        dict with owner, repo, pr_number
+        
+    Raises:
+        ValueError: If URL is invalid or not properly formatted
     """
-    try:
-        # Standardize the URL by removing trailing slashes
-        parts = url.strip().rstrip('/').split('/')
-        
-        # Validation: Must be a GitHub URL with enough parts
-        # Format: https://github.com/OWNER/REPO/pull/NUMBER
-        if len(parts) < 7 or 'github.com' not in parts[2]:
-            raise ValueError("Invalid GitHub URL format. Please provide a full PR link.")
-        
-        owner = parts[3]
-        repo = parts[4]
-        pr_number = parts[6]
-        
-        # STRICT OWNER CHECK
-        if owner.upper() != "OWASP-BLT":
-            raise ValueError(f"Access Denied: Owner '{owner}' is not authorized. Only 'OWASP-BLT' repositories are allowed.")
-            
-        return {
-            'owner': owner,
-            'repo': repo,
-            'pr_number': pr_number
-        }
-    except Exception as e:
-        # Pass the specific error message up
-        raise e
+    # Type validation (Issue #45 - Strict Input Validation)
+    if not isinstance(url, str):
+        raise ValueError("PR URL must be a string")
+    
+    # Strict anchored pattern (Issue #45 - Anchored URL Validation)
+    # Format: https://github.com/OWNER/REPO/pull/NUMBER
+    # Must match EXACTLY, no trailing junk allowed
+    pattern = r'^https://github\.com/([^/]+)/([^/]+)/pull/(\d+)/?$'
+    match = re.match(pattern, url.strip(), re.IGNORECASE)
+    
+    if not match:
+        raise ValueError("Invalid GitHub PR URL. Format: https://github.com/OWNER/REPO/pull/NUMBER")
+    
+    return {
+        'owner': match.group(1),
+        'repo': match.group(2),
+        'pr_number': int(match.group(3))
+    }
 
 def get_db(env):
     """Get database binding from environment"""
@@ -145,6 +147,8 @@ async def fetch_pr_data(owner, repo, pr_number, env):
     """
     Fetch PR data from GitHub API with authentication.
     
+    FIX Issue #43: Reads response body only ONCE to prevent "Body already used" error
+    
     Args:
         owner: Repository owner
         repo: Repository name
@@ -162,16 +166,22 @@ async def fetch_pr_data(owner, repo, pr_number, env):
     pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
     pr_response = await fetch_with_headers(pr_url, headers)
     
+    # FIX Issue #43: Read response body ONCE and store it
+    pr_body = await pr_response.text()
+    
     if pr_response.status >= 400:
-        error_text = await pr_response.text()
-        raise Exception(f"GitHub API Error {pr_response.status}: {error_text}")
+        raise Exception(f"GitHub API Error {pr_response.status}: {pr_body}")
 
-    pr_data = (await pr_response.json()).to_py()
+    # Parse the stored body instead of calling .json() again
+    pr_data = json.loads(pr_body)
     
     # Fetch check runs
     checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
     checks_res = await fetch_with_headers(checks_url, headers)
-    checks_data = (await checks_res.json()).to_py() if checks_res.status == 200 else {}
+    
+    # FIX Issue #43: Read checks response body once
+    checks_body = await checks_res.text()
+    checks_data = json.loads(checks_body) if checks_res.status == 200 else {}
 
     # Calculate check statistics
     passed = sum(1 for c in checks_data.get('check_runs', []) if c['conclusion'] == 'success')
@@ -209,11 +219,13 @@ async def handle_rate_limit(env):
         
         res = await fetch_with_headers("https://api.github.com/rate_limit", headers)
         
-        if res.status >= 400:
-            error_text = await res.text()
-            return json_error(f"GitHub API Error: {error_text}", status=res.status)
+        # FIX Issue #43: Read response body once
+        res_body = await res.text()
         
-        data = (await res.json()).to_py()
+        if res.status >= 400:
+            return json_error(f"GitHub API Error: {res_body}", status=res.status)
+        
+        data = json.loads(res_body)
         core = data.get('resources', {}).get('core', {})
         
         # Format response with additional info
@@ -234,16 +246,24 @@ async def handle_add_pr(request, env):
     """
     Add a new PR to track.
     
-    Validates PR URL is from OWASP-BLT organization before fetching.
+    FIX Issue #43: Single request body read
+    FIX Issue #45: Strict input validation and error handling
     """
     try:
-        data = (await request.json()).to_py()
+        # FIX Issue #43 & #45: Read request body ONCE with error handling
+        try:
+            data = (await request.json()).to_py()
+        except Exception:
+            return json_error("Malformed JSON payload", status=400)
+        
         pr_url = data.get('pr_url', '')
         
-        if not pr_url:
-            return json_error("PR URL is required", status=400)
+        # FIX Issue #45: Strict type validation
+        if not pr_url or not isinstance(pr_url, str):
+            return json_error("A valid GitHub PR URL is required", status=400)
         
-        # Parse and validate PR URL (will raise ValueError if invalid or wrong org)
+        # Parse and validate PR URL (will raise ValueError if invalid)
+        # FIX Issue #45: Uses anchored regex pattern in parse_pr_url
         try:
             parsed = parse_pr_url(pr_url)
         except ValueError as e:
@@ -304,12 +324,15 @@ async def handle_add_pr(request, env):
         })
         
     except Exception as e:
-        return json_error(f"Failed to add PR: {str(e)}", status=500)
+        # FIX Issue #45: Generic error message to client, detailed log server-side
+        print(f"Internal error in handle_add_pr: {type(e).__name__}: {str(e)}")
+        return json_error("Internal server error", status=500)
 
 async def handle_list_prs(env):
     """Get all tracked PRs"""
     try:
         db = get_db(env)
+        # Show PRs from ALL orgs, not just OWASP-BLT
         result = await db.prepare('SELECT * FROM prs ORDER BY updated_at DESC').all()
         
         return json_response({
@@ -326,7 +349,15 @@ async def on_fetch(request, env):
     # Use rstrip('/') so that /api/prs/ and /api/prs both work
     path = url.pathname.rstrip('/')
     
-    # ... (CORS Headers logic) ...
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
+
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        return Response.new('', {'headers': cors_headers})
 
     try:
         if path == '/api/rate-limit':
@@ -336,13 +367,12 @@ async def on_fetch(request, env):
             if request.method == 'POST':
                 return await handle_add_pr(request, env)
             elif request.method == 'GET':
-                db = get_db(env)
-                result = await db.prepare("SELECT * FROM prs WHERE repo_owner = 'OWASP-BLT'").all()
-                return json_response({'prs': result.results.to_py()})
+                return await handle_list_prs(env)
 
         # Final Fallback
         return Response.new('Endpoint Not Found', {'status': 404})
         
     except Exception as e:
-        # This will send the "Only OWASP-BLT allowed" message to the red bar
-        return json_error(str(e), 400)
+        # Generic error handling
+        print(f"Unhandled error: {type(e).__name__}: {str(e)}")
+        return json_error("Internal server error", status=500)
