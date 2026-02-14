@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PR Readiness Checker - BLT-Leaf</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -178,9 +180,9 @@
                     if (percentageRemaining < 20) {
                         fillEl.classList.add('bg-red-600');
                     } else if (percentageRemaining <= 50) {
-                        fillElement.classList.add('bg-amber-500');
+                        fillEl.classList.add('bg-amber-500');
                     } else {
-                        fillElement.classList.add('bg-[#E10000]');
+                        fillEl.classList.add('bg-[#E10000]');
                     }
                 }
                 
