@@ -17,14 +17,26 @@ _rate_limit_cache = {
 _RATE_LIMIT_CACHE_TTL = 300
 
 def parse_pr_url(pr_url):
-    """Parse GitHub PR URL to extract owner, repo, and PR number with strict validation"""
+    """
+    Parse GitHub PR URL to extract owner, repo, and PR number.
+    
+    Security Hardening (Issue #45):
+    - Type validation to prevent type confusion attacks
+    - Anchored regex pattern to block malformed URLs with trailing junk
+    - Raises ValueError instead of returning None for better error handling
+    """
     # FIX Issue #45: Type validation
     if not isinstance(pr_url, str):
         raise ValueError("PR URL must be a string")
     
-    # FIX Issue #45: Anchored regex pattern - must match EXACTLY, no trailing junk
-    pattern = r'^https://github\.com/([^/]+)/([^/]+)/pull/(\d+)/?$'
-    match = re.match(pattern, pr_url.strip())
+    if not pr_url:
+        raise ValueError("PR URL is required")
+    
+    pr_url = pr_url.strip().rstrip('/')
+    
+    # FIX Issue #45: Anchored regex - must match EXACTLY, no trailing junk allowed
+    pattern = r'^https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)$'
+    match = re.match(pattern, pr_url)
     
     if not match:
         # FIX Issue #45: Raise error instead of returning None
@@ -35,6 +47,19 @@ def parse_pr_url(pr_url):
         'repo': match.group(2),
         'pr_number': int(match.group(3))
     }
+
+def parse_repo_url(url):
+    """Parse GitHub Repo URL to extract owner and repo name"""
+    if not url: return None
+    url = url.strip().rstrip('/')
+    pattern = r'https?://github\.com/([^/]+)/([^/]+)(?:/.*)?$'
+    match = re.match(pattern, url)
+    if match:
+        return {
+            'owner': match.group(1),
+            'repo': match.group(2)
+        }
+    return None
 
 def get_db(env):
     """Helper to get DB binding from env, handling different env types.
@@ -132,25 +157,25 @@ async def init_database_schema(env):
         print(f"Note: Schema initialization check: {str(e)}")
         # Schema likely already exists, which is fine
 
-async def fetch_with_headers(url, headers=None):
+async def fetch_with_headers(url, headers=None, token=None):
     """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
-    if headers:
-        # Convert Python dict to JavaScript object using Object.fromEntries for correct mapping
-        options = to_js({
-            "method": "GET",
-            "headers": headers
-        }, dict_converter=Object.fromEntries)
-        return await fetch(url, options)
-    else:
-        return await fetch(url)
+    if not headers:
+        headers = {}
+        
+    if 'User-Agent' not in headers:
+        headers['User-Agent'] = 'PR-Tracker/1.0'        
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
 
-async def fetch_pr_data(owner, repo, pr_number):
-    """Fetch PR data from GitHub API
-    
-    FIX Issue #43: Reads response bodies only ONCE to prevent "Body already used" error
-    """
+    options = to_js({
+        "method": "GET",
+        "headers": headers
+    }, dict_converter=Object.fromEntries)
+    return await fetch(url, options)
+
+async def fetch_pr_data(owner, repo, pr_number, token=None):
+    """Fetch PR data from GitHub API"""
     headers = {
-        'User-Agent': 'PR-Tracker/1.0',
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
@@ -158,39 +183,39 @@ async def fetch_pr_data(owner, repo, pr_number):
     try:
         # Fetch PR details
         pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
-        pr_response = await fetch_with_headers(pr_url, headers)
+        pr_response = await fetch_with_headers(pr_url, headers, token)
         
-        # FIX Issue #43: Read the response body ONCE and store it
-        response_body = await pr_response.text()
-
-        if pr_response.status == 403 or pr_response.status == 429:
-            rl_limit = pr_response.headers.get('x-ratelimit-limit', 'unknown')
-            rl_remaining = pr_response.headers.get('x-ratelimit-remaining', 'unknown')
-            raise Exception(f"GitHub API Error {pr_response.status}: {response_body} (Limit: {rl_limit}, Remaining: {rl_remaining})")
-        elif pr_response.status == 404:
-            raise Exception("PR not found or repository is private")
-        elif pr_response.status >= 400:
-            raise Exception(f"GitHub API Error: {pr_response.status} {response_body}")
+        if pr_response.status != 200:
+            return None
             
-        pr_data = json.loads(response_body)
-        
+        pr_data = (await pr_response.json()).to_py()
+
         # Fetch PR files
-        files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
-        files_response = await fetch_with_headers(files_url, headers)
-        files_body = await files_response.text()
-        files_data = json.loads(files_body) if files_response.status == 200 else []
+        files_data = []
+        try:
+            files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
+            files_res = await fetch_with_headers(files_url, headers, token)
+            if files_res.status == 200:
+                files_data = (await files_res.json()).to_py()
+        except: pass
         
         # Fetch PR reviews
-        reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
-        reviews_response = await fetch_with_headers(reviews_url, headers)
-        reviews_body = await reviews_response.text()
-        reviews_data = json.loads(reviews_body) if reviews_response.status == 200 else []
+        reviews_data = []
+        try:
+            reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+            reviews_res = await fetch_with_headers(reviews_url, headers, token)
+            if reviews_res.status == 200:
+                reviews_data = (await reviews_res.json()).to_py()
+        except: pass
         
         # Fetch check runs
-        checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
-        checks_response = await fetch_with_headers(checks_url, headers)
-        checks_body = await checks_response.text()
-        checks_data = json.loads(checks_body) if checks_response.status == 200 else {}
+        checks_data = {}
+        try:
+            checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+            checks_res = await fetch_with_headers(checks_url, headers, token)
+            if checks_res.status == 200:
+                checks_data = (await checks_res.json()).to_py()
+        except: pass
         
         # Process check runs
         checks_passed = 0
@@ -207,31 +232,27 @@ async def fetch_pr_data(owner, repo, pr_number):
                     checks_skipped += 1
         
         # Determine review status - sort by submitted_at to get latest reviews
-        review_status = 'none'
+        review_status = 'pending'
         if reviews_data:
             # Sort reviews by submitted_at to get chronological order
             sorted_reviews = sorted(reviews_data, key=lambda x: x.get('submitted_at', ''))
-            
-            # Get latest review per user
             latest_reviews = {}
             for review in sorted_reviews:
                 user = review['user']['login']
                 latest_reviews[user] = review['state']
-            
+
             # Determine overall status: changes_requested takes precedence over approved
             if 'CHANGES_REQUESTED' in latest_reviews.values():
                 review_status = 'changes_requested'
             elif 'APPROVED' in latest_reviews.values():
                 review_status = 'approved'
-            else:
-                review_status = 'pending'
         
         return {
             'title': pr_data.get('title', ''),
             'state': pr_data.get('state', ''),
             'is_merged': 1 if pr_data.get('merged', False) else 0,
             'mergeable_state': pr_data.get('mergeable_state', ''),
-            'files_changed': len(files_data) if isinstance(files_data, list) else 0,
+            'files_changed': len(files_data), 
             'author_login': pr_data['user']['login'],
             'author_avatar': pr_data['user']['avatar_url'],
             'checks_passed': checks_passed,
@@ -246,96 +267,168 @@ async def fetch_pr_data(owner, repo, pr_number):
         # In Cloudflare Workers, console.error is preferred
         raise Exception(error_msg)
 
+async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
+    """Helper to insert or update PR in database (Deduplicates logic)"""
+    current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+    
+    stmt = db.prepare('''
+        INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
+                       is_merged, mergeable_state, files_changed, author_login, 
+                       author_avatar, checks_passed, checks_failed, checks_skipped, 
+                       review_status, last_updated_at, last_refreshed_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(pr_url) DO UPDATE SET
+            title = excluded.title,
+            state = excluded.state,
+            is_merged = excluded.is_merged,
+            mergeable_state = excluded.mergeable_state,
+            files_changed = excluded.files_changed,
+            checks_passed = excluded.checks_passed,
+            checks_failed = excluded.checks_failed,
+            checks_skipped = excluded.checks_skipped,
+            review_status = excluded.review_status,
+            last_updated_at = excluded.last_updated_at,
+            last_refreshed_at = excluded.last_refreshed_at,
+            updated_at = excluded.updated_at
+    ''').bind(
+        pr_url, owner, repo, pr_number,
+        pr_data['title'], 
+        pr_data['state'],
+        pr_data['is_merged'],
+        pr_data['mergeable_state'], 
+        pr_data['files_changed'],
+        pr_data['author_login'], 
+        pr_data['author_avatar'],
+        pr_data['checks_passed'], 
+        pr_data['checks_failed'],
+        pr_data['checks_skipped'], 
+        pr_data['review_status'],
+        pr_data['last_updated_at'], current_timestamp, current_timestamp
+    )
+    await stmt.run()
+
 async def handle_add_pr(request, env):
-    """Handle adding a new PR with strict input validation"""
+    """
+    Handle adding a new PR or importing all PRs from a repo.
+    
+    Security Hardening (Issue #45):
+    - Malformed JSON error handling
+    - Type validation for pr_url parameter
+    - Proper error handling for parse_pr_url ValueError
+    """
     try:
-        # FIX Issue #43 & #45: Prevent multiple request body reads
+        # Handle malformed JSON gracefully
         try:
-            request_body = (await request.json()).to_py()
+            data = (await request.json()).to_py()
         except Exception:
-            return Response.new(json.dumps({'error': 'Malformed JSON payload'}),
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            return Response.new(
+                json.dumps({'error': 'Malformed JSON payload'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
         
-        pr_url = request_body.get('pr_url')
+        pr_url = data.get('pr_url')
+        add_all = data.get('add_all', False)
+        # Capture token from header
+        user_token = request.headers.get('x-github-token')
         
-        # FIX Issue #45: Strict type validation
+        # Type validation for pr_url
         if not pr_url or not isinstance(pr_url, str):
-            return Response.new(json.dumps({'error': 'A valid GitHub PR URL is required'}), 
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            return Response.new(
+                json.dumps({'error': 'A valid GitHub PR URL is required'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
         
-        # Parse and validate PR URL (anchored regex in parse_pr_url function)
-        try:
-            parsed = parse_pr_url(pr_url)
-        except ValueError as e:
-            return Response.new(json.dumps({'error': str(e)}), 
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
-        
-        # Fetch PR data from GitHub
-        pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'])
-        if not pr_data:
-            return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
-                              {'status': 500, 'headers': {'Content-Type': 'application/json'}})
-        
-        # Check if PR is merged or closed - reject if so
-        if pr_data['is_merged']:
-            return Response.new(json.dumps({'error': 'Cannot add merged PRs'}), 
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
-        
-        if pr_data['state'] == 'closed':
-            return Response.new(json.dumps({'error': 'Cannot add closed PRs'}), 
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
-        
-        # Insert or update in database
         db = get_db(env)
-        stmt = db.prepare('''
-            INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
-                           is_merged, mergeable_state, files_changed, author_login, 
-                           author_avatar, checks_passed, checks_failed, checks_skipped, 
-                           review_status, last_updated_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(pr_url) DO UPDATE SET
-                title = excluded.title,
-                state = excluded.state,
-                is_merged = excluded.is_merged,
-                mergeable_state = excluded.mergeable_state,
-                files_changed = excluded.files_changed,
-                checks_passed = excluded.checks_passed,
-                checks_failed = excluded.checks_failed,
-                checks_skipped = excluded.checks_skipped,
-                review_status = excluded.review_status,
-                last_updated_at = excluded.last_updated_at,
-                updated_at = CURRENT_TIMESTAMP
-        ''').bind(
-            pr_url,
-            parsed['owner'],
-            parsed['repo'],
-            parsed['pr_number'],
-            pr_data['title'],
-            pr_data['state'],
-            pr_data['is_merged'],
-            pr_data['mergeable_state'],
-            pr_data['files_changed'],
-            pr_data['author_login'],
-            pr_data['author_avatar'],
-            pr_data['checks_passed'],
-            pr_data['checks_failed'],
-            pr_data['checks_skipped'],
-            pr_data['review_status'],
-            pr_data['last_updated_at']
-        )
         
-        await stmt.run()
-        
-        return Response.new(json.dumps({'success': True, 'data': pr_data}), 
-                          {'headers': {'Content-Type': 'application/json'}})
+        if add_all:
+            # Add all prs (in bulk)
+            parsed = parse_repo_url(pr_url)
+            if not parsed:
+                return Response.new(json.dumps({'error': 'Invalid GitHub Repository URL'}), 
+                                  {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            
+            owner, repo = parsed['owner'], parsed['repo']
+            headers = {
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+            
+            # Fetch all open PRs for the repo 
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=30"
+            list_response = await fetch_with_headers(list_url, headers, user_token)
+            
+            if list_response.status == 403:
+                 return Response.new(json.dumps({'error': 'Rate Limit Exceeded'}), 
+                                  {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+            
+            if list_response.status != 200:
+                 return Response.new(json.dumps({'error': f'Failed to fetch repo PRs: {list_response.status}'}), 
+                                  {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            
+            prs_list = (await list_response.json()).to_py()
+            added_count = 0
+            ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+            
+            for item in prs_list:
+                pr_data = {
+                    'title': item.get('title', ''), 
+                    'state': 'open', 
+                    'is_merged': 0,
+                    'mergeable_state': 'unknown', 
+                    'files_changed': 0,
+                    'author_login': item['user']['login'], 
+                    'author_avatar': item['user']['avatar_url'],
+                    'checks_passed': 0, 
+                    'checks_failed': 0, 
+                    'checks_skipped': 0,
+                    'review_status': 'pending', 
+                    'last_updated_at': item.get('updated_at', ts)
+                }
+                
+                await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
+                added_count += 1
+            
+            return Response.new(json.dumps({'success': True, 'message': f'Successfully imported {added_count} PRs'}), 
+                              {'headers': {'Content-Type': 'application/json'}})
+
+        else:
+            # Add single pr
+            # Catch ValueError from parse_pr_url
+            try:
+                parsed = parse_pr_url(pr_url)
+            except ValueError as e:
+                return Response.new(
+                    json.dumps({'error': str(e)}),
+                    {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Fetch PR data 
+            pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'], user_token)
+            
+            if not pr_data:
+                # If null returned
+                return Response.new(json.dumps({'error': 'Failed to fetch PR data (Rate Limit or Not Found)'}), 
+                                  {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+            
+            if pr_data['is_merged'] or pr_data['state'] == 'closed':
+                return Response.new(json.dumps({'error': 'Cannot add merged/closed PRs'}), 
+                                  {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            
+            await upsert_pr(db, pr_url, parsed['owner'], parsed['repo'], parsed['pr_number'], pr_data)
+            
+            return Response.new(json.dumps({'success': True, 'data': pr_data}), 
+                              {'headers': {'Content-Type': 'application/json'}})
+
     except Exception as e:
-        # FIX Issue #45: Generic error message to client
-        print(f"Internal error: {type(e).__name__}: {str(e)}")
-        return Response.new(json.dumps({'error': 'Internal server error'}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        # Generic error message to prevent information disclosure
+        print(f"Internal error in handle_add_pr: {type(e).__name__}: {str(e)}")
+        return Response.new(
+            json.dumps({'error': 'Internal server error'}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_list_prs(env, repo_filter=None):
-    """List all PRs, optionally filtered by repo. Excludes merged and closed PRs."""
+    """List all PRs, optionally filtered by repo."""
     try:
         db = get_db(env)
         if repo_filter:
@@ -371,7 +464,7 @@ async def handle_list_prs(env, repo_filter=None):
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
 async def handle_list_repos(env):
-    """List all unique repos with count of open PRs only"""
+    """List all unique repos with count of open PRs"""
     try:
         db = get_db(env)
         stmt = db.prepare('''
@@ -398,6 +491,7 @@ async def handle_refresh_pr(request, env):
     try:
         data = (await request.json()).to_py()
         pr_id = data.get('pr_id')
+        user_token = request.headers.get('x-github-token')
         
         if not pr_id:
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
@@ -415,11 +509,11 @@ async def handle_refresh_pr(request, env):
         # Convert JsProxy to Python dict to make it subscriptable
         result = result.to_py()
         
-        # Fetch fresh data from GitHub
-        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
+        # Fetch fresh data from GitHub (with Token)
+        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'], user_token)
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
-                              {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+                              {'status': 403, 'headers': {'Content-Type': 'application/json'}})
         
         # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
@@ -432,39 +526,9 @@ async def handle_refresh_pr(request, env):
                 'success': True, 
                 'removed': True,
                 'message': f'PR has been {status_msg} and removed from tracking'
-            }), 
-                              {'headers': {'Content-Type': 'application/json'}})
+            }), {'headers': {'Content-Type': 'application/json'}})
         
-        # Generate timestamps in Python for consistency and testability
-        # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
-        
-        # Update database
-        stmt = db.prepare('''
-            UPDATE prs SET
-                title = ?, state = ?, is_merged = ?, mergeable_state = ?,
-                files_changed = ?, checks_passed = ?, checks_failed = ?,
-                checks_skipped = ?, review_status = ?, last_updated_at = ?,
-                last_refreshed_at = ?,
-                updated_at = ?
-            WHERE id = ?
-        ''').bind(
-            pr_data['title'],
-            pr_data['state'],
-            pr_data['is_merged'],
-            pr_data['mergeable_state'],
-            pr_data['files_changed'],
-            pr_data['checks_passed'],
-            pr_data['checks_failed'],
-            pr_data['checks_skipped'],
-            pr_data['review_status'],
-            pr_data['last_updated_at'],
-            current_timestamp,
-            current_timestamp,
-            pr_id
-        )
-        
-        await stmt.run()
+        await upsert_pr(db, result['pr_url'], result['repo_owner'], result['repo_name'], result['pr_number'], pr_data)
         
         return Response.new(json.dumps({'success': True, 'data': pr_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
@@ -502,28 +566,15 @@ async def handle_rate_limit(env):
                 }}
             )
         
-        headers = {
-            'User-Agent': 'PR-Tracker/1.0',
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-        
         # Fetch rate limit from GitHub API
         rate_limit_url = "https://api.github.com/rate_limit"
-        response = await fetch_with_headers(rate_limit_url, headers)
+        response = await fetch_with_headers(rate_limit_url)
         
         if response.status != 200:
-            error_msg = await response.text()
-            return Response.new(
-                json.dumps({
-                    'error': f'GitHub API Error: {response.status}',
-                    'details': error_msg
-                }), 
-                {'status': response.status, 'headers': {'Content-Type': 'application/json'}}
-            )
+            return Response.new(json.dumps({'error': f'GitHub API Error: {response.status}'}), 
+                              {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
         
         rate_data = (await response.json()).to_py()
-        
         # Extract core rate limit info
         core_limit = rate_data.get('resources', {}).get('core', {})
         
@@ -540,10 +591,7 @@ async def handle_rate_limit(env):
         
         return Response.new(
             json.dumps(result), 
-            {'headers': {
-                'Content-Type': 'application/json',
-                'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
-            }}
+            {'headers': {'Content-Type': 'application/json', 'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'}}
         )
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
@@ -557,16 +605,14 @@ async def handle_status(env):
         return Response.new(json.dumps({
             'database_configured': True,
             'environment': getattr(env, 'ENVIRONMENT', 'unknown')
-        }), 
-                          {'headers': {'Content-Type': 'application/json'}})
+        }), {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
         # Database not configured
         return Response.new(json.dumps({
             'database_configured': False,
             'error': str(e),
             'environment': getattr(env, 'ENVIRONMENT', 'unknown')
-        }), 
-                          {'headers': {'Content-Type': 'application/json'}})
+        }), {'headers': {'Content-Type': 'application/json'}})
 
 async def on_fetch(request, env):
     """Main request handler"""
@@ -574,9 +620,9 @@ async def on_fetch(request, env):
     path = url.pathname
     
     # Strip /leaf prefix
-    if path == '/leaf':
+    if path == '/leaf': 
         path = '/'
-    elif path.startswith('/leaf/'):
+    elif path.startswith('/leaf/'): 
         path = path[5:]  # Remove '/leaf' (5 characters)
     
     # CORS headers
@@ -585,69 +631,44 @@ async def on_fetch(request, env):
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, x-github-token',
     }
     
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return Response.new('', {'headers': cors_headers})
     
-    # Serve HTML for root path  
+    # Serve HTML for root path 
     if path == '/' or path == '/index.html':
         # Use env.ASSETS to serve static files if available
-        if hasattr(env, 'ASSETS'):
+        if hasattr(env, 'ASSETS'): 
             return await env.ASSETS.fetch(request)
-        else:
-            # Fallback: return simple message
-            return Response.new('Please configure assets in wrangler.toml', 
-                              {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
+        # Fallback: return simple message
+        return Response.new('Please configure assets in wrangler.toml', 
+                          {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
     
     # Initialize database schema on first API request (idempotent, safe to call multiple times)
-    if path.startswith('/api/'):
-        await init_database_schema(env)
+    if path.startswith('/api/'): await init_database_schema(env)
     
     # API endpoints
-    if path == '/api/prs' and request.method == 'GET':
-        repo_filter = url.searchParams.get('repo')
-        response = await handle_list_prs(env, repo_filter)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
-    
-    if path == '/api/prs' and request.method == 'POST':
-        response = await handle_add_pr(request, env)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
-    
-    if path == '/api/repos' and request.method == 'GET':
+    if path == '/api/prs':
+        if request.method == 'GET':
+            response = await handle_list_prs(env, url.searchParams.get('repo'))
+        elif request.method == 'POST':
+            response = await handle_add_pr(request, env)
+    elif path == '/api/repos' and request.method == 'GET':
         response = await handle_list_repos(env)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
-    
-    if path == '/api/refresh' and request.method == 'POST':
+    elif path == '/api/refresh' and request.method == 'POST':
         response = await handle_refresh_pr(request, env)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
-    
-    # FIX Issue #43: Add CORS headers and return statement for /api/rate-limit
-    if path == '/api/rate-limit' and request.method == 'GET':
+    elif path == '/api/rate-limit' and request.method == 'GET':
         response = await handle_rate_limit(env)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
-    
-    if path == '/api/status' and request.method == 'GET':
+    elif path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
-        for key, value in cors_headers.items():
-            response.headers.set(key, value)
-        return response
+    else:
+        if hasattr(env, 'ASSETS'): return await env.ASSETS.fetch(request)
+        return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
     
-    # Try to serve from assets
-    if hasattr(env, 'ASSETS'):
-        return await env.ASSETS.fetch(request)
-    
-    # 404
-    return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
+    # Apply CORS to API responses
+    for key, value in cors_headers.items():
+        if response: response.headers.set(key, value)
+    return response
