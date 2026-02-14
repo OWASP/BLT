@@ -4,68 +4,30 @@ import json
 import re
 from datetime import datetime, timezone
 
-# Track if schema initialization has been attempted
+# Track if schema initialization has been attempted in this worker instance
+# This is safe in Cloudflare Workers Python as each isolate runs single-threaded
 _schema_init_attempted = False
 
-# In-memory cache for rate limit data
+# In-memory cache for rate limit data (per worker isolate)
 _rate_limit_cache = {
     'data': None,
     'timestamp': 0
 }
+# Cache TTL in seconds (5 minutes)
 _RATE_LIMIT_CACHE_TTL = 300
 
-
-# CENTRALIZED RESPONSE HELPERS
-
-
-def json_response(data, status=200):
-    """Return a successful JSON response with CORS headers"""
-    cors_headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Content-Type': 'application/json'
-    }
-    return Response.new(
-        json.dumps(data),
-        {'status': status, 'headers': cors_headers}
-    )
-
-def json_error(message, status=400):
-    """Return an error JSON response with CORS headers"""
-    return json_response({
-        'success': False,
-        'error': message,
-        'status': status
-    }, status=status)
-
-# UTILITIES
-
-def parse_pr_url(url):
-    """
-    Parse and validate GitHub PR URL with strict anchoring.
-    Accepts PRs from ANY GitHub organization.
-    
-    Args:
-        url: GitHub PR URL string
-        
-    Returns:
-        dict with owner, repo, pr_number
-        
-    Raises:
-        ValueError: If URL is invalid or not properly formatted
-    """
-    # Type validation (Issue #45 - Strict Input Validation)
-    if not isinstance(url, str):
+def parse_pr_url(pr_url):
+    """Parse GitHub PR URL to extract owner, repo, and PR number with strict validation"""
+    # FIX Issue #45: Type validation
+    if not isinstance(pr_url, str):
         raise ValueError("PR URL must be a string")
     
-    # Strict anchored pattern (Issue #45 - Anchored URL Validation)
-    # Format: https://github.com/OWNER/REPO/pull/NUMBER
-    # Must match EXACTLY, no trailing junk allowed
+    # FIX Issue #45: Anchored regex pattern - must match EXACTLY, no trailing junk
     pattern = r'^https://github\.com/([^/]+)/([^/]+)/pull/(\d+)/?$'
-    match = re.match(pattern, url.strip(), re.IGNORECASE)
+    match = re.match(pattern, pr_url.strip())
     
     if not match:
+        # FIX Issue #45: Raise error instead of returning None
         raise ValueError("Invalid GitHub PR URL. Format: https://github.com/OWNER/REPO/pull/NUMBER")
     
     return {
@@ -75,24 +37,47 @@ def parse_pr_url(url):
     }
 
 def get_db(env):
-    """Get database binding from environment"""
-    for name in ['DB', 'pr_tracker']:
+    """Helper to get DB binding from env, handling different env types.
+    
+    Raises an exception if database is not configured.
+    """
+    # Try common binding names
+    for name in ['pr_tracker', 'DB']:
+        # Try attribute access
         if hasattr(env, name):
             return getattr(env, name)
-    raise Exception("Database binding 'DB' not found. Check wrangler.toml")
+        # Try dict access
+        if hasattr(env, '__getitem__'):
+            try:
+                return env[name]
+            except (KeyError, TypeError):
+                pass
     
-# DATABASE INITIALIZATION
+    # Database not configured - raise error
+    print(f"DEBUG: env attributes: {dir(env)}")
+    raise Exception("Database binding 'pr_tracker' or 'DB' not found in env. Please configure a D1 database.")
 
 async def init_database_schema(env):
-    """Initialize database schema if not already done"""
+    """Initialize database schema if it doesn't exist.
+    
+    This function is idempotent and safe to call multiple times.
+    Uses CREATE TABLE IF NOT EXISTS to avoid errors on existing tables.
+    Includes migration logic to add missing columns to existing tables.
+    A module-level flag prevents redundant calls within the same worker instance.
+    """
     global _schema_init_attempted
+    
+    # Skip if already attempted in this worker instance
     if _schema_init_attempted:
         return
+    
     _schema_init_attempted = True
     
     try:
         db = get_db(env)
-        await db.prepare('''
+        
+        # Create the prs table (idempotent with IF NOT EXISTS)
+        create_table = db.prepare('''
             CREATE TABLE IF NOT EXISTS prs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 pr_url TEXT NOT NULL UNIQUE,
@@ -115,190 +100,211 @@ async def init_database_schema(env):
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-        ''').run()
-    except Exception as e:
-        print(f"Schema Init Note: {str(e)}")
+        ''')
+        await create_table.run()
         
-# GITHUB API HELPERS#
+        # Migration: Add last_refreshed_at column if it doesn't exist
+        # Check if column exists by querying PRAGMA table_info
+        try:
+            pragma_result = db.prepare('PRAGMA table_info(prs)')
+            columns_result = await pragma_result.all()
+            columns = columns_result.results.to_py() if hasattr(columns_result, 'results') else []
+            
+            # Check if last_refreshed_at column exists
+            column_names = [col['name'] for col in columns if isinstance(col, dict)]
+            if 'last_refreshed_at' not in column_names:
+                print("Migrating database: Adding last_refreshed_at column")
+                alter_table = db.prepare('ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT')
+                await alter_table.run()
+        except Exception as migration_error:
+            # Column may already exist or migration failed - log but continue
+            print(f"Note: Migration check for last_refreshed_at: {str(migration_error)}")
+        
+        # Create indexes (idempotent with IF NOT EXISTS)
+        index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
+        await index1.run()
+        
+        index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
+        await index2.run()
+        
+    except Exception as e:
+        # Log the error but don't crash - schema may already exist
+        print(f"Note: Schema initialization check: {str(e)}")
+        # Schema likely already exists, which is fine
 
 async def fetch_with_headers(url, headers=None):
-    """Fetch URL with optional headers"""
+    """Helper to fetch with proper header handling using pyodide.ffi.to_js"""
     if headers:
+        # Convert Python dict to JavaScript object using Object.fromEntries for correct mapping
         options = to_js({
             "method": "GET",
             "headers": headers
         }, dict_converter=Object.fromEntries)
         return await fetch(url, options)
-    return await fetch(url)
+    else:
+        return await fetch(url)
 
-def get_github_headers(env):
-    """Get GitHub API headers with optional authentication"""
-    github_token = getattr(env, "GITHUB_TOKEN", None)
+async def fetch_pr_data(owner, repo, pr_number):
+    """Fetch PR data from GitHub API
+    
+    FIX Issue #43: Reads response bodies only ONCE to prevent "Body already used" error
+    """
     headers = {
         'User-Agent': 'PR-Tracker/1.0',
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
-    if github_token:
-        headers['Authorization'] = f'Bearer {github_token}'
-    return headers
-
-async def fetch_pr_data(owner, repo, pr_number, env):
-    """
-    Fetch PR data from GitHub API with authentication.
-    
-    FIX Issue #43: Reads response body only ONCE to prevent "Body already used" error
-    
-    Args:
-        owner: Repository owner
-        repo: Repository name
-        pr_number: PR number
-        env: Worker environment
         
-    Returns:
-        dict: PR data
-        
-    Raises:
-        Exception: If GitHub API returns error
-    """
-    headers = get_github_headers(env)
-    
-    pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
-    pr_response = await fetch_with_headers(pr_url, headers)
-    
-    # FIX Issue #43: Read response body ONCE and store it
-    pr_body = await pr_response.text()
-    
-    if pr_response.status >= 400:
-        raise Exception(f"GitHub API Error {pr_response.status}: {pr_body}")
-
-    # Parse the stored body instead of calling .json() again
-    pr_data = json.loads(pr_body)
-    
-    # Fetch check runs
-    checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
-    checks_res = await fetch_with_headers(checks_url, headers)
-    
-    # FIX Issue #43: Read checks response body once
-    checks_body = await checks_res.text()
-    checks_data = json.loads(checks_body) if checks_res.status == 200 else {}
-
-    # Calculate check statistics
-    passed = sum(1 for c in checks_data.get('check_runs', []) if c['conclusion'] == 'success')
-    failed = sum(1 for c in checks_data.get('check_runs', []) if c['conclusion'] in ['failure', 'timed_out'])
-
-    return {
-        'title': pr_data.get('title', ''),
-        'state': pr_data.get('state', ''),
-        'is_merged': 1 if pr_data.get('merged', False) else 0,
-        'mergeable_state': pr_data.get('mergeable_state', ''),
-        'files_changed': pr_data.get('changed_files', 0),
-        'author_login': pr_data['user']['login'],
-        'author_avatar': pr_data['user']['avatar_url'],
-        'checks_passed': passed,
-        'checks_failed': failed,
-        'checks_skipped': 0,
-        'review_status': 'pending',
-        'last_updated_at': pr_data.get('updated_at', '')
-    }
-
-# API HANDLERS #
-
-async def handle_rate_limit(env):
-    """
-    Get GitHub API rate limit information.
-    
-    Returns authenticated rate limit if GITHUB_TOKEN is set,
-    otherwise returns unauthenticated rate limit.
-    
-    Returns:
-        Response with {limit, remaining, reset, reset_time}
-    """
     try:
-        headers = get_github_headers(env)
+        # Fetch PR details
+        pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+        pr_response = await fetch_with_headers(pr_url, headers)
         
-        res = await fetch_with_headers("https://api.github.com/rate_limit", headers)
+        # FIX Issue #43: Read the response body ONCE and store it
+        response_body = await pr_response.text()
+
+        if pr_response.status == 403 or pr_response.status == 429:
+            rl_limit = pr_response.headers.get('x-ratelimit-limit', 'unknown')
+            rl_remaining = pr_response.headers.get('x-ratelimit-remaining', 'unknown')
+            raise Exception(f"GitHub API Error {pr_response.status}: {response_body} (Limit: {rl_limit}, Remaining: {rl_remaining})")
+        elif pr_response.status == 404:
+            raise Exception("PR not found or repository is private")
+        elif pr_response.status >= 400:
+            raise Exception(f"GitHub API Error: {pr_response.status} {response_body}")
+            
+        pr_data = json.loads(response_body)
         
-        # FIX Issue #43: Read response body once
-        res_body = await res.text()
+        # Fetch PR files
+        files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
+        files_response = await fetch_with_headers(files_url, headers)
+        files_body = await files_response.text()
+        files_data = json.loads(files_body) if files_response.status == 200 else []
         
-        if res.status >= 400:
-            return json_error(f"GitHub API Error: {res_body}", status=res.status)
+        # Fetch PR reviews
+        reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+        reviews_response = await fetch_with_headers(reviews_url, headers)
+        reviews_body = await reviews_response.text()
+        reviews_data = json.loads(reviews_body) if reviews_response.status == 200 else []
         
-        data = json.loads(res_body)
-        core = data.get('resources', {}).get('core', {})
+        # Fetch check runs
+        checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+        checks_response = await fetch_with_headers(checks_url, headers)
+        checks_body = await checks_response.text()
+        checks_data = json.loads(checks_body) if checks_response.status == 200 else {}
         
-        # Format response with additional info
-        response_data = {
-            'limit': core.get('limit', 0),
-            'remaining': core.get('remaining', 0),
-            'reset': core.get('reset', 0),
-            'reset_time': datetime.fromtimestamp(core.get('reset', 0), tz=timezone.utc).isoformat() if core.get('reset') else None,
-            'authenticated': bool(getattr(env, "GITHUB_TOKEN", None))
+        # Process check runs
+        checks_passed = 0
+        checks_failed = 0
+        checks_skipped = 0
+        
+        if 'check_runs' in checks_data:
+            for check in checks_data['check_runs']:
+                if check['conclusion'] == 'success':
+                    checks_passed += 1
+                elif check['conclusion'] in ['failure', 'timed_out', 'cancelled']:
+                    checks_failed += 1
+                elif check['conclusion'] in ['skipped', 'neutral']:
+                    checks_skipped += 1
+        
+        # Determine review status - sort by submitted_at to get latest reviews
+        review_status = 'none'
+        if reviews_data:
+            # Sort reviews by submitted_at to get chronological order
+            sorted_reviews = sorted(reviews_data, key=lambda x: x.get('submitted_at', ''))
+            
+            # Get latest review per user
+            latest_reviews = {}
+            for review in sorted_reviews:
+                user = review['user']['login']
+                latest_reviews[user] = review['state']
+            
+            # Determine overall status: changes_requested takes precedence over approved
+            if 'CHANGES_REQUESTED' in latest_reviews.values():
+                review_status = 'changes_requested'
+            elif 'APPROVED' in latest_reviews.values():
+                review_status = 'approved'
+            else:
+                review_status = 'pending'
+        
+        return {
+            'title': pr_data.get('title', ''),
+            'state': pr_data.get('state', ''),
+            'is_merged': 1 if pr_data.get('merged', False) else 0,
+            'mergeable_state': pr_data.get('mergeable_state', ''),
+            'files_changed': len(files_data) if isinstance(files_data, list) else 0,
+            'author_login': pr_data['user']['login'],
+            'author_avatar': pr_data['user']['avatar_url'],
+            'checks_passed': checks_passed,
+            'checks_failed': checks_failed,
+            'checks_skipped': checks_skipped,
+            'review_status': review_status,
+            'last_updated_at': pr_data.get('updated_at', '')
         }
-        
-        return json_response(response_data)
-        
     except Exception as e:
-        return json_error(f"Failed to fetch rate limit: {str(e)}", status=500)
+        # Return more informative error for debugging
+        error_msg = f"Error fetching PR data: {str(e)}"
+        # In Cloudflare Workers, console.error is preferred
+        raise Exception(error_msg)
 
 async def handle_add_pr(request, env):
-    """
-    Add a new PR to track.
-    
-    FIX Issue #43: Single request body read
-    FIX Issue #45: Strict input validation and error handling
-    """
+    """Handle adding a new PR with strict input validation"""
     try:
-        # FIX Issue #43 & #45: Read request body ONCE with error handling
+        # FIX Issue #43 & #45: Prevent multiple request body reads
         try:
-            data = (await request.json()).to_py()
+            request_body = (await request.json()).to_py()
         except Exception:
-            return json_error("Malformed JSON payload", status=400)
+            return Response.new(json.dumps({'error': 'Malformed JSON payload'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        pr_url = data.get('pr_url', '')
+        pr_url = request_body.get('pr_url')
         
         # FIX Issue #45: Strict type validation
         if not pr_url or not isinstance(pr_url, str):
-            return json_error("A valid GitHub PR URL is required", status=400)
+            return Response.new(json.dumps({'error': 'A valid GitHub PR URL is required'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        # Parse and validate PR URL (will raise ValueError if invalid)
-        # FIX Issue #45: Uses anchored regex pattern in parse_pr_url
+        # Parse and validate PR URL (anchored regex in parse_pr_url function)
         try:
             parsed = parse_pr_url(pr_url)
         except ValueError as e:
-            return json_error(str(e), status=400)
+            return Response.new(json.dumps({'error': str(e)}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
         # Fetch PR data from GitHub
-        pr_data = await fetch_pr_data(
-            parsed['owner'], 
-            parsed['repo'], 
-            parsed['pr_number'], 
-            env
-        )
+        pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'])
+        if not pr_data:
+            return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
+                              {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
-        # Save to database
+        # Check if PR is merged or closed - reject if so
+        if pr_data['is_merged']:
+            return Response.new(json.dumps({'error': 'Cannot add merged PRs'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        if pr_data['state'] == 'closed':
+            return Response.new(json.dumps({'error': 'Cannot add closed PRs'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Insert or update in database
         db = get_db(env)
-        await db.prepare('''
-            INSERT INTO prs (
-                pr_url, repo_owner, repo_name, pr_number, 
-                title, state, is_merged, mergeable_state,
-                files_changed, author_login, author_avatar,
-                checks_passed, checks_failed, checks_skipped,
-                review_status, last_updated_at, updated_at
-            )
+        stmt = db.prepare('''
+            INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
+                           is_merged, mergeable_state, files_changed, author_login, 
+                           author_avatar, checks_passed, checks_failed, checks_skipped, 
+                           review_status, last_updated_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(pr_url) DO UPDATE SET 
-                title=excluded.title,
-                state=excluded.state,
-                is_merged=excluded.is_merged,
-                mergeable_state=excluded.mergeable_state,
-                files_changed=excluded.files_changed,
-                checks_passed=excluded.checks_passed,
-                checks_failed=excluded.checks_failed,
-                review_status=excluded.review_status,
-                last_updated_at=excluded.last_updated_at,
-                updated_at=CURRENT_TIMESTAMP
+            ON CONFLICT(pr_url) DO UPDATE SET
+                title = excluded.title,
+                state = excluded.state,
+                is_merged = excluded.is_merged,
+                mergeable_state = excluded.mergeable_state,
+                files_changed = excluded.files_changed,
+                checks_passed = excluded.checks_passed,
+                checks_failed = excluded.checks_failed,
+                checks_skipped = excluded.checks_skipped,
+                review_status = excluded.review_status,
+                last_updated_at = excluded.last_updated_at,
+                updated_at = CURRENT_TIMESTAMP
         ''').bind(
             pr_url,
             parsed['owner'],
@@ -316,63 +322,332 @@ async def handle_add_pr(request, env):
             pr_data['checks_skipped'],
             pr_data['review_status'],
             pr_data['last_updated_at']
-        ).run()
+        )
         
-        return json_response({
-            'success': True,
-            'data': pr_data
-        })
+        await stmt.run()
         
+        return Response.new(json.dumps({'success': True, 'data': pr_data}), 
+                          {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
-        # FIX Issue #45: Generic error message to client, detailed log server-side
-        print(f"Internal error in handle_add_pr: {type(e).__name__}: {str(e)}")
-        return json_error("Internal server error", status=500)
+        # FIX Issue #45: Generic error message to client
+        print(f"Internal error: {type(e).__name__}: {str(e)}")
+        return Response.new(json.dumps({'error': 'Internal server error'}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
-async def handle_list_prs(env):
-    """Get all tracked PRs"""
+async def handle_list_prs(env, repo_filter=None):
+    """List all PRs, optionally filtered by repo. Excludes merged and closed PRs."""
     try:
         db = get_db(env)
-        # Show PRs from ALL orgs, not just OWASP-BLT
-        result = await db.prepare('SELECT * FROM prs ORDER BY updated_at DESC').all()
+        if repo_filter:
+            parts = repo_filter.split('/')
+            if len(parts) == 2:
+                stmt = db.prepare('''
+                    SELECT * FROM prs 
+                    WHERE repo_owner = ? AND repo_name = ?
+                    AND is_merged = 0 AND state = 'open'
+                    ORDER BY last_updated_at DESC
+                ''').bind(parts[0], parts[1])
+            else:
+                stmt = db.prepare('''
+                    SELECT * FROM prs 
+                    WHERE is_merged = 0 AND state = 'open'
+                    ORDER BY last_updated_at DESC
+                ''')
+        else:
+            stmt = db.prepare('''
+                SELECT * FROM prs 
+                WHERE is_merged = 0 AND state = 'open'
+                ORDER BY last_updated_at DESC
+            ''')
         
-        return json_response({
-            'success': True,
-            'prs': result.results.to_py()
-        })
+        result = await stmt.all()
+        # Convert JS Array to Python list
+        prs = result.results.to_py() if hasattr(result, 'results') else []
         
+        return Response.new(json.dumps({'prs': prs}), 
+                          {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
-        return json_error(f"Failed to list PRs: {str(e)}", status=500)
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
-# MAIN ENTRY POINT
-async def on_fetch(request, env):
-    url = URL.new(request.url)
-    # Use rstrip('/') so that /api/prs/ and /api/prs both work
-    path = url.pathname.rstrip('/')
+async def handle_list_repos(env):
+    """List all unique repos with count of open PRs only"""
+    try:
+        db = get_db(env)
+        stmt = db.prepare('''
+            SELECT DISTINCT repo_owner, repo_name, 
+                   COUNT(*) as pr_count
+            FROM prs 
+            WHERE is_merged = 0 AND state = 'open'
+            GROUP BY repo_owner, repo_name
+            ORDER BY repo_owner, repo_name
+        ''')
+        
+        result = await stmt.all()
+        # Convert JS Array to Python list
+        repos = result.results.to_py() if hasattr(result, 'results') else []
+        
+        return Response.new(json.dumps({'repos': repos}), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_refresh_pr(request, env):
+    """Refresh a specific PR's data"""
+    try:
+        data = (await request.json()).to_py()
+        pr_id = data.get('pr_id')
+        
+        if not pr_id:
+            return Response.new(json.dumps({'error': 'PR ID is required'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Get PR URL from database
+        db = get_db(env)
+        stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number FROM prs WHERE id = ?').bind(pr_id)
+        result = await stmt.first()
+        
+        if not result:
+            return Response.new(json.dumps({'error': 'PR not found'}), 
+                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Convert JsProxy to Python dict to make it subscriptable
+        result = result.to_py()
+        
+        # Fetch fresh data from GitHub
+        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'])
+        if not pr_data:
+            return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
+                              {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Check if PR is now merged or closed - delete it from database
+        if pr_data['is_merged'] or pr_data['state'] == 'closed':
+            # Delete the PR from database
+            delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
+            await delete_stmt.run()
+            
+            status_msg = 'merged' if pr_data['is_merged'] else 'closed'
+            return Response.new(json.dumps({
+                'success': True, 
+                'removed': True,
+                'message': f'PR has been {status_msg} and removed from tracking'
+            }), 
+                              {'headers': {'Content-Type': 'application/json'}})
+        
+        # Generate timestamps in Python for consistency and testability
+        # Using ISO-8601 format with 'Z' suffix for cross-browser compatibility
+        current_timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        
+        # Update database
+        stmt = db.prepare('''
+            UPDATE prs SET
+                title = ?, state = ?, is_merged = ?, mergeable_state = ?,
+                files_changed = ?, checks_passed = ?, checks_failed = ?,
+                checks_skipped = ?, review_status = ?, last_updated_at = ?,
+                last_refreshed_at = ?,
+                updated_at = ?
+            WHERE id = ?
+        ''').bind(
+            pr_data['title'],
+            pr_data['state'],
+            pr_data['is_merged'],
+            pr_data['mergeable_state'],
+            pr_data['files_changed'],
+            pr_data['checks_passed'],
+            pr_data['checks_failed'],
+            pr_data['checks_skipped'],
+            pr_data['review_status'],
+            pr_data['last_updated_at'],
+            current_timestamp,
+            current_timestamp,
+            pr_id
+        )
+        
+        await stmt.run()
+        
+        return Response.new(json.dumps({'success': True, 'data': pr_data}), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_rate_limit(env):
+    """Fetch GitHub API rate limit status
     
+    Args:
+        env: Cloudflare Worker environment object containing bindings
+        
+    Returns:
+        Response object with JSON containing:
+            - limit: Maximum number of requests per hour
+            - remaining: Number of requests remaining
+            - reset: Unix timestamp when the limit resets
+            - used: Number of requests used
+    """
+    global _rate_limit_cache
+    
+    try:
+        # Check cache first to avoid excessive API calls
+        # Use JavaScript Date API for Cloudflare Workers compatibility
+        current_time = Date.now() / 1000  # Convert milliseconds to seconds
+        
+        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
+            # Return cached data
+            return Response.new(
+                json.dumps(_rate_limit_cache['data']), 
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+                }}
+            )
+        
+        headers = {
+            'User-Agent': 'PR-Tracker/1.0',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+        
+        # Fetch rate limit from GitHub API
+        rate_limit_url = "https://api.github.com/rate_limit"
+        response = await fetch_with_headers(rate_limit_url, headers)
+        
+        if response.status != 200:
+            error_msg = await response.text()
+            return Response.new(
+                json.dumps({
+                    'error': f'GitHub API Error: {response.status}',
+                    'details': error_msg
+                }), 
+                {'status': response.status, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        rate_data = (await response.json()).to_py()
+        
+        # Extract core rate limit info
+        core_limit = rate_data.get('resources', {}).get('core', {})
+        
+        result = {
+            'limit': core_limit.get('limit', 60),
+            'remaining': core_limit.get('remaining', 0),
+            'reset': core_limit.get('reset', 0),
+            'used': core_limit.get('used', 0)
+        }
+        
+        # Update cache
+        _rate_limit_cache['data'] = result
+        _rate_limit_cache['timestamp'] = current_time
+        
+        return Response.new(
+            json.dumps(result), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
+            }}
+        )
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_status(env):
+    """Check database status"""
+    try:
+        db = get_db(env)
+        # If we got here, database is configured (would have thrown exception otherwise)
+        return Response.new(json.dumps({
+            'database_configured': True,
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
+    except Exception as e:
+        # Database not configured
+        return Response.new(json.dumps({
+            'database_configured': False,
+            'error': str(e),
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+        }), 
+                          {'headers': {'Content-Type': 'application/json'}})
+
+async def on_fetch(request, env):
+    """Main request handler"""
+    url = URL.new(request.url)
+    path = url.pathname
+    
+    # Strip /leaf prefix
+    if path == '/leaf':
+        path = '/'
+    elif path.startswith('/leaf/'):
+        path = path[5:]  # Remove '/leaf' (5 characters)
+    
+    # CORS headers
+    # NOTE: '*' allows all origins for public access. In production, consider
+    # restricting to specific domains by setting this to your domain(s).
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
     }
-
+    
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return Response.new('', {'headers': cors_headers})
-
-    try:
-        if path == '/api/rate-limit':
-            return await handle_rate_limit(env)
-            
-        elif path == '/api/prs':
-            if request.method == 'POST':
-                return await handle_add_pr(request, env)
-            elif request.method == 'GET':
-                return await handle_list_prs(env)
-
-        # Final Fallback
-        return Response.new('Endpoint Not Found', {'status': 404})
-        
-    except Exception as e:
-        # Generic error handling
-        print(f"Unhandled error: {type(e).__name__}: {str(e)}")
-        return json_error("Internal server error", status=500)
+    
+    # Serve HTML for root path  
+    if path == '/' or path == '/index.html':
+        # Use env.ASSETS to serve static files if available
+        if hasattr(env, 'ASSETS'):
+            return await env.ASSETS.fetch(request)
+        else:
+            # Fallback: return simple message
+            return Response.new('Please configure assets in wrangler.toml', 
+                              {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
+    
+    # Initialize database schema on first API request (idempotent, safe to call multiple times)
+    if path.startswith('/api/'):
+        await init_database_schema(env)
+    
+    # API endpoints
+    if path == '/api/prs' and request.method == 'GET':
+        repo_filter = url.searchParams.get('repo')
+        response = await handle_list_prs(env, repo_filter)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/prs' and request.method == 'POST':
+        response = await handle_add_pr(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/repos' and request.method == 'GET':
+        response = await handle_list_repos(env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/refresh' and request.method == 'POST':
+        response = await handle_refresh_pr(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    # FIX Issue #43: Add CORS headers and return statement for /api/rate-limit
+    if path == '/api/rate-limit' and request.method == 'GET':
+        response = await handle_rate_limit(env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    if path == '/api/status' and request.method == 'GET':
+        response = await handle_status(env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
+    
+    # Try to serve from assets
+    if hasattr(env, 'ASSETS'):
+        return await env.ASSETS.fetch(request)
+    
+    # 404
+    return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
