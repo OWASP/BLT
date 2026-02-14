@@ -1582,6 +1582,8 @@ async def on_fetch(request, env):
     if path.startswith('/api/'): await init_database_schema(env)
     
     # API endpoints
+    response = None
+    
     if path == '/api/prs':
         if request.method == 'GET':
             response = await handle_list_prs(env, url.searchParams.get('repo'))
@@ -1596,31 +1598,29 @@ async def on_fetch(request, env):
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
-    
+    elif path == '/api/status' and request.method == 'GET':
+        response = await handle_status(env)
     # Timeline endpoint - GET /api/prs/{id}/timeline
-    if path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
+    elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
         response = await handle_pr_timeline(request, env, path)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
-    
     # Review analysis endpoint - GET /api/prs/{id}/review-analysis
-    if path.startswith('/api/prs/') and path.endswith('/review-analysis') and request.method == 'GET':
+    elif path.startswith('/api/prs/') and path.endswith('/review-analysis') and request.method == 'GET':
         response = await handle_pr_review_analysis(request, env, path)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
-    
     # PR readiness endpoint - GET /api/prs/{id}/readiness
-    if path.startswith('/api/prs/') and path.endswith('/readiness') and request.method == 'GET':
+    elif path.startswith('/api/prs/') and path.endswith('/readiness') and request.method == 'GET':
         response = await handle_pr_readiness(request, env, path)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
         return response
     
-    if path == '/api/status' and request.method == 'GET':
-        response = await handle_status(env)
-    else:
+    # If no API route matched, try static assets or return 404
+    if response is None:
         if hasattr(env, 'ASSETS'): return await env.ASSETS.fetch(request)
         return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
     
