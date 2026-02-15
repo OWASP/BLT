@@ -684,9 +684,11 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
         # Extract base and head branch information for comparison
+        # To check if PR is behind base, we compare head...base (reversed)
+        # This tells us how many commits base has that head doesn't have
         base_ref = pr_data['base']['sha']
         head_ref = pr_data['head']['sha']
-        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_ref}...{head_ref}"
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_ref}...{base_ref}"
         
         # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
@@ -719,7 +721,11 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process compare result
             if not isinstance(results[3], Exception) and results[3].status == 200:
                 compare_data = (await results[3].json()).to_py()
-        except: pass
+            elif not isinstance(results[3], Exception):
+                # Log error if compare API fails
+                print(f"Compare API failed with status {results[3].status}")
+        except Exception as e:
+            print(f"Error fetching PR data: {str(e)}")
         
         # Process check runs
         checks_passed = 0
@@ -739,9 +745,12 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         commits_count = pr_data.get('commits', 0)
         
         # Get behind_by count from compare data
+        # When comparing head...base, ahead_by tells us how many commits base has that head doesn't
         behind_by = 0
-        if compare_data and 'behind_by' in compare_data:
-            behind_by = compare_data.get('behind_by', 0)
+        if compare_data:
+            # Use ahead_by since we reversed the comparison (head...base)
+            behind_by = compare_data.get('ahead_by', 0)
+            print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
         # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'pending'
