@@ -196,7 +196,7 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
 - `POST /api/github/webhook` - Receive GitHub webhook events
   - Automatically updates tracked PRs based on GitHub events
   - Verifies signature using `GITHUB_WEBHOOK_SECRET`
-  - Supported events: `pull_request`, `pull_request_review`, `check_run`, `check_suite`
+  - Fully supported: `pull_request` | Acknowledged: `pull_request_review`, `check_run`, `check_suite`
   - See [Webhook Integration](#webhook-integration) section for setup details
 
 ### Analysis Endpoints (NEW)
@@ -381,9 +381,9 @@ When setting up the webhook in your GitHub repository, select the following even
 
 ### Webhook Setup
 
-1. **Configure the webhook secret** (recommended for security):
+1. **Configure the webhook secret** (required for production):
    ```bash
-   # Generate a secure random secret (optional but recommended)
+   # Generate a secure random secret
    openssl rand -hex 32
    
    # Add to your Cloudflare Worker secrets
