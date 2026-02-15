@@ -13,8 +13,14 @@ id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"  # Required: Update this before deploym
 
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
-#   wrangler secret put SLACK_TOKEN
-#   wrangler secret put SIGNING_SECRET
+#   wrangler secret put SLACK_TOKEN        # Your Slack Bot User OAuth Token
+#   wrangler secret put SIGNING_SECRET     # Your Slack App Signing Secret
+#
+# Optional secrets (for custom channel IDs):
+#   wrangler secret put JOINS_CHANNEL_ID   # Channel ID where join notifications are posted
+#   wrangler secret put CONTRIBUTE_ID      # Channel ID for contribution guidelines
+#   wrangler secret put DEPLOYS_CHANNEL    # Channel for deployment notifications
 
 [vars]
 ENVIRONMENT = "production"
+VERSION = "2.0.0"
