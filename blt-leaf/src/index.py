@@ -749,7 +749,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         behind_by = 0
         if compare_data:
             # Use ahead_by since we reversed the comparison (head...base)
-            behind_by = compare_data.get('ahead_by', 0)
+            # Use 'or 0' to handle None values from GitHub API
+            behind_by = compare_data.get('ahead_by') or 0
             print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
         # Determine review status - sort by submitted_at to get latest reviews
