@@ -35,7 +35,9 @@ oauth_config:
       - team:read
 settings:
   event_subscriptions:
-    request_url: https://your-worker.workers.dev/webhook
+    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
+    # Example: https://blt-lettuce-worker.your-subdomain.workers.dev/webhook
+    request_url: <YOUR_WORKER_URL>/webhook
     bot_events:
       - team_join
       - message.channels
@@ -45,7 +47,8 @@ settings:
       - app_mention
   interactivity:
     is_enabled: true
-    request_url: https://your-worker.workers.dev/webhook
+    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
+    request_url: <YOUR_WORKER_URL>/webhook
   org_deploy_enabled: true
   socket_mode_enabled: false
   token_rotation_enabled: false

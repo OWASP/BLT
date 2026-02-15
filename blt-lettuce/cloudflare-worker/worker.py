@@ -14,10 +14,12 @@ from datetime import datetime, timezone
 from js import Response, fetch
 
 # Channel IDs - these can be configured via environment variables
-# These are defaults for OWASP, but can be overridden
-DEFAULT_DEPLOYS_CHANNEL = "#project-blt-lettuce-deploys"
-DEFAULT_JOINS_CHANNEL_ID = "C06RMMRMGHE"
-DEFAULT_CONTRIBUTE_ID = "C04DH8HEPTR"
+# NOTE: These are OWASP-specific defaults. For other organizations:
+# - Either set these via environment variables (see wrangler.toml)
+# - Or leave as None to disable channel-specific features
+DEFAULT_DEPLOYS_CHANNEL = None  # Optional: "#project-blt-lettuce-deploys"
+DEFAULT_JOINS_CHANNEL_ID = None  # Optional: Channel for join notifications
+DEFAULT_CONTRIBUTE_ID = None  # Optional: Channel for contribution guidelines
 
 # Stats are stored in Cloudflare KV namespace
 # Stats structure: { "joins": int, "commands": int, "last_updated": str }
@@ -72,51 +74,33 @@ async def get_stats(env):
         result = await env.STATS_KV.getWithMetadata("stats", "json")
         if result and result.value is not None:
             stats = result.value
-            etag = getattr(result, "etag", None)
-            return stats, etag
+            return stats
     except Exception:
         pass
-    # If not found, return default stats and None for etag
-    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}, None
+    # If not found, return default stats
+    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}
 
 
-async def save_stats(env, stats, etag=None):
-    """Save stats to KV store with optional optimistic locking."""
+async def save_stats(env, stats):
+    """Save stats to KV store."""
     stats["last_updated"] = get_utc_now()
-    options = {}
-    if etag:
-        options["if_match"] = etag
-    await env.STATS_KV.put("stats", json.dumps(stats), **options)
+    await env.STATS_KV.put("stats", json.dumps(stats))
 
 
-async def increment_joins(env, max_retries=5):
-    """Increment the joins counter atomically with optimistic locking."""
-    for _ in range(max_retries):
-        stats, etag = await get_stats(env)
-        stats["joins"] = stats.get("joins", 0) + 1
-        try:
-            await save_stats(env, stats, etag)
-            return stats
-        except Exception:
-            # If the put failed due to version conflict, retry
-            continue
-    raise Exception("Failed to increment joins after multiple retries due to concurrent updates.")
+async def increment_joins(env):
+    """Increment the joins counter."""
+    stats = await get_stats(env)
+    stats["joins"] = stats.get("joins", 0) + 1
+    await save_stats(env, stats)
+    return stats
 
 
-async def increment_commands(env, max_retries=5):
-    """Increment the commands counter atomically with optimistic locking."""
-    for _ in range(max_retries):
-        stats, etag = await get_stats(env)
-        stats["commands"] = stats.get("commands", 0) + 1
-        try:
-            await save_stats(env, stats, etag)
-            return stats
-        except Exception:
-            # If the put failed due to version conflict, retry
-            continue
-    raise Exception(
-        "Failed to increment commands after multiple retries due to concurrent updates."
-    )
+async def increment_commands(env):
+    """Increment the commands counter."""
+    stats = await get_stats(env)
+    stats["commands"] = stats.get("commands", 0) + 1
+    await save_stats(env, stats)
+    return stats
 
 
 async def get_bot_user_id(env):
@@ -322,8 +306,24 @@ def verify_slack_signature(signing_secret, timestamp, body, signature):
     return hmac.compare_digest(expected_signature, signature)
 
 
+def is_homepage_request(url, method):
+    """Check if the request is for the homepage."""
+    if method != "GET":
+        return False
+    
+    # Check if it's a root path or index request
+    path = url.split("?")[0]  # Remove query parameters
+    path_segments = path.split("/")
+    last_segment = path_segments[-1] if path_segments else ""
+    
+    # Match root path, index, or paths without file extensions
+    return (
+        path.endswith("/") or
+        "/index" in path or
+        last_segment == "" or
+        ("." not in last_segment and last_segment not in ["webhook", "stats", "health"])
+    )
 def get_homepage_html():
-    """Return the homepage HTML content."""
     # This is a simple placeholder - in production, you'd load from a file or KV
     return """<!DOCTYPE html>
 <html lang="en">
@@ -537,7 +537,7 @@ async def on_fetch(request, env):
         )
 
     # Homepage - serve HTML
-    if method == "GET" and (url.endswith("/") or "/index" in url or url.split("/")[-1].split("?")[0] == "" or not "." in url.split("/")[-1]):
+    if is_homepage_request(url, method):
         html_content = get_homepage_html()
         return Response.new(
             html_content,
@@ -551,7 +551,7 @@ async def on_fetch(request, env):
 
     # Stats endpoint - returns current stats as JSON
     if "/stats" in url and method == "GET":
-        stats, _ = await get_stats(env)
+        stats = await get_stats(env)
         return Response.json(
             stats,
             {

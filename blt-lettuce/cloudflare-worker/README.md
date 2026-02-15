@@ -142,10 +142,17 @@ The worker serves a responsive HTML dashboard at the root URL that displays:
 - `SLACK_TOKEN` - Bot User OAuth Token (xoxb-...)
 - `SIGNING_SECRET` - Slack App Signing Secret
 
-### Optional (with defaults)
-- `JOINS_CHANNEL_ID` - Channel ID for join notifications (default: C06RMMRMGHE)
-- `CONTRIBUTE_ID` - Channel ID for contribution guidelines (default: C04DH8HEPTR)
-- `DEPLOYS_CHANNEL` - Channel name for deployment notifications (default: #project-blt-lettuce-deploys)
+### Optional Channel Configuration
+For multi-organization deployments, you can configure custom channel IDs:
+- `JOINS_CHANNEL_ID` - Channel ID where join notifications are posted (optional)
+- `CONTRIBUTE_ID` - Channel ID for contribution guidelines link (optional)
+- `DEPLOYS_CHANNEL` - Channel name for deployment notifications (optional)
+
+**Note**: If these are not set, the bot will skip channel-specific features (like posting join notifications to a monitoring channel) but all core functionality (welcome DMs, keyword detection) will still work. This makes the bot work out-of-the-box for any Slack organization without requiring organization-specific configuration.
+
+To find a channel ID in Slack:
+1. Right-click on the channel name → "Copy link"
+2. The ID is the last part: `https://workspace.slack.com/archives/C06RMMRMGHE`
 
 ## Security
 

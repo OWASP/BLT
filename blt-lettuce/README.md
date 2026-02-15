@@ -219,7 +219,7 @@ BLT-Lettuce/
 ├── manifest.yaml           # Slack App manifest for easy setup
 ├── docs/
 │   └── index.html          # GitHub Pages dashboard (reference)
-├── app.py                  # Legacy Flask application (deprecated)
+├── app.py                  # Legacy Flask application (kept for reference)
 ├── data/
 │   ├── projects.json       # OWASP project metadata cache
 │   └── repos.json          # Repository categorization
@@ -229,7 +229,7 @@ BLT-Lettuce/
 └── README.md               # This file
 ```
 
-**Note**: The primary application is now the Cloudflare Worker in `cloudflare-worker/`. The Flask app (`app.py`) is kept for reference but is no longer the main deployment method.
+**Note**: The primary application is now the Cloudflare Worker in `cloudflare-worker/`. The Flask app (`app.py`) and related plugins are kept for historical reference and may be removed in a future release. All new development should focus on the Cloudflare Worker implementation.
 
 ---
 
