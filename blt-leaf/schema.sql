@@ -22,18 +22,8 @@ CREATE TABLE IF NOT EXISTS prs (
     last_updated_at TEXT,
     last_refreshed_at TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
-CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
-
--- Table for storing PR readiness analysis results
--- This allows readiness data (blockers, warnings, recommendations) to persist
--- across page refreshes instead of only being stored in-memory
-CREATE TABLE IF NOT EXISTS pr_readiness (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    pr_id INTEGER NOT NULL UNIQUE,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    -- Readiness analysis fields (persisted to survive page refresh)
     overall_score INTEGER,
     ci_score INTEGER,
     review_score INTEGER,
@@ -47,15 +37,26 @@ CREATE TABLE IF NOT EXISTS pr_readiness (
     response_rate REAL,
     total_feedback INTEGER,
     responded_feedback INTEGER,
-    checks_passed INTEGER,
-    checks_failed INTEGER,
-    checks_skipped INTEGER,
-    computed_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pr_id) REFERENCES prs(id) ON DELETE CASCADE
+    readiness_computed_at TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_pr_readiness_pr_id ON pr_readiness(pr_id);
+CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
+CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 
 -- Migration for existing databases (if needed manually)
 -- Run this if the automatic migration in init_database_schema fails:
 -- ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT;
+-- ALTER TABLE prs ADD COLUMN overall_score INTEGER;
+-- ALTER TABLE prs ADD COLUMN ci_score INTEGER;
+-- ALTER TABLE prs ADD COLUMN review_score INTEGER;
+-- ALTER TABLE prs ADD COLUMN classification TEXT;
+-- ALTER TABLE prs ADD COLUMN merge_ready INTEGER DEFAULT 0;
+-- ALTER TABLE prs ADD COLUMN blockers TEXT;
+-- ALTER TABLE prs ADD COLUMN warnings TEXT;
+-- ALTER TABLE prs ADD COLUMN recommendations TEXT;
+-- ALTER TABLE prs ADD COLUMN review_health_classification TEXT;
+-- ALTER TABLE prs ADD COLUMN review_health_score INTEGER;
+-- ALTER TABLE prs ADD COLUMN response_rate REAL;
+-- ALTER TABLE prs ADD COLUMN total_feedback INTEGER;
+-- ALTER TABLE prs ADD COLUMN responded_feedback INTEGER;
+-- ALTER TABLE prs ADD COLUMN readiness_computed_at TEXT;
