@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Toasty - The smart, context aware AI code reviewer from OWASP BLT">
+    <meta name="keywords" content="OWASP, BLT, AI, code review, security, Django, Python">
+    <title>Toasty - AI Code Reviewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <h1>🍞 Toasty</h1>
+                </div>
+                <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#github-review">Review Code</a></li>
+                    <li><a href="#getting-started">Getting Started</a></li>
+                    <li><a href="#documentation">Documentation</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Toasty</h1>
+                    <p class="hero-subtitle">The smart, context aware AI code reviewer from OWASP BLT</p>
+                    <div class="hero-buttons">
+                        <a href="#github-review" class="btn btn-primary">Review Code</a>
+                        <a href="https://github.com/OWASP-BLT/Toasty" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+                        <a href="#getting-started" class="btn btn-secondary">Get Started</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="github-review" class="github-review">
+            <div class="container">
+                <h2 class="section-title">Review Your Code</h2>
+                <div class="review-content">
+                    <p class="review-description">
+                        Enter a GitHub repository, issue, or pull request URL to get an AI-powered code review.
+                    </p>
+                    <div class="review-form">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="github-url" 
+                                class="github-input" 
+                                placeholder="https://github.com/owner/repo or https://github.com/owner/repo/issues/123"
+                                aria-label="GitHub URL"
+                            >
+                            <button class="btn btn-review" onclick="handleReviewSubmit()">
+                                🔍 Review Code
+                            </button>
+                        </div>
+                        <div class="connect-section">
+                            <p class="connect-text">Or connect your GitHub account for seamless integration</p>
+                            <button class="btn btn-github-connect" onclick="handleGitHubConnect()">
+                                <svg class="github-icon" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                                </svg>
+                                Connect to GitHub
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI-Powered Reviews</h3>
+                        <p>Leverage advanced AI to provide intelligent, context-aware code reviews that understand your codebase.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Security Focused</h3>
+                        <p>Built by OWASP BLT with security best practices in mind. Identify vulnerabilities and security issues automatically.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast & Efficient</h3>
+                        <p>Quick analysis and feedback to keep your development workflow smooth and productive.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h3>Easy Integration</h3>
+                        <p>Seamlessly integrates with your existing workflow using Django and modern Python tools.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Context Aware</h3>
+                        <p>Understands the full context of your code changes, not just individual lines.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>Open Source</h3>
+                        <p>Fully open source and community-driven. Contribute and customize to fit your needs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="getting-started" class="getting-started">
+            <div class="container">
+                <h2 class="section-title">Getting Started</h2>
+                <div class="getting-started-content">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Clone the Repository</h3>
+                            <pre><code>git clone https://github.com/OWASP-BLT/Toasty.git
+cd Toasty</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Install Dependencies</h3>
+                            <pre><code>poetry install</code></pre>
+                            <p>Make sure you have Python 3.13+ and Poetry installed on your system.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Configure Environment</h3>
+                            <pre><code>cp .env.example .env
+# Edit .env with your configuration</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Run the Application</h3>
+                            <pre><code>python manage.py migrate
+python manage.py runserver</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="documentation" class="documentation">
+            <div class="container">
+                <h2 class="section-title">Documentation</h2>
+                <div class="doc-grid">
+                    <div class="doc-card">
+                        <h3>📚 Core Features</h3>
+                        <ul>
+                            <li>AI-powered code analysis using Google Gemini</li>
+                            <li>Vector database integration with Qdrant</li>
+                            <li>Security scanning with Bandit</li>
+                            <li>Asynchronous task processing with Celery</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>🛠️ Technology Stack</h3>
+                        <ul>
+                            <li><strong>Framework:</strong> Django 5.2+</li>
+                            <li><strong>AI/ML:</strong> LangChain, Google GenAI</li>
+                            <li><strong>Database:</strong> Qdrant (Vector DB)</li>
+                            <li><strong>Task Queue:</strong> Celery with Redis</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>🤝 Contributing</h3>
+                        <p>We welcome contributions! Check out our GitHub repository for:</p>
+                        <ul>
+                            <li>Issue tracking and bug reports</li>
+                            <li>Feature requests</li>
+                            <li>Pull request guidelines</li>
+                            <li>Development setup instructions</li>
+                        </ul>
+                    </div>
+                    <div class="doc-card">
+                        <h3>📖 Resources</h3>
+                        <ul>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer">OWASP BLT Project</a></li>
+                            <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about">
+            <div class="container">
+                <h2 class="section-title">About OWASP BLT</h2>
+                <p class="about-text">
+                    Toasty is part of the OWASP Bug Logging Tool (BLT) project, which aims to provide
+                    open-source security tools and resources for developers worldwide. The OWASP Foundation
+                    is a nonprofit organization dedicated to improving the security of software.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🍞 Toasty</h3>
+                    <p>The smart, context aware AI code reviewer from OWASP BLT</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                        <li><a href="https://owasp.org/" target="_blank" rel="noopener noreferrer">OWASP Foundation</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/Toasty/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>License</h4>
+                    <p>Open Source - Check repository for license details</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 OWASP BLT. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    navLinks.classList.toggle('active');
+                    menuToggle.classList.toggle('active');
+                });
+
+                // Close menu when clicking on a link
+                const links = document.querySelectorAll('.nav-links a');
+                links.forEach(link => {
+                    link.addEventListener('click', function() {
+                        navLinks.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    });
+                });
+            }
+        });
+
+        // Handle review submission
+        function handleReviewSubmit() {
+            const input = document.getElementById('github-url');
+            const url = input.value.trim();
+            
+            if (!url) {
+                alert('Please enter a GitHub URL\n\nExpected format:\n• Repository: https://github.com/owner/repo\n• Issue: https://github.com/owner/repo/issues/123\n• Pull Request: https://github.com/owner/repo/pull/456');
+                return;
+            }
+            
+            // Basic GitHub URL validation
+            const githubPattern = /^https?:\/\/(www\.)?github\.com\/.+/i;
+            if (!githubPattern.test(url)) {
+                alert('Invalid GitHub URL format\n\nPlease enter a valid GitHub URL starting with:\nhttps://github.com/');
+                return;
+            }
+            
+            // For now, show a message. In production, this would call the API
+            alert('Code review feature coming soon!\n\nWe will analyze your repository, issue, or pull request and provide AI-powered feedback.');
+            console.log('Review requested for:', url);
+        }
+
+        // Handle GitHub connection
+        function handleGitHubConnect() {
+            // For now, show a message. In production, this would initiate OAuth flow
+            alert('GitHub OAuth integration coming soon!\n\nConnect your account for seamless code reviews.');
+            console.log('GitHub connection requested');
+        }
+
+        // Handle Enter key in input field
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('github-url');
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleReviewSubmit();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
