@@ -10,5 +10,11 @@
     "name": "OWASP BLT API",
     "url": "https://api.owaspblt.org",
     "keyword": "blt"
+  },
+  {
+    "id": "leaf_owaspblt",
+    "name": "BLT Leaf",
+    "url": "https://leaf.owaspblt.org",
+    "keyword": "leaf"
   }
 ]
