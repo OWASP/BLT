@@ -122,7 +122,7 @@
     </div>
 
     <script>
-        let currentRepo = 'all';
+        let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
         let sortColumn = 'last_updated_at';
@@ -315,6 +315,7 @@
 
                 li.addEventListener('click', () => {
                     currentRepo = li.dataset.repo;
+                    localStorage.setItem('currentRepo', currentRepo);
                     document.querySelectorAll('.repo-item').forEach(item => {
                         setRepoItemActiveState(item, item.dataset.repo === currentRepo);
                     });
@@ -830,6 +831,7 @@
 
         document.querySelector('[data-repo="all"]').addEventListener('click', () => {
             currentRepo = 'all';
+            localStorage.setItem('currentRepo', currentRepo);
             document.querySelectorAll('.repo-item').forEach(item => {
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
