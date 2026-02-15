@@ -4,5 +4,11 @@
     "name": "OWASP BLT",
     "url": "https://owaspblt.org",
     "keyword": "OWASP"
-  }
+  },
+  {
+    "id": "api_owaspblt",
+    "name": "OWASP BLT API",
+    "url": "https://api.owaspblt.org",
+    "keyword": "OWASP"
+  },
 ]
