@@ -63,7 +63,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": "postgres",  # msut match with the docker service name
+        "HOST": "db",  # matches the docker service name
         "PORT": "5432",
     }
 }

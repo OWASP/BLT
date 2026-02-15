@@ -1,8 +1,9 @@
 services:
-  toasty-postgres:
+  db:
     image: postgres
+    container_name: toasty-postgres
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5432:5432"
     volumes:
       - postgres_db:/var/lib/postgresql/data
     environment:
@@ -10,88 +11,66 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}" ]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
 
-  toasty-qdrant:
+  qdrant:
     image: qdrant/qdrant:v1.14.1
+    container_name: toasty-qdrant
     ports:
-      - "6333:6333"
-    environment:
-      - QDRANT__SERVICE__HTTP_PORT=6333
+      - "6334:6333" # Access via localhost:6334 on your PC
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:6333/collections" ]
+      test: ["CMD", "curl", "-f", "http://localhost:6333/collections"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: on-failure
-    volumes:
-      - qdrant_db:/qdrant/storage
 
-  toasty-redis:
+  redis:
     image: redis:7
+    container_name: toasty-redis
     ports:
-      - "6379:6379"
-    restart: always
+      - "6380:6379" # Access via localhost:6380 on your PC
     healthcheck:
-      test: [ "CMD", "redis-cli", "-h", "localhost", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 3
-      start_period: 10s
 
-  toasty-celery-worker:
+  worker:
     build: .
+    container_name: toasty-worker
     command: celery -A toasty worker -l info
     depends_on:
-      toasty-redis:
+      redis:
         condition: service_started
-      toasty-postgres:
+      db:
         condition: service_healthy
-    env_file:
-      - .env
+    env_file: .env
     volumes:
       - .:/app
-    restart: on-failure
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - CELERY_BROKER_URL=redis://redis:6379/0
 
-  toasty-app:
+  app:
     build: .
+    container_name: toasty-app
     depends_on:
-      toasty-postgres:
+      db:
         condition: service_healthy
-    restart: on-failure
-    env_file:
-      - .env
-    volumes:
-      - .:/app
+      redis:
+        condition: service_started
     ports:
-      - "${PORT}:8000"
-    environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    command: ./entrypoint.sh
-
-  toasty-init:
-    profiles:
-      - init
-    build: .
-    depends_on:
-      toasty-postgres:
-        condition: service_healthy
-    env_file:
-      - .env
+      - "8000:8000"
     volumes:
       - .:/app
+    env_file: .env
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    command: ./entrypoint.sh
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+    command: python manage.py runserver 0.0.0.0:8000
 
 volumes:
   postgres_db:
