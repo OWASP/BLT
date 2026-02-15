@@ -112,10 +112,13 @@ def check_rate_limit(ip_address):
     print(f"Rate limit: EXCEEDED for {ip_address} - retry after {retry_after}s")
     return (False, retry_after)
 
-def get_readiness_cache(pr_id):
+async def get_readiness_cache(env, pr_id):
     """Get cached readiness result for a PR if still valid.
     
+    First checks in-memory cache, then falls back to database if not found.
+    
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
         
     Returns:
@@ -123,51 +126,210 @@ def get_readiness_cache(pr_id):
     """
     global _readiness_cache
     
-    if pr_id not in _readiness_cache:
-        print(f"Cache: MISS for PR {pr_id} (not found)")
-        return None
+    # Check in-memory cache first
+    if pr_id in _readiness_cache:
+        cache_entry = _readiness_cache[pr_id]
+        current_time = Date.now() / 1000
+        
+        # Check if cache is still valid
+        if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
+            age = int(current_time - cache_entry['timestamp'])
+            print(f"Cache: HIT (memory) for PR {pr_id} (age: {age}s)")
+            return cache_entry['data']
+        
+        # Cache expired - remove it
+        del _readiness_cache[pr_id]
+        print(f"Cache: MISS (memory expired) for PR {pr_id}")
+    else:
+        print(f"Cache: MISS (memory) for PR {pr_id}")
     
-    cache_entry = _readiness_cache[pr_id]
-    current_time = Date.now() / 1000
+    # Fall back to database
+    db_data = await load_readiness_from_db(env, pr_id)
+    if db_data:
+        # Store in memory cache for faster subsequent access
+        current_time = Date.now() / 1000
+        _readiness_cache[pr_id] = {
+            'data': db_data,
+            'timestamp': current_time
+        }
+        print(f"Cache: HIT (database) for PR {pr_id} - loaded into memory")
+        return db_data
     
-    # Check if cache is still valid
-    if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
-        age = int(current_time - cache_entry['timestamp'])
-        print(f"Cache: HIT for PR {pr_id} (age: {age}s)")
-        return cache_entry['data']
-    
-    # Cache expired - remove it
-    del _readiness_cache[pr_id]
-    print(f"Cache: MISS for PR {pr_id} (expired)")
+    print(f"Cache: MISS (database) for PR {pr_id}")
     return None
 
-def set_readiness_cache(pr_id, data):
-    """Cache readiness result for a PR.
+async def set_readiness_cache(env, pr_id, data):
+    """Cache readiness result for a PR in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
         data: Readiness data to cache
     """
     global _readiness_cache
     
+    # Store in memory cache
     current_time = Date.now() / 1000
     _readiness_cache[pr_id] = {
         'data': data,
         'timestamp': current_time
     }
-    print(f"Cache: Stored result for PR {pr_id}")
+    print(f"Cache: Stored result (memory) for PR {pr_id}")
+    
+    # Also save to database for persistence
+    await save_readiness_to_db(env, pr_id, data)
 
-def invalidate_readiness_cache(pr_id):
-    """Invalidate cached readiness result for a PR.
+async def invalidate_readiness_cache(env, pr_id):
+    """Invalidate cached readiness result for a PR in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
     """
     global _readiness_cache
     
+    # Remove from memory cache
     if pr_id in _readiness_cache:
         del _readiness_cache[pr_id]
-        print(f"Cache invalidated for PR {pr_id}")
+        print(f"Cache: Invalidated (memory) for PR {pr_id}")
+    
+    # Also remove from database
+    await delete_readiness_from_db(env, pr_id)
+
+async def save_readiness_to_db(env, pr_id, readiness_data):
+    """Save readiness analysis results to database.
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+        readiness_data: Dictionary containing readiness analysis results
+    """
+    try:
+        db = get_db(env)
+        
+        # Extract data from the response structure
+        readiness = readiness_data.get('readiness', {})
+        review_health = readiness_data.get('review_health', {})
+        ci_checks = readiness_data.get('ci_checks', {})
+        
+        # Convert lists to JSON strings for storage
+        blockers_json = json.dumps(readiness.get('blockers', []))
+        warnings_json = json.dumps(readiness.get('warnings', []))
+        recommendations_json = json.dumps(readiness.get('recommendations', []))
+        
+        # Use INSERT OR REPLACE to update existing records
+        stmt = db.prepare('''
+            INSERT OR REPLACE INTO pr_readiness (
+                pr_id, overall_score, ci_score, review_score, classification,
+                merge_ready, blockers, warnings, recommendations,
+                review_health_classification, review_health_score,
+                response_rate, total_feedback, responded_feedback,
+                checks_passed, checks_failed, checks_skipped, computed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ''')
+        
+        await stmt.bind(
+            pr_id,
+            readiness.get('overall_score'),
+            readiness.get('ci_score'),
+            readiness.get('review_score'),
+            readiness.get('classification'),
+            1 if readiness.get('merge_ready') else 0,
+            blockers_json,
+            warnings_json,
+            recommendations_json,
+            review_health.get('classification'),
+            review_health.get('score'),
+            review_health.get('response_rate'),
+            review_health.get('total_feedback'),
+            review_health.get('responded_feedback'),
+            ci_checks.get('passed'),
+            ci_checks.get('failed'),
+            ci_checks.get('skipped')
+        ).run()
+        
+        print(f"Database: Saved readiness data for PR {pr_id}")
+    except Exception as e:
+        print(f"Error saving readiness to database for PR {pr_id}: {str(e)}")
+        # Don't raise - we can continue with in-memory cache only
+
+async def load_readiness_from_db(env, pr_id):
+    """Load readiness analysis results from database.
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+        
+    Returns:
+        Dictionary with readiness data or None if not found
+    """
+    try:
+        db = get_db(env)
+        
+        stmt = db.prepare('SELECT * FROM pr_readiness WHERE pr_id = ?')
+        result = await stmt.bind(pr_id).first()
+        
+        if not result:
+            print(f"Database: No readiness data found for PR {pr_id}")
+            return None
+        
+        # Convert result to Python dict
+        row = result.to_py() if hasattr(result, 'to_py') else dict(result)
+        
+        # Parse JSON strings back to lists
+        blockers = json.loads(row.get('blockers', '[]'))
+        warnings = json.loads(row.get('warnings', '[]'))
+        recommendations = json.loads(row.get('recommendations', '[]'))
+        
+        # Reconstruct the response structure
+        readiness_data = {
+            'readiness': {
+                'overall_score': row.get('overall_score'),
+                'ci_score': row.get('ci_score'),
+                'review_score': row.get('review_score'),
+                'classification': row.get('classification'),
+                'merge_ready': bool(row.get('merge_ready')),
+                'blockers': blockers,
+                'warnings': warnings,
+                'recommendations': recommendations
+            },
+            'review_health': {
+                'classification': row.get('review_health_classification'),
+                'score': row.get('review_health_score'),
+                'response_rate': row.get('response_rate'),
+                'total_feedback': row.get('total_feedback'),
+                'responded_feedback': row.get('responded_feedback')
+            },
+            'ci_checks': {
+                'passed': row.get('checks_passed'),
+                'failed': row.get('checks_failed'),
+                'skipped': row.get('checks_skipped')
+            }
+        }
+        
+        print(f"Database: Loaded readiness data for PR {pr_id}")
+        return readiness_data
+    except Exception as e:
+        print(f"Error loading readiness from database for PR {pr_id}: {str(e)}")
+        return None
+
+async def delete_readiness_from_db(env, pr_id):
+    """Delete readiness analysis results from database.
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+    """
+    try:
+        db = get_db(env)
+        
+        stmt = db.prepare('DELETE FROM pr_readiness WHERE pr_id = ?')
+        await stmt.bind(pr_id).run()
+        
+        print(f"Database: Deleted readiness data for PR {pr_id}")
+    except Exception as e:
+        print(f"Error deleting readiness from database for PR {pr_id}: {str(e)}")
+        # Don't raise - cache invalidation is already done
 
 def parse_repo_url(url):
     """Parse GitHub Repo URL to extract owner and repo name"""
@@ -272,6 +434,36 @@ async def init_database_schema(env):
         
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
+        
+        # Create pr_readiness table for storing readiness analysis results
+        create_readiness_table = db.prepare('''
+            CREATE TABLE IF NOT EXISTS pr_readiness (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pr_id INTEGER NOT NULL UNIQUE,
+                overall_score INTEGER,
+                ci_score INTEGER,
+                review_score INTEGER,
+                classification TEXT,
+                merge_ready INTEGER DEFAULT 0,
+                blockers TEXT,
+                warnings TEXT,
+                recommendations TEXT,
+                review_health_classification TEXT,
+                review_health_score INTEGER,
+                response_rate REAL,
+                total_feedback INTEGER,
+                responded_feedback INTEGER,
+                checks_passed INTEGER,
+                checks_failed INTEGER,
+                checks_skipped INTEGER,
+                computed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (pr_id) REFERENCES prs(id) ON DELETE CASCADE
+            )
+        ''')
+        await create_readiness_table.run()
+        
+        index3 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_readiness_pr_id ON pr_readiness(pr_id)')
+        await index3.run()
         
     except Exception as e:
         # Log the error but don't crash - schema may already exist
@@ -1160,7 +1352,7 @@ async def handle_refresh_pr(request, env):
         # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
             # Invalidate readiness cache since PR state changed
-            invalidate_readiness_cache(pr_id)
+            await invalidate_readiness_cache(env, pr_id)
             
             # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
@@ -1177,7 +1369,7 @@ async def handle_refresh_pr(request, env):
         
         # Invalidate readiness cache after successful refresh
         # This ensures cached results don't become stale after new commits or review activity
-        invalidate_readiness_cache(pr_id)
+        await invalidate_readiness_cache(env, pr_id)
         
         return Response.new(json.dumps({'success': True, 'data': pr_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
@@ -1491,7 +1683,7 @@ async def handle_pr_readiness(request, env, path):
             )
         
         # Check cache first
-        cached_result = get_readiness_cache(pr_id)
+        cached_result = await get_readiness_cache(env, pr_id)
         if cached_result:
             # Return cached response with cache headers
             return Response.new(
@@ -1573,7 +1765,7 @@ async def handle_pr_readiness(request, env, path):
         }
         
         # Cache the result
-        set_readiness_cache(pr_id, response_data)
+        await set_readiness_cache(env, pr_id, response_data)
         
         return Response.new(
             json.dumps(response_data),
