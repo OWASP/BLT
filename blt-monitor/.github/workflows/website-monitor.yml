@@ -48,12 +48,12 @@ jobs:
             MONITORS=$(cat monitors.json)
           fi
 
-          # Initialize variables for Slack notification
-          echo "failed_monitors=" >> $GITHUB_OUTPUT
-          echo "has_failures=false" >> $GITHUB_OUTPUT
+          # Use temp file for collecting failures (avoids subshell issues)
+          failed_monitors_file=$(mktemp)
+          > "$failed_monitors_file"
 
-          # Loop through each monitor
-          echo "$MONITORS" | jq -c '.[]' | while read -r monitor; do
+          # Loop through each monitor (using process substitution instead of pipe to avoid subshell)
+          while read -r monitor; do
             id=$(echo "$monitor" | jq -r '.id')
             name=$(echo "$monitor" | jq -r '.name')
             url=$(echo "$monitor" | jq -r '.url')
@@ -88,8 +88,7 @@ jobs:
             else
               status="failure"
               # Append to failed monitors list
-              echo "has_failures=true" >> $GITHUB_OUTPUT
-              echo "failed_monitors=$name ($url) - keyword '$keyword' not found" >> $GITHUB_OUTPUT
+              echo "- $name ($url) - keyword '$keyword' not found" >> "$failed_monitors_file"
             fi
 
             echo "Result: $status (keyword: $keyword_status, duration: ${duration_s}s)"
@@ -104,11 +103,25 @@ jobs:
 
             echo "$now_iso,$duration_ms,$status,$keyword_status" >> "$status_file"
 
-            # Keep only last 30 rows (plus header)
-            head -n 1 "$status_file" > "${status_file}.tmp"
-            tail -n 30 "$status_file" >> "${status_file}.tmp"
-            mv "${status_file}.tmp" "$status_file"
-          done
+            # Keep only last 30 data rows (plus header) - properly handle header
+            if [ $(wc -l < "$status_file") -gt 31 ]; then
+              head -n 1 "$status_file" > "${status_file}.tmp"
+              tail -n +2 "$status_file" | tail -n 30 >> "${status_file}.tmp"
+              mv "${status_file}.tmp" "$status_file"
+            fi
+          done < <(echo "$MONITORS" | jq -c '.[]')
+
+          # Set output variables based on collected failures
+          if [ -s "$failed_monitors_file" ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            failed_list=$(cat "$failed_monitors_file" | tr '\n' ' ')
+            echo "failed_monitors=$failed_list" >> $GITHUB_OUTPUT
+          else
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "failed_monitors=" >> $GITHUB_OUTPUT
+          fi
+
+          rm -f "$failed_monitors_file"
 
           # Also update the legacy status.csv for backward compatibility (uses first monitor or manual input)
           if [ -n "${{ github.event.inputs.website_url }}" ]; then
@@ -137,9 +150,13 @@ jobs:
               echo "datetime,duration_ms,status,keyword_status" > status.csv
             fi
             echo "$now_iso,$duration_ms,$status,$keyword_status" >> status.csv
-            head -n 1 status.csv > status.csv.tmp
-            tail -n 30 status.csv >> status.csv.tmp
-            mv status.csv.tmp status.csv
+
+            # Keep only last 30 data rows (plus header) - properly handle header
+            if [ $(wc -l < status.csv) -gt 31 ]; then
+              head -n 1 status.csv > status.csv.tmp
+              tail -n +2 status.csv | tail -n 30 >> status.csv.tmp
+              mv status.csv.tmp status.csv
+            fi
           fi
 
       # Note: index.html generation was removed to support the new multi-monitor homepage
