@@ -560,6 +560,8 @@ async def init_database_schema(env):
                 checks_passed INTEGER DEFAULT 0,
                 checks_failed INTEGER DEFAULT 0,
                 checks_skipped INTEGER DEFAULT 0,
+                commits_count INTEGER DEFAULT 0,
+                behind_by INTEGER DEFAULT 0,
                 review_status TEXT,
                 last_updated_at TEXT,
                 last_refreshed_at TEXT,
@@ -596,6 +598,8 @@ async def init_database_schema(env):
             # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
             new_columns = [
                 ('last_refreshed_at', 'TEXT'),
+                ('commits_count', 'INTEGER DEFAULT 0'),
+                ('behind_by', 'INTEGER DEFAULT 0'),
                 ('repo_owner_avatar', 'TEXT'),
                 ('overall_score', 'INTEGER'),
                 ('ci_score', 'INTEGER'),
@@ -679,17 +683,30 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
-        # Fetch files, reviews, and checks in parallel using asyncio.gather
+        # Extract base and head branch information for comparison
+        # To check if PR is behind base, we need to compare the branches (not SHAs)
+        # Using branch refs ensures we compare the current state of the branches
+        base_branch = pr_data['base']['ref']
+        head_branch = pr_data['head']['ref']
+        # For forks, we need to use the full ref format
+        head_full_ref = f"{pr_data['head']['repo']['owner']['login']}:{head_branch}"
+        
+        # Compare head...base to see how many commits base has that head doesn't
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
+        
+        # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         files_data = []
         reviews_data = []
         checks_data = {}
+        compare_data = {}
         
         try:
             results = await asyncio.gather(
                 fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(reviews_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
+                fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
             
@@ -704,7 +721,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process checks result
             if not isinstance(results[2], Exception) and results[2].status == 200:
                 checks_data = (await results[2].json()).to_py()
-        except: pass
+            
+            # Process compare result
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                compare_data = (await results[3].json()).to_py()
+                print(f"Compare API success for PR #{pr_number}")
+            elif not isinstance(results[3], Exception):
+                # Log error if compare API fails
+                print(f"Compare API failed for PR #{pr_number} with status {results[3].status}, URL: {compare_url}")
+            else:
+                print(f"Compare API exception for PR #{pr_number}: {results[3]}")
+        except Exception as e:
+            print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
         # Process check runs
         checks_passed = 0
@@ -719,6 +747,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                     checks_failed += 1
                 elif check['conclusion'] in ['skipped', 'neutral']:
                     checks_skipped += 1
+        
+        # Get commits count from pr_data (GitHub provides this)
+        commits_count = pr_data.get('commits', 0)
+        
+        # Get behind_by count from compare data
+        # When comparing head...base, ahead_by tells us how many commits base has that head doesn't
+        behind_by = 0
+        if compare_data:
+            # Use ahead_by since we reversed the comparison (head...base)
+            # Use 'or 0' to handle None values from GitHub API
+            behind_by = compare_data.get('ahead_by') or 0
+            print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
         # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'pending'
@@ -748,6 +788,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
             'checks_skipped': checks_skipped,
+            'commits_count': commits_count,
+            'behind_by': behind_by,
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', '')
         }
@@ -1298,8 +1340,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
-                       review_status, last_updated_at, last_refreshed_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       commits_count, behind_by, review_status, last_updated_at, 
+                       last_refreshed_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1310,6 +1353,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             checks_passed = excluded.checks_passed,
             checks_failed = excluded.checks_failed,
             checks_skipped = excluded.checks_skipped,
+            commits_count = excluded.commits_count,
+            behind_by = excluded.behind_by,
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
@@ -1326,7 +1371,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['repo_owner_avatar'],
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
-        pr_data['checks_skipped'], 
+        pr_data['checks_skipped'],
+        pr_data.get('commits_count', 0),
+        pr_data.get('behind_by', 0),
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp
     )
