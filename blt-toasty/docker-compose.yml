@@ -1,5 +1,5 @@
 services:
-  postgres:
+  toasty-postgres:
     image: postgres
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -14,12 +14,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    container_name: postgres-db
     restart: always
 
-  qdrant:
+  toasty-qdrant:
     image: qdrant/qdrant:v1.14.1
-    container_name: qdrant
     ports:
       - "6333:6333"
     environment:
@@ -33,9 +31,8 @@ services:
     volumes:
       - qdrant_db:/qdrant/storage
 
-  redis:
+  toasty-redis:
     image: redis:7
-    container_name: redis
     ports:
       - "6379:6379"
     restart: always
@@ -46,14 +43,13 @@ services:
       retries: 3
       start_period: 10s
 
-  celery_worker:
+  toasty-celery-worker:
     build: .
-    container_name: celery-worker
     command: celery -A toasty worker -l info
     depends_on:
-      redis:
+      toasty-redis:
         condition: service_started
-      postgres:
+      toasty-postgres:
         condition: service_healthy
     env_file:
       - .env
@@ -61,15 +57,14 @@ services:
       - .:/app
     restart: on-failure
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
-  app:
+  toasty-app:
     build: .
     depends_on:
-      postgres:
+      toasty-postgres:
         condition: service_healthy
-    container_name: app
     restart: on-failure
     env_file:
       - .env
@@ -78,23 +73,23 @@ services:
     ports:
       - "${PORT}:8000"
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: ./entrypoint.sh
 
-  init:
+  toasty-init:
     profiles:
       - init
     build: .
     depends_on:
-      postgres:
+      toasty-postgres:
         condition: service_healthy
     env_file:
       - .env
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@toasty-postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: ./entrypoint.sh
 
