@@ -34,6 +34,15 @@ _readiness_cache = {
 # Cache TTL in seconds (10 minutes)
 _READINESS_CACHE_TTL = 600
 
+# In-memory cache for timeline data
+# Reduces redundant API calls across timeline/review-analysis/readiness endpoints
+_timeline_cache = {
+    # Structure: {cache_key: {'data': dict, 'timestamp': float}}
+    # cache_key format: "{owner}/{repo}/{pr_number}"
+}
+# Cache TTL in seconds (30 minutes - timeline data changes less frequently)
+_TIMELINE_CACHE_TTL = 1800
+
 def parse_pr_url(pr_url):
     """
     Parse GitHub PR URL to extract owner, repo, and PR number.
@@ -406,6 +415,79 @@ async def delete_readiness_from_db(env, pr_id):
         print(f"Error clearing readiness from database for PR {pr_id}: {str(e)}")
         # Don't raise - cache invalidation is already done
 
+def get_timeline_cache_key(owner, repo, pr_number):
+    """Generate cache key for timeline data"""
+    return f"{owner}/{repo}/{pr_number}"
+
+def get_timeline_cache(owner, repo, pr_number):
+    """Get cached timeline data if still valid.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+        
+    Returns:
+        Cached timeline data dict if valid, None if expired or not found
+    """
+    global _timeline_cache
+    
+    cache_key = get_timeline_cache_key(owner, repo, pr_number)
+    
+    if cache_key in _timeline_cache:
+        cache_entry = _timeline_cache[cache_key]
+        current_time = Date.now() / 1000
+        
+        # Check if cache is still valid
+        if (current_time - cache_entry['timestamp']) < _TIMELINE_CACHE_TTL:
+            age = int(current_time - cache_entry['timestamp'])
+            print(f"Timeline Cache: HIT for {cache_key} (age: {age}s)")
+            return cache_entry['data']
+        
+        # Cache expired - remove it
+        del _timeline_cache[cache_key]
+        print(f"Timeline Cache: MISS (expired) for {cache_key}")
+    else:
+        print(f"Timeline Cache: MISS for {cache_key}")
+    
+    return None
+
+def set_timeline_cache(owner, repo, pr_number, data):
+    """Cache timeline data.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+        data: Timeline data to cache
+    """
+    global _timeline_cache
+    
+    cache_key = get_timeline_cache_key(owner, repo, pr_number)
+    current_time = Date.now() / 1000
+    
+    _timeline_cache[cache_key] = {
+        'data': data,
+        'timestamp': current_time
+    }
+    print(f"Timeline Cache: Stored for {cache_key}")
+
+def invalidate_timeline_cache(owner, repo, pr_number):
+    """Invalidate cached timeline data for a PR.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+    """
+    global _timeline_cache
+    
+    cache_key = get_timeline_cache_key(owner, repo, pr_number)
+    
+    if cache_key in _timeline_cache:
+        del _timeline_cache[cache_key]
+        print(f"Timeline Cache: Invalidated for {cache_key}")
+
 def parse_repo_url(url):
     """Parse GitHub Repo URL to extract owner and repo name"""
     if not url: return None
@@ -721,6 +803,8 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
     """
     Fetch all timeline data for a PR: commits, reviews, review comments, issue comments
     
+    Uses in-memory caching (30 min TTL) to avoid redundant API calls across endpoints.
+    
     Returns dict with raw data from GitHub API:
     {
         'commits': [...],
@@ -729,6 +813,11 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
         'issue_comments': [...]
     }
     """
+    # Check cache first
+    cached_data = get_timeline_cache(owner, repo, pr_number)
+    if cached_data:
+        return cached_data
+    
     base_url = 'https://api.github.com'
     
     # Prepare headers
@@ -757,12 +846,17 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
             fetch_paginated_data(issue_comments_url, headers)
         )
         
-        return {
+        timeline_data = {
             'commits': commits_data,
             'reviews': reviews_data,
             'review_comments': review_comments_data,
             'issue_comments': issue_comments_data
         }
+        
+        # Cache the result for future requests
+        set_timeline_cache(owner, repo, pr_number, timeline_data)
+        
+        return timeline_data
     except Exception as e:
         raise Exception(f"Error fetching timeline data: {str(e)}")
 
@@ -1449,8 +1543,9 @@ async def handle_refresh_pr(request, env):
         
         # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
-            # Invalidate readiness cache since PR state changed
+            # Invalidate caches since PR state changed
             await invalidate_readiness_cache(env, pr_id)
+            invalidate_timeline_cache(result['repo_owner'], result['repo_name'], result['pr_number'])
             
             # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
@@ -1465,9 +1560,10 @@ async def handle_refresh_pr(request, env):
         
         await upsert_pr(db, result['pr_url'], result['repo_owner'], result['repo_name'], result['pr_number'], pr_data)
         
-        # Invalidate readiness cache after successful refresh
+        # Invalidate caches after successful refresh
         # This ensures cached results don't become stale after new commits or review activity
         await invalidate_readiness_cache(env, pr_id)
+        invalidate_timeline_cache(result['repo_owner'], result['repo_name'], result['pr_number'])
         
         return Response.new(json.dumps({'success': True, 'data': pr_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
