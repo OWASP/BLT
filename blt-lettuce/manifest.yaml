@@ -1,12 +1,15 @@
 display_information:
-  name: Testing lettuce
+  name: BLT-Lettuce
+  description: OWASP Slack bot that welcomes new members and helps them discover security projects
+  background_color: "#FF0000"
+  long_description: An intelligent OWASP Slack bot that welcomes new community members, helps them discover security projects through interactive conversations, and connects the global cybersecurity community. Powered by Cloudflare Workers for global, low-latency performance.
 features:
   bot_user:
-    display_name: Testing lettuce
-    always_online: false
+    display_name: BLT-Lettuce
+    always_online: true
   slash_commands:
-    - command: /demo
-      description: trying
+    - command: /lettuce
+      description: Start discovering OWASP projects
       should_escape: false
     - command: /project
       description: Checkout all the projects available
@@ -17,15 +20,35 @@ features:
 oauth_config:
   scopes:
     bot:
+      - channels:history
       - channels:read
+      - chat:write
       - commands
+      - groups:history
       - groups:read
+      - im:history
       - im:read
+      - im:write
+      - mpim:history
       - mpim:read
       - users:read
+      - team:read
 settings:
+  event_subscriptions:
+    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
+    # Example: https://blt-lettuce-worker.your-subdomain.workers.dev/webhook
+    request_url: <YOUR_WORKER_URL>/webhook
+    bot_events:
+      - team_join
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+      - app_mention
   interactivity:
     is_enabled: true
-  org_deploy_enabled: false
+    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
+    request_url: <YOUR_WORKER_URL>/webhook
+  org_deploy_enabled: true
   socket_mode_enabled: false
   token_rotation_enabled: false
