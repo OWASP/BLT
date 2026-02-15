@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWASP BLT Extension - Chrome Extension for Bug Logging & Job Tracking</title>
+    <meta name="description" content="OWASP BLT Extension: Capture screenshots, track job applications, scan for trademarks, and enhance GitHub pull requests. Get points and manage your bug hunting workflow." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            colors: {
+              'blt-red': '#E10101',
+              'blt-red-hover': '#C00000',
+            }
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+      .gradient-hero {
+        background: linear-gradient(135deg, #ffffff 0%, #fee2e2 50%, #ffffff 100%);
+      }
+      .feature-card {
+        transition: all 0.3s ease;
+      }
+      .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(225, 1, 1, 0.15);
+      }
+      .install-btn {
+        background: #E10101;
+        transition: all 0.3s ease;
+      }
+      .install-btn:hover {
+        background: #C00000;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(225, 1, 1, 0.4);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-white font-sans text-slate-900 antialiased">
+    <!-- Navigation -->
+    <nav class="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="img/icon128.png" alt="BLT Logo" class="h-10 w-10" />
+            <div>
+              <h1 class="text-lg font-bold tracking-tight">OWASP BLT Extension</h1>
+              <p class="text-xs text-slate-600">Bug Logging & Job Tracking</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener" class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-blt-red transition">
+              <i class="fa-brands fa-github"></i>
+              <span>GitHub</span>
+            </a>
+            <a href="https://www.owasp.org/BLT/" target="_blank" rel="noreferrer noopener" class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-blt-red transition">
+              <i class="fa-solid fa-globe"></i>
+              <span>OWASP BLT</span>
+            </a>
+            <a href="#install" class="install-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg">
+              <i class="fa-solid fa-download"></i>
+              <span>Install Now</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-hero py-16 sm:py-20 lg:py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center text-center">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-blt-red/30 bg-red-50 px-4 py-1.5 text-sm font-semibold text-blt-red">
+            <i class="fa-solid fa-bolt"></i>
+            Chrome Extension for Bug Hunters & Job Seekers
+          </span>
+          <h1 class="mt-6 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            Supercharge Your Bug Hunting & <span class="text-blt-red">Job Application</span> Workflow
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg text-slate-600 sm:text-xl">
+            OWASP BLT Extension brings powerful screenshot capture, job application tracking, trademark scanning, and GitHub integration right to your browser.
+          </p>
+          <div class="mt-10 flex flex-col sm:flex-row gap-4">
+            <a href="#install" class="install-btn inline-flex items-center justify-center gap-3 rounded-lg px-8 py-4 text-lg font-semibold text-white shadow-xl">
+              <i class="fa-brands fa-chrome text-2xl"></i>
+              <span>Install Extension</span>
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-Extension/releases" target="_blank" rel="noreferrer noopener" class="inline-flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-8 py-4 text-lg font-semibold text-slate-700 shadow-lg transition hover:border-blt-red hover:text-blt-red">
+              <i class="fa-solid fa-code-branch"></i>
+              <span>View Releases</span>
+            </a>
+          </div>
+          <div class="mt-8 flex items-center gap-6 text-sm text-slate-600">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-star text-yellow-500"></i>
+              <span>Open Source</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-blt-red"></i>
+              <span>OWASP Project</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-users text-blue-500"></i>
+              <span>Community Driven</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="bg-gradient-to-b from-slate-50 to-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Powerful Features</h2>
+          <p class="mt-4 text-lg text-slate-600">Everything you need for efficient bug hunting and job tracking</p>
+        </div>
+
+        <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Screenshot Capture -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+              <i class="fa-solid fa-camera text-2xl text-blt-red"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">Screenshot Capture</h3>
+            <p class="mt-2 text-slate-600">
+              Capture full-page or selected area screenshots instantly. Automatically upload to BLT website for bug reporting with annotations and sharing.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Full Page</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Area Select</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Auto Upload</span>
+            </div>
+          </div>
+
+          <!-- Job Tracking -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+              <i class="fa-solid fa-briefcase text-2xl text-blue-600"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">Job Application Tracking</h3>
+            <p class="mt-2 text-slate-600">
+              Track your job applications with a powerful dashboard. Monitor LinkedIn and Wellfound job postings automatically as you browse.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Dashboard</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">LinkedIn</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Wellfound</span>
+            </div>
+          </div>
+
+          <!-- Trademark Scanner -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-100">
+              <i class="fa-solid fa-shield-halved text-2xl text-yellow-600"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">Trademark Scanner</h3>
+            <p class="mt-2 text-slate-600">
+              Automatically scan webpages for trademarked keywords. Highlights protected terms to help avoid legal issues in your content.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Auto Scan</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Highlights</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Real-time</span>
+            </div>
+          </div>
+
+          <!-- GitHub Integration -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+              <i class="fa-brands fa-github text-2xl text-purple-600"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">GitHub PR Enhancement</h3>
+            <p class="mt-2 text-slate-600">
+              Enhanced GitHub pull request experience with additional features and integrations for better code review workflow.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">PR Tools</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Integration</span>
+            </div>
+          </div>
+
+          <!-- Points System -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+              <i class="fa-solid fa-trophy text-2xl text-green-600"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">Earn Points</h3>
+            <p class="mt-2 text-slate-600">
+              Get rewarded for your bug hunting efforts. Earn points through the BLT platform and track your contributions.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Rewards</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Leaderboard</span>
+            </div>
+          </div>
+
+          <!-- Multi-Browser Support -->
+          <div class="feature-card rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+              <i class="fa-solid fa-globe text-2xl text-orange-600"></i>
+            </div>
+            <h3 class="mt-4 text-xl font-semibold">Multi-Browser Support</h3>
+            <p class="mt-2 text-slate-600">
+              Works seamlessly with Chrome, Chromium, Brave, and Microsoft Edge browsers. One extension, multiple platforms.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Chrome</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Edge</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">Brave</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="install" class="bg-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Easy Installation</h2>
+          <p class="mt-4 text-lg text-slate-600">Get started in minutes with these simple installation methods</p>
+        </div>
+
+        <div class="mt-12 grid gap-8 lg:grid-cols-2">
+          <!-- Quick Install -->
+          <div class="rounded-xl border-2 border-blt-red bg-gradient-to-br from-red-50 to-white p-8 shadow-lg">
+            <div class="flex items-start gap-4">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blt-red text-white">
+                <i class="fa-solid fa-bolt"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold">Quick Install (Recommended)</h3>
+                <p class="mt-2 text-slate-600">Run this one-line command in your terminal:</p>
+                <div class="mt-4 rounded-lg bg-slate-900 p-4">
+                  <code class="text-sm text-green-400">bash &lt;(curl -sL https://raw.githubusercontent.com/OWASP-BLT/BLT-Extension/main/install.sh)</code>
+                </div>
+                <div class="mt-4 flex items-start gap-2 text-sm text-slate-600">
+                  <i class="fa-solid fa-circle-check text-green-600 mt-0.5"></i>
+                  <span>Automatic browser detection and profile selection</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual Install -->
+          <div class="rounded-xl border border-slate-200 bg-white p-8 shadow-lg">
+            <div class="flex items-start gap-4">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                <i class="fa-solid fa-hand-pointer"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold">Manual Installation</h3>
+                <ol class="mt-4 space-y-3 text-slate-600">
+                  <li class="flex gap-3">
+                    <span class="font-semibold text-blt-red">1.</span>
+                    <span>Download from <a href="https://github.com/OWASP-BLT/BLT-Extension/releases" class="font-medium text-blt-red hover:underline">Releases</a> page</span>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="font-semibold text-blt-red">2.</span>
+                    <span>Unzip the downloaded file</span>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="font-semibold text-blt-red">3.</span>
+                    <span>Open <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm">chrome://extensions/</code></span>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="font-semibold text-blt-red">4.</span>
+                    <span>Enable "Developer mode"</span>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="font-semibold text-blt-red">5.</span>
+                    <span>Click "Load unpacked" and select the folder</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <div class="mt-12 text-center">
+          <a href="https://github.com/OWASP-BLT/BLT-Extension/releases/latest" target="_blank" rel="noreferrer noopener" class="install-btn inline-flex items-center justify-center gap-3 rounded-lg px-8 py-4 text-lg font-semibold text-white shadow-xl">
+            <i class="fa-solid fa-download text-xl"></i>
+            <span>Download Latest Release</span>
+          </a>
+          <p class="mt-4 text-sm text-slate-600">
+            Current version: <span class="font-semibold">v1.5</span> | 
+            <a href="https://github.com/OWASP-BLT/BLT-Extension/releases" class="text-blt-red hover:underline">View all releases</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="bg-gradient-to-b from-slate-50 to-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">How It Works</h2>
+          <p class="mt-4 text-lg text-slate-600">Simple workflow for maximum productivity</p>
+        </div>
+
+        <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blt-red text-white">
+              <span class="text-2xl font-bold">1</span>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold">Install Extension</h3>
+            <p class="mt-2 text-sm text-slate-600">Download and install the extension in your browser</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blt-red text-white">
+              <span class="text-2xl font-bold">2</span>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold">Navigate Website</h3>
+            <p class="mt-2 text-sm text-slate-600">Browse any website or job board you want to capture</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blt-red text-white">
+              <span class="text-2xl font-bold">3</span>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold">Activate Extension</h3>
+            <p class="mt-2 text-sm text-slate-600">Click the extension icon and choose your action</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blt-red text-white">
+              <span class="text-2xl font-bold">4</span>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold">Get Results</h3>
+            <p class="mt-2 text-sm text-slate-600">Screenshots uploaded, jobs tracked, trademarks highlighted</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community & Support -->
+    <section class="bg-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-8 shadow-lg sm:p-12">
+          <div class="grid gap-8 lg:grid-cols-2">
+            <div>
+              <h2 class="text-3xl font-bold tracking-tight">Open Source & Community Driven</h2>
+              <p class="mt-4 text-lg text-slate-600">
+                BLT Extension is part of the OWASP BLT project, a community-driven initiative to make bug hunting and vulnerability disclosure more accessible.
+              </p>
+              <div class="mt-8 space-y-4">
+                <div class="flex items-start gap-3">
+                  <i class="fa-solid fa-code-branch text-blt-red mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Contribute on GitHub</h4>
+                    <p class="text-sm text-slate-600">Fork, improve, and submit pull requests</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fa-solid fa-bug text-blt-red mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Report Issues</h4>
+                    <p class="text-sm text-slate-600">Help us improve by reporting bugs</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fa-solid fa-comments text-blt-red mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Join the Community</h4>
+                    <p class="text-sm text-slate-600">Connect with other bug hunters</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col justify-center gap-4">
+              <a href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-blt-red hover:text-blt-red">
+                <i class="fa-brands fa-github text-xl"></i>
+                <span>View on GitHub</span>
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-blt-red hover:text-blt-red">
+                <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                <span>Report an Issue</span>
+              </a>
+              <a href="https://www.owasp.org/BLT/" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-blt-red hover:text-blt-red">
+                <i class="fa-solid fa-globe text-xl"></i>
+                <span>Visit OWASP BLT</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-slate-50 py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <img src="img/icon128.png" alt="BLT Logo" class="h-8 w-8" />
+              <span class="font-bold">OWASP BLT</span>
+            </div>
+            <p class="mt-4 text-sm text-slate-600">
+              Open source bug logging and vulnerability disclosure platform.
+            </p>
+          </div>
+          
+          <div>
+            <h4 class="font-semibold">Resources</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension" class="text-slate-600 hover:text-blt-red transition">GitHub Repository</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/releases" class="text-slate-600 hover:text-blt-red transition">Releases</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/README.md" class="text-slate-600 hover:text-blt-red transition">Documentation</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 class="font-semibold">OWASP BLT</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://github.com/OWASP-BLT/BLT" class="text-slate-600 hover:text-blt-red transition">BLT Core</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Flutter" class="text-slate-600 hover:text-blt-red transition">BLT Flutter</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Action" class="text-slate-600 hover:text-blt-red transition">BLT Action</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Design" class="text-slate-600 hover:text-blt-red transition">BLT Design</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 class="font-semibold">Community</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://owasp.org/www-project-bug-logging-tool/" class="text-slate-600 hover:text-blt-red transition">OWASP Project</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/issues" class="text-slate-600 hover:text-blt-red transition">Report Issues</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/LICENSE" class="text-slate-600 hover:text-blt-red transition">License (MIT)</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="mt-8 border-t border-slate-200 pt-8 text-center text-sm text-slate-600">
+          <p>&copy; 2025 OWASP BLT Project. Licensed under MIT.</p>
+          <p class="mt-2">Built with ❤️ by the OWASP community</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

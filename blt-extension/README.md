@@ -68,6 +68,26 @@ To create a new release:
 
 The release zip file will be available on the [Releases](https://github.com/OWASP-BLT/BLT-Extension/releases) page and can be downloaded and installed directly in Chromium.
 
+### GitHub Pages Landing Page
+
+This repository includes a landing page (`index.html`) that can be deployed via GitHub Pages. The page showcases all extension features and provides an easy install button.
+
+**To enable GitHub Pages:**
+
+1. Go to the repository **Settings** → **Pages**
+2. Under "Build and deployment":
+   - Source: Select **GitHub Actions**
+3. The workflow will automatically deploy on push to `main` branch
+
+The landing page will be available at: `https://owasp-blt.github.io/BLT-Extension/`
+
+The page is designed following the [BLT-Design](https://github.com/OWASP-BLT/BLT-Design) guidelines and includes:
+- Responsive design with Tailwind CSS
+- Installation instructions and download links
+- Feature showcase for all extension capabilities
+- Links to documentation and community resources
+
+## Related Projects
 
 https://www.github.com/OWASP/BLT  
 https://www.github.com/OWASP/BLT-Flutter  
