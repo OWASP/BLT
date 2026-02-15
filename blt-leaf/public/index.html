@@ -128,6 +128,41 @@
         let sortColumn = 'last_updated_at';
         let sortDirection = 'desc';
 
+        // Helper functions for readiness data persistence
+        function saveReadinessData(prId, readiness, reviewHealth) {
+            try {
+                const data = JSON.parse(localStorage.getItem('prReadinessData') || '{}');
+                data[prId] = {
+                    readiness,
+                    reviewHealth,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('prReadinessData', JSON.stringify(data));
+            } catch (error) {
+                console.error('Error saving readiness data:', error);
+            }
+        }
+
+        function loadReadinessData(prId) {
+            try {
+                const data = JSON.parse(localStorage.getItem('prReadinessData') || '{}');
+                return data[prId] || null;
+            } catch (error) {
+                console.error('Error loading readiness data:', error);
+                return null;
+            }
+        }
+
+        function clearReadinessData(prId) {
+            try {
+                const data = JSON.parse(localStorage.getItem('prReadinessData') || '{}');
+                delete data[prId];
+                localStorage.setItem('prReadinessData', JSON.stringify(data));
+            } catch (error) {
+                console.error('Error clearing readiness data:', error);
+            }
+        }
+
         const repoItemBaseClasses = ['repo-item', 'cursor-pointer', 'rounded-lg', 'border', 'px-3', 'py-2', 'transition-colors'];
         const repoItemIdleClasses = ['border-slate-200', 'bg-white', 'hover:border-slate-300', 'hover:bg-slate-50', 'dark:border-slate-700', 'dark:bg-slate-800', 'dark:hover:border-slate-600', 'dark:hover:bg-slate-700'];
         const repoItemActiveClasses = ['active', 'border-[#f5b0b0]', 'bg-[#fff1f1]', 'dark:border-red-900', 'dark:bg-red-950/30'];
@@ -570,8 +605,16 @@
                 `;
                 tbody.appendChild(row);
 
-                // No expanded row needed - everything is inline now
-                tbody.appendChild(row);
+                // Load and display stored readiness data if available
+                const storedData = loadReadinessData(pr.id);
+                if (storedData && storedData.readiness && storedData.reviewHealth) {
+                    updateInlineCells(pr.id, storedData.readiness, storedData.reviewHealth);
+                    // Update button to show it was analyzed
+                    const analyzeBtn = row.querySelector('.readiness-btn');
+                    if (analyzeBtn) {
+                        analyzeBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                    }
+                }
             });
 
             document.querySelectorAll('.readiness-btn').forEach(btn => {
@@ -610,6 +653,9 @@
 
                 const readiness = data.readiness;
                 const reviewHealth = data.review_health;
+
+                // Save readiness data to localStorage
+                saveReadinessData(prId, readiness, reviewHealth);
 
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
@@ -801,6 +847,9 @@
                     link.disabled = false;
                     link.classList.remove('opacity-50', 'pointer-events-none');
                 } else {
+                    // Clear cached readiness data for this PR since it's being refreshed
+                    clearReadinessData(prId);
+                    
                     // Check if PR was removed due to being merged/closed
                     if (data.removed) {
                         showError(data.message || 'PR has been removed from tracking');
