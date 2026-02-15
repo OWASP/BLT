@@ -377,7 +377,7 @@ When setting up the webhook in your GitHub repository, select the following even
 - ⚪ **Check runs** - Monitors CI/CD check completions
 - ⚪ **Check suites** - Tracks overall check suite status
 
-**Note:** Currently, only the `pull_request` event is fully processed. Other events are acknowledged but do not trigger updates yet.
+> **Note:** Currently, only the `pull_request` event is fully processed. Other events are acknowledged but do not trigger updates yet.
 
 ### Webhook Setup
 
@@ -385,7 +385,7 @@ When setting up the webhook in your GitHub repository, select the following even
    ```bash
    # Add to your Cloudflare Worker secrets
    wrangler secret put GITHUB_WEBHOOK_SECRET
-   # Enter a secure random string when prompted
+   # You will be prompted to enter a secure random string
    ```
 
 2. **Add the webhook to your GitHub repository:**
