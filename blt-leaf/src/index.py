@@ -684,11 +684,15 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
         # Extract base and head branch information for comparison
-        # To check if PR is behind base, we compare head...base (reversed)
-        # This tells us how many commits base has that head doesn't have
-        base_ref = pr_data['base']['sha']
-        head_ref = pr_data['head']['sha']
-        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_ref}...{base_ref}"
+        # To check if PR is behind base, we need to compare the branches (not SHAs)
+        # Using branch refs ensures we compare the current state of the branches
+        base_branch = pr_data['base']['ref']
+        head_branch = pr_data['head']['ref']
+        # For forks, we need to use the full ref format
+        head_full_ref = f"{pr_data['head']['repo']['owner']['login']}:{head_branch}"
+        
+        # Compare head...base to see how many commits base has that head doesn't
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
         
         # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
@@ -721,11 +725,14 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process compare result
             if not isinstance(results[3], Exception) and results[3].status == 200:
                 compare_data = (await results[3].json()).to_py()
+                print(f"Compare API success for PR #{pr_number}")
             elif not isinstance(results[3], Exception):
                 # Log error if compare API fails
-                print(f"Compare API failed with status {results[3].status}")
+                print(f"Compare API failed for PR #{pr_number} with status {results[3].status}, URL: {compare_url}")
+            else:
+                print(f"Compare API exception for PR #{pr_number}: {results[3]}")
         except Exception as e:
-            print(f"Error fetching PR data: {str(e)}")
+            print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
         # Process check runs
         checks_passed = 0
