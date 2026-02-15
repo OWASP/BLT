@@ -462,7 +462,7 @@
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3" style="min-width: 80px;">Actions</th>
+                                <th class="px-2 py-3 text-center" style="min-width: 100px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
@@ -556,16 +556,15 @@
                         <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
                     </td>
                     <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
-                    <td class="px-2 py-3">
-                        <div class="flex flex-col gap-1">
-                            <button class="readiness-btn rounded-md border border-[#E10000] bg-white px-2 py-1 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Analyze Readiness">
-                                <i class="fas fa-chart-line"></i>
-                            </button>
-                            <button class="refresh-btn rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100" data-pr-id="${pr.id}">
-                                <i class="fas fa-sync-alt"></i>
+                    <td class="px-2 py-3 text-center">
+                        <button class="readiness-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Analyze Readiness">
+                            <i class="fas fa-chart-line mr-1"></i>Analyze
+                        </button>
+                        <div class="mt-1">
+                            <button class="refresh-link text-xs text-slate-500 hover:text-[#E10000] dark:text-slate-400 dark:hover:text-red-400 underline decoration-dotted" data-pr-id="${pr.id}" title="Refresh PR data from GitHub">
+                                ↻ Refresh
                             </button>
                         </div>
-                        ${pr.last_refreshed_at ? `<div class="mt-1 text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_refreshed_at))}</div>` : ''}
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -574,26 +573,26 @@
                 tbody.appendChild(row);
             });
 
-            document.querySelectorAll('.refresh-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const prId = e.target.dataset.prId;
-                    await refreshPr(prId);
-                });
-            });
-
             document.querySelectorAll('.readiness-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const prId = e.currentTarget.dataset.prId;
                     await checkReadiness(prId, e.currentTarget);
                 });
             });
+
+            document.querySelectorAll('.refresh-link').forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    const prId = e.currentTarget.dataset.prId;
+                    await refreshPr(prId, e.currentTarget);
+                });
+            });
         }
 
         async function checkReadiness(prId, button) {
-            const originalText = button.textContent;
+            const originalHtml = button.innerHTML;
             
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyzing...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
@@ -602,7 +601,7 @@
                 
                 if (data.error) {
                     showError(data.error);
-                    button.innerHTML = originalText;
+                    button.innerHTML = originalHtml;
                     button.disabled = false;
                     button.classList.remove('opacity-70', 'cursor-not-allowed');
                     return;
@@ -614,13 +613,13 @@
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
                 
-                button.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
                 console.error('Error checking readiness:', error);
                 showError('Failed to check PR readiness');
-                button.innerHTML = originalText;
+                button.innerHTML = originalHtml;
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
             }
@@ -777,25 +776,13 @@
             }
         }
 
-        async function refreshPr(prId) {
-            const buttons = document.querySelectorAll('.refresh-btn');
-            let btn = null;
-            for (const button of buttons) {
-                if (button.dataset.prId === String(prId)) {
-                    btn = button;
-                    break;
-                }
-            }
-            if (!btn) return;
+        async function refreshPr(prId, link) {
+            if (!link) return;
 
-            const originalText = btn.textContent;
-            btn.classList.add('pointer-events-none', 'opacity-70');
-            btn.textContent = '';
-
-            const spinner = document.createElement('span');
-            spinner.className = 'mr-1 inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600';
-            btn.appendChild(spinner);
-            btn.appendChild(document.createTextNode('Refreshing...'));
+            const originalText = link.textContent;
+            link.disabled = true;
+            link.classList.add('opacity-50', 'pointer-events-none');
+            link.textContent = '↻ Refreshing...';
 
             try {
                 const response = await fetch('/api/refresh', {
@@ -809,8 +796,9 @@
                 const data = await response.json();
                 if (data.error) {
                     showError(data.error);
-                    btn.textContent = originalText;
-                    btn.classList.remove('pointer-events-none', 'opacity-70');
+                    link.textContent = originalText;
+                    link.disabled = false;
+                    link.classList.remove('opacity-50', 'pointer-events-none');
                 } else {
                     // Check if PR was removed due to being merged/closed
                     if (data.removed) {
@@ -824,8 +812,9 @@
             } catch (error) {
                 console.error('Error refreshing PR:', error);
                 showError('Failed to refresh PR');
-                btn.textContent = originalText;
-                btn.classList.remove('pointer-events-none', 'opacity-70');
+                link.textContent = originalText;
+                link.disabled = false;
+                link.classList.remove('opacity-50', 'pointer-events-none');
             }
         }
 
