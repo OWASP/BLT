@@ -38,7 +38,7 @@
                 <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
                     <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
                     <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full w-0 rounded-full bg-[#E10000] transition-all duration-300" id="rateLimitFill"></div>
+                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
                 </div>
@@ -138,6 +138,18 @@
                     timestamp: Date.now()
                 };
                 localStorage.setItem('prReadinessData', JSON.stringify(data));
+                
+                // Also update the PR object in allPrs for sorting
+                const pr = allPrs.find(p => p.id === prId);
+                if (pr) {
+                    pr.ready_score = readiness.overall_score;
+                    pr.ci_score = readiness.ci_score;
+                    pr.review_score = readiness.review_score;
+                    pr.response_score = parseFloat(reviewHealth.response_rate_display.replace('%', ''));
+                    pr.feedback_score = reviewHealth.total_feedback > 0 ? 
+                        (reviewHealth.responded_feedback / reviewHealth.total_feedback) * 100 : 100;
+                    pr.issues_count = (readiness.blockers?.length || 0) + (readiness.warnings?.length || 0);
+                }
             } catch (error) {
                 console.error('Error saving readiness data:', error);
             }
@@ -217,7 +229,7 @@
                     } else if (percentageRemaining <= 50) {
                         fillEl.classList.add('bg-amber-500');
                     } else {
-                        fillEl.classList.add('bg-[#E10000]');
+                        fillEl.classList.add('bg-green-500');
                     }
                 }
                 
@@ -260,7 +272,7 @@
             }
             
             // Columns that should use numeric sorting
-            const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number'];
+            const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
 
             allPrs.sort((a, b) => {
                 let aVal = a[column];
@@ -386,6 +398,20 @@
 
                 allPrs = data.prs;
                 
+                // Attach readiness data from localStorage to each PR for sorting
+                allPrs.forEach(pr => {
+                    const storedData = loadReadinessData(pr.id);
+                    if (storedData && storedData.readiness && storedData.reviewHealth) {
+                        pr.ready_score = storedData.readiness.overall_score;
+                        pr.ci_score = storedData.readiness.ci_score;
+                        pr.review_score = storedData.readiness.review_score;
+                        pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
+                        pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
+                            (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
+                        pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                    }
+                });
+                
                 // Apply search filter if exists
                 const searchTerm = document.getElementById('prSearchInput').value;
                 if(searchTerm) {
@@ -475,23 +501,35 @@
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
-                                    <div class="truncate">Ready</div>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ready_score')" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
+                                    </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
-                                    <div class="truncate">CI</div>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ci_score')" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">CI</span> ${getSortIcon('ci_score')}
+                                    </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
-                                    <div class="truncate">Review</div>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_score')" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">Review</span> ${getSortIcon('review_score')}
+                                    </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
-                                    <div class="truncate">Response</div>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('response_score')" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">Response</span> ${getSortIcon('response_score')}
+                                    </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 80px;" title="Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
-                                    <div class="truncate">Feedback</div>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('feedback_score')" style="min-width: 80px;" title="Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
+                                    </div>
                                 </th>
-                                <th class="px-2 py-3" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
-                                    <div class="truncate">Issues</div>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('issues_count')" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
+                                    </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
