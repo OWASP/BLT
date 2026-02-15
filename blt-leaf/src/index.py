@@ -574,14 +574,14 @@ async def fetch_with_headers(url, headers=None, token=None):
     return await fetch(url, options)
 
 async def fetch_pr_data(owner, repo, pr_number, token=None):
-    """Fetch PR data from GitHub API"""
+    """Fetch PR data from GitHub API with parallel requests for optimal performance"""
     headers = {
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
         
     try:
-        # Fetch PR details
+        # Fetch PR details first (needed for head SHA)
         pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
         pr_response = await fetch_with_headers(pr_url, headers, token)
         
@@ -590,31 +590,36 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             
         pr_data = (await pr_response.json()).to_py()
 
-        # Fetch PR files
+        # Prepare URLs for parallel fetching
+        files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
+        reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+        checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+        
+        # Fetch files, reviews, and checks in parallel using asyncio.gather
+        # This reduces total fetch time from sequential sum to max single request time
         files_data = []
-        try:
-            files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
-            files_res = await fetch_with_headers(files_url, headers, token)
-            if files_res.status == 200:
-                files_data = (await files_res.json()).to_py()
-        except: pass
-        
-        # Fetch PR reviews
         reviews_data = []
-        try:
-            reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
-            reviews_res = await fetch_with_headers(reviews_url, headers, token)
-            if reviews_res.status == 200:
-                reviews_data = (await reviews_res.json()).to_py()
-        except: pass
-        
-        # Fetch check runs
         checks_data = {}
+        
         try:
-            checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
-            checks_res = await fetch_with_headers(checks_url, headers, token)
-            if checks_res.status == 200:
-                checks_data = (await checks_res.json()).to_py()
+            results = await asyncio.gather(
+                fetch_with_headers(files_url, headers, token),
+                fetch_with_headers(reviews_url, headers, token),
+                fetch_with_headers(checks_url, headers, token),
+                return_exceptions=True
+            )
+            
+            # Process files result
+            if not isinstance(results[0], Exception) and results[0].status == 200:
+                files_data = (await results[0].json()).to_py()
+            
+            # Process reviews result
+            if not isinstance(results[1], Exception) and results[1].status == 200:
+                reviews_data = (await results[1].json()).to_py()
+            
+            # Process checks result
+            if not isinstance(results[2], Exception) and results[2].status == 200:
+                checks_data = (await results[2].json()).to_py()
         except: pass
         
         # Process check runs
@@ -1269,24 +1274,30 @@ async def handle_add_pr(request, env):
                                   {'status': 400, 'headers': {'Content-Type': 'application/json'}})
             
             owner, repo = parsed['owner'], parsed['repo']
-            headers = {
+            
+            # Prepare headers for paginated fetching
+            headers_dict = {
+                'User-Agent': 'PR-Tracker/1.0',
                 'Accept': 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2022-11-28'
             }
+            if user_token:
+                headers_dict['Authorization'] = f'Bearer {user_token}'
             
-            # Fetch all open PRs for the repo 
-            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=30"
-            list_response = await fetch_with_headers(list_url, headers, user_token)
+            headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
             
-            if list_response.status == 403:
-                 return Response.new(json.dumps({'error': 'Rate Limit Exceeded'}), 
-                                  {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+            # Fetch all open PRs for the repo using pagination (supports unlimited PRs)
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=100"
             
-            if list_response.status != 200:
-                 return Response.new(json.dumps({'error': f'Failed to fetch repo PRs: {list_response.status}'}), 
+            try:
+                prs_list = await fetch_paginated_data(list_url, headers)
+            except Exception as e:
+                error_msg = str(e)
+                if 'status=403' in error_msg:
+                    return Response.new(json.dumps({'error': 'Rate Limit Exceeded'}), 
+                                      {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+                return Response.new(json.dumps({'error': f'Failed to fetch repo PRs: {error_msg}'}), 
                                   {'status': 400, 'headers': {'Content-Type': 'application/json'}})
-            
-            prs_list = (await list_response.json()).to_py()
             added_count = 0
             ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             
