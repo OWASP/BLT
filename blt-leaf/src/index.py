@@ -560,6 +560,8 @@ async def init_database_schema(env):
                 checks_passed INTEGER DEFAULT 0,
                 checks_failed INTEGER DEFAULT 0,
                 checks_skipped INTEGER DEFAULT 0,
+                commits_count INTEGER DEFAULT 0,
+                behind_by INTEGER DEFAULT 0,
                 review_status TEXT,
                 last_updated_at TEXT,
                 last_refreshed_at TEXT,
@@ -597,6 +599,8 @@ async def init_database_schema(env):
             # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
             new_columns = [
                 ('last_refreshed_at', 'TEXT'),
+                ('commits_count', 'INTEGER DEFAULT 0'),
+                ('behind_by', 'INTEGER DEFAULT 0'),
                 ('repo_owner_avatar', 'TEXT'),
                 ('overall_score', 'INTEGER'),
                 ('ci_score', 'INTEGER'),
@@ -681,17 +685,30 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
-        # Fetch files, reviews, and checks in parallel using asyncio.gather
+        # Extract base and head branch information for comparison
+        # To check if PR is behind base, we need to compare the branches (not SHAs)
+        # Using branch refs ensures we compare the current state of the branches
+        base_branch = pr_data['base']['ref']
+        head_branch = pr_data['head']['ref']
+        # For forks, we need to use the full ref format
+        head_full_ref = f"{pr_data['head']['repo']['owner']['login']}:{head_branch}"
+        
+        # Compare head...base to see how many commits base has that head doesn't
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
+        
+        # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         files_data = []
         reviews_data = []
         checks_data = {}
+        compare_data = {}
         
         try:
             results = await asyncio.gather(
                 fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(reviews_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
+                fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
             
@@ -706,7 +723,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process checks result
             if not isinstance(results[2], Exception) and results[2].status == 200:
                 checks_data = (await results[2].json()).to_py()
-        except: pass
+            
+            # Process compare result
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                compare_data = (await results[3].json()).to_py()
+                print(f"Compare API success for PR #{pr_number}")
+            elif not isinstance(results[3], Exception):
+                # Log error if compare API fails
+                print(f"Compare API failed for PR #{pr_number} with status {results[3].status}, URL: {compare_url}")
+            else:
+                print(f"Compare API exception for PR #{pr_number}: {results[3]}")
+        except Exception as e:
+            print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
         # Process check runs
         checks_passed = 0
@@ -721,6 +749,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                     checks_failed += 1
                 elif check['conclusion'] in ['skipped', 'neutral']:
                     checks_skipped += 1
+        
+        # Get commits count from pr_data (GitHub provides this)
+        commits_count = pr_data.get('commits', 0)
+        
+        # Get behind_by count from compare data
+        # When comparing head...base, ahead_by tells us how many commits base has that head doesn't
+        behind_by = 0
+        if compare_data:
+            # Use ahead_by since we reversed the comparison (head...base)
+            # Use 'or 0' to handle None values from GitHub API
+            behind_by = compare_data.get('ahead_by') or 0
+            print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
         # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'pending'
@@ -750,6 +790,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
             'checks_skipped': checks_skipped,
+            'commits_count': commits_count,
+            'behind_by': behind_by,
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', ''),
             'is_draft': 1 if pr_data.get('draft', False) else 0
@@ -1311,8 +1353,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
-                       review_status, last_updated_at, last_refreshed_at, updated_at, is_draft)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       commits_count, behind_by, review_status, last_updated_at, 
+                       last_refreshed_at, updated_at, is_draft)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1323,6 +1366,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             checks_passed = excluded.checks_passed,
             checks_failed = excluded.checks_failed,
             checks_skipped = excluded.checks_skipped,
+            commits_count = excluded.commits_count,
+            behind_by = excluded.behind_by,
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
@@ -1340,7 +1385,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['repo_owner_avatar'],
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
-        pr_data['checks_skipped'], 
+        pr_data['checks_skipped'],
+        pr_data.get('commits_count', 0),
+        pr_data.get('behind_by', 0),
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp,
         pr_data.get('is_draft', 0)
@@ -1668,6 +1715,225 @@ async def handle_status(env):
             'error': str(e),
             'environment': getattr(env, 'ENVIRONMENT', 'unknown')
         }), {'headers': {'Content-Type': 'application/json'}})
+
+async def verify_github_signature(request, payload_body, secret):
+    """
+    Verify GitHub webhook signature.
+    
+    Args:
+        request: The request object containing headers
+        payload_body: Raw request body as bytes or string
+        secret: Webhook secret configured in GitHub
+        
+    Returns:
+        bool: True if signature is valid, False otherwise
+    """
+    if not secret:
+        # If no secret is configured, skip verification (development mode)
+        print("WARNING: Webhook secret not configured - skipping signature verification")
+        return True
+    
+    signature_header = request.headers.get('x-hub-signature-256')
+    if not signature_header:
+        return False
+    
+    # GitHub sends signature as "sha256=<hash>"
+    try:
+        import hashlib
+        import hmac
+        
+        # Ensure payload_body is bytes
+        if isinstance(payload_body, str):
+            payload_body = payload_body.encode('utf-8')
+        
+        # Calculate expected signature
+        hash_object = hmac.new(secret.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+        expected_signature = "sha256=" + hash_object.hexdigest()
+        
+        # Constant-time comparison to prevent timing attacks
+        return hmac.compare_digest(expected_signature, signature_header)
+    except Exception as e:
+        print(f"Error verifying webhook signature: {e}")
+        return False
+
+async def handle_github_webhook(request, env):
+    """
+    POST /api/github/webhook
+    Handle GitHub webhook events for PR state changes.
+    
+    Supported events:
+    - pull_request: closed, reopened, synchronize, edited
+    - pull_request_review: submitted, edited, dismissed
+    - check_run: completed, requested_action
+    
+    Security:
+    - Verifies GitHub webhook signature using WEBHOOK_SECRET
+    - Validates event types before processing
+    
+    When a PR is closed or merged:
+    - Removes the PR from the database
+    - Returns event data for frontend to animate removal
+    
+    When a PR is updated:
+    - Refreshes PR data in the database
+    - Returns updated PR data for frontend
+    """
+    try:
+        # Get webhook secret from environment
+        webhook_secret = getattr(env, 'GITHUB_WEBHOOK_SECRET', None)
+        
+        # Get raw request body for signature verification
+        raw_body = await request.text()
+        
+        # Verify webhook signature
+        if not await verify_github_signature(request, raw_body, webhook_secret):
+            return Response.new(
+                json.dumps({'error': 'Invalid webhook signature'}),
+                {'status': 401, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Parse webhook payload
+        try:
+            payload = json.loads(raw_body)
+        except json.JSONDecodeError:
+            return Response.new(
+                json.dumps({'error': 'Invalid JSON payload'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Get event type from header
+        event_type = request.headers.get('x-github-event')
+        
+        if event_type == 'pull_request':
+            action = payload.get('action')
+            pr_data = payload.get('pull_request', {})
+            repo_data = payload.get('repository', {})
+            
+            # Extract PR details
+            pr_number = pr_data.get('number')
+            repo_owner = repo_data.get('owner', {}).get('login')
+            repo_name = repo_data.get('name')
+            state = pr_data.get('state')
+            merged = pr_data.get('merged', False)
+            
+            if not all([pr_number, repo_owner, repo_name]):
+                return Response.new(
+                    json.dumps({'error': 'Missing required PR data'}),
+                    {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Find the PR in our database
+            db = get_db(env)
+            pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
+            result = await db.prepare(
+                'SELECT id FROM prs WHERE pr_url = ?'
+            ).bind(pr_url).first()
+            
+            if not result:
+                # PR not being tracked - ignore this webhook
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': 'PR not tracked, ignoring webhook'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            pr_id = result.to_py()['id']
+            
+            # Handle closed/merged PRs - remove from database
+            if action == 'closed' or merged or state == 'closed':
+                # Invalidate caches
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                
+                # Delete the PR
+                await db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id).run()
+                
+                status_msg = 'merged' if merged else 'closed'
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'event': 'pr_removed',
+                        'pr_id': pr_id,
+                        'pr_number': pr_number,
+                        'status': status_msg,
+                        'message': f'PR #{pr_number} has been {status_msg} and removed from tracking'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Handle reopened PRs - re-add to tracking if it was tracked before
+            elif action == 'reopened':
+                # Fetch fresh PR data
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    # Invalidate caches
+                    await invalidate_readiness_cache(env, pr_id)
+                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_reopened',
+                            'pr_id': pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been reopened'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+            
+            # Handle synchronized (new commits) or edited PRs - update data
+            elif action in ['synchronize', 'edited']:
+                # Fetch fresh PR data
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    # Invalidate caches to force fresh analysis
+                    await invalidate_readiness_cache(env, pr_id)
+                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_updated',
+                            'pr_id': pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been updated'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+        
+        # Handle other event types (for future expansion)
+        elif event_type in ['pull_request_review', 'check_run', 'check_suite']:
+            # For now, just acknowledge these events
+            # In the future, we could update specific fields without full refresh
+            return Response.new(
+                json.dumps({
+                    'success': True,
+                    'message': f'Received {event_type} event, no action taken'
+                }),
+                {'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Unknown event type
+        return Response.new(
+            json.dumps({
+                'success': True,
+                'message': f'Received {event_type} event, no handler configured'
+            }),
+            {'headers': {'Content-Type': 'application/json'}}
+        )
+        
+    except Exception as e:
+        print(f"Error handling webhook: {type(e).__name__}: {str(e)}")
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_pr_timeline(request, env, path):
     """
