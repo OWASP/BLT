@@ -522,7 +522,7 @@ footer {
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1.2rem;
     }
@@ -535,11 +535,11 @@ footer {
     .btn {
         text-align: center;
     }
-    
+
     .step {
         flex-direction: column;
     }
-    
+
     .features-grid,
     .doc-grid {
         grid-template-columns: 1fr;
@@ -588,7 +588,7 @@ footer {
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1rem;
     }
