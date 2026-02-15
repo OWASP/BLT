@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP-Wich: OWASP Project Compliance Checker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="owasp-badge">
+                <span class="badge-text">OWASP</span>
+                <span class="badge-project">BLT Project</span>
+            </div>
+            <h1>🔒 OWASP-Wich</h1>
+            <p class="subtitle">OWASP Project Compliance Checker</p>
+            <p class="description">Check GitHub repositories against OWASP standards and best practices</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="repoUrl" 
+                        placeholder="Enter GitHub repository URL (e.g., https://github.com/OWASP/owasp-mastg)"
+                        aria-label="GitHub repository URL"
+                    >
+                    <button id="checkBtn" onclick="checkCompliance()">
+                        <span id="btnText">Check Compliance</span>
+                        <span id="btnSpinner" class="spinner hidden"></span>
+                    </button>
+                </div>
+                
+                <div class="token-section">
+                    <details>
+                        <summary>Optional: GitHub Token (for higher rate limits)</summary>
+                        <input 
+                            type="password" 
+                            id="githubToken" 
+                            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                            aria-label="GitHub personal access token"
+                        >
+                        <p class="help-text">
+                            Without a token: 60 requests/hour<br>
+                            With a token: 5,000 requests/hour<br>
+                            <a href="https://github.com/settings/tokens/new?description=OWASP-Wich&scopes=repo" target="_blank" rel="noopener">Create a token</a>
+                        </p>
+                    </details>
+                </div>
+
+                <div id="errorMessage" class="error-message hidden"></div>
+            </div>
+
+            <div id="results" class="results hidden">
+                <div class="score-card">
+                    <div class="score-header">
+                        <h2>Compliance Report</h2>
+                        <div id="repoInfo" class="repo-info"></div>
+                    </div>
+                    <div class="score-summary">
+                        <div class="score-circle">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="score-bg" cx="60" cy="60" r="54"></circle>
+                                <circle id="scoreCircle" class="score-fg" cx="60" cy="60" r="54"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <div id="scoreValue" class="score-value">0</div>
+                                <div class="score-label">%</div>
+                            </div>
+                        </div>
+                        <div class="score-details">
+                            <div id="scoreStatus" class="score-status"></div>
+                            <div id="scorePoints" class="score-points"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="categories" class="categories"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>About OWASP-Wich</h2>
+                <p>
+                    This tool evaluates <strong>100 compliance points</strong> across 10 key categories to ensure 
+                    your GitHub repository meets OWASP quality, security, and governance standards.
+                </p>
+                
+                <div class="categories-list">
+                    <div class="category-item">
+                        <strong>General Compliance & Governance</strong> (10 points)<br>
+                        <small>Project structure, licensing, and governance</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Documentation & Usability</strong> (10 points)<br>
+                        <small>README, guides, and user documentation</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Code Quality & Best Practices</strong> (10 points)<br>
+                        <small>Code standards and maintainability</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Security & OWASP Compliance</strong> (15 points)<br>
+                        <small>Security practices and OWASP standards</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>CI/CD & DevSecOps</strong> (10 points)<br>
+                        <small>Automation and security integration</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Testing & Validation</strong> (10 points)<br>
+                        <small>Test coverage and quality</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Performance & Scalability</strong> (10 points)<br>
+                        <small>Performance optimization</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Logging & Monitoring</strong> (10 points)<br>
+                        <small>Observability and logging practices</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Community & Support</strong> (10 points)<br>
+                        <small>Community engagement and support</small>
+                    </div>
+                    <div class="category-item">
+                        <strong>Legal & Compliance</strong> (5 points)<br>
+                        <small>Licensing and legal compliance</small>
+                    </div>
+                </div>
+
+                <h3>References</h3>
+                <ul>
+                    <li><a href="https://owasp.org/www-committee-project/" target="_blank" rel="noopener">OWASP Project Handbook</a></li>
+                    <li><a href="https://owasp.org/www-project-application-security-verification-standard/" target="_blank" rel="noopener">OWASP ASVS</a></li>
+                    <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a></li>
+                    <li><a href="https://github.com/OWASP-BLT/OWASP-Wich" target="_blank" rel="noopener">GitHub Repository</a></li>
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ by the <a href="https://blt.owasp.org" target="_blank" rel="noopener">OWASP BLT Team</a></p>
+            <p><a href="https://github.com/OWASP-BLT/OWASP-Wich" target="_blank" rel="noopener">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="compliance-checker.js"></script>
+</body>
+</html>
