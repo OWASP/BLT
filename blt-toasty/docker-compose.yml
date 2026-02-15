@@ -1,5 +1,5 @@
 services:
-  db:
+  postgres:
     image: postgres
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -40,21 +40,20 @@ services:
       - "6379:6379"
     restart: always
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: [ "CMD", "redis-cli", "-h", "localhost", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 3
       start_period: 10s
 
   celery_worker:
-    entrypoint: ""
     build: .
     container_name: celery-worker
     command: celery -A toasty worker -l info
     depends_on:
       redis:
         condition: service_started
-      db:
+      postgres:
         condition: service_healthy
     env_file:
       - .env
@@ -62,13 +61,13 @@ services:
       - .:/app
     restart: on-failure
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   app:
     build: .
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     container_name: app
     restart: on-failure
@@ -79,7 +78,7 @@ services:
     ports:
       - "${PORT}:8000"
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: ./entrypoint.sh
 
@@ -88,14 +87,14 @@ services:
       - init
     build: .
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     env_file:
       - .env
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: ./entrypoint.sh
 
