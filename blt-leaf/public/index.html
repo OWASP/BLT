@@ -547,95 +547,7 @@
 
             const tbody = document.getElementById('prTableBody');
             allPrs.forEach(pr => {
-                let stateBadge = '';
-                if (pr.is_merged) {
-                    stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
-                } else if (pr.state === 'open') {
-                    stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
-                } else {
-                    stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
-                }
-
-                let reviewBadge = '';
-                if (pr.review_status === 'approved') {
-                    reviewBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Approved</span>';
-                } else if (pr.review_status === 'changes_requested') {
-                    reviewBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Changes</span>';
-                } else if (pr.review_status === 'pending') {
-                    reviewBadge = '<span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">Pending</span>';
-                } else {
-                    reviewBadge = '<span class="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">None</span>';
-                }
-
-                let mergeableText = pr.mergeable_state || 'unknown';
-                if (mergeableText === 'clean') mergeableText = 'Ready';
-                else if (mergeableText === 'dirty') mergeableText = 'Conflicts';
-                else if (mergeableText === 'blocked') mergeableText = 'Blocked';
-                else if (mergeableText === 'unstable') mergeableText = 'Unstable';
-
-                const avatarUrl = pr.author_avatar &&
-                    (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || pr.author_avatar.startsWith('https://github.com/'))
-                    ? pr.author_avatar
-                    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect width="32" height="32" fill="%23E2E8F0"/%3E%3C/svg%3E';
-
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
-                row.id = `pr-row-${pr.id}`;
-                row.innerHTML = `
-                    <td class="px-2 py-3">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
-                            <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(pr.title)}</a>
-                        </div>
-                    </td>
-                    <td class="px-2 py-3 text-slate-600 dark:text-slate-400">
-                        <div class="truncate text-xs">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-500">#${pr.pr_number}</div>
-                    </td>
-                    <td class="px-2 py-3 text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</td>
-                    <td class="px-2 py-3">${reviewBadge}</td>
-                    <td class="px-2 py-3 text-slate-700 dark:text-slate-300 text-xs truncate">${escapeHtml(mergeableText)}</td>
-                    <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">${pr.files_changed}</td>
-                    <td class="px-2 py-3">
-                        <div class="flex flex-wrap gap-1 text-xs">
-                            <span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
-                                <i class="fas fa-check-circle"></i>${pr.checks_passed}
-                            </span>
-                            ${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 hover:border-red-300 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
-                                <i class="fas fa-times-circle"></i>${escapeHtml(String(pr.checks_failed))}
-                            </a>` : `<span class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
-                                <i class="fas fa-times-circle"></i>${pr.checks_failed}
-                            </span>`}
-                            ${pr.checks_skipped > 0 ? `<span class="inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-400">
-                                <i class="fas fa-minus-circle"></i>${pr.checks_skipped}
-                            </span>` : ''}
-                        </div>
-                    </td>
-                    <td class="px-2 py-3 text-center" id="readiness-overall-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3 text-center" id="readiness-ci-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3 text-center" id="readiness-review-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3 text-center" id="readiness-response-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3 text-center" id="readiness-feedback-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3" id="readiness-issues-${pr.id}">
-                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
-                    </td>
-                    <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
-                    <td class="px-2 py-3 text-center">
-                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
-                            <i class="fas fa-sync mr-1"></i>Update
-                        </button>
-                    </td>
-                `;
+                const row = createPrRow(pr);
                 tbody.appendChild(row);
 
                 // Load and display stored readiness data if available
@@ -656,6 +568,126 @@
                     await updatePr(prId, e.currentTarget);
                 });
             });
+        }
+
+        function createPrRow(pr) {
+            let stateBadge = '';
+            if (pr.is_merged) {
+                stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
+            } else if (pr.state === 'open') {
+                stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
+            } else {
+                stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
+            }
+
+            let reviewBadge = '';
+            if (pr.review_status === 'approved') {
+                reviewBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Approved</span>';
+            } else if (pr.review_status === 'changes_requested') {
+                reviewBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Changes</span>';
+            } else if (pr.review_status === 'pending') {
+                reviewBadge = '<span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400">Pending</span>';
+            } else {
+                reviewBadge = '<span class="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">None</span>';
+            }
+
+            let mergeableText = pr.mergeable_state || 'unknown';
+            if (mergeableText === 'clean') mergeableText = 'Ready';
+            else if (mergeableText === 'dirty') mergeableText = 'Conflicts';
+            else if (mergeableText === 'blocked') mergeableText = 'Blocked';
+            else if (mergeableText === 'unstable') mergeableText = 'Unstable';
+
+            const avatarUrl = pr.author_avatar &&
+                (pr.author_avatar.startsWith('https://avatars.githubusercontent.com/') || pr.author_avatar.startsWith('https://github.com/'))
+                ? pr.author_avatar
+                : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect width="32" height="32" fill="%23E2E8F0"/%3E%3C/svg%3E';
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
+            row.id = `pr-row-${pr.id}`;
+            row.innerHTML = `
+                <td class="px-2 py-3">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(pr.title)}</a>
+                    </div>
+                </td>
+                <td class="px-2 py-3 text-slate-600 dark:text-slate-400">
+                    <div class="truncate text-xs">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-500">#${pr.pr_number}</div>
+                </td>
+                <td class="px-2 py-3 text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</td>
+                <td class="px-2 py-3">${reviewBadge}</td>
+                <td class="px-2 py-3 text-slate-700 dark:text-slate-300 text-xs truncate">${escapeHtml(mergeableText)}</td>
+                <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">${pr.files_changed}</td>
+                <td class="px-2 py-3">
+                    <div class="flex flex-wrap gap-1 text-xs">
+                        <span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
+                            <i class="fas fa-check-circle"></i>${pr.checks_passed}
+                        </span>
+                        ${pr.checks_failed > 0 ? `<a href="https://github.com/${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}/pull/${escapeHtml(String(pr.pr_number))}/checks" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 hover:border-red-300 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                            <i class="fas fa-times-circle"></i>${escapeHtml(String(pr.checks_failed))}
+                        </a>` : `<span class="inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                            <i class="fas fa-times-circle"></i>${pr.checks_failed}
+                        </span>`}
+                        ${pr.checks_skipped > 0 ? `<span class="inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-slate-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-400">
+                            <i class="fas fa-minus-circle"></i>${pr.checks_skipped}
+                        </span>` : ''}
+                    </div>
+                </td>
+                <td class="px-2 py-3 text-center" id="readiness-overall-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3 text-center" id="readiness-ci-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3 text-center" id="readiness-review-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3 text-center" id="readiness-response-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3 text-center" id="readiness-feedback-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3" id="readiness-issues-${pr.id}">
+                    <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                </td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
+                <td class="px-2 py-3 text-center">
+                    <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
+                        <i class="fas fa-sync mr-1"></i>Update
+                    </button>
+                </td>
+            `;
+            return row;
+        }
+
+        function updateSinglePrRow(prId, prData) {
+            // Find and update the PR in allPrs array
+            const prIndex = allPrs.findIndex(pr => pr.id === prId);
+            if (prIndex !== -1) {
+                // Preserve the id from the existing PR
+                allPrs[prIndex] = { ...prData, id: prId };
+            }
+
+            // Get the existing row
+            const existingRow = document.getElementById(`pr-row-${prId}`);
+            if (!existingRow) return;
+
+            // Create new row with updated data
+            const newRow = createPrRow({ ...prData, id: prId });
+            
+            // Replace the old row with the new one
+            existingRow.replaceWith(newRow);
+
+            // Re-attach the click event listener to the new button
+            const updateBtn = newRow.querySelector('.update-btn');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', async (e) => {
+                    await updatePr(prId, e.currentTarget);
+                });
+            }
         }
 
         async function updatePr(prId, button) {
@@ -696,9 +728,17 @@
                     return;
                 }
 
-                // Reload PRs to get updated data
-                await loadPrs();
+                // Update only this PR row with fresh data
+                updateSinglePrRow(prId, refreshData.data);
                 await loadRateLimit();
+
+                // Get the new button reference after row update
+                const updatedRow = document.getElementById(`pr-row-${prId}`);
+                const updatedButton = updatedRow ? updatedRow.querySelector('.update-btn') : null;
+                if (!updatedButton) {
+                    console.error('Could not find updated button');
+                    return;
+                }
 
                 // Step 2: Analyze readiness
                 const readinessResponse = await fetch(`/api/prs/${prId}/readiness`);
@@ -706,9 +746,9 @@
                 
                 if (readinessData.error) {
                     showError(readinessData.error);
-                    button.innerHTML = originalHtml;
-                    button.disabled = false;
-                    button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    updatedButton.innerHTML = originalHtml;
+                    updatedButton.disabled = false;
+                    updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
                     return;
                 }
 
@@ -721,15 +761,20 @@
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
                 
-                button.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
-                button.disabled = false;
-                button.classList.remove('opacity-70', 'cursor-not-allowed');
+                updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
+                updatedButton.disabled = false;
+                updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
                 console.error('Error updating PR:', error);
                 showError('Failed to update PR');
-                button.innerHTML = originalHtml;
-                button.disabled = false;
-                button.classList.remove('opacity-70', 'cursor-not-allowed');
+                // Try to get the current button (might be the original or updated one)
+                const currentRow = document.getElementById(`pr-row-${prId}`);
+                const currentButton = currentRow ? currentRow.querySelector('.update-btn') : button;
+                if (currentButton) {
+                    currentButton.innerHTML = originalHtml;
+                    currentButton.disabled = false;
+                    currentButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
             }
         }
 
