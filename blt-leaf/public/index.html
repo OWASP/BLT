@@ -593,14 +593,9 @@
                     </td>
                     <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
                     <td class="px-2 py-3 text-center">
-                        <button class="readiness-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Analyze Readiness">
-                            <i class="fas fa-chart-line mr-1"></i>Analyze
+                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
+                            <i class="fas fa-sync mr-1"></i>Update
                         </button>
-                        <div class="mt-1">
-                            <button class="refresh-link text-xs text-slate-500 hover:text-[#E10000] dark:text-slate-400 dark:hover:text-red-400 underline decoration-dotted" data-pr-id="${pr.id}" title="Refresh PR data from GitHub">
-                                ↻ Refresh
-                            </button>
-                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -609,50 +604,78 @@
                 const storedData = loadReadinessData(pr.id);
                 if (storedData && storedData.readiness && storedData.reviewHealth) {
                     updateInlineCells(pr.id, storedData.readiness, storedData.reviewHealth);
-                    // Update button to show it was analyzed
-                    const analyzeBtn = row.querySelector('.readiness-btn');
-                    if (analyzeBtn) {
-                        analyzeBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                    // Update button to show it was updated
+                    const updateBtn = row.querySelector('.update-btn');
+                    if (updateBtn) {
+                        updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
                     }
                 }
             });
 
-            document.querySelectorAll('.readiness-btn').forEach(btn => {
+            document.querySelectorAll('.update-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const prId = e.currentTarget.dataset.prId;
-                    await checkReadiness(prId, e.currentTarget);
-                });
-            });
-
-            document.querySelectorAll('.refresh-link').forEach(link => {
-                link.addEventListener('click', async (e) => {
-                    const prId = e.currentTarget.dataset.prId;
-                    await refreshPr(prId, e.currentTarget);
+                    await updatePr(prId, e.currentTarget);
                 });
             });
         }
 
-        async function checkReadiness(prId, button) {
+        async function updatePr(prId, button) {
             const originalHtml = button.innerHTML;
             
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyzing...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Updating...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
-                const response = await fetch(`/api/prs/${prId}/readiness`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    showError(data.error);
+                // Step 1: Refresh PR data from GitHub
+                const refreshResponse = await fetch('/api/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pr_id: prId })
+                });
+
+                const refreshData = await refreshResponse.json();
+                if (refreshData.error) {
+                    showError(refreshData.error);
                     button.innerHTML = originalHtml;
                     button.disabled = false;
                     button.classList.remove('opacity-70', 'cursor-not-allowed');
                     return;
                 }
 
-                const readiness = data.readiness;
-                const reviewHealth = data.review_health;
+                // Clear cached readiness data for this PR since it's being refreshed
+                clearReadinessData(prId);
+                
+                // Check if PR was removed due to being merged/closed
+                if (refreshData.removed) {
+                    showError(refreshData.message || 'PR has been removed from tracking');
+                    await loadRepos();
+                    await loadPrs();
+                    await loadRateLimit();
+                    return;
+                }
+
+                // Reload PRs to get updated data
+                await loadPrs();
+                await loadRateLimit();
+
+                // Step 2: Analyze readiness
+                const readinessResponse = await fetch(`/api/prs/${prId}/readiness`);
+                const readinessData = await readinessResponse.json();
+                
+                if (readinessData.error) {
+                    showError(readinessData.error);
+                    button.innerHTML = originalHtml;
+                    button.disabled = false;
+                    button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    return;
+                }
+
+                const readiness = readinessData.readiness;
+                const reviewHealth = readinessData.review_health;
 
                 // Save readiness data to localStorage
                 saveReadinessData(prId, readiness, reviewHealth);
@@ -660,12 +683,12 @@
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
                 
-                button.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
-                console.error('Error checking readiness:', error);
-                showError('Failed to check PR readiness');
+                console.error('Error updating PR:', error);
+                showError('Failed to update PR');
                 button.innerHTML = originalHtml;
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
@@ -820,51 +843,6 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Add PR';
-            }
-        }
-
-        async function refreshPr(prId, link) {
-            if (!link) return;
-
-            const originalText = link.textContent;
-            link.disabled = true;
-            link.classList.add('opacity-50', 'pointer-events-none');
-            link.textContent = '↻ Refreshing...';
-
-            try {
-                const response = await fetch('/api/refresh', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ pr_id: prId })
-                });
-
-                const data = await response.json();
-                if (data.error) {
-                    showError(data.error);
-                    link.textContent = originalText;
-                    link.disabled = false;
-                    link.classList.remove('opacity-50', 'pointer-events-none');
-                } else {
-                    // Clear cached readiness data for this PR since it's being refreshed
-                    clearReadinessData(prId);
-                    
-                    // Check if PR was removed due to being merged/closed
-                    if (data.removed) {
-                        showError(data.message || 'PR has been removed from tracking');
-                        // Reload repos to update counts and potentially remove empty repos
-                        await loadRepos();
-                    }
-                    await loadPrs();
-                    await loadRateLimit();
-                }
-            } catch (error) {
-                console.error('Error refreshing PR:', error);
-                showError('Failed to refresh PR');
-                link.textContent = originalText;
-                link.disabled = false;
-                link.classList.remove('opacity-50', 'pointer-events-none');
             }
         }
 
