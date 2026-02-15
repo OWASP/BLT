@@ -383,9 +383,12 @@ When setting up the webhook in your GitHub repository, select the following even
 
 1. **Configure the webhook secret** (recommended for security):
    ```bash
+   # Generate a secure random secret (optional but recommended)
+   openssl rand -hex 32
+   
    # Add to your Cloudflare Worker secrets
    wrangler secret put GITHUB_WEBHOOK_SECRET
-   # You will be prompted to enter a secure random string
+   # You will be prompted to paste the secret generated above
    ```
 
 2. **Add the webhook to your GitHub repository:**
