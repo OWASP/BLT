@@ -1,0 +1,13 @@
+[Unit]
+Description=Flask Server for Ordinals Transactions
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/blockchain/ord-flask-server/BLT-Bacon/ord-server
+ExecStart=/blockchain/ord-flask-server/BLT-Bacon/ord-server/venv/bin/gunicorn -b 0.0.0.0:9002 ord-api:app
+Environment="PATH=/opt/bitcoin/28.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
