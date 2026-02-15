@@ -40,479 +40,564 @@ async def handle_homepage(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT API - OWASP Bug Logging Tool API</title>
+    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security issue tracking">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }}
-        
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }}
-        
-        .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }}
-        
-        .header h1 {{
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }}
-        
-        .header p {{
-            font-size: 1.2em;
-            opacity: 0.9;
-        }}
-        
-        .status {{
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 15px;
-        }}
-        
-        .content {{
-            padding: 40px;
-        }}
-        
-        .section {{
-            margin-bottom: 40px;
-        }}
-        
-        .section h2 {{
-            color: #667eea;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
-        }}
-        
-        .endpoint-group {{
-            margin-bottom: 30px;
-        }}
-        
-        .endpoint-group h3 {{
-            color: #374151;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }}
-        
-        .endpoint {{
-            background: #f9fafb;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }}
-        
-        .endpoint:hover {{
-            background: #f3f4f6;
-            transform: translateX(5px);
-        }}
-        
-        .method {{
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 0.85em;
-            margin-right: 10px;
-            min-width: 60px;
-            text-align: center;
-        }}
-        
-        .method-get {{
-            background: #3b82f6;
-            color: white;
-        }}
-        
-        .method-post {{
-            background: #10b981;
-            color: white;
-        }}
-        
-        .path {{
-            font-family: 'Courier New', monospace;
-            color: #1f2937;
-            font-weight: 500;
-        }}
-        
-        .description {{
-            color: #6b7280;
-            margin-top: 8px;
-            font-size: 0.95em;
-        }}
-        
-        .params {{
-            margin-top: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }}
-        
-        .params strong {{
-            color: #667eea;
-        }}
-        
-        .info-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }}
-        
-        .info-card {{
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }}
-        
-        .info-card h4 {{
-            color: #667eea;
-            margin-bottom: 10px;
-        }}
-        
-        .info-card p {{
-            color: #6b7280;
-            font-size: 0.95em;
-        }}
-        
-        .links {{
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }}
-        
-        .link-button {{
-            display: inline-block;
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s ease;
-        }}
-        
-        .link-button:hover {{
-            background: #5568d3;
-        }}
-        
-        .footer {{
-            background: #f9fafb;
-            padding: 20px;
-            text-align: center;
-            color: #6b7280;
-            border-top: 1px solid #e5e7eb;
-        }}
-        
-        code {{
-            background: #f3f4f6;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }}
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🛡️ BLT API</h1>
-            <p>OWASP Bug Logging Tool - Full-Featured REST API</p>
-            <span class="status">✓ Healthy</span>
-            <div class="links">
-                <a href="https://github.com/OWASP-BLT/BLT" class="link-button">GitHub</a>
-                <a href="https://blt.owasp.org" class="link-button">BLT Website</a>
-                <a href="{base_url}/health" class="link-button">Health Check (JSON)</a>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
+                    <h1 class="text-xl font-bold text-gray-900">BLT API</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{base_url}/health" class="text-gray-600 hover:text-red-600 font-medium">
+                        <i class="fas fa-heartbeat mr-1"></i> Health
+                    </a>
+                    <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors" 
+                       href="https://github.com/OWASP-BLT/BLT-API" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github mr-2"></i> GitHub
+                    </a>
+                </div>
             </div>
         </div>
-        
-        <div class="content">
-            <div class="section">
-                <h2>Overview</h2>
-                <p>Welcome to the BLT API! This API provides comprehensive access to the OWASP BLT (Bug Logging Tool) platform, running on Cloudflare Workers for global low-latency access. All endpoints return JSON responses and support CORS.</p>
-                
-                <div class="info-grid">
-                    <div class="info-card">
-                        <h4>🚀 Edge-Deployed</h4>
-                        <p>Running on Cloudflare's global network for minimal latency</p>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <section class="bg-white rounded-lg shadow p-8 mb-8 text-center">
+            <div class="max-w-3xl mx-auto">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4"><i class="fas fa-shield-alt text-red-600 text-4xl mr-2"></i> BLT API</h1>
+                <p class="text-xl text-gray-600 mb-6">
+                    OWASP Bug Logging Tool - Full-Featured REST API running on Cloudflare Workers for global low-latency access
+                </p>
+                <div class="flex justify-center items-center space-x-4 mb-6">
+                    <span class="inline-flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-lg font-medium">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        API Healthy
+                    </span>
+                    <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium">
+                        <i class="fas fa-globe mr-2"></i>
+                        Edge-Deployed
+                    </span>
+                </div>
+                <div class="flex justify-center space-x-3">
+                    <a href="https://blt.owasp.org" 
+                       class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        BLT Website
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/BLT" 
+                       class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github mr-2"></i>
+                        Main Repository
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Overview Section -->
+        <section class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Features</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-rocket text-xl"></i>
                     </div>
-                    <div class="info-card">
-                        <h4>🐍 Python-Powered</h4>
-                        <p>Built with Python for Cloudflare Workers</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Edge-Deployed</h3>
+                    <p class="text-gray-600 text-sm">Running on Cloudflare's global network for minimal latency</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i class="fab fa-python text-xl"></i>
                     </div>
-                    <div class="info-card">
-                        <h4>🔒 Secure</h4>
-                        <p>CORS enabled with authentication support</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Python-Powered</h3>
+                    <p class="text-gray-600 text-sm">Built with Python for Cloudflare Workers</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-lock text-xl"></i>
                     </div>
-                    <div class="info-card">
-                        <h4>📊 Comprehensive</h4>
-                        <p>Full API coverage for all BLT resources</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Secure</h3>
+                    <p class="text-gray-600 text-sm">CORS enabled with authentication support</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-chart-line text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Comprehensive</h3>
+                    <p class="text-gray-600 text-sm">Full API coverage for all BLT resources</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Endpoints Section -->
+        <section class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">API Endpoints</h2>
+            
+            <!-- Health & Status -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-heartbeat text-red-600 mr-2"></i>
+                    Health & Status
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/</code>
+                                <p class="text-gray-600 text-sm mt-1">API homepage (this page)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/health</code>
+                                <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="section">
-                <h2>API Endpoints</h2>
-                
-                <div class="endpoint-group">
-                    <h3>Health & Status</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/</span>
-                        <div class="description">API homepage (this page)</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/health</span>
-                        <div class="description">Health check endpoint (JSON response)</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Issues</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/issues</span>
-                        <div class="description">List all issues (paginated)</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>page</code>, <code>per_page</code>, <code>status</code> (open/closed), <code>domain</code>
+
+            <!-- Issues -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-bug text-red-600 mr-2"></i>
+                    Issues
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/issues</code>
+                                <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">status</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">domain</code>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/issues/{{id}}</span>
-                        <div class="description">Get a specific issue by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-post">POST</span>
-                        <span class="path">/issues</span>
-                        <div class="description">Create a new issue</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/issues/search</span>
-                        <div class="description">Search issues</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>q</code> (search query)
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Users</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/users</span>
-                        <div class="description">List all users (paginated)</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>page</code>, <code>per_page</code>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/issues</code>
+                                <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/users/{{id}}</span>
-                        <div class="description">Get a specific user by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/users/{{id}}/profile</span>
-                        <div class="description">Get detailed user profile</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Domains</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/domains</span>
-                        <div class="description">List all domains (paginated)</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>page</code>, <code>per_page</code>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/issues/search</code>
+                                <p class="text-gray-600 text-sm mt-1">Search issues</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">q</code>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/domains/{{id}}</span>
-                        <div class="description">Get a specific domain by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/domains/{{id}}/issues</span>
-                        <div class="description">Get all issues for a domain</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Organizations</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/organizations</span>
-                        <div class="description">List all organizations (paginated)</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>page</code>, <code>per_page</code>
-                        </div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/organizations/{{id}}</span>
-                        <div class="description">Get a specific organization by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/organizations/{{id}}/repos</span>
-                        <div class="description">Get repositories for an organization</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/organizations/{{id}}/projects</span>
-                        <div class="description">Get projects for an organization</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Projects</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/projects</span>
-                        <div class="description">List all projects (paginated)</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>page</code>, <code>per_page</code>
-                        </div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/projects/{{id}}</span>
-                        <div class="description">Get a specific project by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/projects/{{id}}/contributors</span>
-                        <div class="description">Get contributors for a project</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Bug Hunts</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/hunts</span>
-                        <div class="description">List all bug hunts</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/hunts/{{id}}</span>
-                        <div class="description">Get a specific hunt by ID</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/hunts/active</span>
-                        <div class="description">Get currently active hunts</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/hunts/previous</span>
-                        <div class="description">Get past hunts</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/hunts/upcoming</span>
-                        <div class="description">Get upcoming hunts</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Statistics</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/stats</span>
-                        <div class="description">Get platform statistics</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Leaderboard</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/leaderboard</span>
-                        <div class="description">Get global leaderboard</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/leaderboard/monthly</span>
-                        <div class="description">Get monthly leaderboard</div>
-                        <div class="params">
-                            <strong>Query params:</strong> <code>month</code> (1-12), <code>year</code> (e.g., 2024)
-                        </div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/leaderboard/organizations</span>
-                        <div class="description">Get organization leaderboard</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Contributors</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/contributors</span>
-                        <div class="description">List all contributors</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/contributors/{{id}}</span>
-                        <div class="description">Get a specific contributor by ID</div>
-                    </div>
-                </div>
-                
-                <div class="endpoint-group">
-                    <h3>Repositories</h3>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/repos</span>
-                        <div class="description">List repositories</div>
-                    </div>
-                    <div class="endpoint">
-                        <span class="method method-get">GET</span>
-                        <span class="path">/repos/{{id}}</span>
-                        <div class="description">Get a specific repository by ID</div>
                     </div>
                 </div>
             </div>
+
+            <!-- Users -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-users text-red-600 mr-2"></i>
+                    Users
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/users</code>
+                                <p class="text-gray-600 text-sm mt-1">List all users (paginated)</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/users/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific user by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/users/{{id}}/profile</code>
+                                <p class="text-gray-600 text-sm mt-1">Get detailed user profile</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domains -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-globe text-red-600 mr-2"></i>
+                    Domains
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/domains</code>
+                                <p class="text-gray-600 text-sm mt-1">List all domains (paginated)</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific domain by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/issues</code>
+                                <p class="text-gray-600 text-sm mt-1">Get all issues for a domain</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organizations -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-building text-red-600 mr-2"></i>
+                    Organizations
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/organizations</code>
+                                <p class="text-gray-600 text-sm mt-1">List all organizations (paginated)</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific organization by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}/repos</code>
+                                <p class="text-gray-600 text-sm mt-1">Get repositories for an organization</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}/projects</code>
+                                <p class="text-gray-600 text-sm mt-1">Get projects for an organization</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-folder-open text-red-600 mr-2"></i>
+                    Projects
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/projects</code>
+                                <p class="text-gray-600 text-sm mt-1">List all projects (paginated)</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/projects/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific project by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/projects/{{id}}/contributors</code>
+                                <p class="text-gray-600 text-sm mt-1">Get contributors for a project</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bug Hunts -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-crosshairs text-red-600 mr-2"></i>
+                    Bug Hunts
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/hunts</code>
+                                <p class="text-gray-600 text-sm mt-1">List all bug hunts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/hunts/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific hunt by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/hunts/active</code>
+                                <p class="text-gray-600 text-sm mt-1">Get currently active hunts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/hunts/previous</code>
+                                <p class="text-gray-600 text-sm mt-1">Get past hunts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/hunts/upcoming</code>
+                                <p class="text-gray-600 text-sm mt-1">Get upcoming hunts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-red-600 mr-2"></i>
+                    Statistics
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/stats</code>
+                                <p class="text-gray-600 text-sm mt-1">Get platform statistics</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-trophy text-red-600 mr-2"></i>
+                    Leaderboard
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/leaderboard</code>
+                                <p class="text-gray-600 text-sm mt-1">Get global leaderboard</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/leaderboard/monthly</code>
+                                <p class="text-gray-600 text-sm mt-1">Get monthly leaderboard</p>
+                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                    <span class="font-semibold text-red-600">Query params:</span> 
+                                    <code class="bg-white px-1 py-0.5 rounded">month</code>, 
+                                    <code class="bg-white px-1 py-0.5 rounded">year</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/leaderboard/organizations</code>
+                                <p class="text-gray-600 text-sm mt-1">Get organization leaderboard</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contributors -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user-friends text-red-600 mr-2"></i>
+                    Contributors
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/contributors</code>
+                                <p class="text-gray-600 text-sm mt-1">List all contributors</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/contributors/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific contributor by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repositories -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-code-branch text-red-600 mr-2"></i>
+                    Repositories
+                </h3>
+                <div class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/repos</code>
+                                <p class="text-gray-600 text-sm mt-1">List repositories</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start">
+                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                            <div class="flex-1">
+                                <code class="text-sm font-mono text-gray-800">/repos/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific repository by ID</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Response Format -->
+        <section class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Response Format</h2>
+            <p class="text-gray-600 text-center mb-6">All API endpoints return JSON responses in a consistent format</p>
             
-            <div class="section">
-                <h2>Response Format</h2>
-                <p>All API endpoints return JSON responses in a consistent format:</p>
-                
-                <div class="info-card" style="margin-top: 15px;">
-                    <h4>Success Response</h4>
-                    <pre><code>{{
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-green-600 mb-3 flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Success Response
+                    </h4>
+                    <pre class="bg-gray-50 p-3 rounded text-xs overflow-x-auto"><code>{{
   "success": true,
   "data": {{ ... }},
   "pagination": {{
@@ -524,34 +609,53 @@ async def handle_homepage(
 }}</code></pre>
                 </div>
                 
-                <div class="info-card" style="margin-top: 15px;">
-                    <h4>Error Response</h4>
-                    <pre><code>{{
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-red-600 mb-3 flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        Error Response
+                    </h4>
+                    <pre class="bg-gray-50 p-3 rounded text-xs overflow-x-auto"><code>{{
   "error": true,
   "message": "Error description",
   "status": 400
 }}</code></pre>
                 </div>
             </div>
-            
-            <div class="section">
-                <h2>Authentication</h2>
-                <p>Some endpoints require authentication. Include your API token in the Authorization header:</p>
-                <div class="info-card" style="margin-top: 15px;">
-                    <pre><code>Authorization: Token YOUR_API_TOKEN</code></pre>
+        </section>
+
+        <!-- Authentication -->
+        <section class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Authentication</h2>
+            <div class="max-w-3xl mx-auto">
+                <p class="text-gray-600 text-center mb-4">Some endpoints require authentication. Include your API token in the Authorization header:</p>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <pre class="text-sm"><code class="text-gray-800">Authorization: Token YOUR_API_TOKEN</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <p class="text-gray-600 mb-2">BLT API v1.0.0 | Made with ❤️ by the OWASP BLT Community</p>
+                <div class="flex justify-center space-x-4 text-sm">
+                    <a href="https://github.com/OWASP-BLT/BLT-API" class="text-red-600 hover:underline" target="_blank">
+                        <i class="fab fa-github mr-1"></i> Documentation
+                    </a>
+                    <span class="text-gray-400">•</span>
+                    <a href="https://blt.owasp.org" class="text-red-600 hover:underline" target="_blank">
+                        <i class="fas fa-external-link-alt mr-1"></i> Website
+                    </a>
+                    <span class="text-gray-400">•</span>
+                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-600 hover:underline" target="_blank">
+                        <i class="fab fa-github mr-1"></i> GitHub
+                    </a>
                 </div>
             </div>
         </div>
-        
-        <div class="footer">
-            <p>BLT API v1.0.0 | Made with ❤️ by the OWASP BLT Community</p>
-            <p style="margin-top: 10px;">
-                <a href="https://github.com/OWASP-BLT/BLT-API" style="color: #667eea; text-decoration: none;">Documentation</a> •
-                <a href="https://blt.owasp.org" style="color: #667eea; text-decoration: none;">Website</a> •
-                <a href="https://github.com/OWASP-BLT/BLT" style="color: #667eea; text-decoration: none;">GitHub</a>
-            </p>
-        </div>
-    </div>
+    </footer>
 </body>
 </html>"""
     
