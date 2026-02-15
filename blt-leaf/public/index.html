@@ -440,7 +440,7 @@
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score × 60%) + (Review Score × 40%)">
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 60%) + (Review Score * 40%)">
                                     <div class="truncate">Ready</div>
                                 </th>
                                 <th class="px-2 py-3 text-center" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
@@ -449,7 +449,7 @@
                                 <th class="px-2 py-3 text-center" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="truncate">Review</div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate - API: GET /repos/{owner}/{repo}/pulls/{pr_number}/commits + comments (response timing analysis)">
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="truncate">Response</div>
                                 </th>
                                 <th class="px-2 py-3 text-center" style="min-width: 80px;" title="Feedback Responded/Total - API: GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments analysis)">
