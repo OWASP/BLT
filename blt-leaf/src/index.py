@@ -1701,6 +1701,225 @@ async def handle_status(env):
             'environment': getattr(env, 'ENVIRONMENT', 'unknown')
         }), {'headers': {'Content-Type': 'application/json'}})
 
+async def verify_github_signature(request, payload_body, secret):
+    """
+    Verify GitHub webhook signature.
+    
+    Args:
+        request: The request object containing headers
+        payload_body: Raw request body as bytes or string
+        secret: Webhook secret configured in GitHub
+        
+    Returns:
+        bool: True if signature is valid, False otherwise
+    """
+    if not secret:
+        # If no secret is configured, skip verification (development mode)
+        print("WARNING: Webhook secret not configured - skipping signature verification")
+        return True
+    
+    signature_header = request.headers.get('x-hub-signature-256')
+    if not signature_header:
+        return False
+    
+    # GitHub sends signature as "sha256=<hash>"
+    try:
+        import hashlib
+        import hmac
+        
+        # Ensure payload_body is bytes
+        if isinstance(payload_body, str):
+            payload_body = payload_body.encode('utf-8')
+        
+        # Calculate expected signature
+        hash_object = hmac.new(secret.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+        expected_signature = "sha256=" + hash_object.hexdigest()
+        
+        # Constant-time comparison to prevent timing attacks
+        return hmac.compare_digest(expected_signature, signature_header)
+    except Exception as e:
+        print(f"Error verifying webhook signature: {e}")
+        return False
+
+async def handle_github_webhook(request, env):
+    """
+    POST /api/github/webhook
+    Handle GitHub webhook events for PR state changes.
+    
+    Supported events:
+    - pull_request: closed, reopened, synchronize, edited
+    - pull_request_review: submitted, edited, dismissed
+    - check_run: completed, requested_action
+    
+    Security:
+    - Verifies GitHub webhook signature using WEBHOOK_SECRET
+    - Validates event types before processing
+    
+    When a PR is closed or merged:
+    - Removes the PR from the database
+    - Returns event data for frontend to animate removal
+    
+    When a PR is updated:
+    - Refreshes PR data in the database
+    - Returns updated PR data for frontend
+    """
+    try:
+        # Get webhook secret from environment
+        webhook_secret = getattr(env, 'GITHUB_WEBHOOK_SECRET', None)
+        
+        # Get raw request body for signature verification
+        raw_body = await request.text()
+        
+        # Verify webhook signature
+        if not await verify_github_signature(request, raw_body, webhook_secret):
+            return Response.new(
+                json.dumps({'error': 'Invalid webhook signature'}),
+                {'status': 401, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Parse webhook payload
+        try:
+            payload = json.loads(raw_body)
+        except json.JSONDecodeError:
+            return Response.new(
+                json.dumps({'error': 'Invalid JSON payload'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Get event type from header
+        event_type = request.headers.get('x-github-event')
+        
+        if event_type == 'pull_request':
+            action = payload.get('action')
+            pr_data = payload.get('pull_request', {})
+            repo_data = payload.get('repository', {})
+            
+            # Extract PR details
+            pr_number = pr_data.get('number')
+            repo_owner = repo_data.get('owner', {}).get('login')
+            repo_name = repo_data.get('name')
+            state = pr_data.get('state')
+            merged = pr_data.get('merged', False)
+            
+            if not all([pr_number, repo_owner, repo_name]):
+                return Response.new(
+                    json.dumps({'error': 'Missing required PR data'}),
+                    {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Find the PR in our database
+            db = get_db(env)
+            pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
+            result = await db.prepare(
+                'SELECT id FROM prs WHERE pr_url = ?'
+            ).bind(pr_url).first()
+            
+            if not result:
+                # PR not being tracked - ignore this webhook
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': 'PR not tracked, ignoring webhook'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            pr_id = result.to_py()['id']
+            
+            # Handle closed/merged PRs - remove from database
+            if action == 'closed' or merged or state == 'closed':
+                # Invalidate caches
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                
+                # Delete the PR
+                await db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id).run()
+                
+                status_msg = 'merged' if merged else 'closed'
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'event': 'pr_removed',
+                        'pr_id': pr_id,
+                        'pr_number': pr_number,
+                        'status': status_msg,
+                        'message': f'PR #{pr_number} has been {status_msg} and removed from tracking'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Handle reopened PRs - re-add to tracking if it was tracked before
+            elif action == 'reopened':
+                # Fetch fresh PR data
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    # Invalidate caches
+                    await invalidate_readiness_cache(env, pr_id)
+                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_reopened',
+                            'pr_id': pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been reopened'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+            
+            # Handle synchronized (new commits) or edited PRs - update data
+            elif action in ['synchronize', 'edited']:
+                # Fetch fresh PR data
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    # Invalidate caches to force fresh analysis
+                    await invalidate_readiness_cache(env, pr_id)
+                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_updated',
+                            'pr_id': pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been updated'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+        
+        # Handle other event types (for future expansion)
+        elif event_type in ['pull_request_review', 'check_run', 'check_suite']:
+            # For now, just acknowledge these events
+            # In the future, we could update specific fields without full refresh
+            return Response.new(
+                json.dumps({
+                    'success': True,
+                    'message': f'Received {event_type} event, no action taken'
+                }),
+                {'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Unknown event type
+        return Response.new(
+            json.dumps({
+                'success': True,
+                'message': f'Received {event_type} event, no handler configured'
+            }),
+            {'headers': {'Content-Type': 'application/json'}}
+        )
+        
+    except Exception as e:
+        print(f"Error handling webhook: {type(e).__name__}: {str(e)}")
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
+
 async def handle_pr_timeline(request, env, path):
     """
     GET /api/prs/{id}/timeline
