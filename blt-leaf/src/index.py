@@ -35,18 +35,36 @@ _readiness_cache = {
 _READINESS_CACHE_TTL = 600
 
 def parse_pr_url(pr_url):
-    """Parse GitHub PR URL to extract owner, repo, and PR number"""
-    if not pr_url: return None
+    """
+    Parse GitHub PR URL to extract owner, repo, and PR number.
+    
+    Security Hardening (Issue #45):
+    - Type validation to prevent type confusion attacks
+    - Anchored regex pattern to block malformed URLs with trailing junk
+    - Raises ValueError instead of returning None for better error handling
+    """
+    # FIX Issue #45: Type validation
+    if not isinstance(pr_url, str):
+        raise ValueError("PR URL must be a string")
+    
+    if not pr_url:
+        raise ValueError("PR URL is required")
+    
     pr_url = pr_url.strip().rstrip('/')
-    pattern = r'https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)'
+    
+    # FIX Issue #45: Anchored regex - must match EXACTLY, no trailing junk allowed
+    pattern = r'^https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)$'
     match = re.match(pattern, pr_url)
-    if match:
-        return {
-            'owner': match.group(1),
-            'repo': match.group(2),
-            'pr_number': int(match.group(3))
-        }
-    return None
+    
+    if not match:
+        # FIX Issue #45: Raise error instead of returning None
+        raise ValueError("Invalid GitHub PR URL. Format: https://github.com/OWNER/REPO/pull/NUMBER")
+    
+    return {
+        'owner': match.group(1),
+        'repo': match.group(2),
+        'pr_number': int(match.group(3))
+    }
 
 def check_rate_limit(ip_address):
     """Check if request from IP is within rate limit for readiness endpoints.
@@ -932,17 +950,35 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
     await stmt.run()
 
 async def handle_add_pr(request, env):
-    """Handle adding a new PR or importing all PRs from a repo"""
+    """
+    Handle adding a new PR or importing all PRs from a repo.
+    
+    Security Hardening (Issue #45):
+    - Malformed JSON error handling
+    - Type validation for pr_url parameter
+    - Proper error handling for parse_pr_url ValueError
+    """
     try:
-        data = (await request.json()).to_py()
+        # Handle malformed JSON gracefully
+        try:
+            data = (await request.json()).to_py()
+        except Exception:
+            return Response.new(
+                json.dumps({'error': 'Malformed JSON payload'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
+        
         pr_url = data.get('pr_url')
         add_all = data.get('add_all', False)
         # Capture token from header
         user_token = request.headers.get('x-github-token')
         
-        if not pr_url:
-            return Response.new(json.dumps({'error': 'PR URL is required'}), 
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        # Type validation for pr_url
+        if not pr_url or not isinstance(pr_url, str):
+            return Response.new(
+                json.dumps({'error': 'A valid GitHub PR URL is required'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
         
         db = get_db(env)
         
@@ -999,10 +1035,14 @@ async def handle_add_pr(request, env):
 
         else:
             # Add single pr
-            parsed = parse_pr_url(pr_url)
-            if not parsed:
-                return Response.new(json.dumps({'error': 'Invalid GitHub PR URL'}), 
-                                  {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            # Catch ValueError from parse_pr_url
+            try:
+                parsed = parse_pr_url(pr_url)
+            except ValueError as e:
+                return Response.new(
+                    json.dumps({'error': str(e)}),
+                    {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+                )
             
             # Fetch PR data 
             pr_data = await fetch_pr_data(parsed['owner'], parsed['repo'], parsed['pr_number'], user_token)
@@ -1022,8 +1062,12 @@ async def handle_add_pr(request, env):
                               {'headers': {'Content-Type': 'application/json'}})
 
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        # Generic error message to prevent information disclosure
+        print(f"Internal error in handle_add_pr: {type(e).__name__}: {str(e)}")
+        return Response.new(
+            json.dumps({'error': 'Internal server error'}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_list_prs(env, repo_filter=None):
     """List all PRs, optionally filtered by repo."""
@@ -1562,7 +1606,7 @@ async def on_fetch(request, env):
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, x-github-token',
     }
     
     # Handle CORS preflight
