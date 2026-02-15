@@ -36,52 +36,111 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
 
-      - name: Monitor website
+      - name: Monitor all websites
         id: monitor
         run: |
-          start_time=$(date +%s%3N)
-          content=$(curl -s "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}")
-          end_time=$(date +%s%3N)
-          duration_ms=$((end_time - start_time))
-          duration_s=$(awk "BEGIN {printf \"%.3f\", $duration_ms/1000}")
-
-          if echo "$content" | grep -qi "${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}"; then
-            keyword_status="found"
+          # If manual trigger with custom URL, use that
+          if [ -n "${{ github.event.inputs.website_url }}" ]; then
+            echo "Manual trigger detected - monitoring single URL"
+            MONITORS='[{"id":"manual","name":"Manual","url":"${{ github.event.inputs.website_url }}","keyword":"${{ github.event.inputs.keyword }}"}]'
           else
-            keyword_status="not_found"
+            # Read all monitors from monitors.json
+            MONITORS=$(cat monitors.json)
           fi
 
-          # Check for Cloudflare captcha message
-          cloudflare_captcha=false
-          if echo "$content" | grep -qi "Verify you are human by completing the action below"; then
-            cloudflare_captcha=true
-          fi
+          # Initialize variables for Slack notification
+          echo "failed_monitors=" >> $GITHUB_OUTPUT
+          echo "has_failures=false" >> $GITHUB_OUTPUT
 
-          # Success if keyword found OR Cloudflare captcha detected (site is live)
-          if [ "$keyword_status" == "found" ] || [ "$cloudflare_captcha" == "true" ]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
-            echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
-            echo "keyword_status=$keyword_status" >> $GITHUB_OUTPUT
-          else
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
-            echo "duration_s=$duration_s" >> $GITHUB_OUTPUT
-            echo "keyword_status=$keyword_status" >> $GITHUB_OUTPUT
-          fi
+          # Loop through each monitor
+          echo "$MONITORS" | jq -c '.[]' | while read -r monitor; do
+            id=$(echo "$monitor" | jq -r '.id')
+            name=$(echo "$monitor" | jq -r '.name')
+            url=$(echo "$monitor" | jq -r '.url')
+            keyword=$(echo "$monitor" | jq -r '.keyword')
+            
+            echo "Monitoring: $name ($url)"
+            
+            # Monitor the website
+            start_time=$(date +%s%3N)
+            content=$(curl -s "$url")
+            response_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+            end_time=$(date +%s%3N)
+            duration_ms=$((end_time - start_time))
+            duration_s=$(awk "BEGIN {printf \"%.3f\", $duration_ms/1000}")
 
-      - name: Update status file
-        run: |
-          now_iso=$(date -Iseconds)
-          if [ ! -s status.csv ]; then
-            echo "datetime,duration_ms,status,keyword_status" > status.csv
+            # Check for keyword
+            if echo "$content" | grep -qi "$keyword"; then
+              keyword_status="found"
+            else
+              keyword_status="not_found"
+            fi
+
+            # Check for Cloudflare captcha message
+            cloudflare_captcha=false
+            if echo "$content" | grep -qi "Verify you are human by completing the action below"; then
+              cloudflare_captcha=true
+            fi
+
+            # Determine status
+            if [ "$keyword_status" == "found" ] || [ "$cloudflare_captcha" == "true" ]; then
+              status="success"
+            else
+              status="failure"
+              # Append to failed monitors list
+              echo "has_failures=true" >> $GITHUB_OUTPUT
+              echo "failed_monitors=$name ($url) - keyword '$keyword' not found" >> $GITHUB_OUTPUT
+            fi
+
+            echo "Result: $status (keyword: $keyword_status, duration: ${duration_s}s)"
+
+            # Update status file for this monitor
+            status_file="status-${id}.csv"
+            now_iso=$(date -Iseconds)
+            
+            if [ ! -s "$status_file" ]; then
+              echo "datetime,duration_ms,status,keyword_status" > "$status_file"
+            fi
+            
+            echo "$now_iso,$duration_ms,$status,$keyword_status" >> "$status_file"
+            
+            # Keep only last 30 rows (plus header)
+            head -n 1 "$status_file" > "${status_file}.tmp"
+            tail -n 30 "$status_file" >> "${status_file}.tmp"
+            mv "${status_file}.tmp" "$status_file"
+          done
+
+          # Also update the legacy status.csv for backward compatibility (uses first monitor or manual input)
+          if [ -n "${{ github.event.inputs.website_url }}" ]; then
+            # Manual trigger - use provided values
+            start_time=$(date +%s%3N)
+            content=$(curl -s "${{ github.event.inputs.website_url }}")
+            end_time=$(date +%s%3N)
+            duration_ms=$((end_time - start_time))
+            
+            if echo "$content" | grep -qi "${{ github.event.inputs.keyword }}"; then
+              keyword_status="found"
+              status="success"
+            else
+              keyword_status="not_found"
+              status="failure"
+            fi
+            
+            cloudflare_captcha=false
+            if echo "$content" | grep -qi "Verify you are human by completing the action below"; then
+              cloudflare_captcha=true
+              status="success"
+            fi
+            
+            now_iso=$(date -Iseconds)
+            if [ ! -s status.csv ]; then
+              echo "datetime,duration_ms,status,keyword_status" > status.csv
+            fi
+            echo "$now_iso,$duration_ms,$status,$keyword_status" >> status.csv
+            head -n 1 status.csv > status.csv.tmp
+            tail -n 30 status.csv >> status.csv.tmp
+            mv status.csv.tmp status.csv
           fi
-          echo "$now_iso,${{ steps.monitor.outputs.duration_ms }},${{ steps.monitor.outputs.status }},${{ steps.monitor.outputs.keyword_status }}" >> status.csv
-          # Keep only last 30 rows (plus header)
-          head -n 1 status.csv > status.csv.tmp
-          tail -n 30 status.csv >> status.csv.tmp
-          mv status.csv.tmp status.csv
 
       # Note: index.html generation was removed to support the new multi-monitor homepage
       # index.html is now a static page that lists all monitors from monitors.json
@@ -91,18 +150,18 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add status.csv
+          git add status*.csv
           git commit -m "Update website monitor status" || true
           git pull --rebase origin main || true
           git push origin main
 
       - name: Notify Slack on failure
-        if: steps.monitor.outputs.status == 'failure' || steps.monitor.outputs.keyword_status == 'not_found'
+        if: steps.monitor.outputs.has_failures == 'true'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "⚠️ Website Monitor Alert\n${{ steps.monitor.outputs.status == 'failure' && 'Website is down!' || 'Keyword not found!' }}\nLast check: ${{ steps.monitor.outputs.duration_s }}s\nResponse time: ${{ steps.monitor.outputs.duration_s }} seconds\nKeyword status: ${{ steps.monitor.outputs.keyword_status }}\nWebsite: ${{ github.event.inputs.website_url || env.DEFAULT_WEBSITE_URL }}\nKeyword: ${{ github.event.inputs.keyword || env.DEFAULT_KEYWORD }}\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+              "text": "⚠️ Website Monitor Alert\nOne or more monitors detected issues:\n${{ steps.monitor.outputs.failed_monitors }}\nMonitor Dashboard: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
