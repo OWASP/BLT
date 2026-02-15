@@ -127,20 +127,24 @@ View real-time statistics at our **[Stats Dashboard](https://owasp-blt.github.io
 
 ## ☁️ Cloudflare Worker
 
-The bot is powered by a **Python Cloudflare Worker** that:
+BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** that serves as the complete backend:
 
-- Handles Slack webhook events
-- Sends personalized welcome messages
-- Tracks statistics in KV storage
-- Provides a stats API for the dashboard
-- Caches project metadata (expires every 24-48 hours)
+- **Homepage**: Serves the dashboard at the root URL
+- **Slack Events**: Handles all webhook events (team joins, messages, mentions)
+- **Welcome Messages**: Sends personalized welcome messages to new members
+- **Message Handling**: Detects keywords like "contribute" and provides helpful responses
+- **Direct Messages**: Responds to user DMs
+- **Stats Tracking**: Tracks statistics in KV storage with atomic updates
+- **Stats API**: Provides a JSON endpoint for live statistics
+- **Multi-Org Support**: Can be installed in any Slack organization
 
-See [cloudflare-worker/README.md](cloudflare-worker/README.md) for setup instructions.
+See [cloudflare-worker/README.md](cloudflare-worker/README.md) for detailed setup instructions.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/` | GET | Homepage dashboard |
 | `/webhook` | POST | Slack webhook for events |
 | `/stats` | GET | Returns statistics JSON |
 | `/health` | GET | Health check endpoint |
@@ -151,46 +155,56 @@ See [cloudflare-worker/README.md](cloudflare-worker/README.md) for setup instruc
 
 ### Prerequisites
 
-- Python 3.10+
-- [Poetry](https://python-poetry.org/docs/#installation) for dependency management
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) for Cloudflare Workers
+- Cloudflare account
 - Slack Bot Token and Signing Secret
 
-### Installation
+### Deploy to Cloudflare Workers
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/OWASP-BLT/BLT-Lettuce.git
-   cd BLT-Lettuce
+   cd BLT-Lettuce/cloudflare-worker
    ```
 
-2. **Install dependencies**
+2. **Install Wrangler and login**
    ```bash
-   poetry install
+   npm install -g wrangler
+   wrangler login
    ```
 
-3. **Set up environment variables**
+3. **Create KV namespace**
    ```bash
-   cp .env.sample .env
-   # Edit .env with your Slack credentials
+   wrangler kv:namespace create "STATS_KV"
+   # Copy the namespace ID and update it in wrangler.toml
    ```
 
-4. **Run locally**
+4. **Set up secrets**
    ```bash
-   poetry run python app.py
+   wrangler secret put SLACK_TOKEN       # Your Bot User OAuth Token
+   wrangler secret put SIGNING_SECRET    # Your Signing Secret
    ```
 
-### Deploy Cloudflare Worker
+5. **Deploy the worker**
+   ```bash
+   wrangler deploy
+   ```
 
-```bash
-cd cloudflare-worker
-wrangler login
-wrangler kv:namespace create "STATS_KV"
-# Update wrangler.toml with the namespace ID
-wrangler secret put SLACK_TOKEN
-wrangler secret put SIGNING_SECRET
-wrangler deploy
-```
+6. **Configure Slack App**
+   - Use the `manifest.yaml` to create or update your Slack app
+   - Or manually configure Event Subscriptions URL: `https://your-worker.workers.dev/webhook`
+   - Subscribe to events: `team_join`, `message.channels`, `message.im`, `app_mention`
+
+### Adding to Any Slack Organization
+
+This bot supports org-wide deployment and can be installed in any Slack workspace:
+
+1. Create your Slack app using the provided `manifest.yaml`
+2. Deploy the Cloudflare Worker to your account
+3. Enable **Org-Wide App Installation** in your Slack app settings
+4. Share the installation URL with other organizations
+
+Each organization will have its own isolated statistics and configuration.
 
 ---
 
@@ -198,21 +212,24 @@ wrangler deploy
 
 ```
 BLT-Lettuce/
-├── app.py                  # Main Flask application
-├── cloudflare-worker/      # Cloudflare Worker code
-│   ├── worker.py           # Python worker implementation
+├── cloudflare-worker/      # Cloudflare Worker (Main Application)
+│   ├── worker.py           # Complete Python worker with all bot logic
 │   ├── wrangler.toml       # Worker configuration
 │   └── README.md           # Worker documentation
+├── manifest.yaml           # Slack App manifest for easy setup
+├── docs/
+│   └── index.html          # GitHub Pages dashboard (reference)
+├── app.py                  # Legacy Flask application (kept for reference)
 ├── data/
 │   ├── projects.json       # OWASP project metadata cache
 │   └── repos.json          # Repository categorization
-├── docs/
-│   └── index.html          # GitHub Pages dashboard
-├── src/lettuce/            # Bot plugins and modules
+├── src/lettuce/            # Bot plugins and modules (for reference)
 ├── tests/                  # Test suite
-├── pyproject.toml          # Poetry configuration
+├── pyproject.toml          # Python dependencies
 └── README.md               # This file
 ```
+
+**Note**: The primary application is now the Cloudflare Worker in `cloudflare-worker/`. The Flask app (`app.py`) and related plugins are kept for historical reference and may be removed in a future release. All new development should focus on the Cloudflare Worker implementation.
 
 ---
 
