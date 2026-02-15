@@ -559,6 +559,8 @@ async def init_database_schema(env):
                 checks_passed INTEGER DEFAULT 0,
                 checks_failed INTEGER DEFAULT 0,
                 checks_skipped INTEGER DEFAULT 0,
+                commits_count INTEGER DEFAULT 0,
+                behind_by INTEGER DEFAULT 0,
                 review_status TEXT,
                 last_updated_at TEXT,
                 last_refreshed_at TEXT,
@@ -595,6 +597,8 @@ async def init_database_schema(env):
             # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
             new_columns = [
                 ('last_refreshed_at', 'TEXT'),
+                ('commits_count', 'INTEGER DEFAULT 0'),
+                ('behind_by', 'INTEGER DEFAULT 0'),
                 ('overall_score', 'INTEGER'),
                 ('ci_score', 'INTEGER'),
                 ('review_score', 'INTEGER'),
@@ -676,18 +680,28 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+        commits_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=1"
         
-        # Fetch files, reviews, and checks in parallel using asyncio.gather
+        # Extract base and head branch information for comparison
+        base_ref = pr_data['base']['sha']
+        head_ref = pr_data['head']['sha']
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_ref}...{head_ref}"
+        
+        # Fetch files, reviews, checks, commits, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         files_data = []
         reviews_data = []
         checks_data = {}
+        commits_response = None
+        compare_data = {}
         
         try:
             results = await asyncio.gather(
                 fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(reviews_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
+                fetch_with_headers(commits_url, headers, token),
+                fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
             
@@ -702,6 +716,14 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process checks result
             if not isinstance(results[2], Exception) and results[2].status == 200:
                 checks_data = (await results[2].json()).to_py()
+            
+            # Process commits result - get the total count from Link header
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                commits_response = results[3]
+            
+            # Process compare result
+            if not isinstance(results[4], Exception) and results[4].status == 200:
+                compare_data = (await results[4].json()).to_py()
         except: pass
         
         # Process check runs
@@ -717,6 +739,14 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                     checks_failed += 1
                 elif check['conclusion'] in ['skipped', 'neutral']:
                     checks_skipped += 1
+        
+        # Get commits count from pr_data (GitHub provides this)
+        commits_count = pr_data.get('commits', 0)
+        
+        # Get behind_by count from compare data
+        behind_by = 0
+        if compare_data and 'behind_by' in compare_data:
+            behind_by = compare_data.get('behind_by', 0)
         
         # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'pending'
@@ -745,6 +775,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
             'checks_skipped': checks_skipped,
+            'commits_count': commits_count,
+            'behind_by': behind_by,
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', '')
         }
@@ -1295,8 +1327,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, checks_passed, checks_failed, checks_skipped, 
-                       review_status, last_updated_at, last_refreshed_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       commits_count, behind_by, review_status, last_updated_at, 
+                       last_refreshed_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1306,6 +1339,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             checks_passed = excluded.checks_passed,
             checks_failed = excluded.checks_failed,
             checks_skipped = excluded.checks_skipped,
+            commits_count = excluded.commits_count,
+            behind_by = excluded.behind_by,
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
@@ -1321,7 +1356,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['author_avatar'],
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
-        pr_data['checks_skipped'], 
+        pr_data['checks_skipped'],
+        pr_data.get('commits_count', 0),
+        pr_data.get('behind_by', 0),
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp
     )
