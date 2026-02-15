@@ -387,7 +387,7 @@ async def delete_readiness_from_db(env, pr_id):
                 ci_score = NULL,
                 review_score = NULL,
                 classification = NULL,
-                merge_ready = 0,
+                merge_ready = NULL,
                 blockers = NULL,
                 warnings = NULL,
                 recommendations = NULL,
@@ -510,6 +510,7 @@ async def init_database_schema(env):
             column_names = [col['name'] for col in columns if isinstance(col, dict)]
             
             # List of new columns to add for readiness data
+            # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
             new_columns = [
                 ('last_refreshed_at', 'TEXT'),
                 ('overall_score', 'INTEGER'),
@@ -528,8 +529,15 @@ async def init_database_schema(env):
                 ('readiness_computed_at', 'TEXT')
             ]
             
+            # Whitelist of allowed column names for security
+            allowed_columns = {name for name, _ in new_columns}
+            
             for col_name, col_type in new_columns:
                 if col_name not in column_names:
+                    # Double-check column name is in whitelist before using in SQL
+                    if col_name not in allowed_columns:
+                        print(f"Security: Skipping unauthorized column {col_name}")
+                        continue
                     print(f"Migrating database: Adding {col_name} column")
                     alter_table = db.prepare(f'ALTER TABLE prs ADD COLUMN {col_name} {col_type}')
                     await alter_table.run()

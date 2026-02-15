@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS prs (
     last_refreshed_at TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    -- Readiness analysis fields (persisted to survive page refresh)
+    -- Readiness analysis fields
+    -- Persisted to database to survive page refreshes, worker restarts, and provide permanent record
     overall_score INTEGER,
     ci_score INTEGER,
     review_score INTEGER,
