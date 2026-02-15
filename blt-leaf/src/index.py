@@ -261,11 +261,12 @@ async def load_readiness_from_db(env, pr_id):
         pr_id: PR ID
         
     Returns:
-        Dictionary with readiness data or None if not found
+        Dictionary with complete response data including PR info and readiness, or None if not found
     """
     try:
         db = get_db(env)
         
+        # Load readiness data
         stmt = db.prepare('SELECT * FROM pr_readiness WHERE pr_id = ?')
         result = await stmt.bind(pr_id).first()
         
@@ -276,17 +277,47 @@ async def load_readiness_from_db(env, pr_id):
         # Convert result to Python dict
         row = result.to_py() if hasattr(result, 'to_py') else dict(result)
         
+        # Also load PR data to reconstruct complete response
+        pr_stmt = db.prepare('SELECT * FROM prs WHERE id = ?')
+        pr_result = await pr_stmt.bind(pr_id).first()
+        
+        if not pr_result:
+            print(f"Database: PR {pr_id} not found")
+            return None
+        
+        pr = pr_result.to_py() if hasattr(pr_result, 'to_py') else dict(pr_result)
+        
         # Parse JSON strings back to lists
         blockers = json.loads(row.get('blockers', '[]'))
         warnings = json.loads(row.get('warnings', '[]'))
         recommendations = json.loads(row.get('recommendations', '[]'))
         
-        # Reconstruct the response structure
+        # Get numeric values for display formatting
+        overall_score = row.get('overall_score', 0)
+        ci_score = row.get('ci_score', 0)
+        review_score = row.get('review_score', 0)
+        response_rate = row.get('response_rate', 0.0)
+        
+        # Reconstruct the complete response structure with PR info and display fields
         readiness_data = {
+            'pr': {
+                'id': pr['id'],
+                'title': pr.get('title'),
+                'author': pr.get('author_login'),
+                'repo': f"{pr['repo_owner']}/{pr['repo_name']}",
+                'number': pr['pr_number'],
+                'state': pr.get('state'),
+                'is_merged': pr.get('is_merged') == 1,
+                'mergeable_state': pr.get('mergeable_state'),
+                'files_changed': pr.get('files_changed')
+            },
             'readiness': {
-                'overall_score': row.get('overall_score'),
-                'ci_score': row.get('ci_score'),
-                'review_score': row.get('review_score'),
+                'overall_score': overall_score,
+                'overall_score_display': f"{overall_score}%",
+                'ci_score': ci_score,
+                'ci_score_display': f"{ci_score}%",
+                'review_score': review_score,
+                'review_score_display': f"{review_score}%",
                 'classification': row.get('classification'),
                 'merge_ready': bool(row.get('merge_ready')),
                 'blockers': blockers,
@@ -296,7 +327,9 @@ async def load_readiness_from_db(env, pr_id):
             'review_health': {
                 'classification': row.get('review_health_classification'),
                 'score': row.get('review_health_score'),
-                'response_rate': row.get('response_rate'),
+                'score_display': f"{row.get('review_health_score', 0)}%",
+                'response_rate': response_rate,
+                'response_rate_display': f"{int(response_rate * 100)}%",
                 'total_feedback': row.get('total_feedback'),
                 'responded_feedback': row.get('responded_feedback')
             },
