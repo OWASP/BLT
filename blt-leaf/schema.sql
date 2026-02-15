@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS prs (
     response_rate REAL,
     total_feedback INTEGER,
     responded_feedback INTEGER,
-    readiness_computed_at TEXT
+    readiness_computed_at TEXT,
+    is_draft INTEGER DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
