@@ -112,10 +112,13 @@ def check_rate_limit(ip_address):
     print(f"Rate limit: EXCEEDED for {ip_address} - retry after {retry_after}s")
     return (False, retry_after)
 
-def get_readiness_cache(pr_id):
+async def get_readiness_cache(env, pr_id):
     """Get cached readiness result for a PR if still valid.
     
+    First checks in-memory cache, then falls back to database if not found.
+    
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
         
     Returns:
@@ -123,51 +126,285 @@ def get_readiness_cache(pr_id):
     """
     global _readiness_cache
     
-    if pr_id not in _readiness_cache:
-        print(f"Cache: MISS for PR {pr_id} (not found)")
-        return None
+    # Check in-memory cache first
+    if pr_id in _readiness_cache:
+        cache_entry = _readiness_cache[pr_id]
+        current_time = Date.now() / 1000
+        
+        # Check if cache is still valid
+        if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
+            age = int(current_time - cache_entry['timestamp'])
+            print(f"Cache: HIT (memory) for PR {pr_id} (age: {age}s)")
+            return cache_entry['data']
+        
+        # Cache expired - remove it
+        del _readiness_cache[pr_id]
+        print(f"Cache: MISS (memory expired) for PR {pr_id}")
+    else:
+        print(f"Cache: MISS (memory) for PR {pr_id}")
     
-    cache_entry = _readiness_cache[pr_id]
-    current_time = Date.now() / 1000
+    # Fall back to database
+    db_data = await load_readiness_from_db(env, pr_id)
+    if db_data:
+        # Store in memory cache for faster subsequent access
+        current_time = Date.now() / 1000
+        _readiness_cache[pr_id] = {
+            'data': db_data,
+            'timestamp': current_time
+        }
+        print(f"Cache: HIT (database) for PR {pr_id} - loaded into memory")
+        return db_data
     
-    # Check if cache is still valid
-    if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
-        age = int(current_time - cache_entry['timestamp'])
-        print(f"Cache: HIT for PR {pr_id} (age: {age}s)")
-        return cache_entry['data']
-    
-    # Cache expired - remove it
-    del _readiness_cache[pr_id]
-    print(f"Cache: MISS for PR {pr_id} (expired)")
+    print(f"Cache: MISS (database) for PR {pr_id}")
     return None
 
-def set_readiness_cache(pr_id, data):
-    """Cache readiness result for a PR.
+async def set_readiness_cache(env, pr_id, data):
+    """Cache readiness result for a PR in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
         data: Readiness data to cache
     """
     global _readiness_cache
     
+    # Store in memory cache
     current_time = Date.now() / 1000
     _readiness_cache[pr_id] = {
         'data': data,
         'timestamp': current_time
     }
-    print(f"Cache: Stored result for PR {pr_id}")
+    print(f"Cache: Stored result (memory) for PR {pr_id}")
+    
+    # Also save to database for persistence
+    await save_readiness_to_db(env, pr_id, data)
 
-def invalidate_readiness_cache(pr_id):
-    """Invalidate cached readiness result for a PR.
+async def invalidate_readiness_cache(env, pr_id):
+    """Invalidate cached readiness result for a PR in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         pr_id: PR ID
     """
     global _readiness_cache
     
+    # Remove from memory cache
     if pr_id in _readiness_cache:
         del _readiness_cache[pr_id]
-        print(f"Cache invalidated for PR {pr_id}")
+        print(f"Cache: Invalidated (memory) for PR {pr_id}")
+    
+    # Also remove from database
+    await delete_readiness_from_db(env, pr_id)
+
+async def save_readiness_to_db(env, pr_id, readiness_data):
+    """Save readiness analysis results to database in the prs table.
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+        readiness_data: Dictionary containing readiness analysis results
+    """
+    try:
+        db = get_db(env)
+        
+        # Extract data from the response structure
+        readiness = readiness_data.get('readiness', {})
+        review_health = readiness_data.get('review_health', {})
+        
+        # Convert lists to JSON strings for storage
+        blockers_json = json.dumps(readiness.get('blockers', []))
+        warnings_json = json.dumps(readiness.get('warnings', []))
+        recommendations_json = json.dumps(readiness.get('recommendations', []))
+        
+        # Update the existing PR row with readiness data
+        stmt = db.prepare('''
+            UPDATE prs SET
+                overall_score = ?,
+                ci_score = ?,
+                review_score = ?,
+                classification = ?,
+                merge_ready = ?,
+                blockers = ?,
+                warnings = ?,
+                recommendations = ?,
+                review_health_classification = ?,
+                review_health_score = ?,
+                response_rate = ?,
+                total_feedback = ?,
+                responded_feedback = ?,
+                readiness_computed_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''')
+        
+        await stmt.bind(
+            readiness.get('overall_score'),
+            readiness.get('ci_score'),
+            readiness.get('review_score'),
+            readiness.get('classification'),
+            1 if readiness.get('merge_ready') else 0,
+            blockers_json,
+            warnings_json,
+            recommendations_json,
+            review_health.get('classification'),
+            review_health.get('score'),
+            review_health.get('response_rate'),
+            review_health.get('total_feedback'),
+            review_health.get('responded_feedback'),
+            pr_id
+        ).run()
+        
+        print(f"Database: Saved readiness data for PR {pr_id}")
+    except Exception as e:
+        print(f"Error saving readiness to database for PR {pr_id}: {str(e)}")
+        # Don't raise - we can continue with in-memory cache only
+
+async def load_readiness_from_db(env, pr_id):
+    """Load readiness analysis results from database (prs table).
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+        
+    Returns:
+        Dictionary with complete response data including PR info and readiness, or None if not found
+    """
+    try:
+        db = get_db(env)
+        
+        # Load PR data with readiness fields - explicitly select needed columns
+        stmt = db.prepare('''
+            SELECT id, title, author_login, repo_owner, repo_name, pr_number, 
+                   state, is_merged, mergeable_state, files_changed,
+                   checks_passed, checks_failed, checks_skipped,
+                   overall_score, ci_score, review_score, classification, 
+                   merge_ready, blockers, warnings, recommendations,
+                   review_health_classification, review_health_score, 
+                   response_rate, total_feedback, responded_feedback,
+                   readiness_computed_at
+            FROM prs WHERE id = ?
+        ''')
+        result = await stmt.bind(pr_id).first()
+        
+        if not result:
+            print(f"Database: PR {pr_id} not found")
+            return None
+        
+        # Convert result to Python dict
+        pr = result.to_py() if hasattr(result, 'to_py') else dict(result)
+        
+        # Check if readiness data exists (overall_score will be None if never computed)
+        if pr.get('overall_score') is None:
+            print(f"Database: No readiness data found for PR {pr_id}")
+            return None
+        
+        # Parse JSON strings back to lists - with error handling
+        try:
+            blockers = json.loads(pr.get('blockers', '[]'))
+        except Exception as e:
+            print(f"Failed to parse blockers JSON for PR {pr_id}: {str(e)}")
+            return None
+        
+        try:
+            warnings = json.loads(pr.get('warnings', '[]'))
+        except Exception as e:
+            print(f"Failed to parse warnings JSON for PR {pr_id}: {str(e)}")
+            return None
+        
+        try:
+            recommendations = json.loads(pr.get('recommendations', '[]'))
+        except Exception as e:
+            print(f"Failed to parse recommendations JSON for PR {pr_id}: {str(e)}")
+            return None
+        
+        # Get numeric values for display formatting
+        overall_score = pr.get('overall_score', 0)
+        ci_score = pr.get('ci_score', 0)
+        review_score = pr.get('review_score', 0)
+        response_rate = pr.get('response_rate', 0.0)
+        
+        # Reconstruct the complete response structure with PR info and display fields
+        readiness_data = {
+            'pr': {
+                'id': pr['id'],
+                'title': pr.get('title'),
+                'author': pr.get('author_login'),
+                'repo': f"{pr['repo_owner']}/{pr['repo_name']}",
+                'number': pr['pr_number'],
+                'state': pr.get('state'),
+                'is_merged': pr.get('is_merged') == 1,
+                'mergeable_state': pr.get('mergeable_state'),
+                'files_changed': pr.get('files_changed')
+            },
+            'readiness': {
+                'overall_score': overall_score,
+                'overall_score_display': f"{overall_score}%",
+                'ci_score': ci_score,
+                'ci_score_display': f"{ci_score}%",
+                'review_score': review_score,
+                'review_score_display': f"{review_score}%",
+                'classification': row.get('classification'),
+                'merge_ready': bool(row.get('merge_ready')),
+                'blockers': blockers,
+                'warnings': warnings,
+                'recommendations': recommendations
+            },
+            'review_health': {
+                'classification': pr.get('review_health_classification'),
+                'score': pr.get('review_health_score'),
+                'score_display': f"{pr.get('review_health_score', 0)}%",
+                'response_rate': response_rate,
+                'response_rate_display': f"{int(response_rate * 100)}%",
+                'total_feedback': pr.get('total_feedback'),
+                'responded_feedback': pr.get('responded_feedback')
+            },
+            'ci_checks': {
+                'passed': pr.get('checks_passed'),
+                'failed': pr.get('checks_failed'),
+                'skipped': pr.get('checks_skipped')
+            }
+        }
+        
+        print(f"Database: Loaded readiness data for PR {pr_id}")
+        return readiness_data
+    except Exception as e:
+        print(f"Error loading readiness from database for PR {pr_id}: {str(e)}")
+        return None
+
+async def delete_readiness_from_db(env, pr_id):
+    """Clear readiness analysis results from database (prs table).
+    
+    Args:
+        env: Worker environment with database binding
+        pr_id: PR ID
+    """
+    try:
+        db = get_db(env)
+        
+        # Clear readiness fields in the prs table
+        stmt = db.prepare('''
+            UPDATE prs SET
+                overall_score = NULL,
+                ci_score = NULL,
+                review_score = NULL,
+                classification = NULL,
+                merge_ready = NULL,
+                blockers = NULL,
+                warnings = NULL,
+                recommendations = NULL,
+                review_health_classification = NULL,
+                review_health_score = NULL,
+                response_rate = NULL,
+                total_feedback = NULL,
+                responded_feedback = NULL,
+                readiness_computed_at = NULL
+            WHERE id = ?
+        ''')
+        await stmt.bind(pr_id).run()
+        
+        print(f"Database: Cleared readiness data for PR {pr_id}")
+    except Exception as e:
+        print(f"Error clearing readiness from database for PR {pr_id}: {str(e)}")
+        # Don't raise - cache invalidation is already done
 
 def parse_repo_url(url):
     """Parse GitHub Repo URL to extract owner and repo name"""
@@ -244,27 +481,69 @@ async def init_database_schema(env):
                 last_updated_at TEXT,
                 last_refreshed_at TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                overall_score INTEGER,
+                ci_score INTEGER,
+                review_score INTEGER,
+                classification TEXT,
+                merge_ready INTEGER DEFAULT 0,
+                blockers TEXT,
+                warnings TEXT,
+                recommendations TEXT,
+                review_health_classification TEXT,
+                review_health_score INTEGER,
+                response_rate REAL,
+                total_feedback INTEGER,
+                responded_feedback INTEGER,
+                readiness_computed_at TEXT
             )
         ''')
         await create_table.run()
         
-        # Migration: Add last_refreshed_at column if it doesn't exist
-        # Check if column exists by querying PRAGMA table_info
+        # Migration: Add columns if they don't exist
+        # Check if columns exist by querying PRAGMA table_info
         try:
             pragma_result = db.prepare('PRAGMA table_info(prs)')
             columns_result = await pragma_result.all()
             columns = columns_result.results.to_py() if hasattr(columns_result, 'results') else []
             
-            # Check if last_refreshed_at column exists
             column_names = [col['name'] for col in columns if isinstance(col, dict)]
-            if 'last_refreshed_at' not in column_names:
-                print("Migrating database: Adding last_refreshed_at column")
-                alter_table = db.prepare('ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT')
-                await alter_table.run()
+            
+            # List of new columns to add for readiness data
+            # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
+            new_columns = [
+                ('last_refreshed_at', 'TEXT'),
+                ('overall_score', 'INTEGER'),
+                ('ci_score', 'INTEGER'),
+                ('review_score', 'INTEGER'),
+                ('classification', 'TEXT'),
+                ('merge_ready', 'INTEGER DEFAULT 0'),
+                ('blockers', 'TEXT'),
+                ('warnings', 'TEXT'),
+                ('recommendations', 'TEXT'),
+                ('review_health_classification', 'TEXT'),
+                ('review_health_score', 'INTEGER'),
+                ('response_rate', 'REAL'),
+                ('total_feedback', 'INTEGER'),
+                ('responded_feedback', 'INTEGER'),
+                ('readiness_computed_at', 'TEXT')
+            ]
+            
+            # Whitelist of allowed column names for security
+            allowed_columns = {name for name, _ in new_columns}
+            
+            for col_name, col_type in new_columns:
+                if col_name not in column_names:
+                    # Double-check column name is in whitelist before using in SQL
+                    if col_name not in allowed_columns:
+                        print(f"Security: Skipping unauthorized column {col_name}")
+                        continue
+                    print(f"Migrating database: Adding {col_name} column")
+                    alter_table = db.prepare(f'ALTER TABLE prs ADD COLUMN {col_name} {col_type}')
+                    await alter_table.run()
         except Exception as migration_error:
             # Column may already exist or migration failed - log but continue
-            print(f"Note: Migration check for last_refreshed_at: {str(migration_error)}")
+            print(f"Note: Migration check: {str(migration_error)}")
         
         # Create indexes (idempotent with IF NOT EXISTS)
         index1 = db.prepare('CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name)')
@@ -1160,7 +1439,7 @@ async def handle_refresh_pr(request, env):
         # Check if PR is now merged or closed - delete it from database
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
             # Invalidate readiness cache since PR state changed
-            invalidate_readiness_cache(pr_id)
+            await invalidate_readiness_cache(env, pr_id)
             
             # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
@@ -1177,7 +1456,7 @@ async def handle_refresh_pr(request, env):
         
         # Invalidate readiness cache after successful refresh
         # This ensures cached results don't become stale after new commits or review activity
-        invalidate_readiness_cache(pr_id)
+        await invalidate_readiness_cache(env, pr_id)
         
         return Response.new(json.dumps({'success': True, 'data': pr_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
@@ -1491,7 +1770,7 @@ async def handle_pr_readiness(request, env, path):
             )
         
         # Check cache first
-        cached_result = get_readiness_cache(pr_id)
+        cached_result = await get_readiness_cache(env, pr_id)
         if cached_result:
             # Return cached response with cache headers
             return Response.new(
@@ -1573,7 +1852,7 @@ async def handle_pr_readiness(request, env, path):
         }
         
         # Cache the result
-        set_readiness_cache(pr_id, response_data)
+        await set_readiness_cache(env, pr_id, response_data)
         
         return Response.new(
             json.dumps(response_data),
