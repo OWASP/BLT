@@ -93,7 +93,10 @@ wrangler login
 wrangler d1 create pr_tracker
 ```
 
-5. Update `wrangler.toml` with your database ID from the previous step.
+5. Create `.env` file and populate it with Database ID from previous step:
+```bash
+cp .env.example .env
+```
 
 6. Initialize the database schema:
 ```bash

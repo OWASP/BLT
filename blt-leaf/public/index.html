@@ -30,10 +30,10 @@
         <div class="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             
             <div class="flex items-center gap-4 lg:gap-6">
-                <div class="flex shrink-0 items-center gap-2">
+                <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
                     <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
                     <h1 class="hidden font-bold text-slate-900 dark:text-white sm:block">BLT-LEAF</h1>
-                </div>
+                </a>
 
                 <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
                     <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
@@ -405,65 +405,65 @@
                     <table class="w-full text-left text-sm" style="min-width: 1600px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;" title="Stored in database (extracted from PR URL when added)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="min-width: 90px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="min-width: 60px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="min-width: 60px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="min-width: 90px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score">
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
                                     <div class="truncate">Ready</div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 50px;" title="CI Score">
+                                <th class="px-2 py-3 text-center" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
                                     <div class="truncate">CI</div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 60px;" title="Review Score">
+                                <th class="px-2 py-3 text-center" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="truncate">Review</div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate">
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="truncate">Response</div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 80px;" title="Feedback Responded/Total">
+                                <th class="px-2 py-3 text-center" style="min-width: 80px;" title="Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
                                     <div class="truncate">Feedback</div>
                                 </th>
-                                <th class="px-2 py-3" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations">
+                                <th class="px-2 py-3" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
                                     <div class="truncate">Issues</div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 100px;">Actions</th>
+                                <th class="px-2 py-3 text-center" style="min-width: 100px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
