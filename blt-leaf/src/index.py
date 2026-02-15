@@ -680,19 +680,17 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
-        commits_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/commits?per_page=1"
         
         # Extract base and head branch information for comparison
         base_ref = pr_data['base']['sha']
         head_ref = pr_data['head']['sha']
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_ref}...{head_ref}"
         
-        # Fetch files, reviews, checks, commits, and comparison in parallel using asyncio.gather
+        # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         files_data = []
         reviews_data = []
         checks_data = {}
-        commits_response = None
         compare_data = {}
         
         try:
@@ -700,7 +698,6 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                 fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(reviews_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
-                fetch_with_headers(commits_url, headers, token),
                 fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
@@ -717,13 +714,9 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             if not isinstance(results[2], Exception) and results[2].status == 200:
                 checks_data = (await results[2].json()).to_py()
             
-            # Process commits result - get the total count from Link header
-            if not isinstance(results[3], Exception) and results[3].status == 200:
-                commits_response = results[3]
-            
             # Process compare result
-            if not isinstance(results[4], Exception) and results[4].status == 200:
-                compare_data = (await results[4].json()).to_py()
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                compare_data = (await results[3].json()).to_py()
         except: pass
         
         # Process check runs
