@@ -266,8 +266,15 @@ async def load_readiness_from_db(env, pr_id):
     try:
         db = get_db(env)
         
-        # Load readiness data
-        stmt = db.prepare('SELECT * FROM pr_readiness WHERE pr_id = ?')
+        # Load readiness data - explicitly select needed columns
+        stmt = db.prepare('''
+            SELECT pr_id, overall_score, ci_score, review_score, classification, 
+                   merge_ready, blockers, warnings, recommendations,
+                   review_health_classification, review_health_score, 
+                   response_rate, total_feedback, responded_feedback,
+                   checks_passed, checks_failed, checks_skipped, computed_at 
+            FROM pr_readiness WHERE pr_id = ?
+        ''')
         result = await stmt.bind(pr_id).first()
         
         if not result:
@@ -277,8 +284,12 @@ async def load_readiness_from_db(env, pr_id):
         # Convert result to Python dict
         row = result.to_py() if hasattr(result, 'to_py') else dict(result)
         
-        # Also load PR data to reconstruct complete response
-        pr_stmt = db.prepare('SELECT * FROM prs WHERE id = ?')
+        # Also load PR data to reconstruct complete response - explicitly select needed columns
+        pr_stmt = db.prepare('''
+            SELECT id, title, author_login, repo_owner, repo_name, pr_number, 
+                   state, is_merged, mergeable_state, files_changed 
+            FROM prs WHERE id = ?
+        ''')
         pr_result = await pr_stmt.bind(pr_id).first()
         
         if not pr_result:
@@ -287,10 +298,24 @@ async def load_readiness_from_db(env, pr_id):
         
         pr = pr_result.to_py() if hasattr(pr_result, 'to_py') else dict(pr_result)
         
-        # Parse JSON strings back to lists
-        blockers = json.loads(row.get('blockers', '[]'))
-        warnings = json.loads(row.get('warnings', '[]'))
-        recommendations = json.loads(row.get('recommendations', '[]'))
+        # Parse JSON strings back to lists - with error handling
+        try:
+            blockers = json.loads(row.get('blockers', '[]'))
+        except Exception as e:
+            print(f"Failed to parse blockers JSON for PR {pr_id}: {str(e)}")
+            return None
+        
+        try:
+            warnings = json.loads(row.get('warnings', '[]'))
+        except Exception as e:
+            print(f"Failed to parse warnings JSON for PR {pr_id}: {str(e)}")
+            return None
+        
+        try:
+            recommendations = json.loads(row.get('recommendations', '[]'))
+        except Exception as e:
+            print(f"Failed to parse recommendations JSON for PR {pr_id}: {str(e)}")
+            return None
         
         # Get numeric values for display formatting
         overall_score = row.get('overall_score', 0)
