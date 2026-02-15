@@ -38,7 +38,7 @@
                 <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
                     <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
                     <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full w-0 rounded-full bg-[#E10000] transition-all duration-300" id="rateLimitFill"></div>
+                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
                 </div>
@@ -217,7 +217,7 @@
                     } else if (percentageRemaining <= 50) {
                         fillEl.classList.add('bg-amber-500');
                     } else {
-                        fillEl.classList.add('bg-[#E10000]');
+                        fillEl.classList.add('bg-green-500');
                     }
                 }
                 
