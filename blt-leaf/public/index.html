@@ -466,6 +466,11 @@
                     <table class="w-full text-left text-sm" style="min-width: 1750px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <span class="truncate">Author</span> ${getSortIcon('author_login')}
+                                    </div>
+                                </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
@@ -474,11 +479,6 @@
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;" title="Stored in database (extracted from PR URL when added)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
-                                    </div>
-                                </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
-                                    <div class="flex items-center gap-1 truncate">
-                                        <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
@@ -612,6 +612,14 @@
                 ? pr.author_avatar
                 : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect width="32" height="32" fill="%23E2E8F0"/%3E%3C/svg%3E';
 
+            const repoOwnerAvatarUrl = pr.repo_owner_avatar &&
+                (pr.repo_owner_avatar.startsWith('https://avatars.githubusercontent.com/') || pr.repo_owner_avatar.startsWith('https://github.com/'))
+                ? pr.repo_owner_avatar
+                : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect width="32" height="32" fill="%23E2E8F0"/%3E%3C/svg%3E';
+
+            // Truncate title to first 20 characters
+            const truncatedTitle = pr.title && pr.title.length > 20 ? pr.title.substring(0, 20) + '...' : pr.title;
+
             const row = document.createElement('tr');
             row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
             row.id = `pr-row-${pr.id}`;
@@ -619,14 +627,19 @@
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
                         <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
-                        <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(pr.title)}</a>
+                        <span class="text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</span>
+                    </div>
+                </td>
+                <td class="px-2 py-3">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <img src="${escapeHtml(repoOwnerAvatarUrl)}" alt="${escapeHtml(pr.repo_owner)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(truncatedTitle)}</a>
                     </div>
                 </td>
                 <td class="px-2 py-3 text-slate-600 dark:text-slate-400">
                     <div class="truncate text-xs">${escapeHtml(pr.repo_owner)}/${escapeHtml(pr.repo_name)}</div>
                     <div class="text-xs text-slate-500 dark:text-slate-500">#${pr.pr_number}</div>
                 </td>
-                <td class="px-2 py-3 text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</td>
                 <td class="px-2 py-3">${reviewBadge}</td>
                 <td class="px-2 py-3 text-slate-700 dark:text-slate-300 text-xs truncate">${escapeHtml(mergeableText)}</td>
                 <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">${pr.files_changed}</td>

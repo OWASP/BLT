@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS prs (
     files_changed INTEGER DEFAULT 0,
     author_login TEXT,
     author_avatar TEXT,
+    repo_owner_avatar TEXT,
     checks_passed INTEGER DEFAULT 0,
     checks_failed INTEGER DEFAULT 0,
     checks_skipped INTEGER DEFAULT 0,

@@ -556,6 +556,7 @@ async def init_database_schema(env):
                 files_changed INTEGER DEFAULT 0,
                 author_login TEXT,
                 author_avatar TEXT,
+                repo_owner_avatar TEXT,
                 checks_passed INTEGER DEFAULT 0,
                 checks_failed INTEGER DEFAULT 0,
                 checks_skipped INTEGER DEFAULT 0,
@@ -599,6 +600,7 @@ async def init_database_schema(env):
                 ('last_refreshed_at', 'TEXT'),
                 ('commits_count', 'INTEGER DEFAULT 0'),
                 ('behind_by', 'INTEGER DEFAULT 0'),
+                ('repo_owner_avatar', 'TEXT'),
                 ('overall_score', 'INTEGER'),
                 ('ci_score', 'INTEGER'),
                 ('review_score', 'INTEGER'),
@@ -765,6 +767,7 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'files_changed': len(files_data), 
             'author_login': pr_data['user']['login'],
             'author_avatar': pr_data['user']['avatar_url'],
+            'repo_owner_avatar': pr_data.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
             'checks_skipped': checks_skipped,
@@ -1319,16 +1322,17 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
     stmt = db.prepare('''
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                        is_merged, mergeable_state, files_changed, author_login, 
-                       author_avatar, checks_passed, checks_failed, checks_skipped, 
+                       author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
                        last_refreshed_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
             is_merged = excluded.is_merged,
             mergeable_state = excluded.mergeable_state,
             files_changed = excluded.files_changed,
+            repo_owner_avatar = excluded.repo_owner_avatar,
             checks_passed = excluded.checks_passed,
             checks_failed = excluded.checks_failed,
             checks_skipped = excluded.checks_skipped,
@@ -1347,6 +1351,7 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['files_changed'],
         pr_data['author_login'], 
         pr_data['author_avatar'],
+        pr_data['repo_owner_avatar'],
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
         pr_data['checks_skipped'],
