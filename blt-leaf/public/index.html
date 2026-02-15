@@ -400,51 +400,69 @@
             };
 
             container.innerHTML = `
-                <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: hidden;">
-                    <table class="w-full text-left text-sm" style="table-layout: fixed;">
+                <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
+                    <table class="w-full text-left text-sm" style="min-width: 1600px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="width: 24%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="width: 13%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="width: 10%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="width: 9%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="width: 10%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="min-width: 90px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="width: 6%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="min-width: 60px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="width: 10%;">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="min-width: 90px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="width: 10%;">
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Overall Readiness Score">
+                                    <div class="truncate">Ready</div>
+                                </th>
+                                <th class="px-2 py-3 text-center" style="min-width: 50px;" title="CI Score">
+                                    <div class="truncate">CI</div>
+                                </th>
+                                <th class="px-2 py-3 text-center" style="min-width: 60px;" title="Review Score">
+                                    <div class="truncate">Review</div>
+                                </th>
+                                <th class="px-2 py-3 text-center" style="min-width: 70px;" title="Response Rate">
+                                    <div class="truncate">Response</div>
+                                </th>
+                                <th class="px-2 py-3 text-center" style="min-width: 80px;" title="Feedback Responded/Total">
+                                    <div class="truncate">Feedback</div>
+                                </th>
+                                <th class="px-2 py-3" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations">
+                                    <div class="truncate">Issues</div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3" style="width: 8%;">Actions</th>
+                                <th class="px-2 py-3" style="min-width: 80px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
@@ -488,6 +506,7 @@
 
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
+                row.id = `pr-row-${pr.id}`;
                 row.innerHTML = `
                     <td class="px-2 py-3">
                         <div class="flex items-center gap-2 min-w-0">
@@ -518,10 +537,28 @@
                             </span>` : ''}
                         </div>
                     </td>
+                    <td class="px-2 py-3 text-center" id="readiness-overall-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
+                    <td class="px-2 py-3 text-center" id="readiness-ci-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
+                    <td class="px-2 py-3 text-center" id="readiness-review-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
+                    <td class="px-2 py-3 text-center" id="readiness-response-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
+                    <td class="px-2 py-3 text-center" id="readiness-feedback-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
+                    <td class="px-2 py-3" id="readiness-issues-${pr.id}">
+                        <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                    </td>
                     <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
                     <td class="px-2 py-3">
                         <div class="flex flex-col gap-1">
-                            <button class="readiness-btn rounded-md border border-[#E10000] bg-white px-2 py-1 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}">
+                            <button class="readiness-btn rounded-md border border-[#E10000] bg-white px-2 py-1 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Analyze Readiness">
                                 <i class="fas fa-chart-line"></i>
                             </button>
                             <button class="refresh-btn rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100" data-pr-id="${pr.id}">
@@ -533,18 +570,8 @@
                 `;
                 tbody.appendChild(row);
 
-                // Add hidden expandable row for readiness analysis
-                const expandableRow = document.createElement('tr');
-                expandableRow.id = `readiness-row-${pr.id}`;
-                expandableRow.className = 'hidden';
-                expandableRow.innerHTML = `
-                    <td colspan="9" class="p-0 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
-                        <div class="border-t-2 border-slate-200 dark:border-slate-600">
-                            <div id="readiness-${pr.id}" class="px-4 py-4"></div>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(expandableRow);
+                // No expanded row needed - everything is inline now
+                tbody.appendChild(row);
             });
 
             document.querySelectorAll('.refresh-btn').forEach(btn => {
@@ -563,12 +590,10 @@
         }
 
         async function checkReadiness(prId, button) {
-            const readinessSection = document.getElementById(`readiness-${prId}`);
-            const readinessRow = document.getElementById(`readiness-row-${prId}`);
             const originalText = button.textContent;
             
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             button.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
@@ -586,117 +611,10 @@
                 const readiness = data.readiness;
                 const reviewHealth = data.review_health;
 
-                // Classification icons
-                const classIcons = {
-                    'READY_TO_MERGE': '✅',
-                    'NEARLY_READY': '🟡',
-                    'NEEDS_WORK': '🟠',
-                    'NOT_READY': '🔴'
-                };
-
-                // Score color classes
-                let scoreColorClass = 'text-emerald-600 dark:text-emerald-400';
-                if (readiness.overall_score < 40) scoreColorClass = 'text-red-600 dark:text-red-400';
-                else if (readiness.overall_score < 60) scoreColorClass = 'text-orange-600 dark:text-orange-400';
-                else if (readiness.overall_score < 70) scoreColorClass = 'text-amber-600 dark:text-amber-400';
-
-                let readinessHTML = `
-                    <div class="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-4">
-                        <!-- Header with overall score -->
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-700 mb-4">
-                            <div class="flex items-center gap-3">
-                                <span class="text-2xl">${classIcons[readiness.classification] || '📊'}</span>
-                                <div>
-                                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Overall Readiness</div>
-                                    <div class="text-xl font-bold ${scoreColorClass}">${readiness.overall_score_display}</div>
-                                    <div class="text-xs text-slate-600 dark:text-slate-400">${readiness.classification.replace(/_/g, ' ')}</div>
-                                </div>
-                            </div>
-                            <div class="text-left sm:text-right">
-                                <div class="text-xs font-semibold uppercase tracking-wider mb-1 ${readiness.merge_ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">
-                                    ${readiness.merge_ready ? '✅ READY' : '❌ NOT READY'}
-                                </div>
-                                <div class="text-xs text-slate-600 dark:text-slate-400">
-                                    CI: ${readiness.ci_score_display} | Review: ${readiness.review_score_display}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Metrics Grid -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-4 border-b border-slate-200 dark:border-slate-700 mb-4">
-                            <div class="text-center px-2 py-2 bg-slate-50 dark:bg-slate-900/50 rounded">
-                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">CI</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-slate-100">${readiness.ci_score_display}</div>
-                            </div>
-                            <div class="text-center px-2 py-2 bg-slate-50 dark:bg-slate-900/50 rounded">
-                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Review</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-slate-100">${readiness.review_score_display}</div>
-                            </div>
-                            <div class="text-center px-2 py-2 bg-slate-50 dark:bg-slate-900/50 rounded">
-                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Response</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-slate-100">${reviewHealth.response_rate_display}</div>
-                            </div>
-                            <div class="text-center px-2 py-2 bg-slate-50 dark:bg-slate-900/50 rounded">
-                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Feedback</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-slate-100">${reviewHealth.responded_feedback}/${reviewHealth.total_feedback}</div>
-                            </div>
-                        </div>
-
-                        <!-- Issues Section -->
-                        <div class="space-y-3">
-                `;
-
-                // Add blockers
-                if (readiness.blockers && readiness.blockers.length > 0) {
-                    readinessHTML += `
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="flex-shrink-0 sm:w-24 text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
-                                🚫 Blockers
-                            </div>
-                            <ul class="flex-1 space-y-1 text-sm">
-                                ${readiness.blockers.map(b => `<li class="flex items-start gap-2 text-red-700 dark:text-red-400"><span>•</span><span class="break-words">${escapeHtml(b)}</span></li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                // Add warnings
-                if (readiness.warnings && readiness.warnings.length > 0) {
-                    readinessHTML += `
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="flex-shrink-0 sm:w-24 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                                ⚠️ Warnings
-                            </div>
-                            <ul class="flex-1 space-y-1 text-sm">
-                                ${readiness.warnings.map(w => `<li class="flex items-start gap-2 text-amber-700 dark:text-amber-400"><span>•</span><span class="break-words">${escapeHtml(w)}</span></li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                // Add recommendations
-                if (readiness.recommendations && readiness.recommendations.length > 0) {
-                    readinessHTML += `
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <div class="flex-shrink-0 sm:w-24 text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
-                                💡 Next
-                            </div>
-                            <ul class="flex-1 space-y-1 text-sm">
-                                ${readiness.recommendations.map(r => `<li class="flex items-start gap-2 text-blue-700 dark:text-blue-400"><span>•</span><span class="break-words">${escapeHtml(r)}</span></li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                readinessHTML += `
-                        </div>
-                    </div>
-                `;
-
-                readinessSection.innerHTML = readinessHTML;
-                readinessRow.classList.remove('hidden');
+                // Update all inline cells with readiness data
+                updateInlineCells(prId, readiness, reviewHealth);
                 
-                button.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                button.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
@@ -705,6 +623,110 @@
                 button.innerHTML = originalText;
                 button.disabled = false;
                 button.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+
+        function updateInlineCells(prId, readiness, reviewHealth) {
+            // Score color classes helper
+            const getScoreColor = (score) => {
+                if (score >= 70) return 'text-emerald-700 dark:text-emerald-400';
+                if (score >= 60) return 'text-amber-600 dark:text-amber-400';
+                if (score >= 40) return 'text-orange-600 dark:text-orange-400';
+                return 'text-red-600 dark:text-red-400';
+            };
+
+            // Update Overall readiness
+            const overallCell = document.getElementById(`readiness-overall-${prId}`);
+            if (overallCell) {
+                const icon = readiness.merge_ready ? '✅' : '❌';
+                const scoreClass = getScoreColor(readiness.overall_score);
+                overallCell.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <span class="text-base">${icon}</span>
+                        <span class="${scoreClass} text-xs font-bold">${readiness.overall_score_display}</span>
+                    </div>
+                `;
+            }
+
+            // Update CI score
+            const ciCell = document.getElementById(`readiness-ci-${prId}`);
+            if (ciCell) {
+                const scoreClass = getScoreColor(readiness.ci_score);
+                ciCell.innerHTML = `<span class="${scoreClass} text-xs font-bold">${readiness.ci_score_display}</span>`;
+            }
+
+            // Update Review score
+            const reviewCell = document.getElementById(`readiness-review-${prId}`);
+            if (reviewCell) {
+                const scoreClass = getScoreColor(readiness.review_score);
+                reviewCell.innerHTML = `<span class="${scoreClass} text-xs font-bold">${readiness.review_score_display}</span>`;
+            }
+
+            // Update Response rate
+            const responseCell = document.getElementById(`readiness-response-${prId}`);
+            if (responseCell) {
+                const responseScore = parseFloat(reviewHealth.response_rate_display.replace('%', ''));
+                const scoreClass = getScoreColor(responseScore);
+                responseCell.innerHTML = `<span class="${scoreClass} text-xs font-bold">${reviewHealth.response_rate_display}</span>`;
+            }
+
+            // Update Feedback
+            const feedbackCell = document.getElementById(`readiness-feedback-${prId}`);
+            if (feedbackCell) {
+                const feedbackPercent = reviewHealth.total_feedback > 0 ? 
+                    (reviewHealth.responded_feedback / reviewHealth.total_feedback) * 100 : 100;
+                const scoreClass = getScoreColor(feedbackPercent);
+                feedbackCell.innerHTML = `<span class="${scoreClass} text-xs font-bold">${reviewHealth.responded_feedback}/${reviewHealth.total_feedback}</span>`;
+            }
+
+            // Update Issues/Blockers column
+            const issuesCell = document.getElementById(`readiness-issues-${prId}`);
+            if (issuesCell) {
+                let issuesHTML = '<div class="text-xs space-y-0.5">';
+                let hasIssues = false;
+
+                // Show blockers
+                if (readiness.blockers && readiness.blockers.length > 0) {
+                    hasIssues = true;
+                    issuesHTML += `<div class="flex items-start gap-1 text-red-700 dark:text-red-400">`;
+                    issuesHTML += `<span class="font-bold">🚫</span>`;
+                    issuesHTML += `<span class="truncate" title="${escapeHtml(readiness.blockers.join('; '))}">${escapeHtml(readiness.blockers[0])}</span>`;
+                    if (readiness.blockers.length > 1) {
+                        issuesHTML += `<span class="font-semibold">+${readiness.blockers.length - 1}</span>`;
+                    }
+                    issuesHTML += `</div>`;
+                }
+
+                // Show warnings
+                if (readiness.warnings && readiness.warnings.length > 0) {
+                    hasIssues = true;
+                    issuesHTML += `<div class="flex items-start gap-1 text-amber-700 dark:text-amber-400">`;
+                    issuesHTML += `<span class="font-bold">⚠️</span>`;
+                    issuesHTML += `<span class="truncate" title="${escapeHtml(readiness.warnings.join('; '))}">${escapeHtml(readiness.warnings[0])}</span>`;
+                    if (readiness.warnings.length > 1) {
+                        issuesHTML += `<span class="font-semibold">+${readiness.warnings.length - 1}</span>`;
+                    }
+                    issuesHTML += `</div>`;
+                }
+
+                // Show recommendations
+                if (readiness.recommendations && readiness.recommendations.length > 0) {
+                    hasIssues = true;
+                    issuesHTML += `<div class="flex items-start gap-1 text-blue-700 dark:text-blue-400">`;
+                    issuesHTML += `<span class="font-bold">💡</span>`;
+                    issuesHTML += `<span class="truncate" title="${escapeHtml(readiness.recommendations.join('; '))}">${escapeHtml(readiness.recommendations[0])}</span>`;
+                    if (readiness.recommendations.length > 1) {
+                        issuesHTML += `<span class="font-semibold">+${readiness.recommendations.length - 1}</span>`;
+                    }
+                    issuesHTML += `</div>`;
+                }
+
+                if (!hasIssues) {
+                    issuesHTML += '<span class="text-emerald-600 dark:text-emerald-400 font-semibold">✅ All Clear</span>';
+                }
+
+                issuesHTML += '</div>';
+                issuesCell.innerHTML = issuesHTML;
             }
         }
 
