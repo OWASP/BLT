@@ -20,6 +20,11 @@ jobs:
       - name: Check out Repository
         uses: actions/checkout@v4
 
+      - name: Install SQLite dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
