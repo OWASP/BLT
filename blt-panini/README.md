@@ -13,11 +13,7 @@ This project was extracted from the [OWASP BLT](https://github.com/OWASP-BLT/BLT
 - **lighting Dark Mode**: Fully supported dark mode for comfortable viewing at night.
 - **📱 Responsive Design**: Works seamlessly on desktop and mobile devices.
 
-## 🚀 Quick Start
-
-Since this is a static site, you don't need a backend server.
-
-### Live Demo - 
+### Live Demo - https://owasp-blt.github.io/Panini/
 
 ## 🛠️ Technologies
 
