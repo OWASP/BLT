@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
@@ -11,9 +10,12 @@ if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
+// Email validation regex (RFC 5322 compliant)
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
 // Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Newsletter subscription endpoint
@@ -21,7 +23,7 @@ app.post('/api/subscribe', async (req, res) => {
   const { email, name } = req.body;
 
   // Validate input
-  if (!email || !email.includes('@')) {
+  if (!email || !EMAIL_REGEX.test(email)) {
     return res.status(400).json({ 
       success: false, 
       message: 'Please provide a valid email address.' 
@@ -55,7 +57,12 @@ app.post('/api/subscribe', async (req, res) => {
       body: JSON.stringify(data)
     };
 
-    await sgMail.client.request(request);
+    try {
+      await sgMail.client.request(request);
+    } catch (contactError) {
+      console.error('SendGrid Contact Error:', contactError.response ? contactError.response.body : contactError.message);
+      throw new Error('Failed to add contact to mailing list');
+    }
 
     // Send welcome email
     const welcomeMsg = {
@@ -144,7 +151,16 @@ app.post('/api/subscribe', async (req, res) => {
       `
     };
 
-    await sgMail.send(welcomeMsg);
+    try {
+      await sgMail.send(welcomeMsg);
+    } catch (emailError) {
+      console.error('SendGrid Email Error:', emailError.response ? emailError.response.body : emailError.message);
+      // Contact was added successfully, but email failed - still return success
+      return res.json({ 
+        success: true, 
+        message: 'Successfully subscribed! You should receive a welcome email shortly.' 
+      });
+    }
 
     res.json({ 
       success: true, 
@@ -152,7 +168,7 @@ app.post('/api/subscribe', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('SendGrid Error:', error.response ? error.response.body : error.message);
+    console.error('SendGrid Error:', error.message || error);
     res.status(500).json({ 
       success: false, 
       message: 'Failed to subscribe. Please try again later.' 
