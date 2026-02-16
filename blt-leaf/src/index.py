@@ -691,7 +691,14 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         base_branch = pr_data['base']['ref']
         head_branch = pr_data['head']['ref']
         # For forks, we need to use the full ref format
-        head_full_ref = f"{pr_data['head']['repo']['owner']['login']}:{head_branch}"
+        # Handle case where fork is deleted (repo is None)
+        head_repo = pr_data['head'].get('repo')
+        if head_repo and head_repo.get('owner'):
+            head_full_ref = f"{head_repo['owner']['login']}:{head_branch}"
+        else:
+            # If fork is deleted, use just the branch name (comparison will likely fail but won't crash)
+            print(f"Warning: PR #{pr_number} head repository is None (fork may be deleted)")
+            head_full_ref = head_branch
         
         # Compare head...base to see how many commits base has that head doesn't
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
@@ -2316,6 +2323,11 @@ async def on_fetch(request, env):
         return response
     elif path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
+    elif path == '/api/github/webhook' and request.method == 'POST':
+        response = await handle_github_webhook(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
     # Timeline endpoint - GET /api/prs/{id}/timeline
     elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
         response = await handle_pr_timeline(request, env, path)
