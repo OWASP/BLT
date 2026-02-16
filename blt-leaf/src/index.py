@@ -729,7 +729,16 @@ def calculate_review_status(reviews_data):
     return review_status
 
 async def fetch_pr_data(owner, repo, pr_number, token=None):
-    """Fetch PR data from GitHub API with parallel requests for optimal performance"""
+    """
+    Fetch PR data from GitHub API with parallel requests for optimal performance.
+    
+    Optimizations applied:
+    - Reviews are NOT fetched here to avoid duplication with fetch_pr_timeline_data
+    - Files list is NOT fetched since PR details already include 'changed_files' count
+    - Checks and compare API calls are made in parallel for efficiency
+    
+    This reduces API calls from 5 to 3 per fetch (PR details + checks + compare).
+    """
     headers = {
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
@@ -911,6 +920,9 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
     Fetch all timeline data for a PR: commits, reviews, review comments, issue comments
     
     Uses in-memory caching (30 min TTL) to avoid redundant API calls across endpoints.
+    All 4 API calls are made in parallel for optimal performance.
+    
+    Note: Reviews are fetched here (not in fetch_pr_data) to avoid duplication.
     
     Returns dict with raw data from GitHub API:
     {
