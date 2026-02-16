@@ -1869,8 +1869,9 @@ async def handle_github_webhook(request, env):
     
     Supported events:
     - pull_request: opened, closed, reopened, synchronize, edited
-    - pull_request_review: submitted, edited, dismissed
-    - check_run: completed, requested_action
+    - pull_request_review: submitted, edited, dismissed (updates PR data)
+    - check_run: completed, requested_action (updates PR data)
+    - check_suite: completed, requested (updates PR data)
     
     Security:
     - Verifies GitHub webhook signature using WEBHOOK_SECRET
@@ -1885,8 +1886,9 @@ async def handle_github_webhook(request, env):
     - Removes the PR from the database
     - Returns event data for frontend to animate removal
     
-    When a PR is updated:
-    - Refreshes PR data in the database
+    When a PR is updated (synchronize, edited, reviews, checks):
+    - Refreshes PR data in the database including behind_by and mergeable_state
+    - Invalidates caches to ensure fresh analysis
     - Returns updated PR data for frontend
     """
     try:
@@ -2061,17 +2063,103 @@ async def handle_github_webhook(request, env):
                         {'headers': {'Content-Type': 'application/json'}}
                     )
         
-        # Handle other event types (for future expansion)
+        # Handle other event types - update PR data to refresh behind_by and mergeable_state
         elif event_type in ['pull_request_review', 'check_run', 'check_suite']:
-            # For now, just acknowledge these events
-            # In the future, we could update specific fields without full refresh
-            return Response.new(
-                json.dumps({
-                    'success': True,
-                    'message': f'Received {event_type} event, no action taken'
-                }),
-                {'headers': {'Content-Type': 'application/json'}}
-            )
+            # Extract PR information from the payload based on event type
+            prs_to_update = []  # List of (pr_number, repo_owner, repo_name) tuples
+            
+            if event_type == 'pull_request_review':
+                # pull_request_review events have PR data directly
+                pr_data = payload.get('pull_request', {})
+                repo_data = payload.get('repository', {})
+                pr_number = pr_data.get('number')
+                repo_owner = repo_data.get('owner', {}).get('login')
+                repo_name = repo_data.get('name')
+                if all([pr_number, repo_owner, repo_name]):
+                    prs_to_update.append((pr_number, repo_owner, repo_name))
+            elif event_type in ['check_run', 'check_suite']:
+                # check_run and check_suite events have PR data in check_run/check_suite -> pull_requests array
+                # Multiple PRs can be associated with a single check, so we update all of them
+                check_data = payload.get('check_run') or payload.get('check_suite', {})
+                pull_requests = check_data.get('pull_requests', [])
+                repo_data = payload.get('repository', {})
+                repo_owner = repo_data.get('owner', {}).get('login')
+                repo_name = repo_data.get('name')
+                
+                for pr_data in pull_requests:
+                    pr_number = pr_data.get('number')
+                    if all([pr_number, repo_owner, repo_name]):
+                        prs_to_update.append((pr_number, repo_owner, repo_name))
+            
+            if not prs_to_update:
+                # If we can't extract PR info, just acknowledge the event
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event, insufficient PR data to update'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Update all tracked PRs associated with this event
+            db = get_db(env)
+            updated_prs = []
+            
+            for pr_number, repo_owner, repo_name in prs_to_update:
+                pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
+                result = await db.prepare(
+                    'SELECT id FROM prs WHERE pr_url = ?'
+                ).bind(pr_url).first()
+                
+                if not result:
+                    # PR not being tracked - skip it
+                    print(f"Skipping untracked PR #{pr_number} in {event_type} event")
+                    continue
+                
+                try:
+                    result_dict = result.to_py()
+                    pr_id = result_dict.get('id')
+                    if not pr_id:
+                        print(f"Error: Database result missing 'id' field for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
+                        continue
+                except Exception as db_error:
+                    print(f"Error parsing database result for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(db_error)}")
+                    continue
+                
+                # Fetch fresh PR data to update behind_by and mergeable_state
+                try:
+                    fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                    if fetched_pr_data:
+                        await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                        # Invalidate caches to force fresh analysis
+                        await invalidate_readiness_cache(env, pr_id)
+                        invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                        updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
+                    else:
+                        print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: fetch_pr_data returned None")
+                except Exception as fetch_error:
+                    print(f"Error fetching PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(fetch_error)}")
+            
+            # Return response with info about all updated PRs
+            if updated_prs:
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'event': f'{event_type}_processed',
+                        'updated_prs': updated_prs,
+                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            else:
+                # No tracked PRs were updated
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event for untracked PR(s), no updates performed'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
         
         # Unknown event type
         return Response.new(
