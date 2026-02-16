@@ -1236,24 +1236,32 @@ def classify_review_health(review_data):
     
     # Awaiting author with poor response rate
     if awaiting_author and response_rate < 0.5:
-        return ('AWAITING_AUTHOR', 35)
-    
+        classification = 'AWAITING_AUTHOR'
+        score = 35
     # Awaiting author with good response rate
-    if awaiting_author:
-        return ('AWAITING_AUTHOR', 55)
-    
+    elif awaiting_author:
+        classification = 'AWAITING_AUTHOR'
+        score = 55
     # Awaiting reviewer
-    if awaiting_reviewer:
+    elif awaiting_reviewer:
         # Higher score if author has been responsive
+        classification = 'AWAITING_REVIEWER'
         score = 70 + int(response_rate * 10)
-        return ('AWAITING_REVIEWER', min(score, 80))
-    
+        score = min(score, 80)
     # Active (good back and forth)
-    if response_rate > 0.7:
-        return ('ACTIVE', 85)
-    
+    elif response_rate > 0.7:
+        classification = 'ACTIVE'
+        score = 85
     # Default active state
-    return ('ACTIVE', 70)
+    else:
+        classification = 'ACTIVE'
+        score = 70
+    
+    # Apply penalty if changes were requested
+    if latest_state == 'CHANGES_REQUESTED':
+        score = max(0, score - 10)
+    
+    return (classification, score)
 
 def calculate_ci_confidence(checks_passed, checks_failed, checks_skipped):
     """
