@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT Jobs - Connect Talent with Opportunities</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <nav class="border-b border-slate-200 bg-white shadow-sm">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 justify-between">
+          <div class="flex items-center">
+            <a href="/" class="flex items-center gap-2 text-xl font-bold text-slate-900">
+              <i class="fa-solid fa-briefcase text-red-600" aria-hidden="true"></i>
+              BLT Jobs
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Browse Jobs
+            </a>
+            <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Find Talent
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <header class="mb-12 text-center">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i> 
+          OWASP BLT Community
+        </span>
+        <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+          Connect Talent with Opportunities
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">
+          A community-driven job board for the OWASP BLT ecosystem
+        </p>
+      </header>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+            <i class="fa-solid fa-building text-xl text-red-600" aria-hidden="true"></i>
+          </div>
+          <h2 class="text-xl font-semibold">Post a Job</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Looking for talent? Submit a job posting via GitHub issues and reach our community of skilled professionals.
+          </p>
+          <a href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting.md" target="_blank" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+            Post a Job
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+            <i class="fa-solid fa-user text-xl text-red-600" aria-hidden="true"></i>
+          </div>
+          <h2 class="text-xl font-semibold">Feature Your Profile</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Looking for opportunities? Create your profile to showcase your skills and connect with potential employers.
+          </p>
+          <a href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-seeker.md" target="_blank" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+            Create Profile
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+
+      <section class="mt-12">
+        <h2 class="mb-6 text-2xl font-bold">How It Works</h2>
+        <div class="grid gap-6 md:grid-cols-3">
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              1
+            </div>
+            <h3 class="font-semibold">Submit via GitHub</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Create an issue using our templates to post a job or create your profile.
+            </p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              2
+            </div>
+            <h3 class="font-semibold">Automated Processing</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Our GitHub Actions workflow automatically processes and publishes your submission.
+            </p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              3
+            </div>
+            <h3 class="font-semibold">Connect & Grow</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Your listing appears on the site, helping you connect with opportunities or talent.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-12 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h2 class="mb-4 text-2xl font-bold">Recent Listings</h2>
+        <div id="recent-listings" class="space-y-4">
+          <p class="text-slate-600">Loading recent listings...</p>
+        </div>
+        <div class="mt-6 flex gap-4">
+          <a href="./jobs.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            View All Jobs
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            View All Seekers
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-16 border-t border-slate-200 bg-white py-8">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p class="text-sm text-slate-600">
+            © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
+          </p>
+          <div class="flex gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600">
+              <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      async function loadRecentListings() {
+        try {
+          const jobsResponse = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Jobs/contents/jobs');
+          const seekersResponse = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Jobs/contents/seekers');
+          
+          const listingsDiv = document.getElementById('recent-listings');
+          
+          if (jobsResponse.ok || seekersResponse.ok) {
+            const jobs = jobsResponse.ok ? await jobsResponse.json() : [];
+            const seekers = seekersResponse.ok ? await seekersResponse.json() : [];
+            
+            if (jobs.length === 0 && seekers.length === 0) {
+              listingsDiv.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
+            } else {
+              const recentJobs = jobs.slice(0, 3);
+              const recentSeekers = seekers.slice(0, 2);
+              
+              let html = '';
+              if (recentJobs.length > 0) {
+                html += '<div class="mb-4"><h3 class="font-semibold mb-2">Recent Jobs</h3><div class="space-y-2">';
+                recentJobs.forEach(job => {
+                  const title = job.name.replace('.md', '').replace(/-/g, ' ');
+                  html += `<div class="rounded-lg border border-slate-200 p-3">
+                    <a href="jobs.html#${job.name}" class="font-medium text-red-600 hover:text-red-700">${title}</a>
+                  </div>`;
+                });
+                html += '</div></div>';
+              }
+              
+              if (recentSeekers.length > 0) {
+                html += '<div><h3 class="font-semibold mb-2">Recent Job Seekers</h3><div class="space-y-2">';
+                recentSeekers.forEach(seeker => {
+                  const name = seeker.name.replace('.md', '').replace(/-/g, ' ');
+                  html += `<div class="rounded-lg border border-slate-200 p-3">
+                    <a href="seekers.html#${seeker.name}" class="font-medium text-red-600 hover:text-red-700">${name}</a>
+                  </div>`;
+                });
+                html += '</div></div>';
+              }
+              
+              listingsDiv.innerHTML = html;
+            }
+          } else {
+            listingsDiv.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
+          }
+        } catch (error) {
+          console.error('Error loading listings:', error);
+          document.getElementById('recent-listings').innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
+        }
+      }
+      
+      loadRecentListings();
+    </script>
+  </body>
+</html>
