@@ -178,8 +178,9 @@
                 html += '<div class="mb-4"><h3 class="font-semibold mb-2">Recent Jobs</h3><div class="space-y-2">';
                 recentJobs.forEach(job => {
                   const title = job.name.replace('.md', '').replace(/-/g, ' ');
+                  const anchor = job.name.replace('.md', '');
                   html += `<div class="rounded-lg border border-slate-200 p-3">
-                    <a href="jobs.html#${job.name}" class="font-medium text-red-600 hover:text-red-700">${title}</a>
+                    <a href="jobs.html#${anchor}" class="font-medium text-red-600 hover:text-red-700">${title}</a>
                   </div>`;
                 });
                 html += '</div></div>';
@@ -189,8 +190,9 @@
                 html += '<div><h3 class="font-semibold mb-2">Recent Job Seekers</h3><div class="space-y-2">';
                 recentSeekers.forEach(seeker => {
                   const name = seeker.name.replace('.md', '').replace(/-/g, ' ');
+                  const anchor = seeker.name.replace('.md', '');
                   html += `<div class="rounded-lg border border-slate-200 p-3">
-                    <a href="seekers.html#${seeker.name}" class="font-medium text-red-600 hover:text-red-700">${name}</a>
+                    <a href="seekers.html#${anchor}" class="font-medium text-red-600 hover:text-red-700">${name}</a>
                   </div>`;
                 });
                 html += '</div></div>';
