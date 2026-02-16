@@ -1550,7 +1550,16 @@ async def handle_add_pr(request, env):
             
             await upsert_pr(db, pr_url, parsed['owner'], parsed['repo'], parsed['pr_number'], pr_data)
             
-            return Response.new(json.dumps({'success': True, 'data': pr_data}), 
+            # Include repo_owner, repo_name, pr_number, and pr_url in the response for frontend display
+            response_data = {
+                **pr_data,
+                'repo_owner': parsed['owner'],
+                'repo_name': parsed['repo'],
+                'pr_number': parsed['pr_number'],
+                'pr_url': pr_url
+            }
+            
+            return Response.new(json.dumps({'success': True, 'data': response_data}), 
                               {'headers': {'Content-Type': 'application/json'}})
 
     except Exception as e:
@@ -1738,7 +1747,16 @@ async def handle_refresh_pr(request, env):
         await invalidate_readiness_cache(env, pr_id)
         invalidate_timeline_cache(result['repo_owner'], result['repo_name'], result['pr_number'])
         
-        return Response.new(json.dumps({'success': True, 'data': pr_data}), 
+        # Include repo_owner, repo_name, pr_number, and pr_url in the response for frontend display
+        response_data = {
+            **pr_data,
+            'repo_owner': result['repo_owner'],
+            'repo_name': result['repo_name'],
+            'pr_number': result['pr_number'],
+            'pr_url': result['pr_url']
+        }
+        
+        return Response.new(json.dumps({'success': True, 'data': response_data}), 
                           {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
