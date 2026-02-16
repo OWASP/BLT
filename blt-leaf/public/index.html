@@ -7,13 +7,15 @@
     <title>PR Readiness Checker - BLT-Leaf</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class'
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
         }
     </script>
     <!-- Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -41,17 +43,29 @@
                         <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
                 </div>
             </div>
 
             <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
-                <div class="relative w-full max-w-lg">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <i class="fas fa-search text-slate-400"></i>
+                <div class="flex w-full max-w-lg gap-2">
+                    <div class="relative flex-1">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fas fa-search text-slate-400"></i>
+                        </div>
+                        <input type="text" id="prSearchInput"
+                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                            placeholder="Search PRs..." autocomplete="off">
                     </div>
-                    <input type="text" id="prSearchInput"
-                        class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
-                        placeholder="Search PRs..." autocomplete="off">
+                    <button id="searchBtn" 
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button id="clearSearchBtn" 
+                        class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
                 </div>
             </div>
 
@@ -59,6 +73,7 @@
                 <button id="themeToggle" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
+                <span id="releaseVersion" class="hidden text-xs text-slate-500 dark:text-slate-400 md:inline-block"></span>
                 <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
                    class="hidden rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 md:inline-flex items-center gap-2 transition-colors shadow-sm">
                     <i class="fab fa-github"></i> <span>Contribute</span>
@@ -78,7 +93,7 @@
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
         <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories</h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
                 <ul id="repoList" class="space-y-2">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
@@ -109,7 +124,6 @@
                         Add all active PRs from this repo
                     </label>
                 </div>                
-                <div id="errorMessage" class="fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))]"></div>
             </section>
 
             <div id="prListContainer">
@@ -125,8 +139,13 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
-        let sortColumn = 'last_updated_at';
-        let sortDirection = 'desc';
+        let sortColumn = localStorage.getItem('sortColumn') || 'ready_score';
+        let sortDirection = localStorage.getItem('sortDirection') || 'desc';
+        let secondarySortColumn = null;
+        let secondarySortDirection = 'desc';
+        let currentPage = 1;
+        let totalPages = 1;
+        const perPage = 30;
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -198,24 +217,35 @@
 
         async function loadRateLimit() {
             try {
+                const MS_PER_MINUTE = 60000;
+                const MINUTES_PER_HOUR = 60;
+                
                 const response = await fetch('/api/rate-limit');
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
 
                 if (!response.ok) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const data = await response.json();
                 if (data.error) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
-                const { limit, remaining } = data;
+                const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
@@ -234,11 +264,63 @@
                 }
                 
                 if(textEl) textEl.textContent = `${remaining} / ${limit}`;
+                
+                // Display used count
+                if(usedEl && typeof used === 'number') {
+                    usedEl.textContent = `(${used} used)`;
+                }
+                
+                // Display reset time in human-readable format
+                if(resetEl && typeof reset === 'number') {
+                    const resetDate = new Date(reset * 1000);
+                    const now = new Date();
+                    const diffMs = resetDate - now;
+                    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
+                    
+                    if (diffMins <= 0) {
+                        resetEl.textContent = 'Resets soon';
+                    } else if (diffMins < MINUTES_PER_HOUR) {
+                        resetEl.textContent = `Resets in ${diffMins}m`;
+                    } else {
+                        const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
+                        const remainingMins = diffMins % MINUTES_PER_HOUR;
+                        if (remainingMins === 0) {
+                            resetEl.textContent = `Resets in ${diffHours}h`;
+                        } else {
+                            resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
+                        }
+                    }
+                }
 
             } catch (error) {
                 console.error('Error loading rate limit:', error);
                 const textEl = document.getElementById('rateLimitText');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
                 if(textEl) textEl.textContent = 'N/A';
+                if(usedEl) usedEl.textContent = '';
+                if(resetEl) resetEl.textContent = '';
+            }
+        }
+
+        async function loadLatestRelease() {
+            try {
+                const response = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Leaf/releases/latest');
+
+                if (!response.ok) {
+                    return; // Silently fail - don't show version if API fails
+                }
+
+                const data = await response.json();
+                const versionEl = document.getElementById('releaseVersion');
+                
+                if (data.tag_name && versionEl) {
+                    versionEl.textContent = data.tag_name;
+                    versionEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading latest release:', error);
+                // Silently fail - don't show version if fetch fails
             }
         }
 
@@ -263,7 +345,9 @@
             return 'just now';
         }
 
-        function sortPrs(column) {
+        function sortPrs(column, isShiftClick = false) {
+            // Note: Secondary sort (shift+click) is currently not supported for server-side sorting
+            // Regular click - set as primary sort
             if (sortColumn === column) {
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
@@ -271,54 +355,83 @@
                 sortDirection = 'desc';
             }
             
-            // Columns that should use numeric sorting
-            const numericColumns = ['files_changed', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
-
-            allPrs.sort((a, b) => {
-                let aVal = a[column];
-                let bVal = b[column];
-                
-                // Handle numeric columns
-                if (numericColumns.includes(column)) {
-                    aVal = Number(aVal) || 0;
-                    bVal = Number(bVal) || 0;
-                }
-                // Handle string comparisons for all other columns 
-                else {
-                    aVal = String(aVal || '').toLowerCase();
-                    bVal = String(bVal || '').toLowerCase();
-                }
-                
-                if (sortDirection === 'asc') return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-                else return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-            });
+            // Save sorting state to localStorage
+            localStorage.setItem('sortColumn', sortColumn);
+            localStorage.setItem('sortDirection', sortDirection);
             
-            // Re-apply filter after sorting
-            const searchTerm = document.getElementById('prSearchInput').value;
-            filterPrs(searchTerm);
+            // Reset to first page when sorting changes
+            currentPage = 1;
+            
+            // Reload PRs from server with new sort parameters
+            loadPrs();
         }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = '';
+        function showInlineError(rowId, message) {
+            // Show error message in the specific PR row
+            const row = document.getElementById(rowId);
+            if (!row) return;
 
-            const toastElement = document.createElement('div');
-            toastElement.className = 'flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-white px-3 py-2.5 text-sm text-red-900 shadow-lg';
+            // Create error cell that spans all columns
+            const errorCell = document.createElement('td');
+            errorCell.colSpan = 17; // Total number of columns in the table
+            errorCell.className = 'px-2 py-3';
+            errorCell.innerHTML = `
+                <div class="flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-red-50 px-3 py-2.5 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+                    <span class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900 dark:text-red-400">!</span>
+                    <div class="leading-5">${escapeHtml(message)}</div>
+                </div>
+            `;
 
-            const iconElement = document.createElement('span');
-            iconElement.className = 'inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700';
-            iconElement.textContent = '!';
+            // Replace all cells with the error cell
+            row.innerHTML = '';
+            row.appendChild(errorCell);
+        }
 
-            const textElement = document.createElement('div');
-            textElement.className = 'leading-5';
-            textElement.textContent = message;
+        function showContainerError(containerId, message) {
+            // Show error message in a container (for loading errors)
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-            toastElement.appendChild(iconElement);
-            toastElement.appendChild(textElement);
-            errorDiv.appendChild(toastElement);
+            container.innerHTML = `
+                <div class="rounded-xl border border-red-200 bg-white p-8 dark:border-red-900 dark:bg-slate-800">
+                    <div class="flex items-start gap-3">
+                        <span class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-bold text-red-700 dark:bg-red-900 dark:text-red-400">!</span>
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Error</h3>
+                            <p class="text-sm text-slate-700 dark:text-slate-300">${escapeHtml(message)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
+        function showInputError(inputId, message) {
+            // Show error message near an input field
+            const input = document.getElementById(inputId);
+            if (!input) return;
+
+            // Remove any existing error message
+            const container = input.closest('section');
+            const existingError = container.querySelector('.input-error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            // Create error message element
+            const errorElement = document.createElement('div');
+            errorElement.className = 'input-error-message flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400 w-full max-w-4xl';
+            errorElement.innerHTML = `
+                <span class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900 dark:text-red-400">!</span>
+                <div class="leading-5">${escapeHtml(message)}</div>
+            `;
+
+            // Insert after the parent flex div
+            const parentDiv = input.parentElement;
+            parentDiv.after(errorElement);
+
+            // Auto-remove after 5 seconds
             setTimeout(() => {
-                errorDiv.textContent = '';
+                errorElement.remove();
             }, 5000);
         }
 
@@ -328,7 +441,7 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    showError(data.error);
+                    console.error('Error loading repos:', data.error);
                     return;
                 }
 
@@ -342,8 +455,13 @@
         function renderRepoList() {
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
-            const totalPrs = allPrs.length;
+            const repoCountDisplay = document.getElementById('repoCountDisplay');
+            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
+
+            // Update the repository count display
+            const repoCount = repos.length;
+            repoCountDisplay.textContent = repoCount > 0 ? `(${repoCount})` : '';
 
             while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
@@ -356,11 +474,35 @@
                 setRepoItemActiveState(li, currentRepo === li.dataset.repo);
 
                 li.innerHTML = `
-                    <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200">${repo.repo_owner}/${repo.repo_name}</div>
-                    <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                    <div class="flex items-center justify-between">
+                        
+                        <div>
+                            <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                ${repo.repo_owner}/${repo.repo_name}
+                            </div>
+
+                            <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}
+                            </div>
+                        </div>
+
+                        <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 ml-2 github-pr-link"
+                        title="View Pull Requests on GitHub"
+                        onclick="event.stopPropagation();">
+
+                            <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
+
+
+                        </a>
+
+                    </div>
                 `;
 
                 li.addEventListener('click', () => {
+                    currentPage = 1;
                     currentRepo = li.dataset.repo;
                     localStorage.setItem('currentRepo', currentRepo);
                     document.querySelectorAll('.repo-item').forEach(item => {
@@ -386,31 +528,77 @@
             }
 
             try {
-                const url = currentRepo === 'all' ? '/api/prs' : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
+                // Build URL with pagination and sorting parameters
+                let url;
+                if (currentRepo === 'all') {
+                    url = `/api/prs?page=${currentPage}&sort_by=${sortColumn}&sort_dir=${sortDirection}`;
+                } else {
+                    url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&sort_by=${sortColumn}&sort_dir=${sortDirection}`;
+                }
+                
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.error) {
-                    showError(data.error);
-                    container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800"><h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Error loading PRs</h3></div>';
+                    showContainerError('prListContainer', data.error);
                     return;
                 }
 
                 allPrs = data.prs;
-                
-                // Attach readiness data from localStorage to each PR for sorting
+                if (data.pagination) {
+                    totalPages = data.pagination.total_pages;
+                    if (currentPage > totalPages && totalPages > 0) {
+                        currentPage = totalPages;
+                    }
+                }
+
+                // Attach readiness data from localStorage to each PR for display and computed columns
                 allPrs.forEach(pr => {
-                    const storedData = loadReadinessData(pr.id);
-                    if (storedData && storedData.readiness && storedData.reviewHealth) {
-                        pr.ready_score = storedData.readiness.overall_score;
-                        pr.ci_score = storedData.readiness.ci_score;
-                        pr.review_score = storedData.readiness.review_score;
-                        pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
-                        pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
-                            (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
-                        pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                    // First, try to get readiness data from database (if it exists)
+                    if (pr.overall_score !== null && pr.overall_score !== undefined) {
+                        pr.ready_score = pr.overall_score;
+                        // ci_score and review_score are already in the pr object from database
+                        pr.response_score = (pr.response_rate || 0) * 100;
+                        pr.feedback_score = pr.total_feedback > 0 ? 
+                            (pr.responded_feedback / pr.total_feedback) * 100 : 100;
+                        
+                        // Parse blockers and warnings to get issues count
+                        try {
+                            const blockers = pr.blockers ? JSON.parse(pr.blockers) : [];
+                            const warnings = pr.warnings ? JSON.parse(pr.warnings) : [];
+                            pr.issues_count = blockers.length + warnings.length;
+                        } catch (e) {
+                            pr.issues_count = 0;
+                        }
+                    } else {
+                        // Fall back to localStorage if database doesn't have readiness data
+                        const storedData = loadReadinessData(pr.id);
+                        if (storedData && storedData.readiness && storedData.reviewHealth) {
+                            pr.ready_score = storedData.readiness.overall_score;
+                            pr.ci_score = storedData.readiness.ci_score;
+                            pr.review_score = storedData.readiness.review_score;
+                            pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
+                            pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
+                                (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
+                            pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                        }
                     }
                 });
+                
+                // Only apply client-side sorting for computed columns (issues_count)
+                // All other columns are already sorted by the backend
+                if (sortColumn === 'issues_count') {
+                    allPrs.sort((a, b) => {
+                        let aVal = Number(a.issues_count) || 0;
+                        let bVal = Number(b.issues_count) || 0;
+                        
+                        if (sortDirection === 'asc') {
+                            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                        } else {
+                            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                        }
+                    });
+                }
                 
                 // Apply search filter if exists
                 const searchTerm = document.getElementById('prSearchInput').value;
@@ -421,8 +609,7 @@
                 }
             } catch (error) {
                 console.error('Error loading PRs:', error);
-                showError('Failed to load PRs');
-                container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800"><h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Error loading PRs</h3></div>';
+                showContainerError('prListContainer', 'Failed to load PRs');
             }
         }
         
@@ -440,7 +627,7 @@
         function renderPrList(prsToRender) {
             const container = document.getElementById('prListContainer');
             // Use the passed filtered list OR fallback to allPrs
-            const prs = prsToRender || allPrs;
+            const prs = prsToRender || allPrs || [];
 
             if (prs.length === 0) {
                 const isFiltered = document.getElementById('prSearchInput').value.trim() !== '';
@@ -455,83 +642,107 @@
             }
 
             const getSortIcon = (column) => {
-                if (sortColumn !== column) return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
-                return sortDirection === 'asc' 
-                    ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
-                    : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
+                const isPrimary = sortColumn === column;
+                const isSecondary = secondarySortColumn === column;
+                
+                if (isPrimary) {
+                    const primaryIcon = sortDirection === 'asc' 
+                        ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
+                        : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
+                    return primaryIcon;
+                }
+                
+                if (isSecondary) {
+                    const secondaryIcon = secondarySortDirection === 'asc'
+                        ? '<i class="fas fa-sort-up text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>'
+                        : '<i class="fas fa-sort-down text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>';
+                    return '<sup class="text-xs text-slate-500 dark:text-slate-400">2</sup>' + secondaryIcon;
+                }
+                
+                return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
             };
 
             container.innerHTML = `
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
-                    <table class="w-full text-left text-sm" style="min-width: 1600px;">
+                    <table class="w-full text-left text-sm" style="min-width: 1750px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="title" style="min-width: 200px;" title="Click to sort by PR Title. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;" title="Stored in database (extracted from PR URL when added)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="repo_owner" style="min-width: 140px;" title="Click to sort by Repository. Shift+Click to set as secondary sort.&#10;Stored in database (extracted from PR URL when added)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="min-width: 60px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="commits_count" style="min-width: 70px;" title="Click to sort by Commits. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <span class="truncate">Commits</span> ${getSortIcon('commits_count')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <span class="truncate">Behind</span> ${getSortIcon('behind_by')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="checks_passed" style="min-width: 90px;" title="Click to sort by Checks. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ready_score')" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ci_score')" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to set as secondary sort.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">CI</span> ${getSortIcon('ci_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_score')" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('response_score')" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to set as secondary sort.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Response</span> ${getSortIcon('response_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('feedback_score')" style="min-width: 80px;" title="Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to set as secondary sort.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('issues_count')" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to set as secondary sort.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
@@ -545,15 +756,80 @@
                 </div>
             `;
 
+            // Add event delegation for sortable table headers
+            const tableElement = container.querySelector('table');
+            if (tableElement) {
+                tableElement.addEventListener('click', (e) => {
+                    // Find the closest th with data-sort-column attribute
+                    const th = e.target.closest('th[data-sort-column]');
+                    if (th) {
+                        const column = th.getAttribute('data-sort-column');
+                        const isShiftClick = e.shiftKey;
+                        sortPrs(column, isShiftClick);
+                    }
+                });
+            }
+
             const tbody = document.getElementById('prTableBody');
-            allPrs.forEach(pr => {
+            prs.forEach(pr => {
                 const row = createPrRow(pr);
                 tbody.appendChild(row);
 
-                // Load and display stored readiness data if available
-                const storedData = loadReadinessData(pr.id);
-                if (storedData && storedData.readiness && storedData.reviewHealth) {
-                    updateInlineCells(pr.id, storedData.readiness, storedData.reviewHealth);
+                // Load and display readiness data from database or localStorage if available
+                let readiness = null;
+                let reviewHealth = null;
+                
+                // First, try to get readiness data from database (if it exists)
+                if (pr.overall_score !== null && pr.overall_score !== undefined) {
+                    // Parse JSON fields from database
+                    try {
+                        const blockers = pr.blockers ? JSON.parse(pr.blockers) : [];
+                        const warnings = pr.warnings ? JSON.parse(pr.warnings) : [];
+                        const recommendations = pr.recommendations ? JSON.parse(pr.recommendations) : [];
+                        const stale_feedback = pr.stale_feedback ? JSON.parse(pr.stale_feedback) : [];
+                        
+                        readiness = {
+                            overall_score: pr.overall_score,
+                            overall_score_display: `${pr.overall_score}%`,
+                            ci_score: pr.ci_score,
+                            ci_score_display: `${pr.ci_score}%`,
+                            review_score: pr.review_score,
+                            review_score_display: `${pr.review_score}%`,
+                            classification: pr.classification,
+                            merge_ready: pr.merge_ready === 1,
+                            blockers: blockers,
+                            warnings: warnings,
+                            recommendations: recommendations
+                        };
+                        
+                        reviewHealth = {
+                            classification: pr.review_health_classification,
+                            score: pr.review_health_score,
+                            score_display: `${pr.review_health_score || 0}%`,
+                            response_rate: pr.response_rate || 0,
+                            response_rate_display: `${Math.round((pr.response_rate || 0) * 100)}%`,
+                            total_feedback: pr.total_feedback || 0,
+                            responded_feedback: pr.responded_feedback || 0,
+                            stale_feedback_count: pr.stale_feedback_count || 0,
+                            stale_feedback: stale_feedback
+                        };
+                    } catch (e) {
+                        console.error('Error parsing readiness data from database:', e);
+                    }
+                }
+                
+                // Fall back to localStorage if database doesn't have data
+                if (!readiness || !reviewHealth) {
+                    const storedData = loadReadinessData(pr.id);
+                    if (storedData && storedData.readiness && storedData.reviewHealth) {
+                        readiness = storedData.readiness;
+                        reviewHealth = storedData.reviewHealth;
+                    }
+                }
+                
+                // Display the readiness data if available
+                if (readiness && reviewHealth) {
+                    updateInlineCells(pr.id, readiness, reviewHealth);
                     // Update button to show it was updated
                     const updateBtn = row.querySelector('.update-btn');
                     if (updateBtn) {
@@ -568,13 +844,69 @@
                     await updatePr(prId, e.currentTarget);
                 });
             });
+            if (document.getElementById('prSearchInput').value.trim() === '') {
+                renderPagination();
         }
+        }
+
+        function renderPagination() {
+            const container = document.getElementById('prListContainer');
+
+            // Remove existing pagination if present
+            const existing = container.querySelector('.pagination-wrapper');
+            if (existing) existing.remove();
+
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination-wrapper flex items-center justify-between mt-4';
+
+            paginationDiv.innerHTML = `
+                <div class="text-sm text-slate-600 dark:text-slate-400">
+                    Page <span class="font-semibold">${currentPage}</span> of <span class="font-semibold">${totalPages}</span>
+                </div>
+            <div class="flex gap-2">
+                <button 
+                    ${currentPage === 1 ? 'disabled' : ''} 
+                    class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
+                           ${currentPage === 1 
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                    id="prevPageBtn"> ← Previous
+                </button>
+
+                <button 
+                    ${currentPage === totalPages ? 'disabled' : ''} 
+                    class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
+                            ${currentPage === totalPages 
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                    id="nextPageBtn"> Next →
+                </button>
+            </div>
+        `;
+
+        container.appendChild(paginationDiv);
+
+        document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadPrs();
+            }
+        });
+        document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadPrs();
+            }
+        });
+    }
 
         function createPrRow(pr) {
             let stateBadge = '';
             if (pr.is_merged) {
                 stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
-            } else if (pr.state === 'open') {
+            } else if (pr.is_draft == 1) {
+                stateBadge = '<span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">Draft</span>';
+            }else if (pr.state === 'open') {
                 stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
             } else {
                 stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
@@ -633,6 +965,14 @@
                 <td class="px-2 py-3">${reviewBadge}</td>
                 <td class="px-2 py-3 text-slate-700 dark:text-slate-300 text-xs truncate">${escapeHtml(mergeableText)}</td>
                 <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">${pr.files_changed}</td>
+                <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">${pr.commits_count || 0}</td>
+                <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">
+                    ${pr.behind_by > 0 ? `<span class="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400" title="This PR is ${pr.behind_by} commit${pr.behind_by !== 1 ? 's' : ''} behind the base branch">
+                        <i class="fas fa-exclamation-triangle"></i>${pr.behind_by}
+                    </span>` : `<span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400" title="This PR is up to date with the base branch">
+                        <i class="fas fa-check"></i>
+                    </span>`}
+                </td>
                 <td class="px-2 py-3">
                     <div class="flex flex-wrap gap-1 text-xs">
                         <span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
@@ -722,10 +1062,7 @@
 
                 const refreshData = await refreshResponse.json();
                 if (refreshData.error) {
-                    showError(refreshData.error);
-                    button.innerHTML = originalHtml;
-                    button.disabled = false;
-                    button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    showInlineError(`pr-row-${prId}`, refreshData.error);
                     return;
                 }
 
@@ -734,9 +1071,39 @@
                 
                 // Check if PR was removed due to being merged/closed
                 if (refreshData.removed) {
-                    showError(refreshData.message || 'PR has been removed from tracking');
-                    await loadRepos();
-                    await loadPrs();
+                    // Remove PR from allPrs array
+                    const prIndex = allPrs.findIndex(pr => pr.id === prId);
+                    if (prIndex !== -1) {
+                        allPrs.splice(prIndex, 1);
+                    }
+                    
+                    // Get the row element
+                    const row = document.getElementById(`pr-row-${prId}`);
+                    if (row) {
+                        // Add fade-out animation
+                        row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        
+                        // Remove the row after animation completes
+                        setTimeout(async () => {
+                            row.remove();
+                            
+                            // Update repos list (counts might have changed)
+                            await loadRepos();
+                            
+                            // Check if there are no PRs left
+                            if (allPrs.length === 0) {
+                                const container = document.getElementById('prListContainer');
+                                if (container) {
+                                    container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800"><h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p></div>';
+                                }
+                            }
+                        }, 300);
+                    }
+                    
+                    // Show success message
+                    showError(refreshData.message || 'PR has been closed and removed from tracking');
                     await loadRateLimit();
                     return;
                 }
@@ -758,10 +1125,7 @@
                 const readinessData = await readinessResponse.json();
                 
                 if (readinessData.error) {
-                    showError(readinessData.error);
-                    updatedButton.innerHTML = originalHtml;
-                    updatedButton.disabled = false;
-                    updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                    showInlineError(`pr-row-${prId}`, readinessData.error);
                     return;
                 }
 
@@ -779,15 +1143,7 @@
                 updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
                 console.error('Error updating PR:', error);
-                showError('Failed to update PR');
-                // Try to get the current button (might be the original or updated one)
-                const currentRow = document.getElementById(`pr-row-${prId}`);
-                const currentButton = currentRow ? currentRow.querySelector('.update-btn') : button;
-                if (currentButton) {
-                    currentButton.innerHTML = originalHtml;
-                    currentButton.disabled = false;
-                    currentButton.classList.remove('opacity-70', 'cursor-not-allowed');
-                }
+                showInlineError(`pr-row-${prId}`, 'Failed to update PR');
             }
         }
 
@@ -903,7 +1259,7 @@
             const addAll = checkbox.checked;
 
             if (!prUrl) {
-                showError('Please enter a PR URL');
+                showInputError('prUrlInput', 'Please enter a PR URL');
                 return;
             }
 
@@ -926,7 +1282,7 @@
 
                 const data = await response.json();
                 if (data.error) {
-                    showError(data.error);
+                    showInputError('prUrlInput', data.error);
                 } else {
                     input.value = '';
                     await loadRepos();
@@ -935,7 +1291,7 @@
                 }
             } catch (error) {
                 console.error('Error adding PR:', error);
-                showError('Failed to add PR');
+                showInputError('prUrlInput', 'Failed to add PR');
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Add PR';
@@ -944,7 +1300,28 @@
 
         // Search listener
         document.getElementById('prSearchInput').addEventListener('input', (e) => {
+            currentPage = 1;
             filterPrs(e.target.value);
+        });
+
+        // Search button listener
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const searchTerm = document.getElementById('prSearchInput').value;
+            filterPrs(searchTerm);
+        });
+
+        // Clear button listener
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            document.getElementById('prSearchInput').value = '';
+            filterPrs('');
+        });
+
+        // Allow Enter key to trigger search
+        document.getElementById('prSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const searchTerm = document.getElementById('prSearchInput').value;
+                filterPrs(searchTerm);
+            }
         });
 
         document.getElementById('addPrBtn').addEventListener('click', addPr);
@@ -954,6 +1331,7 @@
 
         document.querySelector('[data-repo="all"]').addEventListener('click', () => {
             currentRepo = 'all';
+            currentPage = 1;
             localStorage.setItem('currentRepo', currentRepo);
             document.querySelectorAll('.repo-item').forEach(item => {
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
@@ -998,6 +1376,7 @@
 
         initTheme();
         loadRateLimit();
+        loadLatestRelease();
         loadRepos();
         loadPrs();
         setInterval(loadRateLimit, 600000);

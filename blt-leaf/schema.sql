@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS prs (
     checks_passed INTEGER DEFAULT 0,
     checks_failed INTEGER DEFAULT 0,
     checks_skipped INTEGER DEFAULT 0,
+    commits_count INTEGER DEFAULT 0,
+    behind_by INTEGER DEFAULT 0,
     review_status TEXT,
     last_updated_at TEXT,
     last_refreshed_at TEXT,
@@ -39,7 +41,10 @@ CREATE TABLE IF NOT EXISTS prs (
     response_rate REAL,
     total_feedback INTEGER,
     responded_feedback INTEGER,
-    readiness_computed_at TEXT
+    stale_feedback_count INTEGER,
+    stale_feedback TEXT,
+    readiness_computed_at TEXT,
+    is_draft INTEGER DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
@@ -48,6 +53,8 @@ CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 -- Migration for existing databases (if needed manually)
 -- Run this if the automatic migration in init_database_schema fails:
 -- ALTER TABLE prs ADD COLUMN last_refreshed_at TEXT;
+-- ALTER TABLE prs ADD COLUMN commits_count INTEGER DEFAULT 0;
+-- ALTER TABLE prs ADD COLUMN behind_by INTEGER DEFAULT 0;
 -- ALTER TABLE prs ADD COLUMN overall_score INTEGER;
 -- ALTER TABLE prs ADD COLUMN ci_score INTEGER;
 -- ALTER TABLE prs ADD COLUMN review_score INTEGER;
@@ -61,4 +68,6 @@ CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 -- ALTER TABLE prs ADD COLUMN response_rate REAL;
 -- ALTER TABLE prs ADD COLUMN total_feedback INTEGER;
 -- ALTER TABLE prs ADD COLUMN responded_feedback INTEGER;
+-- ALTER TABLE prs ADD COLUMN stale_feedback_count INTEGER;
+-- ALTER TABLE prs ADD COLUMN stale_feedback TEXT;
 -- ALTER TABLE prs ADD COLUMN readiness_computed_at TEXT;

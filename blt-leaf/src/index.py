@@ -43,6 +43,10 @@ _timeline_cache = {
 # Cache TTL in seconds (30 minutes - timeline data changes less frequently)
 _TIMELINE_CACHE_TTL = 1800
 
+# Score multiplier when changes are requested
+# Reduces overall readiness score by 50% when reviewers request changes
+_CHANGES_REQUESTED_SCORE_MULTIPLIER = 0.5
+
 def parse_pr_url(pr_url):
     """
     Parse GitHub PR URL to extract owner, repo, and PR number.
@@ -224,6 +228,7 @@ async def save_readiness_to_db(env, pr_id, readiness_data):
         blockers_json = json.dumps(readiness.get('blockers', []))
         warnings_json = json.dumps(readiness.get('warnings', []))
         recommendations_json = json.dumps(readiness.get('recommendations', []))
+        stale_feedback_json = json.dumps(review_health.get('stale_feedback', []))
         
         # Update the existing PR row with readiness data
         stmt = db.prepare('''
@@ -241,6 +246,8 @@ async def save_readiness_to_db(env, pr_id, readiness_data):
                 response_rate = ?,
                 total_feedback = ?,
                 responded_feedback = ?,
+                stale_feedback_count = ?,
+                stale_feedback = ?,
                 readiness_computed_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''')
@@ -259,6 +266,8 @@ async def save_readiness_to_db(env, pr_id, readiness_data):
             review_health.get('response_rate'),
             review_health.get('total_feedback'),
             review_health.get('responded_feedback'),
+            review_health.get('stale_feedback_count'),
+            stale_feedback_json,
             pr_id
         ).run()
         
@@ -289,6 +298,7 @@ async def load_readiness_from_db(env, pr_id):
                    merge_ready, blockers, warnings, recommendations,
                    review_health_classification, review_health_score, 
                    response_rate, total_feedback, responded_feedback,
+                   stale_feedback_count, stale_feedback,
                    readiness_computed_at
             FROM prs WHERE id = ?
         ''')
@@ -325,6 +335,12 @@ async def load_readiness_from_db(env, pr_id):
             print(f"Failed to parse recommendations JSON for PR {pr_id}: {str(e)}")
             return None
         
+        try:
+            stale_feedback = json.loads(pr.get('stale_feedback', '[]'))
+        except Exception as e:
+            print(f"Failed to parse stale_feedback JSON for PR {pr_id}: {str(e)}")
+            return None
+        
         # Get numeric values for display formatting
         overall_score = pr.get('overall_score', 0)
         ci_score = pr.get('ci_score', 0)
@@ -351,8 +367,8 @@ async def load_readiness_from_db(env, pr_id):
                 'ci_score_display': f"{ci_score}%",
                 'review_score': review_score,
                 'review_score_display': f"{review_score}%",
-                'classification': row.get('classification'),
-                'merge_ready': bool(row.get('merge_ready')),
+                'classification': pr.get('classification'),
+                'merge_ready': bool(pr.get('merge_ready')),
                 'blockers': blockers,
                 'warnings': warnings,
                 'recommendations': recommendations
@@ -363,8 +379,10 @@ async def load_readiness_from_db(env, pr_id):
                 'score_display': f"{pr.get('review_health_score', 0)}%",
                 'response_rate': response_rate,
                 'response_rate_display': f"{int(response_rate * 100)}%",
-                'total_feedback': pr.get('total_feedback'),
-                'responded_feedback': pr.get('responded_feedback')
+                'total_feedback': pr.get('total_feedback') or 0,
+                'responded_feedback': pr.get('responded_feedback') or 0,
+                'stale_feedback_count': pr.get('stale_feedback_count') or 0,
+                'stale_feedback': stale_feedback
             },
             'ci_checks': {
                 'passed': pr.get('checks_passed'),
@@ -405,6 +423,8 @@ async def delete_readiness_from_db(env, pr_id):
                 response_rate = NULL,
                 total_feedback = NULL,
                 responded_feedback = NULL,
+                stale_feedback_count = NULL,
+                stale_feedback = NULL,
                 readiness_computed_at = NULL
             WHERE id = ?
         ''')
@@ -560,6 +580,8 @@ async def init_database_schema(env):
                 checks_passed INTEGER DEFAULT 0,
                 checks_failed INTEGER DEFAULT 0,
                 checks_skipped INTEGER DEFAULT 0,
+                commits_count INTEGER DEFAULT 0,
+                behind_by INTEGER DEFAULT 0,
                 review_status TEXT,
                 last_updated_at TEXT,
                 last_refreshed_at TEXT,
@@ -578,7 +600,10 @@ async def init_database_schema(env):
                 response_rate REAL,
                 total_feedback INTEGER,
                 responded_feedback INTEGER,
-                readiness_computed_at TEXT
+                stale_feedback_count INTEGER,
+                stale_feedback TEXT,
+                readiness_computed_at TEXT,
+                is_draft INTEGER DEFAULT 0
             )
         ''')
         await create_table.run()
@@ -596,6 +621,8 @@ async def init_database_schema(env):
             # SECURITY: These are hardcoded and validated - safe for f-string SQL construction
             new_columns = [
                 ('last_refreshed_at', 'TEXT'),
+                ('commits_count', 'INTEGER DEFAULT 0'),
+                ('behind_by', 'INTEGER DEFAULT 0'),
                 ('repo_owner_avatar', 'TEXT'),
                 ('overall_score', 'INTEGER'),
                 ('ci_score', 'INTEGER'),
@@ -610,7 +637,10 @@ async def init_database_schema(env):
                 ('response_rate', 'REAL'),
                 ('total_feedback', 'INTEGER'),
                 ('responded_feedback', 'INTEGER'),
-                ('readiness_computed_at', 'TEXT')
+                ('stale_feedback_count', 'INTEGER'),
+                ('stale_feedback', 'TEXT'),
+                ('readiness_computed_at', 'TEXT'),
+                ('is_draft', 'INTEGER DEFAULT 0')
             ]
             
             # Whitelist of allowed column names for security
@@ -679,17 +709,37 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
-        # Fetch files, reviews, and checks in parallel using asyncio.gather
+        # Extract base and head branch information for comparison
+        # To check if PR is behind base, we need to compare the branches (not SHAs)
+        # Using branch refs ensures we compare the current state of the branches
+        base_branch = pr_data['base']['ref']
+        head_branch = pr_data['head']['ref']
+        # For forks, we need to use the full ref format
+        # Handle case where fork is deleted (repo is None)
+        head_repo = pr_data['head'].get('repo')
+        if head_repo and head_repo.get('owner'):
+            head_full_ref = f"{head_repo['owner']['login']}:{head_branch}"
+        else:
+            # If fork is deleted, use just the branch name (comparison will likely fail but won't crash)
+            print(f"Warning: PR #{pr_number} head repository is None (fork may be deleted)")
+            head_full_ref = head_branch
+        
+        # Compare head...base to see how many commits base has that head doesn't
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
+        
+        # Fetch files, reviews, checks, and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         files_data = []
         reviews_data = []
         checks_data = {}
+        compare_data = {}
         
         try:
             results = await asyncio.gather(
                 fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(reviews_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
+                fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
             
@@ -704,7 +754,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             # Process checks result
             if not isinstance(results[2], Exception) and results[2].status == 200:
                 checks_data = (await results[2].json()).to_py()
-        except: pass
+            
+            # Process compare result
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                compare_data = (await results[3].json()).to_py()
+                print(f"Compare API success for PR #{pr_number}")
+            elif not isinstance(results[3], Exception):
+                # Log error if compare API fails
+                print(f"Compare API failed for PR #{pr_number} with status {results[3].status}, URL: {compare_url}")
+            else:
+                print(f"Compare API exception for PR #{pr_number}: {results[3]}")
+        except Exception as e:
+            print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
         # Process check runs
         checks_passed = 0
@@ -719,6 +780,18 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                     checks_failed += 1
                 elif check['conclusion'] in ['skipped', 'neutral']:
                     checks_skipped += 1
+        
+        # Get commits count from pr_data (GitHub provides this)
+        commits_count = pr_data.get('commits', 0)
+        
+        # Get behind_by count from compare data
+        # When comparing head...base, ahead_by tells us how many commits base has that head doesn't
+        behind_by = 0
+        if compare_data:
+            # Use ahead_by since we reversed the comparison (head...base)
+            # Use 'or 0' to handle None values from GitHub API
+            behind_by = compare_data.get('ahead_by') or 0
+            print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
         # Determine review status - sort by submitted_at to get latest reviews
         review_status = 'pending'
@@ -748,8 +821,11 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
             'checks_skipped': checks_skipped,
+            'commits_count': commits_count,
+            'behind_by': behind_by,
             'review_status': review_status,
-            'last_updated_at': pr_data.get('updated_at', '')
+            'last_updated_at': pr_data.get('updated_at', ''),
+            'is_draft': 1 if pr_data.get('draft', False) else 0
         }
     except Exception as e:
         # Return more informative error for debugging
@@ -1204,12 +1280,28 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     )
     
     # Weighted combination: 45% CI, 55% Review (reduced CI weight due to flaky tests)
-    overall_score = int((ci_score * 0.45) + (review_score * 0.55))
+    overall_score_raw = (ci_score * 0.45) + (review_score * 0.55)
+    
+    # Reduce readiness by 50% when changes are requested
+    if review_classification == 'AWAITING_AUTHOR':
+        overall_score_raw *= _CHANGES_REQUESTED_SCORE_MULTIPLIER
+    
+    overall_score = int(overall_score_raw)
+    
+    # Force score to 0% for Draft PRs
+    is_draft = pr_data.get('is_draft') == 1 or pr_data.get('is_draft') == True
+    if is_draft:
+        overall_score = 0
     
     # Identify blockers, warnings, recommendations
     blockers = []
     warnings = []
     recommendations = []
+    
+    # Draft blocker
+    if is_draft:
+        blockers.append("PR is in draft mode")
+        recommendations.append("Convert to 'Ready for review' when finished")
     
     # CI blockers (with tolerance for 1-2 flaky test failures)
     checks_failed = pr_data.get('checks_failed', 0)
@@ -1298,8 +1390,9 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
-                       review_status, last_updated_at, last_refreshed_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       commits_count, behind_by, review_status, last_updated_at, 
+                       last_refreshed_at, updated_at, is_draft)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1310,10 +1403,13 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             checks_passed = excluded.checks_passed,
             checks_failed = excluded.checks_failed,
             checks_skipped = excluded.checks_skipped,
+            commits_count = excluded.commits_count,
+            behind_by = excluded.behind_by,
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
-            updated_at = excluded.updated_at
+            updated_at = excluded.updated_at,
+            is_draft = excluded.is_draft
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -1323,12 +1419,15 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['files_changed'],
         pr_data['author_login'], 
         pr_data['author_avatar'],
-        pr_data['repo_owner_avatar'],
+        pr_data.get('repo_owner_avatar', ''),
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
-        pr_data['checks_skipped'], 
+        pr_data['checks_skipped'],
+        pr_data.get('commits_count', 0),
+        pr_data.get('behind_by', 0),
         pr_data['review_status'],
-        pr_data['last_updated_at'], current_timestamp, current_timestamp
+        pr_data['last_updated_at'], current_timestamp, current_timestamp,
+        pr_data.get('is_draft', 0)
     )
     await stmt.run()
 
@@ -1409,13 +1508,17 @@ async def handle_add_pr(request, env):
                     'files_changed': 0,
                     'author_login': item['user']['login'], 
                     'author_avatar': item['user']['avatar_url'],
+                    'repo_owner_avatar': item.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
                     'checks_passed': 0, 
                     'checks_failed': 0, 
                     'checks_skipped': 0,
                     'review_status': 'pending', 
-                    'last_updated_at': item.get('updated_at', ts)
+                    'last_updated_at': item.get('updated_at', ts),
+                    'commits_count': 0,
+                    'behind_by': 0,
+                    'is_draft': 1 if item.get('draft') else 0
                 }
-                
+
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
                 added_count += 1
             
@@ -1458,41 +1561,106 @@ async def handle_add_pr(request, env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
-async def handle_list_prs(env, repo_filter=None):
-    """List all PRs, optionally filtered by repo."""
+async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None):
+    """List PRs with pagination and sorting (default 30 per page)."""
     try:
         db = get_db(env)
+        try:
+            page = int(page)
+            if page < 1:
+                page = 1
+        except Exception:
+            page = 1
+
+        offset = (page - 1) * per_page
+        base_query = '''
+            FROM prs
+            WHERE is_merged = 0 AND state = 'open'
+        '''
+
+        params = []
+
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                stmt = db.prepare('''
-                    SELECT * FROM prs 
-                    WHERE repo_owner = ? AND repo_name = ?
-                    AND is_merged = 0 AND state = 'open'
-                    ORDER BY last_updated_at DESC
-                ''').bind(parts[0], parts[1])
-            else:
-                stmt = db.prepare('''
-                    SELECT * FROM prs 
-                    WHERE is_merged = 0 AND state = 'open'
-                    ORDER BY last_updated_at DESC
-                ''')
+                base_query += ' AND repo_owner = ? AND repo_name = ?'
+                params.extend([parts[0], parts[1]])
+
+        # Map frontend column names to database column names
+        column_mapping = {
+            'ready_score': 'overall_score',
+            'response_score': 'response_rate',
+            'feedback_score': 'responded_feedback',
+            # All other columns map directly to database columns
+        }
+        
+        # Whitelist of allowed sort columns (frontend names)
+        # Note: issues_count is excluded as it's a computed field from JSON (blockers + warnings)
+        allowed_columns = {
+            'last_updated_at', 'title', 'author_login', 'pr_number', 
+            'files_changed', 'checks_passed', 'checks_failed', 'checks_skipped',
+            'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
+            'commits_count', 'behind_by',
+            # Readiness columns
+            'ready_score', 'ci_score', 'review_score', 'response_score',
+            'feedback_score'
+        }
+        
+        # Validate and map column name
+        if sort_by and sort_by in allowed_columns:
+            # Map frontend column name to database column name
+            sort_column = column_mapping.get(sort_by, sort_by)
         else:
-            stmt = db.prepare('''
-                SELECT * FROM prs 
-                WHERE is_merged = 0 AND state = 'open'
-                ORDER BY last_updated_at DESC
-            ''')
+            sort_column = 'last_updated_at'
         
-        result = await stmt.all()
-        # Convert JS Array to Python list
+        # Validate sort direction
+        if sort_dir and sort_dir.upper() in ('ASC', 'DESC'):
+            sort_direction = sort_dir.upper()
+        else:
+            sort_direction = 'DESC'
+        
+        # Build ORDER BY clause with NULL handling
+        # NULL values should appear last regardless of sort direction
+        # Note: sort_column is validated against whitelist above, so no SQL injection risk
+        order_clause = f'ORDER BY {sort_column} IS NULL ASC, {sort_column} {sort_direction}'
+
+        # Total count first
+        count_stmt = db.prepare(f'''
+            SELECT COUNT(*) as total
+            {base_query}
+        ''').bind(*params)
+
+        count_result = await count_stmt.first()
+        total = count_result.to_py()['total'] if count_result else 0
+
+        # Fetch paginated data with sorting
+        data_stmt = db.prepare(f'''
+            SELECT *
+            {base_query}
+            {order_clause}
+            LIMIT ? OFFSET ?
+        ''').bind(*params, per_page, offset)
+
+        result = await data_stmt.all()
         prs = result.results.to_py() if hasattr(result, 'results') else []
-        
-        return Response.new(json.dumps({'prs': prs}), 
-                          {'headers': {'Content-Type': 'application/json'}})
+
+        return Response.new(json.dumps({
+            'prs': prs,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total_items': total,
+                'total_pages': (total + per_page - 1) // per_page,
+                'has_next': page * per_page < total,
+                'has_previous': page > 1
+            }
+        }), {'headers': {'Content-Type': 'application/json'}})
+
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_list_repos(env):
     """List all unique repos with count of open PRs"""
@@ -1700,20 +1868,27 @@ async def handle_github_webhook(request, env):
     Handle GitHub webhook events for PR state changes.
     
     Supported events:
-    - pull_request: closed, reopened, synchronize, edited
-    - pull_request_review: submitted, edited, dismissed
-    - check_run: completed, requested_action
+    - pull_request: opened, closed, reopened, synchronize, edited
+    - pull_request_review: submitted, edited, dismissed (updates PR data)
+    - check_run: completed, requested_action (updates PR data)
+    - check_suite: completed, requested (updates PR data)
     
     Security:
     - Verifies GitHub webhook signature using WEBHOOK_SECRET
     - Validates event types before processing
     
+    When a PR is opened:
+    - Automatically adds the PR to tracking
+    - Fetches complete PR data from GitHub
+    - Returns event data with PR ID for frontend
+    
     When a PR is closed or merged:
     - Removes the PR from the database
     - Returns event data for frontend to animate removal
     
-    When a PR is updated:
-    - Refreshes PR data in the database
+    When a PR is updated (synchronize, edited, reviews, checks):
+    - Refreshes PR data in the database including behind_by and mergeable_state
+    - Invalidates caches to ensure fresh analysis
     - Returns updated PR data for frontend
     """
     try:
@@ -1767,8 +1942,51 @@ async def handle_github_webhook(request, env):
                 'SELECT id FROM prs WHERE pr_url = ?'
             ).bind(pr_url).first()
             
+            # Handle opened PRs - add to tracking automatically
+            if action == 'opened':
+                if result:
+                    # PR already tracked, just return success
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_already_tracked',
+                            'pr_id': result.to_py()['id'],
+                            'pr_number': pr_number,
+                            'message': f'PR #{pr_number} is already being tracked'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+                
+                # Fetch fresh PR data and add to tracking
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    
+                    # Get the newly created PR ID
+                    new_result = await db.prepare(
+                        'SELECT id FROM prs WHERE pr_url = ?'
+                    ).bind(pr_url).first()
+                    new_pr_id = new_result.to_py()['id'] if new_result else None
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_added',
+                            'pr_id': new_pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been added to tracking'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+                else:
+                    return Response.new(
+                        json.dumps({'error': 'Failed to fetch PR data from GitHub'}),
+                        {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+                    )
+            
             if not result:
-                # PR not being tracked - ignore this webhook
+                # PR not being tracked - ignore this webhook for other actions
                 return Response.new(
                     json.dumps({
                         'success': True,
@@ -1845,17 +2063,103 @@ async def handle_github_webhook(request, env):
                         {'headers': {'Content-Type': 'application/json'}}
                     )
         
-        # Handle other event types (for future expansion)
+        # Handle other event types - update PR data to refresh behind_by and mergeable_state
         elif event_type in ['pull_request_review', 'check_run', 'check_suite']:
-            # For now, just acknowledge these events
-            # In the future, we could update specific fields without full refresh
-            return Response.new(
-                json.dumps({
-                    'success': True,
-                    'message': f'Received {event_type} event, no action taken'
-                }),
-                {'headers': {'Content-Type': 'application/json'}}
-            )
+            # Extract PR information from the payload based on event type
+            prs_to_update = []  # List of (pr_number, repo_owner, repo_name) tuples
+            
+            if event_type == 'pull_request_review':
+                # pull_request_review events have PR data directly
+                pr_data = payload.get('pull_request', {})
+                repo_data = payload.get('repository', {})
+                pr_number = pr_data.get('number')
+                repo_owner = repo_data.get('owner', {}).get('login')
+                repo_name = repo_data.get('name')
+                if all([pr_number, repo_owner, repo_name]):
+                    prs_to_update.append((pr_number, repo_owner, repo_name))
+            elif event_type in ['check_run', 'check_suite']:
+                # check_run and check_suite events have PR data in check_run/check_suite -> pull_requests array
+                # Multiple PRs can be associated with a single check, so we update all of them
+                check_data = payload.get('check_run') or payload.get('check_suite', {})
+                pull_requests = check_data.get('pull_requests', [])
+                repo_data = payload.get('repository', {})
+                repo_owner = repo_data.get('owner', {}).get('login')
+                repo_name = repo_data.get('name')
+                
+                for pr_data in pull_requests:
+                    pr_number = pr_data.get('number')
+                    if all([pr_number, repo_owner, repo_name]):
+                        prs_to_update.append((pr_number, repo_owner, repo_name))
+            
+            if not prs_to_update:
+                # If we can't extract PR info, just acknowledge the event
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event, insufficient PR data to update'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Update all tracked PRs associated with this event
+            db = get_db(env)
+            updated_prs = []
+            
+            for pr_number, repo_owner, repo_name in prs_to_update:
+                pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
+                result = await db.prepare(
+                    'SELECT id FROM prs WHERE pr_url = ?'
+                ).bind(pr_url).first()
+                
+                if not result:
+                    # PR not being tracked - skip it
+                    print(f"Skipping untracked PR #{pr_number} in {event_type} event")
+                    continue
+                
+                try:
+                    result_dict = result.to_py()
+                    pr_id = result_dict.get('id')
+                    if not pr_id:
+                        print(f"Error: Database result missing 'id' field for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
+                        continue
+                except Exception as db_error:
+                    print(f"Error parsing database result for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(db_error)}")
+                    continue
+                
+                # Fetch fresh PR data to update behind_by and mergeable_state
+                try:
+                    fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                    if fetched_pr_data:
+                        await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                        # Invalidate caches to force fresh analysis
+                        await invalidate_readiness_cache(env, pr_id)
+                        invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                        updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
+                    else:
+                        print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: fetch_pr_data returned None")
+                except Exception as fetch_error:
+                    print(f"Error fetching PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(fetch_error)}")
+            
+            # Return response with info about all updated PRs
+            if updated_prs:
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'event': f'{event_type}_processed',
+                        'updated_prs': updated_prs,
+                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            else:
+                # No tracked PRs were updated
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event for untracked PR(s), no updates performed'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
         
         # Unknown event type
         return Response.new(
@@ -2173,7 +2477,8 @@ async def handle_pr_readiness(request, env, path):
                 'responded_feedback': review_data['responded_count'],
                 'response_rate': review_data['response_rate'],
                 'response_rate_display': f"{int(review_data['response_rate'] * 100)}%",
-                'stale_feedback_count': len(review_data['stale_feedback'])
+                'stale_feedback_count': len(review_data['stale_feedback']),
+                'stale_feedback': review_data['stale_feedback']
             },
             'ci_checks': {
                 'passed': pr['checks_passed'],
@@ -2240,7 +2545,18 @@ async def on_fetch(request, env):
     
     if path == '/api/prs':
         if request.method == 'GET':
-            response = await handle_list_prs(env, url.searchParams.get('repo'))
+            repo = url.searchParams.get('repo')
+            page = url.searchParams.get('page')
+            sort_by = url.searchParams.get('sort_by')
+            sort_dir = url.searchParams.get('sort_dir')
+            response = await handle_list_prs(
+                env,
+                repo,
+                page if page else 1,
+                30,
+                sort_by,
+                sort_dir
+            )
         elif request.method == 'POST':
             response = await handle_add_pr(request, env)
     elif path == '/api/repos' and request.method == 'GET':
@@ -2251,9 +2567,14 @@ async def on_fetch(request, env):
         response = await handle_rate_limit(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
-        return response
+        return response 
     elif path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
+    elif path == '/api/github/webhook' and request.method == 'POST':
+        response = await handle_github_webhook(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
     # Timeline endpoint - GET /api/prs/{id}/timeline
     elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
         response = await handle_pr_timeline(request, env, path)
