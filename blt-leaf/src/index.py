@@ -43,6 +43,10 @@ _timeline_cache = {
 # Cache TTL in seconds (30 minutes - timeline data changes less frequently)
 _TIMELINE_CACHE_TTL = 1800
 
+# Score multiplier when changes are requested
+# Reduces overall readiness score by 50% when reviewers request changes
+_CHANGES_REQUESTED_SCORE_MULTIPLIER = 0.5
+
 def parse_pr_url(pr_url):
     """
     Parse GitHub PR URL to extract owner, repo, and PR number.
@@ -1256,7 +1260,13 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     )
     
     # Weighted combination: 45% CI, 55% Review (reduced CI weight due to flaky tests)
-    overall_score = int((ci_score * 0.45) + (review_score * 0.55))
+    overall_score_raw = (ci_score * 0.45) + (review_score * 0.55)
+    
+    # Reduce readiness by 50% when changes are requested
+    if review_classification == 'AWAITING_AUTHOR':
+        overall_score_raw *= _CHANGES_REQUESTED_SCORE_MULTIPLIER
+    
+    overall_score = int(overall_score_raw)
     
     # Force score to 0% for Draft PRs
     is_draft = pr_data.get('is_draft') == 1 or pr_data.get('is_draft') == True
