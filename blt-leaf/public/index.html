@@ -49,13 +49,23 @@
             </div>
 
             <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
-                <div class="relative w-full max-w-lg">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <i class="fas fa-search text-slate-400"></i>
+                <div class="flex w-full max-w-lg gap-2">
+                    <div class="relative flex-1">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fas fa-search text-slate-400"></i>
+                        </div>
+                        <input type="text" id="prSearchInput"
+                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                            placeholder="Search PRs..." autocomplete="off">
                     </div>
-                    <input type="text" id="prSearchInput"
-                        class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
-                        placeholder="Search PRs..." autocomplete="off">
+                    <button id="searchBtn" 
+                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button id="clearSearchBtn" 
+                        class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
                 </div>
             </div>
 
@@ -1288,6 +1298,26 @@
         // Search listener
         document.getElementById('prSearchInput').addEventListener('input', (e) => {
             filterPrs(e.target.value);
+        });
+
+        // Search button listener
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const searchTerm = document.getElementById('prSearchInput').value;
+            filterPrs(searchTerm);
+        });
+
+        // Clear button listener
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            document.getElementById('prSearchInput').value = '';
+            filterPrs('');
+        });
+
+        // Allow Enter key to trigger search
+        document.getElementById('prSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const searchTerm = document.getElementById('prSearchInput').value;
+                filterPrs(searchTerm);
+            }
         });
 
         document.getElementById('addPrBtn').addEventListener('click', addPr);
