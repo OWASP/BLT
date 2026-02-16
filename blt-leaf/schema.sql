@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS prs (
     response_rate REAL,
     total_feedback INTEGER,
     responded_feedback INTEGER,
+    stale_feedback_count INTEGER,
+    stale_feedback TEXT,
     readiness_computed_at TEXT,
     is_draft INTEGER DEFAULT 0
 );
@@ -66,4 +68,6 @@ CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 -- ALTER TABLE prs ADD COLUMN response_rate REAL;
 -- ALTER TABLE prs ADD COLUMN total_feedback INTEGER;
 -- ALTER TABLE prs ADD COLUMN responded_feedback INTEGER;
+-- ALTER TABLE prs ADD COLUMN stale_feedback_count INTEGER;
+-- ALTER TABLE prs ADD COLUMN stale_feedback TEXT;
 -- ALTER TABLE prs ADD COLUMN readiness_computed_at TEXT;
