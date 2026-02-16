@@ -1561,8 +1561,8 @@ async def handle_add_pr(request, env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
-async def handle_list_prs(env, repo_filter=None, page=1, per_page=30):
-    """List PRs with pagination (default 30 per page)."""
+async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None):
+    """List PRs with pagination and sorting (default 30 per page)."""
     try:
         db = get_db(env)
         try:
@@ -1586,6 +1586,44 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30):
                 base_query += ' AND repo_owner = ? AND repo_name = ?'
                 params.extend([parts[0], parts[1]])
 
+        # Map frontend column names to database column names
+        column_mapping = {
+            'ready_score': 'overall_score',
+            'response_score': 'response_rate',
+            'feedback_score': 'responded_feedback',
+            # All other columns map directly to database columns
+        }
+        
+        # Whitelist of allowed sort columns (frontend names)
+        # Note: issues_count is excluded as it's a computed field from JSON (blockers + warnings)
+        allowed_columns = {
+            'last_updated_at', 'title', 'author_login', 'pr_number', 
+            'files_changed', 'checks_passed', 'checks_failed', 'checks_skipped',
+            'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
+            'commits_count', 'behind_by',
+            # Readiness columns
+            'ready_score', 'ci_score', 'review_score', 'response_score',
+            'feedback_score'
+        }
+        
+        # Validate and map column name
+        if sort_by and sort_by in allowed_columns:
+            # Map frontend column name to database column name
+            sort_column = column_mapping.get(sort_by, sort_by)
+        else:
+            sort_column = 'last_updated_at'
+        
+        # Validate sort direction
+        if sort_dir and sort_dir.upper() in ('ASC', 'DESC'):
+            sort_direction = sort_dir.upper()
+        else:
+            sort_direction = 'DESC'
+        
+        # Build ORDER BY clause with NULL handling
+        # NULL values should appear last regardless of sort direction
+        # Note: sort_column is validated against whitelist above, so no SQL injection risk
+        order_clause = f'ORDER BY {sort_column} IS NULL ASC, {sort_column} {sort_direction}'
+
         # Total count first
         count_stmt = db.prepare(f'''
             SELECT COUNT(*) as total
@@ -1595,11 +1633,11 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30):
         count_result = await count_stmt.first()
         total = count_result.to_py()['total'] if count_result else 0
 
-        # Fetch paginated data
+        # Fetch paginated data with sorting
         data_stmt = db.prepare(f'''
             SELECT *
             {base_query}
-            ORDER BY last_updated_at DESC
+            {order_clause}
             LIMIT ? OFFSET ?
         ''').bind(*params, per_page, offset)
 
@@ -2421,11 +2459,15 @@ async def on_fetch(request, env):
         if request.method == 'GET':
             repo = url.searchParams.get('repo')
             page = url.searchParams.get('page')
+            sort_by = url.searchParams.get('sort_by')
+            sort_dir = url.searchParams.get('sort_dir')
             response = await handle_list_prs(
                 env,
                 repo,
                 page if page else 1,
-                30
+                30,
+                sort_by,
+                sort_dir
             )
         elif request.method == 'POST':
             response = await handle_add_pr(request, env)
