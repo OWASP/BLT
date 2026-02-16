@@ -510,6 +510,27 @@
                     }
                 });
                 
+                // Apply initial sort based on saved preferences or defaults
+                const numericColumns = ['files_changed', 'commits_count', 'behind_by', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
+                allPrs.sort((a, b) => {
+                    let aVal = a[sortColumn];
+                    let bVal = b[sortColumn];
+                    
+                    if (numericColumns.includes(sortColumn)) {
+                        aVal = Number(aVal) || 0;
+                        bVal = Number(bVal) || 0;
+                    } else {
+                        aVal = String(aVal || '').toLowerCase();
+                        bVal = String(bVal || '').toLowerCase();
+                    }
+                    
+                    if (sortDirection === 'asc') {
+                        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                    } else {
+                        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                    }
+                });
+                
                 // Apply search filter if exists
                 const searchTerm = document.getElementById('prSearchInput').value;
                 if(searchTerm) {
