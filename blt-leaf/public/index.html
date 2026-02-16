@@ -124,7 +124,7 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
-        let sortColumn = localStorage.getItem('sortColumn') || 'last_updated_at';
+        let sortColumn = localStorage.getItem('sortColumn') || 'ready_score';
         let sortDirection = localStorage.getItem('sortDirection') || 'desc';
         let secondarySortColumn = null;
         let secondarySortDirection = 'desc';
@@ -507,6 +507,27 @@
                         pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
                             (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
                         pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                    }
+                });
+                
+                // Apply initial sort based on saved preferences or defaults
+                const numericColumns = ['files_changed', 'commits_count', 'behind_by', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
+                allPrs.sort((a, b) => {
+                    let aVal = a[sortColumn];
+                    let bVal = b[sortColumn];
+                    
+                    if (numericColumns.includes(sortColumn)) {
+                        aVal = Number(aVal) || 0;
+                        bVal = Number(bVal) || 0;
+                    } else {
+                        aVal = String(aVal || '').toLowerCase();
+                        bVal = String(bVal || '').toLowerCase();
+                    }
+                    
+                    if (sortDirection === 'asc') {
+                        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                    } else {
+                        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
                     }
                 });
                 
