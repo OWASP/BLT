@@ -379,9 +379,9 @@ async def load_readiness_from_db(env, pr_id):
                 'score_display': f"{pr.get('review_health_score', 0)}%",
                 'response_rate': response_rate,
                 'response_rate_display': f"{int(response_rate * 100)}%",
-                'total_feedback': pr.get('total_feedback'),
-                'responded_feedback': pr.get('responded_feedback'),
-                'stale_feedback_count': pr.get('stale_feedback_count', 0),
+                'total_feedback': pr.get('total_feedback') or 0,
+                'responded_feedback': pr.get('responded_feedback') or 0,
+                'stale_feedback_count': pr.get('stale_feedback_count') or 0,
                 'stale_feedback': stale_feedback
             },
             'ci_checks': {
