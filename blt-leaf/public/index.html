@@ -554,15 +554,34 @@
 
                 // Attach readiness data from localStorage to each PR for sorting
                 allPrs.forEach(pr => {
-                    const storedData = loadReadinessData(pr.id);
-                    if (storedData && storedData.readiness && storedData.reviewHealth) {
-                        pr.ready_score = storedData.readiness.overall_score;
-                        pr.ci_score = storedData.readiness.ci_score;
-                        pr.review_score = storedData.readiness.review_score;
-                        pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
-                        pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
-                            (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
-                        pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                    // First, try to get readiness data from database (if it exists)
+                    if (pr.overall_score !== null && pr.overall_score !== undefined) {
+                        pr.ready_score = pr.overall_score;
+                        // ci_score and review_score are already in the pr object from database
+                        pr.response_score = (pr.response_rate || 0) * 100;
+                        pr.feedback_score = pr.total_feedback > 0 ? 
+                            (pr.responded_feedback / pr.total_feedback) * 100 : 100;
+                        
+                        // Parse blockers and warnings to get issues count
+                        try {
+                            const blockers = pr.blockers ? JSON.parse(pr.blockers) : [];
+                            const warnings = pr.warnings ? JSON.parse(pr.warnings) : [];
+                            pr.issues_count = blockers.length + warnings.length;
+                        } catch (e) {
+                            pr.issues_count = 0;
+                        }
+                    } else {
+                        // Fall back to localStorage if database doesn't have readiness data
+                        const storedData = loadReadinessData(pr.id);
+                        if (storedData && storedData.readiness && storedData.reviewHealth) {
+                            pr.ready_score = storedData.readiness.overall_score;
+                            pr.ci_score = storedData.readiness.ci_score;
+                            pr.review_score = storedData.readiness.review_score;
+                            pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
+                            pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
+                                (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
+                            pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
+                        }
                     }
                 });
                 
@@ -762,10 +781,61 @@
                 const row = createPrRow(pr);
                 tbody.appendChild(row);
 
-                // Load and display stored readiness data if available
-                const storedData = loadReadinessData(pr.id);
-                if (storedData && storedData.readiness && storedData.reviewHealth) {
-                    updateInlineCells(pr.id, storedData.readiness, storedData.reviewHealth);
+                // Load and display readiness data from database or localStorage if available
+                let readiness = null;
+                let reviewHealth = null;
+                
+                // First, try to get readiness data from database (if it exists)
+                if (pr.overall_score !== null && pr.overall_score !== undefined) {
+                    // Parse JSON fields from database
+                    try {
+                        const blockers = pr.blockers ? JSON.parse(pr.blockers) : [];
+                        const warnings = pr.warnings ? JSON.parse(pr.warnings) : [];
+                        const recommendations = pr.recommendations ? JSON.parse(pr.recommendations) : [];
+                        const stale_feedback = pr.stale_feedback ? JSON.parse(pr.stale_feedback) : [];
+                        
+                        readiness = {
+                            overall_score: pr.overall_score,
+                            overall_score_display: `${pr.overall_score}%`,
+                            ci_score: pr.ci_score,
+                            ci_score_display: `${pr.ci_score}%`,
+                            review_score: pr.review_score,
+                            review_score_display: `${pr.review_score}%`,
+                            classification: pr.classification,
+                            merge_ready: pr.merge_ready === 1,
+                            blockers: blockers,
+                            warnings: warnings,
+                            recommendations: recommendations
+                        };
+                        
+                        reviewHealth = {
+                            classification: pr.review_health_classification,
+                            score: pr.review_health_score,
+                            score_display: `${pr.review_health_score || 0}%`,
+                            response_rate: pr.response_rate || 0,
+                            response_rate_display: `${Math.round((pr.response_rate || 0) * 100)}%`,
+                            total_feedback: pr.total_feedback || 0,
+                            responded_feedback: pr.responded_feedback || 0,
+                            stale_feedback_count: pr.stale_feedback_count || 0,
+                            stale_feedback: stale_feedback
+                        };
+                    } catch (e) {
+                        console.error('Error parsing readiness data from database:', e);
+                    }
+                }
+                
+                // Fall back to localStorage if database doesn't have data
+                if (!readiness || !reviewHealth) {
+                    const storedData = loadReadinessData(pr.id);
+                    if (storedData && storedData.readiness && storedData.reviewHealth) {
+                        readiness = storedData.readiness;
+                        reviewHealth = storedData.reviewHealth;
+                    }
+                }
+                
+                // Display the readiness data if available
+                if (readiness && reviewHealth) {
+                    updateInlineCells(pr.id, readiness, reviewHealth);
                     // Update button to show it was updated
                     const updateBtn = row.querySelector('.update-btn');
                     if (updateBtn) {
