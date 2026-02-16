@@ -2116,7 +2116,15 @@ async def handle_github_webhook(request, env):
                     print(f"Skipping untracked PR #{pr_number} in {event_type} event")
                     continue
                 
-                pr_id = result.to_py()['id']
+                try:
+                    result_dict = result.to_py()
+                    pr_id = result_dict.get('id')
+                    if not pr_id:
+                        print(f"Error: Database result missing 'id' field for PR #{pr_number}")
+                        continue
+                except Exception as db_error:
+                    print(f"Error parsing database result for PR #{pr_number}: {str(db_error)}")
+                    continue
                 
                 # Fetch fresh PR data to update behind_by and mergeable_state
                 try:
