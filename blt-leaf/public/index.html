@@ -459,7 +459,7 @@
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
             const repoCountDisplay = document.getElementById('repoCountDisplay');
-            const totalPrs = allPrs.length;
+            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
 
             // Update the repository count display
