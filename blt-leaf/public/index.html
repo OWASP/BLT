@@ -43,6 +43,8 @@
                         <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
                 </div>
             </div>
 
@@ -205,21 +207,29 @@
                 const response = await fetch('/api/rate-limit');
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
 
                 if (!response.ok) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const data = await response.json();
                 if (data.error) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
-                const { limit, remaining } = data;
+                const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
@@ -238,11 +248,38 @@
                 }
                 
                 if(textEl) textEl.textContent = `${remaining} / ${limit}`;
+                
+                // Display used count
+                if(usedEl && typeof used === 'number') {
+                    usedEl.textContent = `(${used} used)`;
+                }
+                
+                // Display reset time in human-readable format
+                if(resetEl && typeof reset === 'number') {
+                    const resetDate = new Date(reset * 1000);
+                    const now = new Date();
+                    const diffMs = resetDate - now;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    
+                    if (diffMins < 0) {
+                        resetEl.textContent = 'Resets soon';
+                    } else if (diffMins < 60) {
+                        resetEl.textContent = `Resets in ${diffMins}m`;
+                    } else {
+                        const diffHours = Math.floor(diffMins / 60);
+                        const remainingMins = diffMins % 60;
+                        resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
+                    }
+                }
 
             } catch (error) {
                 console.error('Error loading rate limit:', error);
                 const textEl = document.getElementById('rateLimitText');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
                 if(textEl) textEl.textContent = 'N/A';
+                if(usedEl) usedEl.textContent = '';
+                if(resetEl) resetEl.textContent = '';
             }
         }
 
