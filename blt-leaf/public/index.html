@@ -78,7 +78,7 @@
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
         <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories</h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
                 <ul id="repoList" class="space-y-2">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
@@ -127,6 +127,8 @@
         let repos = [];
         let sortColumn = localStorage.getItem('sortColumn') || 'last_updated_at';
         let sortDirection = localStorage.getItem('sortDirection') || 'desc';
+        let secondarySortColumn = null;
+        let secondarySortDirection = 'desc';
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -263,12 +265,29 @@
             return 'just now';
         }
 
-        function sortPrs(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        function sortPrs(column, isShiftClick = false) {
+            // Handle shift+click for secondary sort
+            if (isShiftClick) {
+                if (secondarySortColumn === column) {
+                    // Toggle direction of secondary sort
+                    secondarySortDirection = secondarySortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    // Set as new secondary sort column
+                    secondarySortColumn = column;
+                    secondarySortDirection = 'desc';
+                }
             } else {
-                sortColumn = column;
-                sortDirection = 'desc';
+                // Regular click - set as primary sort
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'desc';
+                }
+                // If the new primary sort was the secondary sort, clear secondary
+                if (secondarySortColumn === column) {
+                    secondarySortColumn = null;
+                }
             }
             
             // Save sorting state to localStorage
@@ -279,11 +298,12 @@
             const numericColumns = ['files_changed', 'commits_count', 'behind_by', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
 
             allPrs.sort((a, b) => {
-                let aVal = a[column];
-                let bVal = b[column];
+                // Primary sort comparison
+                let aVal = a[sortColumn];
+                let bVal = b[sortColumn];
                 
                 // Handle numeric columns
-                if (numericColumns.includes(column)) {
+                if (numericColumns.includes(sortColumn)) {
                     aVal = Number(aVal) || 0;
                     bVal = Number(bVal) || 0;
                 }
@@ -293,8 +313,34 @@
                     bVal = String(bVal || '').toLowerCase();
                 }
                 
-                if (sortDirection === 'asc') return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-                else return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                let result;
+                if (sortDirection === 'asc') {
+                    result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    result = aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+                
+                // If primary sort values are equal and secondary sort is set, use secondary sort
+                if (result === 0 && secondarySortColumn) {
+                    let aSecVal = a[secondarySortColumn];
+                    let bSecVal = b[secondarySortColumn];
+                    
+                    if (numericColumns.includes(secondarySortColumn)) {
+                        aSecVal = Number(aSecVal) || 0;
+                        bSecVal = Number(bSecVal) || 0;
+                    } else {
+                        aSecVal = String(aSecVal || '').toLowerCase();
+                        bSecVal = String(bSecVal || '').toLowerCase();
+                    }
+                    
+                    if (secondarySortDirection === 'asc') {
+                        result = aSecVal > bSecVal ? 1 : aSecVal < bSecVal ? -1 : 0;
+                    } else {
+                        result = aSecVal < bSecVal ? 1 : aSecVal > bSecVal ? -1 : 0;
+                    }
+                }
+                
+                return result;
             });
             
             // Re-apply filter after sorting
@@ -346,8 +392,13 @@
         function renderRepoList() {
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
+            const repoCountDisplay = document.getElementById('repoCountDisplay');
             const totalPrs = allPrs.length;
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
+
+            // Update the repository count display
+            const repoCount = repos.length;
+            repoCountDisplay.textContent = repoCount > 0 ? `(${repoCount})` : '';
 
             while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
@@ -459,10 +510,24 @@
             }
 
             const getSortIcon = (column) => {
-                if (sortColumn !== column) return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
-                return sortDirection === 'asc' 
-                    ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
-                    : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
+                const isPrimary = sortColumn === column;
+                const isSecondary = secondarySortColumn === column;
+                
+                if (isPrimary) {
+                    const primaryIcon = sortDirection === 'asc' 
+                        ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
+                        : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
+                    return primaryIcon;
+                }
+                
+                if (isSecondary) {
+                    const secondaryIcon = secondarySortDirection === 'asc'
+                        ? '<i class="fas fa-sort-up text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>'
+                        : '<i class="fas fa-sort-down text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>';
+                    return '<sup class="text-xs text-slate-500 dark:text-slate-400">2</sup>' + secondaryIcon;
+                }
+                
+                return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
             };
 
             container.innerHTML = `
@@ -470,82 +535,82 @@
                     <table class="w-full text-left text-sm" style="min-width: 1750px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('author_login')" style="min-width: 100px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('title')" style="min-width: 200px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="title" style="min-width: 200px;" title="Click to sort by PR Title. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('repo_owner')" style="min-width: 140px;" title="Stored in database (extracted from PR URL when added)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="repo_owner" style="min-width: 140px;" title="Click to sort by Repository. Shift+Click to set as secondary sort.&#10;Stored in database (extracted from PR URL when added)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_status')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('mergeable_state')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('files_changed')" style="min-width: 60px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('commits_count')" style="min-width: 70px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="commits_count" style="min-width: 70px;" title="Click to sort by Commits. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Commits</span> ${getSortIcon('commits_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('behind_by')" style="min-width: 70px;" title="API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Behind</span> ${getSortIcon('behind_by')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('checks_passed')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="checks_passed" style="min-width: 90px;" title="Click to sort by Checks. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ready_score')" style="min-width: 70px;" title="Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('ci_score')" style="min-width: 50px;" title="CI Score - Calculated from check-runs API based on pass/fail/skip counts">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to set as secondary sort.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">CI</span> ${getSortIcon('ci_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('review_score')" style="min-width: 60px;" title="Review Score - Calculated from timeline analysis (commits, reviews, comments)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('response_score')" style="min-width: 70px;" title="Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to set as secondary sort.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Response</span> ${getSortIcon('response_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('feedback_score')" style="min-width: 80px;" title="Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to set as secondary sort.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('issues_count')" style="min-width: 200px;" title="Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to set as secondary sort.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" onclick="sortPrs('last_updated_at')" style="min-width: 90px;" title="API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
@@ -558,6 +623,20 @@
                     </table>
                 </div>
             `;
+
+            // Add event delegation for sortable table headers
+            const tableElement = container.querySelector('table');
+            if (tableElement) {
+                tableElement.addEventListener('click', (e) => {
+                    // Find the closest th with data-sort-column attribute
+                    const th = e.target.closest('th[data-sort-column]');
+                    if (th) {
+                        const column = th.getAttribute('data-sort-column');
+                        const isShiftClick = e.shiftKey;
+                        sortPrs(column, isShiftClick);
+                    }
+                });
+            }
 
             const tbody = document.getElementById('prTableBody');
             allPrs.forEach(pr => {
