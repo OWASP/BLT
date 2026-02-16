@@ -1,0 +1,19 @@
+{
+  "name": "blt-newsletter",
+  "version": "1.0.0",
+  "description": "Newsletter signup and management for OWASP BLT",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["newsletter", "sendgrid", "blt", "owasp"],
+  "author": "OWASP BLT",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
+    "express": "^4.21.2",
+    "dotenv": "^16.4.7",
+    "body-parser": "^1.20.3"
+  }
+}
