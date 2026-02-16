@@ -247,17 +247,17 @@
         async function loadLatestRelease() {
             try {
                 const response = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Leaf/releases/latest');
-                const versionEl = document.getElementById('releaseVersion');
 
                 if (!response.ok) {
                     return; // Silently fail - don't show version if API fails
                 }
 
                 const data = await response.json();
-                if (data.tag_name) {
-                    if (versionEl) {
-                        versionEl.textContent = data.tag_name;
-                    }
+                const versionEl = document.getElementById('releaseVersion');
+                
+                if (data.tag_name && versionEl) {
+                    versionEl.textContent = data.tag_name;
+                    versionEl.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error('Error loading latest release:', error);
