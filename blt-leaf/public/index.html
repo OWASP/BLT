@@ -773,16 +773,18 @@
                         row.style.transform = 'translateX(20px)';
                         
                         // Remove the row after animation completes
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             row.remove();
                             
                             // Update repos list (counts might have changed)
-                            loadRepos();
+                            await loadRepos();
                             
                             // Check if there are no PRs left
                             if (allPrs.length === 0) {
                                 const container = document.getElementById('prListContainer');
-                                container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800"><h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p></div>';
+                                if (container) {
+                                    container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800"><h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p></div>';
+                                }
                             }
                         }, 300);
                     }
