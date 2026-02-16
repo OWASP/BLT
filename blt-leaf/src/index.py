@@ -2120,10 +2120,10 @@ async def handle_github_webhook(request, env):
                     result_dict = result.to_py()
                     pr_id = result_dict.get('id')
                     if not pr_id:
-                        print(f"Error: Database result missing 'id' field for PR #{pr_number}")
+                        print(f"Error: Database result missing 'id' field for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
                         continue
                 except Exception as db_error:
-                    print(f"Error parsing database result for PR #{pr_number}: {str(db_error)}")
+                    print(f"Error parsing database result for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(db_error)}")
                     continue
                 
                 # Fetch fresh PR data to update behind_by and mergeable_state
@@ -2136,9 +2136,9 @@ async def handle_github_webhook(request, env):
                         invalidate_timeline_cache(repo_owner, repo_name, pr_number)
                         updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
                     else:
-                        print(f"Failed to fetch PR data for #{pr_number} in {event_type} event: fetch_pr_data returned None")
+                        print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: fetch_pr_data returned None")
                 except Exception as fetch_error:
-                    print(f"Error fetching PR data for #{pr_number} in {event_type} event: {str(fetch_error)}")
+                    print(f"Error fetching PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(fetch_error)}")
             
             # Return response with info about all updated PRs
             if updated_prs:
