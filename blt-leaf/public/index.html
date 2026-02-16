@@ -78,7 +78,7 @@
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
         <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories</h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
                 <ul id="repoList" class="space-y-2">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
@@ -342,8 +342,13 @@
         function renderRepoList() {
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
+            const repoCountDisplay = document.getElementById('repoCountDisplay');
             const totalPrs = allPrs.length;
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
+
+            // Update the repository count display
+            const repoCount = repos.length;
+            repoCountDisplay.textContent = repoCount > 0 ? `(${repoCount})` : '';
 
             while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
