@@ -1258,6 +1258,10 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     # Weighted combination: 45% CI, 55% Review (reduced CI weight due to flaky tests)
     overall_score = int((ci_score * 0.45) + (review_score * 0.55))
     
+    # Reduce readiness by 50% when changes are requested
+    if review_classification == 'AWAITING_AUTHOR':
+        overall_score = int(overall_score * 0.5)
+    
     # Force score to 0% for Draft PRs
     is_draft = pr_data.get('is_draft') == 1 or pr_data.get('is_draft') == True
     if is_draft:
