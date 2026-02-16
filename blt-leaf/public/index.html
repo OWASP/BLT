@@ -204,6 +204,9 @@
 
         async function loadRateLimit() {
             try {
+                const MS_PER_MINUTE = 60000;
+                const MINUTES_PER_HOUR = 60;
+                
                 const response = await fetch('/api/rate-limit');
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
@@ -259,15 +262,15 @@
                     const resetDate = new Date(reset * 1000);
                     const now = new Date();
                     const diffMs = resetDate - now;
-                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
                     
                     if (diffMins < 0) {
                         resetEl.textContent = 'Resets soon';
-                    } else if (diffMins < 60) {
+                    } else if (diffMins < MINUTES_PER_HOUR) {
                         resetEl.textContent = `Resets in ${diffMins}m`;
                     } else {
-                        const diffHours = Math.floor(diffMins / 60);
-                        const remainingMins = diffMins % 60;
+                        const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
+                        const remainingMins = diffMins % MINUTES_PER_HOUR;
                         resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
                     }
                 }
