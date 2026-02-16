@@ -39,6 +39,7 @@ BLT-Leaf/
 - 👥 **Multi-Repo Support**: Track PRs across multiple repositories
 - 🔄 **Real-time Updates**: Refresh PR data from GitHub API
 - 🎨 **Clean Interface**: Simple, GitHub-themed UI with dark mode support
+- 🔔 **Webhook Integration (NEW)**: Automatically track new PRs when opened via GitHub webhooks
 
 ### PR Readiness Analysis (NEW)
 - 🎯 **Readiness Scoring**: Data-driven 0-100 score combining CI confidence and review health
@@ -208,6 +209,39 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
   - Detects blockers (failing checks, conflicts, stale feedback)
   - Provides actionable recommendations
   - Returns merge-ready verdict with detailed breakdown
+
+### Webhook Endpoint (NEW)
+- `POST /api/github/webhook` - GitHub webhook integration for automatic PR tracking
+  - Automatically adds new PRs to tracking when they are opened
+  - Updates existing PRs when they are modified (synchronize, edited)
+  - Removes PRs from tracking when they are closed or merged
+  - Supported webhook events:
+    - `pull_request.opened` - Automatically adds PR to tracking
+    - `pull_request.closed` - Removes PR from tracking
+    - `pull_request.reopened` - Re-adds PR to tracking
+    - `pull_request.synchronize` - Updates PR when new commits are pushed
+    - `pull_request.edited` - Updates PR when details change
+    - `pull_request_review.*` - Acknowledged (future enhancement)
+    - `check_run.*` - Acknowledged (future enhancement)
+  - Security: Verifies GitHub webhook signatures using `GITHUB_WEBHOOK_SECRET`
+
+#### Setting Up GitHub Webhooks
+To enable automatic PR tracking:
+
+1. Go to your repository settings → Webhooks → Add webhook
+2. Set Payload URL to: `https://your-worker.workers.dev/api/github/webhook`
+3. Set Content type to: `application/json`
+4. Set Secret to a secure random string
+5. Select events to send:
+   - ✓ Pull requests
+   - ✓ Pull request reviews (optional)
+   - ✓ Check runs (optional)
+6. Add the webhook secret to your Cloudflare Worker environment:
+   ```bash
+   wrangler secret put GITHUB_WEBHOOK_SECRET
+   ```
+
+Once configured, new PRs will be automatically added to tracking when opened!
 
 ### Response Examples
 

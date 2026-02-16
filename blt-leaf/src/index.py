@@ -1769,13 +1769,18 @@ async def handle_github_webhook(request, env):
     Handle GitHub webhook events for PR state changes.
     
     Supported events:
-    - pull_request: closed, reopened, synchronize, edited
+    - pull_request: opened, closed, reopened, synchronize, edited
     - pull_request_review: submitted, edited, dismissed
     - check_run: completed, requested_action
     
     Security:
     - Verifies GitHub webhook signature using WEBHOOK_SECRET
     - Validates event types before processing
+    
+    When a PR is opened:
+    - Automatically adds the PR to tracking
+    - Fetches complete PR data from GitHub
+    - Returns event data with PR ID for frontend
     
     When a PR is closed or merged:
     - Removes the PR from the database
@@ -1836,8 +1841,51 @@ async def handle_github_webhook(request, env):
                 'SELECT id FROM prs WHERE pr_url = ?'
             ).bind(pr_url).first()
             
+            # Handle opened PRs - add to tracking automatically
+            if action == 'opened':
+                if result:
+                    # PR already tracked, just return success
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_already_tracked',
+                            'pr_id': result.to_py()['id'],
+                            'pr_number': pr_number,
+                            'message': f'PR #{pr_number} is already being tracked'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+                
+                # Fetch fresh PR data and add to tracking
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                if fetched_pr_data:
+                    await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
+                    
+                    # Get the newly created PR ID
+                    new_result = await db.prepare(
+                        'SELECT id FROM prs WHERE pr_url = ?'
+                    ).bind(pr_url).first()
+                    new_pr_id = new_result.to_py()['id'] if new_result else None
+                    
+                    return Response.new(
+                        json.dumps({
+                            'success': True,
+                            'event': 'pr_added',
+                            'pr_id': new_pr_id,
+                            'pr_number': pr_number,
+                            'data': fetched_pr_data,
+                            'message': f'PR #{pr_number} has been added to tracking'
+                        }),
+                        {'headers': {'Content-Type': 'application/json'}}
+                    )
+                else:
+                    return Response.new(
+                        json.dumps({'error': 'Failed to fetch PR data from GitHub'}),
+                        {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+                    )
+            
             if not result:
-                # PR not being tracked - ignore this webhook
+                # PR not being tracked - ignore this webhook for other actions
                 return Response.new(
                     json.dumps({
                         'success': True,
