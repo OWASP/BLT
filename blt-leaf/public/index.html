@@ -24,6 +24,17 @@
             color: #fff;
             border: 1px solid #BC0000;
         }
+        
+        /* Active PR row highlighting */
+        .pr-row-active {
+            background-color: #FEF3C7 !important;
+            border-left: 3px solid #F59E0B;
+        }
+        
+        .dark .pr-row-active {
+            background-color: #78350F !important;
+            border-left: 3px solid #F59E0B;
+        }
     </style>
 </head>
 
@@ -146,6 +157,7 @@
         let currentPage = 1;
         let totalPages = 1;
         const perPage = 30;
+        let activePrId = null; // Track the currently active/selected PR
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -1013,6 +1025,32 @@
                     </button>
                 </td>
             `;
+            
+            // Add click handler to highlight the row when clicked
+            row.addEventListener('click', (e) => {
+                // Don't trigger row selection if clicking on the update button or links
+                if (e.target.closest('button') || e.target.closest('a')) {
+                    return;
+                }
+                
+                // Remove active class from previously selected row
+                if (activePrId) {
+                    const previousActiveRow = document.getElementById(`pr-row-${activePrId}`);
+                    if (previousActiveRow) {
+                        previousActiveRow.classList.remove('pr-row-active');
+                    }
+                }
+                
+                // Set new active row
+                activePrId = pr.id;
+                row.classList.add('pr-row-active');
+            });
+            
+            // If this is the currently active PR, apply the active class
+            if (activePrId === pr.id) {
+                row.classList.add('pr-row-active');
+            }
+            
             return row;
         }
 
