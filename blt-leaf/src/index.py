@@ -580,7 +580,8 @@ async def init_database_schema(env):
                 response_rate REAL,
                 total_feedback INTEGER,
                 responded_feedback INTEGER,
-                readiness_computed_at TEXT
+                readiness_computed_at TEXT,
+                is_draft INTEGER DEFAULT 0
             )
         ''')
         await create_table.run()
@@ -614,7 +615,8 @@ async def init_database_schema(env):
                 ('response_rate', 'REAL'),
                 ('total_feedback', 'INTEGER'),
                 ('responded_feedback', 'INTEGER'),
-                ('readiness_computed_at', 'TEXT')
+                ('readiness_computed_at', 'TEXT'),
+                ('is_draft', 'INTEGER DEFAULT 0')
             ]
             
             # Whitelist of allowed column names for security
@@ -791,7 +793,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'commits_count': commits_count,
             'behind_by': behind_by,
             'review_status': review_status,
-            'last_updated_at': pr_data.get('updated_at', '')
+            'last_updated_at': pr_data.get('updated_at', ''),
+            'is_draft': 1 if pr_data.get('draft', False) else 0
         }
     except Exception as e:
         # Return more informative error for debugging
@@ -1248,10 +1251,20 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     # Weighted combination: 45% CI, 55% Review (reduced CI weight due to flaky tests)
     overall_score = int((ci_score * 0.45) + (review_score * 0.55))
     
+    # Force score to 0% for Draft PRs
+    is_draft = pr_data.get('is_draft') == 1 or pr_data.get('is_draft') == True
+    if is_draft:
+        overall_score = 0
+    
     # Identify blockers, warnings, recommendations
     blockers = []
     warnings = []
     recommendations = []
+    
+    # Draft blocker
+    if is_draft:
+        blockers.append("PR is in draft mode")
+        recommendations.append("Convert to 'Ready for review' when finished")
     
     # CI blockers (with tolerance for 1-2 flaky test failures)
     checks_failed = pr_data.get('checks_failed', 0)
@@ -1341,8 +1354,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
-                       last_refreshed_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       last_refreshed_at, updated_at, is_draft)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1358,7 +1371,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
-            updated_at = excluded.updated_at
+            updated_at = excluded.updated_at,
+            is_draft = excluded.is_draft
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -1375,7 +1389,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data.get('commits_count', 0),
         pr_data.get('behind_by', 0),
         pr_data['review_status'],
-        pr_data['last_updated_at'], current_timestamp, current_timestamp
+        pr_data['last_updated_at'], current_timestamp, current_timestamp,
+        pr_data.get('is_draft', 0)
     )
     await stmt.run()
 
