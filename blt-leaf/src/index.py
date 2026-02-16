@@ -2323,6 +2323,11 @@ async def on_fetch(request, env):
         return response
     elif path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
+    elif path == '/api/github/webhook' and request.method == 'POST':
+        response = await handle_github_webhook(request, env)
+        for key, value in cors_headers.items():
+            response.headers.set(key, value)
+        return response
     # Timeline endpoint - GET /api/prs/{id}/timeline
     elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
         response = await handle_pr_timeline(request, env, path)
