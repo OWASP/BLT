@@ -624,7 +624,7 @@
         function renderPrList(prsToRender) {
             const container = document.getElementById('prListContainer');
             // Use the passed filtered list OR fallback to allPrs
-            const prs = prsToRender || allPrs;
+            const prs = prsToRender || allPrs || [];
 
             if (prs.length === 0) {
                 const isFiltered = document.getElementById('prSearchInput').value.trim() !== '';
@@ -768,7 +768,7 @@
             }
 
             const tbody = document.getElementById('prTableBody');
-            allPrs.forEach(pr => {
+            prs.forEach(pr => {
                 const row = createPrRow(pr);
                 tbody.appendChild(row);
 
