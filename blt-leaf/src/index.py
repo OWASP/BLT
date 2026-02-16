@@ -689,7 +689,17 @@ async def fetch_with_headers(url, headers=None, token=None):
         "method": "GET",
         "headers": headers
     }, dict_converter=Object.fromEntries)
-    return await fetch(url, options)
+    
+    response = await fetch(url, options)
+    
+    # Log GitHub API call with rate limit information
+    if 'api.github.com' in url:
+        rate_limit = response.headers.get('x-ratelimit-limit')
+        rate_remaining = response.headers.get('x-ratelimit-remaining')
+        rate_reset = response.headers.get('x-ratelimit-reset')
+        print(f"GitHub API: {url} | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining | Reset: {rate_reset}")
+    
+    return response
 
 async def fetch_pr_data(owner, repo, pr_number, token=None):
     """Fetch PR data from GitHub API with parallel requests for optimal performance"""
@@ -854,6 +864,13 @@ async def fetch_paginated_data(url, headers):
     
     while current_url:
         response = await fetch(current_url, fetch_options)
+        
+        # Log GitHub API call with rate limit information
+        if 'api.github.com' in current_url:
+            rate_limit = response.headers.get('x-ratelimit-limit')
+            rate_remaining = response.headers.get('x-ratelimit-remaining')
+            rate_reset = response.headers.get('x-ratelimit-reset')
+            print(f"GitHub API: {current_url} | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining | Reset: {rate_reset}")
         
         if not response.ok:
             status = getattr(response, 'status', 'unknown')
