@@ -747,8 +747,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
 
         # Prepare URLs for parallel fetching
         # Note: We don't fetch reviews here to avoid duplication with fetch_pr_timeline_data
+        # Note: We don't fetch files list since pr_data already includes 'changed_files' count
         # Reviews will be fetched by fetch_pr_timeline_data for timeline analysis
-        files_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
         
         # Extract base and head branch information for comparison
@@ -769,38 +769,33 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         # Compare head...base to see how many commits base has that head doesn't
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
         
-        # Fetch files, checks, and comparison in parallel using asyncio.gather
+        # Fetch checks and comparison in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
         # Reviews are intentionally excluded to avoid duplicate API calls with fetch_pr_timeline_data
-        files_data = []
+        # Files list is excluded since we only need the count which is in pr_data['changed_files']
         checks_data = {}
         compare_data = {}
         
         try:
             results = await asyncio.gather(
-                fetch_with_headers(files_url, headers, token),
                 fetch_with_headers(checks_url, headers, token),
                 fetch_with_headers(compare_url, headers, token),
                 return_exceptions=True
             )
             
-            # Process files result
-            if not isinstance(results[0], Exception) and results[0].status == 200:
-                files_data = (await results[0].json()).to_py()
-            
             # Process checks result
-            if not isinstance(results[1], Exception) and results[1].status == 200:
-                checks_data = (await results[1].json()).to_py()
+            if not isinstance(results[0], Exception) and results[0].status == 200:
+                checks_data = (await results[0].json()).to_py()
             
             # Process compare result
-            if not isinstance(results[2], Exception) and results[2].status == 200:
-                compare_data = (await results[2].json()).to_py()
+            if not isinstance(results[1], Exception) and results[1].status == 200:
+                compare_data = (await results[1].json()).to_py()
                 print(f"Compare API success for PR #{pr_number}")
-            elif not isinstance(results[2], Exception):
+            elif not isinstance(results[1], Exception):
                 # Log error if compare API fails
-                print(f"Compare API failed for PR #{pr_number} with status {results[3].status}, URL: {compare_url}")
+                print(f"Compare API failed for PR #{pr_number} with status {results[1].status}, URL: {compare_url}")
             else:
-                print(f"Compare API exception for PR #{pr_number}: {results[2]}")
+                print(f"Compare API exception for PR #{pr_number}: {results[1]}")
         except Exception as e:
             print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
@@ -840,7 +835,7 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'state': pr_data.get('state', ''),
             'is_merged': 1 if pr_data.get('merged', False) else 0,
             'mergeable_state': pr_data.get('mergeable_state', ''),
-            'files_changed': len(files_data), 
+            'files_changed': pr_data.get('changed_files', 0),  # Use changed_files from PR data instead of fetching files list
             'author_login': pr_data['user']['login'],
             'author_avatar': pr_data['user']['avatar_url'],
             'repo_owner_avatar': pr_data.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
