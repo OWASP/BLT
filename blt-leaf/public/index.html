@@ -264,14 +264,18 @@
                     const diffMs = resetDate - now;
                     const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
                     
-                    if (diffMins < 0) {
+                    if (diffMins <= 0) {
                         resetEl.textContent = 'Resets soon';
                     } else if (diffMins < MINUTES_PER_HOUR) {
                         resetEl.textContent = `Resets in ${diffMins}m`;
                     } else {
                         const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
                         const remainingMins = diffMins % MINUTES_PER_HOUR;
-                        resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
+                        if (remainingMins === 0) {
+                            resetEl.textContent = `Resets in ${diffHours}h`;
+                        } else {
+                            resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
+                        }
                     }
                 }
 
