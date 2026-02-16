@@ -713,8 +713,9 @@ def calculate_review_status(reviews_data):
     """
     review_status = 'pending'
     if reviews_data:
-        # Sort reviews by submitted_at to get chronological order
-        sorted_reviews = sorted(reviews_data, key=lambda x: x.get('submitted_at', ''))
+        # Filter out reviews without submitted_at and sort by timestamp
+        valid_reviews = [r for r in reviews_data if r.get('submitted_at')]
+        sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submitted_at', ''))
         latest_reviews = {}
         for review in sorted_reviews:
             user = review['user']['login']
@@ -2497,6 +2498,9 @@ async def handle_pr_readiness(request, env, path):
         
         pr = result.to_py()
         
+        # Save the current review_status from database for comparison later
+        original_review_status = pr.get('review_status', 'pending')
+        
         # Fetch timeline data from GitHub
         timeline_data = await fetch_pr_timeline_data(
             pr['repo_owner'],
@@ -2507,8 +2511,8 @@ async def handle_pr_readiness(request, env, path):
         # Calculate and update review_status from timeline data
         # This ensures the database has the latest review status without making duplicate API calls
         review_status = calculate_review_status(timeline_data.get('reviews', []))
-        if review_status != pr.get('review_status', 'pending'):
-            # Update review_status in database if it changed
+        if review_status != original_review_status:
+            # Update review_status in database only if it actually changed
             await db.prepare(
                 'UPDATE prs SET review_status = ? WHERE id = ?'
             ).bind(review_status, pr_id).run()
