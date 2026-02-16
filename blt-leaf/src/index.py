@@ -47,6 +47,10 @@ _TIMELINE_CACHE_TTL = 1800
 # Reduces overall readiness score by 50% when reviewers request changes
 _CHANGES_REQUESTED_SCORE_MULTIPLIER = 0.5
 
+# Score multiplier when PR has merge conflicts
+# Reduces overall readiness score by 33% when mergeable state is 'dirty' (conflicts)
+_MERGE_CONFLICTS_SCORE_MULTIPLIER = 0.67
+
 def parse_pr_url(pr_url):
     """
     Parse GitHub PR URL to extract owner, repo, and PR number.
@@ -1285,6 +1289,11 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     # Reduce readiness by 50% when changes are requested
     if review_classification == 'AWAITING_AUTHOR':
         overall_score_raw *= _CHANGES_REQUESTED_SCORE_MULTIPLIER
+    
+    # Reduce readiness by 33% when PR has merge conflicts
+    mergeable_state = pr_data.get('mergeable_state', '')
+    if mergeable_state == 'dirty':
+        overall_score_raw *= _MERGE_CONFLICTS_SCORE_MULTIPLIER
     
     overall_score = int(overall_score_raw)
     
