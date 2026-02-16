@@ -508,7 +508,7 @@
                     const primaryIcon = sortDirection === 'asc' 
                         ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
                         : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
-                    return primaryIcon + (isSecondary ? '' : '');
+                    return primaryIcon;
                 }
                 
                 if (isSecondary) {
@@ -541,17 +541,17 @@
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review Status. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable State. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files Changed. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
@@ -561,7 +561,7 @@
                                         <span class="truncate">Commits</span> ${getSortIcon('commits_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind By. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Behind</span> ${getSortIcon('behind_by')}
                                     </div>
@@ -571,37 +571,37 @@
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Readiness Score. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI Score. Shift+Click to set as secondary sort.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to set as secondary sort.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">CI</span> ${getSortIcon('ci_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review Score. Shift+Click to set as secondary sort.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response Rate. Shift+Click to set as secondary sort.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to set as secondary sort.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Response</span> ${getSortIcon('response_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback Score. Shift+Click to set as secondary sort.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to set as secondary sort.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues Count. Shift+Click to set as secondary sort.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to set as secondary sort.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated time. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
