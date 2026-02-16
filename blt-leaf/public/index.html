@@ -125,8 +125,8 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
-        let sortColumn = 'last_updated_at';
-        let sortDirection = 'desc';
+        let sortColumn = localStorage.getItem('sortColumn') || 'last_updated_at';
+        let sortDirection = localStorage.getItem('sortDirection') || 'desc';
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -270,6 +270,10 @@
                 sortColumn = column;
                 sortDirection = 'desc';
             }
+            
+            // Save sorting state to localStorage
+            localStorage.setItem('sortColumn', sortColumn);
+            localStorage.setItem('sortDirection', sortDirection);
             
             // Columns that should use numeric sorting
             const numericColumns = ['files_changed', 'commits_count', 'behind_by', 'checks_passed', 'checks_failed', 'checks_skipped', 'pr_number', 'ready_score', 'ci_score', 'review_score', 'response_score', 'feedback_score', 'issues_count'];
@@ -754,9 +758,37 @@
                 
                 // Check if PR was removed due to being merged/closed
                 if (refreshData.removed) {
-                    showError(refreshData.message || 'PR has been removed from tracking');
-                    await loadRepos();
-                    await loadPrs();
+                    // Remove PR from allPrs array
+                    const prIndex = allPrs.findIndex(pr => pr.id === prId);
+                    if (prIndex !== -1) {
+                        allPrs.splice(prIndex, 1);
+                    }
+                    
+                    // Get the row element
+                    const row = document.getElementById(`pr-row-${prId}`);
+                    if (row) {
+                        // Add fade-out animation
+                        row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        
+                        // Remove the row after animation completes
+                        setTimeout(() => {
+                            row.remove();
+                            
+                            // Update repos list (counts might have changed)
+                            loadRepos();
+                            
+                            // Check if there are no PRs left
+                            if (allPrs.length === 0) {
+                                const container = document.getElementById('prListContainer');
+                                container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800"><h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p></div>';
+                            }
+                        }, 300);
+                    }
+                    
+                    // Show success message
+                    showError(refreshData.message || 'PR has been closed and removed from tracking');
                     await loadRateLimit();
                     return;
                 }
