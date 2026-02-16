@@ -202,6 +202,13 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
 - `GET /api/rate-limit` - Check GitHub API rate limit status
 - `GET /api/status` - Check database configuration status
 
+### Webhook Endpoints
+- `POST /api/github/webhook` - Receive GitHub webhook events
+  - Automatically updates tracked PRs based on GitHub events
+  - Verifies signature using `GITHUB_WEBHOOK_SECRET`
+  - Fully supported: `pull_request` | Acknowledged: `pull_request_review`, `check_run`, `check_suite`
+  - See [Webhook Integration](#webhook-integration) section for setup details
+
 ### Analysis Endpoints (NEW)
 - `GET /api/prs/{id}/timeline` - Get complete PR event timeline
   - Returns chronological list of commits, reviews, and comments
@@ -389,6 +396,67 @@ Context-aware suggestions based on PR state:
 The application uses the GitHub REST API to fetch PR information. No authentication is required for public repositories, but rate limits apply (60 requests per hour for unauthenticated requests).
 
 For private repositories or higher rate limits, you can add a GitHub token to the worker environment variables.
+
+## Webhook Integration
+
+BLT-Leaf supports GitHub webhooks for automatic PR updates, eliminating the need for manual refreshes.
+
+### What is the Webhook?
+
+The webhook endpoint (`POST /api/github/webhook`) receives real-time notifications from GitHub when events occur on your tracked pull requests. This keeps your PR tracking data automatically synchronized with GitHub.
+
+### Which Events Would You Like to Trigger This Webhook?
+
+When setting up the webhook in your GitHub repository, select the following events:
+
+**Recommended Events:**
+- ✅ **Pull requests** - Automatically updates PR data when PRs are:
+  - `closed` - Removes closed/merged PRs from tracking
+  - `reopened` - Re-adds reopened PRs to tracking
+  - `synchronize` - Updates PR when new commits are pushed
+  - `edited` - Updates PR metadata (title, description, etc.)
+
+**Optional Events** (for future enhancements):
+- ⚪ **Pull request reviews** - Detects when reviews are submitted, edited, or dismissed
+- ⚪ **Check runs** - Monitors CI/CD check completions
+- ⚪ **Check suites** - Tracks overall check suite status
+
+> **Note:** Currently, only the `pull_request` event is fully processed. Other events are acknowledged but do not trigger updates yet.
+
+### Webhook Setup
+
+1. **Configure the webhook secret** (required for production):
+   ```bash
+   # Generate a secure random secret
+   openssl rand -hex 32
+   
+   # Add to your Cloudflare Worker secrets
+   wrangler secret put GITHUB_WEBHOOK_SECRET
+   # You will be prompted to paste the secret generated above
+   ```
+
+2. **Add the webhook to your GitHub repository:**
+   - Go to your repository settings → Webhooks → Add webhook
+   - **Payload URL**: `https://your-worker.workers.dev/api/github/webhook`
+   - **Content type**: `application/json`
+   - **Secret**: Enter the same secret you configured in step 1
+   - **Which events would you like to trigger this webhook?**
+     - Select "Let me select individual events"
+     - Check: ✅ Pull requests
+     - Optionally check: Pull request reviews, Check runs, Check suites
+   - **Active**: ✅ Checked
+   - Click "Add webhook"
+
+3. **Verify the webhook is working:**
+   - Make a change to a tracked PR (e.g., add a commit or close it)
+   - Check the webhook delivery logs in GitHub to ensure it was successfully delivered
+   - Verify that your PR tracker updates automatically
+
+### Security
+
+The webhook endpoint verifies GitHub's signature using HMAC SHA-256 to ensure requests are authentic. Always configure `GITHUB_WEBHOOK_SECRET` in production to prevent unauthorized access.
+
+**Development Mode:** If `GITHUB_WEBHOOK_SECRET` is not set, signature verification is skipped (use only for local testing).
 
 ## Contributing
 
