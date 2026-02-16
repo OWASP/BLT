@@ -546,8 +546,7 @@
                     // First, try to get readiness data from database (if it exists)
                     if (pr.overall_score !== null && pr.overall_score !== undefined) {
                         pr.ready_score = pr.overall_score;
-                        pr.ci_score = pr.ci_score;
-                        pr.review_score = pr.review_score;
+                        // ci_score and review_score are already in the pr object from database
                         pr.response_score = (pr.response_rate || 0) * 100;
                         pr.feedback_score = pr.total_feedback > 0 ? 
                             (pr.responded_feedback / pr.total_feedback) * 100 : 100;
