@@ -697,6 +697,7 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             head_full_ref = f"{head_repo['owner']['login']}:{head_branch}"
         else:
             # If fork is deleted, use just the branch name (comparison will likely fail but won't crash)
+            print(f"Warning: PR #{pr_number} head repository is None (fork may be deleted)")
             head_full_ref = head_branch
         
         # Compare head...base to see how many commits base has that head doesn't
