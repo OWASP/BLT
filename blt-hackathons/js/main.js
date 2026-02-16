@@ -82,6 +82,14 @@ class HackathonDashboard {
         document.getElementById('nav-title').textContent = this.config.name;
         document.getElementById('hackathon-name').textContent = this.config.name;
 
+        // Update banner image if provided
+        const bannerSection = document.getElementById('banner-section');
+        if (this.config.bannerImage) {
+            bannerSection.style.backgroundImage = `url('${this.config.bannerImage}')`;
+            bannerSection.style.backgroundSize = 'cover';
+            bannerSection.style.backgroundPosition = 'center';
+        }
+
         // Update description
         document.getElementById('hackathon-description').innerHTML =
             `<p class="text-gray-700">${this.escapeHtml(this.config.description.trim())}</p>`;

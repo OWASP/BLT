@@ -157,6 +157,15 @@ class HackathonIndex {
 
             return `
                 <div class="hackathon-card bg-white rounded-lg shadow-lg overflow-hidden" data-status="${status.status}">
+                    ${hackathon.bannerImage ? `
+                    <div class="h-48 bg-cover bg-center relative" style="background-image: url('${hackathon.bannerImage}');">
+                        <div class="absolute top-4 right-4">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium ${status.class}">
+                                ${status.label}
+                            </span>
+                        </div>
+                    </div>
+                    ` : `
                     <div class="bg-gradient-to-r from-red-600 to-red-800 p-6 text-white">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="text-xl font-bold flex-grow">${this.escapeHtml(hackathon.name)}</h3>
@@ -173,8 +182,20 @@ class HackathonIndex {
                             ${timeRemaining}
                         </p>
                     </div>
+                    `}
                     
                     <div class="p-6">
+                        ${hackathon.bannerImage ? `
+                        <h3 class="text-xl font-bold mb-2 text-gray-900">${this.escapeHtml(hackathon.name)}</h3>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span>${dateRange}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600 mb-4">
+                            <i class="far fa-clock mr-2"></i>
+                            <span>${timeRemaining}</span>
+                        </div>
+                        ` : ''}
                         <p class="text-gray-700 mb-4 line-clamp-3">
                             ${this.escapeHtml(descriptionPreview)}${needsEllipsis ? '...' : ''}
                         </p>
