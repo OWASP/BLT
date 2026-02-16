@@ -7,13 +7,15 @@
     <title>PR Readiness Checker - BLT-Leaf</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class'
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
         }
     </script>
     <!-- Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -41,6 +43,8 @@
                         <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
                     </div>
                     <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
                 </div>
             </div>
 
@@ -203,24 +207,35 @@
 
         async function loadRateLimit() {
             try {
+                const MS_PER_MINUTE = 60000;
+                const MINUTES_PER_HOUR = 60;
+                
                 const response = await fetch('/api/rate-limit');
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
 
                 if (!response.ok) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const data = await response.json();
                 if (data.error) {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
-                const { limit, remaining } = data;
+                const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
                     if(textEl) textEl.textContent = 'N/A';
+                    if(usedEl) usedEl.textContent = '';
+                    if(resetEl) resetEl.textContent = '';
                     return;
                 }
 
@@ -239,11 +254,42 @@
                 }
                 
                 if(textEl) textEl.textContent = `${remaining} / ${limit}`;
+                
+                // Display used count
+                if(usedEl && typeof used === 'number') {
+                    usedEl.textContent = `(${used} used)`;
+                }
+                
+                // Display reset time in human-readable format
+                if(resetEl && typeof reset === 'number') {
+                    const resetDate = new Date(reset * 1000);
+                    const now = new Date();
+                    const diffMs = resetDate - now;
+                    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
+                    
+                    if (diffMins <= 0) {
+                        resetEl.textContent = 'Resets soon';
+                    } else if (diffMins < MINUTES_PER_HOUR) {
+                        resetEl.textContent = `Resets in ${diffMins}m`;
+                    } else {
+                        const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
+                        const remainingMins = diffMins % MINUTES_PER_HOUR;
+                        if (remainingMins === 0) {
+                            resetEl.textContent = `Resets in ${diffHours}h`;
+                        } else {
+                            resetEl.textContent = `Resets in ${diffHours}h ${remainingMins}m`;
+                        }
+                    }
+                }
 
             } catch (error) {
                 console.error('Error loading rate limit:', error);
                 const textEl = document.getElementById('rateLimitText');
+                const usedEl = document.getElementById('rateLimitUsed');
+                const resetEl = document.getElementById('rateLimitReset');
                 if(textEl) textEl.textContent = 'N/A';
+                if(usedEl) usedEl.textContent = '';
+                if(resetEl) resetEl.textContent = '';
             }
         }
 
@@ -462,7 +508,7 @@
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
             const repoCountDisplay = document.getElementById('repoCountDisplay');
-            const totalPrs = allPrs.length;
+            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
 
             // Update the repository count display
@@ -633,7 +679,7 @@
         function renderPrList(prsToRender) {
             const container = document.getElementById('prListContainer');
             // Use the passed filtered list OR fallback to allPrs
-            const prs = prsToRender || allPrs;
+            const prs = prsToRender || allPrs || [];
 
             if (prs.length === 0) {
                 const isFiltered = document.getElementById('prSearchInput').value.trim() !== '';
@@ -777,7 +823,7 @@
             }
 
             const tbody = document.getElementById('prTableBody');
-            allPrs.forEach(pr => {
+            prs.forEach(pr => {
                 const row = createPrRow(pr);
                 tbody.appendChild(row);
 
