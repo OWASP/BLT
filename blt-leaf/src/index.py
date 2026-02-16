@@ -1619,7 +1619,12 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
         else:
             sort_direction = 'DESC'
         
-        order_clause = f'ORDER BY {sort_column} {sort_direction}'
+        # Build ORDER BY clause with NULL handling
+        # NULL values should appear last regardless of sort direction
+        if sort_direction == 'DESC':
+            order_clause = f'ORDER BY {sort_column} IS NULL ASC, {sort_column} {sort_direction}'
+        else:
+            order_clause = f'ORDER BY {sort_column} IS NULL ASC, {sort_column} {sort_direction}'
 
         # Total count first
         count_stmt = db.prepare(f'''
