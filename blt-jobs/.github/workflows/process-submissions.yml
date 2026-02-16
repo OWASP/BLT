@@ -1,0 +1,150 @@
+name: Process Job Submissions
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Process Job Posting
+        if: contains(github.event.issue.labels.*.name, 'job-posting')
+        run: |
+          # Extract issue details
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          ISSUE_USER="${{ github.event.issue.user.login }}"
+          
+          # Parse company name and job title from issue body
+          COMPANY=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Company Name:\*\* ).*' | head -1 | xargs)
+          JOB_TITLE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Job Title:\*\* ).*' | head -1 | xargs)
+          WEBSITE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Website:\*\* ).*' | head -1 | xargs)
+          LOCATION=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Location:\*\* ).*' | head -1 | xargs)
+          JOB_TYPE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Job Type:\*\* ).*' | head -1 | xargs)
+          
+          # Extract domain from website
+          if [ -n "$WEBSITE" ]; then
+            DOMAIN=$(echo "$WEBSITE" | sed -e 's|^https\?://||' -e 's|/.*$||' -e 's|^www\.||')
+          else
+            DOMAIN="unknown"
+          fi
+          
+          # Create filename: domain.com-job-title.md
+          if [ -n "$JOB_TITLE" ]; then
+            FILENAME=$(echo "${DOMAIN}-${JOB_TITLE}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+          else
+            FILENAME=$(echo "${DOMAIN}-job-${ISSUE_NUMBER}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+          fi
+          
+          # Create job posting file
+          cat > "jobs/${FILENAME}.md" << 'EOFMARKER'
+          # $JOB_TITLE
+          
+          **Company:** $COMPANY
+          **Website:** $WEBSITE
+          **Location:** $LOCATION
+          **Type:** $JOB_TYPE
+          **Posted:** $(date +%Y-%m-%d)
+          **Issue:** [#$ISSUE_NUMBER](https://github.com/${{ github.repository }}/issues/$ISSUE_NUMBER)
+          
+          ---
+          
+          $ISSUE_BODY
+          EOFMARKER
+          
+          # Replace variables
+          sed -i "s|\$JOB_TITLE|${JOB_TITLE}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$COMPANY|${COMPANY}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$WEBSITE|${WEBSITE}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$LOCATION|${LOCATION}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$JOB_TYPE|${JOB_TYPE}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$ISSUE_NUMBER|${ISSUE_NUMBER}|g" "jobs/${FILENAME}.md"
+          sed -i "s|\$ISSUE_BODY|${ISSUE_BODY}|g" "jobs/${FILENAME}.md"
+          
+          echo "Created job file: jobs/${FILENAME}.md"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Commit and push
+          git add "jobs/${FILENAME}.md"
+          git commit -m "Add job posting: ${JOB_TITLE} at ${COMPANY} (Issue #${ISSUE_NUMBER})"
+          git push
+          
+          # Comment on issue
+          echo "Job posting has been published! View it at: https://${{ github.repository_owner }}.github.io/BLT-Jobs/jobs.html#${FILENAME}" > comment.txt
+          gh issue comment ${ISSUE_NUMBER} --body-file comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Process Job Seeker Profile
+        if: contains(github.event.issue.labels.*.name, 'job-seeker')
+        run: |
+          # Extract issue details
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          ISSUE_USER="${{ github.event.issue.user.login }}"
+          
+          # Parse name from issue body
+          NAME=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Name:\*\* ).*' | head -1 | xargs)
+          TITLE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Current Title/Role:\*\* ).*' | head -1 | xargs)
+          LOCATION=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Location:\*\* ).*' | head -1 | xargs)
+          EXPERIENCE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Years of Experience:\*\* ).*' | head -1 | xargs)
+          
+          # Create filename: seekers/name.md
+          if [ -n "$NAME" ]; then
+            FILENAME=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+          else
+            FILENAME="seeker-${ISSUE_NUMBER}"
+          fi
+          
+          # Create seeker profile file
+          cat > "seekers/${FILENAME}.md" << 'EOFMARKER'
+          # $NAME
+          
+          **Title:** $TITLE
+          **Location:** $LOCATION
+          **Experience:** $EXPERIENCE
+          **Profile Created:** $(date +%Y-%m-%d)
+          **Issue:** [#$ISSUE_NUMBER](https://github.com/${{ github.repository }}/issues/$ISSUE_NUMBER)
+          
+          ---
+          
+          $ISSUE_BODY
+          EOFMARKER
+          
+          # Replace variables
+          sed -i "s|\$NAME|${NAME}|g" "seekers/${FILENAME}.md"
+          sed -i "s|\$TITLE|${TITLE}|g" "seekers/${FILENAME}.md"
+          sed -i "s|\$LOCATION|${LOCATION}|g" "seekers/${FILENAME}.md"
+          sed -i "s|\$EXPERIENCE|${EXPERIENCE}|g" "seekers/${FILENAME}.md"
+          sed -i "s|\$ISSUE_NUMBER|${ISSUE_NUMBER}|g" "seekers/${FILENAME}.md"
+          sed -i "s|\$ISSUE_BODY|${ISSUE_BODY}|g" "seekers/${FILENAME}.md"
+          
+          echo "Created seeker profile: seekers/${FILENAME}.md"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Commit and push
+          git add "seekers/${FILENAME}.md"
+          git commit -m "Add job seeker profile: ${NAME} (Issue #${ISSUE_NUMBER})"
+          git push
+          
+          # Comment on issue
+          echo "Your profile has been published! View it at: https://${{ github.repository_owner }}.github.io/BLT-Jobs/seekers.html#${FILENAME}" > comment.txt
+          gh issue comment ${ISSUE_NUMBER} --body-file comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
