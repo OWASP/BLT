@@ -129,6 +129,9 @@
         let sortDirection = localStorage.getItem('sortDirection') || 'desc';
         let secondarySortColumn = null;
         let secondarySortDirection = 'desc';
+        let currentPage = 1;
+        let totalPages = 1;
+        const perPage = 30;
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -505,6 +508,7 @@
                 `;
 
                 li.addEventListener('click', () => {
+                    currentPage = 1;
                     currentRepo = li.dataset.repo;
                     localStorage.setItem('currentRepo', currentRepo);
                     document.querySelectorAll('.repo-item').forEach(item => {
@@ -530,7 +534,8 @@
             }
 
             try {
-                const url = currentRepo === 'all' ? '/api/prs' : `/api/prs?repo=${encodeURIComponent(currentRepo)}`;
+                const baseUrl = currentRepo === 'all' ? `/api/prs?page=${currentPage}`: `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}`;
+                const url = baseUrl;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -540,7 +545,13 @@
                 }
 
                 allPrs = data.prs;
-                
+                if (data.pagination) {
+                    totalPages = data.pagination.total_pages;
+                    if (currentPage > totalPages && totalPages > 0) {
+                        currentPage = totalPages;
+                    }
+                }
+
                 // Attach readiness data from localStorage to each PR for sorting
                 allPrs.forEach(pr => {
                     const storedData = loadReadinessData(pr.id);
@@ -769,7 +780,61 @@
                     await updatePr(prId, e.currentTarget);
                 });
             });
+            if (document.getElementById('prSearchInput').value.trim() === '') {
+                renderPagination();
         }
+        }
+
+        function renderPagination() {
+            const container = document.getElementById('prListContainer');
+
+            // Remove existing pagination if present
+            const existing = container.querySelector('.pagination-wrapper');
+            if (existing) existing.remove();
+
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination-wrapper flex items-center justify-between mt-4';
+
+            paginationDiv.innerHTML = `
+                <div class="text-sm text-slate-600 dark:text-slate-400">
+                    Page <span class="font-semibold">${currentPage}</span> of <span class="font-semibold">${totalPages}</span>
+                </div>
+            <div class="flex gap-2">
+                <button 
+                    ${currentPage === 1 ? 'disabled' : ''} 
+                    class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
+                           ${currentPage === 1 
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                    id="prevPageBtn"> ← Previous
+                </button>
+
+                <button 
+                    ${currentPage === totalPages ? 'disabled' : ''} 
+                    class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
+                            ${currentPage === totalPages 
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                    id="nextPageBtn"> Next →
+                </button>
+            </div>
+        `;
+
+        container.appendChild(paginationDiv);
+
+        document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadPrs();
+            }
+        });
+        document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadPrs();
+            }
+        });
+    }
 
         function createPrRow(pr) {
             let stateBadge = '';
@@ -1171,6 +1236,7 @@
 
         // Search listener
         document.getElementById('prSearchInput').addEventListener('input', (e) => {
+            currentPage = 1;
             filterPrs(e.target.value);
         });
 
@@ -1181,6 +1247,7 @@
 
         document.querySelector('[data-repo="all"]').addEventListener('click', () => {
             currentRepo = 'all';
+            currentPage = 1;
             localStorage.setItem('currentRepo', currentRepo);
             document.querySelectorAll('.repo-item').forEach(item => {
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);

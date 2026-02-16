@@ -355,8 +355,8 @@ async def load_readiness_from_db(env, pr_id):
                 'ci_score_display': f"{ci_score}%",
                 'review_score': review_score,
                 'review_score_display': f"{review_score}%",
-                'classification': row.get('classification'),
-                'merge_ready': bool(row.get('merge_ready')),
+                'classification': pr.get('classification'),
+                'merge_ready': bool(pr.get('merge_ready')),
                 'blockers': blockers,
                 'warnings': warnings,
                 'recommendations': recommendations
@@ -1399,7 +1399,7 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['files_changed'],
         pr_data['author_login'], 
         pr_data['author_avatar'],
-        pr_data['repo_owner_avatar'],
+        pr_data.get('repo_owner_avatar', ''),
         pr_data['checks_passed'], 
         pr_data['checks_failed'],
         pr_data['checks_skipped'],
@@ -1488,13 +1488,17 @@ async def handle_add_pr(request, env):
                     'files_changed': 0,
                     'author_login': item['user']['login'], 
                     'author_avatar': item['user']['avatar_url'],
+                    'repo_owner_avatar': item.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
                     'checks_passed': 0, 
                     'checks_failed': 0, 
                     'checks_skipped': 0,
                     'review_status': 'pending', 
-                    'last_updated_at': item.get('updated_at', ts)
+                    'last_updated_at': item.get('updated_at', ts),
+                    'commits_count': 0,
+                    'behind_by': 0,
+                    'is_draft': 1 if item.get('draft') else 0
                 }
-                
+
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
                 added_count += 1
             
@@ -1537,41 +1541,68 @@ async def handle_add_pr(request, env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
-async def handle_list_prs(env, repo_filter=None):
-    """List all PRs, optionally filtered by repo."""
+async def handle_list_prs(env, repo_filter=None, page=1, per_page=30):
+    """List PRs with pagination (default 30 per page)."""
     try:
         db = get_db(env)
+        try:
+            page = int(page)
+            if page < 1:
+                page = 1
+        except Exception:
+            page = 1
+
+        offset = (page - 1) * per_page
+        base_query = '''
+            FROM prs
+            WHERE is_merged = 0 AND state = 'open'
+        '''
+
+        params = []
+
         if repo_filter:
             parts = repo_filter.split('/')
             if len(parts) == 2:
-                stmt = db.prepare('''
-                    SELECT * FROM prs 
-                    WHERE repo_owner = ? AND repo_name = ?
-                    AND is_merged = 0 AND state = 'open'
-                    ORDER BY last_updated_at DESC
-                ''').bind(parts[0], parts[1])
-            else:
-                stmt = db.prepare('''
-                    SELECT * FROM prs 
-                    WHERE is_merged = 0 AND state = 'open'
-                    ORDER BY last_updated_at DESC
-                ''')
-        else:
-            stmt = db.prepare('''
-                SELECT * FROM prs 
-                WHERE is_merged = 0 AND state = 'open'
-                ORDER BY last_updated_at DESC
-            ''')
-        
-        result = await stmt.all()
-        # Convert JS Array to Python list
+                base_query += ' AND repo_owner = ? AND repo_name = ?'
+                params.extend([parts[0], parts[1]])
+
+        # Total count first
+        count_stmt = db.prepare(f'''
+            SELECT COUNT(*) as total
+            {base_query}
+        ''').bind(*params)
+
+        count_result = await count_stmt.first()
+        total = count_result.to_py()['total'] if count_result else 0
+
+        # Fetch paginated data
+        data_stmt = db.prepare(f'''
+            SELECT *
+            {base_query}
+            ORDER BY last_updated_at DESC
+            LIMIT ? OFFSET ?
+        ''').bind(*params, per_page, offset)
+
+        result = await data_stmt.all()
         prs = result.results.to_py() if hasattr(result, 'results') else []
-        
-        return Response.new(json.dumps({'prs': prs}), 
-                          {'headers': {'Content-Type': 'application/json'}})
+
+        return Response.new(json.dumps({
+            'prs': prs,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total_items': total,
+                'total_pages': (total + per_page - 1) // per_page,
+                'has_next': page * per_page < total,
+                'has_previous': page > 1
+            }
+        }), {'headers': {'Content-Type': 'application/json'}})
+
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_list_repos(env):
     """List all unique repos with count of open PRs"""
@@ -2367,7 +2398,14 @@ async def on_fetch(request, env):
     
     if path == '/api/prs':
         if request.method == 'GET':
-            response = await handle_list_prs(env, url.searchParams.get('repo'))
+            repo = url.searchParams.get('repo')
+            page = url.searchParams.get('page')
+            response = await handle_list_prs(
+                env,
+                repo,
+                page if page else 1,
+                30
+            )
         elif request.method == 'POST':
             response = await handle_add_pr(request, env)
     elif path == '/api/repos' and request.method == 'GET':
@@ -2378,7 +2416,7 @@ async def on_fetch(request, env):
         response = await handle_rate_limit(env)
         for key, value in cors_headers.items():
             response.headers.set(key, value)
-        return response
+        return response 
     elif path == '/api/status' and request.method == 'GET':
         response = await handle_status(env)
     elif path == '/api/github/webhook' and request.method == 'POST':
