@@ -1,3 +1,22 @@
+def get_db(env):
+    """Helper to get DB binding from env, handling different env types.
+    
+    Raises an exception if database is not configured.
+    """
+    # Try common binding names (based on wrangler.toml)
+    for name in ['blt_api', 'DB']:
+        # Try attribute access
+        if hasattr(env, name):
+            return getattr(env, name)
+        # Try dict access
+        if hasattr(env, '__getitem__'):
+            try:
+                return env[name]
+            except (KeyError, TypeError):
+                pass
+    raise Exception("Database not configured in the environment.")
+
+
 async def check_db_initialized(db):
     """Check if the database is initialized with required tables.
     
@@ -18,7 +37,20 @@ async def check_db_initialized(db):
             "SELECT name FROM sqlite_master WHERE type='table' AND name IN (?, ?, ?)"
         ).bind(*required_tables).all()
         
-        existing_tables = [row['name'] for row in result.results] if result.results else []
+        # D1 results are JavaScript proxy objects - convert safely
+        existing_tables = []
+        if hasattr(result, 'results'):
+            results = result.results
+            # Handle both Python list and JS proxy
+            if hasattr(results, 'to_py'):
+                results = results.to_py()
+            for row in results:
+                # Handle both dict and proxy object
+                if isinstance(row, dict):
+                    existing_tables.append(row.get('name'))
+                elif hasattr(row, 'name'):
+                    existing_tables.append(row.name)
+        
         missing_tables = [table for table in required_tables if table not in existing_tables]
         
         is_initialized = len(missing_tables) == 0
@@ -26,25 +58,6 @@ async def check_db_initialized(db):
         
     except Exception as e:
         raise Exception(f"Failed to check database initialization: {str(e)}")
-
-
-def get_db(env):
-    """Helper to get DB binding from env, handling different env types.
-    
-    Raises an exception if database is not configured.
-    """
-    # Try common binding names
-    for name in ['pr_tracker', 'DB']:
-        # Try attribute access
-        if hasattr(env, name):
-            return getattr(env, name)
-        # Try dict access
-        if hasattr(env, '__getitem__'):
-            try:
-                return env[name]
-            except (KeyError, TypeError):
-                pass
-    raise Exception("Database not configured in the environment.")
 
 
 async def get_db_safe(env):
