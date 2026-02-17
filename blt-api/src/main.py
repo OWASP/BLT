@@ -13,6 +13,7 @@ except ImportError:
     _WORKERS_RUNTIME = False
     from utils import Response, Headers
 
+from os import path
 from router import Router
 from handlers import (
     handle_issues,
@@ -29,7 +30,7 @@ from handlers import (
     handle_homepage,
 )
 from utils import json_response, error_response, cors_headers
-
+from libs.db import get_db_safe 
 
 # Initialize the router
 router = Router()
@@ -113,11 +114,14 @@ async def on_fetch(request, env):
                 status=204,
                 headers=Headers.new(cors_headers())
             )
-        
+
+        await get_db_safe(env)  # Ensure database is available and initialized
+    
         # Get URL and method
         url = request.url
         method = request.method
-        
+    
+
         # Route the request
         response = await router.handle(request, env)
         
