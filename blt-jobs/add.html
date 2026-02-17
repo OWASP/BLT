@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add a job – OWASP BLT Job Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: "class" };
+  </script>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") document.documentElement.classList.add("dark");
+      else if (savedTheme === "light") document.documentElement.classList.remove("dark");
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <div class="min-h-screen flex flex-col">
+    <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
+      <div class="px-3 py-1 lg:px-5 lg:pl-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center justify-start gap-4">
+            <a href="https://owaspblt.org/" class="flex select-none ms-4">
+              <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+            </a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">All jobs</a>
+          </div>
+          <button id="theme-toggle" class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors" aria-label="Toggle dark mode">
+            <i id="sun-icon" class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
+            <i id="moon-icon" class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1">
+      <div class="p-6 lg:p-8 mt-[72px]">
+        <div class="max-w-3xl mx-auto">
+          <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">Add a job</h1>
+          <p class="text-gray-600 dark:text-gray-400 mb-8">You can add a listing in two ways. We recommend <strong>Quick add</strong> if the job is on a supported site.</p>
+
+          <!-- Quick add (recommended) -->
+          <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 transition-colors duration-200">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wide text-[#e74c3c] dark:text-[#e74c3c]">Recommended</span>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Quick add (paste job link)</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Paste the URL of the job posting. We’ll create the listing for you. Just open a pull request and put the job URL in the description (or in a file named <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">job-url.txt</code>); our bot will scrape the page and add the Markdown file.</p>
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supported sites</p>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside mb-4 space-y-1">
+              <li>Greenhouse (e.g. jobs.greenhouse.io, boards.greenhouse.io)</li>
+              <li>Lever (e.g. jobs.lever.co)</li>
+              <li>Workable</li>
+              <li>Other common ATS and career pages (we’ll try to extract title, company, description)</li>
+            </ul>
+            <a id="quick-add-pr-link" href="https://github.com/OWASP-BLT/BLT-Jobs/compare" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+              <i class="fas fa-external-link-alt mr-2"></i>Open a new pull request (quick add)
+            </a>
+          </section>
+
+          <!-- Manual add -->
+          <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Manual add</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Create a new Markdown file in the <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">_jobs/</code> folder and open a pull request. Use the filename format: <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">company-slug-job-title-slug.md</code> (e.g. <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">acme-senior-engineer.md</code>).</p>
+            <ol class="list-decimal list-inside text-gray-600 dark:text-gray-400 space-y-2 mb-4">
+              <li>Fork the repository (if you haven’t already).</li>
+              <li>In your fork, create a new file under <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">_jobs/</code> with the name <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">company-slug-job-title-slug.md</code>.</li>
+              <li>Use the YAML frontmatter and body format shown in <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/_jobs/example-company-sample-job.md" target="_blank" rel="noopener noreferrer" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">the sample job</a>.</li>
+              <li>Commit, push, and open a pull request to the main repo.</li>
+            </ol>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=_jobs/your-company-job-title.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+              <i class="fas fa-file-alt mr-2"></i>Create new file in _jobs/
+            </a>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="assets/js/theme.js"></script>
+</body>
+</html>

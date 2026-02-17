@@ -2,9 +2,15 @@
 
 Standalone job board for OWASP BLT, hosted on **GitHub Pages**. Read-only list and detail views; no backend at runtime.
 
+## Adding a job
+
+- **[Add a job](add.html)** – Use **Quick add** (recommended) or **Manual add**.
+  - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot will scrape the page and add a Markdown file to your PR. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
+  - **Manual add:** Create a new file under `_jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](_jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
+
 ## Data
 
-Job data is synced from the main BLT application. The process for syncing is TBD in a later PR.
+Jobs are stored as **one Markdown file per job** in `_jobs/`, with YAML frontmatter and a body (description). Filename format: `company-slug-job-title-slug.md`. The file `data/jobs.json` is **generated** from `_jobs/*.md` by a build step (`npm run build:jobs`); a GitHub Action runs this on push to `main` so the site always has an up-to-date `data/jobs.json`.
 
 ### Canonical schema (`data/jobs.json`)
 
@@ -12,7 +18,7 @@ Each job object in the `jobs` array has exactly these 15 fields (aligned with BL
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | number | Job ID |
+| `id` | string | Job ID (slug from filename, e.g. `acme-senior-engineer`) |
 | `organization_name` | string | Organization name |
 | `organization_logo` | string \| null | Absolute URL to organization logo image |
 | `title` | string | Job title |
@@ -33,6 +39,7 @@ Root shape: `{"jobs": [...], "count": N, "generated_at": "<iso8601>"}`.
 ## Frontend
 
 - `index.html`: Job list page
+- `add.html`: Add a job – Quick add (paste URL) or manual add (create `.md` file).
   - Loads `data/jobs.json`
   - Client-side search (`q`) over title, description, organization name, and location
   - Filters:
@@ -82,4 +89,13 @@ Then open:
 - `http://localhost:8000/job.html?id=<some-job-id>` – job detail
 
 Note: `fetch("data/jobs.json")` requires running over HTTP/HTTPS; opening `index.html` directly from the filesystem (`file://`) will not work.
+
+### Build jobs JSON from Markdown (local)
+
+```bash
+npm ci
+npm run build:jobs
+```
+
+This reads all `_jobs/*.md` and writes `data/jobs.json`. The same script runs in CI on push to `main` when `_jobs/` or the build script changes.
 

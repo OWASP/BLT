@@ -1,5 +1,23 @@
 {
-  "jobs": [],
-  "count": 0,
-  "generated_at": null
+  "jobs": [
+    {
+      "id": "example-company-sample-job",
+      "organization_name": "Example Company",
+      "organization_logo": null,
+      "title": "Sample Job Title",
+      "description": "## Description\n\nThis is a sample job listing. The body (below the frontmatter) is the job **description** in Markdown. You can use headings, lists, and links.\n\n## Requirements\n\n- Requirement one\n- Requirement two",
+      "requirements": null,
+      "location": "Remote",
+      "job_type": "full-time",
+      "salary_range": null,
+      "expires_at": null,
+      "application_email": null,
+      "application_url": "https://example.com/apply",
+      "application_instructions": "Apply via the link below.",
+      "created_at": "2025-01-15T00:00:00Z",
+      "views_count": 0
+    }
+  ],
+  "count": 1,
+  "generated_at": "2026-02-12T00:34:12.135Z"
 }
