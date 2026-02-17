@@ -526,26 +526,24 @@
                 const usedEl = document.getElementById('rateLimitUsed');
                 const resetEl = document.getElementById('rateLimitReset');
 
-                if (!response.ok) {
-                    if (textEl) textEl.textContent = 'N/A';
-                    if (usedEl) usedEl.textContent = '';
-                    if (resetEl) resetEl.textContent = '';
-                    return;
-                }
+                if (!response.ok) return;
 
                 const data = await response.json();
-                if (data.error) {
-                    if (textEl) textEl.textContent = 'N/A';
-                    if (usedEl) usedEl.textContent = '';
+
+                if (data.status === 'waiting_for_first_request') {
+                    if (textEl) textEl.textContent = 'Ready';
+                    if (usedEl) usedEl.textContent = '(Passive mode active)';
                     if (resetEl) resetEl.textContent = '';
+                    if (fillEl) fillEl.style.width = '100%':
                     return;
                 }
+                if (data.error) {
+                    if (textEl) textEl.textContent = 'N/A';
+                    return;
 
                 const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
                     if (textEl) textEl.textContent = 'N/A';
-                    if (usedEl) usedEl.textContent = '';
-                    if (resetEl) resetEl.textContent = '';
                     return;
                 }
 
