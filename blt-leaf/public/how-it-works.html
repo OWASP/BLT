@@ -141,6 +141,49 @@
             </div>
         </section>
 
+        <!-- What BLT-Leaf Does NOT Do -->
+        <section id="boundaries" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-times-circle text-red-600 dark:text-red-400 mr-2"></i>What BLT-Leaf Does NOT Analyze
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf focuses exclusively on <strong>operational readiness</strong> (CI status, review health,
+                    response rates). It does <strong>not</strong> currently evaluate:
+                </p>
+                <ul class="space-y-2 text-slate-700 dark:text-slate-300 mb-4">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Code correctness or logic bugs</strong> — No static analysis or bug
+                            detection</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Performance regressions</strong> — No benchmarking or profiling</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Security vulnerabilities</strong> — Use tools like Snyk or Dependabot</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Code style or maintainability</strong> — Use linters like ESLint or Pylint</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Test coverage quality</strong> — Use coverage tools like Codecov</span>
+                    </li>
+                </ul>
+                <div class="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p class="text-sm text-red-900 dark:text-red-200">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <strong>Important:</strong> A PR with a high readiness score can still contain functional bugs,
+                        security issues, or poor code quality. <strong>Always perform manual code review.</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- Interactive Calculator -->
         <section id="calculator" class="mb-12">
             <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Interactive Score Calculator</h2>
@@ -393,6 +436,70 @@
             </div>
         </section>
 
+        <!-- When to Ignore the Score -->
+        <section id="when-to-ignore" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-user-check text-purple-600 dark:text-purple-400 mr-2"></i>When to Ignore BLT-Leaf's
+                Score
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    While BLT-Leaf provides useful operational insights, you should rely more on <strong>human
+                        judgment</strong> in these cases:
+                </p>
+                <ul class="space-y-3 text-slate-700 dark:text-slate-300">
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-code text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Major refactors or architectural changes</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Large-scale changes may need deeper
+                                review regardless of CI status</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-robot text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Large auto-generated files are present</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Package locks, generated code, or
+                                migration files may skew metrics</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-hourglass-half text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>CI is waiting for manual approval</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Fork PRs or security-sensitive
+                                workflows may need maintainer approval to run</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-cog text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Project has custom review rules</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Some teams require specific approvers
+                                or domain expert reviews</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-fire text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Emergency hotfixes are needed</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Critical production fixes may bypass
+                                normal review processes</p>
+                        </div>
+                    </li>
+                </ul>
+                <div
+                    class="mt-4 p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <p class="text-sm text-purple-900 dark:text-purple-200">
+                        <i class="fas fa-balance-scale mr-1"></i>
+                        <strong>Bottom Line:</strong> In these cases, treat the score as <em>informational only</em>.
+                        Use your expertise and project context to make the final merge decision.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- Confidence Levels -->
         <section id="confidence" class="mb-12">
             <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Understanding Confidence Levels</h2>
@@ -423,6 +530,77 @@
                     <p class="text-sm text-red-800 dark:text-red-300 mb-3">Don't trust blindly — critical data is
                         missing or this is a known false positive.</p>
                     <p class="text-xs text-red-700 dark:text-red-400"><strong>Example:</strong> "0 checks run (fork PR)"
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How to Improve Your Score -->
+        <section id="improve-score" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-arrow-up text-green-600 dark:text-green-400 mr-2"></i>How to Improve Your Readiness
+                Score
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    If your PR has a low readiness score, here are specific actions you can take to improve it:
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-100 dark:bg-slate-900">
+                            <tr>
+                                <th
+                                    class="px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
+                                    Issue</th>
+                                <th
+                                    class="px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
+                                    How to Fix</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700 dark:text-slate-300">
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-times-circle text-red-600 mr-2"></i><strong>CI
+                                        checks failing</strong></td>
+                                <td class="px-4 py-3">Re-run workflows, fix failing tests, resolve linting errors</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-user-slash text-yellow-600 mr-2"></i><strong>No
+                                        approvals</strong></td>
+                                <td class="px-4 py-3">Request reviewers, ping team members, address feedback</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i
+                                        class="fas fa-comment-slash text-orange-600 mr-2"></i><strong>Low response
+                                        rate</strong></td>
+                                <td class="px-4 py-3">Reply to unresolved comments, push commits addressing feedback
+                                </td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-file-alt text-slate-600 mr-2"></i><strong>Draft
+                                        mode</strong></td>
+                                <td class="px-4 py-3">Mark PR as "Ready for review" when complete</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i
+                                        class="fas fa-code-branch text-blue-600 mr-2"></i><strong>Behind base
+                                        branch</strong></td>
+                                <td class="px-4 py-3">Rebase or merge latest changes from base branch</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><i class="fas fa-comments text-purple-600 mr-2"></i><strong>Open
+                                        conversations</strong></td>
+                                <td class="px-4 py-3">Resolve review threads by addressing comments or marking as
+                                    resolved</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div
+                    class="mt-4 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p class="text-sm text-green-900 dark:text-green-200">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Pro Tip:</strong> Use the "Update" button on each PR to refresh data and see your
+                        improvements reflected in real-time.
                     </p>
                 </div>
             </div>
@@ -473,6 +651,48 @@
                         <strong>Recommendation:</strong> If you're analyzing multiple PRs or using BLT-Leaf frequently,
                         add a GitHub Personal Access Token to avoid rate limit errors. Each user with a token gets their
                         own 5,000 req/hour quota.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Freshness & Staleness -->
+        <section id="data-freshness" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-clock text-blue-600 dark:text-blue-400 mr-2"></i>Data Freshness & Staleness
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf uses <strong>cached results for up to 10 minutes</strong> to reduce GitHub API usage and
+                    improve performance.
+                </p>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2">During this period, the following
+                        may not appear immediately:</h3>
+                    <ul class="space-y-2 text-slate-700 dark:text-slate-300 ml-6">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New CI runs or check results</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New reviews or approvals</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New comments or resolved conversations</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>Changes to PR status (merged, closed, reopened)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p class="text-sm text-blue-900 dark:text-blue-200">
+                        <i class="fas fa-sync mr-1"></i>
+                        <strong>Force Refresh:</strong> Use the <strong>"Update"</strong> button on each PR row to force
+                        re-analysis and bypass the cache. This fetches the latest data from GitHub immediately.
                     </p>
                 </div>
             </div>
@@ -548,6 +768,51 @@
                         <i class="fas fa-info-circle mr-1"></i>
                         <strong>API Usage:</strong> Each PR analysis uses approximately <strong>5 API calls</strong>.
                         BLT-Leaf caches results for 10 minutes to minimize redundant requests.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy & Data Handling -->
+        <section id="privacy" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-shield-alt text-green-600 dark:text-green-400 mr-2"></i>Privacy & Data Usage
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf only accesses <strong>public GitHub PR metadata</strong> and review information through the
+                    official GitHub API.
+                </p>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                        <i class="fas fa-times-circle text-red-600"></i>
+                        We do NOT:
+                    </h3>
+                    <ul class="space-y-2 text-slate-700 dark:text-slate-300 ml-6">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Store source code contents or file diffs</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Share data with third parties or external services</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Analyze private repositories without explicit authorization</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Modify or write to your repositories (read-only access)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div
+                    class="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p class="text-sm text-green-900 dark:text-green-200">
+                        <i class="fas fa-lock mr-1"></i>
+                        <strong>Security:</strong> All analysis is performed using read-only GitHub API access. BLT-Leaf
+                        cannot make changes to your code, issues, or pull requests.
                     </p>
                 </div>
             </div>
@@ -654,6 +919,34 @@
             </div>
         </section>
 
+        <!-- Scoring Model Version -->
+        <section id="versioning" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-code-branch text-slate-600 dark:text-slate-400 mr-2"></i>Scoring Model Information
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Current Scoring Model</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">v1.0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Last Updated</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">February 2026</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Major changes to the scoring algorithm are documented in the <a
+                            href="https://github.com/OWASP-BLT/BLT-Leaf/releases" target="_blank"
+                            class="text-blue-600 dark:text-blue-400 hover:underline">release notes</a>. Minor
+                        adjustments may occur without version changes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- FAQ -->
         <section id="faq" class="mb-12">
             <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Frequently Asked Questions</h2>
@@ -714,6 +1007,60 @@
                         <code>/issues/{number}/timeline</code>. Each PR analysis uses approximately 5 API calls.
                     </p>
                 </details>
+            </div>
+        </section>
+
+        <!-- Contributor Path -->
+        <section id="contribute" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-heart text-red-600 dark:text-red-400 mr-2"></i>Want to Improve BLT-Leaf?
+            </h2>
+            <div
+                class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-lg border border-red-200 dark:border-red-800 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    If you'd like to help improve scoring accuracy, fix known limitations, or add new features:
+                </p>
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-bug text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Check open issues</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Browse known bugs and feature requests
+                                on GitHub</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-code text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Review the analysis engine</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Understand how scoring works under the
+                                hood</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-lightbulb text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Propose new heuristics</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Suggest better ways to detect PR
+                                readiness</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-hands-helping text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Contribute code</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Submit PRs to improve BLT-Leaf itself
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                        <i class="fab fa-github"></i>
+                        View Open Issues
+                    </a>
+                </div>
             </div>
         </section>
 
