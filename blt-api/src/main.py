@@ -7,7 +7,7 @@ the OWASP BLT project, running efficiently on Cloudflare Workers.
 
 # Try to import Cloudflare Workers JS bindings
 try:
-    from js import Response, Headers, JSON
+    from js import Response, Headers, JSON # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False
