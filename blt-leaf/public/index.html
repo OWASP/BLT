@@ -13,13 +13,13 @@
                 darkMode: 'class'
             }
         };
-        
+
         // Initialize theme immediately to prevent FOUC
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-            
+
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
             }
@@ -35,13 +35,13 @@
             color: #fff;
             border: 1px solid #BC0000;
         }
-        
+
         /* Active PR row highlighting */
         .pr-row-active {
             background-color: #FEF3C7 !important;
             border-left: 3px solid #F59E0B;
         }
-        
+
         .dark .pr-row-active {
             background-color: #78350F !important;
             border-left: 3px solid #F59E0B;
@@ -52,7 +52,7 @@
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5 dark:border-slate-700 dark:bg-slate-800">
         <div class="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-            
+
             <div class="flex items-center gap-4 lg:gap-6">
                 <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
                     <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
@@ -62,9 +62,11 @@
                 <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
                     <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
                     <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300" id="rateLimitFill"></div>
+                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
+                            id="rateLimitFill"></div>
                     </div>
-                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400" id="rateLimitText">N/A</span>
+                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400"
+                        id="rateLimitText">N/A</span>
                     <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
                     <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
                 </div>
@@ -80,11 +82,11 @@
                             class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
                             placeholder="Search PRs..." autocomplete="off">
                     </div>
-                    <button id="searchBtn" 
+                    <button id="searchBtn"
                         class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
                         <i class="fas fa-search"></i> Search
                     </button>
-                    <button id="clearSearchBtn" 
+                    <button id="clearSearchBtn"
                         class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
                         <i class="fas fa-times"></i> Clear
                     </button>
@@ -92,17 +94,24 @@
             </div>
 
             <div class="flex shrink-0 items-center gap-3">
-                <button id="autoRefreshToggle" 
+                <button id="autoRefreshToggle"
                     class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
                     title="Toggle auto-refresh">
                     <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
                 </button>
-                <button id="themeToggle" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
-                <span id="releaseVersion" class="hidden text-xs text-slate-500 dark:text-slate-400 md:inline-block"></span>
+                <a href="/how-it-works.html"
+                    class="hidden md:inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-question-circle"></i>
+                    <span>How It Works</span>
+                </a>
+                <span id="releaseVersion"
+                    class="hidden text-xs text-slate-500 dark:text-slate-400 md:inline-block"></span>
                 <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
-                   class="hidden rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 md:inline-flex items-center gap-2 transition-colors shadow-sm">
+                    class="hidden rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 md:inline-flex items-center gap-2 transition-colors shadow-sm">
                     <i class="fab fa-github"></i> <span>Contribute</span>
                 </a>
             </div>
@@ -112,22 +121,30 @@
     <div class="bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100">
         <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
             <p class="text-sm text-slate-700 leading-relaxed sm:text-base">
-                Leaf is a Readiness and Security PR checker. It reviews pull requests for operational readiness, security risks, and production-impacting changes before they ship. Inspired by the surge of AI-generated PRs, Leaf helps teams maintain high standards by adding an automated layer of critical thinking and risk detection to every change.
+                Leaf is a Readiness and Security PR checker. It reviews pull requests for operational readiness,
+                security risks, and production-impacting changes before they ship. Inspired by the surge of AI-generated
+                PRs, Leaf helps teams maintain high standards by adding an automated layer of critical thinking and risk
+                detection to every change.
             </p>
         </div>
     </div>
 
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
-        <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
+        <aside
+            class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+                    Repositories <span id="repoCountDisplay"></span></h2>
                 <ul id="repoList" class="space-y-2">
-                    <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
-                        <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
-                        <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
+                    <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30"
+                        data-repo="all">
+                        <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories
+                        </div>
+                        <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0
+                            PRs</div>
                     </li>
                 </ul>
-            </div>  
+            </div>
         </aside>
 
         <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
@@ -135,14 +152,13 @@
                 <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
                         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
-                        placeholder="Enter GitHub PR URL or Repository URL"
-                        autocomplete="off" />
+                        placeholder="Enter GitHub PR URL or Repository URL" autocomplete="off" />
                     <button id="addPrBtn"
                         class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700 dark:disabled:border-red-800 dark:disabled:bg-red-950 dark:disabled:text-red-400">
                         Add PR
                     </button>
                 </div>
-                
+
                 <div class="mt-2 flex items-center gap-2">
                     <input type="checkbox" id="addAllPrsCheckbox"
                         class="h-4 w-4 rounded border-slate-300 text-[#E10000] focus:ring-[#E10000] dark:border-slate-600 dark:bg-slate-700">
@@ -150,13 +166,15 @@
                         class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
                         Add all active PRs from this repo
                     </label>
-                </div>                
+                </div>
             </section>
 
             <div id="prListContainer">
-                <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
+                <div
+                    class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
                     <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3>
-                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start
+                        tracking</p>
                 </div>
             </div>
         </main>
@@ -177,22 +195,22 @@
                 // Migrate from old single/dual column format
                 const oldPrimary = localStorage.getItem('sortColumn') || 'ready_score';
                 const oldPrimaryDir = localStorage.getItem('sortDirection') || 'desc';
-                sortColumns.push({column: oldPrimary, direction: oldPrimaryDir});
-                
+                sortColumns.push({ column: oldPrimary, direction: oldPrimaryDir });
+
                 const oldSecondary = localStorage.getItem('secondarySortColumn');
                 if (oldSecondary) {
                     const oldSecondaryDir = localStorage.getItem('secondarySortDirection') || 'desc';
-                    sortColumns.push({column: oldSecondary, direction: oldSecondaryDir});
+                    sortColumns.push({ column: oldSecondary, direction: oldSecondaryDir });
                 }
             }
         } catch (e) {
             // Fallback to default
-            sortColumns = [{column: 'ready_score', direction: 'desc'}];
+            sortColumns = [{ column: 'ready_score', direction: 'desc' }];
         }
-        
+
         // Ensure at least one sort column exists
         if (sortColumns.length === 0) {
-            sortColumns = [{column: 'ready_score', direction: 'desc'}];
+            sortColumns = [{ column: 'ready_score', direction: 'desc' }];
         }
         let currentPage = 1;
         let totalPages = 1;
@@ -215,7 +233,7 @@
                     timestamp: Date.now()
                 };
                 localStorage.setItem('prReadinessData', JSON.stringify(data));
-                
+
                 // Also update the PR object in allPrs for sorting
                 const pr = allPrs.find(p => p.id === prId);
                 if (pr) {
@@ -223,7 +241,7 @@
                     pr.ci_score = readiness.ci_score;
                     pr.review_score = readiness.review_score;
                     pr.response_score = parseFloat(reviewHealth.response_rate_display.replace('%', ''));
-                    pr.feedback_score = reviewHealth.total_feedback > 0 ? 
+                    pr.feedback_score = reviewHealth.total_feedback > 0 ?
                         (reviewHealth.responded_feedback / reviewHealth.total_feedback) * 100 : 100;
                     pr.issues_count = (readiness.blockers?.length || 0) + (readiness.warnings?.length || 0);
                 }
@@ -277,7 +295,7 @@
             try {
                 const MS_PER_MINUTE = 60000;
                 const MINUTES_PER_HOUR = 60;
-                
+
                 const response = await fetch('/api/rate-limit');
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
@@ -285,30 +303,30 @@
                 const resetEl = document.getElementById('rateLimitReset');
 
                 if (!response.ok) {
-                    if(textEl) textEl.textContent = 'N/A';
-                    if(usedEl) usedEl.textContent = '';
-                    if(resetEl) resetEl.textContent = '';
+                    if (textEl) textEl.textContent = 'N/A';
+                    if (usedEl) usedEl.textContent = '';
+                    if (resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const data = await response.json();
                 if (data.error) {
-                    if(textEl) textEl.textContent = 'N/A';
-                    if(usedEl) usedEl.textContent = '';
-                    if(resetEl) resetEl.textContent = '';
+                    if (textEl) textEl.textContent = 'N/A';
+                    if (usedEl) usedEl.textContent = '';
+                    if (resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
-                    if(textEl) textEl.textContent = 'N/A';
-                    if(usedEl) usedEl.textContent = '';
-                    if(resetEl) resetEl.textContent = '';
+                    if (textEl) textEl.textContent = 'N/A';
+                    if (usedEl) usedEl.textContent = '';
+                    if (resetEl) resetEl.textContent = '';
                     return;
                 }
 
                 const percentageRemaining = (remaining / limit) * 100;
-                
+
                 if (fillEl) {
                     fillEl.style.width = `${percentageRemaining}%`;
                     fillEl.className = 'h-full rounded-full transition-all duration-300';
@@ -320,21 +338,21 @@
                         fillEl.classList.add('bg-green-500');
                     }
                 }
-                
-                if(textEl) textEl.textContent = `${remaining} / ${limit}`;
-                
+
+                if (textEl) textEl.textContent = `${remaining} / ${limit}`;
+
                 // Display used count
-                if(usedEl && typeof used === 'number') {
+                if (usedEl && typeof used === 'number') {
                     usedEl.textContent = `(${used} used)`;
                 }
-                
+
                 // Display reset time in human-readable format
-                if(resetEl && typeof reset === 'number') {
+                if (resetEl && typeof reset === 'number') {
                     const resetDate = new Date(reset * 1000);
                     const now = new Date();
                     const diffMs = resetDate - now;
                     const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
-                    
+
                     if (diffMins <= 0) {
                         resetEl.textContent = 'Resets soon';
                     } else if (diffMins < MINUTES_PER_HOUR) {
@@ -355,9 +373,9 @@
                 const textEl = document.getElementById('rateLimitText');
                 const usedEl = document.getElementById('rateLimitUsed');
                 const resetEl = document.getElementById('rateLimitReset');
-                if(textEl) textEl.textContent = 'N/A';
-                if(usedEl) usedEl.textContent = '';
-                if(resetEl) resetEl.textContent = '';
+                if (textEl) textEl.textContent = 'N/A';
+                if (usedEl) usedEl.textContent = '';
+                if (resetEl) resetEl.textContent = '';
             }
         }
 
@@ -371,7 +389,7 @@
 
                 const data = await response.json();
                 const versionEl = document.getElementById('releaseVersion');
-                
+
                 if (data.tag_name && versionEl) {
                     versionEl.textContent = data.tag_name;
                     versionEl.classList.remove('hidden');
@@ -407,19 +425,19 @@
             if (isShiftClick) {
                 // Shift+click adds or modifies additional sort columns
                 const existingIndex = sortColumns.findIndex(sc => sc.column === column);
-                
+
                 if (existingIndex >= 0) {
                     // Column already in sort list - toggle its direction
-                    sortColumns[existingIndex].direction = 
+                    sortColumns[existingIndex].direction =
                         sortColumns[existingIndex].direction === 'asc' ? 'desc' : 'asc';
                 } else {
                     // Add new sort column
-                    sortColumns.push({column: column, direction: 'desc'});
+                    sortColumns.push({ column: column, direction: 'desc' });
                 }
             } else {
                 // Regular click - set as primary sort (first position)
                 const existingIndex = sortColumns.findIndex(sc => sc.column === column);
-                
+
                 if (existingIndex === 0) {
                     // Already primary sort - toggle direction
                     sortColumns[0].direction = sortColumns[0].direction === 'asc' ? 'desc' : 'asc';
@@ -430,16 +448,16 @@
                     sortColumns.unshift(existing);
                 } else {
                     // New primary sort column
-                    sortColumns.unshift({column: column, direction: 'desc'});
+                    sortColumns.unshift({ column: column, direction: 'desc' });
                 }
             }
-            
+
             // Save sorting state to localStorage
             localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
-            
+
             // Reset to first page when sorting changes
             currentPage = 1;
-            
+
             // Reload PRs from server with new sort parameters
             loadPrs();
         }
@@ -596,7 +614,7 @@
         async function loadPrs() {
             const container = document.getElementById('prListContainer');
             // Only show spinner if search is empty to avoid flickering while typing
-            if(document.getElementById('prSearchInput').value.trim() === '') {
+            if (document.getElementById('prSearchInput').value.trim() === '') {
                 container.innerHTML = `
                     <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                         <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-400"></span>
@@ -609,7 +627,7 @@
                 // Build sort parameters from sortColumns array
                 let sortByParam = sortColumns.map(sc => sc.column).join(',');
                 let sortDirParam = sortColumns.map(sc => sc.direction).join(',');
-                
+
                 // Build URL with pagination and sorting parameters
                 let url;
                 if (currentRepo === 'all') {
@@ -617,7 +635,7 @@
                 } else {
                     url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
-                
+
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -641,9 +659,9 @@
                         pr.ready_score = pr.overall_score;
                         // ci_score and review_score are already in the pr object from database
                         pr.response_score = (pr.response_rate || 0) * 100;
-                        pr.feedback_score = pr.total_feedback > 0 ? 
+                        pr.feedback_score = pr.total_feedback > 0 ?
                             (pr.responded_feedback / pr.total_feedback) * 100 : 100;
-                        
+
                         // Parse blockers and warnings to get issues count
                         try {
                             const blockers = pr.blockers ? JSON.parse(pr.blockers) : [];
@@ -660,13 +678,13 @@
                             pr.ci_score = storedData.readiness.ci_score;
                             pr.review_score = storedData.readiness.review_score;
                             pr.response_score = parseFloat(storedData.reviewHealth.response_rate_display.replace('%', ''));
-                            pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ? 
+                            pr.feedback_score = storedData.reviewHealth.total_feedback > 0 ?
                                 (storedData.reviewHealth.responded_feedback / storedData.reviewHealth.total_feedback) * 100 : 100;
                             pr.issues_count = (storedData.readiness.blockers?.length || 0) + (storedData.readiness.warnings?.length || 0);
                         }
                     }
                 });
-                
+
                 // Only apply client-side sorting for computed columns (issues_count)
                 // All other columns are already sorted by the backend
                 if (sortColumns.length > 0 && sortColumns[0].column === 'issues_count') {
@@ -674,7 +692,7 @@
                     allPrs.sort((a, b) => {
                         let aVal = Number(a.issues_count) || 0;
                         let bVal = Number(b.issues_count) || 0;
-                        
+
                         if (primaryDirection === 'asc') {
                             return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
                         } else {
@@ -682,10 +700,10 @@
                         }
                     });
                 }
-                
+
                 // Apply search filter if exists
                 const searchTerm = document.getElementById('prSearchInput').value;
-                if(searchTerm) {
+                if (searchTerm) {
                     filterPrs(searchTerm);
                 } else {
                     renderPrList(allPrs);
@@ -695,7 +713,7 @@
                 showContainerError('prListContainer', 'Failed to load PRs');
             }
         }
-        
+
         function filterPrs(searchTerm) {
             const term = searchTerm.toLowerCase();
             const filtered = allPrs.filter(pr =>
@@ -713,20 +731,20 @@
          */
         async function checkForPrUpdates() {
             if (!autoRefreshEnabled) return;
-            
+
             try {
                 const response = await fetch('/api/prs/updates');
                 const data = await response.json();
-                
+
                 if (data.error) {
                     console.error('Error checking for updates:', data.error);
                     return;
                 }
-                
+
                 const updates = data.updates || [];
                 const changedPrIds = [];
                 const removedPrIds = [];
-                
+
                 // Detect changes
                 updates.forEach(update => {
                     const oldTimestamp = prUpdateTimestamps[update.id];
@@ -735,7 +753,7 @@
                     }
                     prUpdateTimestamps[update.id] = update.updated_at;
                 });
-                
+
                 // Detect removals (PRs that were in cache but not in update)
                 // Use Set for O(1) lookup instead of O(n) find operation
                 const currentPrIds = new Set(updates.map(u => u.id));
@@ -746,26 +764,26 @@
                         delete prUpdateTimestamps[prId];
                     }
                 });
-                
+
                 // Handle removed PRs with animation
                 if (removedPrIds.length > 0) {
                     for (const prId of removedPrIds) {
                         await removePrWithAnimation(prId);
                     }
-                    
+
                     // Check if all PRs were removed and render empty state if needed
                     // Note: allPrs array is updated synchronously in removePrWithAnimation()
                     if (allPrs.length === 0) {
                         renderPrList(allPrs);
                     }
                 }
-                
+
                 // Reload if there are changes (not removals, as those are already handled)
                 if (changedPrIds.length > 0) {
                     console.log('PR updates detected, refreshing...');
                     await loadPrs();
                 }
-                
+
                 // Update repo counts if there were any changes or removals
                 if (changedPrIds.length > 0 || removedPrIds.length > 0) {
                     await loadRepos();
@@ -784,7 +802,7 @@
             if (prIndex !== -1) {
                 allPrs.splice(prIndex, 1);
             }
-            
+
             // Get the row element
             const row = document.getElementById(`pr-row-${prId}`);
             if (row) {
@@ -792,7 +810,7 @@
                 row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
                 row.style.opacity = '0';
                 row.style.transform = 'translateX(20px)';
-                
+
                 // Remove the row after animation completes
                 await new Promise(resolve => setTimeout(resolve, 300));
                 row.remove();
@@ -804,16 +822,16 @@
          */
         async function startAutoRefresh() {
             if (autoRefreshInterval) return; // Already running
-            
+
             autoRefreshEnabled = true;
             localStorage.setItem('autoRefreshEnabled', 'true');
-            
+
             // Initial check (await to handle errors properly)
             await checkForPrUpdates();
-            
+
             // Set up interval
             autoRefreshInterval = setInterval(checkForPrUpdates, AUTO_REFRESH_INTERVAL);
-            
+
             // Update UI
             updateAutoRefreshUI();
         }
@@ -826,10 +844,10 @@
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
             }
-            
+
             autoRefreshEnabled = false;
             localStorage.setItem('autoRefreshEnabled', 'false');
-            
+
             // Update UI
             updateAutoRefreshUI();
         }
@@ -851,7 +869,7 @@
         function updateAutoRefreshUI() {
             const button = document.getElementById('autoRefreshToggle');
             const icon = document.getElementById('autoRefreshIcon');
-            
+
             if (autoRefreshEnabled) {
                 button.classList.add('text-green-600', 'dark:text-green-400');
                 button.classList.remove('text-slate-500', 'dark:text-slate-400');
@@ -904,15 +922,15 @@
             const getSortIcon = (column) => {
                 // Find the column in the sort columns array
                 const sortIndex = sortColumns.findIndex(sc => sc.column === column);
-                
+
                 if (sortIndex >= 0) {
                     const sortCol = sortColumns[sortIndex];
                     const direction = sortCol.direction;
                     const isPrimary = sortIndex === 0;
-                    
+
                     if (isPrimary) {
                         // Primary sort - red color, normal size
-                        const icon = direction === 'asc' 
+                        const icon = direction === 'asc'
                             ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
                             : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
                         return icon;
@@ -925,7 +943,7 @@
                         return `<sup class="text-xs text-slate-500 dark:text-slate-400">${number}</sup>${icon}`;
                     }
                 }
-                
+
                 // Not in sort list
                 return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
             };
@@ -1052,7 +1070,7 @@
                 // Load and display readiness data from database or localStorage if available
                 let readiness = null;
                 let reviewHealth = null;
-                
+
                 // First, try to get readiness data from database (if it exists)
                 if (pr.overall_score !== null && pr.overall_score !== undefined) {
                     // Parse JSON fields from database
@@ -1061,7 +1079,7 @@
                         const warnings = pr.warnings ? JSON.parse(pr.warnings) : [];
                         const recommendations = pr.recommendations ? JSON.parse(pr.recommendations) : [];
                         const stale_feedback = pr.stale_feedback ? JSON.parse(pr.stale_feedback) : [];
-                        
+
                         readiness = {
                             overall_score: pr.overall_score,
                             overall_score_display: `${pr.overall_score}%`,
@@ -1075,7 +1093,7 @@
                             warnings: warnings,
                             recommendations: recommendations
                         };
-                        
+
                         reviewHealth = {
                             classification: pr.review_health_classification,
                             score: pr.review_health_score,
@@ -1091,7 +1109,7 @@
                         console.error('Error parsing readiness data from database:', e);
                     }
                 }
-                
+
                 // Fall back to localStorage if database doesn't have data
                 if (!readiness || !reviewHealth) {
                     const storedData = loadReadinessData(pr.id);
@@ -1100,7 +1118,7 @@
                         reviewHealth = storedData.reviewHealth;
                     }
                 }
-                
+
                 // Display the readiness data if available
                 if (readiness && reviewHealth) {
                     updateInlineCells(pr.id, readiness, reviewHealth);
@@ -1120,7 +1138,7 @@
             });
             if (document.getElementById('prSearchInput').value.trim() === '') {
                 renderPagination();
-        }
+            }
         }
 
         function renderPagination() {
@@ -1141,38 +1159,38 @@
                 <button 
                     ${currentPage === 1 ? 'disabled' : ''} 
                     class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
-                           ${currentPage === 1 
-                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
-                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                           ${currentPage === 1
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                    : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
                     id="prevPageBtn"> ← Previous
                 </button>
 
                 <button 
                     ${currentPage === totalPages ? 'disabled' : ''} 
                     class="px-4 py-2 rounded-lg border text-sm font-semibold transition-all
-                            ${currentPage === totalPages 
-                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
-                            : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
+                            ${currentPage === totalPages
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500'
+                    : 'bg-white hover:bg-red-50 border-slate-300 hover:border-red-300 dark:bg-slate-800 dark:hover:bg-slate-700'}"
                     id="nextPageBtn"> Next →
                 </button>
             </div>
         `;
 
-        container.appendChild(paginationDiv);
+            container.appendChild(paginationDiv);
 
-        document.getElementById('prevPageBtn')?.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                loadPrs();
-            }
-        });
-        document.getElementById('nextPageBtn')?.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadPrs();
-            }
-        });
-    }
+            document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadPrs();
+                }
+            });
+            document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadPrs();
+                }
+            });
+        }
 
         function createPrRow(pr) {
             let stateBadge = '';
@@ -1180,7 +1198,7 @@
                 stateBadge = '<span class="inline-flex rounded-full border border-[#f5b0b0] bg-[#fff1f1] px-2 py-0.5 text-xs font-semibold text-[#BC0000] dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Merged</span>';
             } else if (pr.is_draft == 1) {
                 stateBadge = '<span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">Draft</span>';
-            }else if (pr.state === 'open') {
+            } else if (pr.state === 'open') {
                 stateBadge = '<span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">Open</span>';
             } else {
                 stateBadge = '<span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">Closed</span>';
@@ -1294,14 +1312,14 @@
                     </button>
                 </td>
             `;
-            
+
             // Add click handler to highlight the row when clicked
             row.addEventListener('click', (e) => {
                 // Don't trigger row selection if clicking on the update button or links
                 if (e.target.closest('button') || e.target.closest('a')) {
                     return;
                 }
-                
+
                 // Remove active class from previously selected row
                 if (activePrId) {
                     const previousActiveRow = document.getElementById(`pr-row-${activePrId}`);
@@ -1309,17 +1327,17 @@
                         previousActiveRow.classList.remove('pr-row-active');
                     }
                 }
-                
+
                 // Set new active row
                 activePrId = pr.id;
                 row.classList.add('pr-row-active');
             });
-            
+
             // If this is the currently active PR, apply the active class
             if (activePrId === pr.id) {
                 row.classList.add('pr-row-active');
             }
-            
+
             return row;
         }
 
@@ -1337,7 +1355,7 @@
 
             // Create new row with updated data
             const newRow = createPrRow({ ...prData, id: prId });
-            
+
             // Replace the old row with the new one
             existingRow.replaceWith(newRow);
 
@@ -1352,7 +1370,7 @@
 
         async function updatePr(prId, button) {
             const originalHtml = button.innerHTML;
-            
+
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Updating...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
@@ -1375,7 +1393,7 @@
 
                 // Clear cached readiness data for this PR since it's being refreshed
                 clearReadinessData(prId);
-                
+
                 // Check if PR was removed due to being merged/closed
                 if (refreshData.removed) {
                     // Remove PR from allPrs array
@@ -1383,7 +1401,7 @@
                     if (prIndex !== -1) {
                         allPrs.splice(prIndex, 1);
                     }
-                    
+
                     // Get the row element
                     const row = document.getElementById(`pr-row-${prId}`);
                     if (row) {
@@ -1391,14 +1409,14 @@
                         row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
                         row.style.opacity = '0';
                         row.style.transform = 'translateX(20px)';
-                        
+
                         // Remove the row after animation completes
                         setTimeout(async () => {
                             row.remove();
-                            
+
                             // Update repos list (counts might have changed)
                             await loadRepos();
-                            
+
                             // Check if there are no PRs left
                             if (allPrs.length === 0) {
                                 const container = document.getElementById('prListContainer');
@@ -1408,7 +1426,7 @@
                             }
                         }, 300);
                     }
-                    
+
                     // Show success message
                     showError(refreshData.message || 'PR has been closed and removed from tracking');
                     await loadRateLimit();
@@ -1430,7 +1448,7 @@
                 // Step 2: Analyze readiness
                 const readinessResponse = await fetch(`/api/prs/${prId}/readiness`);
                 const readinessData = await readinessResponse.json();
-                
+
                 if (readinessData.error) {
                     showInlineError(`pr-row-${prId}`, readinessData.error);
                     return;
@@ -1444,7 +1462,7 @@
 
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
-                
+
                 updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
                 updatedButton.disabled = false;
                 updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
@@ -1501,7 +1519,7 @@
             // Update Feedback
             const feedbackCell = document.getElementById(`readiness-feedback-${prId}`);
             if (feedbackCell) {
-                const feedbackPercent = reviewHealth.total_feedback > 0 ? 
+                const feedbackPercent = reviewHealth.total_feedback > 0 ?
                     (reviewHealth.responded_feedback / reviewHealth.total_feedback) * 100 : 100;
                 const scoreClass = getScoreColor(feedbackPercent);
                 feedbackCell.innerHTML = `<span class="${scoreClass} text-xs font-bold">${reviewHealth.responded_feedback}/${reviewHealth.total_feedback}</span>`;
@@ -1581,7 +1599,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         pr_url: prUrl,
                         add_all: addAll
                     })
@@ -1651,7 +1669,7 @@
             // Theme class is already set in the head, just update the icon
             const isDark = document.documentElement.classList.contains('dark');
             const themeIcon = document.getElementById('themeIcon');
-            
+
             if (isDark) {
                 themeIcon.className = 'fas fa-sun';
             } else {
@@ -1662,7 +1680,7 @@
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
             const themeIcon = document.getElementById('themeIcon');
-            
+
             if (isDark) {
                 document.documentElement.classList.remove('dark');
                 themeIcon.className = 'fas fa-moon';
@@ -1686,7 +1704,7 @@
         loadRepos();
         loadPrs();
         setInterval(loadRateLimit, 600000);
-        
+
         // Initialize auto-refresh
         updateAutoRefreshUI();
         if (autoRefreshEnabled) {
@@ -1694,4 +1712,5 @@
         }
     </script>
 </body>
+
 </html>
