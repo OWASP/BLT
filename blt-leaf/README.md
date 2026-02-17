@@ -48,6 +48,7 @@ BLT-Leaf/
 - 📊 **Response Rate Analysis**: Measures how quickly and thoroughly authors address feedback
 - ⚠️ **Stale Feedback Detection**: Identifies unaddressed comments older than 3 days
 - 🚫 **Smart Blocker Detection**: Auto-identifies issues preventing merge (failing checks, merge conflicts, etc.)
+- 💬 **Conversation Tracking (NEW)**: Tracks unresolved review conversations; deducts 3 points per conversation from readiness score
 - 💡 **Actionable Recommendations**: Context-aware suggestions for next steps
 
 ### Performance & Protection
@@ -151,6 +152,7 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
    - Mergeable state
    - Files changed count
    - Check status (passed/failed/skipped)
+   - Open conversations count (unresolved review threads)
    - Last updated time
 3. **Sort PRs**: Click any column header to sort by that column
    - Sorting works across all pages (server-side sorting)
@@ -350,8 +352,21 @@ CREATE TABLE prs (
 
 ### Overall Score Calculation
 ```
-Overall Score = (CI Confidence × 60%) + (Review Health × 40%)
+Base Score = (CI Confidence × 45%) + (Review Health × 55%)
+
+Apply Multipliers:
+- Draft PR: Score = 0
+- Merge Conflicts: Score × 0.67
+- Changes Requested: Score × 0.5
+
+Final Score = max(0, Score - (3 × open_conversations_count))
 ```
+
+### Conversation Score Impact (NEW)
+- **Open Conversations**: Unresolved review threads/conversations
+- **Score Deduction**: -3 points per unresolved conversation
+- **Detection**: Uses GitHub GraphQL API to fetch `reviewThreads` with `isResolved` status
+- **Minimum Score**: 0 (score cannot go negative)
 
 ### CI Confidence Score (0-100)
 - **All passing**: 100 points
@@ -382,11 +397,18 @@ The system tracks reviewer-author interaction cycles:
 - ❌ Stale unaddressed feedback (>3 days)
 - ❌ Awaiting author response to change requests
 
+### Warnings
+- ⚠️ Unresolved review conversations
+- ⚠️ Large PR (>30 files)
+- ⚠️ Skipped CI checks
+- ⚠️ No review activity yet
+
 ### Smart Recommendations
 Context-aware suggestions based on PR state:
 - Fix specific failing checks
 - Address reviewer comments
 - Resolve merge conflicts
+- Resolve open review conversations
 - Ping reviewers for approval
 - Split large PRs (>30 files)
 - Re-run flaky checks

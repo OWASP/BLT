@@ -607,7 +607,8 @@ async def init_database_schema(env):
                 stale_feedback_count INTEGER,
                 stale_feedback TEXT,
                 readiness_computed_at TEXT,
-                is_draft INTEGER DEFAULT 0
+                is_draft INTEGER DEFAULT 0,
+                open_conversations_count INTEGER DEFAULT 0
             )
         ''')
         await create_table.run()
@@ -644,7 +645,8 @@ async def init_database_schema(env):
                 ('stale_feedback_count', 'INTEGER'),
                 ('stale_feedback', 'TEXT'),
                 ('readiness_computed_at', 'TEXT'),
-                ('is_draft', 'INTEGER DEFAULT 0')
+                ('is_draft', 'INTEGER DEFAULT 0'),
+                ('open_conversations_count', 'INTEGER DEFAULT 0')
             ]
             
             # Whitelist of allowed column names for security
@@ -700,6 +702,116 @@ async def fetch_with_headers(url, headers=None, token=None):
         print(f"GitHub API: {url} | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining | Reset: {rate_reset}")
     
     return response
+
+async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
+    """
+    Fetch count of unresolved review conversations (threads) using GitHub GraphQL API.
+    
+    Supports pagination to handle PRs with more than 100 review threads.
+    
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        pr_number: Pull request number
+        token: Optional GitHub token for authentication
+        
+    Returns:
+        int: Count of unresolved conversations, or 0 if error occurs
+    """
+    graphql_url = "https://api.github.com/graphql"
+    
+    # GraphQL query to fetch review threads with their resolved status and pagination
+    query = """
+    query($owner: String!, $repo: String!, $prNumber: Int!, $cursor: String) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $prNumber) {
+          reviewThreads(first: 100, after: $cursor) {
+            nodes {
+              isResolved
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }
+    }
+    """
+    
+    headers = {
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'PR-Tracker/1.0'
+    }
+    
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
+    
+    unresolved_count = 0
+    cursor = None
+    has_next_page = True
+    
+    try:
+        # Paginate through all review threads
+        while has_next_page:
+            variables = {
+                "owner": owner,
+                "repo": repo,
+                "prNumber": pr_number,
+                "cursor": cursor
+            }
+            
+            # Make GraphQL request
+            options = to_js({
+                "method": "POST",
+                "headers": headers,
+                "body": json.dumps({"query": query, "variables": variables})
+            }, dict_converter=Object.fromEntries)
+            
+            response = await fetch(graphql_url, options)
+            
+            # Log GraphQL API call
+            rate_limit = response.headers.get('x-ratelimit-limit')
+            rate_remaining = response.headers.get('x-ratelimit-remaining')
+            print(f"GitHub GraphQL API: Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
+            
+            if response.status != 200:
+                print(f"Warning: GraphQL API returned status {response.status}")
+                return unresolved_count  # Return count from previous pages
+            
+            result = (await response.json()).to_py()
+            
+            # Check for GraphQL errors
+            if 'errors' in result:
+                print(f"GraphQL errors: {result['errors']}")
+                return unresolved_count  # Return count from previous pages
+            
+            # Extract unresolved conversations count from this page
+            pull_request = result.get('data', {}).get('repository', {}).get('pullRequest')
+            if not pull_request:
+                print(f"Warning: No PR data in GraphQL response for {owner}/{repo}#{pr_number}")
+                return unresolved_count
+            
+            review_threads_data = pull_request.get('reviewThreads', {})
+            threads = review_threads_data.get('nodes', [])
+            page_info = review_threads_data.get('pageInfo', {})
+            
+            # Count unresolved threads in this page
+            unresolved_count += sum(1 for thread in threads if not thread.get('isResolved', False))
+            
+            # Check if there are more pages
+            has_next_page = page_info.get('hasNextPage', False)
+            cursor = page_info.get('endCursor')
+            
+            print(f"PR #{pr_number}: Page has {len(threads)} threads, {unresolved_count} total unresolved so far")
+        
+        print(f"PR #{pr_number}: Found {unresolved_count} total unresolved conversations")
+        return unresolved_count
+        
+    except Exception as e:
+        print(f"Error fetching open conversations for PR #{pr_number}: {str(e)}")
+        return unresolved_count  # Return partial count if available
 
 def calculate_review_status(reviews_data):
     """
@@ -785,11 +897,13 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         # Files list is excluded since we only need the count which is in pr_data['changed_files']
         checks_data = {}
         compare_data = {}
+        open_conversations_count = 0
         
         try:
             results = await asyncio.gather(
                 fetch_with_headers(checks_url, headers, token),
                 fetch_with_headers(compare_url, headers, token),
+                fetch_open_conversations_count(owner, repo, pr_number, token),
                 return_exceptions=True
             )
             
@@ -806,6 +920,12 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                 print(f"Compare API failed for PR #{pr_number} with status {results[1].status}, URL: {compare_url}")
             else:
                 print(f"Compare API exception for PR #{pr_number}: {results[1]}")
+            
+            # Process open conversations count result
+            if not isinstance(results[2], Exception):
+                open_conversations_count = results[2]
+            else:
+                print(f"Open conversations fetch exception for PR #{pr_number}: {results[2]}")
         except Exception as e:
             print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
@@ -856,7 +976,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'behind_by': behind_by,
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', ''),
-            'is_draft': 1 if pr_data.get('draft', False) else 0
+            'is_draft': 1 if pr_data.get('draft', False) else 0,
+            'open_conversations_count': open_conversations_count
         }
     except Exception as e:
         # Return more informative error for debugging
@@ -1350,6 +1471,11 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
     if is_draft:
         overall_score = 0
     
+    # Deduct 3 points for each open conversation
+    open_conversations_count = pr_data.get('open_conversations_count', 0)
+    if open_conversations_count > 0:
+        overall_score = max(0, overall_score - (open_conversations_count * 3))
+    
     # Identify blockers, warnings, recommendations
     blockers = []
     warnings = []
@@ -1411,6 +1537,11 @@ def calculate_pr_readiness(pr_data, review_classification, review_score):
         warnings.append(f"Large PR ({files_changed} files changed)")
         recommendations.append("Consider splitting into smaller PRs for easier review")
     
+    # Open conversations warning
+    if open_conversations_count > 0:
+        warnings.append(f"{open_conversations_count} open conversation(s) unresolved")
+        recommendations.append("Resolve open review conversations before merging")
+    
     # Determine if merge ready
     merge_ready = (
         overall_score >= 70 and
@@ -1448,8 +1579,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
-                       last_refreshed_at, updated_at, is_draft)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+                       last_refreshed_at, updated_at, is_draft, open_conversations_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -1466,7 +1597,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
             updated_at = excluded.updated_at,
-            is_draft = excluded.is_draft
+            is_draft = excluded.is_draft,
+            open_conversations_count = excluded.open_conversations_count
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -1484,7 +1616,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data.get('behind_by', 0),
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp,
-        pr_data.get('is_draft', 0)
+        pr_data.get('is_draft', 0),
+        pr_data.get('open_conversations_count', 0)
     )
     await stmt.run()
 
@@ -1666,7 +1799,7 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'last_updated_at', 'title', 'author_login', 'pr_number', 
             'files_changed', 'checks_passed', 'checks_failed', 'checks_skipped',
             'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
-            'commits_count', 'behind_by',
+            'commits_count', 'behind_by', 'open_conversations_count',
             # Readiness columns
             'ready_score', 'ci_score', 'review_score', 'response_score',
             'feedback_score'
