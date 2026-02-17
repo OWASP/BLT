@@ -3,10 +3,10 @@
 from js import Response, URL
 
 # Import database initialization
-from .database import init_database_schema
+from database import init_database_schema
 
 # Import all handlers
-from .handlers import (
+from handlers import (
     handle_add_pr,
     handle_list_prs,
     handle_list_repos,

@@ -99,7 +99,7 @@ async def get_readiness_cache(env, pr_id):
     global _readiness_cache
     
     # Import here to avoid circular dependency
-    from .database import load_readiness_from_db
+    from database import load_readiness_from_db
     
     # Check in-memory cache first
     if pr_id in _readiness_cache:
@@ -145,7 +145,7 @@ async def set_readiness_cache(env, pr_id, data):
     global _readiness_cache
     
     # Import here to avoid circular dependency
-    from .database import save_readiness_to_db
+    from database import save_readiness_to_db
     
     # Store in memory cache
     current_time = Date.now() / 1000
@@ -169,7 +169,7 @@ async def invalidate_readiness_cache(env, pr_id):
     global _readiness_cache
     
     # Import here to avoid circular dependency
-    from .database import delete_readiness_from_db
+    from database import delete_readiness_from_db
     
     # Remove from memory cache
     if pr_id in _readiness_cache:

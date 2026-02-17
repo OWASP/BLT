@@ -6,17 +6,17 @@ from js import Response, Headers, Object
 from pyodide.ffi import to_js
 
 # Import from our modules
-from .utils import (
+from utils import (
     parse_pr_url, parse_repo_url, calculate_review_status,
     build_pr_timeline, analyze_review_progress, classify_review_health,
     calculate_pr_readiness
 )
-from .cache import (
+from cache import (
     check_rate_limit, get_readiness_cache, set_readiness_cache,
     invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache
 )
-from .database import get_db, upsert_pr
-from .github_api import (
+from database import get_db, upsert_pr
+from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
     verify_github_signature
 )

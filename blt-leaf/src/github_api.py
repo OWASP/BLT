@@ -4,7 +4,7 @@ import json
 import asyncio
 from js import fetch, Headers, Object
 from pyodide.ffi import to_js
-from .cache import get_timeline_cache, set_timeline_cache
+from cache import get_timeline_cache, set_timeline_cache
 
 
 async def fetch_with_headers(url, headers=None, token=None):
