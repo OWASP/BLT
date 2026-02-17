@@ -19,7 +19,6 @@ const colors = {
 
 let testsPassed = 0;
 let testsFailed = 0;
-let testsWarning = 0;
 
 function log(message, color = colors.reset) {
   console.log(`${color}${message}${colors.reset}`);
@@ -35,12 +34,6 @@ function testResult(testName, passed, message = '') {
     log(`✗ ${testName}`, colors.red);
     if (message) log(`  ${message}`, colors.red);
   }
-}
-
-function warning(testName, message = '') {
-  testsWarning++;
-  log(`⚠ ${testName}`, colors.yellow);
-  if (message) log(`  ${message}`, colors.yellow);
 }
 
 // Test 1: Verify HTML file exists and contains required elements
@@ -72,10 +65,10 @@ function testHTMLStructure() {
     // Test for PR data fields that should be displayed
     const dataFields = [
       { pattern: /pr_number|PR\s*#|Pull\s*Request/i, name: 'PR number display' },
-      { pattern: /title/i, name: 'PR title display' },
-      { pattern: /author|creator/i, name: 'Author/creator display' },
-      { pattern: /checks|CI|status/i, name: 'Checks/CI status display' },
-      { pattern: /review|approval/i, name: 'Review status display' },
+      { pattern: /\b(pr[_-]?)?title\b|data-title|"title"\s*:/i, name: 'PR title display' },
+      { pattern: /\b(author|creator)[_-]?(login|name)?\b|data-author|"author[_-]?login"\s*:/i, name: 'Author/creator display' },
+      { pattern: /\b(checks?|ci)[_-]?(passed|failed|status)?\b|data-checks|"checks_"/i, name: 'Checks/CI status display' },
+      { pattern: /\b(review|approval)[_-]?(status|state)?\b|data-review|"review_status"\s*:/i, name: 'Review status display' },
     ];
     
     dataFields.forEach(({ pattern, name }) => {
@@ -136,7 +129,7 @@ function testPythonHandlers() {
     // Test for pagination logic
     testResult(
       'Pagination implementation',
-      /pagination|LIMIT|OFFSET/i.test(handlersContent),
+      /\b(pagination|page|per_page|offset|limit)\b/i.test(handlersContent),
       'Pagination logic found'
     );
     
@@ -201,7 +194,7 @@ function testWranglerConfig() {
     const requiredConfig = [
       { pattern: /main\s*=.*index\.py/, name: 'Python entry point configured' },
       { pattern: /d1_databases/, name: 'D1 database binding configured' },
-      { pattern: /\[assets\]/, name: 'Static assets configured' },
+      { pattern: /^\[assets\]/m, name: 'Static assets configured' },
       { pattern: /directory\s*=.*public/, name: 'Public directory configured' },
       { pattern: /python_workers/, name: 'Python workers compatibility flag' },
     ];
@@ -285,7 +278,7 @@ function testAPIRouting() {
     // Test for static asset serving
     testResult(
       'Static asset serving',
-      /ASSETS|assets/.test(indexContent),
+      /(env\.ASSETS|ASSETS\s*=|['"`]\/assets\/|hasattr.*ASSETS)/i.test(indexContent),
       'Asset serving configured'
     );
     
@@ -316,9 +309,6 @@ function runTests() {
   log(`\nTotal Tests: ${total}`);
   log(`Passed: ${testsPassed}`, colors.green);
   log(`Failed: ${testsFailed}`, testsFailed > 0 ? colors.red : colors.green);
-  if (testsWarning > 0) {
-    log(`Warnings: ${testsWarning}`, colors.yellow);
-  }
   
   const successRate = total > 0 ? ((testsPassed / total) * 100).toFixed(1) : 0;
   log(`\nSuccess Rate: ${successRate}%\n`, successRate >= 90 ? colors.green : colors.yellow);
