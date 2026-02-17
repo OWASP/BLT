@@ -27,7 +27,9 @@
             <a href="https://owaspblt.org/" class="flex select-none ms-4">
               <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
             </a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">All jobs</a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Jobs</a>
+            <a href="seekers.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Job seekers</a>
+            <a href="add.html" class="text-sm font-medium text-gray-900 dark:text-gray-100">Contribute</a>
           </div>
           <button id="theme-toggle" class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors" aria-label="Toggle dark mode">
             <i id="sun-icon" class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
@@ -40,8 +42,8 @@
     <main class="flex-1">
       <div class="p-6 lg:p-8 mt-[72px]">
         <div class="max-w-3xl mx-auto">
-          <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">Add a job</h1>
-          <p class="text-gray-600 dark:text-gray-400 mb-8">You can add a listing in two ways. We recommend <strong>Quick add</strong> if the job is on a supported site.</p>
+          <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">Contribute to the job board</h1>
+          <p class="text-gray-600 dark:text-gray-400 mb-8">You can add a job or create a seeker profile. For jobs, we recommend <strong>Quick add</strong> if the posting is on a supported site.</p>
 
           <!-- Quick add (recommended) -->
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 transition-colors duration-200">
@@ -62,7 +64,7 @@
             </a>
           </section>
 
-          <!-- Manual add -->
+          <!-- Manual add (job) -->
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Manual add</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">Create a new Markdown file in the <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">_jobs/</code> folder and open a pull request. Use the filename format: <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">company-slug-job-title-slug.md</code> (e.g. <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">acme-senior-engineer.md</code>).</p>
@@ -74,6 +76,24 @@
             </ol>
             <a href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=_jobs/your-company-job-title.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
               <i class="fas fa-file-alt mr-2"></i>Create new file in _jobs/
+            </a>
+          </section>
+
+          <!-- Seeker profiles -->
+          <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mt-8 transition-colors duration-200">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Create a job seeker profile</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+              If you're looking for opportunities, you can create a public profile that appears on the
+              <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Job seekers</a> page.
+            </p>
+            <ol class="list-decimal list-inside text-gray-600 dark:text-gray-400 space-y-2 mb-4">
+              <li>Fork the repository (if you haven’t already).</li>
+              <li>Create a new file under <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">seekers/</code> named after you, e.g. <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">jane-doe.md</code>.</li>
+              <li>Use the YAML frontmatter and body format shown in <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/seekers/example-seeker.md" target="_blank" rel="noopener noreferrer" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">the sample seeker profile</a>.</li>
+              <li>Commit, push, and open a pull request to the main repo.</li>
+            </ol>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=seekers/your-name.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+              <i class="fas fa-user-plus mr-2"></i>Create new seeker profile file
             </a>
           </section>
         </div>
