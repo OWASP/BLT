@@ -75,11 +75,11 @@ async def on_fetch(request, env):
             if per_page_param:
                 try:
                     per_page = int(per_page_param)
-                    # Validate per_page is in allowed range (10-100)
+                    # Validate per_page is in allowed range (10-1000)
                     if per_page < 10:
                         per_page = 10
-                    elif per_page > 100:
-                        per_page = 100
+                    elif per_page > 1000:
+                        per_page = 1000
                 except (ValueError, TypeError):
                     per_page = 30
             
