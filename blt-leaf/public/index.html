@@ -1715,9 +1715,8 @@
         // Mobile autocomplete repo search functionality
         const repoSearchInput = document.getElementById('repoSearchInput');
         if (repoSearchInput) {
-            repoSearchInput.addEventListener('input', (e) => {
-                const value = e.target.value;
-                
+            // Shared function for repository selection
+            function selectRepoFromInput(value, clearInput = false) {
                 // Check if the value matches "All Repositories"
                 if (value === 'All Repositories') {
                     currentRepo = 'all';
@@ -1725,7 +1724,8 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
-                    return;
+                    if (clearInput) repoSearchInput.value = '';
+                    return true;
                 }
                 
                 // Check if the value matches any repository
@@ -1736,34 +1736,21 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
+                    if (clearInput) repoSearchInput.value = '';
+                    return true;
                 }
+                
+                return false;
+            }
+            
+            // Handle input event (for autocomplete suggestions)
+            repoSearchInput.addEventListener('input', (e) => {
+                selectRepoFromInput(e.target.value);
             });
 
-            // Also handle when user selects from datalist
+            // Handle change event (when user selects from datalist)
             repoSearchInput.addEventListener('change', (e) => {
-                const value = e.target.value;
-                
-                // Check if the value matches "All Repositories"
-                if (value === 'All Repositories') {
-                    currentRepo = 'all';
-                    currentPage = 1;
-                    localStorage.setItem('currentRepo', currentRepo);
-                    updateMobileRepoDisplay();
-                    loadPrs();
-                    e.target.value = ''; // Clear the input
-                    return;
-                }
-                
-                // Check if the value matches any repository
-                const matchedRepo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === value);
-                if (matchedRepo) {
-                    currentRepo = value;
-                    currentPage = 1;
-                    localStorage.setItem('currentRepo', currentRepo);
-                    updateMobileRepoDisplay();
-                    loadPrs();
-                    e.target.value = ''; // Clear the input
-                }
+                selectRepoFromInput(e.target.value, true);
             });
         }
 
