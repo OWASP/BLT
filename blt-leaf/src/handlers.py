@@ -13,7 +13,8 @@ from utils import (
 )
 from cache import (
     check_rate_limit, get_readiness_cache, set_readiness_cache,
-    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache
+    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache,
+    _READINESS_CACHE_TTL, _RATE_LIMIT_CACHE_TTL, _rate_limit_cache
 )
 from database import get_db, upsert_pr
 from github_api import (
@@ -107,7 +108,8 @@ async def handle_add_pr(request, env):
                     'last_updated_at': item.get('updated_at', ts),
                     'commits_count': 0,
                     'behind_by': 0,
-                    'is_draft': 1 if item.get('draft') else 0
+                    'is_draft': 1 if item.get('draft') else 0,
+                    'reviewers_json': '[]'
                 }
 
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
