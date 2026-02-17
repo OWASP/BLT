@@ -92,7 +92,8 @@ async def init_database_schema(env):
                 stale_feedback TEXT,
                 readiness_computed_at TEXT,
                 is_draft INTEGER DEFAULT 0,
-                open_conversations_count INTEGER DEFAULT 0
+                open_conversations_count INTEGER DEFAULT 0,
+                reviewers_json TEXT
             )
         ''')
         await create_table.run()
@@ -130,7 +131,8 @@ async def init_database_schema(env):
                 ('stale_feedback', 'TEXT'),
                 ('readiness_computed_at', 'TEXT'),
                 ('is_draft', 'INTEGER DEFAULT 0'),
-                ('open_conversations_count', 'INTEGER DEFAULT 0')
+                ('open_conversations_count', 'INTEGER DEFAULT 0'),
+                ('reviewers_json', 'TEXT')
             ]
             
             # Whitelist of allowed column names for security
@@ -400,8 +402,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
                        is_merged, mergeable_state, files_changed, author_login, 
                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
-                       last_refreshed_at, updated_at, is_draft, open_conversations_count)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       last_refreshed_at, updated_at, is_draft, open_conversations_count, reviewers_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -419,7 +421,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             last_refreshed_at = excluded.last_refreshed_at,
             updated_at = excluded.updated_at,
             is_draft = excluded.is_draft,
-            open_conversations_count = excluded.open_conversations_count
+            open_conversations_count = excluded.open_conversations_count,
+            reviewers_json = excluded.reviewers_json
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -438,6 +441,7 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp,
         pr_data.get('is_draft', 0),
-        pr_data.get('open_conversations_count', 0)
+        pr_data.get('open_conversations_count', 0),
+        pr_data.get('reviewers_json', '[]')
     )
     await stmt.run()

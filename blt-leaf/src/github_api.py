@@ -151,11 +151,11 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
     Fetch PR data from GitHub API with parallel requests for optimal performance.
     
     Optimizations applied:
-    - Reviews are NOT fetched here to avoid duplication with fetch_pr_timeline_data
     - Files list is NOT fetched since PR details already include 'changed_files' count
-    - Checks and compare API calls are made in parallel for efficiency
+    - Checks, compare, and reviews API calls are made in parallel for efficiency
+    - Reviews are fetched to populate per-reviewer approval avatars
     
-    This reduces API calls from 5 to 3 per fetch (PR details + checks + compare).
+    This makes 4 parallel API calls per fetch (PR details first, then checks + compare + reviews).
     """
     headers = {
         'Accept': 'application/vnd.github+json',
@@ -173,10 +173,10 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         pr_data = (await pr_response.json()).to_py()
 
         # Prepare URLs for parallel fetching
-        # Note: We don't fetch reviews here to avoid duplication with fetch_pr_timeline_data
         # Note: We don't fetch files list since pr_data already includes 'changed_files' count
-        # Reviews will be fetched by fetch_pr_timeline_data for timeline analysis
+        # Reviews are fetched here to extract per-reviewer approval data (login + avatar)
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+        reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100"
         
         # Extract base and head branch information for comparison
         # To check if PR is behind base, we need to compare the branches (not SHAs)
@@ -196,12 +196,12 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         # Compare head...base to see how many commits base has that head doesn't
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
         
-        # Fetch checks and comparison in parallel using asyncio.gather
+        # Fetch checks, comparison, reviews, and conversations in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
-        # Reviews are intentionally excluded to avoid duplicate API calls with fetch_pr_timeline_data
         # Files list is excluded since we only need the count which is in pr_data['changed_files']
         checks_data = {}
         compare_data = {}
+        reviews_data = []
         open_conversations_count = 0
         
         try:
@@ -209,6 +209,7 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                 fetch_with_headers(checks_url, headers, token),
                 fetch_with_headers(compare_url, headers, token),
                 fetch_open_conversations_count(owner, repo, pr_number, token),
+                fetch_with_headers(reviews_url, headers, token),
                 return_exceptions=True
             )
             
@@ -231,6 +232,12 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                 open_conversations_count = results[2]
             else:
                 print(f"Open conversations fetch exception for PR #{pr_number}: {results[2]}")
+            
+            # Process reviews result
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                reviews_data = (await results[3].json()).to_py()
+            else:
+                print(f"Reviews fetch failed for PR #{pr_number}")
         except Exception as e:
             print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
@@ -260,10 +267,23 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             behind_by = compare_data.get('ahead_by') or 0
             print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
-        # Review status will be set to 'pending' by default
-        # It will be updated when timeline data is fetched by fetch_pr_timeline_data
-        # This avoids duplicate API calls to the reviews endpoint
-        review_status = 'pending'
+        # Calculate review status from reviews data
+        from utils import calculate_review_status
+        review_status = calculate_review_status(reviews_data)
+        
+        # Build per-reviewer data for the Approvals column - Keep only the latest review state per reviewer
+        latest_reviews = {}
+        if reviews_data:
+            valid_reviews = [r for r in reviews_data if r.get('submitted_at') and r.get('user')]
+            sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submitted_at', ''))
+            for review in sorted_reviews:
+                user = review['user']
+                latest_reviews[user['login']] = {
+                    'login': user['login'],
+                    'avatar_url': user.get('avatar_url', ''),
+                    'state': review['state']  # APPROVED, CHANGES_REQUESTED, COMMENTED, etc.
+                }
+        reviewers_list = list(latest_reviews.values())
         
         return {
             'title': pr_data.get('title', ''),
@@ -282,7 +302,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', ''),
             'is_draft': 1 if pr_data.get('draft', False) else 0,
-            'open_conversations_count': open_conversations_count
+            'open_conversations_count': open_conversations_count,
+            'reviewers_json': json.dumps(reviewers_list)
         }
     except Exception as e:
         # Return more informative error for debugging
