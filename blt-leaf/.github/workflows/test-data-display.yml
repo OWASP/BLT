@@ -45,6 +45,18 @@ jobs:
       - name: Start Wrangler dev server
         run: |
           echo "Starting Wrangler dev server in background..."
+          
+          # Set up trap to ensure cleanup on exit
+          cleanup() {
+            if [ -f wrangler.pid ]; then
+              PID=$(cat wrangler.pid)
+              kill $PID 2>/dev/null || true
+              rm wrangler.pid
+              echo "Cleanup: Server stopped"
+            fi
+          }
+          trap cleanup EXIT INT TERM
+          
           npx wrangler dev --port 8787 > wrangler.log 2>&1 &
           WRANGLER_PID=$!
           echo $WRANGLER_PID > wrangler.pid
@@ -55,7 +67,7 @@ jobs:
           for i in $(seq 1 $MAX_ATTEMPTS); do
             if curl -s http://localhost:8787 > /dev/null 2>&1; then
               echo "✅ Server is running on http://localhost:8787"
-              break
+              exit 0
             fi
             if [ $i -eq $MAX_ATTEMPTS ]; then
               echo "❌ Server failed to start after ${MAX_ATTEMPTS} attempts"
@@ -98,11 +110,12 @@ jobs:
           fi
           echo "✅ /api/repos responds (HTTP 200)"
           
-          # Test API prs endpoint
+          # Test API prs endpoint with JSON validation
           echo "Testing GET /api/prs"
           RESPONSE=$(curl -s http://localhost:8787/api/prs)
-          if ! echo "$RESPONSE" | grep -q '"prs"'; then
-            echo "❌ /api/prs does not return expected JSON structure"
+          if ! echo "$RESPONSE" | jq -e '.prs' > /dev/null 2>&1; then
+            echo "❌ /api/prs does not return valid JSON with 'prs' field"
+            echo "Response: $RESPONSE"
             exit 1
           fi
           echo "✅ /api/prs returns valid JSON with 'prs' field"
