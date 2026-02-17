@@ -22,12 +22,18 @@ No manual configuration required!
 BLT-Leaf/
 ├── public/              # Static assets served by Cloudflare Workers
 │   └── index.html      # Main frontend application
-├── src/                # Backend Python code
-│   └── index.py        # Cloudflare Worker main handler
+├── src/                # Backend Python code (modular structure)
+│   ├── index.py        # Main entry point and routing
+│   ├── handlers.py     # API endpoint handlers
+│   ├── utils.py        # Utility functions for PR analysis
+│   ├── github_api.py   # GitHub API interactions
+│   ├── database.py     # Database operations
+│   └── cache.py        # Caching and rate limiting
 ├── schema.sql          # Database schema for D1
 ├── wrangler.toml       # Cloudflare Workers configuration
 ├── package.json        # npm scripts for deployment
 ├── DEPLOYMENT.md       # Detailed deployment instructions
+├── CODE_SPLITTING_SUMMARY.md  # Documentation on code organization
 └── README.md          # This file
 ```
 
