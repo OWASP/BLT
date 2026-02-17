@@ -607,7 +607,8 @@ async def init_database_schema(env):
                 stale_feedback_count INTEGER,
                 stale_feedback TEXT,
                 readiness_computed_at TEXT,
-                is_draft INTEGER DEFAULT 0
+                is_draft INTEGER DEFAULT 0,
+                open_conversations_count INTEGER DEFAULT 0
             )
         ''')
         await create_table.run()
@@ -644,7 +645,8 @@ async def init_database_schema(env):
                 ('stale_feedback_count', 'INTEGER'),
                 ('stale_feedback', 'TEXT'),
                 ('readiness_computed_at', 'TEXT'),
-                ('is_draft', 'INTEGER DEFAULT 0')
+                ('is_draft', 'INTEGER DEFAULT 0'),
+                ('open_conversations_count', 'INTEGER DEFAULT 0')
             ]
             
             # Whitelist of allowed column names for security
