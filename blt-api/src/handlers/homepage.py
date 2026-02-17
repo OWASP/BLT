@@ -775,10 +775,10 @@ async def handle_homepage(
         function testEndpoint(method, endpoint, queryParams = null) {{
             showModal();
             
-                    // Update modal header
-                    document.getElementById('modalMethod').textContent = method;
-                    document.getElementById('modalMethod').className = `px-3 py-1 ${{method === 'GET' ? 'bg-blue-500' : 'bg-green-500'}} text-white text-sm font-bold rounded`;
-                    document.getElementById('modalEndpoint').textContent = endpoint;
+            // Update modal header
+            document.getElementById('modalMethod').textContent = method;
+            document.getElementById('modalMethod').className = `px-3 py-1 ${{method === 'GET' ? 'bg-blue-500' : 'bg-green-500'}} text-white text-sm font-bold rounded`;
+            document.getElementById('modalEndpoint').textContent = endpoint;
             
             // Show loading
             document.getElementById('modalLoading').classList.remove('hidden');
@@ -816,8 +816,8 @@ async def handle_homepage(
                 }})
                 .then(data => {{
                     // Display formatted JSON
-                    document.getElementById('responseBody').innerHTML = 
-                        '<code>' + JSON.stringify(data, null, 2) + '</code>';
+                    const codeEl = document.getElementById('responseBody').querySelector('code');
+                    codeEl.textContent = JSON.stringify(data, null, 2);
                 }})
                 .catch(error => {{
                     document.getElementById('modalLoading').classList.add('hidden');
@@ -827,15 +827,16 @@ async def handle_homepage(
                     statusEl.textContent = 'Error';
                     statusEl.className = 'ml-2 px-2 py-1 text-xs rounded bg-red-100 text-red-800';
                     
-                    document.getElementById('responseBody').innerHTML = 
-                        '<code style="color: red;">Error: ' + error.message + '</code>';
+                    const codeEl = document.getElementById('responseBody').querySelector('code');
+                    codeEl.textContent = 'Error: ' + error.message;
+                    codeEl.style.color = 'red';
                 }});
         }}
         
         function testEndpointWithParams(method, endpointTemplate, promptText, defaultValue) {{
             const value = prompt(promptText, defaultValue);
             if (value) {{
-                const endpoint = endpointTemplate.replace('{{id}}', value);
+                const endpoint = endpointTemplate.replace('{id}', value);
                 testEndpoint(method, endpoint);
             }}
         }}
