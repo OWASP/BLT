@@ -6,6 +6,7 @@ function calculateScore() {
     const ciFailed = parseInt(document.getElementById('ciFailed').value);
     const approvals = parseInt(document.getElementById('approvals').value);
     const changesRequested = parseInt(document.getElementById('changesRequested').value);
+    const conversations = parseInt(document.getElementById('conversations').value);
     const responseRate = parseInt(document.getElementById('responseRate').value);
 
     // Update displayed values
@@ -13,6 +14,7 @@ function calculateScore() {
     document.getElementById('ciFailedValue').textContent = ciFailed;
     document.getElementById('approvalsValue').textContent = approvals;
     document.getElementById('changesRequestedValue').textContent = changesRequested;
+    document.getElementById('conversationsValue').textContent = conversations;
     document.getElementById('responseRateValue').textContent = responseRate + '%';
 
     // Calculate CI Score
@@ -70,8 +72,11 @@ function calculateScore() {
     }
 
     // Calculate Overall Score
-    // Formula: (CI × 0.4) + (Review × 0.4) + (Response × 0.2)
-    const overallScore = (ciScore * 0.4) + (reviewScore * 0.4) + (responseScore * 0.2);
+    // Formula: (CI × 0.4) + (Review × 0.4) + (Response × 0.2) - (3 × conversations)
+    let overallScore = (ciScore * 0.4) + (reviewScore * 0.4) + (responseScore * 0.2);
+
+    // Deduct 3 points per unresolved conversation
+    overallScore = Math.max(0, overallScore - (conversations * 3));
 
     // Determine overall status
     let overallStatus = '';

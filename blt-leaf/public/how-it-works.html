@@ -7,6 +7,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>How It Works — BLT-Leaf</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Initialize theme early to prevent flash -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl0HPNietrzFChCCs44/bfI3e1qqNk2amX+JJFyJCkl/lG3WHkLolLRnOdcBJJVPaNhQ36oPAPNl+Q=="
@@ -76,6 +88,11 @@
                     class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
                     <i class="fab fa-github"></i> GitHub
                 </a>
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
             </nav>
         </div>
     </header>
@@ -173,6 +190,18 @@
 
                         <div>
                             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Open Conversations: <span id="conversationsValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">0</span>
+                            </label>
+                            <input type="range" id="conversations" min="0" max="10" value="0"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>Unresolved review threads (-3 points each)
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Response Rate: <span id="responseRateValue"
                                     class="text-red-600 dark:text-red-400 font-semibold">80%</span>
                             </label>
@@ -209,7 +238,7 @@
 
                         <div
                             class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                            Formula: (CI × 0.4) + (Review × 0.4) + (Response × 0.2)
+                            Formula: (CI × 0.4) + (Review × 0.4) + (Response × 0.2) - (3 × Conversations)
                         </div>
                     </div>
                 </div>
@@ -219,7 +248,8 @@
                     <p class="text-sm text-yellow-900 dark:text-yellow-200">
                         <i class="fas fa-exclamation-triangle mr-1"></i>
                         <strong>Disclaimer:</strong> This is a simplified calculator. Actual scores may include
-                        additional factors like merge conflicts, draft status, and stale reviews.
+                        additional factors like merge conflicts, draft status, and stale reviews. The conversations
+                        deduction (-3 points each) is applied after the base score calculation.
                     </p>
                 </div>
             </div>
@@ -714,6 +744,51 @@
             </div>
         </div>
     </footer>
+
+    <!-- Theme Toggle JavaScript -->
+    <script>
+        // Initialize theme on page load
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Attach event listener when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize theme icon (dark class already set in head)
+            initTheme();
+
+            const themeToggleBtn = document.getElementById('themeToggle');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', toggleTheme);
+            }
+        });
+    </script>
 
     <!-- JavaScript for Interactive Calculator -->
     <script src="how-it-works.js"></script>
