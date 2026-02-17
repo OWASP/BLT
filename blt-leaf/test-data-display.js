@@ -71,11 +71,11 @@ function testHTMLStructure() {
     
     // Test for PR data fields that should be displayed
     const dataFields = [
-      { pattern: /pr_number|PR\s*#|Pull\s*Request/, name: 'PR number display' },
-      { pattern: /title/, name: 'PR title display' },
-      { pattern: /author|creator/, name: 'Author/creator display' },
-      { pattern: /checks|CI|status/, name: 'Checks/CI status display' },
-      { pattern: /review|approval/, name: 'Review status display' },
+      { pattern: /pr_number|PR\s*#|Pull\s*Request/i, name: 'PR number display' },
+      { pattern: /title/i, name: 'PR title display' },
+      { pattern: /author|creator/i, name: 'Author/creator display' },
+      { pattern: /checks|CI|status/i, name: 'Checks/CI status display' },
+      { pattern: /review|approval/i, name: 'Review status display' },
     ];
     
     dataFields.forEach(({ pattern, name }) => {
