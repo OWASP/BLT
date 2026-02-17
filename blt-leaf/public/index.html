@@ -141,17 +141,28 @@
             <div class="p-4">
                 <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
                 
-                <!-- Mobile: Autocomplete dropdown -->
+                <!-- Mobile: Dropdown with search -->
                 <div class="mobile-repo-search mb-2 md:hidden">
                     <div class="relative">
-                        <input type="text" id="repoSearchInput"
-                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
-                            placeholder="Search repositories..."
-                            autocomplete="off"
-                            list="repoDatalist" />
-                        <datalist id="repoDatalist"></datalist>
+                        <button type="button" id="repoDropdownButton"
+                            class="w-full flex items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 hover:bg-slate-50 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 dark:focus:ring-red-900/50">
+                            <span id="repoDropdownText" class="truncate">Select repository...</span>
+                            <svg class="ml-2 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown menu -->
+                        <div id="repoDropdownMenu" class="hidden absolute z-10 mt-1 w-full rounded-lg border border-slate-300 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-700">
+                            <div class="p-2 border-b border-slate-200 dark:border-slate-600">
+                                <input type="text" id="repoSearchInput"
+                                    class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-1 focus:ring-[#E10000] dark:border-slate-500 dark:bg-slate-600 dark:text-slate-100 dark:placeholder:text-slate-400"
+                                    placeholder="Search repositories..."
+                                    autocomplete="off" />
+                            </div>
+                            <div id="repoDropdownList" class="max-h-60 overflow-y-auto"></div>
+                        </div>
                     </div>
-                    <div id="selectedRepoDisplay" class="mt-2 text-sm text-slate-600 dark:text-slate-400"></div>
                 </div>
                 
                 <!-- Desktop: List view -->
@@ -580,24 +591,8 @@
             const allItem = repoList.querySelector('[data-repo="all"]');
             if (allItem) setRepoItemActiveState(allItem, currentRepo === 'all');
 
-            // Update mobile autocomplete datalist
-            const repoDatalist = document.getElementById('repoDatalist');
-            if (repoDatalist) {
-                repoDatalist.innerHTML = '';
-                
-                // Add "All Repositories" option
-                const allOption = document.createElement('option');
-                allOption.value = 'All Repositories';
-                repoDatalist.appendChild(allOption);
-                
-                // Add individual repository options
-                repos.forEach(repo => {
-                    const option = document.createElement('option');
-                    option.value = `${repo.repo_owner}/${repo.repo_name}`;
-                    option.textContent = `${repo.repo_owner}/${repo.repo_name} (${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'})`;
-                    repoDatalist.appendChild(option);
-                });
-            }
+            // Update mobile dropdown list
+            updateMobileDropdown();
 
             // Update selected repository display for mobile
             updateMobileRepoDisplay();
@@ -649,20 +644,91 @@
             });
         }
 
+        function updateMobileDropdown(searchTerm = '') {
+            const dropdownList = document.getElementById('repoDropdownList');
+            if (!dropdownList) return;
+            
+            dropdownList.innerHTML = '';
+            
+            // Filter repos based on search term
+            const filteredRepos = searchTerm 
+                ? repos.filter(r => `${r.repo_owner}/${r.repo_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
+                : repos;
+            
+            // Add "All Repositories" option
+            const allDiv = document.createElement('div');
+            allDiv.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600';
+            allDiv.dataset.repo = 'all';
+            if (currentRepo === 'all') {
+                allDiv.classList.add('bg-red-50', 'dark:bg-red-950/30', 'font-semibold');
+            }
+            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
+            allDiv.innerHTML = `
+                <div class="font-medium text-slate-900 dark:text-slate-100">All Repositories</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">${totalPrs} PR${totalPrs === 1 ? '' : 's'}</div>
+            `;
+            allDiv.addEventListener('click', () => selectRepo('all'));
+            dropdownList.appendChild(allDiv);
+            
+            // Add individual repositories
+            filteredRepos.forEach(repo => {
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600';
+                div.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
+                if (currentRepo === div.dataset.repo) {
+                    div.classList.add('bg-red-50', 'dark:bg-red-950/30', 'font-semibold');
+                }
+                div.innerHTML = `
+                    <div class="font-medium text-slate-900 dark:text-slate-100">${repo.repo_owner}/${repo.repo_name}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                `;
+                div.addEventListener('click', () => selectRepo(div.dataset.repo));
+                dropdownList.appendChild(div);
+            });
+            
+            // Show "No results" if search returns nothing
+            if (searchTerm && filteredRepos.length === 0 && !searchTerm.toLowerCase().includes('all')) {
+                const noResults = document.createElement('div');
+                noResults.className = 'px-3 py-2 text-sm text-slate-500 dark:text-slate-400';
+                noResults.textContent = 'No repositories found';
+                dropdownList.appendChild(noResults);
+            }
+        }
+
+        function selectRepo(repoName) {
+            currentRepo = repoName;
+            currentPage = 1;
+            localStorage.setItem('currentRepo', currentRepo);
+            updateMobileRepoDisplay();
+            closeDropdown();
+            loadPrs();
+        }
+
         function updateMobileRepoDisplay() {
-            const selectedRepoDisplay = document.getElementById('selectedRepoDisplay');
-            if (selectedRepoDisplay) {
+            const dropdownText = document.getElementById('repoDropdownText');
+            if (dropdownText) {
                 if (currentRepo === 'all') {
                     const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
-                    selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> All Repositories (${totalPrs} PR${totalPrs === 1 ? '' : 's'})`;
+                    dropdownText.textContent = `All Repositories (${totalPrs} PR${totalPrs === 1 ? '' : 's'})`;
                 } else {
                     const repo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === currentRepo);
                     if (repo) {
-                        selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> ${repo.repo_owner}/${repo.repo_name} (${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'})`;
+                        dropdownText.textContent = `${repo.repo_owner}/${repo.repo_name} (${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'})`;
                     } else {
-                        selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> ${currentRepo}`;
+                        dropdownText.textContent = currentRepo;
                     }
                 }
+            }
+        }
+
+        function closeDropdown() {
+            const dropdownMenu = document.getElementById('repoDropdownMenu');
+            const searchInput = document.getElementById('repoSearchInput');
+            if (dropdownMenu) {
+                dropdownMenu.classList.add('hidden');
+            }
+            if (searchInput) {
+                searchInput.value = '';
             }
         }
 
@@ -1719,33 +1785,42 @@
             loadPrs();
         });
 
-        // Mobile autocomplete repo search functionality
+        // Mobile dropdown functionality
+        const repoDropdownButton = document.getElementById('repoDropdownButton');
+        const repoDropdownMenu = document.getElementById('repoDropdownMenu');
         const repoSearchInput = document.getElementById('repoSearchInput');
-        if (repoSearchInput) {
-            // Handle change event (when user selects from datalist)
-            repoSearchInput.addEventListener('change', (e) => {
-                const value = e.target.value;
-                let selectedRepo = null;
-                
-                // Check if the value matches "All Repositories"
-                if (value === 'All Repositories') {
-                    selectedRepo = 'all';
+        
+        if (repoDropdownButton && repoDropdownMenu) {
+            // Toggle dropdown on button click
+            repoDropdownButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = repoDropdownMenu.classList.contains('hidden');
+                if (isHidden) {
+                    repoDropdownMenu.classList.remove('hidden');
+                    updateMobileDropdown();
+                    // Focus search input after opening
+                    setTimeout(() => repoSearchInput?.focus(), 100);
                 } else {
-                    // Check if the value matches any repository
-                    const matchedRepo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === value);
-                    if (matchedRepo) {
-                        selectedRepo = value;
-                    }
+                    closeDropdown();
                 }
+            });
+            
+            // Handle search input
+            if (repoSearchInput) {
+                repoSearchInput.addEventListener('input', (e) => {
+                    updateMobileDropdown(e.target.value);
+                });
                 
-                // If a valid selection was made, update state and load PRs
-                if (selectedRepo) {
-                    currentRepo = selectedRepo;
-                    currentPage = 1;
-                    localStorage.setItem('currentRepo', currentRepo);
-                    updateMobileRepoDisplay();
-                    loadPrs();
-                    e.target.value = ''; // Clear the input
+                // Prevent dropdown from closing when clicking search input
+                repoSearchInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!repoDropdownButton.contains(e.target) && !repoDropdownMenu.contains(e.target)) {
+                    closeDropdown();
                 }
             });
         }
