@@ -155,7 +155,7 @@
                 </div>
                 
                 <!-- Desktop: List view -->
-                <ul id="repoList" class="space-y-2 md:block">
+                <ul id="repoList" class="space-y-2">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
                         <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
@@ -583,7 +583,14 @@
             // Update mobile autocomplete datalist
             const repoDatalist = document.getElementById('repoDatalist');
             if (repoDatalist) {
-                repoDatalist.innerHTML = '<option value="All Repositories"></option>';
+                repoDatalist.innerHTML = '';
+                
+                // Add "All Repositories" option
+                const allOption = document.createElement('option');
+                allOption.value = 'All Repositories';
+                repoDatalist.appendChild(allOption);
+                
+                // Add individual repository options
                 repos.forEach(repo => {
                     const option = document.createElement('option');
                     option.value = `${repo.repo_owner}/${repo.repo_name}`;
