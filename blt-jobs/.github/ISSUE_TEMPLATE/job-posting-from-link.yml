@@ -1,0 +1,38 @@
+name: Job Posting from Link
+description: Post a job opportunity by providing a LinkedIn job URL (auto-scraped)
+title: '[JOB-LINK] '
+labels: ['job-posting-from-link']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Post a Job from LinkedIn URL
+        Provide a LinkedIn job posting URL and our system will automatically scrape the job details and create a posting.
+        
+        **Supported platforms:**
+        - LinkedIn job postings
+        
+        **Note:** The scraping process may take a few minutes. Once complete, the job will be automatically published on the BLT Jobs website.
+
+  - type: input
+    id: job_url
+    attributes:
+      label: Job URL
+      description: Paste the LinkedIn job posting URL
+      placeholder: e.g., https://www.linkedin.com/jobs/view/1234567890
+    validations:
+      required: true
+
+  - type: input
+    id: company_name
+    attributes:
+      label: Company Name (Optional)
+      description: Override the company name if needed
+      placeholder: Leave blank to use the scraped value
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: Additional Notes
+      description: Any additional information or context about this job posting
+      placeholder: Optional notes that will be included in the posting
