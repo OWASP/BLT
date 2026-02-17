@@ -3,6 +3,8 @@
 ## Overview
 Successfully split the large `index.py` file (2883 lines, 41 functions) into 6 focused, maintainable modules.
 
+**Important:** All imports use absolute imports (e.g., `from database import ...`) instead of relative imports (e.g., `from .database import ...`) for Cloudflare Workers Python compatibility.
+
 ## Changes Made
 
 ### File Structure
@@ -89,6 +91,21 @@ src/
 - `get_rate_limit_cache()` - Get rate limit cache
 
 ## Import Structure
+
+### Cloudflare Workers Compatibility
+**Important:** Cloudflare Workers Python runtime does not support package-style relative imports. All modules use absolute imports:
+
+```python
+# ✅ Correct - Absolute imports
+from database import get_db
+from handlers import handle_add_pr
+from utils import parse_pr_url
+
+# ❌ Incorrect - Relative imports (not supported)
+from .database import get_db
+from .handlers import handle_add_pr
+from .utils import parse_pr_url
+```
 
 ### Cross-Module Dependencies
 - `handlers.py` imports from: `utils`, `cache`, `database`, `github_api`
