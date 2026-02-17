@@ -107,7 +107,8 @@ async def handle_add_pr(request, env):
                     'last_updated_at': item.get('updated_at', ts),
                     'commits_count': 0,
                     'behind_by': 0,
-                    'is_draft': 1 if item.get('draft') else 0
+                    'is_draft': 1 if item.get('draft') else 0,
+                    'reviewers_json': '[]'
                 }
 
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)

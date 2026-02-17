@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS prs (
     stale_feedback TEXT,
     readiness_computed_at TEXT,
     is_draft INTEGER DEFAULT 0,
-    open_conversations_count INTEGER DEFAULT 0
+    open_conversations_count INTEGER DEFAULT 0,
+    reviewers_json TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
@@ -73,3 +74,4 @@ CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 -- ALTER TABLE prs ADD COLUMN stale_feedback TEXT;
 -- ALTER TABLE prs ADD COLUMN readiness_computed_at TEXT;
 -- ALTER TABLE prs ADD COLUMN open_conversations_count INTEGER DEFAULT 0;
+-- ALTER TABLE prs ADD COLUMN reviewers_json TEXT;
