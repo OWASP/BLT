@@ -5,6 +5,9 @@ from js import Date
 # In-memory cache for rate limit data (per worker isolate)
 _rate_limit_cache = {
     'data': None,
+    'limit': None,
+    'remaining': None,
+    'reset': None.
     'timestamp': 0
 }
 # Cache TTL in seconds (5 minutes)
@@ -256,7 +259,37 @@ def invalidate_timeline_cache(owner, repo, pr_number):
         del _timeline_cache[cache_key]
         print(f"Timeline Cache: Invalidated for {cache_key}")
 
+def set_rate_limit_data(limit, remaining, reset):
+    """
+    Updates the global GitHub rate limit cache with data from API headers.
+    
+    Args:
+        limit: Total requests allowed per window
+        remaining: Requests remaining in current window
+        reset: Epoch timestamp when the limit resets
+    """
+    global _rate_limit_cache
+    
+    current_time = Date.now() / 1000
+    _rate_limit_cache.update({
+        'limit': limit,
+        'remaining': remaining,
+        'reset': reset,
+        'timestamp': current_time
+    })
+    print(f"GitHub Rate Limit: {remaining}/{limit} (Resets at {reset})")
 
+def get_current_rate_limit():
+    """
+    Returns the current cached GitHub rate limit status for inclusion in 
+    API responses to the frontend.
+    """
+    global _rate_limit_cache
+    return {
+        'limit': _rate_limit_cache['limit'],
+        'remaining': _rate_limit_cache['remaining'],
+        'reset': _rate_limit_cache['reset']
+    }
 # Export cache dict for rate limit handler access
 def get_rate_limit_cache():
     """Get the rate limit cache dict"""
