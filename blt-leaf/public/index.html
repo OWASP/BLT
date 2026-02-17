@@ -142,7 +142,7 @@
                 <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
                 
                 <!-- Mobile: Autocomplete dropdown -->
-                <div class="mobile-repo-search md:hidden mb-2">
+                <div class="mobile-repo-search mb-2 md:hidden">
                     <div class="relative">
                         <input type="text" id="repoSearchInput"
                             class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
@@ -155,7 +155,7 @@
                 </div>
                 
                 <!-- Desktop: List view -->
-                <ul id="repoList" class="space-y-2 hidden md:block">
+                <ul id="repoList" hidden class="space-y-2 md:block">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
                         <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
@@ -1718,6 +1718,7 @@
             // Handle change event (when user selects from datalist)
             repoSearchInput.addEventListener('change', (e) => {
                 const value = e.target.value;
+                let repoSelected = false;
                 
                 // Check if the value matches "All Repositories"
                 if (value === 'All Repositories') {
@@ -1726,8 +1727,7 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
-                    e.target.value = ''; // Clear the input
-                    return;
+                    repoSelected = true;
                 }
                 
                 // Check if the value matches any repository
@@ -1738,7 +1738,12 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
-                    e.target.value = ''; // Clear the input
+                    repoSelected = true;
+                }
+                
+                // Clear the input after selection
+                if (repoSelected) {
+                    e.target.value = '';
                 }
             });
         }
