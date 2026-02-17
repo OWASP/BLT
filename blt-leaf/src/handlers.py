@@ -13,7 +13,8 @@ from utils import (
 )
 from cache import (
     check_rate_limit, get_readiness_cache, set_readiness_cache,
-    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache
+    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache,
+    _READINESS_CACHE_TTL, _RATE_LIMIT_CACHE_TTL, _rate_limit_cache
 )
 from database import get_db, upsert_pr
 from github_api import (
