@@ -602,16 +602,6 @@
 
                 repoList.appendChild(li);
             });
-
-            // Attach event listeners to all plus buttons
-            document.querySelectorAll('.add-all-prs-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const repoOwner = btn.dataset.repoOwner;
-                    const repoName = btn.dataset.repoName;
-                    await addAllPrsFromRepo(repoOwner, repoName, btn);
-                });
-            });
         }
 
         async function loadPrs() {
@@ -1647,10 +1637,10 @@
 
                 const data = await response.json();
                 if (data.error) {
-                    alert(`Error: ${data.error}`);
+                    alert(`Failed to import PRs: ${data.error}`);
                 } else {
-                    // Show success message
-                    alert(data.message || 'Successfully imported PRs');
+                    // Show success message with repo name
+                    alert(data.message || `Successfully imported PRs from ${repoOwner}/${repoName}`);
                     // Reload data
                     await loadRepos();
                     await loadPrs();
@@ -1658,7 +1648,7 @@
                 }
             } catch (error) {
                 console.error('Error importing PRs:', error);
-                alert('Failed to import PRs from repository');
+                alert(`Failed to import PRs from ${repoOwner}/${repoName}`);
             } finally {
                 buttonElement.disabled = false;
                 buttonElement.innerHTML = originalHTML;
@@ -1704,6 +1694,17 @@
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
             loadPrs();
+        });
+
+        // Delegated event listener for plus buttons (import all PRs)
+        document.getElementById('repoList').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.add-all-prs-btn');
+            if (btn) {
+                e.stopPropagation();
+                const repoOwner = btn.dataset.repoOwner;
+                const repoName = btn.dataset.repoName;
+                await addAllPrsFromRepo(repoOwner, repoName, btn);
+            }
         });
 
         // Theme toggle functionality
