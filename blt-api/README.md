@@ -78,8 +78,12 @@ For detailed setup instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
 # Install test dependencies
 uv sync --extra dev
 
-# Run tests
+# Run unit tests
 uv run pytest
+
+# Test API endpoints manually (with dev server running)
+python tests/test_domain.py    # Test domain endpoints
+python tests/test_issues.py    # Test issue endpoints
 ```
 
 ## API Endpoints
@@ -103,8 +107,41 @@ uv run pytest
 **Query Parameters for `/issues`:**
 - `page` - Page number (default: 1)
 - `per_page` - Items per page (default: 20, max: 100)
-- `status` - Filter by status (open, closed)
-- `domain` - Filter by domain URL
+- `status` - Filter by status (open, closed, reviewing)
+- `domain` - Filter by domain ID
+
+**Example Issue Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "url": "https://example.com/page",
+    "description": "Issue description",
+    "markdown_description": "# Detailed description",
+    "status": "open",
+    "verified": true,
+    "score": 85,
+    "views": 125,
+    "domain": 1,
+    "domain_name": "Example Corp",
+    "created": "2024-01-15T10:30:00Z",
+    "screenshots": [
+      {
+        "id": 1,
+        "image": "https://cdn.example.com/screenshot.png",
+        "created": "2024-01-15T10:35:00Z"
+      }
+    ],
+    "tags": [
+      {"id": 1, "name": "security"},
+      {"id": 2, "name": "vulnerability"}
+    ]
+  }
+}
+```
+
+Issues endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE.md](docs/DATABASE.md) for details.
 
 ### Users
 
@@ -220,6 +257,8 @@ This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints qu
 
 - `/domains` - Domain data stored in D1
 - `/domains/{id}/tags` - Domain tags from D1
+- `/issues` - Issues data stored in D1
+- `/issues/{id}` - Issue details with screenshots and tags from D1
 
 ### Database Operations
 
