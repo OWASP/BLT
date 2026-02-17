@@ -122,7 +122,7 @@ uv run pytest
 | GET | `/domains/{id}` | Get a specific domain |
 | GET | `/domains/{id}/tags` | Get tags for a domain |
 
-**Note:** Domain endpoints use Cloudflare D1 database. See [docs/MIGRATIONS.md](docs/MIGRATIONS.md) for database details.
+Domain endpoints use Cloudflare D1 database. See [docs/DATABASE.md](docs/DATABASE.md) for details.
 
 ### Organizations
 
@@ -221,7 +221,7 @@ This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints qu
 - `/domains` - Domain data stored in D1
 - `/domains/{id}/tags` - Domain tags from D1
 
-### Database Setup
+### Database Operations
 
 ```bash
 # Apply migrations locally
@@ -229,11 +229,7 @@ wrangler d1 migrations apply blt-api --local
 
 # Load test data
 wrangler d1 execute blt-api --local --file=test_data.sql
-```
 
-### Working with Migrations
-
-```bash
 # Create new migration
 wrangler d1 migrations create blt-api <description>
 
@@ -241,7 +237,7 @@ wrangler d1 migrations create blt-api <description>
 wrangler d1 migrations apply blt-api --remote
 ```
 
-See [docs/MIGRATIONS.md](docs/MIGRATIONS.md) for complete database documentation.
+For complete database guide including queries, schema, and patterns, see [docs/DATABASE.md](docs/DATABASE.md).
 
 ## Development
 
@@ -273,7 +269,7 @@ BLT-API/
 ├── migrations/             # D1 database migrations
 │   └── 0001_init.sql
 ├── docs/                   # Documentation
-│   └── MIGRATIONS.md
+│   └── DATABASE.md         # D1 database guide
 ├── tests/                  # Test files
 ├── test_data.sql           # Sample data for development
 ├── wrangler.toml           # Cloudflare Workers config
@@ -349,7 +345,7 @@ Quick start:
 5. Test locally with `wrangler dev`
 6. Submit a pull request
 
-For database changes, see [docs/MIGRATIONS.md](docs/MIGRATIONS.md).
+For database changes, see [docs/DATABASE.md](docs/DATABASE.md).
 
 ## Related Projects
 

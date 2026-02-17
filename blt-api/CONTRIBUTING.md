@@ -35,36 +35,18 @@ cd BLT-API
 
 ### Database Setup
 
-The project uses Cloudflare D1 (SQLite) for local development and production.
+The project uses Cloudflare D1 (SQLite) for data persistence. See [docs/DATABASE.md](docs/DATABASE.md) for detailed database documentation.
 
-#### Apply Migrations
+#### Quick Setup
 
 ```bash
-# Apply all migrations to local database
+# Apply schema to local database
 wrangler d1 migrations apply blt-api --local
-```
 
-This creates the database schema in `.wrangler/state/v3/d1/`.
-
-#### Insert Test Data
-
-```bash
-# Load sample data for development
+# Load sample data
 wrangler d1 execute blt-api --local --file=test_data.sql
-```
 
-This creates:
-- 3 sample domains
-- 5 tags
-- Domain-tag relationships
-
-#### Verify Setup
-
-```bash
-# List all tables
-wrangler d1 execute blt-api --local --command "SELECT name FROM sqlite_master WHERE type='table';"
-
-# View domains
+# Verify setup
 wrangler d1 execute blt-api --local --command "SELECT * FROM domains;"
 ```
 
@@ -91,120 +73,50 @@ curl http://localhost:8787/domains/1
 curl http://localhost:8787/domains/1/tags
 
 # Or use the test script
-python3 test_api.py
+python3 tests/test_domain.py
 ```
 
 ## Database Migrations
 
-### Understanding Migrations
+Migrations are SQL files that define schema changes. See [docs/DATABASE.md](docs/DATABASE.md) for complete guide.
 
-Migrations are SQL files that modify database schema. They are located in `migrations/` and executed in order.
-
-Current migrations:
-- `0001_init.sql` - Initial schema (domains, tags, domain_tags)
-
-### Creating a New Migration
+### Quick Reference
 
 ```bash
-# Create migration file
-wrangler d1 migrations create blt-api <migration-name>
-```
+# Create migration
+wrangler d1 migrations create blt-api <description>
 
-This creates a new file: `migrations/XXXX_<migration-name>.sql`
-
-Example migration:
-```sql
--- Migration number: 0002
--- Add description column to domains
-
-ALTER TABLE domains ADD COLUMN description TEXT;
-```
-
-### Applying Migrations
-
-#### Local Database
-
-```bash
-# Apply all pending migrations
+# Apply locally
 wrangler d1 migrations apply blt-api --local
 
-# List migration status
-wrangler d1 migrations list blt-api --local
-```
-
-#### Remote Database
-
-```bash
 # Apply to production
 wrangler d1 migrations apply blt-api --remote
 
 # Check status
-wrangler d1 migrations list blt-api --remote
+wrangler d1 migrations list blt-api --local
 ```
-
-### Manual Schema Updates
-
-If you need to modify schema directly:
-
-#### Local
-
-```bash
-# Execute SQL directly
-wrangler d1 execute blt-api --local --command "ALTER TABLE domains ADD COLUMN new_field TEXT;"
-
-# Or from file
-wrangler d1 execute blt-api --local --file=my-changes.sql
-```
-
-#### Remote
-
-```bash
-# Same commands with --remote flag
-wrangler d1 execute blt-api --remote --command "..."
-wrangler d1 execute blt-api --remote --file=my-changes.sql
-```
-
-**Important:** Manual changes should be documented in a migration file for version control.
 
 ## Database Management
 
-### Querying Data
+For querying data, resetting database, and other database operations, see [docs/DATABASE.md](docs/DATABASE.md).
+
+Quick commands:
 
 ```bash
-# Local database
+# Query data
 wrangler d1 execute blt-api --local --command "SELECT * FROM domains LIMIT 10;"
 
-# Remote database
-wrangler d1 execute blt-api --remote --command "SELECT * FROM domains LIMIT 10;"
-```
-
-### Resetting Local Database
-
-```bash
-# Delete local database
+# Reset local database
 rm -rf .wrangler/state/v3/d1/
-
-# Reapply migrations
 wrangler d1 migrations apply blt-api --local
-
-# Reload test data
 wrangler d1 execute blt-api --local --file=test_data.sql
 ```
 
-### Database Location
-
-- Local: `.wrangler/state/v3/d1/`
-- Remote: Cloudflare D1 (managed service)
-
-Configuration is in `wrangler.toml`:
-```toml
-[[d1_databases]]
-binding = "blt_api"
-database_name = "blt-api"
-database_id = "<your-database-id>"
-```
-
 ## Code Structure
+
+### Database Code Patterns
+
+See [docs/DATABASE.md](docs/DATABASE.md) for detailed examples of querying, pagination, and data conversion.
 
 ### Database Helpers
 
@@ -262,7 +174,7 @@ return error_response("Not found", status=404)
 Use curl or the provided test script:
 
 ```bash
-python3 test_api.py
+python3 tests/test_domain.py
 ```
 
 ### Writing Tests
@@ -327,6 +239,8 @@ wrangler deploy --env production
 3. Test locally first
 4. Document any breaking changes
 5. Apply to remote before deployment
+
+See [docs/DATABASE.md](docs/DATABASE.md) for migration examples and patterns.
 
 ## Troubleshooting
 
