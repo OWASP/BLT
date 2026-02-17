@@ -5,7 +5,7 @@ This module provides common utilities for JSON responses, error handling,
 CORS headers, and HTTP client operations.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import json
 
 # Try to import Cloudflare Workers JS bindings
@@ -244,3 +244,25 @@ async def parse_json_body(request: Any) -> Optional[Dict[str, Any]]:
         return None
     except (json.JSONDecodeError, Exception):
         return None
+
+def convert_d1_results(results) -> List[Dict]:
+    """Convert D1 proxy results to Python list of dicts.
+    
+    Args:
+        results: D1 results object (could be JS proxy or Python list)
+    
+    Returns:
+        List of dictionaries
+    """
+    if results is None:
+        return []
+    
+    # Handle to_py() method if available (converts JsProxy to Python)
+    if hasattr(results, 'to_py'):
+        return results.to_py()
+    
+    # If already a list, return as is
+    if isinstance(results, list):
+        return results
+    
+    return []

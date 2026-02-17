@@ -5,30 +5,7 @@ Domains handler for the BLT API.
 from typing import Any, Dict, List
 from utils import json_response, error_response, paginated_response, parse_pagination_params
 from libs.db import get_db_safe
-
-
-def convert_d1_results(results) -> List[Dict]:
-    """Convert D1 proxy results to Python list of dicts.
-    
-    Args:
-        results: D1 results object (could be JS proxy or Python list)
-    
-    Returns:
-        List of dictionaries
-    """
-    if results is None:
-        return []
-    
-    # Handle to_py() method if available (converts JsProxy to Python)
-    if hasattr(results, 'to_py'):
-        return results.to_py()
-    
-    # If already a list, return as is
-    if isinstance(results, list):
-        return results
-    
-    return []
-
+from utils import convert_d1_results
 
 async def handle_domains(
     request: Any,
