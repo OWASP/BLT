@@ -883,7 +883,7 @@
 
             container.innerHTML = `
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
-                    <table class="w-full text-left text-sm" style="min-width: 1750px;">
+                    <table class="w-full text-left text-sm" style="min-width: 1820px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
@@ -936,7 +936,7 @@
                                         <span class="truncate">Convos</span> ${getSortIcon('open_conversations_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%) - (3 points per open conversation)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Base: (CI Score * 45%) + (Review Score * 55%), then reduced by multipliers (draft 0%, conflicts 67%, changes requested 50%), then minus 3 points per open conversation, minimum 0">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>

@@ -707,6 +707,8 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
     """
     Fetch count of unresolved review conversations (threads) using GitHub GraphQL API.
     
+    Supports pagination to handle PRs with more than 100 review threads.
+    
     Args:
         owner: Repository owner
         repo: Repository name
@@ -718,26 +720,24 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
     """
     graphql_url = "https://api.github.com/graphql"
     
-    # GraphQL query to fetch review threads with their resolved status
+    # GraphQL query to fetch review threads with their resolved status and pagination
     query = """
-    query($owner: String!, $repo: String!, $prNumber: Int!) {
+    query($owner: String!, $repo: String!, $prNumber: Int!, $cursor: String) {
       repository(owner: $owner, name: $repo) {
         pullRequest(number: $prNumber) {
-          reviewThreads(first: 100) {
+          reviewThreads(first: 100, after: $cursor) {
             nodes {
               isResolved
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
             }
           }
         }
       }
     }
     """
-    
-    variables = {
-        "owner": owner,
-        "repo": repo,
-        "prNumber": pr_number
-    }
     
     headers = {
         'Accept': 'application/vnd.github+json',
@@ -748,47 +748,70 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
     if token:
         headers['Authorization'] = f'Bearer {token}'
     
+    unresolved_count = 0
+    cursor = None
+    has_next_page = True
+    
     try:
-        # Make GraphQL request
-        options = to_js({
-            "method": "POST",
-            "headers": headers,
-            "body": json.dumps({"query": query, "variables": variables})
-        }, dict_converter=Object.fromEntries)
+        # Paginate through all review threads
+        while has_next_page:
+            variables = {
+                "owner": owner,
+                "repo": repo,
+                "prNumber": pr_number,
+                "cursor": cursor
+            }
+            
+            # Make GraphQL request
+            options = to_js({
+                "method": "POST",
+                "headers": headers,
+                "body": json.dumps({"query": query, "variables": variables})
+            }, dict_converter=Object.fromEntries)
+            
+            response = await fetch(graphql_url, options)
+            
+            # Log GraphQL API call
+            rate_limit = response.headers.get('x-ratelimit-limit')
+            rate_remaining = response.headers.get('x-ratelimit-remaining')
+            print(f"GitHub GraphQL API: Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
+            
+            if response.status != 200:
+                print(f"Warning: GraphQL API returned status {response.status}")
+                return unresolved_count  # Return count from previous pages
+            
+            result = (await response.json()).to_py()
+            
+            # Check for GraphQL errors
+            if 'errors' in result:
+                print(f"GraphQL errors: {result['errors']}")
+                return unresolved_count  # Return count from previous pages
+            
+            # Extract unresolved conversations count from this page
+            pull_request = result.get('data', {}).get('repository', {}).get('pullRequest')
+            if not pull_request:
+                print(f"Warning: No PR data in GraphQL response for {owner}/{repo}#{pr_number}")
+                return unresolved_count
+            
+            review_threads_data = pull_request.get('reviewThreads', {})
+            threads = review_threads_data.get('nodes', [])
+            page_info = review_threads_data.get('pageInfo', {})
+            
+            # Count unresolved threads in this page
+            unresolved_count += sum(1 for thread in threads if not thread.get('isResolved', False))
+            
+            # Check if there are more pages
+            has_next_page = page_info.get('hasNextPage', False)
+            cursor = page_info.get('endCursor')
+            
+            print(f"PR #{pr_number}: Page has {len(threads)} threads, {unresolved_count} total unresolved so far")
         
-        response = await fetch(graphql_url, options)
-        
-        # Log GraphQL API call
-        rate_limit = response.headers.get('x-ratelimit-limit')
-        rate_remaining = response.headers.get('x-ratelimit-remaining')
-        print(f"GitHub GraphQL API: Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
-        
-        if response.status != 200:
-            print(f"Warning: GraphQL API returned status {response.status}")
-            return 0
-        
-        result = (await response.json()).to_py()
-        
-        # Check for GraphQL errors
-        if 'errors' in result:
-            print(f"GraphQL errors: {result['errors']}")
-            return 0
-        
-        # Extract unresolved conversations count
-        pull_request = result.get('data', {}).get('repository', {}).get('pullRequest')
-        if not pull_request:
-            print(f"Warning: No PR data in GraphQL response for {owner}/{repo}#{pr_number}")
-            return 0
-        
-        review_threads = pull_request.get('reviewThreads', {}).get('nodes', [])
-        unresolved_count = sum(1 for thread in review_threads if not thread.get('isResolved', False))
-        
-        print(f"PR #{pr_number}: Found {unresolved_count} unresolved conversations out of {len(review_threads)} total")
+        print(f"PR #{pr_number}: Found {unresolved_count} total unresolved conversations")
         return unresolved_count
         
     except Exception as e:
         print(f"Error fetching open conversations for PR #{pr_number}: {str(e)}")
-        return 0
+        return unresolved_count  # Return partial count if available
 
 def calculate_review_status(reviews_data):
     """
