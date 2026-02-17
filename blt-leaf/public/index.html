@@ -13,6 +13,17 @@
                 darkMode: 'class'
             }
         }
+        
+        // Initialize theme immediately to prevent FOUC
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
     </script>
     <!-- Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1586,16 +1597,14 @@
 
         // Theme toggle functionality
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            // Theme class is already set in the head, just update the icon
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
             
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
+            if (isDark) {
+                themeIcon.className = 'fas fa-sun';
             } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').className = 'fas fa-moon';
+                themeIcon.className = 'fas fa-moon';
             }
         }
 
