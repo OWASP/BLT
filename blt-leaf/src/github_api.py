@@ -4,7 +4,7 @@ import json
 import asyncio
 from js import fetch, Headers, Object
 from pyodide.ffi import to_js
-from cache import get_timeline_cache, set_timeline_cache
+from cache import get_timeline_cache, set_timeline_cache, set_rate_limit_data
 
 
 async def fetch_with_headers(url, headers=None, token=None):
@@ -30,6 +30,10 @@ async def fetch_with_headers(url, headers=None, token=None):
         rate_limit = response.headers.get('x-ratelimit-limit')
         rate_remaining = response.headers.get('x-ratelimit-remaining')
         rate_reset = response.headers.get('x-ratelimit-reset')
+
+        if rate_limit and rate_remaining:
+            set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+            
         print(f"GitHub API: {url} | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining | Reset: {rate_reset}")
     
     return response
@@ -106,6 +110,10 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
             # Log GraphQL API call
             rate_limit = response.headers.get('x-ratelimit-limit')
             rate_remaining = response.headers.get('x-ratelimit-remaining')
+            rate_reset = response.headers.get('x-ratelimit-reset')
+            if rate_limit and rate_remaining:
+                set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+                
             print(f"GitHub GraphQL API: Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
             
             if response.status != 200:
