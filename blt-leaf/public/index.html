@@ -46,6 +46,230 @@
             background-color: #78350F !important;
             border-left: 3px solid #F59E0B;
         }
+
+        /* Dark mode fallback styles (when Tailwind CDN fails to load) */
+        .dark {
+            color-scheme: dark;
+        }
+
+        /* Body and main containers */
+        .dark body {
+            background-color: #0f172a !important; /* slate-900 */
+            color: #f1f5f9 !important; /* slate-100 */
+        }
+
+        /* Header */
+        .dark header {
+            background-color: #1e293b !important; /* slate-800 */
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Sidebar */
+        .dark aside {
+            background-color: #1e293b !important; /* slate-800 */
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Cards and main content areas */
+        .dark main > div,
+        .dark .bg-white {
+            background-color: #1e293b !important; /* slate-800 */
+        }
+
+        /* Text colors */
+        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+            color: #ffffff !important;
+        }
+
+        .dark .text-slate-900 {
+            color: #f1f5f9 !important; /* slate-100 */
+        }
+
+        .dark .text-slate-700 {
+            color: #cbd5e1 !important; /* slate-300 */
+        }
+
+        .dark .text-slate-600 {
+            color: #cbd5e1 !important; /* slate-300 */
+        }
+
+        .dark .text-slate-500 {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+
+        .dark .text-slate-400 {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+
+        /* Inputs and form elements */
+        .dark input[type="text"],
+        .dark input[type="search"],
+        .dark input[type="email"],
+        .dark input[type="number"],
+        .dark input[type="url"],
+        .dark textarea,
+        .dark select {
+            background-color: #0f172a !important; /* slate-900 */
+            color: #ffffff !important;
+            border-color: #e74c3c !important;
+        }
+
+        .dark input::placeholder,
+        .dark textarea::placeholder {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+
+        .dark input:focus,
+        .dark textarea:focus,
+        .dark select:focus {
+            border-color: #ef4444 !important; /* red-500 */
+            outline: none;
+        }
+
+        /* Buttons */
+        .dark button:not(.bg-red-600):not([class*="bg-red"]):not([class*="bg-slate-500"]):not([class*="bg-green"]):not([class*="bg-blue"]) {
+            background-color: #475569 !important; /* slate-600 */
+            color: #f1f5f9 !important;
+        }
+
+        .dark button:hover:not(.bg-red-600):not([class*="bg-red"]):not([class*="bg-slate-500"]):not([class*="bg-green"]):not([class*="bg-blue"]) {
+            background-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Tables */
+        .dark table {
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        .dark th {
+            background-color: #1e293b !important; /* slate-800 */
+            color: #f1f5f9 !important;
+            border-color: #334155 !important;
+        }
+
+        .dark td {
+            border-color: #334155 !important; /* slate-700 */
+            color: #e2e8f0 !important; /* slate-200 */
+        }
+
+        .dark tr:hover {
+            background-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Borders */
+        .dark .border,
+        .dark [class*="border-"] {
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        .dark .border-slate-200 {
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        .dark .divide-y > * {
+            border-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Hover states */
+        .dark .hover\:bg-slate-100:hover,
+        .dark [class*="hover:bg-slate-100"]:hover {
+            background-color: #334155 !important; /* slate-700 */
+        }
+
+        .dark .hover\:bg-slate-50:hover {
+            background-color: #1e293b !important; /* slate-800 */
+        }
+
+        /* Status badges and alerts */
+        .dark .bg-slate-50 {
+            background-color: #0f172a !important; /* slate-900 */
+        }
+
+        .dark .bg-slate-100 {
+            background-color: #1e293b !important; /* slate-800 */
+        }
+
+        .dark .bg-slate-200 {
+            background-color: #334155 !important; /* slate-700 */
+        }
+
+        /* Special background colors for status indicators */
+        .dark .bg-green-50 {
+            background-color: rgba(6, 78, 59, 0.3) !important; /* emerald-950/30 */
+        }
+
+        .dark .bg-red-50 {
+            background-color: rgba(69, 10, 10, 0.3) !important; /* red-950/30 */
+        }
+
+        .dark .bg-amber-50,
+        .dark .bg-yellow-50 {
+            background-color: rgba(69, 26, 3, 0.3) !important; /* amber-950/30 */
+        }
+
+        /* Text colors for status indicators */
+        .dark .text-green-700,
+        .dark .text-green-600 {
+            color: #4ade80 !important; /* green-400 */
+        }
+
+        .dark .text-emerald-700,
+        .dark .text-emerald-600 {
+            color: #34d399 !important; /* emerald-400 */
+        }
+
+        .dark .text-red-700,
+        .dark .text-red-600 {
+            color: #f87171 !important; /* red-400 */
+        }
+
+        .dark .text-amber-700,
+        .dark .text-amber-600,
+        .dark .text-yellow-700 {
+            color: #fbbf24 !important; /* amber-400 */
+        }
+
+        .dark .text-orange-700,
+        .dark .text-orange-600 {
+            color: #fb923c !important; /* orange-400 */
+        }
+
+        .dark .text-blue-700,
+        .dark .text-blue-600 {
+            color: #60a5fa !important; /* blue-400 */
+        }
+
+        /* Links */
+        .dark a {
+            color: #60a5fa !important; /* blue-400 */
+        }
+
+        .dark a:hover {
+            color: #93c5fd !important; /* blue-300 */
+        }
+
+        /* Disabled states */
+        .dark button:disabled,
+        .dark input:disabled {
+            background-color: #450a0a !important; /* red-950 */
+            border-color: #991b1b !important; /* red-800 */
+            color: #f87171 !important; /* red-400 */
+            opacity: 0.6;
+        }
+
+        /* Scrollbars */
+        .dark ::-webkit-scrollbar {
+            background-color: #1e293b;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background-color: #64748b;
+        }
     </style>
 </head>
 
