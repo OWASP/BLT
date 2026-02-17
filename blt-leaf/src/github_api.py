@@ -25,7 +25,8 @@ async def fetch_with_headers(url, headers=None, token=None):
     response = await fetch(url, options)
     
     # Log GitHub API call with rate limit information
-    if 'api.github.com' in url:
+    # Check if URL starts with GitHub API domain for logging purposes only
+    if url.startswith('https://api.github.com/'):
         rate_limit = response.headers.get('x-ratelimit-limit')
         rate_remaining = response.headers.get('x-ratelimit-remaining')
         rate_reset = response.headers.get('x-ratelimit-reset')
@@ -309,7 +310,8 @@ async def fetch_paginated_data(url, headers):
         response = await fetch(current_url, fetch_options)
         
         # Log GitHub API call with rate limit information
-        if 'api.github.com' in current_url:
+        # Check if URL starts with GitHub API domain for logging purposes only
+        if current_url.startswith('https://api.github.com/'):
             rate_limit = response.headers.get('x-ratelimit-limit')
             rate_remaining = response.headers.get('x-ratelimit-remaining')
             rate_reset = response.headers.get('x-ratelimit-reset')
