@@ -5,12 +5,21 @@ Standalone job board for OWASP BLT, hosted on **GitHub Pages**. Read-only list a
 ## Adding a job
 
 - **[Add a job](add.html)** – Use **Quick add** (recommended) or **Manual add**.
-  - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot will scrape the page and add a Markdown file to your PR. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
+  - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot (GitHub Action + scraper) will create a new job Markdown file in the repo for you. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
   - **Manual add:** Create a new file under `_jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](_jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
+
+### Adding a seeker profile
+
+- **[Create a seeker profile](add.html)** – Use the seeker section at the bottom of the page.
+  - Create a new file under `seekers/` named after you (e.g. `jane-doe.md`).
+  - Use the frontmatter + body format from [`seekers/example-seeker.md`](seekers/example-seeker.md).
+  - Open a PR and your profile will appear on `seekers.html` once merged.
 
 ## Data
 
 Jobs are stored as **one Markdown file per job** in `_jobs/`, with YAML frontmatter and a body (description). Filename format: `company-slug-job-title-slug.md`. The file `data/jobs.json` is **generated** from `_jobs/*.md` by a build step (`npm run build:jobs`); a GitHub Action runs this on push to `main` so the site always has an up-to-date `data/jobs.json`.
+
+Seeker profiles are stored as **one Markdown file per person** in `seekers/`. The build step also generates `data/seekers.json` from `seekers/*.md` for the seekers page.
 
 ### Canonical schema (`data/jobs.json`)
 
@@ -39,7 +48,8 @@ Root shape: `{"jobs": [...], "count": N, "generated_at": "<iso8601>"}`.
 ## Frontend
 
 - `index.html`: Job list page
-- `add.html`: Add a job – Quick add (paste URL) or manual add (create `.md` file).
+- `seekers.html`: Job seekers list page (reads `data/seekers.json`).
+- `add.html`: Contribute page – add a job (Quick add or manual) and create seeker profiles.
   - Loads `data/jobs.json`
   - Client-side search (`q`) over title, description, organization name, and location
   - Filters:
