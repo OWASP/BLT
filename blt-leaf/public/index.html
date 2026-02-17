@@ -46,6 +46,25 @@
             background-color: #78350F !important;
             border-left: 3px solid #F59E0B;
         }
+        
+        /* Mobile autocomplete dropdown - responsive fallback */
+        #repoList {
+            display: none;
+        }
+        
+        .mobile-repo-search {
+            display: block;
+        }
+        
+        @media (min-width: 768px) {
+            #repoList {
+                display: block;
+            }
+            
+            .mobile-repo-search {
+                display: none;
+            }
+        }
     </style>
 </head>
 
@@ -121,7 +140,22 @@
         <aside class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
                 <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
-                <ul id="repoList" class="space-y-2">
+                
+                <!-- Mobile: Autocomplete dropdown -->
+                <div class="mobile-repo-search md:hidden mb-2">
+                    <div class="relative">
+                        <input type="text" id="repoSearchInput"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
+                            placeholder="Search repositories..."
+                            autocomplete="off"
+                            list="repoDatalist" />
+                        <datalist id="repoDatalist"></datalist>
+                    </div>
+                    <div id="selectedRepoDisplay" class="mt-2 text-sm text-slate-600 dark:text-slate-400"></div>
+                </div>
+                
+                <!-- Desktop: List view -->
+                <ul id="repoList" class="space-y-2 hidden md:block">
                     <li class="repo-item active cursor-pointer rounded-lg border border-[#f5b0b0] bg-[#fff1f1] px-3 py-2 dark:border-red-900 dark:bg-red-950/30" data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories</div>
                         <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
@@ -546,6 +580,21 @@
             const allItem = repoList.querySelector('[data-repo="all"]');
             if (allItem) setRepoItemActiveState(allItem, currentRepo === 'all');
 
+            // Update mobile autocomplete datalist
+            const repoDatalist = document.getElementById('repoDatalist');
+            if (repoDatalist) {
+                repoDatalist.innerHTML = '<option value="All Repositories"></option>';
+                repos.forEach(repo => {
+                    const option = document.createElement('option');
+                    option.value = `${repo.repo_owner}/${repo.repo_name}`;
+                    option.textContent = `${repo.repo_owner}/${repo.repo_name} (${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'})`;
+                    repoDatalist.appendChild(option);
+                });
+            }
+
+            // Update selected repository display for mobile
+            updateMobileRepoDisplay();
+
             repos.forEach(repo => {
                 const li = document.createElement('li');
                 li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
@@ -591,6 +640,23 @@
 
                 repoList.appendChild(li);
             });
+        }
+
+        function updateMobileRepoDisplay() {
+            const selectedRepoDisplay = document.getElementById('selectedRepoDisplay');
+            if (selectedRepoDisplay) {
+                if (currentRepo === 'all') {
+                    const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
+                    selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> All Repositories (${totalPrs} PR${totalPrs === 1 ? '' : 's'})`;
+                } else {
+                    const repo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === currentRepo);
+                    if (repo) {
+                        selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> ${repo.repo_owner}/${repo.repo_name} (${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'})`;
+                    } else {
+                        selectedRepoDisplay.innerHTML = `<strong>Selected:</strong> ${currentRepo}`;
+                    }
+                }
+            }
         }
 
         async function loadPrs() {
@@ -1645,6 +1711,61 @@
             });
             loadPrs();
         });
+
+        // Mobile autocomplete repo search functionality
+        const repoSearchInput = document.getElementById('repoSearchInput');
+        if (repoSearchInput) {
+            repoSearchInput.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Check if the value matches "All Repositories"
+                if (value === 'All Repositories') {
+                    currentRepo = 'all';
+                    currentPage = 1;
+                    localStorage.setItem('currentRepo', currentRepo);
+                    updateMobileRepoDisplay();
+                    loadPrs();
+                    return;
+                }
+                
+                // Check if the value matches any repository
+                const matchedRepo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === value);
+                if (matchedRepo) {
+                    currentRepo = value;
+                    currentPage = 1;
+                    localStorage.setItem('currentRepo', currentRepo);
+                    updateMobileRepoDisplay();
+                    loadPrs();
+                }
+            });
+
+            // Also handle when user selects from datalist
+            repoSearchInput.addEventListener('change', (e) => {
+                const value = e.target.value;
+                
+                // Check if the value matches "All Repositories"
+                if (value === 'All Repositories') {
+                    currentRepo = 'all';
+                    currentPage = 1;
+                    localStorage.setItem('currentRepo', currentRepo);
+                    updateMobileRepoDisplay();
+                    loadPrs();
+                    e.target.value = ''; // Clear the input
+                    return;
+                }
+                
+                // Check if the value matches any repository
+                const matchedRepo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === value);
+                if (matchedRepo) {
+                    currentRepo = value;
+                    currentPage = 1;
+                    localStorage.setItem('currentRepo', currentRepo);
+                    updateMobileRepoDisplay();
+                    loadPrs();
+                    e.target.value = ''; // Clear the input
+                }
+            });
+        }
 
         // Theme toggle functionality
         function initTheme() {
