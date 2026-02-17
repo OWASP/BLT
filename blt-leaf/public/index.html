@@ -564,17 +564,28 @@
                             </div>
                         </div>
 
-                        <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 ml-2 github-pr-link"
-                        title="View Pull Requests on GitHub"
-                        onclick="event.stopPropagation();">
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="add-all-prs-btn text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400"
+                                title="Import all PRs from this repository"
+                                data-repo-owner="${repo.repo_owner}"
+                                data-repo-name="${repo.repo_name}"
+                                onclick="event.stopPropagation();">
+                                <i class="fas fa-plus text-lg text-red-600 hover:text-red-700 transition-colors"></i>
+                            </button>
 
-                            <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
+                            <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 github-pr-link"
+                            title="View Pull Requests on GitHub"
+                            onclick="event.stopPropagation();">
+
+                                <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
 
 
-                        </a>
+                            </a>
+                        </div>
 
                     </div>
                 `;
@@ -590,6 +601,16 @@
                 });
 
                 repoList.appendChild(li);
+            });
+
+            // Attach event listeners to all plus buttons
+            document.querySelectorAll('.add-all-prs-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const repoOwner = btn.dataset.repoOwner;
+                    const repoName = btn.dataset.repoName;
+                    await addAllPrsFromRepo(repoOwner, repoName, btn);
+                });
             });
         }
 
@@ -1602,6 +1623,45 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Add PR';
+            }
+        }
+
+        async function addAllPrsFromRepo(repoOwner, repoName, buttonElement) {
+            // Show loading state
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin text-lg text-red-600"></i>';
+
+            try {
+                const repoUrl = `https://github.com/${repoOwner}/${repoName}`;
+                const response = await fetch('/api/prs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        pr_url: repoUrl,
+                        add_all: true
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    // Show success message
+                    alert(data.message || 'Successfully imported PRs');
+                    // Reload data
+                    await loadRepos();
+                    await loadPrs();
+                    await loadRateLimit();
+                }
+            } catch (error) {
+                console.error('Error importing PRs:', error);
+                alert('Failed to import PRs from repository');
+            } finally {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHTML;
             }
         }
 
