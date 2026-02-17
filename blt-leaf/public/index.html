@@ -677,9 +677,12 @@
                 });
                 
                 // Detect removals (PRs that were in cache but not in update)
+                // Use Set for O(1) lookup instead of O(n) find operation
+                const currentPrIds = new Set(updates.map(u => u.id));
                 Object.keys(prUpdateTimestamps).forEach(prId => {
-                    if (!updates.find(u => u.id === parseInt(prId))) {
-                        removedPrIds.push(parseInt(prId));
+                    const prIdNum = parseInt(prId);
+                    if (!currentPrIds.has(prIdNum)) {
+                        removedPrIds.push(prIdNum);
                         delete prUpdateTimestamps[prId];
                     }
                 });
@@ -729,14 +732,14 @@
         /**
          * Start auto-refresh polling
          */
-        function startAutoRefresh() {
+        async function startAutoRefresh() {
             if (autoRefreshInterval) return; // Already running
             
             autoRefreshEnabled = true;
             localStorage.setItem('autoRefreshEnabled', 'true');
             
-            // Initial check
-            checkForPrUpdates();
+            // Initial check (await to handle errors properly)
+            await checkForPrUpdates();
             
             // Set up interval
             autoRefreshInterval = setInterval(checkForPrUpdates, AUTO_REFRESH_INTERVAL);
@@ -797,11 +800,13 @@
          */
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                if (autoRefreshInterval && autoRefreshEnabled) {
+                // Clear interval when tab is hidden
+                if (autoRefreshInterval) {
                     clearInterval(autoRefreshInterval);
                     autoRefreshInterval = null;
                 }
             } else {
+                // Resume polling when tab becomes visible (only if auto-refresh is enabled)
                 if (autoRefreshEnabled && !autoRefreshInterval) {
                     autoRefreshInterval = setInterval(checkForPrUpdates, AUTO_REFRESH_INTERVAL);
                     checkForPrUpdates(); // Check immediately on tab becoming visible
