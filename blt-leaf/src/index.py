@@ -1672,23 +1672,38 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'feedback_score'
         }
         
-        # Validate and map column name
-        if sort_by and sort_by in allowed_columns:
-            # Map frontend column name to database column name
-            sort_column = column_mapping.get(sort_by, sort_by)
-        else:
-            sort_column = 'last_updated_at'
+        # Parse multiple sort columns and directions
+        # sort_by can be comma-separated list: "ready_score,title"
+        # sort_dir can be comma-separated list: "desc,asc"
+        sort_clauses = []
         
-        # Validate sort direction
-        if sort_dir and sort_dir.upper() in ('ASC', 'DESC'):
-            sort_direction = sort_dir.upper()
-        else:
-            sort_direction = 'DESC'
+        if sort_by:
+            # Split sort columns and directions
+            sort_columns = [col.strip() for col in sort_by.split(',')]
+            sort_directions = [dir.strip() for dir in sort_dir.split(',')] if sort_dir else []
+            
+            # Process each sort column
+            for i, col in enumerate(sort_columns):
+                if col in allowed_columns:
+                    # Map frontend column name to database column name
+                    db_column = column_mapping.get(col, col)
+                    
+                    # Get corresponding direction or default to DESC
+                    direction = 'DESC'
+                    if i < len(sort_directions) and sort_directions[i].upper() in ('ASC', 'DESC'):
+                        direction = sort_directions[i].upper()
+                    
+                    # Add NULL handling and column sort
+                    # NULL values should appear last regardless of sort direction
+                    sort_clauses.append(f'{db_column} IS NULL ASC, {db_column} {direction}')
         
-        # Build ORDER BY clause with NULL handling
-        # NULL values should appear last regardless of sort direction
-        # Note: sort_column is validated against whitelist above, so no SQL injection risk
-        order_clause = f'ORDER BY {sort_column} IS NULL ASC, {sort_column} {sort_direction}'
+        # If no valid sort columns, use default
+        if not sort_clauses:
+            sort_clauses.append('last_updated_at IS NULL ASC, last_updated_at DESC')
+        
+        # Build ORDER BY clause
+        # Note: All columns are validated against whitelist above, so no SQL injection risk
+        order_clause = 'ORDER BY ' + ', '.join(sort_clauses)
 
         # Total count first
         count_stmt = db.prepare(f'''

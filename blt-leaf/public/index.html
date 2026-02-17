@@ -152,8 +152,8 @@
         let repos = [];
         let sortColumn = localStorage.getItem('sortColumn') || 'ready_score';
         let sortDirection = localStorage.getItem('sortDirection') || 'desc';
-        let secondarySortColumn = null;
-        let secondarySortDirection = 'desc';
+        let secondarySortColumn = localStorage.getItem('secondarySortColumn') || null;
+        let secondarySortDirection = localStorage.getItem('secondarySortDirection') || 'desc';
         let currentPage = 1;
         let totalPages = 1;
         const perPage = 30;
@@ -358,18 +358,38 @@
         }
 
         function sortPrs(column, isShiftClick = false) {
-            // Note: Secondary sort (shift+click) is currently not supported for server-side sorting
-            // Regular click - set as primary sort
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            // Shift+click adds secondary sort column
+            if (isShiftClick) {
+                // If clicking the same column as primary, do nothing
+                if (column === sortColumn) {
+                    return;
+                }
+                
+                // If clicking the current secondary column, toggle its direction
+                if (secondarySortColumn === column) {
+                    secondarySortDirection = secondarySortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    // Set new secondary sort column
+                    secondarySortColumn = column;
+                    secondarySortDirection = 'desc';
+                }
+                
+                // Save secondary sorting state to localStorage
+                localStorage.setItem('secondarySortColumn', secondarySortColumn);
+                localStorage.setItem('secondarySortDirection', secondarySortDirection);
             } else {
-                sortColumn = column;
-                sortDirection = 'desc';
+                // Regular click - set as primary sort
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'desc';
+                }
+                
+                // Save primary sorting state to localStorage
+                localStorage.setItem('sortColumn', sortColumn);
+                localStorage.setItem('sortDirection', sortDirection);
             }
-            
-            // Save sorting state to localStorage
-            localStorage.setItem('sortColumn', sortColumn);
-            localStorage.setItem('sortDirection', sortDirection);
             
             // Reset to first page when sorting changes
             currentPage = 1;
@@ -540,12 +560,21 @@
             }
 
             try {
+                // Build sort parameters - support multiple columns
+                let sortByParam = sortColumn;
+                let sortDirParam = sortDirection;
+                
+                if (secondarySortColumn) {
+                    sortByParam += ',' + secondarySortColumn;
+                    sortDirParam += ',' + secondarySortDirection;
+                }
+                
                 // Build URL with pagination and sorting parameters
                 let url;
                 if (currentRepo === 'all') {
-                    url = `/api/prs?page=${currentPage}&sort_by=${sortColumn}&sort_dir=${sortDirection}`;
+                    url = `/api/prs?page=${currentPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 } else {
-                    url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&sort_by=${sortColumn}&sort_dir=${sortDirection}`;
+                    url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
                 
                 const response = await fetch(url);
