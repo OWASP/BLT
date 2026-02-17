@@ -1,5 +1,27 @@
 -- Test data for local development
 
+-- Make the seed idempotent for local reruns:
+-- clear child tables first, then parent tables.
+DELETE FROM issue_team_members;
+DELETE FROM issue_tags;
+DELETE FROM issue_screenshots;
+DELETE FROM issues;
+DELETE FROM domain_tags;
+DELETE FROM domains;
+DELETE FROM tags;
+
+-- Reset AUTOINCREMENT counters for deterministic IDs in this seed file.
+DELETE FROM sqlite_sequence
+WHERE name IN (
+    'issue_team_members',
+    'issue_tags',
+    'issue_screenshots',
+    'issues',
+    'domain_tags',
+    'domains',
+    'tags'
+);
+
 -- Insert test tags
 INSERT INTO tags (name) VALUES 
     ('security'),
