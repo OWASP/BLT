@@ -12,7 +12,18 @@
             config: {
                 darkMode: 'class'
             }
-        }
+        };
+        
+        // Initialize theme immediately to prevent FOUC
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
     </script>
     <!-- Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -893,7 +904,7 @@
 
             container.innerHTML = `
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
-                    <table class="w-full text-left text-sm" style="min-width: 1750px;">
+                    <table class="w-full text-left text-sm" style="min-width: 1820px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
@@ -941,7 +952,12 @@
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="open_conversations_count" style="min-width: 70px;" title="Click to sort by Conversations. Shift+Click to set as secondary sort.&#10;Open (unresolved) review conversations - Fetched via GraphQL API reviewThreads">
+                                    <div class="flex items-center justify-center gap-1 truncate">
+                                        <span class="truncate">Convos</span> ${getSortIcon('open_conversations_count')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to set as secondary sort.&#10;Readiness Score: Base [(CI * 45%) + (Review * 55%)] × multipliers [draft=0, conflicts×0.67, changes×0.5] - (3 × open conversations), min 0">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>
@@ -1216,6 +1232,13 @@
                             <i class="fas fa-minus-circle"></i>${pr.checks_skipped}
                         </span>` : ''}
                     </div>
+                </td>
+                <td class="px-2 py-3 text-center text-slate-700 dark:text-slate-300 text-xs">
+                    ${pr.open_conversations_count > 0 ? `<span class="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400" title="${pr.open_conversations_count} unresolved conversation${pr.open_conversations_count !== 1 ? 's' : ''}">
+                        <i class="fas fa-comment-dots"></i>${pr.open_conversations_count}
+                    </span>` : `<span class="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400" title="No unresolved conversations">
+                        <i class="fas fa-check"></i>0
+                    </span>`}
                 </td>
                 <td class="px-2 py-3 text-center" id="readiness-overall-${pr.id}">
                     <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
@@ -1596,16 +1619,14 @@
 
         // Theme toggle functionality
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            // Theme class is already set in the head, just update the icon
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
             
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
+            if (isDark) {
+                themeIcon.className = 'fas fa-sun';
             } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').className = 'fas fa-moon';
+                themeIcon.className = 'fas fa-moon';
             }
         }
 
