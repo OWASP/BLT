@@ -76,11 +76,8 @@ def json_response(
     # Convert Python dict to JSON string
     json_body = json.dumps(data)
     
-    # Create headers object for JavaScript
-    # Convert dict to list of tuples for Headers.new (expects Sequence)
-    js_headers = Headers.new(list(response_headers.items()))
-    
-    return Response.new(json_body, status=status, headers=js_headers)
+    # Use simpler Response.new pattern that works with Cloudflare Workers
+    return Response.new(json_body, {'status': status, 'headers': response_headers})
 
 
 def error_response(

@@ -55,7 +55,7 @@ router.add_route("GET", "/users/{id}/profile", handle_users)
 # Domains API
 router.add_route("GET", "/domains", handle_domains)
 router.add_route("GET", "/domains/{id}", handle_domains)
-router.add_route("GET", "/domains/{id}/issues", handle_domains)
+router.add_route("GET", "/domains/{id}/tags", handle_domains)
 
 # Organizations API
 router.add_route("GET", "/organizations", handle_organizations)
