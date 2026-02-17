@@ -336,33 +336,107 @@
         </div>
       </section>
 
-      <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div class="rounded-2xl border border-[#E5E5E5] bg-white p-8 text-center sm:p-10">
-          <h2 class="font-display text-3xl font-extrabold text-slate-900">Built by the OWASP BLT community</h2>
-          <p class="mx-auto mt-4 max-w-2xl text-slate-600">
-            This extension is open source and contribution friendly. File issues, propose improvements, and help shape the BLT contributor workflow.
-          </p>
-          <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <a class="rounded-md px-6 py-3 text-sm font-bold blt-btn-primary" href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener">
-              <i class="fa-solid fa-circle-exclamation mr-2" aria-hidden="true"></i>
-              Report an Issue
-            </a>
-            <a class="rounded-md px-6 py-3 text-sm font-bold blt-btn-outline" href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noreferrer noopener">
-              <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>
-              OWASP Project Page
-            </a>
+      <section class="bg-white py-16 sm:py-20">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="rounded-2xl border border-[#E5E5E5] bg-gradient-to-br from-slate-50 to-white p-8 shadow-card sm:p-12">
+            <div class="grid gap-8 lg:grid-cols-2">
+              <div>
+                <h2 class="font-display text-3xl font-extrabold tracking-tight text-slate-900">Open Source & Community Driven</h2>
+                <p class="mt-4 text-lg text-slate-600">
+                  BLT Extension is part of the OWASP BLT project, a community-driven initiative to make bug hunting and vulnerability disclosure more accessible.
+                </p>
+                <div class="mt-8 space-y-4">
+                  <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-code-branch mt-1 text-primary" aria-hidden="true"></i>
+                    <div>
+                      <h4 class="font-semibold text-slate-900">Contribute on GitHub</h4>
+                      <p class="text-sm text-slate-600">Fork, improve, and submit pull requests.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-bug mt-1 text-primary" aria-hidden="true"></i>
+                    <div>
+                      <h4 class="font-semibold text-slate-900">Report Issues</h4>
+                      <p class="text-sm text-slate-600">Help us improve by reporting bugs and edge cases.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-comments mt-1 text-primary" aria-hidden="true"></i>
+                    <div>
+                      <h4 class="font-semibold text-slate-900">Join the Community</h4>
+                      <p class="text-sm text-slate-600">Connect with security researchers and contributors.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col justify-center gap-4">
+                <a href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                  <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+                  <span>View on GitHub</span>
+                </a>
+                <a href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                  <i class="fa-solid fa-circle-exclamation text-xl" aria-hidden="true"></i>
+                  <span>Report an Issue</span>
+                </a>
+                <a href="https://www.owasp.org/BLT/" target="_blank" rel="noreferrer noopener" class="flex items-center justify-center gap-3 rounded-lg border-2 border-slate-300 bg-white px-6 py-4 font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                  <i class="fa-solid fa-globe text-xl" aria-hidden="true"></i>
+                  <span>Visit OWASP BLT</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="border-t border-[#E5E5E5] bg-[#fafafa]">
-      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-slate-600 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <p>© 2026 OWASP BLT Extension. MIT Licensed.</p>
-        <div class="flex flex-wrap gap-4">
-          <a class="blt-link" href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/README.md" target="_blank" rel="noreferrer noopener">Documentation</a>
-          <a class="blt-link" href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener">Support</a>
-          <a class="blt-link" href="https://www.owasp.org/BLT/" target="_blank" rel="noreferrer noopener">BLT Home</a>
+    <footer class="border-t border-[#E5E5E5] bg-slate-50 py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <img src="img/icon128.png" alt="BLT Logo" class="h-8 w-8" />
+              <span class="font-bold text-slate-900">OWASP BLT</span>
+            </div>
+            <p class="mt-4 text-sm text-slate-600">
+              Open source bug logging and vulnerability disclosure platform.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-semibold text-slate-900">Resources</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">GitHub Repository</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/releases" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">Releases</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/README.md" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">Documentation</a></li>
+              <li><a href="features.html" class="text-slate-600 transition hover:text-primary hover:underline">Features Page</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-semibold text-slate-900">OWASP BLT</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">BLT Core</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Flutter" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">BLT Flutter</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">BLT Action</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Design" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">BLT Design</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-semibold text-slate-900">Community</h4>
+            <ul class="mt-4 space-y-2 text-sm">
+              <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">OWASP Project</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">Report Issues</a></li>
+              <li><a href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/LICENSE" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">License (MIT)</a></li>
+              <li><a href="https://www.owasp.org/BLT/" target="_blank" rel="noreferrer noopener" class="text-slate-600 transition hover:text-primary hover:underline">BLT Home</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-8 border-t border-[#E5E5E5] pt-8 text-center text-sm text-slate-600">
+          <p>© 2026 OWASP BLT Project. Licensed under MIT.</p>
+          <p class="mt-2">Built by the OWASP community.</p>
         </div>
       </div>
     </footer>
