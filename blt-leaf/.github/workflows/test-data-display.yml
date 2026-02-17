@@ -1,0 +1,186 @@
+name: Test Data Display
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-setup-and-data-display:
+    name: Setup Project and Test Data Display
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Verify Wrangler installation
+        run: |
+          npx wrangler --version
+          echo "✅ Wrangler is installed and ready"
+
+      - name: Run static data display tests
+        run: |
+          echo "Running data display structure tests..."
+          node test-data-display.js
+
+      - name: Check Python syntax
+        run: |
+          echo "Checking Python syntax..."
+          python3 -m py_compile src/*.py
+          echo "✅ Python syntax valid"
+
+      - name: Start Wrangler dev server
+        run: |
+          echo "Starting Wrangler dev server in background..."
+          
+          # Set up trap to ensure cleanup on exit
+          cleanup() {
+            if [ -f wrangler.pid ]; then
+              PID=$(cat wrangler.pid)
+              kill $PID 2>/dev/null || true
+              rm wrangler.pid
+              echo "Cleanup: Server stopped"
+            fi
+          }
+          trap cleanup EXIT INT TERM
+          
+          npx wrangler dev --port 8787 > wrangler.log 2>&1 &
+          WRANGLER_PID=$!
+          echo $WRANGLER_PID > wrangler.pid
+          echo "Wrangler PID: $WRANGLER_PID"
+          
+          echo "Waiting for server to start..."
+          MAX_ATTEMPTS=60
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            if curl -s http://localhost:8787 > /dev/null 2>&1; then
+              echo "✅ Server is running on http://localhost:8787"
+              exit 0
+            fi
+            if [ $i -eq $MAX_ATTEMPTS ]; then
+              echo "❌ Server failed to start after ${MAX_ATTEMPTS} attempts"
+              echo "Wrangler logs:"
+              cat wrangler.log
+              exit 1
+            fi
+            echo "Waiting for server... attempt $i/$MAX_ATTEMPTS"
+            sleep 2
+          done
+
+      - name: Test live application endpoints
+        run: |
+          echo "Testing live application..."
+          
+          # Test that the main page loads
+          echo "Testing GET /"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8787/)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Main page failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "✅ Main page loads (HTTP 200)"
+          
+          # Test API status endpoint
+          echo "Testing GET /api/status"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8787/api/status)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ /api/status failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "✅ /api/status responds (HTTP 200)"
+          
+          # Test API repos endpoint
+          echo "Testing GET /api/repos"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8787/api/repos)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ /api/repos failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "✅ /api/repos responds (HTTP 200)"
+          
+          # Test API prs endpoint with JSON validation
+          echo "Testing GET /api/prs"
+          RESPONSE=$(curl -s http://localhost:8787/api/prs)
+          if ! echo "$RESPONSE" | jq -e '.prs' > /dev/null 2>&1; then
+            echo "❌ /api/prs does not return valid JSON with 'prs' field"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+          echo "✅ /api/prs returns valid JSON with 'prs' field"
+          
+          # Test API refresh endpoint
+          echo "Testing POST /api/refresh"
+          # First, add a test PR if none exist
+          echo "Adding test PR for refresh testing..."
+          ADD_RESPONSE=$(curl -s -X POST http://localhost:8787/api/prs \
+            -H "Content-Type: application/json" \
+            -d '{"pr_url":"https://github.com/OWASP-BLT/BLT-Leaf/pull/1"}' 2>&1 || echo '{"error":"failed"}')
+          
+          # Note: We don't validate ADD_RESPONSE as the PR might already exist, which is fine
+          
+          # Get the PR ID from the list
+          PRS_RESPONSE=$(curl -s http://localhost:8787/api/prs)
+          PR_ID=$(echo "$PRS_RESPONSE" | jq -r '.prs[0].id // empty' 2>/dev/null || echo "")
+          
+          if [ -n "$PR_ID" ] && [ "$PR_ID" != "null" ]; then
+            echo "Testing refresh with PR ID: $PR_ID"
+            REFRESH_RESPONSE=$(curl -s -X POST http://localhost:8787/api/refresh \
+              -H "Content-Type: application/json" \
+              -d "{\"pr_id\":$PR_ID}")
+            
+            # Check if response has expected success structure (data or removed)
+            # If it has an error field without data/removed, that's a failure
+            HAS_ERROR=$(echo "$REFRESH_RESPONSE" | jq -r '.error // empty' 2>/dev/null)
+            HAS_DATA=$(echo "$REFRESH_RESPONSE" | jq -e '.data // .removed' > /dev/null 2>&1 && echo "yes" || echo "no")
+            
+            if [ -n "$HAS_ERROR" ] && [ "$HAS_DATA" = "no" ]; then
+              echo "❌ /api/refresh returned error: $HAS_ERROR"
+              echo "Response: $REFRESH_RESPONSE"
+              exit 1
+            elif [ "$HAS_DATA" = "yes" ]; then
+              echo "✅ /api/refresh successfully refreshed PR data"
+            else
+              echo "❌ /api/refresh returned unexpected JSON structure"
+              echo "Response: $REFRESH_RESPONSE"
+              exit 1
+            fi
+          else
+            echo "⚠️  No PRs available to test refresh functionality (this is OK for empty database)"
+          fi
+          
+          echo ""
+          echo "✅ All live application tests passed!"
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+      - name: Stop Wrangler dev server
+        if: always()
+        run: |
+          if [ -f wrangler.pid ]; then
+            PID=$(cat wrangler.pid)
+            kill $PID 2>/dev/null || true
+            rm wrangler.pid
+            echo "✅ Server stopped"
+          fi
+
