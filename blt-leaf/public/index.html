@@ -166,10 +166,34 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
-        let sortColumn = localStorage.getItem('sortColumn') || 'ready_score';
-        let sortDirection = localStorage.getItem('sortDirection') || 'desc';
-        let secondarySortColumn = localStorage.getItem('secondarySortColumn') || null;
-        let secondarySortDirection = localStorage.getItem('secondarySortDirection') || 'desc';
+        // Support unlimited sort columns
+        // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
+        let sortColumns = [];
+        try {
+            const savedSort = localStorage.getItem('sortColumns');
+            if (savedSort) {
+                sortColumns = JSON.parse(savedSort);
+            } else {
+                // Migrate from old single/dual column format
+                const oldPrimary = localStorage.getItem('sortColumn') || 'ready_score';
+                const oldPrimaryDir = localStorage.getItem('sortDirection') || 'desc';
+                sortColumns.push({column: oldPrimary, direction: oldPrimaryDir});
+                
+                const oldSecondary = localStorage.getItem('secondarySortColumn');
+                if (oldSecondary) {
+                    const oldSecondaryDir = localStorage.getItem('secondarySortDirection') || 'desc';
+                    sortColumns.push({column: oldSecondary, direction: oldSecondaryDir});
+                }
+            }
+        } catch (e) {
+            // Fallback to default
+            sortColumns = [{column: 'ready_score', direction: 'desc'}];
+        }
+        
+        // Ensure at least one sort column exists
+        if (sortColumns.length === 0) {
+            sortColumns = [{column: 'ready_score', direction: 'desc'}];
+        }
         let currentPage = 1;
         let totalPages = 1;
         const perPage = 30;
@@ -380,38 +404,38 @@
         }
 
         function sortPrs(column, isShiftClick = false) {
-            // Shift+click adds secondary sort column
             if (isShiftClick) {
-                // If clicking the same column as primary, do nothing
-                if (column === sortColumn) {
-                    return;
-                }
+                // Shift+click adds or modifies additional sort columns
+                const existingIndex = sortColumns.findIndex(sc => sc.column === column);
                 
-                // If clicking the current secondary column, toggle its direction
-                if (secondarySortColumn === column) {
-                    secondarySortDirection = secondarySortDirection === 'asc' ? 'desc' : 'asc';
+                if (existingIndex >= 0) {
+                    // Column already in sort list - toggle its direction
+                    sortColumns[existingIndex].direction = 
+                        sortColumns[existingIndex].direction === 'asc' ? 'desc' : 'asc';
                 } else {
-                    // Set new secondary sort column
-                    secondarySortColumn = column;
-                    secondarySortDirection = 'desc';
+                    // Add new sort column
+                    sortColumns.push({column: column, direction: 'desc'});
                 }
-                
-                // Save secondary sorting state to localStorage
-                localStorage.setItem('secondarySortColumn', secondarySortColumn);
-                localStorage.setItem('secondarySortDirection', secondarySortDirection);
             } else {
-                // Regular click - set as primary sort
-                if (sortColumn === column) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortDirection = 'desc';
-                }
+                // Regular click - set as primary sort (first position)
+                const existingIndex = sortColumns.findIndex(sc => sc.column === column);
                 
-                // Save primary sorting state to localStorage
-                localStorage.setItem('sortColumn', sortColumn);
-                localStorage.setItem('sortDirection', sortDirection);
+                if (existingIndex === 0) {
+                    // Already primary sort - toggle direction
+                    sortColumns[0].direction = sortColumns[0].direction === 'asc' ? 'desc' : 'asc';
+                } else if (existingIndex > 0) {
+                    // Move to primary and toggle direction
+                    const existing = sortColumns.splice(existingIndex, 1)[0];
+                    existing.direction = existing.direction === 'asc' ? 'desc' : 'asc';
+                    sortColumns.unshift(existing);
+                } else {
+                    // New primary sort column
+                    sortColumns.unshift({column: column, direction: 'desc'});
+                }
             }
+            
+            // Save sorting state to localStorage
+            localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
             
             // Reset to first page when sorting changes
             currentPage = 1;
@@ -582,14 +606,9 @@
             }
 
             try {
-                // Build sort parameters - support multiple columns
-                let sortByParam = sortColumn;
-                let sortDirParam = sortDirection;
-                
-                if (secondarySortColumn) {
-                    sortByParam += ',' + secondarySortColumn;
-                    sortDirParam += ',' + secondarySortDirection;
-                }
+                // Build sort parameters from sortColumns array
+                let sortByParam = sortColumns.map(sc => sc.column).join(',');
+                let sortDirParam = sortColumns.map(sc => sc.direction).join(',');
                 
                 // Build URL with pagination and sorting parameters
                 let url;
@@ -650,12 +669,13 @@
                 
                 // Only apply client-side sorting for computed columns (issues_count)
                 // All other columns are already sorted by the backend
-                if (sortColumn === 'issues_count') {
+                if (sortColumns.length > 0 && sortColumns[0].column === 'issues_count') {
+                    const primaryDirection = sortColumns[0].direction;
                     allPrs.sort((a, b) => {
                         let aVal = Number(a.issues_count) || 0;
                         let bVal = Number(b.issues_count) || 0;
                         
-                        if (sortDirection === 'asc') {
+                        if (primaryDirection === 'asc') {
                             return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
                         } else {
                             return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
@@ -882,23 +902,31 @@
             }
 
             const getSortIcon = (column) => {
-                const isPrimary = sortColumn === column;
-                const isSecondary = secondarySortColumn === column;
+                // Find the column in the sort columns array
+                const sortIndex = sortColumns.findIndex(sc => sc.column === column);
                 
-                if (isPrimary) {
-                    const primaryIcon = sortDirection === 'asc' 
-                        ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
-                        : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
-                    return primaryIcon;
+                if (sortIndex >= 0) {
+                    const sortCol = sortColumns[sortIndex];
+                    const direction = sortCol.direction;
+                    const isPrimary = sortIndex === 0;
+                    
+                    if (isPrimary) {
+                        // Primary sort - red color, normal size
+                        const icon = direction === 'asc' 
+                            ? '<i class="fas fa-sort-up text-[#BC0000] dark:text-red-400 ml-1"></i>'
+                            : '<i class="fas fa-sort-down text-[#BC0000] dark:text-red-400 ml-1"></i>';
+                        return icon;
+                    } else {
+                        // Secondary or tertiary sort - gray color, smaller size with number
+                        const number = sortIndex + 1; // 1-indexed for display
+                        const icon = direction === 'asc'
+                            ? '<i class="fas fa-sort-up text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>'
+                            : '<i class="fas fa-sort-down text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>';
+                        return `<sup class="text-xs text-slate-500 dark:text-slate-400">${number}</sup>${icon}`;
+                    }
                 }
                 
-                if (isSecondary) {
-                    const secondaryIcon = secondarySortDirection === 'asc'
-                        ? '<i class="fas fa-sort-up text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>'
-                        : '<i class="fas fa-sort-down text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>';
-                    return '<sup class="text-xs text-slate-500 dark:text-slate-400">2</sup>' + secondaryIcon;
-                }
-                
+                // Not in sort list
                 return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
             };
 
@@ -907,51 +935,52 @@
                     <table class="w-full text-left text-sm" style="min-width: 1820px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="title" style="min-width: 200px;" title="Click to sort by PR Title. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="title" style="min-width: 200px;" title="Click to sort by PR Title. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="repo_owner" style="min-width: 140px;" title="Click to sort by Repository. Shift+Click to set as secondary sort.&#10;Stored in database (extracted from PR URL when added)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="repo_owner" style="min-width: 140px;" title="Click to sort by Repository. Shift+Click to add to sort columns.&#10;Stored in database (extracted from PR URL when added)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="commits_count" style="min-width: 70px;" title="Click to sort by Commits. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="commits_count" style="min-width: 70px;" title="Click to sort by Commits. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Commits</span> ${getSortIcon('commits_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Behind</span> ${getSortIcon('behind_by')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="checks_passed" style="min-width: 90px;" title="Click to sort by Checks. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="checks_passed" style="min-width: 90px;" title="Click to sort by Checks. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 70px;" title="Click to sort by Ready. Shift+Click to add to sort columns.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="open_conversations_count" style="min-width: 70px;" title="Click to sort by Conversations. Shift+Click to set as secondary sort.&#10;Open (unresolved) review conversations - Fetched via GraphQL API reviewThreads">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Convos</span> ${getSortIcon('open_conversations_count')}
@@ -962,32 +991,32 @@
                                         <span class="truncate">Ready</span> ${getSortIcon('ready_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to set as secondary sort.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to add to sort columns.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">CI</span> ${getSortIcon('ci_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to set as secondary sort.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to add to sort columns.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Review</span> ${getSortIcon('review_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to set as secondary sort.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to add to sort columns.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Response</span> ${getSortIcon('response_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to set as secondary sort.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
+                                <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to add to sort columns.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
                                     <div class="flex items-center justify-center gap-1 truncate">
                                         <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to set as secondary sort.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to add to sort columns.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to set as secondary sort.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
