@@ -10,6 +10,12 @@
 
     <!-- Initialize theme early to prevent flash -->
     <script>
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        };
+
         (function () {
             const savedTheme = localStorage.getItem('theme');
             const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
