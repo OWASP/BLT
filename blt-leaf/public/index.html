@@ -723,6 +723,11 @@
                     }
                     // Update repo counts after removals
                     await loadRepos();
+                    
+                    // Check if all PRs were removed and render empty state if needed
+                    if (allPrs.length === 0) {
+                        renderPrList(allPrs);
+                    }
                 }
                 
                 // Reload if there are changes (not removals, as those are already handled)
