@@ -66,13 +66,28 @@ async def on_fetch(request, env):
         if request.method == 'GET':
             repo = url.searchParams.get('repo')
             page = url.searchParams.get('page')
+            per_page_param = url.searchParams.get('per_page')
             sort_by = url.searchParams.get('sort_by')
             sort_dir = url.searchParams.get('sort_dir')
+            
+            # Parse and validate per_page parameter
+            per_page = 30  # default
+            if per_page_param:
+                try:
+                    per_page = int(per_page_param)
+                    # Validate per_page is in allowed range (10-100)
+                    if per_page < 10:
+                        per_page = 10
+                    elif per_page > 100:
+                        per_page = 100
+                except (ValueError, TypeError):
+                    per_page = 30
+            
             response = await handle_list_prs(
                 env,
                 repo,
                 page if page else 1,
-                30,
+                per_page,
                 sort_by,
                 sort_dir
             )
