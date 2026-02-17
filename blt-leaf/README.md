@@ -162,15 +162,20 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
 
 ### Continuous Integration
 
-The project includes GitHub Actions workflows that automatically run on push and pull requests:
+The project includes a comprehensive GitHub Actions workflow that automatically runs on push and pull requests:
 
 **Test Data Display Workflow** (`.github/workflows/test-data-display.yml`):
-- Runs on every push and pull request
+- Runs on every push to main and pull request
 - Sets up Node.js and installs dependencies
+- Runs linting and format checks
 - Verifies all required source files and configurations exist
 - Runs comprehensive data display tests (48+ automated checks)
 - Validates HTML structure, API endpoints, and database schema
 - Checks Python syntax for all source files
+- **Starts live Wrangler dev server** and tests against running application
+- **Tests all API endpoints** including refresh functionality
+- **Validates refresh button** works correctly to update PR data
+- Performs security audit of dependencies
 
 The workflow ensures that:
 - The project setup is correct and complete
@@ -178,6 +183,8 @@ The workflow ensures that:
 - API endpoints are defined and routed correctly
 - Frontend can successfully fetch and display data
 - Database schema includes all required fields
+- **Refresh functionality works to update PR data from GitHub**
+- Code meets quality and security standards
 
 To run the same checks locally:
 ```bash

@@ -131,9 +131,12 @@ jobs:
           # Test API refresh endpoint
           echo "Testing POST /api/refresh"
           # First, add a test PR if none exist
+          echo "Adding test PR for refresh testing..."
           ADD_RESPONSE=$(curl -s -X POST http://localhost:8787/api/prs \
             -H "Content-Type: application/json" \
             -d '{"pr_url":"https://github.com/OWASP-BLT/BLT-Leaf/pull/1"}' 2>&1 || echo '{"error":"failed"}')
+          
+          # Note: We don't validate ADD_RESPONSE as the PR might already exist, which is fine
           
           # Get the PR ID from the list
           PRS_RESPONSE=$(curl -s http://localhost:8787/api/prs)
@@ -145,10 +148,19 @@ jobs:
               -H "Content-Type: application/json" \
               -d "{\"pr_id\":$PR_ID}")
             
-            if echo "$REFRESH_RESPONSE" | jq -e '.data // .error // .removed' > /dev/null 2>&1; then
-              echo "✅ /api/refresh returns valid JSON response"
+            # Check if response has expected success structure (data or removed)
+            # If it has an error field without data/removed, that's a failure
+            HAS_ERROR=$(echo "$REFRESH_RESPONSE" | jq -r '.error // empty' 2>/dev/null)
+            HAS_DATA=$(echo "$REFRESH_RESPONSE" | jq -e '.data // .removed' > /dev/null 2>&1 && echo "yes" || echo "no")
+            
+            if [ -n "$HAS_ERROR" ] && [ "$HAS_DATA" = "no" ]; then
+              echo "❌ /api/refresh returned error: $HAS_ERROR"
+              echo "Response: $REFRESH_RESPONSE"
+              exit 1
+            elif [ "$HAS_DATA" = "yes" ]; then
+              echo "✅ /api/refresh successfully refreshed PR data"
             else
-              echo "❌ /api/refresh does not return expected JSON structure"
+              echo "❌ /api/refresh returned unexpected JSON structure"
               echo "Response: $REFRESH_RESPONSE"
               exit 1
             fi
