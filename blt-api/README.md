@@ -28,7 +28,8 @@ BLT-API is a high-performance, edge-deployed REST API that interfaces with all a
 
 - 🚀 **Edge-deployed** - Runs on Cloudflare's global network for low latency
 - 🐍 **Python-powered** - Built with Python for Cloudflare Workers
-- 🔒 **Secure** - CORS enabled, authentication support
+- �️ **D1 Database** - Uses Cloudflare D1 (SQLite) for data persistence
+- �🔒 **Secure** - CORS enabled, authentication support
 - 📊 **Full API Coverage** - Access to issues, users, domains, organizations, projects, hunts, and more
 - 📖 **Well-documented** - Comprehensive API documentation
 - ⚡ **Fast** - Optimized for quick cold starts and efficient execution
@@ -59,11 +60,17 @@ uv tool install workers-py
 ### Local Development
 
 ```bash
+# Setup local database
+wrangler d1 migrations apply blt-api --local
+wrangler d1 execute blt-api --local --file=test_data.sql
+
 # Start the development server
-uv run pywrangler dev
+wrangler dev --port 8787
 
 # The API will be available at http://localhost:8787
 ```
+
+For detailed setup instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Running Tests
 
@@ -113,7 +120,9 @@ uv run pytest
 |--------|----------|-------------|
 | GET | `/domains` | List all domains (paginated) |
 | GET | `/domains/{id}` | Get a specific domain |
-| GET | `/domains/{id}/issues` | Get issues for a domain |
+| GET | `/domains/{id}/tags` | Get tags for a domain |
+
+**Note:** Domain endpoints use Cloudflare D1 database. See [docs/MIGRATIONS.md](docs/MIGRATIONS.md) for database details.
 
 ### Organizations
 
@@ -203,6 +212,37 @@ All API responses follow a consistent JSON format:
 }
 ```
 
+## Database
+
+This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints query the D1 database directly, while others proxy to the BLT backend API.
+
+### D1-Integrated Endpoints
+
+- `/domains` - Domain data stored in D1
+- `/domains/{id}/tags` - Domain tags from D1
+
+### Database Setup
+
+```bash
+# Apply migrations locally
+wrangler d1 migrations apply blt-api --local
+
+# Load test data
+wrangler d1 execute blt-api --local --file=test_data.sql
+```
+
+### Working with Migrations
+
+```bash
+# Create new migration
+wrangler d1 migrations create blt-api <description>
+
+# Apply to production
+wrangler d1 migrations apply blt-api --remote
+```
+
+See [docs/MIGRATIONS.md](docs/MIGRATIONS.md) for complete database documentation.
+
 ## Development
 
 ### Project Structure
@@ -215,11 +255,13 @@ BLT-API/
 │   ├── router.py           # URL routing
 │   ├── utils.py            # Utility functions
 │   ├── client.py           # BLT backend HTTP client
+│   ├── libs/               # Library modules
+│   │   └── db.py           # Database helpers
 │   └── handlers/           # Request handlers
 │       ├── __init__.py
 │       ├── issues.py
 │       ├── users.py
-│       ├── domains.py
+│       ├── domains.py      # D1-integrated
 │       ├── organizations.py
 │       ├── projects.py
 │       ├── hunts.py
@@ -228,9 +270,15 @@ BLT-API/
 │       ├── contributors.py
 │       ├── repos.py
 │       └── health.py
+├── migrations/             # D1 database migrations
+│   └── 0001_init.sql
+├── docs/                   # Documentation
+│   └── MIGRATIONS.md
 ├── tests/                  # Test files
+├── test_data.sql           # Sample data for development
 ├── wrangler.toml           # Cloudflare Workers config
 ├── pyproject.toml          # Python project config
+├── CONTRIBUTING.md         # Contribution guide
 └── README.md
 ```
 
@@ -257,18 +305,21 @@ Configure these in `wrangler.toml`:
 # Login to Cloudflare
 wrangler login
 
+# Apply database migrations to production
+wrangler d1 migrations apply blt-api --remote
+
 # Deploy to production
-uv run pywrangler deploy
+wrangler deploy
 ```
 
 ### Environment-specific Deployment
 
 ```bash
 # Deploy to development
-uv run pywrangler deploy --env development
+wrangler deploy --env development
 
 # Deploy to production
-uv run pywrangler deploy --env production
+wrangler deploy --env production
 ```
 
 ## Authentication
@@ -288,11 +339,17 @@ The API follows Cloudflare Workers' execution limits:
 
 ## Contributing
 
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions and development guidelines.
+
+Quick start:
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `uv run pytest`
-5. Submit a pull request
+2. Setup local environment (see CONTRIBUTING.md)
+3. Create a feature branch
+4. Make your changes
+5. Test locally with `wrangler dev`
+6. Submit a pull request
+
+For database changes, see [docs/MIGRATIONS.md](docs/MIGRATIONS.md).
 
 ## Related Projects
 
