@@ -1,0 +1,68 @@
+# When a PR is opened with a job URL in the body or in job-url.txt, scrape the URL and add _jobs/<slug>.md to the PR.
+name: Quick add job from URL
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  scrape-and-add:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Get job URL from PR body or file
+        id: url
+        run: |
+          if [ -f "job-url.txt" ]; then
+            echo "url=$(head -1 job-url.txt | tr -d ' \r\n')" >> "$GITHUB_OUTPUT"
+            echo "Found URL in job-url.txt"
+          else
+            BODY="${{ github.event.pull_request.body }}"
+            # Extract first http(s) URL from PR body (e.g. from template code block)
+            EXTRACTED=$(echo "$BODY" | grep -oE 'https?://[^)`"\s]+' | head -1)
+            if [ -n "$EXTRACTED" ]; then
+              echo "url=$EXTRACTED" >> "$GITHUB_OUTPUT"
+              echo "Found URL in PR body"
+            else
+              echo "url=" >> "$GITHUB_OUTPUT"
+              echo "No URL found"
+            fi
+          fi
+
+      - name: Setup Python
+        if: steps.url.outputs.url != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        if: steps.url.outputs.url != ''
+        run: pip install -r scripts/requirements-scrape.txt
+
+      - name: Scrape URL and create job file
+        if: steps.url.outputs.url != ''
+        id: scrape
+        run: |
+          OUTPUT=$(python3 scripts/scrape-job-url.py "${{ steps.url.outputs.url }}")
+          echo "path=$OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "Created $OUTPUT"
+
+      - name: Commit and push new job file
+        if: steps.url.outputs.url != '' && steps.scrape.outputs.path != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.scrape.outputs.path }}"
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: add job from URL (quick add)"
+            git push
+          fi
