@@ -3,6 +3,8 @@ name: Test Data Display
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +27,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
 
       - name: Verify Wrangler installation
         run: |
@@ -120,8 +128,39 @@ jobs:
           fi
           echo "✅ /api/prs returns valid JSON with 'prs' field"
           
+          # Test API refresh endpoint
+          echo "Testing POST /api/refresh"
+          # First, add a test PR if none exist
+          ADD_RESPONSE=$(curl -s -X POST http://localhost:8787/api/prs \
+            -H "Content-Type: application/json" \
+            -d '{"pr_url":"https://github.com/OWASP-BLT/BLT-Leaf/pull/1"}' 2>&1 || echo '{"error":"failed"}')
+          
+          # Get the PR ID from the list
+          PRS_RESPONSE=$(curl -s http://localhost:8787/api/prs)
+          PR_ID=$(echo "$PRS_RESPONSE" | jq -r '.prs[0].id // empty' 2>/dev/null || echo "")
+          
+          if [ -n "$PR_ID" ] && [ "$PR_ID" != "null" ]; then
+            echo "Testing refresh with PR ID: $PR_ID"
+            REFRESH_RESPONSE=$(curl -s -X POST http://localhost:8787/api/refresh \
+              -H "Content-Type: application/json" \
+              -d "{\"pr_id\":$PR_ID}")
+            
+            if echo "$REFRESH_RESPONSE" | jq -e '.data // .error // .removed' > /dev/null 2>&1; then
+              echo "✅ /api/refresh returns valid JSON response"
+            else
+              echo "❌ /api/refresh does not return expected JSON structure"
+              echo "Response: $REFRESH_RESPONSE"
+              exit 1
+            fi
+          else
+            echo "⚠️  No PRs available to test refresh functionality (this is OK for empty database)"
+          fi
+          
           echo ""
           echo "✅ All live application tests passed!"
+
+      - name: Security audit
+        run: npm audit --audit-level=high
 
       - name: Stop Wrangler dev server
         if: always()
