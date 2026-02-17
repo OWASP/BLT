@@ -1715,8 +1715,10 @@
         // Mobile autocomplete repo search functionality
         const repoSearchInput = document.getElementById('repoSearchInput');
         if (repoSearchInput) {
-            // Shared function for repository selection
-            function selectRepoFromInput(value, clearInput = false) {
+            // Handle change event (when user selects from datalist)
+            repoSearchInput.addEventListener('change', (e) => {
+                const value = e.target.value;
+                
                 // Check if the value matches "All Repositories"
                 if (value === 'All Repositories') {
                     currentRepo = 'all';
@@ -1724,8 +1726,8 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
-                    if (clearInput) repoSearchInput.value = '';
-                    return true;
+                    e.target.value = ''; // Clear the input
+                    return;
                 }
                 
                 // Check if the value matches any repository
@@ -1736,21 +1738,8 @@
                     localStorage.setItem('currentRepo', currentRepo);
                     updateMobileRepoDisplay();
                     loadPrs();
-                    if (clearInput) repoSearchInput.value = '';
-                    return true;
+                    e.target.value = ''; // Clear the input
                 }
-                
-                return false;
-            }
-            
-            // Handle input event (for autocomplete suggestions)
-            repoSearchInput.addEventListener('input', (e) => {
-                selectRepoFromInput(e.target.value);
-            });
-
-            // Handle change event (when user selects from datalist)
-            repoSearchInput.addEventListener('change', (e) => {
-                selectRepoFromInput(e.target.value, true);
             });
         }
 
