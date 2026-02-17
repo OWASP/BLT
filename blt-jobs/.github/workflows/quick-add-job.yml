@@ -1,4 +1,4 @@
-# When a PR is opened with a job URL in the body or in job-url.txt, scrape the URL and add _jobs/<slug>.md to the PR.
+# When a PR is opened with a job URL in the body or in job-url.txt, scrape the URL and add jobs/<slug>.md to the PR.
 name: Quick add job from URL
 
 on:

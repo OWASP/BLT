@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch a job URL, extract title/description/company, and write _jobs/company-slug-job-title-slug.md.
+Fetch a job URL, extract title/description/company, and write jobs/company-slug-job-title-slug.md.
 Used by the quick-add GitHub Action.
 """
 import re
@@ -16,7 +16,7 @@ except ImportError:
     print("pip install requests beautifulsoup4", file=sys.stderr)
     sys.exit(1)
 
-JOBS_DIR = Path(__file__).resolve().parent.parent / "_jobs"
+JOBS_DIR = Path(__file__).resolve().parent.parent / "jobs"
 
 
 def slugify(s: str) -> str:

@@ -6,7 +6,7 @@ Standalone job board for OWASP BLT, hosted on **GitHub Pages**. Read-only list a
 
 - **[Add a job](add.html)** – Use **Quick add** (recommended) or **Manual add**.
   - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot (GitHub Action + scraper) will create a new job Markdown file in the repo for you. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
-  - **Manual add:** Create a new file under `_jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](_jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
+  - **Manual add:** Create a new file under `jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
 
 ### Adding a seeker profile
 
@@ -17,7 +17,7 @@ Standalone job board for OWASP BLT, hosted on **GitHub Pages**. Read-only list a
 
 ## Data
 
-Jobs are stored as **one Markdown file per job** in `_jobs/`, with YAML frontmatter and a body (description). Filename format: `company-slug-job-title-slug.md`. The file `data/jobs.json` is **generated** from `_jobs/*.md` by a build step (`npm run build:jobs`); a GitHub Action runs this on push to `main` so the site always has an up-to-date `data/jobs.json`.
+Jobs are stored as **one Markdown file per job** in `jobs/`, with YAML frontmatter and a body (description). Filename format: `company-slug-job-title-slug.md`. The file `data/jobs.json` is **generated** from `jobs/*.md` by a build step (`npm run build:jobs`); a GitHub Action runs this on push to `main` so the site always has an up-to-date `data/jobs.json`.
 
 Seeker profiles are stored as **one Markdown file per person** in `seekers/`. The build step also generates `data/seekers.json` from `seekers/*.md` for the seekers page.
 
@@ -100,12 +100,12 @@ Then open:
 
 Note: `fetch("data/jobs.json")` requires running over HTTP/HTTPS; opening `index.html` directly from the filesystem (`file://`) will not work.
 
-### Build jobs JSON from Markdown (local)
+### Build data from Markdown (local)
 
 ```bash
 npm ci
 npm run build:jobs
 ```
 
-This reads all `_jobs/*.md` and writes `data/jobs.json`. The same script runs in CI on push to `main` when `_jobs/` or the build script changes.
+This reads all `jobs/*.md` and `seekers/*.md` and writes `data/jobs.json` and `data/seekers.json`. The same script runs in CI on push to `main` when those folders or the build script change.
 

@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const matter = require("gray-matter");
 
-const JOBS_DIR = path.join(__dirname, "..", "_jobs");
+const JOBS_DIR = path.join(__dirname, "..", "jobs");
 const OUT_FILE = path.join(__dirname, "..", "data", "jobs.json");
 const SEEKERS_DIR = path.join(__dirname, "..", "seekers");
 const SEEKERS_OUT_FILE = path.join(__dirname, "..", "data", "seekers.json");

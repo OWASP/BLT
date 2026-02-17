@@ -1,4 +1,4 @@
-# Build data/jobs.json from _jobs/*.md on push to main and on PRs.
+# Build data/jobs.json (from jobs/*.md) and data/seekers.json (from seekers/*.md) on push to main and on PRs.
 # If running on main and data/jobs.json changed, commit it back (with [skip ci]).
 name: Build jobs
 
@@ -6,14 +6,15 @@ on:
   push:
     branches: [main]
     paths:
-      - "_jobs/**"
+      - "jobs/**"
       - "scripts/build-jobs.js"
       - "package.json"
       - "package-lock.json"
   pull_request:
     branches: [main]
     paths:
-      - "_jobs/**"
+      - "jobs/**"
+      - "seekers/**"
       - "scripts/build-jobs.js"
       - "package.json"
       - "package-lock.json"
@@ -42,7 +43,7 @@ jobs:
           if [ -n "$(git status --porcelain data/jobs.json)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add data/jobs.json
-            git commit -m "chore: regenerate data/jobs.json from _jobs [skip ci]"
+            git add data/jobs.json data/seekers.json
+            git commit -m "chore: regenerate data JSON from markdown [skip ci]"
             git push
           fi
