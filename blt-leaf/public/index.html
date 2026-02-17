@@ -721,10 +721,12 @@
                     for (const prId of removedPrIds) {
                         await removePrWithAnimation(prId);
                     }
+                    // Update repo counts after removals
+                    await loadRepos();
                 }
                 
-                // Reload if there are changes or removals
-                if (changedPrIds.length > 0 || removedPrIds.length > 0) {
+                // Reload if there are changes (not removals, as those are already handled)
+                if (changedPrIds.length > 0) {
                     console.log('PR updates detected, refreshing...');
                     await loadPrs();
                     await loadRepos(); // Update repo counts
