@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OWASP BLT Extension | Features</title>
+    <meta
+      name="description"
+      content="Explore all OWASP BLT Extension features: screenshot capture, trademark scanning, job tracking, and GitHub PR utilities."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Manrope", "system-ui", "sans-serif"],
+              display: ["Sora", "system-ui", "sans-serif"],
+            },
+            colors: {
+              primary: "#E10101",
+            },
+            boxShadow: {
+              card: "0 12px 30px rgba(17, 24, 39, 0.08)",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Sora:wght@600;700;800&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+      :root {
+        --blt-primary: #E10101;
+        --blt-neutral-border: #E5E5E5;
+        --blt-dark-base: #111827;
+        --blt-dark-surface: #1F2937;
+      }
+
+      .hero-bg {
+        background-image: radial-gradient(circle at 12% 12%, rgba(225, 1, 1, 0.13) 0, transparent 38%),
+          radial-gradient(circle at 88% 16%, rgba(225, 1, 1, 0.1) 0, transparent 35%),
+          linear-gradient(180deg, #ffffff 0%, #fff9f9 50%, #ffffff 100%);
+      }
+
+      .blt-btn-primary {
+        background-color: var(--blt-primary);
+        color: #ffffff;
+        transition: 0.2s ease;
+      }
+
+      .blt-btn-primary:hover {
+        background-color: rgb(185 28 28);
+      }
+
+      .blt-btn-outline {
+        border: 1px solid var(--blt-primary);
+        color: var(--blt-primary);
+        background-color: #ffffff;
+        transition: 0.2s ease;
+      }
+
+      .blt-btn-outline:hover {
+        background-color: var(--blt-primary);
+        color: #ffffff;
+      }
+
+      .blt-link {
+        color: rgb(220 38 38);
+      }
+
+      .blt-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body class="bg-[#fcfcfc] text-slate-900 antialiased">
+    <header class="sticky top-0 z-50 border-b border-[#E5E5E5] bg-white/95 backdrop-blur">
+      <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+        <a href="index.html" class="flex items-center gap-3">
+          <img src="img/icon128.png" alt="OWASP BLT Extension logo" class="h-9 w-9" />
+          <div>
+            <p class="font-display text-sm font-bold tracking-tight">OWASP BLT Extension</p>
+            <p class="text-xs text-slate-500">Extension capabilities</p>
+          </div>
+        </a>
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="rounded-md px-4 py-2 text-sm font-semibold blt-btn-outline">Home</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Extension/releases/latest" target="_blank" rel="noreferrer noopener" class="rounded-md px-4 py-2 text-sm font-semibold blt-btn-primary">Install</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero-bg border-b border-[#E5E5E5]">
+        <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
+          <p class="text-sm font-bold uppercase tracking-wider text-primary">BLT Feature Overview</p>
+          <h1 class="mt-3 max-w-4xl font-display text-4xl font-extrabold leading-tight sm:text-5xl">
+            Everything BLT Extension can do
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+            Explore the complete feature set by workflow so teams can quickly understand capabilities, usage, and implementation surfaces.
+          </p>
+
+          <div class="mt-8 grid gap-4 rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:grid-cols-[200px_1fr]">
+            <nav aria-label="Feature groups" class="rounded-lg border border-[#E5E5E5] bg-[#fafafa] p-2">
+              <p class="px-2 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Capture</p>
+              <a href="#capture" class="mb-1 flex items-center gap-2 rounded-md bg-[#feeae9] px-2.5 py-2 text-xs font-bold text-primary">
+                <i class="fa-solid fa-camera" aria-hidden="true"></i>Screenshot Tools
+              </a>
+              <p class="px-2 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Analyze</p>
+              <a href="#scan" class="mb-1 flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-gavel" aria-hidden="true"></i>Trademark Scanner
+              </a>
+              <p class="px-2 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Track</p>
+              <a href="#jobs" class="mb-1 flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-briefcase" aria-hidden="true"></i>Job Tracker
+              </a>
+              <a href="#github" class="flex items-center gap-2 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                <i class="fa-brands fa-github" aria-hidden="true"></i>PR Assistant
+              </a>
+            </nav>
+
+            <div>
+              <label for="feature-search" class="mb-2 block text-sm font-semibold text-slate-700">Quick search (UI preview)</label>
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" aria-hidden="true"></i>
+                <input
+                  id="feature-search"
+                  type="text"
+                  placeholder="Search features: screenshot, jobs, trademark"
+                  class="w-full rounded-md border border-gray-400 px-4 py-2 pl-9 text-sm text-slate-700 focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                />
+              </div>
+              <p class="mt-3 text-sm text-slate-600">
+                Need full context? Read the
+                <a class="blt-link font-semibold" href="https://github.com/OWASP-BLT/BLT-Extension/blob/main/README.md" target="_blank" rel="noreferrer noopener">README</a>
+                and check linked files in each section below.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="grid gap-6 md:grid-cols-2">
+          <article id="capture" class="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-card">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-bold">Screenshot Capture + Annotation</h2>
+                <p class="mt-2 text-sm text-slate-600">Capture visible or selected areas, annotate, and upload/share evidence for bug reporting workflows.</p>
+              </div>
+              <i class="fa-solid fa-camera-retro text-2xl text-primary" aria-hidden="true"></i>
+            </div>
+            <ul class="mt-4 space-y-2 text-sm text-slate-700">
+              <li>Toolbar editing tools: pencil, line, arrow, rectangle, marker, text, color, undo.</li>
+              <li>Upload and sharing actions integrated in screenshot flow.</li>
+              <li>Primary files: <code>content.js</code>, <code>event.js</code>, <code>screenshot.html</code>.</li>
+            </ul>
+          </article>
+
+          <article id="scan" class="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-card">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-bold">Trademark Scanner</h2>
+                <p class="mt-2 text-sm text-slate-600">Scans page keywords, queries BLT trademark API, and highlights risky terms inline.</p>
+              </div>
+              <i class="fa-solid fa-gavel text-2xl text-primary" aria-hidden="true"></i>
+            </div>
+            <ul class="mt-4 space-y-2 text-sm text-slate-700">
+              <li>Runs from popup action and page message listener.</li>
+              <li>Highlights terms with visible marked style in content.</li>
+              <li>Primary files: <code>trademark-scanner.js</code>, <code>background.js</code>.</li>
+            </ul>
+          </article>
+
+          <article id="jobs" class="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-card">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-bold">Job Monitoring + Dashboard</h2>
+                <p class="mt-2 text-sm text-slate-600">Tracks applications on LinkedIn and Wellfound, stores entries, and manages them in a dashboard.</p>
+              </div>
+              <i class="fa-solid fa-briefcase text-2xl text-primary" aria-hidden="true"></i>
+            </div>
+            <ul class="mt-4 space-y-2 text-sm text-slate-700">
+              <li>Auto-capture application metadata with MutationObserver-based hooks.</li>
+              <li>Status updates, pagination, and CSV export included.</li>
+              <li>Primary files: <code>linkedin-monitor.js</code>, <code>wellfound-monitor.js</code>, <code>jobtracking.html</code>, <code>jobtracking.js</code>.</li>
+            </ul>
+          </article>
+
+          <article id="github" class="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-card">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-bold">GitHub PR Assistant</h2>
+                <p class="mt-2 text-sm text-slate-600">Adds floating navigation buttons on PR pages for faster review and branch-update navigation.</p>
+              </div>
+              <i class="fa-brands fa-github text-2xl text-primary" aria-hidden="true"></i>
+            </div>
+            <ul class="mt-4 space-y-2 text-sm text-slate-700">
+              <li>PR page helper UI with discoverable quick actions.</li>
+              <li>Targets update branch and review navigation points.</li>
+              <li>Primary file: <code>github-pr-button.js</code>.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="border-y border-[#E5E5E5] bg-[#fff9f9] py-16">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 class="font-display text-3xl font-extrabold text-slate-900">Feature matrix</h2>
+          <div class="mt-6 overflow-x-auto rounded-xl border border-[#E5E5E5] bg-white">
+            <table class="min-w-full text-left text-sm">
+              <thead class="border-b border-[#E5E5E5] bg-slate-50 text-slate-700">
+                <tr>
+                  <th class="px-4 py-3 font-bold">Capability</th>
+                  <th class="px-4 py-3 font-bold">User value</th>
+                  <th class="px-4 py-3 font-bold">Where it runs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E5E5]">
+                <tr>
+                  <td class="px-4 py-3">Screenshot + editor</td>
+                  <td class="px-4 py-3">Faster, clearer bug evidence</td>
+                  <td class="px-4 py-3">Popup + content scripts</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3">Trademark scan</td>
+                  <td class="px-4 py-3">Avoid risky wording</td>
+                  <td class="px-4 py-3">All pages via content script</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3">LinkedIn/Wellfound tracking</td>
+                  <td class="px-4 py-3">Automatic application log</td>
+                  <td class="px-4 py-3">Job platform pages</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3">Job dashboard + CSV export</td>
+                  <td class="px-4 py-3">Manage and share progress</td>
+                  <td class="px-4 py-3">Internal extension page</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3">GitHub PR quick actions</td>
+                  <td class="px-4 py-3">Reduced review friction</td>
+                  <td class="px-4 py-3">GitHub pull request pages</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
+        <h2 class="font-display text-3xl font-extrabold text-slate-900">Built for fast onboarding and daily usage</h2>
+        <p class="mx-auto mt-4 max-w-2xl text-slate-600">
+          BLT Extension keeps critical capture, tracking, scanning, and review utilities in one browser-native workflow.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="index.html" class="rounded-md px-6 py-3 text-sm font-bold blt-btn-outline">Back to Landing</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener" class="rounded-md px-6 py-3 text-sm font-bold blt-btn-primary">View Repository</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-[#E5E5E5] bg-[#fafafa]">
+      <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-8 text-sm text-slate-600 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <p>© 2026 OWASP BLT Extension. MIT Licensed.</p>
+        <div class="flex flex-wrap gap-4">
+          <a class="blt-link" href="https://github.com/OWASP-BLT/BLT-Extension" target="_blank" rel="noreferrer noopener">Repository</a>
+          <a class="blt-link" href="https://github.com/OWASP-BLT/BLT-Extension/issues" target="_blank" rel="noreferrer noopener">Issues</a>
+          <a class="blt-link" href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noreferrer noopener">OWASP Project</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
