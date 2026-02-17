@@ -1912,6 +1912,46 @@ async def handle_status(env):
             'environment': getattr(env, 'ENVIRONMENT', 'unknown')
         }), {'headers': {'Content-Type': 'application/json'}})
 
+async def handle_pr_updates_check(env):
+    """
+    GET /api/prs/updates
+    Lightweight endpoint to check for PR updates.
+    Returns only PR IDs and their updated_at timestamps for change detection.
+    
+    This allows the frontend to poll efficiently without fetching full PR data.
+    """
+    try:
+        db = get_db(env)
+        
+        # Fetch only IDs and timestamps - minimal data transfer
+        stmt = db.prepare('SELECT id, updated_at FROM prs ORDER BY id')
+        result = await stmt.all()
+        
+        if not result or not result.results:
+            return Response.new(
+                json.dumps({'updates': []}),
+                {'headers': {'Content-Type': 'application/json'}}
+            )
+        
+        # Convert to lightweight format
+        updates = []
+        for row in result.results:
+            row_dict = row.to_py()
+            updates.append({
+                'id': row_dict.get('id'),
+                'updated_at': row_dict.get('updated_at')
+            })
+        
+        return Response.new(
+            json.dumps({'updates': updates}),
+            {'headers': {'Content-Type': 'application/json'}}
+        )
+    except Exception as e:
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
+
 async def verify_github_signature(request, payload_body, secret):
     """
     Verify GitHub webhook signature.
@@ -2646,7 +2686,9 @@ async def on_fetch(request, env):
     # API endpoints
     response = None
     
-    if path == '/api/prs':
+    if path == '/api/prs/updates' and request.method == 'GET':
+        response = await handle_pr_updates_check(env)
+    elif path == '/api/prs':
         if request.method == 'GET':
             repo = url.searchParams.get('repo')
             page = url.searchParams.get('page')

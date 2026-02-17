@@ -81,6 +81,11 @@
             </div>
 
             <div class="flex shrink-0 items-center gap-3">
+                <button id="autoRefreshToggle" 
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
+                    title="Toggle auto-refresh">
+                    <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
+                </button>
                 <button id="themeToggle" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
@@ -158,6 +163,12 @@
         let totalPages = 1;
         const perPage = 30;
         let activePrId = null; // Track the currently active/selected PR
+
+        // Auto-refresh state
+        let autoRefreshEnabled = localStorage.getItem('autoRefreshEnabled') !== 'false'; // enabled by default
+        let autoRefreshInterval = null;
+        let prUpdateTimestamps = {}; // Track PR update timestamps for change detection
+        const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
 
         // Helper functions for readiness data persistence
         function saveReadinessData(prId, readiness, reviewHealth) {
@@ -664,6 +675,173 @@
             );
             renderPrList(filtered);
         }
+
+        /**
+         * Check for PR updates by fetching lightweight timestamp data
+         * Compare with local cache to detect changes
+         */
+        async function checkForPrUpdates() {
+            if (!autoRefreshEnabled) return;
+            
+            try {
+                const response = await fetch('/api/prs/updates');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error checking for updates:', data.error);
+                    return;
+                }
+                
+                const updates = data.updates || [];
+                const changedPrIds = [];
+                const removedPrIds = [];
+                
+                // Detect changes
+                updates.forEach(update => {
+                    const oldTimestamp = prUpdateTimestamps[update.id];
+                    if (oldTimestamp && oldTimestamp !== update.updated_at) {
+                        changedPrIds.push(update.id);
+                    }
+                    prUpdateTimestamps[update.id] = update.updated_at;
+                });
+                
+                // Detect removals (PRs that were in cache but not in update)
+                // Use Set for O(1) lookup instead of O(n) find operation
+                const currentPrIds = new Set(updates.map(u => u.id));
+                Object.keys(prUpdateTimestamps).forEach(prId => {
+                    const prIdNum = parseInt(prId);
+                    if (!currentPrIds.has(prIdNum)) {
+                        removedPrIds.push(prIdNum);
+                        delete prUpdateTimestamps[prId];
+                    }
+                });
+                
+                // Handle removed PRs with animation
+                if (removedPrIds.length > 0) {
+                    for (const prId of removedPrIds) {
+                        await removePrWithAnimation(prId);
+                    }
+                }
+                
+                // Reload if there are changes or removals
+                if (changedPrIds.length > 0 || removedPrIds.length > 0) {
+                    console.log('PR updates detected, refreshing...');
+                    await loadPrs();
+                    await loadRepos(); // Update repo counts
+                }
+            } catch (error) {
+                console.error('Error checking for PR updates:', error);
+            }
+        }
+
+        /**
+         * Remove a PR from the UI with animation
+         */
+        async function removePrWithAnimation(prId) {
+            // Remove from allPrs array
+            const prIndex = allPrs.findIndex(pr => pr.id === prId);
+            if (prIndex !== -1) {
+                allPrs.splice(prIndex, 1);
+            }
+            
+            // Get the row element
+            const row = document.getElementById(`pr-row-${prId}`);
+            if (row) {
+                // Add fade-out animation
+                row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                
+                // Remove the row after animation completes
+                await new Promise(resolve => setTimeout(resolve, 300));
+                row.remove();
+            }
+        }
+
+        /**
+         * Start auto-refresh polling
+         */
+        async function startAutoRefresh() {
+            if (autoRefreshInterval) return; // Already running
+            
+            autoRefreshEnabled = true;
+            localStorage.setItem('autoRefreshEnabled', 'true');
+            
+            // Initial check (await to handle errors properly)
+            await checkForPrUpdates();
+            
+            // Set up interval
+            autoRefreshInterval = setInterval(checkForPrUpdates, AUTO_REFRESH_INTERVAL);
+            
+            // Update UI
+            updateAutoRefreshUI();
+        }
+
+        /**
+         * Stop auto-refresh polling
+         */
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            
+            autoRefreshEnabled = false;
+            localStorage.setItem('autoRefreshEnabled', 'false');
+            
+            // Update UI
+            updateAutoRefreshUI();
+        }
+
+        /**
+         * Toggle auto-refresh on/off
+         */
+        function toggleAutoRefresh() {
+            if (autoRefreshEnabled) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        }
+
+        /**
+         * Update the auto-refresh button appearance
+         */
+        function updateAutoRefreshUI() {
+            const button = document.getElementById('autoRefreshToggle');
+            const icon = document.getElementById('autoRefreshIcon');
+            
+            if (autoRefreshEnabled) {
+                button.classList.add('text-green-600', 'dark:text-green-400');
+                button.classList.remove('text-slate-500', 'dark:text-slate-400');
+                icon.classList.add('fa-spin');
+                button.title = 'Auto-refresh enabled (click to disable)';
+            } else {
+                button.classList.remove('text-green-600', 'dark:text-green-400');
+                button.classList.add('text-slate-500', 'dark:text-slate-400');
+                icon.classList.remove('fa-spin');
+                button.title = 'Auto-refresh disabled (click to enable)';
+            }
+        }
+
+        /**
+         * Pause auto-refresh when tab is not visible (optimization)
+         */
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Clear interval when tab is hidden
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            } else {
+                // Resume polling when tab becomes visible (only if auto-refresh is enabled)
+                if (autoRefreshEnabled && !autoRefreshInterval) {
+                    autoRefreshInterval = setInterval(checkForPrUpdates, AUTO_REFRESH_INTERVAL);
+                    checkForPrUpdates(); // Check immediately on tab becoming visible
+                }
+            }
+        });
 
         function renderPrList(prsToRender) {
             const container = document.getElementById('prListContainer');
@@ -1437,6 +1615,7 @@
         }
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
 
         // Make sortPrs globally accessible for onclick handlers
         window.sortPrs = sortPrs;
@@ -1447,6 +1626,12 @@
         loadRepos();
         loadPrs();
         setInterval(loadRateLimit, 600000);
+        
+        // Initialize auto-refresh
+        updateAutoRefreshUI();
+        if (autoRefreshEnabled) {
+            startAutoRefresh();
+        }
     </script>
 </body>
 </html>
