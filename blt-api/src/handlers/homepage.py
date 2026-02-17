@@ -168,12 +168,18 @@ async def handle_homepage(
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/health</code>
-                                <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/health</code>
+                                    <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
+                                </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/health')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -187,50 +193,74 @@ async def handle_homepage(
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">status</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">domain</code>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues</code>
+                                    <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
+                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                        <span class="font-semibold text-red-600">Query params:</span> 
+                                        <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">status</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">domain</code>
+                                    </div>
                                 </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/issues', {page: 1, per_page: 10})" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues/search</code>
-                                <p class="text-gray-600 text-sm mt-1">Search issues</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">q</code>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
+                                    <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
                                 </div>
                             </div>
+                            <button onclick="testEndpointWithParams('GET', '/issues/{id}', 'Enter issue ID:', '1')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues</code>
+                                    <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
+                                </div>
+                            </div>
+                            <button onclick="alert('POST endpoint requires authentication and a valid request body')" 
+                                    class="ml-4 px-4 py-2 bg-gray-400 text-white text-sm font-semibold rounded-lg cursor-not-allowed flex items-center">
+                                <i class="fas fa-lock mr-2"></i>Auth Required
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues/search</code>
+                                    <p class="text-gray-600 text-sm mt-1">Search issues</p>
+                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                        <span class="font-semibold text-red-600">Query params:</span> 
+                                        <code class="bg-white px-1 py-0.5 rounded">q</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="testEndpointWithQuery('GET', '/issues/search', 'Enter search query:', 'xss')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                 </div>
