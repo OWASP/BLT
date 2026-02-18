@@ -516,7 +516,22 @@ Configure these in `wrangler.toml`:
 
 ## Deployment
 
-### Deploy to Cloudflare Workers
+### Automatic Deployment (CI/CD)
+
+The BLT-API automatically deploys to Cloudflare Workers on every push to the `main` branch:
+
+1. **Database migrations are applied automatically** before deployment
+2. **Worker code is deployed** to Cloudflare's global network
+
+To enable automatic deployments, configure these GitHub repository secrets:
+- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token with Workers and D1 permissions
+- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
+
+### Manual Deployment
+
+For manual deployments:
 
 ```bash
 # Login to Cloudflare
@@ -533,9 +548,11 @@ wrangler deploy
 
 ```bash
 # Deploy to development
+wrangler d1 migrations apply blt-api --remote --env development
 wrangler deploy --env development
 
 # Deploy to production
+wrangler d1 migrations apply blt-api --remote --env production
 wrangler deploy --env production
 ```
 
