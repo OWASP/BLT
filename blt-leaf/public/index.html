@@ -2010,7 +2010,7 @@
                 } else {
                     // Show success message with truncation warning if applicable
                     if (data.truncated) {
-                        alert(`⚠️ ${data.message}\n\nNote: This repository has more than ${data.imported_count} open PRs. Only the most recent ${data.imported_count} PRs were imported to prevent timeout issues.\n\nYou can manually add additional PRs using the "Add PR" form.`);
+                        alert(`⚠️ Import Completed with Limit\n\n${data.message}\n\nNote: This repository has more open PRs than can be imported at once. You can manually add additional PRs using the "Add PR" form.`);
                     }
                     await loadRepos();
                     await loadPrs();

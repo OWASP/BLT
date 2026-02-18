@@ -122,7 +122,7 @@ async def handle_add_pr(request, env):
             # Build response message
             message = f'Successfully imported {added_count} PR{"s" if added_count != 1 else ""}'
             if truncated:
-                message += f' (limited to {MAX_PRS_PER_IMPORT} most recent open PRs)'
+                message += f' (limited to {MAX_PRS_PER_IMPORT} most recent open PR{"s" if MAX_PRS_PER_IMPORT != 1 else ""})'
             
             response_data = {
                 'success': True, 
