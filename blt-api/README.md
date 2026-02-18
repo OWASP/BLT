@@ -64,7 +64,7 @@ uv tool install workers-py
 wrangler d1 migrations apply blt-api --local
 wrangler d1 execute blt-api --local --file=test_data.sql
 
-# Start the development server
+# Start the development server.
 wrangler dev --port 8787
 
 # The API will be available at http://localhost:8787
