@@ -6,7 +6,9 @@ on:
 
 jobs:
   process-enrollment:
-    if: contains(github.event.issue.labels.*.name, 'enrollment')
+    if: |
+      contains(github.event.issue.labels.*.name, 'enrollment') ||
+      startsWith(github.event.issue.title, '[ENROLLMENT]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,6 +17,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Add enrollment labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const currentLabels = context.payload.issue.labels.map(label => label.name);
+            const requiredLabels = ['enrollment', 'student'];
+            const labelsToAdd = requiredLabels.filter(label => !currentLabels.includes(label));
+            
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd
+              });
+            }
         
       - name: Add welcome comment
         uses: actions/github-script@v7
