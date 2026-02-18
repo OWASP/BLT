@@ -44,6 +44,7 @@ BLT-Leaf/
 - 📊 **Sortable Table View**: View PRs in a compact, sortable table with check results, review status, and files changed
 - 👥 **Multi-Repo Support**: Track PRs across multiple repositories
 - 🔄 **Real-time Updates**: Refresh PR data from GitHub API
+- ➕ **Bulk Import**: Import up to 1000 open PRs at once using the plus button next to each repository (prevents timeout on very large repos)
 - 🎨 **Clean Interface**: Simple, GitHub-themed UI with dark mode support
 - 🔔 **Webhook Integration (NEW)**: Automatically track new PRs when opened via GitHub webhooks
 
