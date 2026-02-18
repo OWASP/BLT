@@ -5,6 +5,9 @@ from js import Date
 # In-memory cache for rate limit data (per worker isolate)
 _rate_limit_cache = {
     'data': None,
+    'limit': None,
+    'remaining': None,
+    'reset': None,
     'timestamp': 0
 }
 # Cache TTL in seconds (5 minutes)
@@ -256,7 +259,50 @@ def invalidate_timeline_cache(owner, repo, pr_number):
         del _timeline_cache[cache_key]
         print(f"Timeline Cache: Invalidated for {cache_key}")
 
+import time
 
+def set_rate_limit_data(limit, remaining, reset):
+    """
+    Updates the global GitHub rate limit cache with data from API headers.
+    Converts string values from headers into integers for frontend compatibility.
+    """
+    global _rate_limit_cache
+    
+    try:
+       
+        # This prevents the frontend 'typeof' check from failing.
+        safe_limit = int(limit) if limit is not None else 0
+        safe_remaining = int(remaining) if remaining is not None else 0
+        safe_reset = int(reset) if reset is not None else 0
+
+        #  Use Python's time module instead of JS Date.now()
+        current_time = time.time()
+
+        _rate_limit_cache.update({
+            'limit': safe_limit,
+            'remaining': safe_remaining,
+            'reset': safe_reset,
+            'used': safe_limit - safe_remaining,
+            'timestamp': current_time,
+            'status': 'active'
+        })
+        
+        print(f"GitHub Rate Limit Cached: {safe_remaining}/{safe_limit}")
+
+    except (ValueError, TypeError) as e:
+        print(f"Error caching rate limit data: {e}")
+
+def get_current_rate_limit():
+    """
+    Returns the current cached GitHub rate limit status for inclusion in 
+    API responses to the frontend.
+    """
+    global _rate_limit_cache
+    return {
+        'limit': _rate_limit_cache['limit'],
+        'remaining': _rate_limit_cache['remaining'],
+        'reset': _rate_limit_cache['reset']
+    }
 # Export cache dict for rate limit handler access
 def get_rate_limit_cache():
     """Get the rate limit cache dict"""

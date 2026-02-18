@@ -363,73 +363,53 @@ async def handle_refresh_pr(request, env):
             'pr_number': result['pr_number'],
             'pr_url': result['pr_url']
         }
-        
-        return Response.new(json.dumps({'success': True, 'data': response_data}), 
-                          {'headers': {'Content-Type': 'application/json'}})
-    except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+        return Response.new(json.dumps({
+            'success': True,
+            'data': response_data,
+            'rate_limit': get_rate_limit_cache()
+        }), {'headers': {'Content-Type': 'application/json'}})
+        
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        
 async def handle_rate_limit(env):
-    """Fetch GitHub API rate limit status
-    
-    Args:
-        env: Cloudflare Worker environment object containing bindings
-        
-    Returns:
-        Response object with JSON containing:
-            - limit: Maximum number of requests per hour
-            - remaining: Number of requests remaining
-            - reset: Unix timestamp when the limit resets
-            - used: Number of requests used
     """
-    global _rate_limit_cache
-    
+    GET /api/rate-limit
+    Returns the most recent GitHub API rate limit data captured locally.
+    This avoids extra API calls and preserves your quota.
+    """
     try:
-        # Check cache first to avoid excessive API calls
-        # Use JavaScript Date API for Cloudflare Workers compatibility
-        current_time = Date.now() / 1000  # Convert milliseconds to seconds
+        # Pull the latest state from the cache module
+        rate_data = get_rate_limit_cache()
         
-        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
-            # Return cached data
+        # If no calls have been made yet, provide a friendly initial state
+        if not rate_data or not rate_data.get('limit'):
             return Response.new(
-                json.dumps(_rate_limit_cache['data']), 
-                {'headers': {
-                    'Content-Type': 'application/json',
-                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
-                }}
+                json.dumps({
+                    'limit': 5000, 
+                    'remaining': 5000, 
+                    'reset': 0, 
+                    'used': 0,
+                    'status': 'waiting_for_first_request'
+                }), 
+                {'headers': {'Content-Type': 'application/json'}}
             )
         
-        # Fetch rate limit from GitHub API
-        rate_limit_url = "https://api.github.com/rate_limit"
-        response = await fetch_with_headers(rate_limit_url)
-        
-        if response.status != 200:
-            return Response.new(json.dumps({'error': f'GitHub API Error: {response.status}'}), 
-                              {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
-        
-        rate_data = (await response.json()).to_py()
-        # Extract core rate limit info
-        core_limit = rate_data.get('resources', {}).get('core', {})
-        
-        result = {
-            'limit': core_limit.get('limit', 60),
-            'remaining': core_limit.get('remaining', 0),
-            'reset': core_limit.get('reset', 0),
-            'used': core_limit.get('used', 0)
-        }
-        
-        # Update cache
-        _rate_limit_cache['data'] = result
-        _rate_limit_cache['timestamp'] = current_time
-        
         return Response.new(
-            json.dumps(result), 
-            {'headers': {'Content-Type': 'application/json', 'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'}}
+            json.dumps(rate_data), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            }}
         )
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        print(f"Error in handle_rate_limit: {str(e)}")
+        return Response.new(
+            json.dumps({'error': 'Internal server error fetching rate status'}), 
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_status(env):
     """Check database status"""
