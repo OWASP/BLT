@@ -66,7 +66,7 @@ class TestHomepageHandler:
         # Check for key API information
         if hasattr(response, 'body'):
             content = response.body
-            assert "/issues" in content
+            assert "/bugs" in content
             assert "/users" in content
             assert "/domains" in content
             assert "/organizations" in content

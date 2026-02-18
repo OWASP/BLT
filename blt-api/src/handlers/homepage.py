@@ -40,7 +40,7 @@ async def handle_homepage(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT API - OWASP Bug Logging Tool API</title>
-    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security issue tracking">
+    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security bug tracking">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -185,11 +185,11 @@ async def handle_homepage(
                 </div>
             </div>
 
-            <!-- Issues -->
+            <!-- Bugs -->
             <div class="mb-8">
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-bug text-red-600 mr-2"></i>
-                    Issues
+                    Bugs
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -348,8 +348,8 @@ async def handle_homepage(
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">Get all issues for a domain</p>
+                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/bugs</code>
+                                <p class="text-gray-600 text-sm mt-1">Get all bugs for a domain</p>
                             </div>
                         </div>
                     </div>

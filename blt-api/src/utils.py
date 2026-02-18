@@ -5,7 +5,7 @@ This module provides common utilities for JSON responses, error handling,
 CORS headers, and HTTP client operations.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import json
 
 # Try to import Cloudflare Workers JS bindings
@@ -24,8 +24,11 @@ except ImportError:
     
     class Response:
         @classmethod
-        def new(cls, body, status=200, headers=None):
-            return MockResponse(body, status, headers)
+        def new(cls, body, init=None):
+            """Mock Response.new() to match Cloudflare Workers API."""
+            if init is None:
+                init = {}
+            return MockResponse(body, init.get('status', 200), init.get('headers', {}))
     
     class MockResponse:
         def __init__(self, body, status=200, headers=None):
@@ -76,11 +79,12 @@ def json_response(
     # Convert Python dict to JSON string
     json_body = json.dumps(data)
     
-    # Create headers object for JavaScript
-    # Convert dict to list of tuples for Headers.new (expects Sequence)
-    js_headers = Headers.new(list(response_headers.items()))
-    
-    return Response.new(json_body, status=status, headers=js_headers)
+    # Create Response with proper status code for Cloudflare Workers
+    response_init = {
+        'status': status,
+        'headers': response_headers
+    }
+    return Response.new(json_body, response_init)
 
 
 def error_response(
@@ -247,3 +251,25 @@ async def parse_json_body(request: Any) -> Optional[Dict[str, Any]]:
         return None
     except (json.JSONDecodeError, Exception):
         return None
+
+def convert_d1_results(results) -> List[Dict]:
+    """Convert D1 proxy results to Python list of dicts.
+    
+    Args:
+        results: D1 results object (could be JS proxy or Python list)
+    
+    Returns:
+        List of dictionaries
+    """
+    if results is None:
+        return []
+    
+    # Handle to_py() method if available (converts JsProxy to Python)
+    if hasattr(results, 'to_py'):
+        return results.to_py()
+    
+    # If already a list, return as is
+    if isinstance(results, list):
+        return results
+    
+    return []

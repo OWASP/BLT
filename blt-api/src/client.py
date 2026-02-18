@@ -7,6 +7,7 @@ the main OWASP BLT API backend.
 
 from typing import Any, Dict, List, Optional
 import json
+from urllib.parse import urlencode
 
 # Try to import Cloudflare Workers JS bindings
 try:
@@ -79,8 +80,10 @@ class BLTClient:
         
         # Add query parameters
         if params:
-            query_string = "&".join(f"{k}={v}" for k, v in params.items() if v is not None)
-            if query_string:
+            # Filter out None values and encode parameters
+            filtered_params = {k: v for k, v in params.items() if v is not None}
+            if filtered_params:
+                query_string = urlencode(filtered_params)
                 url = f"{url}?{query_string}"
         
         request_headers = self._get_headers(headers)

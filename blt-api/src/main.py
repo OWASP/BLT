@@ -7,15 +7,16 @@ the OWASP BLT project, running efficiently on Cloudflare Workers.
 
 # Try to import Cloudflare Workers JS bindings
 try:
-    from js import Response, Headers, JSON
+    from js import Response, Headers, JSON # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False
     from utils import Response, Headers
 
+from os import path
 from router import Router
 from handlers import (
-    handle_issues,
+    handle_bugs,
     handle_users,
     handle_domains,
     handle_organizations,
@@ -29,7 +30,7 @@ from handlers import (
     handle_homepage,
 )
 from utils import json_response, error_response, cors_headers
-
+from libs.db import get_db_safe 
 
 # Initialize the router
 router = Router()
@@ -40,11 +41,11 @@ router = Router()
 router.add_route("GET", "/", handle_homepage)
 router.add_route("GET", "/health", handle_health)
 
-# Issues API
-router.add_route("GET", "/issues", handle_issues)
-router.add_route("GET", "/issues/{id}", handle_issues)
-router.add_route("POST", "/issues", handle_issues)
-router.add_route("GET", "/issues/search", handle_issues)
+# Bugs API
+router.add_route("GET", "/bugs", handle_bugs)
+router.add_route("GET", "/bugs/{id}", handle_bugs)
+router.add_route("POST", "/bugs", handle_bugs)
+router.add_route("GET", "/bugs/search", handle_bugs)
 
 # Users API
 router.add_route("GET", "/users", handle_users)
@@ -54,7 +55,7 @@ router.add_route("GET", "/users/{id}/profile", handle_users)
 # Domains API
 router.add_route("GET", "/domains", handle_domains)
 router.add_route("GET", "/domains/{id}", handle_domains)
-router.add_route("GET", "/domains/{id}/issues", handle_domains)
+router.add_route("GET", "/domains/{id}/tags", handle_domains)
 
 # Organizations API
 router.add_route("GET", "/organizations", handle_organizations)
@@ -113,11 +114,14 @@ async def on_fetch(request, env):
                 status=204,
                 headers=Headers.new(cors_headers())
             )
-        
+
+        await get_db_safe(env)  # Ensure database is available and initialized
+    
         # Get URL and method
         url = request.url
         method = request.method
-        
+    
+
         # Route the request
         response = await router.handle(request, env)
         
