@@ -81,10 +81,11 @@ uv sync --extra dev
 # Run unit tests
 uv run pytest
 
-# Test API endpoints manually (with dev server running)
-python tests/test_domain.py    # Test domain endpoints
-python tests/test_issues.py    # Test issue endpoints
+# Run specific test file
+uv run pytest tests/test_router.py -v
 ```
+
+**Note:** Integration tests for issues endpoints are in development. You can test endpoints manually with the dev server running at `http://localhost:8788`.
 
 ## API Endpoints
 
