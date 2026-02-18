@@ -23,7 +23,7 @@ layout: default
                 <h3>Enroll Now</h3>
                 <p><strong>Instructor:</strong> {{ page.instructor }}</p>
                 <p><strong>Prerequisites:</strong> {{ page.prerequisites | default: "None" }}</p>
-                <a href="{{ '/enroll/' | relative_url }}?course={{ page.slug }}&title={{ page.title | url_encode }}" class="btn btn-primary">Enroll in Course</a>
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml&title=[ENROLLMENT]%20{{ page.title | url_encode }}%20-%20" class="btn btn-primary" target="_blank">Enroll in Course</a>
             </div>
 
             {% if page.resources %}
