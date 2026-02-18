@@ -129,7 +129,21 @@ wrangler deploy
 
 ### Testing
 
-The application includes comprehensive test suites for rate limiting and caching features.
+The application includes comprehensive test suites for rate limiting, caching features, and data display verification.
+
+**Data Display Tests** (verifies project setup and data structure):
+```bash
+npm test
+# or
+node test-data-display.js
+```
+
+This test suite verifies:
+- ✅ HTML structure and data display elements
+- ✅ Python API handlers and endpoints
+- ✅ Database schema completeness
+- ✅ Configuration files (wrangler.toml, package.json)
+- ✅ API routing and CORS configuration
 
 **Quick Local Test** (watch wrangler console for logs):
 ```bash
@@ -145,6 +159,37 @@ node test-production.js https://your-worker.workers.dev
 For detailed testing instructions and expected behavior, see [TESTING.md](TESTING.md).
 
 **Note**: Local development (`wrangler dev`) may not preserve worker state between requests. For accurate rate limiting and caching tests, deploy to production.
+
+### Continuous Integration
+
+The project includes a comprehensive GitHub Actions workflow that automatically runs on push and pull requests:
+
+**Test Data Display Workflow** (`.github/workflows/test-data-display.yml`):
+- Runs on every push to main and pull request
+- Sets up Node.js and installs dependencies
+- Runs linting and format checks
+- Verifies all required source files and configurations exist
+- Runs comprehensive data display tests (48+ automated checks)
+- Validates HTML structure, API endpoints, and database schema
+- Checks Python syntax for all source files
+- **Starts live Wrangler dev server** and tests against running application
+- **Tests all API endpoints** including refresh functionality
+- **Validates refresh button** works correctly to update PR data
+- Performs security audit of dependencies
+
+The workflow ensures that:
+- The project setup is correct and complete
+- All data display components are properly configured
+- API endpoints are defined and routed correctly
+- Frontend can successfully fetch and display data
+- Database schema includes all required fields
+- **Refresh functionality works to update PR data from GitHub**
+- Code meets quality and security standards
+
+To run the same checks locally:
+```bash
+npm test
+```
 
 ## Usage
 
