@@ -1113,7 +1113,7 @@ async def handle_pr_readiness(request, env, path):
         if review_status != original_review_status:
             # Update review_status in database only if it actually changed
             await db.prepare(
-                'UPDATE prs SET review_status = ? WHERE id = ?'
+                'UPDATE prs SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
             ).bind(review_status, pr_id).run()
             pr['review_status'] = review_status
         

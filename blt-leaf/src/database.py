@@ -203,7 +203,8 @@ async def save_readiness_to_db(env, pr_id, readiness_data):
                 responded_feedback = ?,
                 stale_feedback_count = ?,
                 stale_feedback = ?,
-                readiness_computed_at = CURRENT_TIMESTAMP
+                readiness_computed_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''')
         
@@ -382,7 +383,8 @@ async def delete_readiness_from_db(env, pr_id):
                 responded_feedback = NULL,
                 stale_feedback_count = NULL,
                 stale_feedback = NULL,
-                readiness_computed_at = NULL
+                readiness_computed_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''')
         await stmt.bind(pr_id).run()
@@ -419,7 +421,7 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
-            updated_at = excluded.updated_at,
+            updated_at = CURRENT_TIMESTAMP,
             is_draft = excluded.is_draft,
             open_conversations_count = excluded.open_conversations_count,
             reviewers_json = excluded.reviewers_json
