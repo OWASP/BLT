@@ -60,18 +60,18 @@
 
     <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Job Seekers</h1>
-        <p class="mt-2 text-slate-600">Discover talented professionals in the OWASP BLT community</p>
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">Job Seekers</h1>
+        <p class="mt-2 text-slate-600 dark:text-gray-400">Discover talented professionals in the OWASP BLT community</p>
       </header>
 
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="relative flex-1 max-w-md">
-          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
           <input
             type="text"
             id="search"
             placeholder="Search profiles..."
-            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600"
+            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           />
         </div>
         <a href="./add.html#seekers" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
@@ -120,18 +120,18 @@
         function displaySeekers(seekers) {
           var container = document.getElementById('seekers-container');
           if (seekers.length === 0) {
-            container.innerHTML = '<div class="col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><i class="fa-solid fa-user text-4xl text-slate-300" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold">No profiles yet</h3><p class="mt-2 text-slate-600">Be the first to create your profile!</p><a href="./add.html#seekers" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Create Profile</a></div>';
+            container.innerHTML = '<div class="col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"><i class="fa-solid fa-user text-4xl text-slate-300 dark:text-gray-600" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold dark:text-gray-100">No profiles yet</h3><p class="mt-2 text-slate-600 dark:text-gray-400">Be the first to create your profile!</p><a href="./add.html#seekers" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Create Profile</a></div>';
             return;
           }
           var html = seekers.map(function (s) {
             var name = esc(s.name || 'Anonymous');
-            var title = s.headline ? '<p class="mt-1 text-sm font-medium text-slate-600">' + esc(s.headline) + '</p>' : '';
-            var location = s.location ? '<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4" aria-hidden="true"></i> ' + esc(s.location) + '</div>' : '';
-            var experience = s.experience_summary ? '<div class="flex items-center gap-2"><i class="fa-solid fa-briefcase w-4" aria-hidden="true"></i> ' + esc(s.experience_summary) + '</div>' : '';
-            var skills = s.skills ? '<div class="mt-3"><p class="text-xs font-medium text-slate-500 uppercase">Skills</p><p class="mt-1 text-sm text-slate-600">' + esc(s.skills) + '</p></div>' : '';
-            var linkedin = s.profile_url ? '<a href="' + esc(s.profile_url) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>' : '';
-            var fullProfile = '<a href="' + GITHUB_SEEKERS + encodeURIComponent(s.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"><i class="fa-brands fa-github" aria-hidden="true"></i> Full Profile</a>';
-            return '<div id="' + esc(s.id) + '" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow"><div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100"><i class="fa-solid fa-user text-2xl text-red-600" aria-hidden="true"></i></div><h3 class="text-lg font-semibold">' + name + '</h3>' + title + '<div class="mt-3 space-y-1 text-sm text-slate-600">' + location + experience + '</div>' + skills + '<div class="mt-4 flex gap-2">' + linkedin + fullProfile + '</div></div>';
+            var title = s.headline ? '<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">' + esc(s.headline) + '</p>' : '';
+            var location = s.location ? '<div class="flex items-center gap-2 dark:text-gray-400"><i class="fa-solid fa-location-dot w-4" aria-hidden="true"></i> ' + esc(s.location) + '</div>' : '';
+            var experience = s.experience_summary ? '<div class="flex items-center gap-2 dark:text-gray-400"><i class="fa-solid fa-briefcase w-4" aria-hidden="true"></i> ' + esc(s.experience_summary) + '</div>' : '';
+            var skills = s.skills ? '<div class="mt-3"><p class="text-xs font-medium text-slate-500 uppercase dark:text-gray-500">Skills</p><p class="mt-1 text-sm text-slate-600 dark:text-gray-400">' + esc(s.skills) + '</p></div>' : '';
+            var linkedin = s.profile_url ? '<a href="' + esc(s.profile_url) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>' : '';
+            var fullProfile = '<a href="' + GITHUB_SEEKERS + encodeURIComponent(s.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i> Full Profile</a>';
+            return '<div id="' + esc(s.id) + '" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50"><div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"><i class="fa-solid fa-user text-2xl text-red-600 dark:text-red-400" aria-hidden="true"></i></div><h3 class="text-lg font-semibold dark:text-gray-100">' + name + '</h3>' + title + '<div class="mt-3 space-y-1 text-sm text-slate-600">' + location + experience + '</div>' + skills + '<div class="mt-4 flex gap-2">' + linkedin + fullProfile + '</div></div>';
           }).join('');
           container.innerHTML = html;
         }

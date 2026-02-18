@@ -60,18 +60,18 @@
 
     <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Job Listings</h1>
-        <p class="mt-2 text-slate-600">Browse open positions in the OWASP BLT community</p>
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">Job Listings</h1>
+        <p class="mt-2 text-slate-600 dark:text-gray-400">Browse open positions in the OWASP BLT community</p>
       </header>
 
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="relative flex-1 max-w-md">
-          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
           <input
             type="text"
             id="search"
             placeholder="Search jobs..."
-            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600"
+            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           />
         </div>
         <a href="./add.html" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
@@ -120,7 +120,7 @@
         function displayJobs(jobs) {
           var container = document.getElementById('jobs-container');
           if (jobs.length === 0) {
-            container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><i class="fa-solid fa-briefcase text-4xl text-slate-300" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold">No jobs posted yet</h3><p class="mt-2 text-slate-600">Be the first to post a job opportunity!</p><a href="./add.html" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Post a Job</a></div>';
+            container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"><i class="fa-solid fa-briefcase text-4xl text-slate-300 dark:text-gray-600" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold dark:text-gray-100">No jobs posted yet</h3><p class="mt-2 text-slate-600 dark:text-gray-400">Be the first to post a job opportunity!</p><a href="./add.html" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Post a Job</a></div>';
             return;
           }
           var html = jobs.map(function (job) {
@@ -128,7 +128,7 @@
             var company = job.organization_name ? '<span class="flex items-center gap-1"><i class="fa-solid fa-building" aria-hidden="true"></i> ' + esc(job.organization_name) + '</span>' : '';
             var location = job.location ? '<span class="flex items-center gap-1"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' + esc(job.location) + '</span>' : '';
             var type = job.job_type ? '<span class="flex items-center gap-1"><i class="fa-solid fa-clock" aria-hidden="true"></i> ' + esc(job.job_type) + '</span>' : '';
-            return '<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow"><div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div class="flex-1"><h3 class="text-xl font-semibold">' + title + '</h3><div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600">' + company + location + type + '</div><div class="mt-4"><a href="job.html?id=' + encodeURIComponent(job.id) + '" class="font-medium text-red-600 hover:text-red-700">View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i></a></div></div><a href="' + GITHUB_JOBS + encodeURIComponent(job.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"><i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub</a></div></div>';
+            return '<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50"><div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div class="flex-1"><h3 class="text-xl font-semibold dark:text-gray-100">' + title + '</h3><div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-gray-400">' + company + location + type + '</div><div class="mt-4"><a href="job.html?id=' + encodeURIComponent(job.id) + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i></a></div></div><a href="' + GITHUB_JOBS + encodeURIComponent(job.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub</a></div></div>';
           }).join('');
           container.innerHTML = html;
         }
