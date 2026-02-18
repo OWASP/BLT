@@ -584,6 +584,7 @@
                 if (data.error) {
                     if (textEl) textEl.textContent = 'N/A';
                     return;
+                }
 
                 const { limit, remaining, used, reset } = data;
                 if (typeof limit !== 'number' || typeof remaining !== 'number') {
