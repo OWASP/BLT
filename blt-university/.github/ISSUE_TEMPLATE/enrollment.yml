@@ -9,52 +9,6 @@ body:
         ## Enrollment Request
         Thank you for your interest in BLT University! Please fill out this form to enroll in a course.
         
-  - type: input
-    id: student-name
-    attributes:
-      label: Your Name
-      description: Your full name
-      placeholder: John Doe
-    validations:
-      required: true
-      
-  - type: input
-    id: github-username
-    attributes:
-      label: GitHub Username
-      description: Your GitHub username
-      placeholder: johndoe
-    validations:
-      required: true
-      
-  - type: input
-    id: email
-    attributes:
-      label: Email Address
-      description: Your email address for course communications
-      placeholder: john.doe@example.com
-    validations:
-      required: true
-      
-  - type: dropdown
-    id: course
-    attributes:
-      label: Course Selection
-      description: Which course would you like to enroll in?
-      options:
-        - Introduction to Web Application Security
-        - Advanced Penetration Testing
-        - Cryptography for Developers
-        - Network Security Fundamentals
-        - Secure Coding Practices
-        - Malware Analysis
-        - Cloud Security
-        - Mobile Application Security
-        - Incident Response
-        - Security Operations
-    validations:
-      required: true
-      
   - type: textarea
     id: background
     attributes:
