@@ -204,17 +204,6 @@ function renderJob(job) {
               : ""
           }
 
-          <!-- Application Instructions -->
-          ${
-            applicationInstructions
-              ? `<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8 transition-colors duration-200">
-                   <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">How to Apply</h3>
-                   <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-                     ${typeof marked !== "undefined" ? marked.parse(applicationInstructions) : applicationInstructions.replace(/\n/g, "<br />")}
-                   </div>
-                 </div>`
-              : ""
-          }
 
           <!-- Back to Jobs Button -->
           <div class="text-center">
