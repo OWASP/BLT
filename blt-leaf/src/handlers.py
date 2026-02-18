@@ -313,9 +313,9 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
                               {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        # Get PR URL from database
+        # Get PR URL and ETag from database
         db = get_db(env)
-        stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number FROM prs WHERE id = ?').bind(pr_id)
+        stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id = ?').bind(pr_id)
         result = await stmt.first()
         
         if not result:
@@ -324,9 +324,33 @@ async def handle_refresh_pr(request, env):
         
         # Convert JsProxy to Python dict to make it subscriptable
         result = result.to_py()
+            
+        # Fetch fresh data from GitHub (with Token and ETag)
+        pr_data = await fetch_pr_data(
+            result['repo_owner'], 
+            result['repo_name'], 
+            result['pr_number'], 
+            user_token, 
+            result.get('etag')
+        )
         
-        # Fetch fresh data from GitHub (with Token)
-        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'], user_token)
+        # Fast-Path: If data is unchanged (304 Not Modified), skip analysis and database update
+        if pr_data and pr_data.get('not_modified'):
+            print(f"Fast-path: PR #{result['pr_number']} data unchanged, skipping analysis")
+            
+            # Fetch existing PR data from DB to return to frontend
+            # We already have some of it in 'result', but let's get the full row for completeness
+            full_stmt = db.prepare('SELECT * FROM prs WHERE id = ?').bind(pr_id)
+            full_result = await full_stmt.first()
+            response_data = full_result.to_py() if hasattr(full_result, 'to_py') else dict(full_result)
+            
+            return Response.new(json.dumps({
+                'success': True,
+                'data': response_data,
+                'fast_path': True,
+                'rate_limit': get_rate_limit_cache()
+            }), {'headers': {'Content-Type': 'application/json'}})
+        
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 403, 'headers': {'Content-Type': 'application/json'}})
