@@ -132,7 +132,8 @@ async def init_database_schema(env):
                 ('readiness_computed_at', 'TEXT'),
                 ('is_draft', 'INTEGER DEFAULT 0'),
                 ('open_conversations_count', 'INTEGER DEFAULT 0'),
-                ('reviewers_json', 'TEXT')
+                ('reviewers_json', 'TEXT'),
+                ('etag', 'TEXT')
             ]
             
             # Whitelist of allowed column names for security
@@ -401,11 +402,10 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
     
     stmt = db.prepare('''
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
-                       is_merged, mergeable_state, files_changed, author_login, 
-                       author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
+                       is_merged, mergeable_state, files_changed, author_login,                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
-                       last_refreshed_at, updated_at, is_draft, open_conversations_count, reviewers_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       last_refreshed_at, updated_at, is_draft, open_conversations_count, reviewers_json, etag)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -424,7 +424,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             updated_at = CURRENT_TIMESTAMP,
             is_draft = excluded.is_draft,
             open_conversations_count = excluded.open_conversations_count,
-            reviewers_json = excluded.reviewers_json
+            reviewers_json = excluded.reviewers_json,
+            etag = excluded.etag
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -444,6 +445,7 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['last_updated_at'], current_timestamp, current_timestamp,
         pr_data.get('is_draft', 0),
         pr_data.get('open_conversations_count', 0),
-        pr_data.get('reviewers_json', '[]')
+        pr_data.get('reviewers_json', '[]'),
+        pr_data.get('etag')
     )
     await stmt.run()
