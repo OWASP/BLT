@@ -1,0 +1,31 @@
+{
+  "name": "blt-mcp",
+  "version": "1.0.0",
+  "description": "MCP server providing AI agents structured access to the BLT ecosystem",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "blt-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "blt",
+    "owasp",
+    "security",
+    "bug-bounty"
+  ],
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
