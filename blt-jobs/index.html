@@ -3,219 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Board - Find Your Next Opportunity</title>
-  <!-- Tailwind via CDN for now; can be swapped for a build step later -->
+  <title>BLT Jobs – Connect Talent with Opportunities</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-    };
-  </script>
-  <!-- Apply dark mode immediately to prevent white flash -->
+  <script>tailwind.config = { darkMode: "class" };</script>
   <script>
     (function () {
       const savedTheme = localStorage.getItem("theme");
-
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else if (savedTheme === "light") {
-        document.documentElement.classList.remove("dark");
-      } else if (
-        !savedTheme &&
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      ) {
-        document.documentElement.classList.add("dark");
-      }
+      if (savedTheme === "dark") document.documentElement.classList.add("dark");
+      else if (savedTheme === "light") document.documentElement.classList.remove("dark");
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
     })();
   </script>
-  <!-- Font Awesome for sun/moon icons to match BLT -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <div class="min-h-screen flex flex-col">
-    <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
-      <div class="px-3 py-1 lg:px-5 lg:pl-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center justify-start gap-4">
-            <!-- Logo -->
-            <a href="https://owaspblt.org/" class="flex select-none ms-4">
-              <img
-                src="https://owaspblt.org/static/img/owasp-blt-logo.svg"
-                class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto"
-                alt="OWASP BLT Logo"
-                width="50"
-                height="50"
-              />
-            </a>
-            <a href="index.html" class="text-sm font-medium text-gray-900 dark:text-gray-100">Jobs</a>
-            <a href="seekers.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Job seekers</a>
-            <a href="add.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Contribute</a>
-          </div>
-          <!-- Dark mode toggle styled like BLT -->
-          <button
-            id="theme-toggle"
-            class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            <i
-              id="sun-icon"
-              class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"
-            ></i>
-            <i
-              id="moon-icon"
-              class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"
-            ></i>
-          </button>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
+    <div class="px-3 py-1 lg:px-5 lg:pl-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center justify-start gap-4">
+          <a href="https://owaspblt.org/" class="flex select-none ms-4">
+            <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+          </a>
+          <a href="index.html" class="text-sm font-medium text-gray-900 dark:text-gray-100">Home</a>
+          <a href="jobs.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Browse Jobs</a>
+          <a href="seekers.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Find Talent</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">GitHub</a>
         </div>
+        <button id="theme-toggle" class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors" aria-label="Toggle dark mode">
+          <i id="sun-icon" class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
+          <i id="moon-icon" class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"></i>
+        </button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main class="flex-1">
-      <div class="p-6 lg:p-8 mt-[72px]">
-        <div class="max-w-7xl mx-auto">
-          <!-- Header -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div>
-              <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">
-                Find Your Next Opportunity
-              </h1>
-              <p class="text-lg text-gray-600 dark:text-gray-400">
-                Explore exciting job opportunities from leading organizations in cybersecurity and technology
-              </p>
-            </div>
+  <main class="flex-1 pt-[72px]">
+    <section class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-4xl mx-auto px-6 py-16 text-center">
+        <p class="text-sm font-medium text-[#e74c3c] dark:text-[#e74c3c] mb-2">OWASP BLT Community</p>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">Connect Talent with Opportunities</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">A community-driven job board for the OWASP BLT ecosystem.</p>
+      </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-8">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Post a Job</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Looking for talent? Submit a job posting via pull request and reach our community of skilled professionals.</p>
+        <a href="add.html" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+          Post a Job <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+        </a>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Feature Your Profile</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Looking for opportunities? Create your profile to showcase your skills and connect with potential employers.</p>
+        <a href="add.html#seekers" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+          Create Profile <i class="fas fa-user-plus ml-2 text-sm"></i>
+        </a>
+      </div>
+    </section>
+
+    <section class="bg-gray-50 dark:bg-gray-900/50 py-12">
+      <div class="max-w-5xl mx-auto px-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">How It Works</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">1</div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Submit via GitHub</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Open a pull request or paste a job URL. We use PRs and templates so you don’t need to edit raw files.</p>
           </div>
-
-          <!-- Search & Filters -->
-          <div
-            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8 transition-colors duration-200"
-          >
-            <form
-              id="filtersForm"
-              class="flex flex-col lg:flex-row gap-4"
-            >
-              <input
-                id="searchInput"
-                type="text"
-                placeholder="Search by job title, skills, or company..."
-                class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-              />
-
-              <select
-                id="typeFilter"
-                class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
-              >
-                <option value="">All Types</option>
-                <option value="full-time">Full Time</option>
-                <option value="part-time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-                <option value="freelance">Freelance</option>
-              </select>
-
-              <input
-                id="locationFilter"
-                type="text"
-                placeholder="Location..."
-                class="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#e74c3c] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-              />
-
-              <button
-                type="submit"
-                class="px-6 py-3 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105"
-              >
-                <span class="inline-flex items-center">
-                  <svg
-                    class="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    ></path>
-                  </svg>
-                  Search
-                </span>
-              </button>
-            </form>
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">2</div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Automated Processing</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Our GitHub Actions build job and seeker data from markdown and optionally scrape job URLs from PRs.</p>
           </div>
-
-          <!-- Results Count -->
-          <div id="resultsSummary" class="mb-6 hidden">
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-              <span
-                id="resultsCount"
-                class="font-semibold text-gray-900 dark:text-gray-100"
-              ></span>
-              <span id="resultsLabel" class="text-gray-600 dark:text-gray-400"></span>
-            </p>
-          </div>
-
-          <!-- Job Listings -->
-          <div id="jobList" class="space-y-4"></div>
-
-          <!-- Empty State -->
-          <div
-            id="emptyState"
-            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors duration-200 hidden"
-          >
-            <svg
-              class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
-            </svg>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              No jobs found
-            </h3>
-            <p
-              id="emptyStateMessage"
-              class="text-gray-600 dark:text-gray-400 mb-4"
-            >
-              Check back later for new opportunities
-            </p>
-            <button
-              id="clearFiltersButton"
-              type="button"
-              class="inline-flex items-center text-[#e74c3c] hover:text-red-700 dark:text-[#e74c3c] dark:hover:text-[#f8c471] font-semibold transition-colors duration-200 hidden"
-            >
-              <svg
-                class="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-              Clear filters
-            </button>
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">3</div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Connect & Grow</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Your listing appears on the site, helping you connect with opportunities or talent.</p>
           </div>
         </div>
       </div>
-    </main>
-  </div>
+    </section>
+
+    <section class="max-w-5xl mx-auto px-6 py-12">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Recent Listings</h2>
+      <div id="recent-listings" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 min-h-[120px] transition-colors duration-200">
+        <p class="text-gray-600 dark:text-gray-400">Loading recent listings…</p>
+      </div>
+      <div class="mt-6 flex flex-wrap gap-4">
+        <a href="jobs.html" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-[#e74c3c] dark:text-[#e74c3c] rounded-lg font-semibold hover:bg-[#e74c3c] hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors">View All Jobs</a>
+        <a href="seekers.html" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-[#e74c3c] dark:text-[#e74c3c] rounded-lg font-semibold hover:bg-[#e74c3c] hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors">View All Seekers</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-6 mt-auto">
+    <div class="max-w-5xl mx-auto px-6 text-center text-sm text-gray-600 dark:text-gray-400">
+      © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">OWASP BLT Project</a>.
+    </div>
+  </footer>
 
   <script src="assets/js/theme.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/landing.js"></script>
 </body>
 </html>
-

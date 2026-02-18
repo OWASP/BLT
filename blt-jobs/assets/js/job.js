@@ -15,7 +15,7 @@ function renderNotFound() {
             The job you are looking for may have been removed or is no longer available.
           </p>
           <a
-            href="index.html"
+            href="jobs.html"
             class="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 transform hover:scale-105"
           >
             <svg
@@ -216,7 +216,7 @@ function renderJob(job) {
           <!-- Back to Jobs Button -->
           <div class="text-center">
             <a
-              href="index.html"
+              href="jobs.html"
               class="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 transform hover:scale-105"
             >
               <svg

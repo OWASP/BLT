@@ -18,7 +18,7 @@ A community-driven job board for the OWASP BLT ecosystem, built with GitHub Page
 2. Choose **Quick add** (recommended) or **Manual add**:
    - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot will scrape the page and create a job file for you. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
    - **Manual add:** Create a new file under `jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
-3. Your job will be automatically published to the [Jobs page](index.html) once the PR is merged.
+3. Your job will be automatically published to the [Jobs page](jobs.html) once the PR is merged.
 
 Jobs are stored as `company-slug-job-title-slug.md` in the `jobs/` directory.
 
@@ -36,7 +36,8 @@ Profiles are stored as `name-slug.md` in the `seekers/` directory.
 
 ```
 BLT-Jobs/
-├── index.html          # Job listings page
+├── index.html          # Landing page (hero, How It Works, recent listings)
+├── jobs.html           # Full job listings page
 ├── job.html            # Individual job detail page
 ├── seekers.html        # Job seeker profiles page
 ├── add.html            # Contribute page (add jobs or create profiles)
@@ -105,7 +106,8 @@ python -m http.server 8000
 ```
 
 Then open:
-- `http://localhost:8000/index.html` – job list
+- `http://localhost:8000/index.html` – landing page
+- `http://localhost:8000/jobs.html` – job list
 - `http://localhost:8000/seekers.html` – seeker profiles
 - `http://localhost:8000/job.html?id=<job-id>` – job detail
 
