@@ -24,7 +24,7 @@ async def handle_health(
         "version": "1.0.0",
         "documentation": "/docs",
         "endpoints": {
-            "issues": "/issues",
+            "bugs": "/bugs",
             "users": "/users",
             "domains": "/domains",
             "organizations": "/organizations",
