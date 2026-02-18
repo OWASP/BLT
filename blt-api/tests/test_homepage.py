@@ -111,3 +111,29 @@ class TestHomepageHandler:
         
         # Should still work with custom URL
         assert response is not None
+    
+    @pytest.mark.asyncio
+    async def test_homepage_contains_try_it_buttons(self):
+        """Test that homepage contains interactive Try it buttons."""
+        request = MockRequest()
+        env = MockEnv()
+        
+        response = await handle_homepage(
+            request,
+            env,
+            path_params={},
+            query_params={},
+            path="/"
+        )
+        
+        if hasattr(response, 'body'):
+            content = response.body
+            # Check for Try it buttons
+            assert "Try it" in content
+            assert "testEndpoint" in content  # JavaScript function
+            assert "apiTestModal" in content  # Modal element
+            assert "API Test Console" in content  # Modal title
+            
+            # Check for security: should use textContent, not innerHTML for responses
+            assert "textContent = JSON.stringify" in content
+

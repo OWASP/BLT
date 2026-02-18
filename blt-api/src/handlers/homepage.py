@@ -168,12 +168,18 @@ async def handle_homepage(
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/health</code>
-                                <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/health</code>
+                                    <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
+                                </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/health')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -187,50 +193,74 @@ async def handle_homepage(
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/bugs</code>
-                                <p class="text-gray-600 text-sm mt-1">List all bugs (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">status</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">domain</code>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues</code>
+                                    <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
+                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                        <span class="font-semibold text-red-600">Query params:</span> 
+                                        <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">status</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">domain</code>
+                                    </div>
                                 </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/issues', {{page: 1, per_page: 10}})" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/bugs/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific bug by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/bugs</code>
-                                <p class="text-gray-600 text-sm mt-1">Create a new bug</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/bugs/search</code>
-                                <p class="text-gray-600 text-sm mt-1">Search bugs</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">q</code>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
+                                    <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
                                 </div>
                             </div>
+                            <button onclick="testEndpointWithParams('GET', '/issues/{{id}}', 'Enter issue ID:', '1')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues</code>
+                                    <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
+                                </div>
+                            </div>
+                            <button onclick="alert('POST endpoint requires authentication and a valid request body')" 
+                                    class="ml-4 px-4 py-2 bg-gray-400 text-white text-sm font-semibold rounded-lg cursor-not-allowed flex items-center">
+                                <i class="fas fa-lock mr-2"></i>Auth Required
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/issues/search</code>
+                                    <p class="text-gray-600 text-sm mt-1">Search issues</p>
+                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                        <span class="font-semibold text-red-600">Query params:</span> 
+                                        <code class="bg-white px-1 py-0.5 rounded">q</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="testEndpointWithQuery('GET', '/issues/search', 'Enter search query:', 'xss')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -244,17 +274,23 @@ async def handle_homepage(
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/users</code>
-                                <p class="text-gray-600 text-sm mt-1">List all users (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/users</code>
+                                    <p class="text-gray-600 text-sm mt-1">List all users (paginated)</p>
+                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
+                                        <span class="font-semibold text-red-600">Query params:</span> 
+                                        <code class="bg-white px-1 py-0.5 rounded">page</code>, 
+                                        <code class="bg-white px-1 py-0.5 rounded">per_page</code>
+                                    </div>
                                 </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/users', {{page: 1, per_page: 10}})" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -476,12 +512,18 @@ async def handle_homepage(
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/stats</code>
-                                <p class="text-gray-600 text-sm mt-1">Get platform statistics</p>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/stats</code>
+                                    <p class="text-gray-600 text-sm mt-1">Get platform statistics</p>
+                                </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/stats')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -495,12 +537,18 @@ async def handle_homepage(
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/leaderboard</code>
-                                <p class="text-gray-600 text-sm mt-1">Get global leaderboard</p>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/leaderboard</code>
+                                    <p class="text-gray-600 text-sm mt-1">Get global leaderboard</p>
+                                </div>
                             </div>
+                            <button onclick="testEndpoint('GET', '/leaderboard')" 
+                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-play mr-2"></i>Try it
+                            </button>
                         </div>
                     </div>
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -656,6 +704,157 @@ async def handle_homepage(
             </div>
         </div>
     </footer>
+
+    <!-- API Test Modal -->
+    <div id="apiTestModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-900">
+                    <i class="fas fa-flask text-red-600 mr-2"></i>API Test Console
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span id="modalMethod" class="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded"></span>
+                    <code id="modalEndpoint" class="text-sm font-mono text-gray-800"></code>
+                </div>
+                <div id="modalLoading" class="hidden">
+                    <div class="flex items-center justify-center py-8">
+                        <i class="fas fa-spinner fa-spin text-4xl text-red-600"></i>
+                        <span class="ml-3 text-gray-600">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="modalContent" class="space-y-4">
+                <!-- Request section -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+                        <i class="fas fa-arrow-up text-blue-600 mr-2"></i>Request
+                    </h4>
+                    <div class="bg-gray-50 rounded p-3">
+                        <div class="mb-2">
+                            <span class="text-sm font-semibold text-gray-700">URL:</span>
+                            <code id="requestUrl" class="text-sm text-gray-800 ml-2"></code>
+                        </div>
+                        <div id="requestHeaders" class="text-xs text-gray-600"></div>
+                    </div>
+                </div>
+                
+                <!-- Response section -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+                        <i class="fas fa-arrow-down text-green-600 mr-2"></i>Response
+                        <span id="responseStatus" class="ml-2 px-2 py-1 text-xs rounded"></span>
+                        <span id="responseTime" class="ml-2 text-sm text-gray-600"></span>
+                    </h4>
+                    <div class="bg-gray-50 rounded p-3 overflow-x-auto">
+                        <pre id="responseBody" class="text-xs"><code></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for API Testing -->
+    <script>
+        const baseUrl = '{base_url}';
+        
+        function closeModal() {{
+            document.getElementById('apiTestModal').classList.add('hidden');
+        }}
+        
+        function showModal() {{
+            document.getElementById('apiTestModal').classList.remove('hidden');
+        }}
+        
+        function testEndpoint(method, endpoint, queryParams = null) {{
+            showModal();
+            
+            // Update modal header
+            document.getElementById('modalMethod').textContent = method;
+            document.getElementById('modalMethod').className = `px-3 py-1 ${{method === 'GET' ? 'bg-blue-500' : 'bg-green-500'}} text-white text-sm font-bold rounded`;
+            document.getElementById('modalEndpoint').textContent = endpoint;
+            
+            // Show loading
+            document.getElementById('modalLoading').classList.remove('hidden');
+            document.getElementById('modalContent').classList.add('hidden');
+            
+            // Build URL with query params
+            let url = baseUrl + endpoint;
+            if (queryParams) {{
+                const params = new URLSearchParams(queryParams);
+                url += '?' + params.toString();
+            }}
+            
+            document.getElementById('requestUrl').textContent = url;
+            
+            // Make request
+            const startTime = performance.now();
+            fetch(url)
+                .then(response => {{
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+                    
+                    // Hide loading, show content
+                    document.getElementById('modalLoading').classList.add('hidden');
+                    document.getElementById('modalContent').classList.remove('hidden');
+                    
+                    // Update status
+                    const statusEl = document.getElementById('responseStatus');
+                    statusEl.textContent = `${{response.status}} ${{response.statusText}}`;
+                    statusEl.className = `ml-2 px-2 py-1 text-xs rounded ${{response.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}}`;
+                    
+                    // Update time
+                    document.getElementById('responseTime').textContent = `(${{duration}}ms)`;
+                    
+                    return response.json();
+                }})
+                .then(data => {{
+                    // Display formatted JSON
+                    const codeEl = document.getElementById('responseBody').querySelector('code');
+                    codeEl.textContent = JSON.stringify(data, null, 2);
+                }})
+                .catch(error => {{
+                    document.getElementById('modalLoading').classList.add('hidden');
+                    document.getElementById('modalContent').classList.remove('hidden');
+                    
+                    const statusEl = document.getElementById('responseStatus');
+                    statusEl.textContent = 'Error';
+                    statusEl.className = 'ml-2 px-2 py-1 text-xs rounded bg-red-100 text-red-800';
+                    
+                    const codeEl = document.getElementById('responseBody').querySelector('code');
+                    codeEl.textContent = 'Error: ' + error.message;
+                    codeEl.style.color = 'red';
+                }});
+        }}
+        
+        function testEndpointWithParams(method, endpointTemplate, promptText, defaultValue) {{
+            const value = prompt(promptText, defaultValue);
+            if (value) {{
+                const endpoint = endpointTemplate.replace('{id}', value);
+                testEndpoint(method, endpoint);
+            }}
+        }}
+        
+        function testEndpointWithQuery(method, endpoint, promptText, defaultValue) {{
+            const value = prompt(promptText, defaultValue);
+            if (value) {{
+                testEndpoint(method, endpoint, {{ q: value }});
+            }}
+        }}
+        
+        // Close modal when clicking outside
+        document.getElementById('apiTestModal').addEventListener('click', function(e) {{
+            if (e.target === this) {{
+                closeModal();
+            }}
+        }});
+    </script>
 </body>
 </html>"""
     
