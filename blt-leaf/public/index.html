@@ -1925,9 +1925,6 @@
                 if (data.error) {
                     alert(`Failed to import PRs: ${data.error}`);
                 } else {
-                    // Show success message with repo name
-                    alert(data.message || `Successfully imported PRs from ${repoOwner}/${repoName}`);
-                    // Reload data
                     await loadRepos();
                     await loadPrs();
                     await loadRateLimit();
