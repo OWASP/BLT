@@ -1,111 +1,112 @@
-# OWASP BLT Job Board (Standalone)
+# BLT Jobs
 
-Standalone job board for OWASP BLT, hosted on **GitHub Pages**. Read-only list and detail views; no backend at runtime.
+A community-driven job board for the OWASP BLT ecosystem, built with GitHub Pages.
 
-## Adding a job
+## Features
 
-- **[Add a job](add.html)** – Use **Quick add** (recommended) or **Manual add**.
-  - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot (GitHub Action + scraper) will create a new job Markdown file in the repo for you. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
-  - **Manual add:** Create a new file under `jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
+- **Post Job Opportunities**: Companies can post jobs via pull requests (Quick add from URL or manual file creation)
+- **Feature Job Seeker Profiles**: Professionals can showcase their skills and availability
+- **Automated Processing**: GitHub Actions automatically converts job URLs to markdown files and builds JSON data
+- **Beautiful Design**: Built with BLT design guidelines using Tailwind CSS
+- **Easy to Use**: Submit via pull requests, no complex forms needed
 
-### Adding a seeker profile
+## How to Use
 
-- **[Create a seeker profile](add.html)** – Use the seeker section at the bottom of the page.
-  - Create a new file under `seekers/` named after you (e.g. `jane-doe.md`).
-  - Use the frontmatter + body format from [`seekers/example-seeker.md`](seekers/example-seeker.md).
-  - Open a PR and your profile will appear on `seekers.html` once merged.
+### For Employers - Post a Job
 
-## Data
+1. Go to the [Add a job](add.html) page
+2. Choose **Quick add** (recommended) or **Manual add**:
+   - **Quick add:** Open a [new pull request](https://github.com/OWASP-BLT/BLT-Jobs/compare) and paste the job listing URL in the PR description (or in a file named `job-url.txt`). Our bot will scrape the page and create a job file for you. Supported sites: Greenhouse, Lever, Workable, and other common ATS and career pages.
+   - **Manual add:** Create a new file under `jobs/` with the filename format `company-slug-job-title-slug.md` (e.g. `acme-senior-engineer.md`). Use [the sample job](jobs/example-company-sample-job.md) as a template. Open a PR with your new file.
+3. Your job will be automatically published to the [Jobs page](index.html) once the PR is merged.
 
-Jobs are stored as **one Markdown file per job** in `jobs/`, with YAML frontmatter and a body (description). Filename format: `company-slug-job-title-slug.md`. The file `data/jobs.json` is **generated** from `jobs/*.md` by a build step (`npm run build:jobs`); a GitHub Action runs this on push to `main` so the site always has an up-to-date `data/jobs.json`.
+Jobs are stored as `company-slug-job-title-slug.md` in the `jobs/` directory.
 
-Seeker profiles are stored as **one Markdown file per person** in `seekers/`. The build step also generates `data/seekers.json` from `seekers/*.md` for the seekers page.
+### For Job Seekers - Create Your Profile
 
-### Canonical schema (`data/jobs.json`)
+1. Go to the [Add a job](add.html) page and scroll to the "Create a job seeker profile" section
+2. Create a new file under `seekers/` named after you (e.g. `jane-doe.md`)
+3. Use the frontmatter + body format from [`seekers/example-seeker.md`](seekers/example-seeker.md)
+4. Open a pull request with your new file
+5. Your profile will be automatically published to the [Seekers page](seekers.html) once merged
 
-Each job object in the `jobs` array has exactly these 15 fields (aligned with BLT's `JobPublicSerializer`):
+Profiles are stored as `name-slug.md` in the `seekers/` directory.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Job ID (slug from filename, e.g. `acme-senior-engineer`) |
-| `organization_name` | string | Organization name |
-| `organization_logo` | string \| null | Absolute URL to organization logo image |
-| `title` | string | Job title |
-| `description` | string | Job description |
-| `requirements` | string \| null | Job requirements |
-| `location` | string \| null | Location (e.g. city, Remote, Hybrid) |
-| `job_type` | string | One of: `full-time`, `part-time`, `contract`, `internship`, `freelance` |
-| `salary_range` | string \| null | Salary range if provided |
-| `expires_at` | string \| null | ISO 8601 datetime if job expires |
-| `application_email` | string \| null | Email for applications |
-| `application_url` | string \| null | URL for external application |
-| `application_instructions` | string \| null | Custom apply instructions |
-| `created_at` | string | ISO 8601 datetime when posted |
-| `views_count` | number | View count (as of last sync) |
+## File Structure
 
-Root shape: `{"jobs": [...], "count": N, "generated_at": "<iso8601>"}`.
+```
+BLT-Jobs/
+├── index.html          # Job listings page
+├── job.html            # Individual job detail page
+├── seekers.html        # Job seeker profiles page
+├── add.html            # Contribute page (add jobs or create profiles)
+├── jobs/               # Job posting markdown files (company-slug-job-title-slug.md)
+├── seekers/            # Job seeker markdown files (name-slug.md)
+├── data/               # Generated JSON files (jobs.json, seekers.json)
+├── assets/             # JavaScript and CSS assets
+├── scripts/            # Build scripts and scrapers
+├── .github/
+│   ├── workflows/
+│   │   ├── build-jobs.yml        # Auto-build JSON from markdown
+│   │   └── quick-add-job.yml     # Auto-process job URLs from PRs
+│   └── PULL_REQUEST_TEMPLATE/
+│       ├── PULL_REQUEST_TEMPLATE.md  # Default PR template
+│       └── quick_add.md              # Quick add PR template
+└── README.md
+```
 
-## Frontend
+## Design
 
-- `index.html`: Job list page
-- `seekers.html`: Job seekers list page (reads `data/seekers.json`).
-- `add.html`: Contribute page – add a job (Quick add or manual) and create seeker profiles.
-  - Loads `data/jobs.json`
-  - Client-side search (`q`) over title, description, organization name, and location
-  - Filters:
-    - `job_type`: `full-time`, `part-time`, `contract`, `internship`, `freelance`
-    - `location`: case-insensitive substring match
-  - Empty state with optional “Clear filters” when filters are active.
-- `job.html`: Job detail page
-  - Reads `id` from the query string (`job.html?id=<pk>`)
-  - Renders:
-    - Organization logo/name
-    - Title, location, job type, salary range, created_at
-    - Description, requirements, application instructions
-    - Apply buttons:
-      - `mailto:` if `application_email` is set
-      - External link if `application_url` is set
-    - “Applications Closed” if there is no active apply method.
+This project follows the [BLT Design Guidelines](https://github.com/OWASP-BLT/BLT-Design), featuring:
 
-Both pages use **Tailwind CSS via CDN** for styling.
+- Tailwind CSS for styling
+- Red accent colors (#e74c3c)
+- Responsive, accessible design
+- Font Awesome icons
+- Dark mode support
 
-## Deployment (GitHub Pages)
+## Contributing
 
-This repository is designed to be deployed as a static site using **GitHub Pages**.
+Contributions are welcome! This is an OWASP BLT community project.
 
-1. Go to the repository settings in GitHub: **Settings → Pages**.
-2. Under “Build and deployment”, choose:
-   - **Source**: `Deploy from a branch`
-   - **Branch**: `main`, folder `/ (root)`.
-3. Save. GitHub Pages will build and serve the site from `index.html`.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
-After a successful deploy, your site will be available at a URL like:
+## License
 
-- `https://<your-username>.github.io/BLT-Jobs/`
+This project is part of the [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/).
 
-or at the custom domain configured by the OWASP BLT organization once they point DNS at the Pages site.
+## Links
 
-### Local Preview
+- [Live Site](https://pritz395.github.io/BLT-Jobs/) (when GitHub Pages is enabled)
+- [OWASP BLT](https://github.com/OWASP-BLT/BLT)
+- [BLT Design System](https://github.com/OWASP-BLT/BLT-Design)
 
-For quick local testing, you can serve the repository with a simple HTTP server, for example:
+## Technical Details
+
+### Data Model
+
+Jobs and seeker profiles are stored as Markdown files with YAML frontmatter. A build script (`npm run build:jobs`) generates `data/jobs.json` and `data/seekers.json` from these files. The build runs automatically via GitHub Actions on push to `main`.
+
+### Local Development
 
 ```bash
+# Install dependencies
+npm ci
+
+# Build data files from markdown
+npm run build:jobs
+
+# Serve locally
 python -m http.server 8000
 ```
 
 Then open:
-
 - `http://localhost:8000/index.html` – job list
-- `http://localhost:8000/job.html?id=<some-job-id>` – job detail
+- `http://localhost:8000/seekers.html` – seeker profiles
+- `http://localhost:8000/job.html?id=<job-id>` – job detail
 
 Note: `fetch("data/jobs.json")` requires running over HTTP/HTTPS; opening `index.html` directly from the filesystem (`file://`) will not work.
-
-### Build data from Markdown (local)
-
-```bash
-npm ci
-npm run build:jobs
-```
-
-This reads all `jobs/*.md` and `seekers/*.md` and writes `data/jobs.json` and `data/seekers.json`. The same script runs in CI on push to `main` when those folders or the build script change.
-
