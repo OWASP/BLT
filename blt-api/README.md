@@ -551,10 +551,10 @@ For automatic deployments when code is pushed to your repository:
 1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
 2. Connect your GitHub/GitLab repository
 3. Configure build settings:
-   - **Build command**: (leave empty, wrangler handles it)
+   - **Build command**: Leave empty (build command is defined in `wrangler.toml`)
    - **Deploy command**: `wrangler deploy`
 4. Every push to your main branch will automatically:
-   - Run D1 migrations (via build command)
+   - Run D1 migrations (via build command in `wrangler.toml`)
    - Deploy the updated worker
 
 See [Cloudflare Git Integration docs](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/) for details.
@@ -567,9 +567,11 @@ If you need to run migrations separately:
 # Apply migrations only
 wrangler d1 migrations apply blt-api --remote
 
-# Deploy without running build command
+# Deploy without running build command (⚠️ WARNING: skips migrations!)
 wrangler deploy --no-build
 ```
+
+**Note:** Using `--no-build` will skip the migration step, which could lead to deploying code that expects schema changes that haven't been applied. Only use this if you've already run migrations separately.
 
 ## Authentication
 

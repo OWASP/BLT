@@ -10,6 +10,10 @@ echo "🗄️  Applying D1 database migrations..."
 DATABASE_NAME="${DATABASE_NAME:-blt-api}"
 
 # Apply migrations to the remote database
-wrangler d1 migrations apply "$DATABASE_NAME" --remote
+if ! wrangler d1 migrations apply "$DATABASE_NAME" --remote; then
+    echo "❌ Error: Failed to apply migrations to database '$DATABASE_NAME'"
+    echo "   Make sure the database exists and wrangler is properly authenticated"
+    exit 1
+fi
 
 echo "✅ Migrations applied successfully!"
