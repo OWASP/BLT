@@ -29,22 +29,12 @@ echo "🗄️  Step 1: Applying D1 database migrations..."
 echo "================================================"
 wrangler d1 migrations apply blt-api --remote "${ENV_ARGS[@]}"
 
-if [ $? -ne 0 ]; then
-    echo "❌ Migration failed! Deployment aborted."
-    exit 1
-fi
-
 echo ""
 echo "✅ Migrations applied successfully!"
 echo ""
 echo "☁️  Step 2: Deploying to Cloudflare Workers..."
 echo "================================================"
 wrangler deploy "${ENV_ARGS[@]}"
-
-if [ $? -ne 0 ]; then
-    echo "❌ Deployment failed!"
-    exit 1
-fi
 
 echo ""
 echo "✅ Deployment completed successfully!"
