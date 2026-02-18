@@ -850,17 +850,28 @@
                             </div>
                         </div>
 
-                        <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 ml-2 github-pr-link"
-                        title="View Pull Requests on GitHub"
-                        onclick="event.stopPropagation();">
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="add-all-prs-btn text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                title="Import all PRs from this repository"
+                                aria-label="Import all pull requests from this repository"
+                                data-repo-owner="${repo.repo_owner}"
+                                data-repo-name="${repo.repo_name}">
+                                <i class="fas fa-plus text-xl text-red-600 hover:text-red-700 transition-colors"></i>
+                            </button>
 
-                            <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
+                            <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 github-pr-link"
+                            title="View Pull Requests on GitHub"
+                            onclick="event.stopPropagation();">
+
+                                <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
 
 
-                        </a>
+                            </a>
+                        </div>
 
                     </div>
                 `;
@@ -1934,6 +1945,42 @@
             }
         }
 
+        async function addAllPrsFromRepo(repoOwner, repoName, buttonElement) {
+            // Show loading state
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin text-xl text-red-600"></i>';
+
+            try {
+                const repoUrl = `https://github.com/${repoOwner}/${repoName}`;
+                const response = await fetch('/api/prs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        pr_url: repoUrl,
+                        add_all: true
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(`Failed to import PRs: ${data.error}`);
+                } else {
+                    await loadRepos();
+                    await loadPrs();
+                    await loadRateLimit();
+                }
+            } catch (error) {
+                console.error('Error importing PRs:', error);
+                alert(`Failed to import PRs from ${repoOwner}/${repoName}`);
+            } finally {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHTML;
+            }
+        }
+
         // Search listener
         document.getElementById('prSearchInput').addEventListener('input', (e) => {
             currentPage = 1;
@@ -1973,6 +2020,17 @@
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
             loadPrs();
+        });
+
+        // Delegated event listener for plus buttons (import all PRs)
+        document.getElementById('repoList').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.add-all-prs-btn');
+            if (btn) {
+                e.stopPropagation();
+                const repoOwner = btn.dataset.repoOwner;
+                const repoName = btn.dataset.repoName;
+                await addAllPrsFromRepo(repoOwner, repoName, btn);
+            }
         });
 
         // Theme toggle functionality
