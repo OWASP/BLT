@@ -15,12 +15,21 @@ import {
 const BLT_API_BASE = process.env.BLT_API_BASE || "https://blt.owasp.org/api";
 const BLT_API_KEY = process.env.BLT_API_KEY || "";
 
+// Types for API requests and responses
+interface ApiRequestBody {
+  [key: string]: unknown;
+}
+
+interface ApiResponse {
+  [key: string]: unknown;
+}
+
 // Helper function to make authenticated API requests
 async function makeApiRequest(
   endpoint: string,
   method: string = "GET",
-  body?: any
-): Promise<any> {
+  body?: ApiRequestBody
+): Promise<ApiResponse> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
@@ -145,7 +154,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const [, resourceType, resourceId] = match;
 
   try {
-    let data: any;
+    let data: ApiResponse;
 
     switch (resourceType) {
       case "issues":
