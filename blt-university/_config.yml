@@ -4,8 +4,8 @@ description: >-
   A cybersecurity-focused online university powered by GitHub Pages.
   Learn, teach, and collaborate on security courses through open-source education.
 
-baseurl: "/BLT-University"
-url: "https://owasp-blt.github.io"
+baseurl: ""
+url: "https://university.owaspblt.org"
 
 # University Information
 university:
