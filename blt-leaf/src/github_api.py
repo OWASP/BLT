@@ -154,33 +154,48 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
         return unresolved_count  # Return partial count if available
 
 
-async def fetch_pr_data(owner, repo, pr_number, token=None):
+async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
     """
     Fetch PR data from GitHub API with parallel requests for optimal performance.
     
     Optimizations applied:
+    - Conditional requests (ETags): Avoid fetching if data hasn't changed
     - Files list is NOT fetched since PR details already include 'changed_files' count
     - Checks, compare, and reviews API calls are made in parallel for efficiency
-    - Reviews are fetched to populate per-reviewer approval avatars
-    
-    This makes 4 parallel API calls per fetch (PR details first, then checks + compare + reviews).
     """
     headers = {
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
+    
+    if etag:
+        headers['If-None-Match'] = etag
         
     try:
         # Fetch PR details first (needed for head SHA)
         pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
         pr_response = await fetch_with_headers(pr_url, headers, token)
         
+        # Handle 304 Not Modified
+        if pr_response.status == 304:
+            print(f"GitHub API: PR #{pr_number} returned 304 Not Modified (Fast-path)")
+            return {'not_modified': True}
+            
         if pr_response.status != 200:
             return None
             
         pr_data = (await pr_response.json()).to_py()
+        
+        # Extract new ETag for storage
+        new_etag = pr_response.headers.get('etag')
 
         # Prepare URLs for parallel fetching
+        # We MUST NOT send If-None-Match to these secondary calls based on the PR etag,
+        # as each endpoint has its own etag logic. We just want to clear headers.
+        secondary_headers = {
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
         # Note: We don't fetch files list since pr_data already includes 'changed_files' count
         # Reviews are fetched here to extract per-reviewer approval data (login + avatar)
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
@@ -214,10 +229,10 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         
         try:
             results = await asyncio.gather(
-                fetch_with_headers(checks_url, headers, token),
-                fetch_with_headers(compare_url, headers, token),
+                fetch_with_headers(checks_url, secondary_headers, token),
+                fetch_with_headers(compare_url, secondary_headers, token),
                 fetch_open_conversations_count(owner, repo, pr_number, token),
-                fetch_with_headers(reviews_url, headers, token),
+                fetch_with_headers(reviews_url, secondary_headers, token),
                 return_exceptions=True
             )
             
@@ -311,7 +326,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'last_updated_at': pr_data.get('updated_at', ''),
             'is_draft': 1 if pr_data.get('draft', False) else 0,
             'open_conversations_count': open_conversations_count,
-            'reviewers_json': json.dumps(reviewers_list)
+            'reviewers_json': json.dumps(reviewers_list),
+            'etag': new_etag
         }
     except Exception as e:
         # Return more informative error for debugging
