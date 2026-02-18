@@ -438,7 +438,12 @@
         }
         let currentPage = 1;
         let totalPages = 1;
-        let perPage = parseInt(localStorage.getItem('perPage') || '30'); // Load from localStorage, default to 30
+        // Load and validate perPage from localStorage
+        let perPageRaw = localStorage.getItem('perPage');
+        let perPageParsed = parseInt(perPageRaw, 10);
+        let perPage = (!Number.isNaN(perPageParsed) && perPageParsed >= 10 && perPageParsed <= 1000)
+            ? perPageParsed
+            : 30; // Ensure perPage is within [10, 1000], fallback to 30 if invalid
         let activePrId = null; // Track the currently active/selected PR
 
         // Auto-refresh state
@@ -1479,7 +1484,15 @@
             
             // Handle page size change
             document.getElementById('pageSizeSelect')?.addEventListener('change', (e) => {
-                const newPerPage = parseInt(e.target.value);
+                const newPerPage = parseInt(e.target.value, 10);
+                
+                // Validate the new page size to guard against DOM manipulation
+                if (Number.isNaN(newPerPage) || newPerPage < 10 || newPerPage > 1000) {
+                    // Revert the select value to the current perPage if invalid
+                    e.target.value = perPage.toString();
+                    return;
+                }
+                
                 if (newPerPage !== perPage) {
                     perPage = newPerPage;
                     localStorage.setItem('perPage', perPage.toString());
