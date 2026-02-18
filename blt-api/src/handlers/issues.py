@@ -150,19 +150,81 @@ async def handle_issues(
                 status=400
             )
         
-        result = await client.create_issue(body)
+        # Validate URL length
+        if len(body["url"]) > 200:
+            return error_response("URL must be 200 characters or less", status=400)
         
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Failed to create issue"),
-                status=result.get("status", 400)
-            )
-        
-        return json_response({
-            "success": True,
-            "message": "Issue created successfully",
-            "data": result.get("data")
-        }, status=201)
+        try:
+            # Insert the new issue
+            result = await db.prepare('''
+                INSERT INTO issues (
+                    url, description, markdown_description, label, views, verified,
+                    score, status, user_agent, ocr, screenshot, github_url,
+                    is_hidden, rewarded, reporter_ip_address, cve_id, cve_score,
+                    hunt, domain, user, closed_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''').bind(
+                body.get("url"),
+                body.get("description"),
+                body.get("markdown_description"),
+                body.get("label"),
+                body.get("views"),
+                body.get("verified", False),
+                body.get("score"),
+                body.get("status", "open"),
+                body.get("user_agent"),
+                body.get("ocr"),
+                body.get("screenshot"),
+                body.get("github_url"),
+                body.get("is_hidden", False),
+                body.get("rewarded", 0),
+                body.get("reporter_ip_address"),
+                body.get("cve_id"),
+                body.get("cve_score"),
+                body.get("hunt"),
+                body.get("domain"),
+                body.get("user"),
+                body.get("closed_by")
+            ).run()
+            
+            # Get the last inserted row ID
+            last_id_result = await db.prepare(
+                'SELECT last_insert_rowid() as id'
+            ).first()
+            
+            if last_id_result:
+                if hasattr(last_id_result, 'to_py'):
+                    last_id = last_id_result.to_py().get('id')
+                elif hasattr(last_id_result, 'id'):
+                    last_id = last_id_result.id
+                elif isinstance(last_id_result, dict):
+                    last_id = last_id_result.get('id')
+                else:
+                    last_id = None
+            else:
+                last_id = None
+            
+            # Fetch the created issue
+            if last_id:
+                created_issue = await db.prepare(
+                    'SELECT * FROM issues WHERE id = ?'
+                ).bind(last_id).first()
+                
+                issue_data = convert_d1_results([created_issue] if created_issue else [])
+                
+                return json_response({
+                    "success": True,
+                    "message": "Issue created successfully",
+                    "data": issue_data[0] if issue_data else {"id": last_id}
+                }, status=201)
+            else:
+                return json_response({
+                    "success": True,
+                    "message": "Issue created successfully"
+                }, status=201)
+                
+        except Exception as e:
+            return error_response(f"Failed to create issue: {str(e)}", status=500)
     
     # List issues with pagination
     page, per_page = parse_pagination_params(query_params)
