@@ -439,8 +439,8 @@ This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints qu
 
 - `/domains` - Domain data stored in D1
 - `/domains/{id}/tags` - Domain tags from D1
-- `/issues` - Issues data stored in D1
-- `/issues/{id}` - Issue details with screenshots and tags from D1
+- `/bugs` - Bugs data stored in D1
+- `/bugs/{id}` - Bug details with screenshots and tags from D1
 
 ### Database Operations
 
@@ -476,7 +476,7 @@ BLT-API/
 │   │   └── db.py           # Database helpers
 │   └── handlers/           # Request handlers
 │       ├── __init__.py
-│       ├── issues.py
+│       ├── bugs.py
 │       ├── users.py
 │       ├── domains.py      # D1-integrated
 │       ├── organizations.py
@@ -544,7 +544,7 @@ wrangler deploy --env production
 Some endpoints require authentication. Pass the auth token in the request header:
 
 ```bash
-curl -H "Authorization: Token YOUR_API_TOKEN" https://your-worker.workers.dev/issues
+curl -H "Authorization: Token YOUR_API_TOKEN" https://your-worker.workers.dev/bugs
 ```
 
 ## Rate Limiting
