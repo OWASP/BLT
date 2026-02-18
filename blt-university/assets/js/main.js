@@ -48,10 +48,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parse URL parameters for enrollment
     const urlParams = new URLSearchParams(window.location.search);
     const courseParam = urlParams.get('course');
+    const titleParam = urlParams.get('title');
     
     if (courseParam && window.location.pathname.includes('/enroll/')) {
-        console.log('Enrolling in course:', courseParam);
-        // Could pre-fill form or show specific course info
+        console.log('Enrolling in course:', courseParam, titleParam);
+        
+        // Update the enrollment button to prefill the title if available
+        if (titleParam) {
+            const enrollButton = document.querySelector('[data-enrollment-button]');
+            if (enrollButton) {
+                const currentHref = enrollButton.getAttribute('href');
+                const separator = currentHref.includes('?') ? '&' : '?';
+                const prefilledTitle = `[ENROLLMENT] ${titleParam} - `;
+                enrollButton.setAttribute('href', currentHref + separator + `title=${encodeURIComponent(prefilledTitle)}`);
+            }
+        }
     }
     
     // Smooth scroll for anchor links
