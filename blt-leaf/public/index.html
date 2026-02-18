@@ -576,7 +576,7 @@
 
                 if (data.status === 'waiting_for_first_request') {
                     if (textEl) textEl.textContent = 'Ready';
-                    if (usedEl) usedEl.textContent = '(Passive mode active)';
+                    if (usedEl) usedEl.textContent = '';
                     if (resetEl) resetEl.textContent = '';
                     if (fillEl) fillEl.style.width = '100%';
                     return;
