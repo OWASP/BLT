@@ -74,7 +74,10 @@ async def handle_issues(
     
     # Get specific issue
     if "id" in path_params:
-        issue_id = int(path_params["id"])
+        try:
+            issue_id = int(path_params["id"])
+        except ValueError:
+            return error_response("Invalid issue id format", status=400)
 
         result = await db.prepare('''
             SELECT 
