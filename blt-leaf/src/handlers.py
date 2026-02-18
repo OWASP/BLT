@@ -231,11 +231,11 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                     
                     # Add NULL handling and column sort
                     # NULL values should appear last regardless of sort direction
-                    sort_clauses.append(f'{db_column} IS NULL ASC, {db_column} {direction}')
+                    sort_clauses.append(f'{db_column} IS NULL, {db_column} {direction}')
         
         # If no valid sort columns, use default
         if not sort_clauses:
-            sort_clauses.append('last_updated_at IS NULL ASC, last_updated_at DESC')
+            sort_clauses.append('last_updated_at IS NULL, last_updated_at DESC')
         
         # Build ORDER BY clause
         # Note: All columns are validated against whitelist above, so no SQL injection risk
