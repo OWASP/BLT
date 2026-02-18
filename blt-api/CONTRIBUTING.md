@@ -198,39 +198,39 @@ pytest tests/
 
 ## Deployment
 
-### Automated Deployment (CI/CD)
+### Deploy to Cloudflare
 
-The project uses GitHub Actions for continuous deployment. When you push to the `main` branch:
+The repository includes a `deploy.sh` script that automatically runs migrations before deploying:
 
-1. Database migrations are automatically applied
-2. Worker code is automatically deployed to Cloudflare
+```bash
+# Deploy to production (recommended)
+./deploy.sh
 
-This means **you don't need to manually run migrations or deploy** for changes merged to `main`.
+# Deploy to specific environment
+./deploy.sh --env production
+./deploy.sh --env development
+```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for CI/CD setup and configuration details.
-
-### Manual Deployment
-
-For manual deployments or testing:
+Alternatively, run commands manually:
 
 ```bash
 # Apply migrations first
 wrangler d1 migrations apply blt-api --remote
 
-# Deploy to production
+# Then deploy
 wrangler deploy
 
-# Deploy with a specific environment
+# Or for specific environment
+wrangler d1 migrations apply blt-api --remote --env production
 wrangler deploy --env production
 ```
 
-### Pre-deployment Checklist (for PRs)
+### Pre-deployment Checklist
 
 1. Test locally with `wrangler dev`
-2. Apply migrations locally: `wrangler d1 migrations apply blt-api --local`
-3. Verify migrations work correctly
-4. Run tests: `uv run pytest`
-5. Once merged to `main`, CI/CD handles the rest!
+2. Test migrations locally: `wrangler d1 migrations apply blt-api --local`
+3. Run tests: `uv run pytest`
+4. Use `./deploy.sh` to deploy (migrations + deploy in one command)
 
 ## Common Tasks
 
