@@ -363,15 +363,12 @@ async def handle_refresh_pr(request, env):
             'pr_number': result['pr_number'],
             'pr_url': result['pr_url']
         }
-        
-       return Response.new(json.dumps({
-            'success': True, 
-            'data': response_data,
-            'rate_limit': get_rate_limit_cache() # Pass the updated count back immediately
-        }), {'headers': {'Content-Type': 'application/json'}})
 
+        return Response.new(json.dumps({'success': True, 'data': response_data, 'rate_limit': get_rate_limit_cache())}),
+                            {'headers': {'Content-Type': 'application/json'}})
+        
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
 async def handle_rate_limit(env):
