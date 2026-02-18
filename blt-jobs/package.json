@@ -1,0 +1,10 @@
+{
+  "name": "blt-jobs",
+  "private": true,
+  "scripts": {
+    "build:jobs": "node scripts/build-jobs.js"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}
