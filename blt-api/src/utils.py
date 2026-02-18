@@ -76,8 +76,12 @@ def json_response(
     # Convert Python dict to JSON string
     json_body = json.dumps(data)
     
-    # Use simpler Response.new pattern that works with Cloudflare Workers
-    return Response.new(json_body, {'status': status, 'headers': response_headers})
+    # Create Response with proper status code for Cloudflare Workers
+    response_init = {
+        'status': status,
+        'headers': response_headers
+    }
+    return Response.new(json_body, response_init)
 
 
 def error_response(

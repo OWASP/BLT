@@ -32,7 +32,7 @@ async def handle_issues(
     # Get specific issue
     if "id" in path_params:
         issue_id = path_params["id"]
-        print(f"Fetching issue with ID {issue_id}")
+        
         # Validate ID is numeric
         if not issue_id.isdigit():
             return error_response("Invalid issue ID", status=400)
@@ -94,7 +94,6 @@ async def handle_issues(
             ORDER BY t.name
         ''').bind(issue_id).all()
         
-        print(f"Fetched issue with ID {issue_id} {result} and {len(screenshots_result.results) if hasattr(screenshots_result, 'results') else 0} screenshots and {len(tags_result.results) if hasattr(tags_result, 'results') else 0} tags")
         # Convert results
         screenshots_data = convert_d1_results(screenshots_result.results if hasattr(screenshots_result, 'results') else [])
         tags_data = convert_d1_results(tags_result.results if hasattr(tags_result, 'results') else [])
@@ -182,7 +181,7 @@ async def handle_issues(
             return error_response("URL must be 200 characters or less", status=400)
         
         try:
-            # Insert the new issue
+            # Insert the new issue - use None for NULL values
             result = await db.prepare('''
                 INSERT INTO issues (
                     url, description, markdown_description, label, views, verified,
@@ -193,25 +192,25 @@ async def handle_issues(
             ''').bind(
                 body.get("url"),
                 body.get("description"),
-                body.get("markdown_description"),
-                body.get("label"),
-                body.get("views"),
-                body.get("verified", False),
-                body.get("score"),
-                body.get("status", "open"),
-                body.get("user_agent"),
-                body.get("ocr"),
-                body.get("screenshot"),
-                body.get("github_url"),
-                body.get("is_hidden", False),
-                body.get("rewarded", 0),
-                body.get("reporter_ip_address"),
-                body.get("cve_id"),
-                body.get("cve_score"),
-                body.get("hunt"),
-                body.get("domain"),
-                body.get("user"),
-                body.get("closed_by")
+                body.get("markdown_description") or None,
+                body.get("label") or None,
+                body.get("views") or None,
+                1 if body.get("verified") else 0,
+                body.get("score") or None,
+                body.get("status") or "open",
+                body.get("user_agent") or None,
+                body.get("ocr") or None,
+                body.get("screenshot") or None,
+                body.get("github_url") or None,
+                1 if body.get("is_hidden") else 0,
+                body.get("rewarded") or 0,
+                body.get("reporter_ip_address") or None,
+                body.get("cve_id") or None,
+                body.get("cve_score") or None,
+                body.get("hunt") or None,
+                body.get("domain") or None,
+                body.get("user") or None,
+                body.get("closed_by") or None
             ).run()
             
             # Get the last inserted row ID
