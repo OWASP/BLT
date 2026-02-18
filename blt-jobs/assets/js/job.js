@@ -49,7 +49,10 @@ function renderJob(job) {
   const location = job.location || "";
   const jobType = job.job_type || "";
   const salary = job.salary_range || "";
-  const createdAt = job.created_at || "";
+  const createdAtRaw = job.created_at || "";
+  const createdAt = createdAtRaw
+    ? new Date(createdAtRaw).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : "";
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
   const hasUrl = Boolean(job.application_url);
@@ -185,7 +188,7 @@ function renderJob(job) {
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Job Description</h3>
             <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-              ${description.replace(/\n/g, "<br />")}
+              ${typeof marked !== "undefined" ? marked.parse(description) : description.replace(/\n/g, "<br />")}
             </div>
           </div>
 
@@ -195,7 +198,7 @@ function renderJob(job) {
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Requirements</h3>
                    <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-                     ${requirements.replace(/\n/g, "<br />")}
+                     ${typeof marked !== "undefined" ? marked.parse(requirements) : requirements.replace(/\n/g, "<br />")}
                    </div>
                  </div>`
               : ""
@@ -207,7 +210,7 @@ function renderJob(job) {
               ? `<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8 transition-colors duration-200">
                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">How to Apply</h3>
                    <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-                     ${applicationInstructions.replace(/\n/g, "<br />")}
+                     ${typeof marked !== "undefined" ? marked.parse(applicationInstructions) : applicationInstructions.replace(/\n/g, "<br />")}
                    </div>
                  </div>`
               : ""
