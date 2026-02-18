@@ -40,7 +40,7 @@ async def handle_homepage(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT API - OWASP Bug Logging Tool API</title>
-    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security issue tracking">
+    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security bug tracking">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -179,19 +179,19 @@ async def handle_homepage(
                 </div>
             </div>
 
-            <!-- Issues -->
+            <!-- Bugs -->
             <div class="mb-8">
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-bug text-red-600 mr-2"></i>
-                    Issues
+                    Bugs
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
+                                <code class="text-sm font-mono text-gray-800">/bugs</code>
+                                <p class="text-gray-600 text-sm mt-1">List all bugs (paginated)</p>
                                 <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
                                     <span class="font-semibold text-red-600">Query params:</span> 
                                     <code class="bg-white px-1 py-0.5 rounded">page</code>, 
@@ -206,8 +206,8 @@ async def handle_homepage(
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
+                                <code class="text-sm font-mono text-gray-800">/bugs/{{id}}</code>
+                                <p class="text-gray-600 text-sm mt-1">Get a specific bug by ID</p>
                             </div>
                         </div>
                     </div>
@@ -215,8 +215,8 @@ async def handle_homepage(
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
+                                <code class="text-sm font-mono text-gray-800">/bugs</code>
+                                <p class="text-gray-600 text-sm mt-1">Create a new bug</p>
                             </div>
                         </div>
                     </div>
@@ -224,8 +224,8 @@ async def handle_homepage(
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/issues/search</code>
-                                <p class="text-gray-600 text-sm mt-1">Search issues</p>
+                                <code class="text-sm font-mono text-gray-800">/bugs/search</code>
+                                <p class="text-gray-600 text-sm mt-1">Search bugs</p>
                                 <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
                                     <span class="font-semibold text-red-600">Query params:</span> 
                                     <code class="bg-white px-1 py-0.5 rounded">q</code>
@@ -312,8 +312,8 @@ async def handle_homepage(
                         <div class="flex items-start">
                             <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                             <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/issues</code>
-                                <p class="text-gray-600 text-sm mt-1">Get all issues for a domain</p>
+                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/bugs</code>
+                                <p class="text-gray-600 text-sm mt-1">Get all bugs for a domain</p>
                             </div>
                         </div>
                     </div>

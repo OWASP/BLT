@@ -30,7 +30,7 @@ BLT-API is a high-performance, edge-deployed REST API that interfaces with all a
 - 🐍 **Python-powered** - Built with Python for Cloudflare Workers
 - �️ **D1 Database** - Uses Cloudflare D1 (SQLite) for data persistence
 - �🔒 **Secure** - CORS enabled, authentication support
-- 📊 **Full API Coverage** - Access to issues, users, domains, organizations, projects, hunts, and more
+- 📊 **Full API Coverage** - Access to bugs, users, domains, organizations, projects, hunts, and more
 - 📖 **Well-documented** - Comprehensive API documentation
 - ⚡ **Fast** - Optimized for quick cold starts and efficient execution
 
@@ -78,9 +78,14 @@ For detailed setup instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
 # Install test dependencies
 uv sync --extra dev
 
-# Run tests
+# Run unit tests
 uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_router.py -v
 ```
+
+**Note:** Integration tests for bugs endpoints are in development. You can test endpoints manually with the dev server running at `http://localhost:8788`.
 
 ## API Endpoints
 
@@ -91,20 +96,234 @@ uv run pytest
 | GET | `/` | API status and available endpoints |
 | GET | `/health` | Health check endpoint |
 
-### Issues
+### Bugs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/issues` | List all issues (paginated) |
-| GET | `/issues/{id}` | Get a specific issue |
-| POST | `/issues` | Create a new issue |
-| GET | `/issues/search?q={query}` | Search issues |
+| GET | `/bugs` | List all bugs (paginated) |
+| GET | `/bugs/{id}` | Get a specific bug with screenshots and tags |
+| POST | `/bugs` | Create a new bug |
+| GET | `/bugs/search?q={query}` | Search bugs by URL or description |
 
-**Query Parameters for `/issues`:**
+#### List Bugs - `GET /bugs`
+
+**Query Parameters:**
 - `page` - Page number (default: 1)
 - `per_page` - Items per page (default: 20, max: 100)
-- `status` - Filter by status (open, closed)
-- `domain` - Filter by domain URL
+- `status` - Filter by status (e.g., `open`, `closed`, `reviewing`)
+- `domain` - Filter by domain ID
+- `verified` - Filter by verification status (`true` or `false`)
+
+**Example Request:**
+```bash
+curl "http://localhost:8787/bugs?page=1&per_page=10&status=open&verified=true"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "url": "https://example.com/page",
+      "description": "SQL injection vulnerability",
+      "status": "open",
+      "verified": 1,
+      "score": 85,
+      "views": 125,
+      "created": "2026-02-17 10:30:00",
+      "modified": "2026-02-17 10:30:00",
+      "is_hidden": 0,
+      "rewarded": 50,
+      "cve_id": "CVE-2024-12345",
+      "cve_score": 8.5,
+      "domain": 1,
+      "domain_name": "Example Corp",
+      "domain_url": "https://example.com"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "count": 10,
+    "total": 150,
+    "total_pages": 15
+  }
+}
+```
+
+#### Get Single Bug - `GET /bugs/{id}`
+
+Returns detailed bug information including screenshots and tags.
+
+**Example Request:**
+```bash
+curl "http://localhost:8787/bugs/5"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 5,
+    "url": "https://example.com/admin",
+    "description": "Authentication bypass vulnerability",
+    "markdown_description": "# Detailed Description\n\nFound auth bypass...",
+    "label": "critical",
+    "views": 245,
+    "verified": 1,
+    "score": 95,
+    "status": "open",
+    "user_agent": "Mozilla/5.0...",
+    "ocr": null,
+    "screenshot": "https://cdn.example.com/screenshot.png",
+    "closed_date": null,
+    "github_url": "https://github.com/example/repo/issues/123",
+    "created": "2026-02-17 08:15:00",
+    "modified": "2026-02-17 10:30:00",
+    "is_hidden": 0,
+    "rewarded": 100,
+    "reporter_ip_address": null,
+    "cve_id": "CVE-2024-67890",
+    "cve_score": 9.1,
+    "hunt": 3,
+    "domain": 1,
+    "user": 42,
+    "closed_by": null,
+    "domain_id": 1,
+    "domain_name": "Example Corp",
+    "domain_url": "https://example.com",
+    "domain_logo": "https://cdn.example.com/logo.png",
+    "screenshots": [
+      {
+        "id": 1,
+        "image": "https://cdn.example.com/screenshot1.png",
+        "created": "2026-02-17 08:20:00"
+      },
+      {
+        "id": 2,
+        "image": "https://cdn.example.com/screenshot2.png",
+        "created": "2026-02-17 08:25:00"
+      }
+    ],
+    "tags": [
+      {"id": 1, "name": "authentication"},
+      {"id": 2, "name": "critical"},
+      {"id": 3, "name": "web"}
+    ]
+  }
+}
+```
+
+#### Search Bugs - `GET /bugs/search`
+
+Search for bugs by URL or description text.
+
+**Query Parameters:**
+- `q` - Search query (required)
+- `limit` - Maximum results to return (default: 10, max: 100)
+
+**Example Request:**
+```bash
+curl "http://localhost:8787/bugs/search?q=sql+injection&limit=20"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "query": "sql injection",
+  "data": [
+    {
+      "id": 15,
+      "url": "https://example.com/search",
+      "description": "SQL injection in search parameter",
+      "status": "open",
+      "verified": 1,
+      "score": 80,
+      "views": 89,
+      "created": "2026-02-16 14:30:00",
+      "modified": "2026-02-16 14:30:00",
+      "is_hidden": 0,
+      "rewarded": 0,
+      "cve_id": null,
+      "cve_score": null,
+      "domain": 2,
+      "domain_name": "Test Site",
+      "domain_url": "https://test.example.com"
+    }
+  ]
+}
+```
+
+#### Create Bug - `POST /bugs`
+
+Create a new bug report.
+
+**Required Fields:**
+- `url` - URL where the bug was found (max 200 characters)
+- `description` - Brief description of the bug
+
+**Optional Fields:**
+- `markdown_description` - Detailed markdown description
+- `label` - Bug label/category
+- `views` - View count
+- `verified` - Verification status (boolean)
+- `score` - Score/severity (integer)
+- `status` - Status (default: "open")
+- `user_agent` - User agent string
+- `ocr` - OCR text
+- `screenshot` - Screenshot URL
+- `github_url` - Related GitHub issue URL
+- `is_hidden` - Hidden status (boolean)
+- `rewarded` - Reward amount (integer, default: 0)
+- `reporter_ip_address` - Reporter IP
+- `cve_id` - CVE identifier
+- `cve_score` - CVE score
+- `hunt` - Hunt ID
+- `domain` - Domain ID
+- `user` - User ID
+- `closed_by` - User ID who closed
+
+**Example Request:**
+```bash
+curl -X POST "http://localhost:8787/bugs" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/vulnerable-page",
+    "description": "XSS vulnerability in comment field",
+    "markdown_description": "# XSS Vulnerability\n\nFound reflected XSS...",
+    "status": "open",
+    "verified": true,
+    "score": 75,
+    "domain": 1,
+    "user": 42
+  }'
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "message": "Bug created successfully",
+  "data": {
+    "id": 156,
+    "url": "https://example.com/vulnerable-page",
+    "description": "XSS vulnerability in comment field",
+    "status": "open",
+    "verified": 1,
+    "score": 75,
+    "domain": 1,
+    "user": 42,
+    "created": "2026-02-18 09:15:00",
+    "modified": "2026-02-18 09:15:00"
+  }
+}
+```
+
+Bugs endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE.md](docs/DATABASE.md) for schema details.
 
 ### Users
 
@@ -220,6 +439,8 @@ This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints qu
 
 - `/domains` - Domain data stored in D1
 - `/domains/{id}/tags` - Domain tags from D1
+- `/bugs` - Bugs data stored in D1
+- `/bugs/{id}` - Bug details with screenshots and tags from D1
 
 ### Database Operations
 
@@ -255,7 +476,7 @@ BLT-API/
 │   │   └── db.py           # Database helpers
 │   └── handlers/           # Request handlers
 │       ├── __init__.py
-│       ├── issues.py
+│       ├── bugs.py
 │       ├── users.py
 │       ├── domains.py      # D1-integrated
 │       ├── organizations.py
@@ -323,7 +544,7 @@ wrangler deploy --env production
 Some endpoints require authentication. Pass the auth token in the request header:
 
 ```bash
-curl -H "Authorization: Token YOUR_API_TOKEN" https://your-worker.workers.dev/issues
+curl -H "Authorization: Token YOUR_API_TOKEN" https://your-worker.workers.dev/bugs
 ```
 
 ## Rate Limiting

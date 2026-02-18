@@ -5,7 +5,7 @@ This module contains all the handler functions that process
 incoming API requests and return appropriate responses.
 """
 
-from .issues import handle_issues
+from .bugs import handle_bugs
 from .users import handle_users
 from .domains import handle_domains
 from .organizations import handle_organizations
@@ -19,7 +19,7 @@ from .health import handle_health
 from .homepage import handle_homepage
 
 __all__ = [
-    "handle_issues",
+    "handle_bugs",
     "handle_users",
     "handle_domains",
     "handle_organizations",
