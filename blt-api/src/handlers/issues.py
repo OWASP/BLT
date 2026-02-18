@@ -29,6 +29,49 @@ async def handle_issues(
     except Exception as e:
         return error_response(f"Database connection error: {str(e)}", status=500)
     
+    if path.endswith("/search"):
+        query = query_params.get("q", "")
+        if not query:
+            return error_response("Search query 'q' is required", status=400)
+        
+        limit = query_params.get("limit", "10")
+        try:
+            limit_int = min(max(int(limit), 1), 100)
+        except ValueError:
+            limit_int = 10
+        
+        search_result = await db.prepare('''
+            SELECT 
+                i.id,
+                i.url,
+                i.description,
+                i.status,   
+                i.verified,
+                i.score,
+                i.views,    
+                i.created,
+                i.modified,
+                i.is_hidden,
+                i.rewarded, 
+                i.cve_id,
+                i.cve_score,    
+                i.domain,
+                d.name as domain_name,
+                d.url as domain_url 
+            FROM issues i   
+            LEFT JOIN domains d ON i.domain = d.id
+            WHERE i.url LIKE ? OR i.description LIKE ?
+            ORDER BY i.created DESC
+            LIMIT ? OFFSET 0
+        ''').bind(f"%{query}%", f"%{query}%", limit_int).all()
+        
+        response_data = convert_d1_results(search_result.results if hasattr(search_result, 'results') else [])
+        return json_response({
+            "success": True,
+            "query": query,
+            "data": response_data
+        })
+    
     # Get specific issue
     if "id" in path_params:
         issue_id = int(path_params["id"])
@@ -108,50 +151,6 @@ async def handle_issues(
         return json_response({
             "success": True,
             "data": issue_data
-        })
-    
-    # Search issues
-    if path.endswith("/search"):
-        query = query_params.get("q", "")
-        if not query:
-            return error_response("Search query 'q' is required", status=400)
-        
-        limit = query_params.get("limit", "10")
-        try:
-            limit_int = min(max(int(limit), 1), 100)
-        except ValueError:
-            limit_int = 10
-        
-        search_result = await db.prepare('''
-            SELECT 
-                i.id,
-                i.url,
-                i.description,
-                i.status,   
-                i.verified,
-                i.score,
-                i.views,    
-                i.created,
-                i.modified,
-                i.is_hidden,
-                i.rewarded, 
-                i.cve_id,
-                i.cve_score,    
-                i.domain,
-                d.name as domain_name,
-                d.url as domain_url 
-            FROM issues i   
-            LEFT JOIN domains d ON i.domain = d.id
-            WHERE i.url LIKE ? OR i.description LIKE ?
-            ORDER BY i.created DESC
-            LIMIT ? OFFSET 0
-        ''').bind(f"%{query}%", f"%{query}%", limit_int).all()
-        
-        response_data = convert_d1_results(search_result.results if hasattr(search_result, 'results') else [])
-        return json_response({
-            "success": True,
-            "query": query,
-            "data": response_data
         })
     
     # Create issue
