@@ -7,7 +7,7 @@ of the OWASP BLT (Bug Logging Tool) project.
 
 from .router import Router
 from .handlers import (
-    handle_issues,
+    handle_bugs,
     handle_users,
     handle_domains,
     handle_organizations,
@@ -22,7 +22,7 @@ from .handlers import (
 
 __all__ = [
     "Router",
-    "handle_issues",
+    "handle_bugs",
     "handle_users",
     "handle_domains",
     "handle_organizations",

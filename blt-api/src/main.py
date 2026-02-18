@@ -16,7 +16,7 @@ except ImportError:
 from os import path
 from router import Router
 from handlers import (
-    handle_issues,
+    handle_bugs,
     handle_users,
     handle_domains,
     handle_organizations,
@@ -41,11 +41,11 @@ router = Router()
 router.add_route("GET", "/", handle_homepage)
 router.add_route("GET", "/health", handle_health)
 
-# Issues API
-router.add_route("GET", "/issues", handle_issues)
-router.add_route("GET", "/issues/{id}", handle_issues)
-router.add_route("POST", "/issues", handle_issues)
-router.add_route("GET", "/issues/search", handle_issues)
+# Bugs API
+router.add_route("GET", "/bugs", handle_bugs)
+router.add_route("GET", "/bugs/{id}", handle_bugs)
+router.add_route("POST", "/bugs", handle_bugs)
+router.add_route("GET", "/bugs/search", handle_bugs)
 
 # Users API
 router.add_route("GET", "/users", handle_users)
