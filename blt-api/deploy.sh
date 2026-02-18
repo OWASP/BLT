@@ -9,9 +9,9 @@ echo "=============================="
 echo ""
 
 # Parse command line arguments
-ENV_FLAG=""
+ENV_ARGS=()
 if [ "$1" = "--env" ] && [ -n "$2" ]; then
-    ENV_FLAG="--env $2"
+    ENV_ARGS=("--env" "$2")
     echo "📦 Environment: $2"
 else
     echo "📦 Environment: default (production)"
@@ -27,7 +27,7 @@ fi
 echo ""
 echo "🗄️  Step 1: Applying D1 database migrations..."
 echo "================================================"
-wrangler d1 migrations apply blt-api --remote $ENV_FLAG
+wrangler d1 migrations apply blt-api --remote "${ENV_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "❌ Migration failed! Deployment aborted."
@@ -39,7 +39,7 @@ echo "✅ Migrations applied successfully!"
 echo ""
 echo "☁️  Step 2: Deploying to Cloudflare Workers..."
 echo "================================================"
-wrangler deploy $ENV_FLAG
+wrangler deploy "${ENV_ARGS[@]}"
 
 if [ $? -ne 0 ]; then
     echo "❌ Deployment failed!"
