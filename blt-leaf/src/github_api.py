@@ -320,20 +320,28 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         raise Exception(error_msg)
 
 
-async def fetch_paginated_data(url, headers):
+async def fetch_paginated_data(url, headers, max_items=None, return_metadata=False):
     """
     Fetch all pages of data from a GitHub API endpoint following Link headers
     
     Args:
         url: Initial URL to fetch
         headers: Headers object to use for requests
+        max_items: Optional maximum number of items to fetch (default: unlimited)
+        return_metadata: If True, returns dict with items, truncated, and total_fetched.
+                        If False (default), returns just the list of items for backward compatibility.
     
     Returns:
-        List of all items across all pages
+        If return_metadata=False: List of all items fetched
+        If return_metadata=True: Dictionary with:
+            - items: List of all items fetched
+            - truncated: Boolean indicating if results were truncated due to max_items limit
+            - total_fetched: Total number of items fetched
     """
     all_data = []
     current_url = url
     fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
+    truncated = False
     
     while current_url:
         response = await fetch(current_url, fetch_options)
@@ -354,7 +362,18 @@ async def fetch_paginated_data(url, headers):
             )
         
         page_data = (await response.json()).to_py()
-        all_data.extend(page_data)
+        
+        # Check if adding this page would exceed max_items
+        if max_items is not None:
+            items_to_add = min(len(page_data), max_items - len(all_data))
+            all_data.extend(page_data[:items_to_add])
+            
+            if len(all_data) >= max_items:
+                truncated = True
+                print(f"Pagination limit reached: {len(all_data)} items (max: {max_items})")
+                break
+        else:
+            all_data.extend(page_data)
         
         # Check for Link header to get next page
         link_header = response.headers.get('link')
@@ -371,7 +390,14 @@ async def fetch_paginated_data(url, headers):
                         current_url = url_match[1:-1]
                     break
     
-    return all_data
+    if return_metadata:
+        return {
+            'items': all_data,
+            'truncated': truncated,
+            'total_fetched': len(all_data)
+        }
+    else:
+        return all_data
 
 
 async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
