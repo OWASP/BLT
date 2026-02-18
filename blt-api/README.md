@@ -30,7 +30,7 @@ BLT-API is a high-performance, edge-deployed REST API that interfaces with all a
 - 🐍 **Python-powered** - Built with Python for Cloudflare Workers
 - �️ **D1 Database** - Uses Cloudflare D1 (SQLite) for data persistence
 - �🔒 **Secure** - CORS enabled, authentication support
-- 📊 **Full API Coverage** - Access to issues, users, domains, organizations, projects, hunts, and more
+- 📊 **Full API Coverage** - Access to bugs, users, domains, organizations, projects, hunts, and more
 - 📖 **Well-documented** - Comprehensive API documentation
 - ⚡ **Fast** - Optimized for quick cold starts and efficient execution
 
@@ -85,7 +85,7 @@ uv run pytest
 uv run pytest tests/test_router.py -v
 ```
 
-**Note:** Integration tests for issues endpoints are in development. You can test endpoints manually with the dev server running at `http://localhost:8788`.
+**Note:** Integration tests for bugs endpoints are in development. You can test endpoints manually with the dev server running at `http://localhost:8788`.
 
 ## API Endpoints
 
@@ -96,16 +96,16 @@ uv run pytest tests/test_router.py -v
 | GET | `/` | API status and available endpoints |
 | GET | `/health` | Health check endpoint |
 
-### Issues
+### Bugs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/issues` | List all issues (paginated) |
-| GET | `/issues/{id}` | Get a specific issue with screenshots and tags |
-| POST | `/issues` | Create a new issue |
-| GET | `/issues/search?q={query}` | Search issues by URL or description |
+| GET | `/bugs` | List all bugs (paginated) |
+| GET | `/bugs/{id}` | Get a specific bug with screenshots and tags |
+| POST | `/bugs` | Create a new bug |
+| GET | `/bugs/search?q={query}` | Search bugs by URL or description |
 
-#### List Issues - `GET /issues`
+#### List Bugs - `GET /bugs`
 
 **Query Parameters:**
 - `page` - Page number (default: 1)
@@ -116,7 +116,7 @@ uv run pytest tests/test_router.py -v
 
 **Example Request:**
 ```bash
-curl "http://localhost:8787/issues?page=1&per_page=10&status=open&verified=true"
+curl "http://localhost:8787/bugs?page=1&per_page=10&status=open&verified=true"
 ```
 
 **Example Response:**
@@ -153,13 +153,13 @@ curl "http://localhost:8787/issues?page=1&per_page=10&status=open&verified=true"
 }
 ```
 
-#### Get Single Issue - `GET /issues/{id}`
+#### Get Single Bug - `GET /bugs/{id}`
 
-Returns detailed issue information including screenshots and tags.
+Returns detailed bug information including screenshots and tags.
 
 **Example Request:**
 ```bash
-curl "http://localhost:8787/issues/5"
+curl "http://localhost:8787/bugs/5"
 ```
 
 **Example Response:**
@@ -217,9 +217,9 @@ curl "http://localhost:8787/issues/5"
 }
 ```
 
-#### Search Issues - `GET /issues/search`
+#### Search Bugs - `GET /bugs/search`
 
-Search for issues by URL or description text.
+Search for bugs by URL or description text.
 
 **Query Parameters:**
 - `q` - Search query (required)
@@ -227,7 +227,7 @@ Search for issues by URL or description text.
 
 **Example Request:**
 ```bash
-curl "http://localhost:8787/issues/search?q=sql+injection&limit=20"
+curl "http://localhost:8787/bugs/search?q=sql+injection&limit=20"
 ```
 
 **Example Response:**
@@ -258,17 +258,17 @@ curl "http://localhost:8787/issues/search?q=sql+injection&limit=20"
 }
 ```
 
-#### Create Issue - `POST /issues`
+#### Create Bug - `POST /bugs`
 
 Create a new bug report.
 
 **Required Fields:**
-- `url` - URL where the issue was found (max 200 characters)
-- `description` - Brief description of the issue
+- `url` - URL where the bug was found (max 200 characters)
+- `description` - Brief description of the bug
 
 **Optional Fields:**
 - `markdown_description` - Detailed markdown description
-- `label` - Issue label/category
+- `label` - Bug label/category
 - `views` - View count
 - `verified` - Verification status (boolean)
 - `score` - Score/severity (integer)
@@ -289,7 +289,7 @@ Create a new bug report.
 
 **Example Request:**
 ```bash
-curl -X POST "http://localhost:8787/issues" \
+curl -X POST "http://localhost:8787/bugs" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/vulnerable-page",
@@ -307,7 +307,7 @@ curl -X POST "http://localhost:8787/issues" \
 ```json
 {
   "success": true,
-  "message": "Issue created successfully",
+  "message": "Bug created successfully",
   "data": {
     "id": 156,
     "url": "https://example.com/vulnerable-page",
@@ -323,7 +323,7 @@ curl -X POST "http://localhost:8787/issues" \
 }
 ```
 
-Issues endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE.md](docs/DATABASE.md) for schema details.
+Bugs endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE.md](docs/DATABASE.md) for schema details.
 
 ### Users
 

@@ -2,10 +2,10 @@
 
 -- Make the seed idempotent for local reruns:
 -- clear child tables first, then parent tables.
-DELETE FROM issue_team_members;
-DELETE FROM issue_tags;
-DELETE FROM issue_screenshots;
-DELETE FROM issues;
+DELETE FROM bug_team_members;
+DELETE FROM bug_tags;
+DELETE FROM bug_screenshots;
+DELETE FROM bugs;
 DELETE FROM domain_tags;
 DELETE FROM domains;
 DELETE FROM tags;
@@ -13,10 +13,10 @@ DELETE FROM tags;
 -- Reset AUTOINCREMENT counters for deterministic IDs in this seed file.
 DELETE FROM sqlite_sequence
 WHERE name IN (
-    'issue_team_members',
-    'issue_tags',
-    'issue_screenshots',
-    'issues',
+    'bug_team_members',
+    'bug_tags',
+    'bug_screenshots',
+    'bugs',
     'domain_tags',
     'domains',
     'tags'
@@ -46,8 +46,8 @@ INSERT INTO domain_tags (domain_id, tag_id) VALUES
     (3, 1), -- Test Domain -> security
     (3, 5); -- Test Domain -> api
 
--- Insert test issues
-INSERT INTO issues (
+-- Insert test bugs
+INSERT INTO bugs (
     url, description, markdown_description, label, views, verified, score, 
     status, user_agent, screenshot, github_url, is_hidden, rewarded, 
     reporter_ip_address, cve_id, cve_score, domain
@@ -62,7 +62,7 @@ INSERT INTO issues (
         85,
         'open',
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'https://cdn.example.com/screenshots/issue1.png',
+        'https://cdn.example.com/screenshots/bug1.png',
         'https://github.com/OWASP-BLT/BLT/issues/123',
         0,
         50,
@@ -81,7 +81,7 @@ INSERT INTO issues (
         95,
         'closed',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-        'https://cdn.example.com/screenshots/issue2.png',
+        'https://cdn.example.com/screenshots/bug2.png',
         NULL,
         0,
         100,
@@ -138,7 +138,7 @@ INSERT INTO issues (
         55,
         'reviewing',
         'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
-        'https://cdn.example.com/screenshots/issue5.png',
+        'https://cdn.example.com/screenshots/bug5.png',
         NULL,
         0,
         0,
@@ -148,8 +148,8 @@ INSERT INTO issues (
         2
     );
 
--- Insert issue screenshots
-INSERT INTO issue_screenshots (image, issue) VALUES
+-- Insert bug screenshots
+INSERT INTO bug_screenshots (image, bug) VALUES
     ('https://cdn.example.com/screenshots/xss-poc-1.png', 1),
     ('https://cdn.example.com/screenshots/xss-poc-2.png', 1),
     ('https://cdn.example.com/screenshots/sqli-proof.png', 2),
@@ -157,8 +157,8 @@ INSERT INTO issue_screenshots (image, issue) VALUES
     ('https://cdn.example.com/screenshots/upload-shell.png', 3),
     ('https://cdn.example.com/screenshots/password-reset.png', 5);
 
--- Link tags to issues
-INSERT INTO issue_tags (issue_id, tag_id) VALUES
+-- Link tags to bugs
+INSERT INTO bug_tags (bug_id, tag_id) VALUES
     (1, 1), -- XSS -> security
     (1, 3), -- XSS -> vulnerability
     (1, 4), -- XSS -> web-app
@@ -189,34 +189,34 @@ JOIN domains d ON dt.domain_id = d.id
 JOIN tags t ON dt.tag_id = t.id
 ORDER BY d.name, t.name;
 
-SELECT 'Issues:' as info;
+SELECT 'Bugs:' as info;
 SELECT 
-    i.id,
-    i.url,
-    substr(i.description, 1, 50) as description,
-    i.status,
-    i.score,
-    i.verified,
+    b.id,
+    b.url,
+    substr(b.description, 1, 50) as description,
+    b.status,
+    b.score,
+    b.verified,
     d.name as domain_name
-FROM issues i
-LEFT JOIN domains d ON i.domain = d.id
-ORDER BY i.created DESC;
+FROM bugs b
+LEFT JOIN domains d ON b.domain = d.id
+ORDER BY b.created DESC;
 
-SELECT 'Issue Screenshots:' as info;
+SELECT 'Bug Screenshots:' as info;
 SELECT 
     s.id,
     s.image,
-    i.description as issue_description
-FROM issue_screenshots s
-JOIN issues i ON s.issue = i.id
+    b.description as bug_description
+FROM bug_screenshots s
+JOIN bugs b ON s.bug = b.id
 ORDER BY s.created DESC;
 
-SELECT 'Issue Tags:' as info;
+SELECT 'Bug Tags:' as info;
 SELECT 
-    i.id as issue_id,
-    substr(i.description, 1, 40) as issue,
+    b.id as bug_id,
+    substr(b.description, 1, 40) as bug,
     t.name as tag_name
-FROM issue_tags it
-JOIN issues i ON it.issue_id = i.id
-JOIN tags t ON it.tag_id = t.id
-ORDER BY i.id, t.name;
+FROM bug_tags bt
+JOIN bugs b ON bt.bug_id = b.id
+JOIN tags t ON bt.tag_id = t.id
+ORDER BY b.id, t.name;
