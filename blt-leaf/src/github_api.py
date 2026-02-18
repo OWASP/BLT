@@ -343,7 +343,8 @@ async def fetch_paginated_data(url, headers, max_items=None, return_metadata=Fal
     Args:
         url: Initial URL to fetch
         headers: Headers object to use for requests
-        max_items: Optional maximum number of items to fetch (default: unlimited)
+        max_items: Optional maximum number of items to fetch (default: unlimited).
+                  Must be None or a positive integer.
         return_metadata: If True, returns dict with items, truncated, and total_fetched.
                         If False (default), returns just the list of items for backward compatibility.
     
@@ -354,6 +355,10 @@ async def fetch_paginated_data(url, headers, max_items=None, return_metadata=Fal
             - truncated: Boolean indicating if results were truncated due to max_items limit
             - total_fetched: Total number of items fetched
     """
+    # Validate max_items parameter
+    if max_items is not None and (not isinstance(max_items, int) or max_items <= 0):
+        raise ValueError(f"max_items must be None or a positive integer, got: {max_items}")
+    
     all_data = []
     current_url = url
     fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
@@ -379,28 +384,40 @@ async def fetch_paginated_data(url, headers, max_items=None, return_metadata=Fal
         
         page_data = (await response.json()).to_py()
         
+        # Break early if we receive an empty page (end of results)
+        if not page_data:
+            break
+        
+        # Check for Link header to get next page (needed for truncation logic)
+        link_header = response.headers.get('link')
+        has_next_page = False
+        if link_header:
+            links = link_header.split(',')
+            for link in links:
+                if 'rel="next"' in link:
+                    has_next_page = True
+                    break
+        
         # Check if adding this page would exceed max_items
         if max_items is not None:
             items_to_add = min(len(page_data), max_items - len(all_data))
             all_data.extend(page_data[:items_to_add])
             
             if len(all_data) >= max_items:
-                truncated = True
+                # Only mark as truncated if there's actually more data available
+                if has_next_page or items_to_add < len(page_data):
+                    truncated = True
                 print(f"Pagination limit reached: {len(all_data)} items (max: {max_items})")
                 break
         else:
             all_data.extend(page_data)
         
-        # Check for Link header to get next page
-        link_header = response.headers.get('link')
+        # Determine URL for next page, if any
         current_url = None
-        
-        if link_header:
-            # Parse Link header: <url>; rel="next", <url>; rel="last"
-            links = link_header.split(',')
+        if has_next_page:
+            # Extract URL from <url>
             for link in links:
                 if 'rel="next"' in link:
-                    # Extract URL from <url>
                     url_match = link.split(';')[0].strip()
                     if url_match.startswith('<') and url_match.endswith('>'):
                         current_url = url_match[1:-1]

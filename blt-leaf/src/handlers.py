@@ -79,7 +79,8 @@ async def handle_add_pr(request, env):
             # Fetch open PRs with a safety limit to prevent timeouts on very large repos
             # Maximum 1000 PRs per import to stay within Cloudflare Workers execution limits
             MAX_PRS_PER_IMPORT = 1000
-            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=100"
+            # Explicitly sort by created date descending to get most recent PRs first
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&sort=created&direction=desc&per_page=100"
             
             try:
                 result = await fetch_paginated_data(list_url, headers, max_items=MAX_PRS_PER_IMPORT, return_metadata=True)

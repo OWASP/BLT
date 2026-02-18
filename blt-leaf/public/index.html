@@ -2008,9 +2008,11 @@
                 if (data.error) {
                     alert(`Failed to import PRs: ${data.error}`);
                 } else {
-                    // Show success message with truncation warning if applicable
+                    // Show success message, with truncation warning if applicable
                     if (data.truncated) {
                         alert(`⚠️ Import Completed with Limit\n\n${data.message}\n\nNote: This repository has more open PRs than can be imported at once. You can manually add additional PRs using the "Add PR" form.`);
+                    } else {
+                        alert(`✅ Import completed successfully.\n\n${data.message || 'All open PRs were imported successfully.'}`);
                     }
                     await loadRepos();
                     await loadPrs();
