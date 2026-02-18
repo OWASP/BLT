@@ -4,7 +4,7 @@ Core advisory engine that evaluates context and provides security guidance.
 
 import json
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -13,10 +13,10 @@ from datetime import datetime
 class AdvisoryContext:
     """Context information for generating security advice."""
     issue_labels: List[str]
-    repo_metadata: Dict[str, any]
+    repo_metadata: Dict[str, Any]
     file_patterns: List[str]
     contributor_intent: Optional[str] = None
-    past_patterns: Optional[Dict[str, any]] = None
+    past_patterns: Optional[Dict[str, Any]] = None
 
 
 @dataclass
