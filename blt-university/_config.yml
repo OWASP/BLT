@@ -71,6 +71,8 @@ navigation:
     url: /courses/
   - title: Enroll
     url: /enroll/
+  - title: Request a Course
+    url: /request/
   - title: Instructors
     url: /instructors/
   - title: About

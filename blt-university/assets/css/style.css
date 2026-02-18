@@ -194,6 +194,17 @@ a:hover {
     color: var(--secondary-color);
 }
 
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-accent:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
 .btn-small {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
@@ -326,6 +337,49 @@ a:hover {
     border-top: 1px solid var(--border-color);
     font-size: 0.9rem;
     color: var(--text-light);
+}
+
+/* Request CTA Section */
+.request-cta {
+    padding: 3rem 0;
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+}
+
+.request-cta-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.request-cta-text h2 {
+    margin-bottom: 0.5rem;
+}
+
+.request-cta-text p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.request-cta-action {
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .request-cta-content {
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .request-cta-action {
+        width: 100%;
+    }
+    
+    .request-cta-action .btn {
+        width: 100%;
+    }
 }
 
 /* Stats Section */
@@ -583,6 +637,91 @@ a:hover {
     margin-bottom: 0.5rem;
 }
 
+.info-box ul {
+    margin-top: 0.5rem;
+    padding-left: 1.5rem;
+}
+
+.info-box ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* Request Page */
+.request-page {
+    padding: 3rem 0;
+}
+
+.request-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin: 2rem 0;
+}
+
+.request-intro {
+    background: var(--bg-light);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.request-benefits {
+    margin: 3rem 0;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.benefit-card {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.benefit-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-card h3 {
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+}
+
+.request-instructions {
+    margin-top: 3rem;
+}
+
+.request-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.request-sidebar .info-box {
+    position: sticky;
+    top: 2rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
 /* About Page */
 .about-section {
     margin: 3rem 0;
@@ -723,7 +862,8 @@ code {
     }
     
     .course-info,
-    .enroll-content {
+    .enroll-content,
+    .request-content {
         grid-template-columns: 1fr;
     }
     

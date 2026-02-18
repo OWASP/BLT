@@ -37,9 +37,10 @@ Visit our [Course Catalog](https://owasp-blt.github.io/BLT-University/courses/) 
 ### For Students
 
 1. **Browse Courses**: Visit [BLT University](https://owasp-blt.github.io/BLT-University/) to explore our catalog
-2. **Create GitHub Account**: If you don't have one, [sign up for GitHub](https://github.com/signup)
-3. **Enroll**: Submit an [enrollment request](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml)
-4. **Start Learning**: Access course materials and begin your journey!
+2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) you'd like to learn
+3. **Create GitHub Account**: If you don't have one, [sign up for GitHub](https://github.com/signup)
+4. **Enroll**: Submit an [enrollment request](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml)
+5. **Start Learning**: Access course materials and begin your journey!
 
 ### For Instructors
 
@@ -144,7 +145,7 @@ We welcome contributions from everyone! Here's how you can help:
 - **🎓 Teach a Course**: Share your expertise
 - **📝 Improve Content**: Fix typos, add examples, clarify concepts
 - **🐛 Report Issues**: Found a problem? Let us know
-- **💡 Suggest Features**: Have ideas? We're listening
+- **💡 Request Courses**: Tell us what you want to learn using our [course request form](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml)
 - **🌍 Translate**: Help make content accessible globally
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
@@ -204,7 +205,7 @@ Need help? Have questions?
 
 **Made with ❤️ by the OWASP BLT Community**
 
-[Website](https://owasp-blt.github.io/BLT-University/) • [Enroll](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml) • [Teach](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml) • [Contribute](CONTRIBUTING.md)
+[Website](https://owasp-blt.github.io/BLT-University/) • [Enroll](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml) • [Request Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) • [Teach](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml) • [Contribute](CONTRIBUTING.md)
 
 ⭐ Star us on GitHub — it helps!
 
