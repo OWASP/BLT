@@ -6,6 +6,7 @@ level: Intermediate
 duration: 8 weeks
 instructor: Dr. Sarah Chen
 featured: true
+image: /assets/images/courses/crypto-for-devs.svg
 prerequisites: Programming experience in any language, basic understanding of mathematics
 description: Learn practical cryptography for software developers. Understand encryption algorithms, hashing, digital signatures, and how to implement cryptography securely in your applications.
 
