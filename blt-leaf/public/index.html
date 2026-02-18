@@ -7,6 +7,7 @@
     <title>PR Readiness Checker - BLT-Leaf</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         window.tailwind = {
             config: {
@@ -26,7 +27,6 @@
         })();
     </script>
     <!-- Font Awesome -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         /* Fallback visibility if CDN is blocked */
@@ -38,13 +38,13 @@
 
         /* Active PR row highlighting */
         .pr-row-active {
-            background-color: #FEF3C7 !important;
-            border-left: 3px solid #F59E0B;
+            background-color: #ffe4e6 !important; /* light red tint */
+            border-left: 3px solid #ef4444;
         }
 
         .dark .pr-row-active {
-            background-color: #78350F !important;
-            border-left: 3px solid #F59E0B;
+            background-color: rgba(220, 38, 38, 0.18) !important; /* soft red glow */
+            border-left: 3px solid #ef4444;
         }
 
         /* Dark mode fallback styles (when Tailwind CDN fails to load) */
@@ -86,7 +86,7 @@
         }
 
         .dark .text-slate-700 {
-            color: #cbd5e1 !important; /* slate-300 */
+            color: #cbd5e1 ; /* slate-300 */
         }
 
         .dark .text-slate-600 {
@@ -342,9 +342,13 @@
         </div>
     </header>
 
-    <div class="bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100">
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
-            <p class="text-sm text-slate-700 leading-relaxed sm:text-base">
+    <div class="bg-gradient-to-r from-red-50 to-orange-50 
+            border-b border-red-100
+            dark:bg-slate-200 dark:border-slate-300">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+        <p class="text-sm text-slate-700 leading-relaxed sm:text-base 
+                  dark:text-black">
+
                 Leaf is a Readiness and Security PR checker. It reviews pull requests for operational readiness,
                 security risks, and production-impacting changes before they ship. Inspired by the surge of AI-generated
                 PRs, Leaf helps teams maintain high standards by adding an automated layer of critical thinking and risk
