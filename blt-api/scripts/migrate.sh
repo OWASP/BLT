@@ -6,7 +6,10 @@ set -e
 
 echo "🗄️  Applying D1 database migrations..."
 
+# Database name from wrangler.toml
+DATABASE_NAME="${DATABASE_NAME:-blt-api}"
+
 # Apply migrations to the remote database
-wrangler d1 migrations apply blt-api --remote
+wrangler d1 migrations apply "$DATABASE_NAME" --remote
 
 echo "✅ Migrations applied successfully!"
