@@ -4,6 +4,10 @@ main = "src/main.py"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["python_workers"]
 
+# Automatically run D1 migrations before deployment
+[build]
+command = "bash scripts/migrate.sh"
+
 # Static assets configuration
 [assets]
 directory = "./static"

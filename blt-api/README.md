@@ -516,48 +516,59 @@ Configure these in `wrangler.toml`:
 
 ## Deployment
 
-### Quick Deploy with Automated Migrations
+### Automatic Deployment with Migrations
 
-Use the included deployment script that automatically runs migrations before deploying:
+The project is configured to automatically run D1 migrations before every deployment using Wrangler's build command. The migrations are defined in `wrangler.toml`:
+
+```toml
+[build]
+command = "bash scripts/migrate.sh"
+```
+
+This means migrations will run automatically whenever you deploy, whether:
+- Deploying manually with `wrangler deploy`
+- Using Cloudflare's Git integration (automatic deploy on push)
+- Running in CI/CD pipelines
+
+### Deploy to Cloudflare Workers
 
 ```bash
 # Login to Cloudflare (first time only)
 wrangler login
 
-# Deploy to production (runs migrations automatically)
-./deploy.sh
+# Deploy to production (migrations run automatically)
+wrangler deploy
 
 # Deploy to specific environment
-./deploy.sh --env production
-./deploy.sh --env development
+wrangler deploy --env production
+wrangler deploy --env development
 ```
 
-The `deploy.sh` script will:
-1. Apply any pending D1 database migrations
-2. Deploy the worker to Cloudflare
+### Cloudflare Git Integration (Recommended)
 
-### Manual Deployment
+For automatic deployments when code is pushed to your repository:
 
-If you prefer to run commands separately:
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
+2. Connect your GitHub/GitLab repository
+3. Configure build settings:
+   - **Build command**: (leave empty, wrangler handles it)
+   - **Deploy command**: `wrangler deploy`
+4. Every push to your main branch will automatically:
+   - Run D1 migrations (via build command)
+   - Deploy the updated worker
+
+See [Cloudflare Git Integration docs](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/) for details.
+
+### Manual Migration Control
+
+If you need to run migrations separately:
 
 ```bash
-# Apply database migrations to production
+# Apply migrations only
 wrangler d1 migrations apply blt-api --remote
 
-# Deploy to production
-wrangler deploy
-```
-
-### Environment-specific Deployment
-
-```bash
-# Deploy to development
-wrangler d1 migrations apply blt-api --remote --env development
-wrangler deploy --env development
-
-# Deploy to production
-wrangler d1 migrations apply blt-api --remote --env production
-wrangler deploy --env production
+# Deploy without running build command
+wrangler deploy --no-build
 ```
 
 ## Authentication

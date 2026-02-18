@@ -200,37 +200,35 @@ pytest tests/
 
 ### Deploy to Cloudflare
 
-The repository includes a `deploy.sh` script that automatically runs migrations before deploying:
+Migrations run automatically during deployment thanks to the `[build]` command in `wrangler.toml`:
 
 ```bash
-# Deploy to production (recommended)
-./deploy.sh
-
-# Deploy to specific environment
-./deploy.sh --env production
-./deploy.sh --env development
-```
-
-Alternatively, run commands manually:
-
-```bash
-# Apply migrations first
-wrangler d1 migrations apply blt-api --remote
-
-# Then deploy
+# Deploy to production (migrations run automatically)
 wrangler deploy
 
-# Or for specific environment
-wrangler d1 migrations apply blt-api --remote --env production
+# Deploy to specific environment
 wrangler deploy --env production
+wrangler deploy --env development
 ```
+
+The build process automatically runs `scripts/migrate.sh` which applies D1 migrations before the worker is deployed.
+
+### Automatic Deployment from Git
+
+The recommended approach is to use Cloudflare's Git integration:
+
+1. Connect your repository in the Cloudflare dashboard
+2. Pushes to `main` automatically trigger deployment
+3. Migrations run as part of the build process
+
+See the [README.md](README.md#cloudflare-git-integration-recommended) for setup instructions.
 
 ### Pre-deployment Checklist
 
 1. Test locally with `wrangler dev`
 2. Test migrations locally: `wrangler d1 migrations apply blt-api --local`
 3. Run tests: `uv run pytest`
-4. Use `./deploy.sh` to deploy (migrations + deploy in one command)
+4. Deploy: `wrangler deploy` (migrations run automatically)
 
 ## Common Tasks
 
