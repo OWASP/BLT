@@ -259,25 +259,37 @@ def invalidate_timeline_cache(owner, repo, pr_number):
         del _timeline_cache[cache_key]
         print(f"Timeline Cache: Invalidated for {cache_key}")
 
+import time
+
 def set_rate_limit_data(limit, remaining, reset):
     """
     Updates the global GitHub rate limit cache with data from API headers.
-    
-    Args:
-        limit: Total requests allowed per window
-        remaining: Requests remaining in current window
-        reset: Epoch timestamp when the limit resets
+    Converts string values from headers into integers for frontend compatibility.
     """
     global _rate_limit_cache
     
-    current_time = Date.now() / 1000
-    _rate_limit_cache.update({
-        'limit': limit,
-        'remaining': remaining,
-        'reset': reset,
-        'timestamp': current_time
-    })
-    print(f"GitHub Rate Limit: {remaining}/{limit} (Resets at {reset})")
+    try:
+       
+        # This prevents the frontend 'typeof' check from failing.
+        safe_limit = int(limit) if limit is not None else 0
+        safe_remaining = int(remaining) if remaining is not None else 0
+        safe_reset = int(reset) if reset is not None else 0
+
+        #  Use Python's time module instead of JS Date.now()
+        current_time = time.time()
+
+        _rate_limit_cache.update({
+            'limit': safe_limit,
+            'remaining': safe_remaining,
+            'reset': safe_reset,
+            'used': safe_limit - safe_remaining,
+            'timestamp': current_time
+        })
+        
+        print(f"GitHub Rate Limit Cached: {safe_remaining}/{safe_limit}")
+
+    except (ValueError, TypeError) as e:
+        print(f"Error caching rate limit data: {e}")
 
 def get_current_rate_limit():
     """
