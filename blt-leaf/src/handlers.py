@@ -376,7 +376,7 @@ async def handle_refresh_pr(request, env):
         
 async def handle_rate_limit(env):
     """
-    GET /api/rate_limit
+    GET /api/rate-limit
     Returns the most recent GitHub API rate limit data captured locally.
     This avoids extra API calls and preserves your quota.
     """
