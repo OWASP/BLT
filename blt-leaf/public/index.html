@@ -1228,6 +1228,20 @@
             };
 
             container.innerHTML = `
+                <div class="mb-2 flex gap-2">
+                    <button 
+                        id="clearSortBtn" 
+                        class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                        title="Clear all sorting and reset to default (Ready Score)">
+                        <i class="fas fa-times-circle"></i> Clear Sort
+                    </button>
+                    <button 
+                        id="sortByReadinessBtn" 
+                        class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                        title="Sort by Readiness Score (Ready column)">
+                        <i class="fas fa-sort-amount-down"></i> Sort by Readiness
+                    </button>
+                </div>
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
                     <table class="w-full text-left text-sm" style="min-width: 1920px;">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
@@ -1342,6 +1356,29 @@
                         const isShiftClick = e.shiftKey;
                         sortPrs(column, isShiftClick);
                     }
+                });
+            }
+
+            // Add event listeners for sort control buttons
+            const clearSortBtn = document.getElementById('clearSortBtn');
+            if (clearSortBtn) {
+                clearSortBtn.addEventListener('click', () => {
+                    // Reset to default sort (ready_score descending)
+                    sortColumns = [{ column: 'ready_score', direction: 'desc' }];
+                    localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
+                    currentPage = 1;
+                    loadPrs();
+                });
+            }
+
+            const sortByReadinessBtn = document.getElementById('sortByReadinessBtn');
+            if (sortByReadinessBtn) {
+                sortByReadinessBtn.addEventListener('click', () => {
+                    // Set ready_score as primary sort (descending by default)
+                    sortColumns = [{ column: 'ready_score', direction: 'desc' }];
+                    localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
+                    currentPage = 1;
+                    loadPrs();
                 });
             }
 
