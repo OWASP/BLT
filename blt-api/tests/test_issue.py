@@ -5,7 +5,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "http://localhost:8788"
+BASE_URL = "http://localhost:8787"
 
 def test(name, method, endpoint, data=None, expected=200):
     url = f"{BASE_URL}{endpoint}"

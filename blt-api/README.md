@@ -115,7 +115,7 @@ python tests/test_issues.py    # Test issue endpoints
 
 **Example Request:**
 ```bash
-curl "http://localhost:8788/issues?page=1&per_page=10&status=open&verified=true"
+curl "http://localhost:8787/issues?page=1&per_page=10&status=open&verified=true"
 ```
 
 **Example Response:**
@@ -158,7 +158,7 @@ Returns detailed issue information including screenshots and tags.
 
 **Example Request:**
 ```bash
-curl "http://localhost:8788/issues/5"
+curl "http://localhost:8787/issues/5"
 ```
 
 **Example Response:**
@@ -226,7 +226,7 @@ Search for issues by URL or description text.
 
 **Example Request:**
 ```bash
-curl "http://localhost:8788/issues/search?q=sql+injection&limit=20"
+curl "http://localhost:8787/issues/search?q=sql+injection&limit=20"
 ```
 
 **Example Response:**
@@ -288,7 +288,7 @@ Create a new bug report.
 
 **Example Request:**
 ```bash
-curl -X POST "http://localhost:8788/issues" \
+curl -X POST "http://localhost:8787/issues" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/vulnerable-page",
