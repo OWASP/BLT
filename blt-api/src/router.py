@@ -18,6 +18,7 @@ class Route:
         self.pattern = pattern
         self.handler = handler
         self.regex, self.param_names = self._compile_pattern(pattern)
+        self.specificity = self._calculate_specificity()
     
     def _compile_pattern(self, pattern: str) -> Tuple[re.Pattern, List[str]]:
         """
@@ -45,6 +46,25 @@ class Route:
         
         return re.compile(regex_pattern), param_names
     
+    def _calculate_specificity(self) -> Tuple[int, int, int]:
+        """
+        Calculate specificity score for route ordering.
+        
+        Returns:
+            Tuple: (param_count, -literal_count, -segment_count)
+            
+            Lower tuples sort first. Routes are ordered by:
+            - Fewer path parameters (0 params before 1 param)
+            - More literal characters in path
+            - Fewer path segments
+        """
+        param_count = self.pattern.count('{')
+        segments = self.pattern.split('/')
+        segment_count = len(segments)
+        literal_count = sum(len(seg) for seg in segments if '{' not in seg)
+        
+        return (param_count, -literal_count, -segment_count)
+    
     def match(self, method: str, path: str) -> Optional[Dict[str, str]]:
         """
         Check if the route matches the given method and path.
@@ -65,10 +85,11 @@ class Router:
     """
     URL Router for the BLT API.
     
-    This class manages route registration and request dispatching.
+    Manages route registration and request dispatching.
     """
     
     def __init__(self):
+        """Initialize the router."""
         self.routes: List[Route] = []
     
     def add_route(self, method: str, pattern: str, handler: Callable) -> None:
@@ -82,6 +103,17 @@ class Router:
         """
         route = Route(method, pattern, handler)
         self.routes.append(route)
+        self._sort_routes()
+    
+    def _sort_routes(self) -> None:
+        """
+        Sort routes by specificity.
+        
+        Routes are ordered so more specific patterns are evaluated before
+        parameterized patterns. This prevents routes like /bugs/search from
+        being shadowed by routes like /bugs/{id}.
+        """
+        self.routes.sort(key=lambda route: route.specificity)
     
     def get(self, pattern: str) -> Callable:
         """Decorator for registering GET routes."""
