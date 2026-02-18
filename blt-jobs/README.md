@@ -2,7 +2,7 @@
 
 A community-driven job board for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem, deployed on GitHub Pages. The UI exactly matches [jobs.owaspblt.org](https://jobs.owaspblt.org) (Inter font, slate/red palette, dark mode) and uses a fully automated **PR-based contribution workflow** — no backend required.
 
-**Live site:** [pritz395.github.io/BLT-Jobs](https://pritz395.github.io/BLT-Jobs/)
+**Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org) · [pritz395.github.io/BLT-Jobs](https://pritz395.github.io/BLT-Jobs/) *(fork preview)*
 
 ---
 
@@ -43,9 +43,9 @@ For other sites, the scraper first looks for a [JSON-LD `JobPosting` schema](htt
 
 #### Option 1 — Quick Add (Recommended)
 
-1. Go to the [Contribute page](https://pritz395.github.io/BLT-Jobs/add.html)
+1. Go to the [Contribute page](https://jobs.owaspblt.org/add.html)
 2. Click **"Open a new pull request (quick add)"**
-3. GitHub opens a `job-url.txt` file editor in your fork
+3. GitHub opens a `job-url.txt` file editor — if you don't have write access to the repo, GitHub automatically forks it for you
 4. Paste the job posting URL as the file content (one URL, one line)
 5. Commit to a **new branch** (not directly to `main`)
 6. Click **"Propose new file"** → **"Create pull request"**
@@ -199,6 +199,8 @@ Open in browser:
 | `http://localhost:8000/seekers.html` | Seeker profiles |
 | `http://localhost:8000/job.html?id=<job-id>` | Job detail |
 | `http://localhost:8000/add.html` | Contribute |
+
+> **Note:** `fetch("data/jobs.json")` requires an HTTP server — opening HTML files directly from the filesystem (`file://`) will not work due to CORS restrictions.
 
 To test the scraper locally:
 
