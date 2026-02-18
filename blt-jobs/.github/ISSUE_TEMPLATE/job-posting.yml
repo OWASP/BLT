@@ -1,0 +1,104 @@
+name: Job Posting
+description: Post a job opportunity using a structured form
+title: '[JOB] '
+labels: ['job-posting']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Post a Job Opportunity
+        Please fill out the form below to post a job. The information will be automatically processed and published on the BLT Jobs website.
+
+  - type: input
+    id: company_name
+    attributes:
+      label: Company Name
+      description: Name of the hiring company
+      placeholder: e.g., OWASP Foundation
+    validations:
+      required: true
+
+  - type: input
+    id: website
+    attributes:
+      label: Company Website
+      description: Company website URL
+      placeholder: e.g., https://example.com
+    validations:
+      required: true
+
+  - type: input
+    id: job_title
+    attributes:
+      label: Job Title
+      description: Title of the position
+      placeholder: e.g., Senior Security Engineer
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Job location (e.g., Remote, New York, NY, or Hybrid)
+      placeholder: e.g., Remote
+    validations:
+      required: true
+
+  - type: dropdown
+    id: job_type
+    attributes:
+      label: Job Type
+      description: Type of employment
+      options:
+        - Full-time
+        - Part-time
+        - Contract
+        - Internship
+        - Temporary
+    validations:
+      required: true
+
+  - type: input
+    id: salary_range
+    attributes:
+      label: Salary Range
+      description: Salary range (Optional)
+      placeholder: e.g., $80,000 - $120,000
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Job Description
+      description: Provide a detailed job description
+      placeholder: Tell us about the role, responsibilities, and what makes this position exciting
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: List required skills and qualifications
+      placeholder: |
+        - 5+ years of experience in application security
+        - Strong knowledge of OWASP Top 10
+        - Python and JavaScript expertise
+    validations:
+      required: true
+
+  - type: textarea
+    id: how_to_apply
+    attributes:
+      label: How to Apply
+      description: Provide application instructions (email, website, etc.)
+      placeholder: e.g., Send your resume to careers@example.com or apply at https://example.com/careers
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Information
+      description: Any other relevant information (benefits, remote work policy, etc.)
+      placeholder: Optional additional details about the position or company

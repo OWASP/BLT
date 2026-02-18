@@ -1,41 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Details</title>
-  <!-- Tailwind via CDN; can be replaced with a build step later -->
+  <title>Job Details - BLT Jobs</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
     };
   </script>
-  <!-- Apply dark mode immediately to prevent white flash -->
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem("theme");
-
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else if (savedTheme === "light") {
-        document.documentElement.classList.remove("dark");
-      } else if (
-        !savedTheme &&
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      ) {
-        document.documentElement.classList.add("dark");
-      }
-    })();
-  </script>
-  <!-- Font Awesome for sun/moon icons to match BLT -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <style>
-    /* Ensure line-clamp utility works even without Tailwind plugin */
     .line-clamp-2 {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -44,52 +27,30 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <div class="min-h-screen flex flex-col">
-    <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
-      <div class="px-3 py-1 lg:px-5 lg:pl-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center justify-start gap-4">
-            <!-- Logo -->
-            <a href="https://owaspblt.org/" class="flex select-none ms-4">
-              <img
-                src="https://owaspblt.org/static/img/owasp-blt-logo.svg"
-                class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto"
-                alt="OWASP BLT Logo"
-                width="50"
-                height="50"
-              />
-            </a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Home</a>
-            <a href="jobs.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Browse Jobs</a>
-            <a href="seekers.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Find Talent</a>
-            <a href="add.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Contribute</a>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">GitHub</a>
-          </div>
-          <!-- Dark mode toggle styled like BLT -->
-          <button
-            id="theme-toggle"
-            class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            <i
-              id="sun-icon"
-              class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"
-            ></i>
-            <i
-              id="moon-icon"
-              class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"
-            ></i>
-          </button>
+<body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <nav class="border-b border-slate-200 bg-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 justify-between">
+        <div class="flex items-center">
+          <a href="./index.html" class="flex items-center gap-2 text-xl font-bold text-slate-900">
+            <i class="fa-solid fa-briefcase text-red-600" aria-hidden="true"></i>
+            BLT Jobs
+          </a>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">Browse Jobs</a>
+          <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">Find Talent</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            GitHub
+          </a>
         </div>
       </div>
-    </header>
+    </div>
+  </nav>
 
-    <main class="flex-1">
-      <div
-        id="jobRoot"
-        class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 mt-[72px]"
-      >
+  <main class="flex-1">
+    <div id="jobRoot" class="min-h-screen mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <!-- Initial loading state; replaced by job.js -->
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div class="text-center text-gray-600 dark:text-gray-300">
@@ -117,15 +78,22 @@
           </div>
         </div>
       </div>
-    </main>
-    <footer class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-6 mt-auto">
-      <div class="max-w-7xl mx-auto px-6 text-center text-sm text-gray-600 dark:text-gray-400">
-        © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">OWASP BLT Project</a>.
+  </main>
+  <footer class="mt-16 border-t border-slate-200 bg-white py-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p class="text-sm text-slate-600">
+          © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
+        </p>
+        <div class="flex gap-4">
+          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600">
+            <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+          </a>
+        </div>
       </div>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
-  <script src="assets/js/theme.js"></script>
   <script src="assets/js/job.js"></script>
 </body>
 </html>

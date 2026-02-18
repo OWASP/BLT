@@ -1,13 +1,13 @@
 # BLT Jobs
 
-A community-driven job board for the OWASP BLT ecosystem, built with GitHub Pages.
+A community-driven job board for the OWASP BLT ecosystem, built with GitHub Pages. This fork keeps the same UI as [jobs.owaspblt.org](https://jobs.owaspblt.org) (Inter font, slate/red design) and uses a **PR-based** workflow with optional quick-add from job URLs.
 
 ## Features
 
 - **Post Job Opportunities**: Companies can post jobs via pull requests (Quick add from URL or manual file creation)
 - **Feature Job Seeker Profiles**: Professionals can showcase their skills and availability
 - **Automated Processing**: GitHub Actions automatically converts job URLs to markdown files and builds JSON data
-- **Beautiful Design**: Built with BLT design guidelines using Tailwind CSS
+- **Beautiful Design**: Matches upstream BLT Jobs UI (Tailwind, Inter font, red accent)
 - **Easy to Use**: Submit via pull requests, no complex forms needed
 
 ## How to Use
@@ -51,20 +51,16 @@ BLT-Jobs/
 │   │   ├── build-jobs.yml        # Auto-build JSON from markdown
 │   │   └── quick-add-job.yml     # Auto-process job URLs from PRs
 │   └── PULL_REQUEST_TEMPLATE/
-│       ├── PULL_REQUEST_TEMPLATE.md  # Default PR template
-│       └── quick_add.md              # Quick add PR template
 └── README.md
 ```
 
 ## Design
 
-This project follows the [BLT Design Guidelines](https://github.com/OWASP-BLT/BLT-Design), featuring:
+The site UI matches the [upstream BLT Jobs](https://jobs.owaspblt.org) design:
 
-- Tailwind CSS for styling
-- Red accent colors (#e74c3c)
-- Responsive, accessible design
+- Tailwind CSS, Inter font, slate/red palette
+- Responsive, accessible layout
 - Font Awesome icons
-- Dark mode support
 
 ## Contributing
 
@@ -106,6 +102,7 @@ python -m http.server 8000
 ```
 
 Then open:
+
 - `http://localhost:8000/index.html` – landing page
 - `http://localhost:8000/jobs.html` – job list
 - `http://localhost:8000/seekers.html` – seeker profiles

@@ -1,110 +1,199 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT Jobs – Connect Talent with Opportunities</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark") document.documentElement.classList.add("dark");
-      else if (savedTheme === "light") document.documentElement.classList.remove("dark");
-      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
-    })();
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-</head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
-  <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
-    <div class="px-3 py-1 lg:px-5 lg:pl-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center justify-start gap-4">
-          <a href="https://owaspblt.org/" class="flex select-none ms-4">
-            <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT Jobs - Connect Talent with Opportunities</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <nav class="border-b border-slate-200 bg-white shadow-sm">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 justify-between">
+          <div class="flex items-center">
+            <a href="./index.html" class="flex items-center gap-2 text-xl font-bold text-slate-900">
+              <i class="fa-solid fa-briefcase text-red-600" aria-hidden="true"></i>
+              BLT Jobs
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Browse Jobs
+            </a>
+            <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Find Talent
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <header class="mb-12 text-center">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          OWASP BLT Community
+        </span>
+        <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+          Connect Talent with Opportunities
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">
+          A community-driven job board for the OWASP BLT ecosystem
+        </p>
+      </header>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+            <i class="fa-solid fa-building text-xl text-red-600" aria-hidden="true"></i>
+          </div>
+          <h2 class="text-xl font-semibold">Post a Job</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Looking for talent? Submit a job posting via pull request and reach our community of skilled professionals.
+          </p>
+          <a href="./add.html" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+            Post a Job
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </a>
-          <a href="index.html" class="text-sm font-medium text-gray-900 dark:text-gray-100">Home</a>
-          <a href="jobs.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Browse Jobs</a>
-          <a href="seekers.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Find Talent</a>
-          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">GitHub</a>
         </div>
-        <button id="theme-toggle" class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors" aria-label="Toggle dark mode">
-          <i id="sun-icon" class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
-          <i id="moon-icon" class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"></i>
-        </button>
-      </div>
-    </div>
-  </header>
 
-  <main class="flex-1 pt-[72px]">
-    <section class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div class="max-w-4xl mx-auto px-6 py-16 text-center">
-        <p class="text-sm font-medium text-[#e74c3c] dark:text-[#e74c3c] mb-2">OWASP BLT Community</p>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">Connect Talent with Opportunities</h1>
-        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">A community-driven job board for the OWASP BLT ecosystem.</p>
-      </div>
-    </section>
-
-    <section class="max-w-5xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-8">
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Post a Job</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Looking for talent? Submit a job posting via pull request and reach our community of skilled professionals.</p>
-        <a href="add.html" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
-          Post a Job <i class="fas fa-external-link-alt ml-2 text-sm"></i>
-        </a>
-      </div>
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Feature Your Profile</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Looking for opportunities? Create your profile to showcase your skills and connect with potential employers.</p>
-        <a href="add.html#seekers" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
-          Create Profile <i class="fas fa-user-plus ml-2 text-sm"></i>
-        </a>
-      </div>
-    </section>
-
-    <section class="bg-gray-50 dark:bg-gray-900/50 py-12">
-      <div class="max-w-5xl mx-auto px-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">How It Works</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-          <div class="text-center">
-            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">1</div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Submit via GitHub</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm">Open a pull request or paste a job URL. We use PRs and templates so you don’t need to edit raw files.</p>
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+            <i class="fa-solid fa-user text-xl text-red-600" aria-hidden="true"></i>
           </div>
-          <div class="text-center">
-            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">2</div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Automated Processing</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm">Our GitHub Actions build job and seeker data from markdown and optionally scrape job URLs from PRs.</p>
-          </div>
-          <div class="text-center">
-            <div class="w-12 h-12 rounded-full bg-[#e74c3c] text-white flex items-center justify-center font-bold text-lg mx-auto mb-4">3</div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Connect & Grow</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-sm">Your listing appears on the site, helping you connect with opportunities or talent.</p>
-          </div>
+          <h2 class="text-xl font-semibold">Feature Your Profile</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Looking for opportunities? Create your profile to showcase your skills and connect with potential employers.
+          </p>
+          <a href="./add.html#seekers" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+            Create Profile
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
         </div>
       </div>
-    </section>
 
-    <section class="max-w-5xl mx-auto px-6 py-12">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Recent Listings</h2>
-      <div id="recent-listings" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 min-h-[120px] transition-colors duration-200">
-        <p class="text-gray-600 dark:text-gray-400">Loading recent listings…</p>
+      <section class="mt-12">
+        <h2 class="mb-6 text-2xl font-bold">How It Works</h2>
+        <div class="grid gap-6 md:grid-cols-3">
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              1
+            </div>
+            <h3 class="font-semibold">Submit via GitHub</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Open a pull request or paste a job URL. We use PRs and templates so you don’t need to edit raw files.
+            </p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              2
+            </div>
+            <h3 class="font-semibold">Automated Processing</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Our GitHub Actions workflow builds job and seeker data from markdown and can scrape job URLs from PRs.
+            </p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
+              3
+            </div>
+            <h3 class="font-semibold">Connect & Grow</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Your listing appears on the site, helping you connect with opportunities or talent.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-12 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h2 class="mb-4 text-2xl font-bold">Recent Listings</h2>
+        <div id="recent-listings" class="space-y-4">
+          <p class="text-slate-600">Loading recent listings...</p>
+        </div>
+        <div class="mt-6 flex gap-4">
+          <a href="./jobs.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            View All Jobs
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            View All Seekers
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-16 border-t border-slate-200 bg-white py-8">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p class="text-sm text-slate-600">
+            © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
+          </p>
+          <div class="flex gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600">
+              <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
       </div>
-      <div class="mt-6 flex flex-wrap gap-4">
-        <a href="jobs.html" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-[#e74c3c] dark:text-[#e74c3c] rounded-lg font-semibold hover:bg-[#e74c3c] hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors">View All Jobs</a>
-        <a href="seekers.html" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-[#e74c3c] dark:text-[#e74c3c] rounded-lg font-semibold hover:bg-[#e74c3c] hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors">View All Seekers</a>
-      </div>
-    </section>
-  </main>
+    </footer>
 
-  <footer class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-6 mt-auto">
-    <div class="max-w-5xl mx-auto px-6 text-center text-sm text-gray-600 dark:text-gray-400">
-      © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">OWASP BLT Project</a>.
-    </div>
-  </footer>
-
-  <script src="assets/js/theme.js"></script>
-  <script src="assets/js/landing.js"></script>
-</body>
+    <script>
+      (function () {
+        const container = document.getElementById('recent-listings');
+        if (!container) return;
+        function esc(s) {
+          const d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+        Promise.all([
+          fetch('data/jobs.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { jobs: [] }; }),
+          fetch('data/seekers.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
+        ]).then(function (results) {
+          var jobs = Array.isArray(results[0].jobs) ? results[0].jobs.slice(0, 3) : [];
+          var seekers = Array.isArray(results[1].seekers) ? results[1].seekers.slice(0, 2) : [];
+          if (jobs.length === 0 && seekers.length === 0) {
+            container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700">post a job</a> or <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700">create your profile</a>.</p>';
+            return;
+          }
+          var html = '';
+          if (jobs.length > 0) {
+            html += '<div class="mb-4"><h3 class="font-semibold mb-2">Recent Jobs</h3><div class="space-y-2">';
+            jobs.forEach(function (j) {
+              html += '<div class="rounded-lg border border-slate-200 p-3"><a href="job.html?id=' + encodeURIComponent(j.id) + '" class="font-medium text-red-600 hover:text-red-700">' + esc(j.title || 'Untitled') + (j.organization_name ? ' – ' + esc(j.organization_name) : '') + '</a></div>';
+            });
+            html += '</div></div>';
+          }
+          if (seekers.length > 0) {
+            html += '<div><h3 class="font-semibold mb-2">Recent Job Seekers</h3><div class="space-y-2">';
+            seekers.forEach(function (s) {
+              html += '<div class="rounded-lg border border-slate-200 p-3"><a href="seekers.html" class="font-medium text-red-600 hover:text-red-700">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
+            });
+            html += '</div></div>';
+          }
+          container.innerHTML = html;
+        }).catch(function () {
+          container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
+        });
+      })();
+    </script>
+  </body>
 </html>

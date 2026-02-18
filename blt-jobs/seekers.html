@@ -1,75 +1,146 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Seekers – OWASP BLT Job Board</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: "class" };
-  </script>
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark") document.documentElement.classList.add("dark");
-      else if (savedTheme === "light") document.documentElement.classList.remove("dark");
-      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
-    })();
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-</head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <div class="min-h-screen flex flex-col">
-    <header class="fixed top-0 z-[10100] w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-zinc-200 dark:border-gray-700 border-b md:px-4 md:py-1.5 py-2 px-1 transition-colors duration-300">
-      <div class="px-3 py-1 lg:px-5 lg:pl-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center justify-start gap-4">
-            <a href="https://owaspblt.org/" class="flex select-none ms-4">
-              <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Seekers - BLT Jobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <nav class="border-b border-slate-200 bg-white shadow-sm">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 justify-between">
+          <div class="flex items-center">
+            <a href="./index.html" class="flex items-center gap-2 text-xl font-bold text-slate-900">
+              <i class="fa-solid fa-briefcase text-red-600" aria-hidden="true"></i>
+              BLT Jobs
             </a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Home</a>
-            <a href="jobs.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Browse Jobs</a>
-            <a href="seekers.html" class="text-sm font-medium text-gray-900 dark:text-gray-100">Find Talent</a>
-            <a href="add.html" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Contribute</a>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">GitHub</a>
           </div>
-          <button id="theme-toggle" class="relative inline-flex items-center justify-center p-2 text-[#e74c3c] dark:text-[#e74c3c] border-2 border-[#e74c3c] dark:border-[#e74c3c] rounded-lg hover:bg-[#e74c3c] dark:hover:bg-red-600 hover:text-white dark:hover:text-white w-10 h-10 transition-colors" aria-label="Toggle dark mode">
-            <i id="sun-icon" class="fas fa-sun text-xl absolute transition-all duration-300 ease-in-out opacity-0 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
-            <i id="moon-icon" class="fas fa-moon text-xl absolute transition-all duration-300 ease-in-out opacity-100 rotate-0 dark:opacity-0 dark:rotate-90"></i>
-          </button>
+          <div class="flex items-center gap-4">
+            <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Browse Jobs
+            </a>
+            <a href="./seekers.html" class="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100">
+              Find Talent
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              GitHub
+            </a>
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
 
-    <main class="flex-1">
-      <div class="p-6 lg:p-8 mt-[72px]">
-        <div class="max-w-5xl mx-auto">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div>
-              <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">Job seekers</h1>
-              <p class="text-gray-600 dark:text-gray-400">
-                Browse professionals in the BLT community who are open to opportunities.
-              </p>
-            </div>
+    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <header class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Job Seekers</h1>
+        <p class="mt-2 text-slate-600">Discover talented professionals in the OWASP BLT community</p>
+      </header>
+
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="relative flex-1 max-w-md">
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <input
+            type="text"
+            id="search"
+            placeholder="Search profiles..."
+            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600"
+          />
+        </div>
+        <a href="./add.html#seekers" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          Create Profile
+        </a>
+      </div>
+
+      <div id="seekers-container" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="col-span-full flex items-center justify-center py-12">
+          <div class="text-center">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-red-600" aria-hidden="true"></i>
+            <p class="mt-4 text-slate-600">Loading profiles...</p>
           </div>
-
-          <div id="seekersEmpty" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center text-gray-600 dark:text-gray-400 hidden">
-            <p>No seeker profiles yet. Check back soon or encourage folks to create one via the Add a job page.</p>
-          </div>
-
-          <div id="seekersList" class="space-y-4"></div>
         </div>
       </div>
     </main>
-    <footer class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-6 mt-auto">
-      <div class="max-w-5xl mx-auto px-6 text-center text-sm text-gray-600 dark:text-gray-400">
-        © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">OWASP BLT Project</a>.
+
+    <footer class="mt-16 border-t border-slate-200 bg-white py-8">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p class="text-sm text-slate-600">
+            © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
+          </p>
+          <div class="flex gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600">
+              <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </footer>
-  </div>
 
-  <script src="assets/js/theme.js"></script>
-  <script src="assets/js/seekers.js"></script>
-</body>
+    <script>
+      (function () {
+        var allSeekers = [];
+        var GITHUB_SEEKERS = 'https://github.com/OWASP-BLT/BLT-Jobs/blob/main/seekers/';
+
+        function esc(s) {
+          var d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+
+        function displaySeekers(seekers) {
+          var container = document.getElementById('seekers-container');
+          if (seekers.length === 0) {
+            container.innerHTML = '<div class="col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm"><i class="fa-solid fa-user text-4xl text-slate-300" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold">No profiles yet</h3><p class="mt-2 text-slate-600">Be the first to create your profile!</p><a href="./add.html#seekers" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Create Profile</a></div>';
+            return;
+          }
+          var html = seekers.map(function (s) {
+            var name = esc(s.name || 'Anonymous');
+            var title = s.headline ? '<p class="mt-1 text-sm font-medium text-slate-600">' + esc(s.headline) + '</p>' : '';
+            var location = s.location ? '<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4" aria-hidden="true"></i> ' + esc(s.location) + '</div>' : '';
+            var experience = s.experience_summary ? '<div class="flex items-center gap-2"><i class="fa-solid fa-briefcase w-4" aria-hidden="true"></i> ' + esc(s.experience_summary) + '</div>' : '';
+            var skills = s.skills ? '<div class="mt-3"><p class="text-xs font-medium text-slate-500 uppercase">Skills</p><p class="mt-1 text-sm text-slate-600">' + esc(s.skills) + '</p></div>' : '';
+            var linkedin = s.profile_url ? '<a href="' + esc(s.profile_url) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>' : '';
+            var fullProfile = '<a href="' + GITHUB_SEEKERS + encodeURIComponent(s.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"><i class="fa-brands fa-github" aria-hidden="true"></i> Full Profile</a>';
+            return '<div id="' + esc(s.id) + '" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow"><div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100"><i class="fa-solid fa-user text-2xl text-red-600" aria-hidden="true"></i></div><h3 class="text-lg font-semibold">' + name + '</h3>' + title + '<div class="mt-3 space-y-1 text-sm text-slate-600">' + location + experience + '</div>' + skills + '<div class="mt-4 flex gap-2">' + linkedin + fullProfile + '</div></div>';
+          }).join('');
+          container.innerHTML = html;
+        }
+
+        fetch('data/seekers.json', { cache: 'no-cache' })
+          .then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
+          .then(function (data) {
+            allSeekers = Array.isArray(data.seekers) ? data.seekers : [];
+            displaySeekers(allSeekers);
+          })
+          .catch(function () {
+            document.getElementById('seekers-container').innerHTML = '<div class="col-span-full rounded-xl border border-red-200 bg-red-50 p-6 text-center"><p class="text-red-600">Error loading profiles. Please try again later.</p></div>';
+          });
+
+        document.getElementById('search').addEventListener('input', function (e) {
+          var q = e.target.value.toLowerCase();
+          var filtered = allSeekers.filter(function (s) {
+            var str = (s.name + ' ' + (s.headline || '') + ' ' + (s.location || '') + ' ' + (s.skills || '')).toLowerCase();
+            return str.indexOf(q) !== -1;
+          });
+          displaySeekers(filtered);
+        });
+      })();
+    </script>
+  </body>
 </html>
-
