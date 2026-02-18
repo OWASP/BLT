@@ -478,7 +478,7 @@ BLT-API/
 │       ├── __init__.py
 │       ├── bugs.py
 │       ├── users.py
-│       ├── domains.py      # D1-integrated
+│       ├── domains.py      # D1-integrated.
 │       ├── organizations.py
 │       ├── projects.py
 │       ├── hunts.py
