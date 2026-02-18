@@ -1,0 +1,106 @@
+{
+  "file_patterns": {
+    "authentication": {
+      "patterns": [
+        "**/auth/**",
+        "**/login/**",
+        "**/password/**",
+        "**/session/**"
+      ],
+      "severity": "critical",
+      "guidance": "Authentication changes require careful security review. Ensure proper password hashing, session management, and protection against brute force attacks."
+    },
+    "api_keys": {
+      "patterns": [
+        "**/*api*key*",
+        "**/*secret*",
+        "**/*token*",
+        "**/*.env*",
+        "**/config/**"
+      ],
+      "severity": "critical",
+      "guidance": "Never commit API keys, secrets, or tokens to version control. Use environment variables or a secrets manager."
+    },
+    "database": {
+      "patterns": [
+        "**/*db*",
+        "**/*database*",
+        "**/migrations/**",
+        "**/*sql*"
+      ],
+      "severity": "warning",
+      "guidance": "Database changes should include security considerations like SQL injection prevention, proper access controls, and data encryption."
+    },
+    "encryption": {
+      "patterns": [
+        "**/*crypto*",
+        "**/*encrypt*",
+        "**/*hash*",
+        "**/*cipher*"
+      ],
+      "severity": "critical",
+      "guidance": "Use established cryptographic libraries and avoid creating custom encryption. Ensure strong key lengths and proper key management."
+    },
+    "file_upload": {
+      "patterns": [
+        "**/*upload*",
+        "**/*file*",
+        "**/storage/**"
+      ],
+      "severity": "warning",
+      "guidance": "File upload functionality requires validation of file types, size limits, and protection against malicious files."
+    },
+    "api_endpoints": {
+      "patterns": [
+        "**/api/**",
+        "**/routes/**",
+        "**/endpoints/**"
+      ],
+      "severity": "warning",
+      "guidance": "API endpoints should include proper input validation, rate limiting, authentication, and authorization checks."
+    },
+    "user_input": {
+      "patterns": [
+        "**/forms/**",
+        "**/input/**",
+        "**/validation/**"
+      ],
+      "severity": "warning",
+      "guidance": "All user input should be validated and sanitized to prevent injection attacks and XSS vulnerabilities."
+    }
+  },
+  "label_patterns": {
+    "security": {
+      "severity": "critical",
+      "guidance": "Security-related changes require thorough review and testing. Follow security best practices and consider potential attack vectors."
+    },
+    "authentication": {
+      "severity": "critical",
+      "guidance": "Authentication changes must follow security best practices including MFA support, secure session management, and protection against common attacks."
+    },
+    "authorization": {
+      "severity": "critical",
+      "guidance": "Authorization changes should implement proper access controls, follow the principle of least privilege, and prevent privilege escalation."
+    },
+    "data-privacy": {
+      "severity": "critical",
+      "guidance": "Ensure compliance with data privacy regulations (GDPR, CCPA, etc.). Implement proper data handling, encryption, and user consent mechanisms."
+    },
+    "api": {
+      "severity": "warning",
+      "guidance": "API changes should include proper input validation, rate limiting, versioning, and comprehensive documentation."
+    },
+    "vulnerability": {
+      "severity": "critical",
+      "guidance": "Vulnerability fixes require careful testing and validation. Ensure the fix addresses the root cause and doesn't introduce new issues."
+    },
+    "encryption": {
+      "severity": "critical",
+      "guidance": "Encryption implementation should use industry-standard algorithms and proper key management. Avoid custom cryptography."
+    },
+    "dependencies": {
+      "severity": "warning",
+      "guidance": "Dependency updates should be reviewed for known vulnerabilities. Use tools like npm audit or pip-audit to check for security issues."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# BLT Preflight Advisory Engine
+# Python dependencies
+
+# Core (no external dependencies needed for basic functionality)
+# The engine is designed to work with Python standard library only
+
+# Optional: For enhanced functionality
+# requests>=2.28.0  # For future GitHub API integration
+# pyyaml>=6.0       # For YAML configuration support

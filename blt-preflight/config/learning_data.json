@@ -1,0 +1,26 @@
+{
+  "patterns": [],
+  "feedback": [
+    {
+      "pattern": "Security Advisory: Authentication",
+      "helpful": 1,
+      "comments": "Very helpful and clear",
+      "timestamp": "2026-02-18T02:23:54.083114"
+    }
+  ],
+  "intents": [
+    {
+      "intent": "Adding OAuth2 authentication support",
+      "timestamp": "2026-02-18T02:23:54.070614",
+      "context": {
+        "labels": [
+          "security",
+          "authentication"
+        ],
+        "files": [
+          "src/oauth.py"
+        ]
+      }
+    }
+  ]
+}
