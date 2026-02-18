@@ -29,12 +29,9 @@ async def handle_issues(
     except Exception as e:
         return error_response(f"Database connection error: {str(e)}", status=500)
     
-    
-    print("Path:", path_params)
     # Get specific issue
     if "id" in path_params:
         issue_id = int(path_params["id"])
-        print(f"Fetching issue with ID: {issue_id}")
 
         result = await db.prepare('''
             SELECT 
@@ -80,7 +77,6 @@ async def handle_issues(
         else:
             issue_data = None
         
-        print(f"Issue data fetched: {str(issue_data)}")
         if not issue_data:
             return error_response("Issue not found", status=404)
         
