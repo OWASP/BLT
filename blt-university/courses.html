@@ -45,6 +45,11 @@ permalink: /courses/
                  data-category="{{ course.category | slugify }}" 
                  data-level="{{ course.level | downcase }}"
                  data-search="{{ course.title | downcase }} {{ course.description | downcase }} {{ course.instructor | downcase }}">
+                {% if course.image %}
+                <div class="course-card-image">
+                    <img src="{{ course.image | relative_url }}" alt="{{ course.title }}">
+                </div>
+                {% endif %}
                 <div class="course-card-header">
                     <span class="course-category">{{ course.category }}</span>
                     <span class="course-level">{{ course.level }}</span>

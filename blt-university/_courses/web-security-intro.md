@@ -6,6 +6,7 @@ level: Beginner
 duration: 6 weeks
 instructor: Dr. Sarah Chen
 featured: true
+image: /assets/images/courses/web-security.svg
 prerequisites: Basic understanding of HTML, CSS, and JavaScript
 description: Learn the fundamentals of web application security, including common vulnerabilities, attack vectors, and defensive techniques. Perfect for developers wanting to build secure web applications.
 

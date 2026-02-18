@@ -263,6 +263,21 @@ a:hover {
     box-shadow: var(--shadow-hover);
 }
 
+.course-card-image {
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    height: 200px;
+    background-color: var(--bg-light);
+}
+
+.course-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
 .course-card-header {
     display: flex;
     gap: 0.5rem;
@@ -403,6 +418,21 @@ a:hover {
 
 .course-header {
     margin-bottom: 2rem;
+}
+
+.course-header-image {
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.course-header-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .course-meta {

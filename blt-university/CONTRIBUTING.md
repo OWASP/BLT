@@ -105,6 +105,7 @@ level: Beginner | Intermediate | Advanced
 duration: X weeks
 instructor: Your Name (must match instructor profile)
 featured: false (set to true for homepage feature)
+image: /assets/images/courses/your-course-image.svg (optional)
 prerequisites: List prerequisites here
 description: 1-2 sentence course description
 
@@ -312,6 +313,14 @@ print("Hello, Security!")
 - Optimize file size
 - Add alt text
 - Credit sources
+
+**Course Images:**
+- Add a header image to your course by including an `image` field in the course front matter
+- Place course images in `assets/images/courses/`
+- Recommended image dimensions: 800x400px
+- Supported formats: SVG (preferred for graphics), PNG, JPG
+- The image will appear on both the course listing page and the course detail page
+- Example: `image: /assets/images/courses/web-security.svg`
 
 ## 🔒 Security Guidelines
 
