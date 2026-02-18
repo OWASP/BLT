@@ -438,7 +438,12 @@
         }
         let currentPage = 1;
         let totalPages = 1;
-        const perPage = 30;
+        // Load and validate perPage from localStorage
+        let perPageRaw = localStorage.getItem('perPage');
+        let perPageParsed = parseInt(perPageRaw, 10);
+        let perPage = (!Number.isNaN(perPageParsed) && perPageParsed >= 10 && perPageParsed <= 1000)
+            ? perPageParsed
+            : 30; // Ensure perPage is within [10, 1000], fallback to 30 if invalid
         let activePrId = null; // Track the currently active/selected PR
 
         // Auto-refresh state
@@ -894,9 +899,9 @@
                 // Build URL with pagination and sorting parameters
                 let url;
                 if (currentRepo === 'all') {
-                    url = `/api/prs?page=${currentPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
+                    url = `/api/prs?page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 } else {
-                    url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
+                    url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
 
                 const response = await fetch(url);
@@ -1419,8 +1424,27 @@
             paginationDiv.className = 'pagination-wrapper flex items-center justify-between mt-4';
 
             paginationDiv.innerHTML = `
-                <div class="text-sm text-slate-600 dark:text-slate-400">
-                    Page <span class="font-semibold">${currentPage}</span> of <span class="font-semibold">${totalPages}</span>
+                <div class="flex items-center gap-4">
+                    <div class="text-sm text-slate-600 dark:text-slate-400">
+                        Page <span class="font-semibold">${currentPage}</span> of <span class="font-semibold">${totalPages}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <label for="pageSizeSelect" class="whitespace-nowrap">Items per page:</label>
+                        <select 
+                            id="pageSizeSelect" 
+                            class="px-2 py-1 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm 
+                                   dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 
+                                   focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400">
+                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
+                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
+                            <option value="30" ${perPage === 30 ? 'selected' : ''}>30</option>
+                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
+                            <option value="100" ${perPage === 100 ? 'selected' : ''}>100</option>
+                            <option value="250" ${perPage === 250 ? 'selected' : ''}>250</option>
+                            <option value="500" ${perPage === 500 ? 'selected' : ''}>500</option>
+                            <option value="1000" ${perPage === 1000 ? 'selected' : ''}>1000</option>
+                        </select>
+                    </div>
                 </div>
             <div class="flex gap-2">
                 <button 
@@ -1454,6 +1478,25 @@
             document.getElementById('nextPageBtn')?.addEventListener('click', () => {
                 if (currentPage < totalPages) {
                     currentPage++;
+                    loadPrs();
+                }
+            });
+            
+            // Handle page size change
+            document.getElementById('pageSizeSelect')?.addEventListener('change', (e) => {
+                const newPerPage = parseInt(e.target.value, 10);
+                
+                // Validate the new page size to guard against DOM manipulation
+                if (Number.isNaN(newPerPage) || newPerPage < 10 || newPerPage > 1000) {
+                    // Revert the select value to the current perPage if invalid
+                    e.target.value = perPage.toString();
+                    return;
+                }
+                
+                if (newPerPage !== perPage) {
+                    perPage = newPerPage;
+                    localStorage.setItem('perPage', perPage.toString());
+                    currentPage = 1; // Reset to first page when changing page size
                     loadPrs();
                 }
             });
