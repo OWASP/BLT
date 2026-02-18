@@ -1,12 +1,10 @@
-# Senior Security Engineer
-
-**Company:** OWASP Foundation
-**Website:** https://owasp.org
-**Location:** Remote
-**Type:** Full-time
-**Posted:** 2026-02-16
-**Issue:** [Example](https://github.com/OWASP-BLT/BLT-Jobs/issues)
-
+---
+title: "Senior Security Engineer"
+organization_name: "OWASP Foundation"
+location: "Remote"
+job_type: "full-time"
+application_email: "careers@owasp.org"
+created_at: "2026-02-16T00:00:00Z"
 ---
 
 ## Description

@@ -1,16 +1,13 @@
-# Alex Johnson
-
-**Title:** Full Stack Developer
-**Location:** Remote, US
-**Experience:** 5 years
-**Profile Created:** 2026-02-16
-**Issue:** [Example](https://github.com/OWASP-BLT/BLT-Jobs/issues)
-
 ---
-
-## Skills
-
-JavaScript, TypeScript, Python, React, Node.js, Django, PostgreSQL, Docker, AWS, Security Best Practices
+name: "Alex Johnson"
+headline: "Full Stack Developer"
+location: "Remote, US"
+skills: "JavaScript, TypeScript, Python, React, Node.js, Django, PostgreSQL, Docker, AWS, Security Best Practices"
+experience_summary: "5 years building secure, scalable web applications. 50+ PRs merged to OWASP BLT."
+profile_url: "https://linkedin.com/in/alexjohnson"
+availability: "Open to senior full-stack roles"
+created_at: "2026-02-16T00:00:00Z"
+---
 
 ## About Me
 
