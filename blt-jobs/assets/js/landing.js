@@ -25,7 +25,15 @@
         jobs.forEach((j) => {
           const title = escapeHtml(j.title || "Untitled");
           const org = escapeHtml(j.organization_name || "");
-          html += `<li><a href="job.html?id=${encodeURIComponent(j.id)}" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">${title}</a>${org ? ` – ${org}` : ""}</li>`;
+          html += `<li>
+            <a href="job.html?id=${encodeURIComponent(
+              j.id
+            )}" class="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 shadow-sm transition hover:border-red-500/70 hover:bg-red-50/60 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-100 dark:hover:border-red-500/70 dark:hover:bg-slate-900/70">
+              <span class="font-medium">${title}</span>${
+                org ? ` <span class="text-slate-500 dark:text-slate-400">– ${org}</span>` : ""
+              }
+            </a>
+          </li>`;
         });
         html += "</ul></div>";
       }
@@ -34,7 +42,13 @@
         seekers.forEach((s) => {
           const name = escapeHtml(s.name || "Anonymous");
           const headline = escapeHtml(s.headline || "");
-          html += `<li><a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">${name}</a>${headline ? ` – ${headline}` : ""}</li>`;
+          html += `<li>
+            <a href="seekers.html" class="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 shadow-sm transition hover:border-red-500/70 hover:bg-red-50/60 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-100 dark:hover:border-red-500/70 dark:hover:bg-slate-900/70">
+              <span class="font-medium">${name}</span>${
+                headline ? ` <span class="text-slate-500 dark:text-slate-400">– ${headline}</span>` : ""
+              }
+            </a>
+          </li>`;
         });
         html += "</ul></div>";
       }
