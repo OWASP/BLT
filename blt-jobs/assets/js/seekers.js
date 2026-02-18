@@ -6,7 +6,7 @@ function normalizeSeekerString(value) {
 
 function renderSeekers(seekers) {
   const list = document.getElementById("seekersList");
-  const empty = doorum_getElement("seekersEmpty");
+  const empty = document.getElementById("seekersEmpty");
   if (!list || !empty) return;
 
   list.innerHTML = "";
@@ -73,7 +73,7 @@ function renderSeekers(seekers) {
         </div>
       `;
     })
-    .join(\"\\n\");
+    .join("\n");
 
   list.innerHTML = html;
 }
