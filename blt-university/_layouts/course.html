@@ -4,6 +4,11 @@ layout: default
 
 <article class="course-page">
     <div class="course-header">
+        {% if page.image %}
+        <div class="course-header-image">
+            <img src="{{ page.image | relative_url }}" alt="{{ page.title }}">
+        </div>
+        {% endif %}
         <h1>{{ page.title }}</h1>
         <div class="course-meta">
             <span class="course-category">{{ page.category }}</span>
