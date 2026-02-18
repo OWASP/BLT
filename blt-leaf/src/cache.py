@@ -7,7 +7,7 @@ _rate_limit_cache = {
     'data': None,
     'limit': None,
     'remaining': None,
-    'reset': None.
+    'reset': None,
     'timestamp': 0
 }
 # Cache TTL in seconds (5 minutes)
