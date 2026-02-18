@@ -283,7 +283,8 @@ def set_rate_limit_data(limit, remaining, reset):
             'remaining': safe_remaining,
             'reset': safe_reset,
             'used': safe_limit - safe_remaining,
-            'timestamp': current_time
+            'timestamp': current_time,
+            'status': 'active'
         })
         
         print(f"GitHub Rate Limit Cached: {safe_remaining}/{safe_limit}")
