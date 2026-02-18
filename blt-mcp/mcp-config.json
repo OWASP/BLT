@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "blt": {
+      "command": "node",
+      "args": ["/path/to/blt-mcp/dist/index.js"],
+      "env": {
+        "BLT_API_BASE": "https://blt.owasp.org/api",
+        "BLT_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
