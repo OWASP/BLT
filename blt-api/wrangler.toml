@@ -23,4 +23,4 @@ vars = { BLT_API_BASE_URL = "http://localhost:8000/api/v1", BLT_WEBSITE_URL = "h
 [[d1_databases]]
 binding = "blt_api"
 database_name = "blt-api"
-database_id = "<your-database-id>"
+database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd"
