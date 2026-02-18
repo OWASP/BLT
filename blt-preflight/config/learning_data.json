@@ -6,6 +6,12 @@
       "helpful": 1,
       "comments": "Very helpful and clear",
       "timestamp": "2026-02-18T02:23:54.083114"
+    },
+    {
+      "pattern": "Test Pattern",
+      "helpful": 1,
+      "comments": "Test comment",
+      "timestamp": "2026-02-18T02:24:36.547522"
     }
   ],
   "intents": [
@@ -19,6 +25,18 @@
         ],
         "files": [
           "src/oauth.py"
+        ]
+      }
+    },
+    {
+      "intent": "Adding two-factor authentication",
+      "timestamp": "2026-02-18T02:24:36.547851",
+      "context": {
+        "labels": [
+          "security"
+        ],
+        "files": [
+          "src/auth.py"
         ]
       }
     }
