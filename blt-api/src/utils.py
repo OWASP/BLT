@@ -24,8 +24,11 @@ except ImportError:
     
     class Response:
         @classmethod
-        def new(cls, body, status=200, headers=None):
-            return MockResponse(body, status, headers)
+        def new(cls, body, init=None):
+            """Mock Response.new() to match Cloudflare Workers API."""
+            if init is None:
+                init = {}
+            return MockResponse(body, init.get('status', 200), init.get('headers', {}))
     
     class MockResponse:
         def __init__(self, body, status=200, headers=None):
