@@ -29,13 +29,12 @@ async def handle_issues(
     except Exception as e:
         return error_response(f"Database connection error: {str(e)}", status=500)
     
+    
+    print("Path:", path_params)
     # Get specific issue
     if "id" in path_params:
-        issue_id = path_params["id"]
-        
-        # Validate ID is numeric
-        if not issue_id.isdigit():
-            return error_response("Invalid issue ID", status=400)
+        issue_id = int(path_params["id"])
+        print(f"Fetching issue with ID: {issue_id}")
 
         result = await db.prepare('''
             SELECT 
@@ -73,7 +72,15 @@ async def handle_issues(
             WHERE i.id = ?
         ''').bind(issue_id).first()
         
-        issue_data = convert_d1_results(result.results if hasattr(result, 'results') else [])
+        # Convert JsProxy result directly to Python dict
+        if result and hasattr(result, 'to_py'):
+            issue_data = result.to_py()
+        elif result and isinstance(result, dict):
+            issue_data = dict(result)
+        else:
+            issue_data = None
+        
+        print(f"Issue data fetched: {str(issue_data)}")
         if not issue_data:
             return error_response("Issue not found", status=404)
         
@@ -99,20 +106,12 @@ async def handle_issues(
         tags_data = convert_d1_results(tags_result.results if hasattr(tags_result, 'results') else [])
         
         # Add screenshots and tags to issue data
-        if issue_data and len(issue_data) > 0:
-            # Convert to mutable dict if needed
-            issue = dict(issue_data[0]) if issue_data[0] else {}
-            issue['screenshots'] = screenshots_data
-            issue['tags'] = tags_data
-            
-            return json_response({
-                "success": True,
-                "data": issue
-            })
-    
+        issue_data['screenshots'] = screenshots_data
+        issue_data['tags'] = tags_data
+        
         return json_response({
             "success": True,
-            "data": []
+            "data": issue_data
         })
     
     # Search issues
@@ -236,12 +235,18 @@ async def handle_issues(
                     'SELECT * FROM issues WHERE id = ?'
                 ).bind(last_id).first()
                 
-                issue_data = convert_d1_results([created_issue] if created_issue else [])
+                # Convert JsProxy result directly to Python dict
+                if created_issue and hasattr(created_issue, 'to_py'):
+                    issue_data = created_issue.to_py()
+                elif created_issue and isinstance(created_issue, dict):
+                    issue_data = dict(created_issue)
+                else:
+                    issue_data = {"id": last_id}
                 
                 return json_response({
                     "success": True,
                     "message": "Issue created successfully",
-                    "data": issue_data[0] if issue_data else {"id": last_id}
+                    "data": issue_data
                 }, status=201)
             else:
                 return json_response({
