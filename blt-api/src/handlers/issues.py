@@ -4,7 +4,6 @@ Issues handler for the BLT API.
 
 from typing import Any, Dict
 from utils import json_response, error_response, paginated_response, parse_pagination_params, parse_json_body
-from client import create_client
 from libs.db import get_db_safe
 from utils import convert_d1_results
 
@@ -24,18 +23,20 @@ async def handle_issues(
         POST /issues - Create a new issue
         GET /issues/search - Search issues
     """
-    client = create_client(env)
     method = str(request.method).upper()
-    db = await get_db_safe(env)  
+    try: 
+        db = await get_db_safe(env)  
+    except Exception as e:
+        return error_response(f"Database connection error: {str(e)}", status=500)
     
     # Get specific issue
     if "id" in path_params:
         issue_id = path_params["id"]
-        
+        print(f"Fetching issue with ID {issue_id}")
         # Validate ID is numeric
         if not issue_id.isdigit():
             return error_response("Invalid issue ID", status=400)
-        
+
         result = await db.prepare('''
             SELECT 
                 i.id,
@@ -72,7 +73,8 @@ async def handle_issues(
             WHERE i.id = ?
         ''').bind(issue_id).first()
         
-        if not result:
+        issue_data = convert_d1_results(result.results if hasattr(result, 'results') else [])
+        if not issue_data:
             return error_response("Issue not found", status=404)
         
         # Get screenshots for this issue
@@ -92,19 +94,26 @@ async def handle_issues(
             ORDER BY t.name
         ''').bind(issue_id).all()
         
+        print(f"Fetched issue with ID {issue_id} {result} and {len(screenshots_result.results) if hasattr(screenshots_result, 'results') else 0} screenshots and {len(tags_result.results) if hasattr(tags_result, 'results') else 0} tags")
         # Convert results
-        issue_data = convert_d1_results([result] if result else [])
         screenshots_data = convert_d1_results(screenshots_result.results if hasattr(screenshots_result, 'results') else [])
         tags_data = convert_d1_results(tags_result.results if hasattr(tags_result, 'results') else [])
         
         # Add screenshots and tags to issue data
-        if issue_data:
-            issue_data[0]['screenshots'] = screenshots_data
-            issue_data[0]['tags'] = tags_data
+        if issue_data and len(issue_data) > 0:
+            # Convert to mutable dict if needed
+            issue = dict(issue_data[0]) if issue_data[0] else {}
+            issue['screenshots'] = screenshots_data
+            issue['tags'] = tags_data
+            
+            return json_response({
+                "success": True,
+                "data": issue
+            })
     
         return json_response({
             "success": True,
-            "data": issue_data[0] if issue_data else None
+            "data": []
         })
     
     # Search issues
@@ -119,18 +128,36 @@ async def handle_issues(
         except ValueError:
             limit_int = 10
         
-        result = await client.search_issues(query, limit=limit_int)
+        search_result = await db.prepare('''
+            SELECT 
+                i.id,
+                i.url,
+                i.description,
+                i.status,   
+                i.verified,
+                i.score,
+                i.views,    
+                i.created,
+                i.modified,
+                i.is_hidden,
+                i.rewarded, 
+                i.cve_id,
+                i.cve_score,    
+                i.domain,
+                d.name as domain_name,
+                d.url as domain_url 
+            FROM issues i   
+            LEFT JOIN domains d ON i.domain = d.id
+            WHERE i.url LIKE ? OR i.description LIKE ?
+            ORDER BY i.created DESC
+            LIMIT ? OFFSET 0
+        ''').bind(f"%{query}%", f"%{query}%", limit_int).all()
         
-        if result.get("error"):
-            return error_response(
-                result.get("message", "Search failed"),
-                status=result.get("status", 500)
-            )
-        
+        response_data = convert_d1_results(search_result.results if hasattr(search_result, 'results') else [])
         return json_response({
             "success": True,
             "query": query,
-            "data": result.get("data")
+            "data": response_data
         })
     
     # Create issue
