@@ -16,8 +16,25 @@
       "application_instructions": "Apply via the link below.",
       "created_at": "2025-01-15T00:00:00Z",
       "views_count": 0
+    },
+    {
+      "id": "owasp.org-senior-security-engineer",
+      "organization_name": "Unknown organization",
+      "organization_logo": null,
+      "title": "Untitled",
+      "description": "# Senior Security Engineer\n\n**Company:** OWASP Foundation\n**Website:** https://owasp.org\n**Location:** Remote\n**Type:** Full-time\n**Posted:** 2026-02-16\n**Issue:** [Example](https://github.com/OWASP-BLT/BLT-Jobs/issues)\n\n---\n\n## Description\n\nWe're looking for a Senior Security Engineer to join our team and help improve the security posture of OWASP projects.\n\n## Requirements\n\n- 5+ years of experience in application security\n- Strong knowledge of OWASP Top 10\n- Experience with security testing tools\n- Python and JavaScript expertise\n- Open source contribution experience preferred\n\n## Responsibilities\n\n- Conduct security audits of OWASP projects\n- Develop security tools and automation\n- Mentor junior security engineers\n- Contribute to OWASP documentation\n\n## How to Apply\n\nSend your resume and GitHub profile to careers@owasp.org\n\n## Additional Information\n\nThis is a fully remote position with flexible working hours. We offer competitive compensation and the opportunity to work on meaningful open source security projects.",
+      "requirements": null,
+      "location": null,
+      "job_type": "full-time",
+      "salary_range": null,
+      "expires_at": null,
+      "application_email": null,
+      "application_url": null,
+      "application_instructions": null,
+      "created_at": "2026-02-18T10:49:21.395Z",
+      "views_count": 0
     }
   ],
-  "count": 1,
-  "generated_at": "2026-02-18T09:51:54.785Z"
+  "count": 2,
+  "generated_at": "2026-02-18T10:49:21.395Z"
 }
