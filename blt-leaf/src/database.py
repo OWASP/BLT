@@ -179,6 +179,18 @@ async def init_database_schema(env):
         index8 = db.prepare('CREATE INDEX IF NOT EXISTS idx_responded_feedback ON prs(responded_feedback)')
         await index8.run()
         
+        # Create timeline_cache table
+        await db.prepare('''
+            CREATE TABLE IF NOT EXISTS timeline_cache (
+                owner TEXT NOT NULL,
+                repo TEXT NOT NULL,
+                pr_number INTEGER NOT NULL,
+                data TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                PRIMARY KEY (owner, repo, pr_number)
+            )
+        ''').run()
+        
     except Exception as e:
         # Log the error but don't crash - schema may already exist
         print(f"Note: Schema initialization check: {str(e)}")
@@ -469,3 +481,84 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data.get('etag')
     )
     await stmt.run()
+
+
+async def save_timeline_to_db(env, owner, repo, pr_number, data):
+    """Save timeline data to D1 database.
+    
+    Args:
+        env: Worker environment with database binding
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+        data: Timeline data to cache (dict)
+    """
+    try:
+        db = get_db(env)
+        from js import Date
+        current_time = str(Date.now() / 1000)
+        
+        stmt = db.prepare('''
+            INSERT INTO timeline_cache (owner, repo, pr_number, data, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(owner, repo, pr_number) DO UPDATE SET
+                data = excluded.data,
+                timestamp = excluded.timestamp
+        ''').bind(owner, repo, pr_number, json.dumps(data), current_time)
+        
+        await stmt.run()
+        print(f"Database: Saved timeline data for {owner}/{repo}#{pr_number}")
+    except Exception as e:
+        print(f"Error saving timeline to database for {owner}/{repo}#{pr_number}: {str(e)}")
+
+
+async def load_timeline_from_db(env, owner, repo, pr_number):
+    """Load timeline data from D1 database.
+    
+    Args:
+        env: Worker environment with database binding
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+        
+    Returns:
+        tuple: (data, timestamp) or (None, None) if not found
+    """
+    try:
+        db = get_db(env)
+        stmt = db.prepare('''
+            SELECT data, timestamp FROM timeline_cache 
+            WHERE owner = ? AND repo = ? AND pr_number = ?
+        ''').bind(owner, repo, pr_number)
+        
+        result = await stmt.first()
+        if not result:
+            return None, None
+            
+        result = result.to_py() if hasattr(result, 'to_py') else dict(result)
+        return json.loads(result['data']), float(result['timestamp'])
+    except Exception as e:
+        print(f"Error loading timeline from database for {owner}/{repo}#{pr_number}: {str(e)}")
+        return None, None
+
+
+async def delete_timeline_from_db(env, owner, repo, pr_number):
+    """Delete timeline data from D1 database.
+    
+    Args:
+        env: Worker environment with database binding
+        owner: Repository owner
+        repo: Repository name
+        pr_number: PR number
+    """
+    try:
+        db = get_db(env)
+        stmt = db.prepare('''
+            DELETE FROM timeline_cache 
+            WHERE owner = ? AND repo = ? AND pr_number = ?
+        ''').bind(owner, repo, pr_number)
+        
+        await stmt.run()
+        print(f"Database: Deleted timeline cache for {owner}/{repo}#{pr_number}")
+    except Exception as e:
+        print(f"Error deleting timeline from database for {owner}/{repo}#{pr_number}: {str(e)}")
