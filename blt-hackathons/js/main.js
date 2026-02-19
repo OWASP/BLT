@@ -27,22 +27,22 @@ class HackathonDashboard {
             const endDate = new Date(this.config.endTime);
 
             // Resolve repositories (including organization repos if specified)
-            const repositories = await this.api.resolveRepositories(this.config.github);
+            this.repositories = await this.api.resolveRepositories(this.config.github);
 
             // Fetch all PRs, issues, and reviews
             const [prs, issues, reviews] = await Promise.all([
                 this.api.getAllPullRequests(
-                    repositories,
+                    this.repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllIssues(
-                    repositories,
+                    this.repositories,
                     startDate,
                     endDate
                 ),
                 this.api.getAllReviews(
-                    repositories,
+                    this.repositories,
                     startDate,
                     endDate
                 )
@@ -430,6 +430,13 @@ class HackathonDashboard {
         const container = document.getElementById('repositories-list');
         // Use resolved repositories if available, otherwise fall back to config
         const repositories = this.repositories || this.config.github.repositories || [];
+        
+        // Update the repositories title with count
+        const titleElement = document.getElementById('repositories-title');
+        if (titleElement) {
+            titleElement.textContent = `Repositories (${repositories.length})`;
+        }
+        
         const reposHtml = repositories.map(repoPath => {
             const [owner, repo] = repoPath.split('/');
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };

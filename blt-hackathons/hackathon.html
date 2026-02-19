@@ -34,6 +34,48 @@
         .trophy-gold { color: #FFD700; }
         .trophy-silver { color: #C0C0C0; }
         .trophy-bronze { color: #CD7F32; }
+        
+        /* Skeleton Loading Styles */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        .skeleton-text {
+            height: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .skeleton-title {
+            height: 1.5rem;
+            width: 60%;
+            margin-bottom: 0.75rem;
+        }
+        
+        .skeleton-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+        }
+        
+        .skeleton-repo-card {
+            height: 120px;
+        }
+        
+        .skeleton-leaderboard-item {
+            height: 80px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -118,10 +160,13 @@
                 <div class="bg-white rounded-lg shadow p-6 mb-8">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-code-branch mr-2 text-red-600"></i>
-                        Repositories
+                        <span id="repositories-title">Repositories</span>
                     </h2>
                     <div id="repositories-list" class="space-y-4">
-                        <p class="text-gray-600">Loading repositories...</p>
+                        <!-- Skeleton Loading -->
+                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
+                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
+                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
                     </div>
                 </div>
 
@@ -137,7 +182,10 @@
                         Leaderboard
                     </h2>
                     <div id="leaderboard" class="space-y-4">
-                        <p class="text-gray-600">Loading leaderboard...</p>
+                        <!-- Skeleton Loading -->
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
                     </div>
                 </div>
 
@@ -147,7 +195,10 @@
                         Review Leaderboard
                     </h2>
                     <div id="review-leaderboard" class="space-y-4">
-                        <p class="text-gray-600">Loading leaderboard...</p>
+                        <!-- Skeleton Loading -->
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
+                        <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
                     </div>
                 </div>
 
