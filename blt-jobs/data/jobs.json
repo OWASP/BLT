@@ -1,5 +1,23 @@
 {
-  "jobs": [],
-  "count": 0,
-  "generated_at": "2026-02-19T17:30:54.878Z"
+  "jobs": [
+    {
+      "id": "boa-job-listing",
+      "organization_name": "Boa",
+      "organization_logo": null,
+      "title": "Job Listing",
+      "description": "See full listing at: https://boa",
+      "requirements": null,
+      "location": null,
+      "job_type": "full-time",
+      "salary_range": null,
+      "expires_at": null,
+      "application_email": null,
+      "application_url": "https://boa",
+      "application_instructions": null,
+      "created_at": "2026-02-19T17:32:56Z",
+      "views_count": 0
+    }
+  ],
+  "count": 1,
+  "generated_at": "2026-02-19T17:33:03.861Z"
 }
