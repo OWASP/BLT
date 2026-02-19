@@ -92,7 +92,8 @@ async def init_database_schema(env):
                 stale_feedback TEXT,
                 readiness_computed_at TEXT,
                 is_draft INTEGER DEFAULT 0,
-                open_conversations_count INTEGER DEFAULT 0
+                open_conversations_count INTEGER DEFAULT 0,
+                reviewers_json TEXT
             )
         ''')
         await create_table.run()
@@ -130,7 +131,9 @@ async def init_database_schema(env):
                 ('stale_feedback', 'TEXT'),
                 ('readiness_computed_at', 'TEXT'),
                 ('is_draft', 'INTEGER DEFAULT 0'),
-                ('open_conversations_count', 'INTEGER DEFAULT 0')
+                ('open_conversations_count', 'INTEGER DEFAULT 0'),
+                ('reviewers_json', 'TEXT'),
+                ('etag', 'TEXT')
             ]
             
             # Whitelist of allowed column names for security
@@ -155,6 +158,26 @@ async def init_database_schema(env):
         
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
+        
+        # Create indexes for sortable readiness columns to improve sorting performance
+        # These columns are frequently used for sorting in the UI
+        index3 = db.prepare('CREATE INDEX IF NOT EXISTS idx_merge_ready ON prs(merge_ready)')
+        await index3.run()
+        
+        index4 = db.prepare('CREATE INDEX IF NOT EXISTS idx_overall_score ON prs(overall_score)')
+        await index4.run()
+        
+        index5 = db.prepare('CREATE INDEX IF NOT EXISTS idx_ci_score ON prs(ci_score)')
+        await index5.run()
+        
+        index6 = db.prepare('CREATE INDEX IF NOT EXISTS idx_review_score ON prs(review_score)')
+        await index6.run()
+        
+        index7 = db.prepare('CREATE INDEX IF NOT EXISTS idx_response_rate ON prs(response_rate)')
+        await index7.run()
+        
+        index8 = db.prepare('CREATE INDEX IF NOT EXISTS idx_responded_feedback ON prs(responded_feedback)')
+        await index8.run()
         
     except Exception as e:
         # Log the error but don't crash - schema may already exist
@@ -201,7 +224,8 @@ async def save_readiness_to_db(env, pr_id, readiness_data):
                 responded_feedback = ?,
                 stale_feedback_count = ?,
                 stale_feedback = ?,
-                readiness_computed_at = CURRENT_TIMESTAMP
+                readiness_computed_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''')
         
@@ -380,7 +404,8 @@ async def delete_readiness_from_db(env, pr_id):
                 responded_feedback = NULL,
                 stale_feedback_count = NULL,
                 stale_feedback = NULL,
-                readiness_computed_at = NULL
+                readiness_computed_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''')
         await stmt.bind(pr_id).run()
@@ -397,11 +422,10 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
     
     stmt = db.prepare('''
         INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title, state, 
-                       is_merged, mergeable_state, files_changed, author_login, 
-                       author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
+                       is_merged, mergeable_state, files_changed, author_login,                        author_avatar, repo_owner_avatar, checks_passed, checks_failed, checks_skipped, 
                        commits_count, behind_by, review_status, last_updated_at, 
-                       last_refreshed_at, updated_at, is_draft, open_conversations_count)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       last_refreshed_at, updated_at, is_draft, open_conversations_count, reviewers_json, etag)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(pr_url) DO UPDATE SET
             title = excluded.title,
             state = excluded.state,
@@ -417,9 +441,11 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             review_status = excluded.review_status,
             last_updated_at = excluded.last_updated_at,
             last_refreshed_at = excluded.last_refreshed_at,
-            updated_at = excluded.updated_at,
+            updated_at = CURRENT_TIMESTAMP,
             is_draft = excluded.is_draft,
-            open_conversations_count = excluded.open_conversations_count
+            open_conversations_count = excluded.open_conversations_count,
+            reviewers_json = excluded.reviewers_json,
+            etag = excluded.etag
     ''').bind(
         pr_url, owner, repo, pr_number,
         pr_data['title'], 
@@ -438,6 +464,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data['review_status'],
         pr_data['last_updated_at'], current_timestamp, current_timestamp,
         pr_data.get('is_draft', 0),
-        pr_data.get('open_conversations_count', 0)
+        pr_data.get('open_conversations_count', 0),
+        pr_data.get('reviewers_json', '[]'),
+        pr_data.get('etag')
     )
     await stmt.run()

@@ -1,6 +1,7 @@
 """API endpoint handlers for PR tracking"""
 
 import json
+import re
 from datetime import datetime, timezone
 from js import Response, Headers, Object
 from pyodide.ffi import to_js
@@ -13,13 +14,19 @@ from utils import (
 )
 from cache import (
     check_rate_limit, get_readiness_cache, set_readiness_cache,
-    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache
+    invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache,
+    _READINESS_CACHE_TTL, _RATE_LIMIT_CACHE_TTL, _rate_limit_cache
 )
 from database import get_db, upsert_pr
 from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
-    verify_github_signature
+    verify_github_signature, fetch_multiple_prs_batch
 )
+
+# SQL expression for computed field: issues_count
+# Calculates total issues as sum of blockers and warnings from JSON columns
+# Uses COALESCE to handle NULL values (returns 0 if column is NULL or invalid JSON)
+ISSUES_COUNT_SQL_EXPR = '(COALESCE(json_array_length(blockers), 0) + COALESCE(json_array_length(warnings), 0))'
 
 
 async def handle_add_pr(request, env):
@@ -75,11 +82,16 @@ async def handle_add_pr(request, env):
             
             headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
             
-            # Fetch all open PRs for the repo using pagination (supports unlimited PRs)
-            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=100"
+            # Fetch open PRs with a safety limit to prevent timeouts on very large repos
+            # Maximum 1000 PRs per import to stay within Cloudflare Workers execution limits
+            MAX_PRS_PER_IMPORT = 1000
+            # Explicitly sort by created date descending to get most recent PRs first
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&sort=created&direction=desc&per_page=100"
             
             try:
-                prs_list = await fetch_paginated_data(list_url, headers)
+                result = await fetch_paginated_data(list_url, headers, max_items=MAX_PRS_PER_IMPORT, return_metadata=True)
+                prs_list = result['items']
+                truncated = result['truncated']
             except Exception as e:
                 error_msg = str(e)
                 if 'status=403' in error_msg:
@@ -91,14 +103,17 @@ async def handle_add_pr(request, env):
             ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             
             for item in prs_list:
+                # Safely access user fields - user can be null for deleted accounts
+                user = item.get('user') or {}
+                
                 pr_data = {
                     'title': item.get('title', ''), 
                     'state': 'open', 
                     'is_merged': 0,
                     'mergeable_state': 'unknown', 
                     'files_changed': 0,
-                    'author_login': item['user']['login'], 
-                    'author_avatar': item['user']['avatar_url'],
+                    'author_login': user.get('login', 'ghost'), 
+                    'author_avatar': user.get('avatar_url', ''),
                     'repo_owner_avatar': item.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
                     'checks_passed': 0, 
                     'checks_failed': 0, 
@@ -107,13 +122,26 @@ async def handle_add_pr(request, env):
                     'last_updated_at': item.get('updated_at', ts),
                     'commits_count': 0,
                     'behind_by': 0,
-                    'is_draft': 1 if item.get('draft') else 0
+                    'is_draft': 1 if item.get('draft') else 0,
+                    'reviewers_json': '[]'
                 }
 
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
                 added_count += 1
             
-            return Response.new(json.dumps({'success': True, 'message': f'Successfully imported {added_count} PRs'}), 
+            # Build response message
+            message = f'Successfully imported {added_count} PR{"s" if added_count != 1 else ""}'
+            if truncated:
+                message += f' (limited to {MAX_PRS_PER_IMPORT} most recent open PR{"s" if MAX_PRS_PER_IMPORT != 1 else ""})'
+            
+            response_data = {
+                'success': True, 
+                'message': message,
+                'imported_count': added_count,
+                'truncated': truncated
+            }
+            
+            return Response.new(json.dumps(response_data), 
                               {'headers': {'Content-Type': 'application/json'}})
 
         else:
@@ -186,25 +214,50 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                 base_query += ' AND repo_owner = ? AND repo_name = ?'
                 params.extend([parts[0], parts[1]])
 
-        # Map frontend column names to database column names
+        # Map frontend column names to database column names or SQL expressions
+        # This allows the UI to use friendly names that map to actual DB columns
         column_mapping = {
-            'ready_score': 'overall_score',
+            'ready': 'merge_ready',  # Boolean flag: ready to merge (0/1)
+            'ready_score': 'overall_score',  # Numeric score: 0-100%
+            'overall': 'overall_score',  # Alias for ready_score
+            'ci_score': 'ci_score',  # CI score: maps directly to database column
+            'review_score': 'review_score',  # Review score: maps directly to database column
             'response_score': 'response_rate',
             'feedback_score': 'responded_feedback',
+            # Computed field: uses module-level SQL expression constant
+            'issues_count': ISSUES_COUNT_SQL_EXPR,
             # All other columns map directly to database columns
         }
         
-        # Whitelist of allowed sort columns (frontend names)
-        # Note: issues_count is excluded as it's a computed field from JSON (blockers + warnings)
-        allowed_columns = {
-            'last_updated_at', 'title', 'author_login', 'pr_number', 
-            'files_changed', 'checks_passed', 'checks_failed', 'checks_skipped',
-            'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
-            'commits_count', 'behind_by', 'open_conversations_count',
-            # Readiness columns
-            'ready_score', 'ci_score', 'review_score', 'response_score',
-            'feedback_score'
-        }
+        def is_valid_column_name(col_name):
+            """Validate column name to prevent SQL injection.
+            
+            Only allows alphanumeric characters and underscores.
+            This prevents injection while allowing all legitimate column names.
+            """
+            return bool(re.match(r'^[a-zA-Z0-9_]+$', col_name))
+        
+        def get_sort_expression(col_name):
+            """Get SQL expression for a sort column with validation.
+            
+            Args:
+                col_name: Column name from the frontend
+                
+            Returns:
+                tuple: (sql_expression, is_valid)
+                - sql_expression: SQL expression to use in ORDER BY, or None if invalid
+                - is_valid: Whether the column is valid for sorting
+            """
+            # Check if column has a mapping (could be an expression)
+            if col_name in column_mapping:
+                return (column_mapping[col_name], True)
+            
+            # For unmapped columns, validate the name and use it directly
+            if is_valid_column_name(col_name):
+                return (col_name, True)
+            
+            # Invalid column name - reject
+            return (None, False)
         
         # Parse multiple sort columns and directions
         # sort_by can be comma-separated list: "ready_score,title"
@@ -218,10 +271,10 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             
             # Process each sort column
             for i, col in enumerate(sort_columns):
-                if col in allowed_columns:
-                    # Map frontend column name to database column name
-                    db_column = column_mapping.get(col, col)
-                    
+                # Get and validate the SQL expression for this column
+                sql_expr, is_valid = get_sort_expression(col)
+                
+                if is_valid:
                     # Get corresponding direction or default to DESC
                     direction = 'DESC'
                     if i < len(sort_directions) and sort_directions[i].upper() in ('ASC', 'DESC'):
@@ -229,14 +282,17 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                     
                     # Add NULL handling and column sort
                     # NULL values should appear last regardless of sort direction
-                    sort_clauses.append(f'{db_column} IS NULL ASC, {db_column} {direction}')
+                    sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
+                else:
+                    # Log invalid column attempts for security monitoring
+                    print(f"Security: Rejected invalid sort column: {col}")
         
         # If no valid sort columns, use default
         if not sort_clauses:
-            sort_clauses.append('last_updated_at IS NULL ASC, last_updated_at DESC')
+            sort_clauses.append('last_updated_at IS NOT NULL, last_updated_at DESC')
         
         # Build ORDER BY clause
-        # Note: All columns are validated against whitelist above, so no SQL injection risk
+        # Note: All columns are validated via is_valid_column_name(), so no SQL injection risk
         order_clause = 'ORDER BY ' + ', '.join(sort_clauses)
 
         # Total count first
@@ -269,7 +325,10 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                 'has_next': page * per_page < total,
                 'has_previous': page > 1
             }
-        }), {'headers': {'Content-Type': 'application/json'}})
+        }), {'headers': {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+        }})
 
     except Exception as e:
         return Response.new(
@@ -295,7 +354,10 @@ async def handle_list_repos(env):
         repos = result.results.to_py() if hasattr(result, 'results') else []
         
         return Response.new(json.dumps({'repos': repos}), 
-                          {'headers': {'Content-Type': 'application/json'}})
+                          {'headers': {
+                              'Content-Type': 'application/json',
+                              'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+                          }})
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
@@ -311,9 +373,9 @@ async def handle_refresh_pr(request, env):
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
                               {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        # Get PR URL from database
+        # Get PR URL and ETag from database
         db = get_db(env)
-        stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number FROM prs WHERE id = ?').bind(pr_id)
+        stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id = ?').bind(pr_id)
         result = await stmt.first()
         
         if not result:
@@ -322,9 +384,33 @@ async def handle_refresh_pr(request, env):
         
         # Convert JsProxy to Python dict to make it subscriptable
         result = result.to_py()
+            
+        # Fetch fresh data from GitHub (with Token and ETag)
+        pr_data = await fetch_pr_data(
+            result['repo_owner'], 
+            result['repo_name'], 
+            result['pr_number'], 
+            user_token, 
+            result.get('etag')
+        )
         
-        # Fetch fresh data from GitHub (with Token)
-        pr_data = await fetch_pr_data(result['repo_owner'], result['repo_name'], result['pr_number'], user_token)
+        # Fast-Path: If data is unchanged (304 Not Modified), skip analysis and database update
+        if pr_data and pr_data.get('not_modified'):
+            print(f"Fast-path: PR #{result['pr_number']} data unchanged, skipping analysis")
+            
+            # Fetch existing PR data from DB to return to frontend
+            # We already have some of it in 'result', but let's get the full row for completeness
+            full_stmt = db.prepare('SELECT * FROM prs WHERE id = ?').bind(pr_id)
+            full_result = await full_stmt.first()
+            response_data = full_result.to_py() if hasattr(full_result, 'to_py') else dict(full_result)
+            
+            return Response.new(json.dumps({
+                'success': True,
+                'data': response_data,
+                'fast_path': True,
+                'rate_limit': get_rate_limit_cache()
+            }), {'headers': {'Content-Type': 'application/json'}})
+        
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 403, 'headers': {'Content-Type': 'application/json'}})
@@ -361,73 +447,156 @@ async def handle_refresh_pr(request, env):
             'pr_number': result['pr_number'],
             'pr_url': result['pr_url']
         }
+
+        return Response.new(json.dumps({
+            'success': True,
+            'data': response_data,
+            'rate_limit': get_rate_limit_cache()
+        }), {'headers': {'Content-Type': 'application/json'}})
         
-        return Response.new(json.dumps({'success': True, 'data': response_data}), 
-                          {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
-async def handle_rate_limit(env):
-    """Fetch GitHub API rate limit status
-    
-    Args:
-        env: Cloudflare Worker environment object containing bindings
-        
-    Returns:
-        Response object with JSON containing:
-            - limit: Maximum number of requests per hour
-            - remaining: Number of requests remaining
-            - reset: Unix timestamp when the limit resets
-            - used: Number of requests used
+async def handle_batch_refresh_prs(request, env):
     """
-    global _rate_limit_cache
+    Refresh multiple PRs efficiently using batch API calls.
     
+    POST /api/refresh-batch
+    Body: { "pr_ids": [1, 2, 3, ...] }
+    
+    Uses GraphQL to fetch multiple PRs in a single API call.
+    """
     try:
-        # Check cache first to avoid excessive API calls
-        # Use JavaScript Date API for Cloudflare Workers compatibility
-        current_time = Date.now() / 1000  # Convert milliseconds to seconds
+        data = (await request.json()).to_py()
+        pr_ids = data.get('pr_ids', [])
+        user_token = request.headers.get('x-github-token')
         
-        if _rate_limit_cache['data'] and (current_time - _rate_limit_cache['timestamp']) < _RATE_LIMIT_CACHE_TTL:
-            # Return cached data
+        if not pr_ids or not isinstance(pr_ids, list):
+            return Response.new(json.dumps({'error': 'pr_ids array is required'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        if len(pr_ids) > 100:
+            return Response.new(json.dumps({'error': 'Maximum 100 PRs can be refreshed at once'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Get PR details from database
+        db = get_db(env)
+        prs_to_fetch = []
+        pr_lookup = {}  # Maps (owner, repo, pr_number) -> (pr_id, pr_url, etag)
+        
+        for pr_id in pr_ids:
+            stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id = ?').bind(pr_id)
+            result = await stmt.first()
+            
+            if not result:
+                print(f"PR ID {pr_id} not found, skipping")
+                continue
+            
+            result = result.to_py()
+            owner = result['repo_owner']
+            repo = result['repo_name']
+            pr_number = result['pr_number']
+            pr_url = result['pr_url']
+            etag = result.get('etag')
+            
+            prs_to_fetch.append((owner, repo, pr_number))
+            pr_lookup[(owner, repo, pr_number)] = (pr_id, pr_url, etag)
+        
+        if not prs_to_fetch:
+            return Response.new(json.dumps({'error': 'No valid PRs found'}), 
+                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Batch fetch PR data from GitHub
+        print(f"Batch refreshing {len(prs_to_fetch)} PRs")
+        batch_results = await fetch_multiple_prs_batch(prs_to_fetch, user_token)
+        
+        # Update database and collect results
+        updated_prs = []
+        removed_prs = []
+        errors = []
+        
+        for (owner, repo, pr_number), pr_data in batch_results.items():
+            pr_id, pr_url, etag = pr_lookup[(owner, repo, pr_number)]
+            
+            if not pr_data:
+                errors.append({'pr_id': pr_id, 'pr_number': pr_number, 'error': 'Failed to fetch'})
+                continue
+            
+            # Check if PR is now merged or closed - remove it
+            # Note: GraphQL returns state in lowercase (e.g., 'closed', 'open')
+            if pr_data['is_merged'] or pr_data['state'] == 'closed':
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(owner, repo, pr_number)
+                
+                delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
+                await delete_stmt.run()
+                
+                status_msg = 'merged' if pr_data['is_merged'] else 'closed'
+                removed_prs.append({'pr_id': pr_id, 'pr_number': pr_number, 'status': status_msg})
+                continue
+            
+            # Update PR data
+            try:
+                await upsert_pr(db, pr_url, owner, repo, pr_number, pr_data)
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(owner, repo, pr_number)
+                updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
+            except Exception as update_error:
+                print(f"Error updating PR #{pr_number} in {owner}/{repo}: {str(update_error)}")
+                errors.append({'pr_id': pr_id, 'pr_number': pr_number, 'error': str(update_error)})
+        
+        return Response.new(json.dumps({
+            'success': True,
+            'updated': len(updated_prs),
+            'removed': len(removed_prs),
+            'errors': len(errors),
+            'updated_prs': updated_prs,
+            'removed_prs': removed_prs,
+            'error_prs': errors,
+            'rate_limit': get_rate_limit_cache()
+        }), {'headers': {'Content-Type': 'application/json'}})
+        
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        
+async def handle_rate_limit(env):
+    """
+    GET /api/rate-limit
+    Returns the most recent GitHub API rate limit data captured locally.
+    This avoids extra API calls and preserves your quota.
+    """
+    try:
+        # Pull the latest state from the cache module
+        rate_data = get_rate_limit_cache()
+        
+        # If no calls have been made yet, provide a friendly initial state
+        if not rate_data or not rate_data.get('limit'):
             return Response.new(
-                json.dumps(_rate_limit_cache['data']), 
-                {'headers': {
-                    'Content-Type': 'application/json',
-                    'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'
-                }}
+                json.dumps({
+                    'limit': 5000, 
+                    'remaining': 5000, 
+                    'reset': 0, 
+                    'used': 0,
+                    'status': 'waiting_for_first_request'
+                }), 
+                {'headers': {'Content-Type': 'application/json'}}
             )
         
-        # Fetch rate limit from GitHub API
-        rate_limit_url = "https://api.github.com/rate_limit"
-        response = await fetch_with_headers(rate_limit_url)
-        
-        if response.status != 200:
-            return Response.new(json.dumps({'error': f'GitHub API Error: {response.status}'}), 
-                              {'status': response.status, 'headers': {'Content-Type': 'application/json'}})
-        
-        rate_data = (await response.json()).to_py()
-        # Extract core rate limit info
-        core_limit = rate_data.get('resources', {}).get('core', {})
-        
-        result = {
-            'limit': core_limit.get('limit', 60),
-            'remaining': core_limit.get('remaining', 0),
-            'reset': core_limit.get('reset', 0),
-            'used': core_limit.get('used', 0)
-        }
-        
-        # Update cache
-        _rate_limit_cache['data'] = result
-        _rate_limit_cache['timestamp'] = current_time
-        
         return Response.new(
-            json.dumps(result), 
-            {'headers': {'Content-Type': 'application/json', 'Cache-Control': f'public, max-age={_RATE_LIMIT_CACHE_TTL}'}}
+            json.dumps(rate_data), 
+            {'headers': {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            }}
         )
     except Exception as e:
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+        print(f"Error in handle_rate_limit: {str(e)}")
+        return Response.new(
+            json.dumps({'error': 'Internal server error fetching rate status'}), 
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
 
 async def handle_status(env):
     """Check database status"""
@@ -769,6 +938,9 @@ async def handle_github_webhook(request, env):
             db = get_db(env)
             updated_prs = []
             
+            # Step 1: Filter to only tracked PRs and collect their IDs
+            tracked_prs = []  # List of (pr_number, repo_owner, repo_name, pr_id, pr_url)
+            
             for pr_number, repo_owner, repo_name in prs_to_update:
                 pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
                 result = await db.prepare(
@@ -786,23 +958,44 @@ async def handle_github_webhook(request, env):
                     if not pr_id:
                         print(f"Error: Database result missing 'id' field for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
                         continue
+                    tracked_prs.append((pr_number, repo_owner, repo_name, pr_id, pr_url))
                 except Exception as db_error:
                     print(f"Error parsing database result for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(db_error)}")
                     continue
+            
+            if not tracked_prs:
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event for untracked PR(s), no updates performed'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Step 2: Batch fetch PR data from GitHub using GraphQL
+            print(f"Batch fetching {len(tracked_prs)} PRs for {event_type} event")
+            prs_to_fetch = [(repo_owner, repo_name, pr_number) for pr_number, repo_owner, repo_name, pr_id, pr_url in tracked_prs]
+            
+            # Get token from env if available (for webhook-triggered updates)
+            webhook_token = getattr(env, 'GITHUB_TOKEN', None)
+            batch_results = await fetch_multiple_prs_batch(prs_to_fetch, webhook_token)
+            
+            # Step 3: Update database with fetched data
+            for pr_number, repo_owner, repo_name, pr_id, pr_url in tracked_prs:
+                key = (repo_owner, repo_name, pr_number)
+                fetched_pr_data = batch_results.get(key)
                 
-                # Fetch fresh PR data to update behind_by and mergeable_state
-                try:
-                    fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
-                    if fetched_pr_data:
+                if fetched_pr_data:
+                    try:
                         await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                         # Invalidate caches to force fresh analysis
                         await invalidate_readiness_cache(env, pr_id)
                         invalidate_timeline_cache(repo_owner, repo_name, pr_number)
                         updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
-                    else:
-                        print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: fetch_pr_data returned None")
-                except Exception as fetch_error:
-                    print(f"Error fetching PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(fetch_error)}")
+                    except Exception as update_error:
+                        print(f"Error updating PR #{pr_number} in {repo_owner}/{repo_name}: {str(update_error)}")
+                else:
+                    print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
             
             # Return response with info about all updated PRs
             if updated_prs:
@@ -811,7 +1004,7 @@ async def handle_github_webhook(request, env):
                         'success': True,
                         'event': f'{event_type}_processed',
                         'updated_prs': updated_prs,
-                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event'
+                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event (batch API call)'
                     }),
                     {'headers': {'Content-Type': 'application/json'}}
                 )
@@ -1111,7 +1304,7 @@ async def handle_pr_readiness(request, env, path):
         if review_status != original_review_status:
             # Update review_status in database only if it actually changed
             await db.prepare(
-                'UPDATE prs SET review_status = ? WHERE id = ?'
+                'UPDATE prs SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
             ).bind(review_status, pr_id).run()
             pr['review_status'] = review_status
         

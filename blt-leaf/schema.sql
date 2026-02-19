@@ -45,11 +45,20 @@ CREATE TABLE IF NOT EXISTS prs (
     stale_feedback TEXT,
     readiness_computed_at TEXT,
     is_draft INTEGER DEFAULT 0,
-    open_conversations_count INTEGER DEFAULT 0
+    open_conversations_count INTEGER DEFAULT 0,
+    reviewers_json TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
 CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
+
+-- Indexes for sortable readiness columns to improve sorting performance
+CREATE INDEX IF NOT EXISTS idx_merge_ready ON prs(merge_ready);
+CREATE INDEX IF NOT EXISTS idx_overall_score ON prs(overall_score);
+CREATE INDEX IF NOT EXISTS idx_ci_score ON prs(ci_score);
+CREATE INDEX IF NOT EXISTS idx_review_score ON prs(review_score);
+CREATE INDEX IF NOT EXISTS idx_response_rate ON prs(response_rate);
+CREATE INDEX IF NOT EXISTS idx_responded_feedback ON prs(responded_feedback);
 
 -- Migration for existing databases (if needed manually)
 -- Run this if the automatic migration in init_database_schema fails:
@@ -73,3 +82,4 @@ CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 -- ALTER TABLE prs ADD COLUMN stale_feedback TEXT;
 -- ALTER TABLE prs ADD COLUMN readiness_computed_at TEXT;
 -- ALTER TABLE prs ADD COLUMN open_conversations_count INTEGER DEFAULT 0;
+-- ALTER TABLE prs ADD COLUMN reviewers_json TEXT;

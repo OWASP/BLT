@@ -44,6 +44,7 @@ BLT-Leaf/
 - 📊 **Sortable Table View**: View PRs in a compact, sortable table with check results, review status, and files changed
 - 👥 **Multi-Repo Support**: Track PRs across multiple repositories
 - 🔄 **Real-time Updates**: Refresh PR data from GitHub API
+- ➕ **Bulk Import**: Import up to 1000 open PRs at once using the plus button next to each repository (prevents timeout on very large repos)
 - 🎨 **Clean Interface**: Simple, GitHub-themed UI with dark mode support
 - 🔔 **Webhook Integration (NEW)**: Automatically track new PRs when opened via GitHub webhooks
 
@@ -129,7 +130,21 @@ wrangler deploy
 
 ### Testing
 
-The application includes comprehensive test suites for rate limiting and caching features.
+The application includes comprehensive test suites for rate limiting, caching features, and data display verification.
+
+**Data Display Tests** (verifies project setup and data structure):
+```bash
+npm test
+# or
+node test-data-display.js
+```
+
+This test suite verifies:
+- ✅ HTML structure and data display elements
+- ✅ Python API handlers and endpoints
+- ✅ Database schema completeness
+- ✅ Configuration files (wrangler.toml, package.json)
+- ✅ API routing and CORS configuration
 
 **Quick Local Test** (watch wrangler console for logs):
 ```bash
@@ -145,6 +160,37 @@ node test-production.js https://your-worker.workers.dev
 For detailed testing instructions and expected behavior, see [TESTING.md](TESTING.md).
 
 **Note**: Local development (`wrangler dev`) may not preserve worker state between requests. For accurate rate limiting and caching tests, deploy to production.
+
+### Continuous Integration
+
+The project includes a comprehensive GitHub Actions workflow that automatically runs on push and pull requests:
+
+**Test Data Display Workflow** (`.github/workflows/test-data-display.yml`):
+- Runs on every push to main and pull request
+- Sets up Node.js and installs dependencies
+- Runs linting and format checks
+- Verifies all required source files and configurations exist
+- Runs comprehensive data display tests (48+ automated checks)
+- Validates HTML structure, API endpoints, and database schema
+- Checks Python syntax for all source files
+- **Starts live Wrangler dev server** and tests against running application
+- **Tests all API endpoints** including refresh functionality
+- **Validates refresh button** works correctly to update PR data
+- Performs security audit of dependencies
+
+The workflow ensures that:
+- The project setup is correct and complete
+- All data display components are properly configured
+- API endpoints are defined and routed correctly
+- Frontend can successfully fetch and display data
+- Database schema includes all required fields
+- **Refresh functionality works to update PR data from GitHub**
+- Code meets quality and security standards
+
+To run the same checks locally:
+```bash
+npm test
+```
 
 ## Usage
 
@@ -202,7 +248,7 @@ For detailed testing instructions and expected behavior, see [TESTING.md](TESTIN
     - `?page=N` - Page number (default: 1)
     - `?sort_by=column` - Sort column (default: `last_updated_at`)
     - `?sort_dir=asc|desc` - Sort direction (default: `desc`)
-  - Supported sort columns: `title`, `author_login`, `pr_number`, `files_changed`, `checks_passed`, `checks_failed`, `checks_skipped`, `review_status`, `mergeable_state`, `commits_count`, `behind_by`, `ready_score`, `ci_score`, `review_score`, `response_score`, `feedback_score`, `last_updated_at`
+  - Supported sort columns: `title`, `author_login`, `pr_number`, `files_changed`, `checks_passed`, `checks_failed`, `checks_skipped`, `review_status`, `mergeable_state`, `commits_count`, `behind_by`, `ready` (merge_ready flag: 0/1), `ready_score` (overall_score: 0-100), `overall` (alias for ready_score), `ci_score`, `review_score`, `response_score`, `feedback_score`, `last_updated_at`
 - `POST /api/prs` - Add a new PR (body: `{"pr_url": "..."}`)
   - Returns 400 error if PR is merged or closed
 - `POST /api/refresh` - Refresh a PR's data (body: `{"pr_id": 123}`)

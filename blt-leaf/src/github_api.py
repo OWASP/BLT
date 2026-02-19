@@ -4,7 +4,7 @@ import json
 import asyncio
 from js import fetch, Headers, Object
 from pyodide.ffi import to_js
-from cache import get_timeline_cache, set_timeline_cache
+from cache import get_timeline_cache, set_timeline_cache, set_rate_limit_data
 
 
 async def fetch_with_headers(url, headers=None, token=None):
@@ -30,6 +30,10 @@ async def fetch_with_headers(url, headers=None, token=None):
         rate_limit = response.headers.get('x-ratelimit-limit')
         rate_remaining = response.headers.get('x-ratelimit-remaining')
         rate_reset = response.headers.get('x-ratelimit-reset')
+
+        if rate_limit and rate_remaining:
+            set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+            
         print(f"GitHub API: {url} | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining | Reset: {rate_reset}")
     
     return response
@@ -106,6 +110,10 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
             # Log GraphQL API call
             rate_limit = response.headers.get('x-ratelimit-limit')
             rate_remaining = response.headers.get('x-ratelimit-remaining')
+            rate_reset = response.headers.get('x-ratelimit-reset')
+            if rate_limit and rate_remaining:
+                set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+                
             print(f"GitHub GraphQL API: Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
             
             if response.status != 200:
@@ -146,37 +154,52 @@ async def fetch_open_conversations_count(owner, repo, pr_number, token=None):
         return unresolved_count  # Return partial count if available
 
 
-async def fetch_pr_data(owner, repo, pr_number, token=None):
+async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
     """
     Fetch PR data from GitHub API with parallel requests for optimal performance.
     
     Optimizations applied:
-    - Reviews are NOT fetched here to avoid duplication with fetch_pr_timeline_data
+    - Conditional requests (ETags): Avoid fetching if data hasn't changed
     - Files list is NOT fetched since PR details already include 'changed_files' count
-    - Checks and compare API calls are made in parallel for efficiency
-    
-    This reduces API calls from 5 to 3 per fetch (PR details + checks + compare).
+    - Checks, compare, and reviews API calls are made in parallel for efficiency
     """
     headers = {
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
     }
+    
+    if etag:
+        headers['If-None-Match'] = etag
         
     try:
         # Fetch PR details first (needed for head SHA)
         pr_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
         pr_response = await fetch_with_headers(pr_url, headers, token)
         
+        # Handle 304 Not Modified
+        if pr_response.status == 304:
+            print(f"GitHub API: PR #{pr_number} returned 304 Not Modified (Fast-path)")
+            return {'not_modified': True}
+            
         if pr_response.status != 200:
             return None
             
         pr_data = (await pr_response.json()).to_py()
+        
+        # Extract new ETag for storage
+        new_etag = pr_response.headers.get('etag')
 
         # Prepare URLs for parallel fetching
-        # Note: We don't fetch reviews here to avoid duplication with fetch_pr_timeline_data
+        # We MUST NOT send If-None-Match to these secondary calls based on the PR etag,
+        # as each endpoint has its own etag logic. We just want to clear headers.
+        secondary_headers = {
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
         # Note: We don't fetch files list since pr_data already includes 'changed_files' count
-        # Reviews will be fetched by fetch_pr_timeline_data for timeline analysis
+        # Reviews are fetched here to extract per-reviewer approval data (login + avatar)
         checks_url = f"https://api.github.com/repos/{owner}/{repo}/commits/{pr_data['head']['sha']}/check-runs"
+        reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100"
         
         # Extract base and head branch information for comparison
         # To check if PR is behind base, we need to compare the branches (not SHAs)
@@ -196,19 +219,20 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         # Compare head...base to see how many commits base has that head doesn't
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{head_full_ref}...{base_branch}"
         
-        # Fetch checks and comparison in parallel using asyncio.gather
+        # Fetch checks, comparison, reviews, and conversations in parallel using asyncio.gather
         # This reduces total fetch time from sequential sum to max single request time
-        # Reviews are intentionally excluded to avoid duplicate API calls with fetch_pr_timeline_data
         # Files list is excluded since we only need the count which is in pr_data['changed_files']
         checks_data = {}
         compare_data = {}
+        reviews_data = []
         open_conversations_count = 0
         
         try:
             results = await asyncio.gather(
-                fetch_with_headers(checks_url, headers, token),
-                fetch_with_headers(compare_url, headers, token),
+                fetch_with_headers(checks_url, secondary_headers, token),
+                fetch_with_headers(compare_url, secondary_headers, token),
                 fetch_open_conversations_count(owner, repo, pr_number, token),
+                fetch_with_headers(reviews_url, secondary_headers, token),
                 return_exceptions=True
             )
             
@@ -231,6 +255,12 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
                 open_conversations_count = results[2]
             else:
                 print(f"Open conversations fetch exception for PR #{pr_number}: {results[2]}")
+            
+            # Process reviews result
+            if not isinstance(results[3], Exception) and results[3].status == 200:
+                reviews_data = (await results[3].json()).to_py()
+            else:
+                print(f"Reviews fetch failed for PR #{pr_number}")
         except Exception as e:
             print(f"Error fetching PR data for #{pr_number}: {str(e)}")
         
@@ -260,10 +290,26 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             behind_by = compare_data.get('ahead_by') or 0
             print(f"PR #{pr_number}: Compare status={compare_data.get('status')}, ahead_by={compare_data.get('ahead_by')}, behind_by={compare_data.get('behind_by')}")
         
-        # Review status will be set to 'pending' by default
-        # It will be updated when timeline data is fetched by fetch_pr_timeline_data
-        # This avoids duplicate API calls to the reviews endpoint
-        review_status = 'pending'
+        # Calculate review status from reviews data
+        from utils import calculate_review_status
+        review_status = calculate_review_status(reviews_data)
+        
+        # Build per-reviewer data for the Approvals column - Keep only the latest review state per reviewer
+        latest_reviews = {}
+        if reviews_data:
+            valid_reviews = [r for r in reviews_data if r.get('submitted_at') and r.get('user')]
+            sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submitted_at', ''))
+            for review in sorted_reviews:
+                user = review['user']
+                latest_reviews[user['login']] = {
+                    'login': user['login'],
+                    'avatar_url': user.get('avatar_url', ''),
+                    'state': review['state']  # APPROVED, CHANGES_REQUESTED, COMMENTED, etc.
+                }
+        reviewers_list = list(latest_reviews.values())
+        
+        # Safely access user fields - user can be null for deleted accounts
+        user = pr_data.get('user') or {}
         
         return {
             'title': pr_data.get('title', ''),
@@ -271,8 +317,8 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'is_merged': 1 if pr_data.get('merged', False) else 0,
             'mergeable_state': pr_data.get('mergeable_state', ''),
             'files_changed': pr_data.get('changed_files', 0),  # Use changed_files from PR data instead of fetching files list
-            'author_login': pr_data['user']['login'],
-            'author_avatar': pr_data['user']['avatar_url'],
+            'author_login': user.get('login', 'ghost'),
+            'author_avatar': user.get('avatar_url', ''),
             'repo_owner_avatar': pr_data.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
@@ -282,7 +328,9 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
             'review_status': review_status,
             'last_updated_at': pr_data.get('updated_at', ''),
             'is_draft': 1 if pr_data.get('draft', False) else 0,
-            'open_conversations_count': open_conversations_count
+            'open_conversations_count': open_conversations_count,
+            'reviewers_json': json.dumps(reviewers_list),
+            'etag': new_etag
         }
     except Exception as e:
         # Return more informative error for debugging
@@ -291,20 +339,257 @@ async def fetch_pr_data(owner, repo, pr_number, token=None):
         raise Exception(error_msg)
 
 
-async def fetch_paginated_data(url, headers):
+async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
+    """
+    Fetch multiple PR data efficiently using GitHub GraphQL API in a single call.
+    
+    This significantly reduces API calls when updating many PRs at once.
+    Instead of making 4-5 REST API calls per PR, we make 1 GraphQL call for all PRs.
+    
+    IMPORTANT TRADEOFFS:
+    - Does not fetch check run status (checks_passed/failed/skipped) - set to 0
+    - Does not fetch behind_by count - set to 0
+    - No ETag support for conditional requests
+    - Limited to first 100 review threads per PR
+    - Best for bulk updates where these fields are less critical
+    - For complete/accurate data, use individual fetch_pr_data() instead
+    
+    Args:
+        prs_to_fetch: List of tuples (owner, repo, pr_number) to fetch
+        token: Optional GitHub token for authentication
+        
+    Returns:
+        dict: Mapping of (owner, repo, pr_number) -> pr_data or None on error
+    """
+    if not prs_to_fetch:
+        return {}
+    
+    # GraphQL has limits, so we batch in groups of 50 PRs max
+    MAX_PRS_PER_BATCH = 50
+    graphql_url = "https://api.github.com/graphql"
+    all_results = {}
+    
+    # Process in batches
+    for batch_start in range(0, len(prs_to_fetch), MAX_PRS_PER_BATCH):
+        batch = prs_to_fetch[batch_start:batch_start + MAX_PRS_PER_BATCH]
+        
+        # Build GraphQL query with aliases for each PR
+        # We'll fetch essential PR data in one query
+        query_parts = []
+        for i, (owner, repo, pr_number) in enumerate(batch):
+            alias = f"pr{i}"
+            query_parts.append(f"""
+                {alias}: repository(owner: "{owner}", name: "{repo}") {{
+                    pullRequest(number: {pr_number}) {{
+                        title
+                        state
+                        isDraft
+                        merged
+                        updatedAt
+                        mergeable
+                        mergeStateStatus
+                        changedFiles
+                        commits {{
+                            totalCount
+                        }}
+                        author {{
+                            login
+                            avatarUrl
+                        }}
+                        baseRepository {{
+                            owner {{
+                                avatarUrl
+                            }}
+                        }}
+                        headRefOid
+                        baseRefName
+                        headRefName
+                        headRepository {{
+                            owner {{
+                                login
+                            }}
+                        }}
+                        reviewThreads(first: 100) {{
+                            nodes {{
+                                isResolved
+                            }}
+                            pageInfo {{
+                                hasNextPage
+                            }}
+                        }}
+                        reviews(first: 100) {{
+                            nodes {{
+                                state
+                                submittedAt
+                                author {{
+                                    login
+                                    avatarUrl
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            """)
+        
+        query = "query { " + " ".join(query_parts) + " }"
+        
+        headers = {
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'PR-Tracker/1.0'
+        }
+        
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+        
+        try:
+            # Make GraphQL request
+            options = to_js({
+                "method": "POST",
+                "headers": headers,
+                "body": json.dumps({"query": query})
+            }, dict_converter=Object.fromEntries)
+            
+            response = await fetch(graphql_url, options)
+            
+            # Log GraphQL API call
+            rate_limit = response.headers.get('x-ratelimit-limit')
+            rate_remaining = response.headers.get('x-ratelimit-remaining')
+            rate_reset = response.headers.get('x-ratelimit-reset')
+            if rate_limit and rate_remaining:
+                set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+                
+            print(f"GitHub GraphQL Batch API: Fetched {len(batch)} PRs | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
+            
+            if response.status != 200:
+                print(f"Warning: GraphQL Batch API returned status {response.status}")
+                # Mark all PRs in this batch as failed
+                for owner, repo, pr_number in batch:
+                    all_results[(owner, repo, pr_number)] = None
+                continue
+            
+            result = (await response.json()).to_py()
+            
+            # Check for GraphQL errors
+            if 'errors' in result:
+                print(f"GraphQL Batch errors: {result['errors']}")
+                # Mark all PRs in this batch as failed
+                for owner, repo, pr_number in batch:
+                    all_results[(owner, repo, pr_number)] = None
+                continue
+            
+            # Extract PR data from response
+            data = result.get('data', {})
+            for i, (owner, repo, pr_number) in enumerate(batch):
+                alias = f"pr{i}"
+                repo_data = data.get(alias, {})
+                pr_data = repo_data.get('pullRequest') if repo_data else None
+                
+                if not pr_data:
+                    print(f"Warning: No PR data in GraphQL response for {owner}/{repo}#{pr_number}")
+                    all_results[(owner, repo, pr_number)] = None
+                    continue
+                
+                # Transform GraphQL response to match REST API format used by fetch_pr_data
+                # Note: Some fields (checks_passed, checks_failed, checks_skipped, behind_by) 
+                # are not available in this batch GraphQL query to keep it simple and fast.
+                # These fields are set to 0 and marked with _incomplete_data flag.
+                # For critical updates where these fields matter, use individual fetch_pr_data() instead.
+                author = pr_data.get('author', {})
+                base_repo = pr_data.get('baseRepository', {})
+                
+                # Count unresolved conversations
+                review_threads = pr_data.get('reviewThreads', {}).get('nodes', [])
+                open_conversations_count = sum(1 for thread in review_threads if not thread.get('isResolved', False))
+                
+                # Note: If there are more than 100 review threads, this count will be incomplete
+                # The pageInfo would indicate hasNextPage=true in that case
+                page_info = pr_data.get('reviewThreads', {}).get('pageInfo', {})
+                if page_info.get('hasNextPage'):
+                    print(f"Warning: PR {owner}/{repo}#{pr_number} has >100 review threads, count may be incomplete")
+                
+                # Process reviews to get latest state per reviewer
+                from utils import calculate_review_status
+                reviews_data = pr_data.get('reviews', {}).get('nodes', [])
+                review_status = calculate_review_status(reviews_data)
+                
+                # Build per-reviewer data
+                latest_reviews = {}
+                if reviews_data:
+                    valid_reviews = [r for r in reviews_data if r.get('submittedAt') and r.get('author')]
+                    sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submittedAt', ''))
+                    for review in sorted_reviews:
+                        author_data = review['author']
+                        latest_reviews[author_data['login']] = {
+                            'login': author_data['login'],
+                            'avatar_url': author_data.get('avatarUrl', ''),
+                            'state': review['state']
+                        }
+                reviewers_list = list(latest_reviews.values())
+                
+                # Build the pr_data dict matching REST API format
+                transformed_data = {
+                    'title': pr_data.get('title', ''),
+                    'state': pr_data.get('state', '').lower(),
+                    'is_merged': 1 if pr_data.get('merged', False) else 0,
+                    'mergeable_state': pr_data.get('mergeStateStatus', 'unknown'),
+                    'files_changed': pr_data.get('changedFiles', 0),
+                    'author_login': author.get('login', ''),
+                    'author_avatar': author.get('avatarUrl', ''),
+                    'repo_owner_avatar': base_repo.get('owner', {}).get('avatarUrl', ''),
+                    'checks_passed': 0,  # Not available in batch query
+                    'checks_failed': 0,  # Not available in batch query
+                    'checks_skipped': 0,  # Not available in batch query
+                    'commits_count': pr_data.get('commits', {}).get('totalCount', 0),
+                    'behind_by': 0,  # Not available in batch query
+                    'review_status': review_status,
+                    'last_updated_at': pr_data.get('updatedAt', ''),
+                    'is_draft': 1 if pr_data.get('isDraft', False) else 0,
+                    'open_conversations_count': open_conversations_count,
+                    'reviewers_json': json.dumps(reviewers_list),
+                    'etag': None,  # GraphQL doesn't provide ETags
+                    '_batch_fetch': True,  # Mark as batch-fetched (incomplete data)
+                    '_incomplete_fields': ['checks_passed', 'checks_failed', 'checks_skipped', 'behind_by']
+                }
+                
+                all_results[(owner, repo, pr_number)] = transformed_data
+                
+        except Exception as e:
+            print(f"Error in GraphQL batch fetch: {str(e)}")
+            # Mark all PRs in this batch as failed
+            for owner, repo, pr_number in batch:
+                all_results[(owner, repo, pr_number)] = None
+    
+    return all_results
+
+
+async def fetch_paginated_data(url, headers, max_items=None, return_metadata=False):
     """
     Fetch all pages of data from a GitHub API endpoint following Link headers
     
     Args:
         url: Initial URL to fetch
         headers: Headers object to use for requests
+        max_items: Optional maximum number of items to fetch (default: unlimited).
+                  Must be None or a positive integer.
+        return_metadata: If True, returns dict with items, truncated, and total_fetched.
+                        If False (default), returns just the list of items for backward compatibility.
     
     Returns:
-        List of all items across all pages
+        If return_metadata=False: List of all items fetched
+        If return_metadata=True: Dictionary with:
+            - items: List of all items fetched
+            - truncated: Boolean indicating if results were truncated due to max_items limit
+            - total_fetched: Total number of items fetched
     """
+    # Validate max_items parameter
+    if max_items is not None and (not isinstance(max_items, int) or max_items <= 0):
+        raise ValueError(f"max_items must be None or a positive integer, got: {max_items}")
+    
     all_data = []
     current_url = url
     fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
+    truncated = False
     
     while current_url:
         response = await fetch(current_url, fetch_options)
@@ -325,24 +610,54 @@ async def fetch_paginated_data(url, headers):
             )
         
         page_data = (await response.json()).to_py()
-        all_data.extend(page_data)
         
-        # Check for Link header to get next page
+        # Break early if we receive an empty page (end of results)
+        if not page_data:
+            break
+        
+        # Check for Link header to get next page (needed for truncation logic)
         link_header = response.headers.get('link')
-        current_url = None
-        
+        has_next_page = False
         if link_header:
-            # Parse Link header: <url>; rel="next", <url>; rel="last"
             links = link_header.split(',')
             for link in links:
                 if 'rel="next"' in link:
-                    # Extract URL from <url>
+                    has_next_page = True
+                    break
+        
+        # Check if adding this page would exceed max_items
+        if max_items is not None:
+            items_to_add = min(len(page_data), max_items - len(all_data))
+            all_data.extend(page_data[:items_to_add])
+            
+            if len(all_data) >= max_items:
+                # Only mark as truncated if there's actually more data available
+                if has_next_page or items_to_add < len(page_data):
+                    truncated = True
+                print(f"Pagination limit reached: {len(all_data)} items (max: {max_items})")
+                break
+        else:
+            all_data.extend(page_data)
+        
+        # Determine URL for next page, if any
+        current_url = None
+        if has_next_page:
+            # Extract URL from <url>
+            for link in links:
+                if 'rel="next"' in link:
                     url_match = link.split(';')[0].strip()
                     if url_match.startswith('<') and url_match.endswith('>'):
                         current_url = url_match[1:-1]
                     break
     
-    return all_data
+    if return_metadata:
+        return {
+            'items': all_data,
+            'truncated': truncated,
+            'total_fetched': len(all_data)
+        }
+    else:
+        return all_data
 
 
 async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):

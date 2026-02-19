@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>How It Works — BLT-Leaf</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Initialize theme early to prevent flash -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl0HPNietrzFChCCs44/bfI3e1qqNk2amX+JJFyJCkl/lG3WHkLolLRnOdcBJJVPaNhQ36oPAPNl+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .confidence-high {
+            color: #10b981;
+        }
+
+        .confidence-medium {
+            color: #f59e0b;
+        }
+
+        .confidence-low {
+            color: #ef4444;
+        }
+
+        .badge-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .dark .badge-high {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        .dark .badge-medium {
+            background: #78350f;
+            color: #fcd34d;
+        }
+
+        .dark .badge-low {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+    </style>
+</head>
+
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+        <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img width="26" src="./static/logo.png" alt="OWASP BLT-Leaf" onerror="this.style.display='none'" />
+                    <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
+                </a>
+            </div>
+            <nav class="flex items-center gap-4 text-sm">
+                <a href="/"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
+                <a href="/how-it-works.html" class="text-red-600 font-semibold dark:text-red-400">How It Works</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 mx-auto max-w-5xl w-full px-4 py-8 sm:px-6 lg:px-8">
+
+        <!-- Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">How BLT-Leaf Works</h1>
+            <p class="text-slate-600 dark:text-slate-400">Understanding the scoring system, data sources, and known
+                limitations</p>
+        </div>
+
+        <!-- Overview -->
+        <section id="overview" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Overview</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf is an automated PR readiness checker that analyzes GitHub pull requests for operational
+                    readiness by examining:
+                </p>
+                <ul class="space-y-2 text-slate-700 dark:text-slate-300">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <span><strong>CI Status:</strong> Whether automated tests and checks are passing</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <span><strong>Review Health:</strong> Number of approvals, requested changes, and review
+                            freshness</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <span><strong>Response Rate:</strong> How actively the author responds to feedback</span>
+                    </li>
+                </ul>
+                <div
+                    class="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p class="text-sm text-blue-900 dark:text-blue-200">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <strong>Note:</strong> BLT-Leaf focuses on <em>operational readiness</em>, not code quality or
+                        security vulnerabilities. Use tools like SonarQube or Snyk for those aspects.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- What BLT-Leaf Does NOT Do -->
+        <section id="boundaries" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-times-circle text-red-600 dark:text-red-400 mr-2"></i>What BLT-Leaf Does NOT Analyze
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf focuses exclusively on <strong>operational readiness</strong> (CI status, review health,
+                    response rates). It does <strong>not</strong> currently evaluate:
+                </p>
+                <ul class="space-y-2 text-slate-700 dark:text-slate-300 mb-4">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Code correctness or logic bugs</strong> — No static analysis or bug
+                            detection</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Performance regressions</strong> — No benchmarking or profiling</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Security vulnerabilities</strong> — Use tools like Snyk or Dependabot</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Code style or maintainability</strong> — Use linters like ESLint or Pylint</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-ban text-red-600 dark:text-red-400 mt-1"></i>
+                        <span><strong>Test coverage quality</strong> — Use coverage tools like Codecov</span>
+                    </li>
+                </ul>
+                <div class="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p class="text-sm text-red-900 dark:text-red-200">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <strong>Important:</strong> A PR with a high readiness score can still contain functional bugs,
+                        security issues, or poor code quality. <strong>Always perform manual code review.</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Calculator -->
+        <section id="calculator" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Interactive Score Calculator</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Adjust the sliders below to see how different factors affect the overall readiness score:
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Input Controls -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                CI Checks Passed: <span id="ciPassedValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">5</span>
+                            </label>
+                            <input type="range" id="ciPassed" min="0" max="10" value="5"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                CI Checks Failed: <span id="ciFailedValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">0</span>
+                            </label>
+                            <input type="range" id="ciFailed" min="0" max="10" value="0"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Approvals: <span id="approvalsValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">2</span>
+                            </label>
+                            <input type="range" id="approvals" min="0" max="5" value="2"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Changes Requested: <span id="changesRequestedValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">0</span>
+                            </label>
+                            <input type="range" id="changesRequested" min="0" max="5" value="0"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Open Conversations: <span id="conversationsValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">0</span>
+                            </label>
+                            <input type="range" id="conversations" min="0" max="10" value="0"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>Unresolved review threads (-3 points each)
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Response Rate: <span id="responseRateValue"
+                                    class="text-red-600 dark:text-red-400 font-semibold">80%</span>
+                            </label>
+                            <input type="range" id="responseRate" min="0" max="100" value="80"
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Score Display -->
+                    <div
+                        class="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="text-center mb-6">
+                            <div class="text-5xl font-bold mb-2" id="overallScore">94%</div>
+                            <div class="text-lg font-semibold" id="overallStatus">✅ Merge Ready</div>
+                        </div>
+
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">CI Score:</span>
+                                <span id="ciScoreDisplay" class="font-semibold">100% <span
+                                        class="badge-high px-2 py-0.5 rounded text-xs ml-1">High</span></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Review Score:</span>
+                                <span id="reviewScoreDisplay" class="font-semibold">100% <span
+                                        class="badge-high px-2 py-0.5 rounded text-xs ml-1">High</span></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Response Score:</span>
+                                <span id="responseScoreDisplay" class="font-semibold">80% <span
+                                        class="badge-medium px-2 py-0.5 rounded text-xs ml-1">Medium</span></span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                            Formula: (CI × 0.4) + (Review × 0.4) + (Response × 0.2) - (3 × Conversations)
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p class="text-sm text-yellow-900 dark:text-yellow-200">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <strong>Disclaimer:</strong> This is a simplified calculator. Actual scores may include
+                        additional factors like merge conflicts, draft status, and stale reviews. The conversations
+                        deduction (-3 points each) is applied after the base score calculation.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Edge Cases & Limitations -->
+        <section id="edge-cases" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Known Edge Cases & Limitations</h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-6">
+                BLT-Leaf is not perfect. Here are scenarios where the analysis may be overconfident or inaccurate:
+            </p>
+
+            <!-- CI Checks -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-3">
+                    <i class="fas fa-cog text-blue-600 mr-2"></i>CI Checks
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <thead class="bg-slate-100 dark:bg-slate-800">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Scenario</th>
+                                <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
+                                <th class="px-4 py-3 text-left font-semibold">Reality</th>
+                                <th class="px-4 py-3 text-left font-semibold">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                            <tr>
+                                <td class="px-4 py-3">Fork PR, 0 checks run</td>
+                                <td class="px-4 py-3">❌ "CI checks failing"</td>
+                                <td class="px-4 py-3">Checks queued, awaiting maintainer approval</td>
+                                <td class="px-4 py-3"><span class="badge-low px-2 py-1 rounded text-xs">🔴 Low</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">3/5 checks passed, 2 pending</td>
+                                <td class="px-4 py-3">⚠️ "CI checks failing"</td>
+                                <td class="px-4 py-3">Still running, not failed</td>
+                                <td class="px-4 py-3"><span class="badge-medium px-2 py-1 rounded text-xs">🟡
+                                        Medium</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">All checks passed</td>
+                                <td class="px-4 py-3">✅ "CI checks passed"</td>
+                                <td class="px-4 py-3">Accurate</td>
+                                <td class="px-4 py-3"><span class="badge-high px-2 py-1 rounded text-xs">🟢 High</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    <strong>Fix in progress:</strong> Distinguish between queued, running, and failed checks using
+                    GitHub check-runs API.
+                </p>
+            </div>
+
+            <!-- Review Health -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-3">
+                    <i class="fas fa-users text-purple-600 mr-2"></i>Review Health
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <thead class="bg-slate-100 dark:bg-slate-800">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Scenario</th>
+                                <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
+                                <th class="px-4 py-3 text-left font-semibold">Reality</th>
+                                <th class="px-4 py-3 text-left font-semibold">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                            <tr>
+                                <td class="px-4 py-3">Bot requested changes</td>
+                                <td class="px-4 py-3">⚠️ "Changes requested"</td>
+                                <td class="px-4 py-3">Bot auto-comment, not blocking</td>
+                                <td class="px-4 py-3"><span class="badge-medium px-2 py-1 rounded text-xs">🟡
+                                        Medium</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">1 approval, draft PR</td>
+                                <td class="px-4 py-3">❌ "Draft mode"</td>
+                                <td class="px-4 py-3">Intentional WIP</td>
+                                <td class="px-4 py-3"><span class="badge-high px-2 py-1 rounded text-xs">🟢 High</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Stale review after typo fix</td>
+                                <td class="px-4 py-3">⚠️ "Stale review"</td>
+                                <td class="px-4 py-3">Approval still valid</td>
+                                <td class="px-4 py-3"><span class="badge-medium px-2 py-1 rounded text-xs">🟡
+                                        Medium</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    <strong>Fix in progress:</strong> Filter bot reviews and detect PR intent from description.
+                </p>
+            </div>
+
+            <!-- Response Rate -->
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-3">
+                    <i class="fas fa-comments text-green-600 mr-2"></i>Response Rate
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <thead class="bg-slate-100 dark:bg-slate-800">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Scenario</th>
+                                <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
+                                <th class="px-4 py-3 text-left font-semibold">Reality</th>
+                                <th class="px-4 py-3 text-left font-semibold">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                            <tr>
+                                <td class="px-4 py-3">10 "LGTM" comments, 0 responses</td>
+                                <td class="px-4 py-3">❌ "Low response rate (0%)"</td>
+                                <td class="px-4 py-3">No response needed</td>
+                                <td class="px-4 py-3"><span class="badge-low px-2 py-1 rounded text-xs">🔴 Low</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">5 questions, 3 answered</td>
+                                <td class="px-4 py-3">⚠️ "Response rate: 60%"</td>
+                                <td class="px-4 py-3">Accurate</td>
+                                <td class="px-4 py-3"><span class="badge-high px-2 py-1 rounded text-xs">🟢 High</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    <strong>Fix in progress:</strong> Use GraphQL review threads to detect resolved vs unresolved
+                    comments.
+                </p>
+            </div>
+        </section>
+
+        <!-- When to Ignore the Score -->
+        <section id="when-to-ignore" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-user-check text-purple-600 dark:text-purple-400 mr-2"></i>When to Ignore BLT-Leaf's
+                Score
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    While BLT-Leaf provides useful operational insights, you should rely more on <strong>human
+                        judgment</strong> in these cases:
+                </p>
+                <ul class="space-y-3 text-slate-700 dark:text-slate-300">
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-code text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Major refactors or architectural changes</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Large-scale changes may need deeper
+                                review regardless of CI status</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-robot text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Large auto-generated files are present</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Package locks, generated code, or
+                                migration files may skew metrics</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-hourglass-half text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>CI is waiting for manual approval</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Fork PRs or security-sensitive
+                                workflows may need maintainer approval to run</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-cog text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Project has custom review rules</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Some teams require specific approvers
+                                or domain expert reviews</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-fire text-purple-600 mt-1"></i>
+                        <div>
+                            <strong>Emergency hotfixes are needed</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Critical production fixes may bypass
+                                normal review processes</p>
+                        </div>
+                    </li>
+                </ul>
+                <div
+                    class="mt-4 p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <p class="text-sm text-purple-900 dark:text-purple-200">
+                        <i class="fas fa-balance-scale mr-1"></i>
+                        <strong>Bottom Line:</strong> In these cases, treat the score as <em>informational only</em>.
+                        Use your expertise and project context to make the final merge decision.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Confidence Levels -->
+        <section id="confidence" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Understanding Confidence Levels</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div
+                    class="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                    <div class="text-2xl mb-2">🟢</div>
+                    <h3 class="text-lg font-semibold text-green-900 dark:text-green-200 mb-2">High Confidence</h3>
+                    <p class="text-sm text-green-800 dark:text-green-300 mb-3">Trust the analysis — all required data is
+                        available and unambiguous.</p>
+                    <p class="text-xs text-green-700 dark:text-green-400"><strong>Example:</strong> "5/5 CI checks
+                        passed"</p>
+                </div>
+
+                <div
+                    class="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+                    <div class="text-2xl mb-2">🟡</div>
+                    <h3 class="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">Medium Confidence</h3>
+                    <p class="text-sm text-yellow-800 dark:text-yellow-300 mb-3">Review manually — some data is missing
+                        or ambiguous.</p>
+                    <p class="text-xs text-yellow-700 dark:text-yellow-400"><strong>Example:</strong> "Bot requested
+                        changes"</p>
+                </div>
+
+                <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
+                    <div class="text-2xl mb-2">🔴</div>
+                    <h3 class="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">Low Confidence</h3>
+                    <p class="text-sm text-red-800 dark:text-red-300 mb-3">Don't trust blindly — critical data is
+                        missing or this is a known false positive.</p>
+                    <p class="text-xs text-red-700 dark:text-red-400"><strong>Example:</strong> "0 checks run (fork PR)"
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How to Improve Your Score -->
+        <section id="improve-score" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-arrow-up text-green-600 dark:text-green-400 mr-2"></i>How to Improve Your Readiness
+                Score
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    If your PR has a low readiness score, here are specific actions you can take to improve it:
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-100 dark:bg-slate-900">
+                            <tr>
+                                <th
+                                    class="px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
+                                    Issue</th>
+                                <th
+                                    class="px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
+                                    How to Fix</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700 dark:text-slate-300">
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-times-circle text-red-600 mr-2"></i><strong>CI
+                                        checks failing</strong></td>
+                                <td class="px-4 py-3">Re-run workflows, fix failing tests, resolve linting errors</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-user-slash text-yellow-600 mr-2"></i><strong>No
+                                        approvals</strong></td>
+                                <td class="px-4 py-3">Request reviewers, ping team members, address feedback</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i
+                                        class="fas fa-comment-slash text-orange-600 mr-2"></i><strong>Low response
+                                        rate</strong></td>
+                                <td class="px-4 py-3">Reply to unresolved comments, push commits addressing feedback
+                                </td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i class="fas fa-file-alt text-slate-600 mr-2"></i><strong>Draft
+                                        mode</strong></td>
+                                <td class="px-4 py-3">Mark PR as "Ready for review" when complete</td>
+                            </tr>
+                            <tr class="border-b border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-3"><i
+                                        class="fas fa-code-branch text-blue-600 mr-2"></i><strong>Behind base
+                                        branch</strong></td>
+                                <td class="px-4 py-3">Rebase or merge latest changes from base branch</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><i class="fas fa-comments text-purple-600 mr-2"></i><strong>Open
+                                        conversations</strong></td>
+                                <td class="px-4 py-3">Resolve review threads by addressing comments or marking as
+                                    resolved</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div
+                    class="mt-4 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p class="text-sm text-green-900 dark:text-green-200">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Pro Tip:</strong> Use the "Update" button on each PR to refresh data and see your
+                        improvements reflected in real-time.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rate Limits -->
+        <section id="rate-limits" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Understanding Rate Limits</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    BLT-Leaf uses the GitHub API to analyze PRs. GitHub enforces rate limits to prevent abuse:
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <!-- Without Token -->
+                    <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                            <h3 class="font-semibold text-red-900 dark:text-red-200">Without GitHub Token</h3>
+                        </div>
+                        <ul class="space-y-2 text-sm text-red-800 dark:text-red-300">
+                            <li><strong>Limit:</strong> 60 requests/hour (shared across all users)</li>
+                            <li><strong>PR Analyses:</strong> ~12 per hour</li>
+                            <li><strong>Experience:</strong> May see "Rate limit exceeded" errors</li>
+                            <li><strong>Wait Time:</strong> Up to 60 minutes when limit hit</li>
+                        </ul>
+                    </div>
+
+                    <!-- With Token -->
+                    <div
+                        class="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                            <h3 class="font-semibold text-green-900 dark:text-green-200">With GitHub Token</h3>
+                        </div>
+                        <ul class="space-y-2 text-sm text-green-800 dark:text-green-300">
+                            <li><strong>Limit:</strong> 5,000 requests/hour per user</li>
+                            <li><strong>PR Analyses:</strong> ~1,000 per hour</li>
+                            <li><strong>Experience:</strong> Smooth, no interruptions</li>
+                            <li><strong>Wait Time:</strong> Rare (only if you analyze 1000+ PRs/hour)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p class="text-sm text-blue-900 dark:text-blue-200">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Recommendation:</strong> If you're analyzing multiple PRs or using BLT-Leaf frequently,
+                        add a GitHub Personal Access Token to avoid rate limit errors. Each user with a token gets their
+                        own 5,000 req/hour quota.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Freshness & Staleness -->
+        <section id="data-freshness" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-clock text-blue-600 dark:text-blue-400 mr-2"></i>Data Freshness & Staleness
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf uses <strong>cached results for up to 10 minutes</strong> to reduce GitHub API usage and
+                    improve performance.
+                </p>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2">During this period, the following
+                        may not appear immediately:</h3>
+                    <ul class="space-y-2 text-slate-700 dark:text-slate-300 ml-6">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New CI runs or check results</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New reviews or approvals</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>New comments or resolved conversations</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs text-slate-400 mt-1.5"></i>
+                            <span>Changes to PR status (merged, closed, reopened)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p class="text-sm text-blue-900 dark:text-blue-200">
+                        <i class="fas fa-sync mr-1"></i>
+                        <strong>Force Refresh:</strong> Use the <strong>"Update"</strong> button on each PR row to force
+                        re-analysis and bypass the cache. This fetches the latest data from GitHub immediately.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Sources -->
+        <section id="data-sources" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">What Data Does BLT-Leaf Access?</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf is transparent about what data it accesses. Here are all the GitHub API endpoints used:
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <thead class="bg-slate-100 dark:bg-slate-800">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Data Point</th>
+                                <th class="px-4 py-3 text-left font-semibold">GitHub API Endpoint</th>
+                                <th class="px-4 py-3 text-left font-semibold">What We Extract</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                            <tr>
+                                <td class="px-4 py-3 font-medium">PR Metadata</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}</code>
+                                </td>
+                                <td class="px-4 py-3">Title, state, mergeable_state, draft status</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">CI Checks</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/commits/{sha}/check-runs</code>
+                                </td>
+                                <td class="px-4 py-3">Status, conclusion, check names</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">Reviews</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/reviews</code>
+                                </td>
+                                <td class="px-4 py-3">Approval state, reviewer, submitted date</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">Review Comments</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/comments</code>
+                                </td>
+                                <td class="px-4 py-3">Comment body, author, line numbers</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">Issue Comments</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/comments</code>
+                                </td>
+                                <td class="px-4 py-3">General discussion, feedback</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-medium">Timeline</td>
+                                <td class="px-4 py-3"><code
+                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/timeline</code>
+                                </td>
+                                <td class="px-4 py-3">Events, labels, assignments</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div
+                    class="mt-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <strong>API Usage:</strong> Each PR analysis uses approximately <strong>5 API calls</strong>.
+                        BLT-Leaf caches results for 10 minutes to minimize redundant requests.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy & Data Handling -->
+        <section id="privacy" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-shield-alt text-green-600 dark:text-green-400 mr-2"></i>Privacy & Data Usage
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    BLT-Leaf only accesses <strong>public GitHub PR metadata</strong> and review information through the
+                    official GitHub API.
+                </p>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+                        <i class="fas fa-times-circle text-red-600"></i>
+                        We do NOT:
+                    </h3>
+                    <ul class="space-y-2 text-slate-700 dark:text-slate-300 ml-6">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Store source code contents or file diffs</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Share data with third parties or external services</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Analyze private repositories without explicit authorization</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>Modify or write to your repositories (read-only access)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div
+                    class="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p class="text-sm text-green-900 dark:text-green-200">
+                        <i class="fas fa-lock mr-1"></i>
+                        <strong>Security:</strong> All analysis is performed using read-only GitHub API access. BLT-Leaf
+                        cannot make changes to your code, issues, or pull requests.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting Guide -->
+        <section id="troubleshooting" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Troubleshooting Common Issues</h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Having trouble understanding your PR score? Here are solutions to common issues:
+                </p>
+
+                <div class="space-y-4">
+                    <!-- Issue 1 -->
+                    <div class="border-l-4 border-red-500 pl-4 py-2">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">
+                            <i class="fas fa-question-circle text-red-500 mr-2"></i>
+                            Why is my score 0% when everything looks fine?
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <strong>Likely cause:</strong> CI checks are queued (common with fork PRs).
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong>Solution:</strong> Look for the 🔴 Low confidence badge next to the CI score. If
+                            present, check GitHub to see if workflows need maintainer approval. This is a known
+                            limitation — BLT-Leaf treats "no checks run" as failure.
+                        </p>
+                    </div>
+
+                    <!-- Issue 2 -->
+                    <div class="border-l-4 border-yellow-500 pl-4 py-2">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">
+                            <i class="fas fa-question-circle text-yellow-500 mr-2"></i>
+                            Why does it say "changes requested" when it's just a bot?
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <strong>Likely cause:</strong> Bot filtering is not yet implemented.
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong>Solution:</strong> Manually verify if the "changes requested" is from a bot (e.g.,
+                            linter, formatter). If so, you can safely ignore it. Bot filtering is in progress.
+                        </p>
+                    </div>
+
+                    <!-- Issue 3 -->
+                    <div class="border-l-4 border-blue-500 pl-4 py-2">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">
+                            <i class="fas fa-question-circle text-blue-500 mr-2"></i>
+                            My response rate is 0% but I don't need to respond
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <strong>Likely cause:</strong> Comments are informational (e.g., "LGTM", "+1").
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong>Solution:</strong> If all comments are approvals or acknowledgments, no response is
+                            needed. This is a known limitation — BLT-Leaf counts all comments equally. Look for the 🔴
+                            Low confidence badge.
+                        </p>
+                    </div>
+
+                    <!-- Issue 4 -->
+                    <div class="border-l-4 border-purple-500 pl-4 py-2">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">
+                            <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                            I'm getting "Rate limit exceeded" errors
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <strong>Likely cause:</strong> You've analyzed more than 12 PRs in the past hour without a
+                            GitHub token.
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong>Solution:</strong> Wait for the rate limit to reset (check the timer in the header),
+                            or add a GitHub Personal Access Token to get 5,000 requests/hour instead of 60.
+                        </p>
+                    </div>
+
+                    <!-- Issue 5 -->
+                    <div class="border-l-4 border-green-500 pl-4 py-2">
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">
+                            <i class="fas fa-question-circle text-green-500 mr-2"></i>
+                            The score changed but I didn't update the PR
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <strong>Likely cause:</strong> Someone added a review, CI checks completed, or the cache
+                            expired.
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            <strong>Solution:</strong> This is normal! BLT-Leaf refreshes data every 10 minutes. The
+                            score reflects the current state of the PR on GitHub.
+                        </p>
+                    </div>
+                </div>
+
+                <div
+                    class="mt-6 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Pro Tip:</strong> Always check the confidence badges (🟢 High, 🟡 Medium, 🔴 Low) next
+                        to each score component. Low confidence means the data is incomplete or ambiguous — verify
+                        manually on GitHub.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scoring Model Version -->
+        <section id="versioning" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-code-branch text-slate-600 dark:text-slate-400 mr-2"></i>Scoring Model Information
+            </h2>
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Current Scoring Model</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">v1.0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Last Updated</p>
+                        <p class="text-2xl font-bold text-slate-900 dark:text-white">February 2026</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Major changes to the scoring algorithm are documented in the <a
+                            href="https://github.com/OWASP-BLT/BLT-Leaf/releases" target="_blank"
+                            class="text-blue-600 dark:text-blue-400 hover:underline">release notes</a>. Minor
+                        adjustments may occur without version changes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+                <details
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <summary class="font-semibold cursor-pointer text-slate-900 dark:text-white">
+                        Why does my PR show "CI failing" when checks haven't started?
+                    </summary>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        This is a known limitation. BLT-Leaf currently treats "no checks run" as failure. This commonly
+                        happens with fork PRs where workflows need maintainer approval. We're working on distinguishing
+                        queued vs failed checks.
+                    </p>
+                </details>
+
+                <details
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <summary class="font-semibold cursor-pointer text-slate-900 dark:text-white">
+                        Can I customize the scoring weights?
+                    </summary>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        Not yet, but it's on the roadmap. Currently, CI and Review each account for 40% of the score,
+                        while Response Rate accounts for 20%.
+                    </p>
+                </details>
+
+                <details
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <summary class="font-semibold cursor-pointer text-slate-900 dark:text-white">
+                        Does BLT-Leaf check for security vulnerabilities?
+                    </summary>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        No. BLT-Leaf only checks operational readiness (CI, reviews, response rate). Use tools like
+                        Snyk, Dependabot, or SonarQube for security analysis.
+                    </p>
+                </details>
+
+                <details
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <summary class="font-semibold cursor-pointer text-slate-900 dark:text-white">
+                        How often is data refreshed?
+                    </summary>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        Data is cached for 10 minutes. You can manually refresh by clicking the "Refresh" button on the
+                        dashboard.
+                    </p>
+                </details>
+
+                <details
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <summary class="font-semibold cursor-pointer text-slate-900 dark:text-white">
+                        What GitHub API endpoints does BLT-Leaf use?
+                    </summary>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        BLT-Leaf uses: <code>/pulls/{number}</code>, <code>/commits/{sha}/check-runs</code>,
+                        <code>/pulls/{number}/reviews</code>, <code>/pulls/{number}/comments</code>, and
+                        <code>/issues/{number}/timeline</code>. Each PR analysis uses approximately 5 API calls.
+                    </p>
+                </details>
+            </div>
+        </section>
+
+        <!-- Contributor Path -->
+        <section id="contribute" class="mb-12">
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
+                <i class="fas fa-heart text-red-600 dark:text-red-400 mr-2"></i>Want to Improve BLT-Leaf?
+            </h2>
+            <div
+                class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-lg border border-red-200 dark:border-red-800 p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    If you'd like to help improve scoring accuracy, fix known limitations, or add new features:
+                </p>
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-bug text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Check open issues</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Browse known bugs and feature requests
+                                on GitHub</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-code text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Review the analysis engine</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Understand how scoring works under the
+                                hood</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-lightbulb text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Propose new heuristics</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Suggest better ways to detect PR
+                                readiness</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-hands-helping text-red-600 mt-1"></i>
+                        <div>
+                            <strong class="text-slate-900 dark:text-white">Contribute code</strong>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Submit PRs to improve BLT-Leaf itself
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                        <i class="fab fa-github"></i>
+                        View Open Issues
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back to Dashboard -->
+        <div class="text-center">
+            <a href="/"
+                class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <i class="fas fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
+                <span>OWASP BLT-Leaf — PR Readiness Checker</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+                <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+                    class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">OWASP BLT</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
+                    class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">GitHub</a>
+                <span>AGPL-3.0</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Theme Toggle JavaScript -->
+    <script>
+        // Initialize theme on page load
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Attach event listener when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize theme icon (dark class already set in head)
+            initTheme();
+
+            const themeToggleBtn = document.getElementById('themeToggle');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', toggleTheme);
+            }
+        });
+    </script>
+
+    <!-- JavaScript for Interactive Calculator -->
+    <script src="how-it-works.js"></script>
+
+</body>
+
+</html>
