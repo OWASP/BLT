@@ -133,11 +133,18 @@ function testPythonHandlers() {
       'Pagination logic found'
     );
     
-    // Test for "ready" column sorting support
+    // Test for dynamic column validation (no whitelist)
     testResult(
-      '"ready" column in allowed_columns',
-      /'ready'/.test(handlersContent),
-      '"ready" column is now supported for sorting'
+      'Dynamic column validation (no whitelist)',
+      /def\s+is_valid_column_name/.test(handlersContent) && !/allowed_columns\s*=\s*\{/.test(handlersContent),
+      'Column validation function exists and whitelist removed'
+    );
+    
+    // Test for issues_count SQL expression
+    testResult(
+      'issues_count computed field support',
+      /'issues_count':\s*'\(.*json_array_length\(blockers\).*json_array_length\(warnings\).*\)'/.test(handlersContent),
+      'issues_count SQL expression found in column mapping'
     );
     
     // Test for "ready" column mapping
