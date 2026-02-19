@@ -5,68 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="BACON SDK API Reference - Complete documentation for developers">
     <title>API Reference - BACON</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body>
-    <header class="hero" style="min-height: 40vh;">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">🥓 BACON</a></div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="getting-started.html">Getting Started</a></li>
-                    <li><a href="api-reference.html">API Reference</a></li>
-                    <li><a href="bitcoin-integration.html">Bitcoin</a></li>
-                    <li><a href="solana-integration.html">Solana</a></li>
-                    <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank">GitHub</a></li>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🥓</span>
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-gray-700 hover:text-blt-red transition-colors">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-blt-red">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
-        <div class="hero-content">
-            <h1>📚 API Reference</h1>
-            <p class="tagline">Complete SDK Documentation for BACON Integration</p>
-        </div>
     </header>
 
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">📚 API Reference</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Complete SDK Documentation for BACON Integration</p>
+        </div>
+    </section>
+
     <main>
-        <section class="section">
-            <div class="container">
-                <h2>BaconSDK Class</h2>
+        <!-- BaconSDK Class -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">BaconSDK Class</h2>
                 
-                <div class="feature-detail">
-                    <h3>Constructor</h3>
-                    <div class="code-block">
-<pre>new BaconSDK(config: BaconConfig)</pre>
-                    </div>
-                    <p>Creates a new instance of the BACON SDK.</p>
-                    
-                    <h4>Parameters:</h4>
-                    <ul>
-                        <li><code>config</code> (BaconConfig): Configuration object</li>
-                    </ul>
-                    
-                    <h4>Example:</h4>
-                    <div class="code-block">
-<pre>const bacon = new BaconSDK({
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">Constructor</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white mb-4">
+new BaconSDK(config: BaconConfig)
+                        </div>
+                        <p class="text-gray-700 mb-4">Creates a new instance of the BACON SDK.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="list-disc list-inside mb-4 text-gray-700 space-y-1">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">config</code> (BaconConfig): Configuration object</li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white overflow-x-auto">
+<pre class="text-white">const bacon = new BaconSDK({
   blockchain: 'bitcoin',
   network: 'mainnet',
   wallet: {
     privateKey: process.env.PRIVATE_KEY
   }
 });</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Configuration</h2>
+        <!-- Configuration -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Configuration</h2>
                 
-                <div class="feature-detail">
-                    <h3>BaconConfig Interface</h3>
-                    <div class="code-block">
-<pre>interface BaconConfig {
+                <div class="space-y-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">BaconConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white overflow-x-auto">
+<pre class="text-white">interface BaconConfig {
   blockchain: 'bitcoin' | 'solana';
   network: 'mainnet' | 'testnet' | 'devnet' | 'mainnet-beta';
   wallet?: WalletConfig;
@@ -74,25 +115,25 @@
   rpc?: RPCConfig;
   github?: GitHubConfig;
 }</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>WalletConfig Interface</h3>
-                    <div class="code-block">
-<pre>interface WalletConfig {
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">WalletConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white overflow-x-auto">
+<pre class="text-white">interface WalletConfig {
   privateKey?: string;
   publicKey?: string;
   address?: string;
   mnemonic?: string;
 }</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>RewardConfig Interface</h3>
-                    <div class="code-block">
-<pre>interface RewardConfig {
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">RewardConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white overflow-x-auto">
+<pre class="text-white">interface RewardConfig {
   issueOpened?: number;
   issueResolved?: number;
   pullRequestMerged?: number;
@@ -101,6 +142,7 @@
   releasePublished?: number;
   [key: string]: number;
 }</pre>
+                        </div>
                     </div>
                 </div>
             </div>
