@@ -20,7 +20,7 @@ We use a local SQLite database for development that mirrors production. The data
 
 ```bash
 # Apply all pending migrations to local database
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 ```
 
 The local database is stored in `.wrangler/state/v3/d1/` as a standard SQLite file.
@@ -31,7 +31,7 @@ Production uses Cloudflare's managed D1 service.
 
 ```bash
 # Apply schema changes to production
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --remote
 ```
 
 Configuration is in `wrangler.toml`:
@@ -50,16 +50,16 @@ database_id = "abc-123-xyz"     # Unique identifier
 In your handler functions:
 
 ```python
-from libs.db import get_db_safe
+from database import get_db
 
-async def handle_domains(request, env, ...):
+async def handle_prs(request, env, ...):
     # Get database connection
-    db = await get_db_safe(env)
+    db = get_db(env)
     
     # Execute query
     result = await db.prepare(
-        "SELECT * FROM domains WHERE id = ?"
-    ).bind(domain_id).first()
+        "SELECT * FROM prs WHERE id = ?"
+    ).bind(pr_id).first()
     
     # Convert result to Python
     data = result.to_py() if hasattr(result, 'to_py') else result
@@ -70,19 +70,22 @@ async def handle_domains(request, env, ...):
 **Select multiple rows:**
 ```python
 result = await db.prepare(
-    "SELECT * FROM domains LIMIT ? OFFSET ?"
+    "SELECT * FROM prs LIMIT ? OFFSET ?"
 ).bind(limit, offset).all()
 
 # Convert results to Python list
-from handlers.domains import convert_d1_results
-data = convert_d1_results(result.results)
+data = []
+if hasattr(result, 'results'):
+    for row in result.results:
+        row_dict = row.to_py() if hasattr(row, 'to_py') else dict(row)
+        data.append(row_dict)
 ```
 
 **Select single row:**
 ```python
 result = await db.prepare(
-    "SELECT * FROM domains WHERE id = ?"
-).bind(domain_id).first()
+    "SELECT * FROM prs WHERE id = ?"
+).bind(pr_id).first()
 
 # Returns None if not found, or a row object
 if result:
@@ -92,14 +95,14 @@ if result:
 **Insert data:**
 ```python
 result = await db.prepare(
-    "INSERT INTO domains (name, url) VALUES (?, ?)"
-).bind(name, url).run()
+    "INSERT INTO prs (pr_url, repo_owner, repo_name, pr_number, title) VALUES (?, ?, ?, ?, ?)"
+).bind(pr_url, owner, repo, pr_number, title).run()
 ```
 
 **Count rows:**
 ```python
 result = await db.prepare(
-    "SELECT COUNT(*) as total FROM domains"
+    "SELECT COUNT(*) as total FROM prs"
 ).first()
 
 total = result['total'] if result else 0
@@ -111,13 +114,13 @@ For debugging or manual data management:
 
 ```bash
 # Query local database
-wrangler d1 execute blt-api --local --command "SELECT * FROM domains;"
+wrangler d1 execute pr_tracker --local --command "SELECT * FROM prs;"
 
 # Query production database
-wrangler d1 execute blt-api --remote --command "SELECT * FROM domains;"
+wrangler d1 execute pr_tracker --remote --command "SELECT * FROM prs;"
 
 # Execute SQL from file
-wrangler d1 execute blt-api --local --file=queries.sql
+wrangler d1 execute pr_tracker --local --file=queries.sql
 ```
 
 ## Schema Migrations
@@ -157,7 +160,7 @@ When you need to change the database structure:
 
 ```bash
 # Create a new migration file
-wrangler d1 migrations create pr-tracker "add_user_column"
+wrangler d1 migrations create pr_tracker "add_user_column"
 ```
 
 This creates: `migrations/0004_add_user_column.sql`
@@ -193,7 +196,7 @@ UPDATE prs SET assigned_user = 'unassigned' WHERE assigned_user IS NULL;
 
 **Step 1: Test locally**
 ```bash
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 ```
 
 **Step 2: Verify it works**
@@ -204,7 +207,7 @@ wrangler dev --port 8787
 
 **Step 3: Apply to production**
 ```bash
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --remote
 ```
 
 **Step 4: Deploy code**
@@ -216,10 +219,10 @@ wrangler deploy
 
 ```bash
 # See which migrations are applied locally
-wrangler d1 migrations list pr-tracker --local
+wrangler d1 migrations list pr_tracker --local
 
 # See which migrations are applied in production
-wrangler d1 migrations list pr-tracker --remote
+wrangler d1 migrations list pr_tracker --remote
 ```
 
 ## Database Helpers
@@ -258,25 +261,29 @@ D1 returns JavaScript proxy objects that need conversion to Python:
 
 **For lists (all()):**
 ```python
-result = await db.prepare("SELECT * FROM domains").all()
-data = convert_d1_results(result.results)
-# Returns: [{'id': 1, 'name': 'example'}, ...]
+result = await db.prepare("SELECT * FROM prs").all()
+data = []
+if hasattr(result, 'results'):
+    for row in result.results:
+        row_dict = row.to_py() if hasattr(row, 'to_py') else dict(row)
+        data.append(row_dict)
+# Returns: [{'id': 1, 'pr_url': 'https://github.com/...', ...}, ...]
 ```
 
 **For single row (first()):**
 ```python
-result = await db.prepare("SELECT * FROM domains WHERE id = 1").first()
+result = await db.prepare("SELECT * FROM prs WHERE id = 1").first()
 if result:
     if hasattr(result, 'to_py'):
         data = result.to_py()
     else:
         data = result
-# Returns: {'id': 1, 'name': 'example'}
+# Returns: {'id': 1, 'pr_url': 'https://github.com/...', ...}
 ```
 
 **For counts/aggregates:**
 ```python
-result = await db.prepare("SELECT COUNT(*) as total FROM domains").first()
+result = await db.prepare("SELECT COUNT(*) as total FROM prs").first()
 if hasattr(result, 'to_py'):
     result = result.to_py()
     
@@ -498,19 +505,19 @@ if result:
 
 ```bash
 # List all tables
-wrangler d1 execute pr-tracker --local --command \
+wrangler d1 execute pr_tracker --local --command \
   "SELECT name FROM sqlite_master WHERE type='table';"
 
 # View table structure
-wrangler d1 execute pr-tracker --local --command \
+wrangler d1 execute pr_tracker --local --command \
   "PRAGMA table_info(prs);"
 
 # View sample PR data
-wrangler d1 execute pr-tracker --local --command \
+wrangler d1 execute pr_tracker --local --command \
   "SELECT id, pr_number, title, state, overall_score FROM prs LIMIT 5;"
 
 # Check migration status
-wrangler d1 migrations list pr-tracker --local
+wrangler d1 migrations list pr_tracker --local
 ```
 
 ### Reset Local Database
@@ -520,14 +527,14 @@ wrangler d1 migrations list pr-tracker --local
 rm -rf .wrangler/state/v3/d1/
 
 # Reapply all migrations
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 ```
 
 ### Check Query Performance
 
 ```bash
 # Use EXPLAIN to see query plan
-wrangler d1 execute pr-tracker --local --command \
+wrangler d1 execute pr_tracker --local --command \
   "EXPLAIN QUERY PLAN SELECT * FROM prs WHERE repo_owner = 'OWASP-BLT' AND repo_name = 'BLT';"
 ```
 
@@ -536,27 +543,27 @@ wrangler d1 execute pr-tracker --local --command \
 **Issue: "no such table: prs"**
 ```bash
 # Migrations not applied - run:
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 ```
 
 **Issue: "column doesn't exist"**
 ```bash
 # Check if all migrations are applied:
-wrangler d1 migrations list pr-tracker --local
+wrangler d1 migrations list pr_tracker --local
 
 # If missing, apply migrations:
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 ```
 
 **Issue: Different schema in local vs production**
 ```bash
 # Check both environments
-wrangler d1 migrations list pr-tracker --local
-wrangler d1 migrations list pr-tracker --remote
+wrangler d1 migrations list pr_tracker --local
+wrangler d1 migrations list pr_tracker --remote
 
 # Apply missing migrations
-wrangler d1 migrations apply pr-tracker --local
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --local
+wrangler d1 migrations apply pr_tracker --remote
 ```
 
 ## Best Practices
@@ -616,14 +623,14 @@ except Exception as e:
 **Do this:**
 ```bash
 # Create migration file
-wrangler d1 migrations create pr-tracker "add_new_column"
+wrangler d1 migrations create pr_tracker "add_new_column"
 
 # Edit migrations/0004_add_new_column.sql
 # ALTER TABLE prs ADD COLUMN new_field TEXT;
 
 # Apply migration
-wrangler d1 migrations apply pr-tracker --local
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --local
+wrangler d1 migrations apply pr_tracker --remote
 ```
 
 **Don't do this:**
@@ -639,10 +646,10 @@ async def init_schema(env):
 Always test database changes locally before applying to production:
 
 1. Create migration file
-2. Apply migration locally: `wrangler d1 migrations apply pr-tracker --local`
+2. Apply migration locally: `wrangler d1 migrations apply pr_tracker --local`
 3. Test with `wrangler dev`
 4. Verify data with command line queries
-5. Apply to remote: `wrangler d1 migrations apply pr-tracker --remote`
+5. Apply to remote: `wrangler d1 migrations apply pr_tracker --remote`
 6. Deploy code: `wrangler deploy`
 
 ### Whitelist Sort Columns
@@ -753,21 +760,21 @@ npm run db:migrations:list
 
 ```bash
 # Check which migrations are applied
-wrangler d1 migrations list pr-tracker --local
-wrangler d1 migrations list pr-tracker --remote
+wrangler d1 migrations list pr_tracker --local
+wrangler d1 migrations list pr_tracker --remote
 
 # Create new migration
-wrangler d1 migrations create pr-tracker "description"
+wrangler d1 migrations create pr_tracker "description"
 
 # Apply migrations
-wrangler d1 migrations apply pr-tracker --local
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --local
+wrangler d1 migrations apply pr_tracker --remote
 
 # Execute query for debugging
-wrangler d1 execute pr-tracker --local --command "SELECT COUNT(*) FROM prs;"
+wrangler d1 execute pr_tracker --local --command "SELECT COUNT(*) FROM prs;"
 
 # Reset local database (delete and reapply migrations)
-rm -rf .wrangler/state/v3/d1/ && wrangler d1 migrations apply pr-tracker --local
+rm -rf .wrangler/state/v3/d1/ && wrangler d1 migrations apply pr_tracker --local
 ```
 
 ## Resources
@@ -795,9 +802,9 @@ For specific implementation details not covered here, refer to the official Clou
 - All schema changes must be in migration files
 
 **Workflow:**
-1. Create migration: `wrangler d1 migrations create pr-tracker "description"`
+1. Create migration: `wrangler d1 migrations create pr_tracker "description"`
 2. Edit SQL file in `migrations/` folder
-3. Test locally: `wrangler d1 migrations apply pr-tracker --local`
+3. Test locally: `wrangler d1 migrations apply pr_tracker --local`
 4. Verify with `wrangler dev`
-5. Apply to prod: `wrangler d1 migrations apply pr-tracker --remote`
+5. Apply to prod: `wrangler d1 migrations apply pr_tracker --remote`
 6. Deploy code: `wrangler deploy`

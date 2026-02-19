@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:create": "wrangler d1 create pr-tracker",
-    "db:migrate:local": "wrangler d1 migrations apply pr-tracker --local",
-    "db:migrate:remote": "wrangler d1 migrations apply pr-tracker --remote",
-    "db:migrations:list": "wrangler d1 migrations list pr-tracker",
+    "db:create": "wrangler d1 create pr_tracker",
+    "db:migrate:local": "wrangler d1 migrations apply pr_tracker --local",
+    "db:migrate:remote": "wrangler d1 migrations apply pr_tracker --remote",
+    "db:migrations:list": "wrangler d1 migrations list pr_tracker",
     "lint": "echo 'Linting not configured yet' && exit 0",
     "format:check": "echo 'Format checking not configured yet' && exit 0",
     "test": "node test-data-display.js",
@@ -19,7 +19,7 @@
     "pull-request",
     "cloudflare",
     "workers",
-    "pr-tracker"
+    "pr_tracker"
   ],
   "author": "OWASP BLT",
   "license": "MIT",

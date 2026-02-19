@@ -113,10 +113,10 @@ cp .env.example .env
 6. Apply database migrations:
 ```bash
 # For local development
-wrangler d1 migrations apply pr-tracker --local
+wrangler d1 migrations apply pr_tracker --local
 
 # For production (remote database)
-wrangler d1 migrations apply pr-tracker --remote
+wrangler d1 migrations apply pr_tracker --remote
 ```
 
 ### Development
