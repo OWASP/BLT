@@ -133,6 +133,20 @@ function testPythonHandlers() {
       'Pagination logic found'
     );
     
+    // Test for "ready" column sorting support
+    testResult(
+      '"ready" column in allowed_columns',
+      /'ready'/.test(handlersContent),
+      '"ready" column is now supported for sorting'
+    );
+    
+    // Test for "ready" column mapping
+    testResult(
+      '"ready" column mapping to overall_score',
+      /'ready':\s*'overall_score'/.test(handlersContent),
+      '"ready" maps to overall_score database column'
+    );
+    
   } catch (error) {
     testResult('handlers.py readable', false, error.message);
   }
