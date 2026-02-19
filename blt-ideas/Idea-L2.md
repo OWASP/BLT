@@ -118,10 +118,11 @@ This information helps the system provide more relevant guidance and helps maint
 Provide contributors with early, contextual security guidance before work begins.
 
 **Guidance Characteristics:**
-- Plain-language explanations
+- Plain-language explanations that set expectations clearly (inspired by the “start here + expectations” pattern from Idea I).
 - Advisory only (no pass/fail states)
 - Based on repository history and security context
-- Linked to relevant OWASP or BLT documentation
+- Backed by a lightweight RAG assistant over BLT docs and policies (reusing the RAG patterns from Idea N) for repo/org-specific links.
+- Linked to relevant OWASP or BLT documentation and “what next” suggestions (borrowing recommendation patterns from Idea H).
 
 **Examples of Guidance:**
 - Highlighting areas that typically require extra validation
@@ -244,9 +245,13 @@ No external scanners, vulnerability feeds, or machine learning models are requir
 
 ## 10. Relationship to Other BLT Projects
 
-- Complements PR Readiness and workflow tooling
-- Supports contributor growth and education initiatives
-- Does not overlap with CVE detection, scanning, or enforcement projects
+- Complements PR Readiness and workflow tooling.
+- Supports contributor growth and education initiatives.
+- Does not overlap with CVE detection, scanning, or enforcement projects.
+- Can **reuse patterns from other ideas without expanding scope**:
+  - From **Idea I** (First-Time Contributor Experience): reuse the “start here + expectations” framing so Preflight’s advisory panels clearly explain what maintainers expect before work starts.
+  - From **Idea N** (RAG AI Assistant): reuse the RAG-over-BLT-docs stack to fetch repo- and org-specific guidance links, instead of hard-coding all advisory text.
+  - From **Idea H** (Growth / “what next”): reuse the “what next” suggestion style so Preflight can optionally point contributors to a next learning step or safer starting issue, without adding scoring or progression logic here.
 
 ---
 
