@@ -336,6 +336,230 @@ async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
         raise Exception(error_msg)
 
 
+async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
+    """
+    Fetch multiple PR data efficiently using GitHub GraphQL API in a single call.
+    
+    This significantly reduces API calls when updating many PRs at once.
+    Instead of making 4-5 REST API calls per PR, we make 1 GraphQL call for all PRs.
+    
+    IMPORTANT TRADEOFFS:
+    - Does not fetch check run status (checks_passed/failed/skipped) - set to 0
+    - Does not fetch behind_by count - set to 0
+    - No ETag support for conditional requests
+    - Limited to first 100 review threads per PR
+    - Best for bulk updates where these fields are less critical
+    - For complete/accurate data, use individual fetch_pr_data() instead
+    
+    Args:
+        prs_to_fetch: List of tuples (owner, repo, pr_number) to fetch
+        token: Optional GitHub token for authentication
+        
+    Returns:
+        dict: Mapping of (owner, repo, pr_number) -> pr_data or None on error
+    """
+    if not prs_to_fetch:
+        return {}
+    
+    # GraphQL has limits, so we batch in groups of 50 PRs max
+    MAX_PRS_PER_BATCH = 50
+    graphql_url = "https://api.github.com/graphql"
+    all_results = {}
+    
+    # Process in batches
+    for batch_start in range(0, len(prs_to_fetch), MAX_PRS_PER_BATCH):
+        batch = prs_to_fetch[batch_start:batch_start + MAX_PRS_PER_BATCH]
+        
+        # Build GraphQL query with aliases for each PR
+        # We'll fetch essential PR data in one query
+        query_parts = []
+        for i, (owner, repo, pr_number) in enumerate(batch):
+            alias = f"pr{i}"
+            query_parts.append(f"""
+                {alias}: repository(owner: "{owner}", name: "{repo}") {{
+                    pullRequest(number: {pr_number}) {{
+                        title
+                        state
+                        isDraft
+                        merged
+                        updatedAt
+                        mergeable
+                        mergeStateStatus
+                        changedFiles
+                        commits {{
+                            totalCount
+                        }}
+                        author {{
+                            login
+                            avatarUrl
+                        }}
+                        baseRepository {{
+                            owner {{
+                                avatarUrl
+                            }}
+                        }}
+                        headRefOid
+                        baseRefName
+                        headRefName
+                        headRepository {{
+                            owner {{
+                                login
+                            }}
+                        }}
+                        reviewThreads(first: 100) {{
+                            nodes {{
+                                isResolved
+                            }}
+                            pageInfo {{
+                                hasNextPage
+                            }}
+                        }}
+                        reviews(first: 100) {{
+                            nodes {{
+                                state
+                                submittedAt
+                                author {{
+                                    login
+                                    avatarUrl
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            """)
+        
+        query = "query { " + " ".join(query_parts) + " }"
+        
+        headers = {
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'PR-Tracker/1.0'
+        }
+        
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+        
+        try:
+            # Make GraphQL request
+            options = to_js({
+                "method": "POST",
+                "headers": headers,
+                "body": json.dumps({"query": query})
+            }, dict_converter=Object.fromEntries)
+            
+            response = await fetch(graphql_url, options)
+            
+            # Log GraphQL API call
+            rate_limit = response.headers.get('x-ratelimit-limit')
+            rate_remaining = response.headers.get('x-ratelimit-remaining')
+            rate_reset = response.headers.get('x-ratelimit-reset')
+            if rate_limit and rate_remaining:
+                set_rate_limit_data(rate_limit, rate_remaining, rate_reset)
+                
+            print(f"GitHub GraphQL Batch API: Fetched {len(batch)} PRs | Status: {response.status} | Rate Limit: {rate_remaining}/{rate_limit} remaining")
+            
+            if response.status != 200:
+                print(f"Warning: GraphQL Batch API returned status {response.status}")
+                # Mark all PRs in this batch as failed
+                for owner, repo, pr_number in batch:
+                    all_results[(owner, repo, pr_number)] = None
+                continue
+            
+            result = (await response.json()).to_py()
+            
+            # Check for GraphQL errors
+            if 'errors' in result:
+                print(f"GraphQL Batch errors: {result['errors']}")
+                # Mark all PRs in this batch as failed
+                for owner, repo, pr_number in batch:
+                    all_results[(owner, repo, pr_number)] = None
+                continue
+            
+            # Extract PR data from response
+            data = result.get('data', {})
+            for i, (owner, repo, pr_number) in enumerate(batch):
+                alias = f"pr{i}"
+                repo_data = data.get(alias, {})
+                pr_data = repo_data.get('pullRequest') if repo_data else None
+                
+                if not pr_data:
+                    print(f"Warning: No PR data in GraphQL response for {owner}/{repo}#{pr_number}")
+                    all_results[(owner, repo, pr_number)] = None
+                    continue
+                
+                # Transform GraphQL response to match REST API format used by fetch_pr_data
+                # Note: Some fields (checks_passed, checks_failed, checks_skipped, behind_by) 
+                # are not available in this batch GraphQL query to keep it simple and fast.
+                # These fields are set to 0 and marked with _incomplete_data flag.
+                # For critical updates where these fields matter, use individual fetch_pr_data() instead.
+                author = pr_data.get('author', {})
+                base_repo = pr_data.get('baseRepository', {})
+                
+                # Count unresolved conversations
+                review_threads = pr_data.get('reviewThreads', {}).get('nodes', [])
+                open_conversations_count = sum(1 for thread in review_threads if not thread.get('isResolved', False))
+                
+                # Note: If there are more than 100 review threads, this count will be incomplete
+                # The pageInfo would indicate hasNextPage=true in that case
+                page_info = pr_data.get('reviewThreads', {}).get('pageInfo', {})
+                if page_info.get('hasNextPage'):
+                    print(f"Warning: PR {owner}/{repo}#{pr_number} has >100 review threads, count may be incomplete")
+                
+                # Process reviews to get latest state per reviewer
+                from utils import calculate_review_status
+                reviews_data = pr_data.get('reviews', {}).get('nodes', [])
+                review_status = calculate_review_status(reviews_data)
+                
+                # Build per-reviewer data
+                latest_reviews = {}
+                if reviews_data:
+                    valid_reviews = [r for r in reviews_data if r.get('submittedAt') and r.get('author')]
+                    sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submittedAt', ''))
+                    for review in sorted_reviews:
+                        author_data = review['author']
+                        latest_reviews[author_data['login']] = {
+                            'login': author_data['login'],
+                            'avatar_url': author_data.get('avatarUrl', ''),
+                            'state': review['state']
+                        }
+                reviewers_list = list(latest_reviews.values())
+                
+                # Build the pr_data dict matching REST API format
+                transformed_data = {
+                    'title': pr_data.get('title', ''),
+                    'state': pr_data.get('state', '').lower(),
+                    'is_merged': 1 if pr_data.get('merged', False) else 0,
+                    'mergeable_state': pr_data.get('mergeStateStatus', 'unknown'),
+                    'files_changed': pr_data.get('changedFiles', 0),
+                    'author_login': author.get('login', ''),
+                    'author_avatar': author.get('avatarUrl', ''),
+                    'repo_owner_avatar': base_repo.get('owner', {}).get('avatarUrl', ''),
+                    'checks_passed': 0,  # Not available in batch query
+                    'checks_failed': 0,  # Not available in batch query
+                    'checks_skipped': 0,  # Not available in batch query
+                    'commits_count': pr_data.get('commits', {}).get('totalCount', 0),
+                    'behind_by': 0,  # Not available in batch query
+                    'review_status': review_status,
+                    'last_updated_at': pr_data.get('updatedAt', ''),
+                    'is_draft': 1 if pr_data.get('isDraft', False) else 0,
+                    'open_conversations_count': open_conversations_count,
+                    'reviewers_json': json.dumps(reviewers_list),
+                    'etag': None,  # GraphQL doesn't provide ETags
+                    '_batch_fetch': True,  # Mark as batch-fetched (incomplete data)
+                    '_incomplete_fields': ['checks_passed', 'checks_failed', 'checks_skipped', 'behind_by']
+                }
+                
+                all_results[(owner, repo, pr_number)] = transformed_data
+                
+        except Exception as e:
+            print(f"Error in GraphQL batch fetch: {str(e)}")
+            # Mark all PRs in this batch as failed
+            for owner, repo, pr_number in batch:
+                all_results[(owner, repo, pr_number)] = None
+    
+    return all_results
+
+
 async def fetch_paginated_data(url, headers, max_items=None, return_metadata=False):
     """
     Fetch all pages of data from a GitHub API endpoint following Link headers

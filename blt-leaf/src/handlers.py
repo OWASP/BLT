@@ -19,7 +19,7 @@ from cache import (
 from database import get_db, upsert_pr
 from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
-    verify_github_signature
+    verify_github_signature, fetch_multiple_prs_batch
 )
 
 
@@ -422,6 +422,109 @@ async def handle_refresh_pr(request, env):
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_batch_refresh_prs(request, env):
+    """
+    Refresh multiple PRs efficiently using batch API calls.
+    
+    POST /api/refresh-batch
+    Body: { "pr_ids": [1, 2, 3, ...] }
+    
+    Uses GraphQL to fetch multiple PRs in a single API call.
+    """
+    try:
+        data = (await request.json()).to_py()
+        pr_ids = data.get('pr_ids', [])
+        user_token = request.headers.get('x-github-token')
+        
+        if not pr_ids or not isinstance(pr_ids, list):
+            return Response.new(json.dumps({'error': 'pr_ids array is required'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        if len(pr_ids) > 100:
+            return Response.new(json.dumps({'error': 'Maximum 100 PRs can be refreshed at once'}), 
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Get PR details from database
+        db = get_db(env)
+        prs_to_fetch = []
+        pr_lookup = {}  # Maps (owner, repo, pr_number) -> (pr_id, pr_url, etag)
+        
+        for pr_id in pr_ids:
+            stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id = ?').bind(pr_id)
+            result = await stmt.first()
+            
+            if not result:
+                print(f"PR ID {pr_id} not found, skipping")
+                continue
+            
+            result = result.to_py()
+            owner = result['repo_owner']
+            repo = result['repo_name']
+            pr_number = result['pr_number']
+            pr_url = result['pr_url']
+            etag = result.get('etag')
+            
+            prs_to_fetch.append((owner, repo, pr_number))
+            pr_lookup[(owner, repo, pr_number)] = (pr_id, pr_url, etag)
+        
+        if not prs_to_fetch:
+            return Response.new(json.dumps({'error': 'No valid PRs found'}), 
+                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+        
+        # Batch fetch PR data from GitHub
+        print(f"Batch refreshing {len(prs_to_fetch)} PRs")
+        batch_results = await fetch_multiple_prs_batch(prs_to_fetch, user_token)
+        
+        # Update database and collect results
+        updated_prs = []
+        removed_prs = []
+        errors = []
+        
+        for (owner, repo, pr_number), pr_data in batch_results.items():
+            pr_id, pr_url, etag = pr_lookup[(owner, repo, pr_number)]
+            
+            if not pr_data:
+                errors.append({'pr_id': pr_id, 'pr_number': pr_number, 'error': 'Failed to fetch'})
+                continue
+            
+            # Check if PR is now merged or closed - remove it
+            # Note: GraphQL returns state in lowercase (e.g., 'closed', 'open')
+            if pr_data['is_merged'] or pr_data['state'] == 'closed':
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(owner, repo, pr_number)
+                
+                delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
+                await delete_stmt.run()
+                
+                status_msg = 'merged' if pr_data['is_merged'] else 'closed'
+                removed_prs.append({'pr_id': pr_id, 'pr_number': pr_number, 'status': status_msg})
+                continue
+            
+            # Update PR data
+            try:
+                await upsert_pr(db, pr_url, owner, repo, pr_number, pr_data)
+                await invalidate_readiness_cache(env, pr_id)
+                invalidate_timeline_cache(owner, repo, pr_number)
+                updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
+            except Exception as update_error:
+                print(f"Error updating PR #{pr_number} in {owner}/{repo}: {str(update_error)}")
+                errors.append({'pr_id': pr_id, 'pr_number': pr_number, 'error': str(update_error)})
+        
+        return Response.new(json.dumps({
+            'success': True,
+            'updated': len(updated_prs),
+            'removed': len(removed_prs),
+            'errors': len(errors),
+            'updated_prs': updated_prs,
+            'removed_prs': removed_prs,
+            'error_prs': errors,
+            'rate_limit': get_rate_limit_cache()
+        }), {'headers': {'Content-Type': 'application/json'}})
+        
+    except Exception as e:
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
 async def handle_rate_limit(env):
     """
@@ -800,6 +903,9 @@ async def handle_github_webhook(request, env):
             db = get_db(env)
             updated_prs = []
             
+            # Step 1: Filter to only tracked PRs and collect their IDs
+            tracked_prs = []  # List of (pr_number, repo_owner, repo_name, pr_id, pr_url)
+            
             for pr_number, repo_owner, repo_name in prs_to_update:
                 pr_url = f"https://github.com/{repo_owner}/{repo_name}/pull/{pr_number}"
                 result = await db.prepare(
@@ -817,23 +923,44 @@ async def handle_github_webhook(request, env):
                     if not pr_id:
                         print(f"Error: Database result missing 'id' field for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
                         continue
+                    tracked_prs.append((pr_number, repo_owner, repo_name, pr_id, pr_url))
                 except Exception as db_error:
                     print(f"Error parsing database result for PR #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(db_error)}")
                     continue
+            
+            if not tracked_prs:
+                return Response.new(
+                    json.dumps({
+                        'success': True,
+                        'message': f'Received {event_type} event for untracked PR(s), no updates performed'
+                    }),
+                    {'headers': {'Content-Type': 'application/json'}}
+                )
+            
+            # Step 2: Batch fetch PR data from GitHub using GraphQL
+            print(f"Batch fetching {len(tracked_prs)} PRs for {event_type} event")
+            prs_to_fetch = [(repo_owner, repo_name, pr_number) for pr_number, repo_owner, repo_name, pr_id, pr_url in tracked_prs]
+            
+            # Get token from env if available (for webhook-triggered updates)
+            webhook_token = getattr(env, 'GITHUB_TOKEN', None)
+            batch_results = await fetch_multiple_prs_batch(prs_to_fetch, webhook_token)
+            
+            # Step 3: Update database with fetched data
+            for pr_number, repo_owner, repo_name, pr_id, pr_url in tracked_prs:
+                key = (repo_owner, repo_name, pr_number)
+                fetched_pr_data = batch_results.get(key)
                 
-                # Fetch fresh PR data to update behind_by and mergeable_state
-                try:
-                    fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
-                    if fetched_pr_data:
+                if fetched_pr_data:
+                    try:
                         await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                         # Invalidate caches to force fresh analysis
                         await invalidate_readiness_cache(env, pr_id)
                         invalidate_timeline_cache(repo_owner, repo_name, pr_number)
                         updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
-                    else:
-                        print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: fetch_pr_data returned None")
-                except Exception as fetch_error:
-                    print(f"Error fetching PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event: {str(fetch_error)}")
+                    except Exception as update_error:
+                        print(f"Error updating PR #{pr_number} in {repo_owner}/{repo_name}: {str(update_error)}")
+                else:
+                    print(f"Failed to fetch PR data for #{pr_number} in {repo_owner}/{repo_name} during {event_type} event")
             
             # Return response with info about all updated PRs
             if updated_prs:
@@ -842,7 +969,7 @@ async def handle_github_webhook(request, env):
                         'success': True,
                         'event': f'{event_type}_processed',
                         'updated_prs': updated_prs,
-                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event'
+                        'message': f'Updated {len(updated_prs)} PR(s) from {event_type} event (batch API call)'
                     }),
                     {'headers': {'Content-Type': 'application/json'}}
                 )
