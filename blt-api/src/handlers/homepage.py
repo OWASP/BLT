@@ -835,10 +835,8 @@ async def handle_homepage(
         
         function testEndpointWithParams(method, endpointTemplate, promptText, defaultValue) {{
             const value = prompt(promptText, defaultValue);
-            console.log('Prompt value:', value);
             if (value) {{
                 const endpoint = endpointTemplate.replace('{{{{id}}}}', value);
-                console.log('Testing endpoint:', endpoint);
                 testEndpoint(method, endpoint);
             }}
         }}
