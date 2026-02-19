@@ -308,14 +308,17 @@ async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
                 }
         reviewers_list = list(latest_reviews.values())
         
+        # Safely access user fields - user can be null for deleted accounts
+        user = pr_data.get('user') or {}
+        
         return {
             'title': pr_data.get('title', ''),
             'state': pr_data.get('state', ''),
             'is_merged': 1 if pr_data.get('merged', False) else 0,
             'mergeable_state': pr_data.get('mergeable_state', ''),
             'files_changed': pr_data.get('changed_files', 0),  # Use changed_files from PR data instead of fetching files list
-            'author_login': pr_data['user']['login'],
-            'author_avatar': pr_data['user']['avatar_url'],
+            'author_login': user.get('login', 'ghost'),
+            'author_avatar': user.get('avatar_url', ''),
             'repo_owner_avatar': pr_data.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
             'checks_passed': checks_passed,
             'checks_failed': checks_failed,
