@@ -969,21 +969,8 @@
                     }
                 });
 
-                // Only apply client-side sorting for computed columns (issues_count)
-                // All other columns are already sorted by the backend
-                if (sortColumns.length > 0 && sortColumns[0].column === 'issues_count') {
-                    const primaryDirection = sortColumns[0].direction;
-                    allPrs.sort((a, b) => {
-                        let aVal = Number(a.issues_count) || 0;
-                        let bVal = Number(b.issues_count) || 0;
-
-                        if (primaryDirection === 'asc') {
-                            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-                        } else {
-                            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-                        }
-                    });
-                }
+                // Backend now handles all sorting including computed columns (issues_count)
+                // No need for client-side sorting anymore
 
                 // Apply search filter if exists
                 const searchTerm = document.getElementById('prSearchInput').value;

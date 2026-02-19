@@ -1,6 +1,7 @@
 """API endpoint handlers for PR tracking"""
 
 import json
+import re
 from datetime import datetime, timezone
 from js import Response, Headers, Object
 from pyodide.ffi import to_js
@@ -21,6 +22,11 @@ from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
     verify_github_signature, fetch_multiple_prs_batch
 )
+
+# SQL expression for computed field: issues_count
+# Calculates total issues as sum of blockers and warnings from JSON columns
+# Uses COALESCE to handle NULL values (returns 0 if column is NULL or invalid JSON)
+ISSUES_COUNT_SQL_EXPR = '(COALESCE(json_array_length(blockers), 0) + COALESCE(json_array_length(warnings), 0))'
 
 
 async def handle_add_pr(request, env):
@@ -208,7 +214,8 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                 base_query += ' AND repo_owner = ? AND repo_name = ?'
                 params.extend([parts[0], parts[1]])
 
-        # Map frontend column names to database column names
+        # Map frontend column names to database column names or SQL expressions
+        # This allows the UI to use friendly names that map to actual DB columns
         column_mapping = {
             'ready': 'merge_ready',  # Boolean flag: ready to merge (0/1)
             'ready_score': 'overall_score',  # Numeric score: 0-100%
@@ -217,20 +224,40 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'review_score': 'review_score',  # Review score: maps directly to database column
             'response_score': 'response_rate',
             'feedback_score': 'responded_feedback',
+            # Computed field: uses module-level SQL expression constant
+            'issues_count': ISSUES_COUNT_SQL_EXPR,
             # All other columns map directly to database columns
         }
         
-        # Whitelist of allowed sort columns (frontend names)
-        # Note: issues_count is excluded as it's a computed field from JSON (blockers + warnings)
-        allowed_columns = {
-            'last_updated_at', 'title', 'author_login', 'pr_number', 
-            'files_changed', 'checks_passed', 'checks_failed', 'checks_skipped',
-            'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
-            'commits_count', 'behind_by', 'open_conversations_count',
-            # Readiness columns
-            'ready', 'ready_score', 'overall',
-            'ci_score', 'review_score', 'response_score', 'feedback_score'
-        }
+        def is_valid_column_name(col_name):
+            """Validate column name to prevent SQL injection.
+            
+            Only allows alphanumeric characters and underscores.
+            This prevents injection while allowing all legitimate column names.
+            """
+            return bool(re.match(r'^[a-zA-Z0-9_]+$', col_name))
+        
+        def get_sort_expression(col_name):
+            """Get SQL expression for a sort column with validation.
+            
+            Args:
+                col_name: Column name from the frontend
+                
+            Returns:
+                tuple: (sql_expression, is_valid)
+                - sql_expression: SQL expression to use in ORDER BY, or None if invalid
+                - is_valid: Whether the column is valid for sorting
+            """
+            # Check if column has a mapping (could be an expression)
+            if col_name in column_mapping:
+                return (column_mapping[col_name], True)
+            
+            # For unmapped columns, validate the name and use it directly
+            if is_valid_column_name(col_name):
+                return (col_name, True)
+            
+            # Invalid column name - reject
+            return (None, False)
         
         # Parse multiple sort columns and directions
         # sort_by can be comma-separated list: "ready_score,title"
@@ -244,10 +271,10 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             
             # Process each sort column
             for i, col in enumerate(sort_columns):
-                if col in allowed_columns:
-                    # Map frontend column name to database column name
-                    db_column = column_mapping.get(col, col)
-                    
+                # Get and validate the SQL expression for this column
+                sql_expr, is_valid = get_sort_expression(col)
+                
+                if is_valid:
                     # Get corresponding direction or default to DESC
                     direction = 'DESC'
                     if i < len(sort_directions) and sort_directions[i].upper() in ('ASC', 'DESC'):
@@ -255,14 +282,17 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                     
                     # Add NULL handling and column sort
                     # NULL values should appear last regardless of sort direction
-                    sort_clauses.append(f'{db_column} IS NOT NULL, {db_column} {direction}')
+                    sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
+                else:
+                    # Log invalid column attempts for security monitoring
+                    print(f"Security: Rejected invalid sort column: {col}")
         
         # If no valid sort columns, use default
         if not sort_clauses:
             sort_clauses.append('last_updated_at IS NOT NULL, last_updated_at DESC')
         
         # Build ORDER BY clause
-        # Note: All columns are validated against whitelist above, so no SQL injection risk
+        # Note: All columns are validated via is_valid_column_name(), so no SQL injection risk
         order_clause = 'ORDER BY ' + ', '.join(sort_clauses)
 
         # Total count first
