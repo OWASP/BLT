@@ -60,7 +60,7 @@ Before going live, test your hackathon dashboard to ensure everything works corr
 - [ ] PR Activity chart renders
 - [ ] Chart shows data (if hackathon has PRs)
 - [ ] Hover tooltips work
-- [ ] Legend displays correctly
+- [ ] Legend is hidden (no repository names displayed)
 
 **Test 4: Repositories**
 - [ ] All repositories are listed
