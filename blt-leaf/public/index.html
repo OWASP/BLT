@@ -921,6 +921,25 @@
                 }
 
                 const response = await fetch(url);
+                
+                // Check if the HTTP request was successful
+                if (!response.ok) {
+                    let errorMessage = 'Failed to load PRs';
+                    if (response.status === 404) {
+                        errorMessage = 'API endpoint not found. Please check your configuration.';
+                    } else if (response.status === 500) {
+                        errorMessage = 'Server error occurred. Please try again later.';
+                    } else if (response.status === 503) {
+                        errorMessage = 'Service temporarily unavailable. Please try again later.';
+                    } else if (response.status >= 400 && response.status < 500) {
+                        errorMessage = `Request failed with status ${response.status}. Please try again.`;
+                    } else if (response.status >= 500) {
+                        errorMessage = `Server error (${response.status}). Please try again later.`;
+                    }
+                    showContainerError('prListContainer', errorMessage);
+                    return;
+                }
+
                 const data = await response.json();
 
                 if (data.error) {
@@ -981,7 +1000,21 @@
                 }
             } catch (error) {
                 console.error('Error loading PRs:', error);
-                showContainerError('prListContainer', 'Failed to load PRs');
+                
+                // Provide more specific error messages
+                let errorMessage = 'Failed to load PRs';
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    // Network error - common on mobile with poor connectivity
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                } else if (error instanceof SyntaxError) {
+                    // JSON parsing error
+                    errorMessage = 'Invalid response from server. Please try refreshing the page.';
+                } else if (error.message) {
+                    // Show the actual error message if available
+                    errorMessage = `Error: ${error.message}`;
+                }
+                
+                showContainerError('prListContainer', errorMessage);
             }
         }
 
