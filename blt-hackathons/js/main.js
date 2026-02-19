@@ -249,6 +249,14 @@ class HackathonDashboard {
                                 ${participant.mergedCount} merged PR${participant.mergedCount !== 1 ? 's' : ''}
                             </div>
                         </div>
+                        <a href="https://github.com/search?q=author%3A${participant.username}+type%3Apr" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
+                           title="View all PRs by ${this.escapeHtml(participant.username)}">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            <span class="hidden sm:inline">View PRs</span>
+                        </a>
                     </div>
                     ${prsHtml}
                 </div>
@@ -334,6 +342,14 @@ class HackathonDashboard {
                                 ${participant.reviewCount} review${participant.reviewCount !== 1 ? 's' : ''}
                             </div>
                         </div>
+                        <a href="https://github.com/search?q=author%3A${participant.username}+type%3Apr" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
+                           title="View all PRs by ${this.escapeHtml(participant.username)}">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            <span class="hidden sm:inline">View PRs</span>
+                        </a>
                     </div>
                     ${reviewsHtml}
                 </div>
@@ -342,7 +358,7 @@ class HackathonDashboard {
     }
 
     /**
-     * Render the PR activity chart with repository breakdown
+     * Render the PR activity chart - simplified to show total merged PRs per day across all repositories
      */
     renderChart(dailyActivity, prs) {
         // Check if Chart.js is available
@@ -352,38 +368,21 @@ class HackathonDashboard {
         }
         
         const dates = Object.keys(dailyActivity).sort();
-        // Get unique repositories from PRs
-        const repositories = [...new Set(prs.map(pr => pr.repository))];
-        // Pre-process PRs into a Map for O(1) lookups: date -> repo -> count
-        const prsByDateAndRepo = new Map();
+        
+        // Calculate total merged PRs per day (combined across all repositories)
+        // We use merged_at date to show when contributions were actually accepted
+        const prCountsByDate = {};
         prs.forEach(pr => {
-            if (!pr.merged_at) return;
-            // Use merged_at date since we're showing merged PRs
+            if (!pr.merged_at) return; // Only count merged PRs
             const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
-            if (!prsByDateAndRepo.has(prDate)) {
-                prsByDateAndRepo.set(prDate, new Map());
+            if (!prCountsByDate[prDate]) {
+                prCountsByDate[prDate] = 0;
             }
-            const dateMap = prsByDateAndRepo.get(prDate);
-            const currentCount = dateMap.get(pr.repository) || 0;
-            dateMap.set(pr.repository, currentCount + 1);
+            prCountsByDate[prDate]++;
         });
-        // Create datasets for each repository
-        const repoColors = this.generateColors(repositories.length);
-        const datasets = [];
-        // Add datasets for PRs by repository
-        repositories.forEach((repo, index) => {
-            const data = dates.map(date => {
-                const dateMap = prsByDateAndRepo.get(date);
-                return dateMap ? (dateMap.get(repo) || 0) : 0;
-            });
-            datasets.push({
-                label: repo,
-                data: data,
-                backgroundColor: repoColors[index],
-                borderColor: repoColors[index],
-                borderWidth: 1
-            });
-        });
+        
+        // Create data array for the chart
+        const data = dates.map(date => prCountsByDate[date] || 0);
 
         const ctx = document.getElementById('prActivityChart').getContext('2d');
         if (this.chart) {
@@ -394,47 +393,91 @@ class HackathonDashboard {
             type: 'bar',
             data: {
                 labels: dates,
-                datasets: datasets
+                datasets: [{
+                    label: 'Pull Requests',
+                    data: data,
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgba(220, 38, 38, 1)',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    barThickness: 'flex',
+                    maxBarThickness: 40
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false,
-                        position: 'top'
+                        display: false
                     },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        cornerRadius: 8,
                         callbacks: {
+                            title: function(context) {
+                                const date = new Date(context[0].label);
+                                return date.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                });
+                            },
                             label: function(context) {
-                                // Show only the value without the dataset label
                                 const value = context.parsed.y;
-                                return Number.isFinite(value) ? value + ' PRs' : '0 PRs';
+                                return value === 1 ? '1 Pull Request' : `${value} Pull Requests`;
                             }
                         }
                     }
                 },
                 scales: {
                     x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Date'
+                        display: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 10,
+                            callback: function(value, index) {
+                                const date = new Date(this.getLabelForValue(value));
+                                return date.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric'
+                                });
+                            }
                         }
                     },
                     y: {
-                        stacked: true,
                         beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Merged Pull Requests'
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
                         },
                         ticks: {
-                            precision: 0
+                            precision: 0,
+                            font: {
+                                size: 11
+                            }
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
