@@ -431,10 +431,10 @@ class HackathonDashboard {
         // Use resolved repositories if available, otherwise fall back to config
         const repositories = this.repositories || this.config.github.repositories || [];
         
-        // Update the repositories title with count
+        // Update the repositories count
         const titleElement = document.getElementById('repositories-title');
         if (titleElement) {
-            titleElement.textContent = `Repositories (${repositories.length})`;
+            titleElement.textContent = `(${repositories.length})`;
         }
         
         const reposHtml = repositories.map(repoPath => {
