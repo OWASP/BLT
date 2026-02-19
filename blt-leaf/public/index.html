@@ -456,6 +456,32 @@
         </main>
     </div>
 
+    <!-- Raw Data Modal -->
+    <div id="rawDataModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="relative w-full max-w-4xl max-h-[90vh] m-4 bg-white dark:bg-slate-800 rounded-lg shadow-2xl flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Raw PR Data</h2>
+                <button id="closeRawDataModal" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-auto px-6 py-4">
+                <pre id="rawDataContent" class="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg overflow-x-auto"><code></code></pre>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                <button id="copyRawDataBtn" class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors shadow-sm">
+                    <i class="fas fa-copy mr-1"></i>Copy to Clipboard
+                </button>
+                <button id="closeRawDataModalBtn" class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
@@ -1328,6 +1354,61 @@
         }
 
         /**
+         * Show raw data modal with PR data
+         */
+        function showRawDataModal(prId) {
+            const modal = document.getElementById('rawDataModal');
+            const content = document.getElementById('rawDataContent').querySelector('code');
+            
+            // Find the specific PR data
+            const prData = allPrs.find(pr => pr.id === prId);
+            
+            if (!prData) {
+                console.error('PR not found:', prId);
+                return;
+            }
+            
+            // Format as pretty JSON
+            content.textContent = JSON.stringify(prData, null, 2);
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Hide raw data modal
+         */
+        function hideRawDataModal() {
+            const modal = document.getElementById('rawDataModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Copy raw data to clipboard
+         */
+        async function copyRawDataToClipboard() {
+            const content = document.getElementById('rawDataContent').querySelector('code');
+            try {
+                await navigator.clipboard.writeText(content.textContent);
+                const btn = document.getElementById('copyRawDataBtn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                showError('Failed to copy to clipboard');
+            }
+        }
+
+        /**
          * Pause auto-refresh when tab is not visible (optimization)
          */
         document.addEventListener('visibilitychange', () => {
@@ -1589,6 +1670,14 @@
                     await updatePr(prId, e.currentTarget);
                 });
             });
+            
+            document.querySelectorAll('.view-raw-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const prId = parseInt(e.currentTarget.dataset.prId, 10);
+                    showRawDataModal(prId);
+                });
+            });
+            
             if (document.getElementById('prSearchInput').value.trim() === '') {
                 renderPagination();
             }
@@ -1802,9 +1891,14 @@
                 </td>
                 <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
                 <td class="px-2 py-3 text-center">
-                    <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
-                        <i class="fas fa-sync mr-1"></i>Update
-                    </button>
+                    <div class="flex items-center justify-center gap-2">
+                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
+                            <i class="fas fa-sync mr-1"></i>Update
+                        </button>
+                        <button class="view-raw-btn rounded-md border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="View raw PR data">
+                            <i class="fas fa-database"></i>
+                        </button>
+                    </div>
                 </td>
             `;
 
@@ -1859,6 +1953,14 @@
             if (updateBtn) {
                 updateBtn.addEventListener('click', async (e) => {
                     await updatePr(prId, e.currentTarget);
+                });
+            }
+            
+            // Re-attach the click event listener to the view raw button
+            const viewRawBtn = newRow.querySelector('.view-raw-btn');
+            if (viewRawBtn) {
+                viewRawBtn.addEventListener('click', (e) => {
+                    showRawDataModal(prId);
                 });
             }
         }
@@ -2284,6 +2386,28 @@
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
+        
+        // Raw data modal event listeners
+        document.getElementById('closeRawDataModal').addEventListener('click', hideRawDataModal);
+        document.getElementById('closeRawDataModalBtn').addEventListener('click', hideRawDataModal);
+        document.getElementById('copyRawDataBtn').addEventListener('click', copyRawDataToClipboard);
+        
+        // Close modal when clicking outside
+        document.getElementById('rawDataModal').addEventListener('click', (e) => {
+            if (e.target.id === 'rawDataModal') {
+                hideRawDataModal();
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('rawDataModal');
+                if (!modal.classList.contains('hidden')) {
+                    hideRawDataModal();
+                }
+            }
+        });
 
         // Make sortPrs globally accessible for onclick handlers
         window.sortPrs = sortPrs;
