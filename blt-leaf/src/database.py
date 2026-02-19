@@ -159,6 +159,26 @@ async def init_database_schema(env):
         index2 = db.prepare('CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number)')
         await index2.run()
         
+        # Create indexes for sortable readiness columns to improve sorting performance
+        # These columns are frequently used for sorting in the UI
+        index3 = db.prepare('CREATE INDEX IF NOT EXISTS idx_merge_ready ON prs(merge_ready)')
+        await index3.run()
+        
+        index4 = db.prepare('CREATE INDEX IF NOT EXISTS idx_overall_score ON prs(overall_score)')
+        await index4.run()
+        
+        index5 = db.prepare('CREATE INDEX IF NOT EXISTS idx_ci_score ON prs(ci_score)')
+        await index5.run()
+        
+        index6 = db.prepare('CREATE INDEX IF NOT EXISTS idx_review_score ON prs(review_score)')
+        await index6.run()
+        
+        index7 = db.prepare('CREATE INDEX IF NOT EXISTS idx_response_rate ON prs(response_rate)')
+        await index7.run()
+        
+        index8 = db.prepare('CREATE INDEX IF NOT EXISTS idx_responded_feedback ON prs(responded_feedback)')
+        await index8.run()
+        
     except Exception as e:
         # Log the error but don't crash - schema may already exist
         print(f"Note: Schema initialization check: {str(e)}")

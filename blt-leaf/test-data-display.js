@@ -142,9 +142,9 @@ function testPythonHandlers() {
     
     // Test for "ready" column mapping
     testResult(
-      '"ready" column mapping to overall_score',
-      /'ready':\s*'overall_score'/.test(handlersContent),
-      '"ready" maps to overall_score database column'
+      '"ready" column mapping to merge_ready',
+      /'ready':\s*'merge_ready'/.test(handlersContent),
+      '"ready" maps to merge_ready database column'
     );
     
   } catch (error) {
