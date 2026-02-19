@@ -49,6 +49,15 @@ CREATE TABLE IF NOT EXISTS prs (
     reviewers_json TEXT
 );
 
+CREATE TABLE IF NOT EXISTS timeline_cache (
+    owner TEXT NOT NULL,
+    repo TEXT NOT NULL,
+    pr_number INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    PRIMARY KEY (owner, repo, pr_number)
+);
+
 CREATE INDEX IF NOT EXISTS idx_repo ON prs(repo_owner, repo_name);
 CREATE INDEX IF NOT EXISTS idx_pr_number ON prs(pr_number);
 

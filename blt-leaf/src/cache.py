@@ -188,10 +188,13 @@ def get_timeline_cache_key(owner, repo, pr_number):
     return f"{owner}/{repo}/{pr_number}"
 
 
-def get_timeline_cache(owner, repo, pr_number):
+async def get_timeline_cache(env, owner, repo, pr_number):
     """Get cached timeline data if still valid.
     
+    First checks in-memory cache, then falls back to database if not found.
+    
     Args:
+        env: Worker environment with database binding
         owner: Repository owner
         repo: Repository name
         pr_number: PR number
@@ -201,31 +204,57 @@ def get_timeline_cache(owner, repo, pr_number):
     """
     global _timeline_cache
     
-    cache_key = get_timeline_cache_key(owner, repo, pr_number)
+    # Import here to avoid circular dependency
+    from database import load_timeline_from_db
     
+    cache_key = get_timeline_cache_key(owner, repo, pr_number)
+    current_time = Date.now() / 1000
+    
+    # 1. Check in-memory cache first
     if cache_key in _timeline_cache:
         cache_entry = _timeline_cache[cache_key]
-        current_time = Date.now() / 1000
         
         # Check if cache is still valid
         if (current_time - cache_entry['timestamp']) < _TIMELINE_CACHE_TTL:
             age = int(current_time - cache_entry['timestamp'])
-            print(f"Timeline Cache: HIT for {cache_key} (age: {age}s)")
+            print(f"Timeline Cache: HIT (memory) for {cache_key} (age: {age}s)")
             return cache_entry['data']
         
         # Cache expired - remove it
         del _timeline_cache[cache_key]
-        print(f"Timeline Cache: MISS (expired) for {cache_key}")
+        print(f"Timeline Cache: MISS (memory expired) for {cache_key}")
     else:
-        print(f"Timeline Cache: MISS for {cache_key}")
+        print(f"Timeline Cache: MISS (memory) for {cache_key}")
+    
+    # 2. Fall back to database
+    db_data, db_timestamp = await load_timeline_from_db(env, owner, repo, pr_number)
+    if db_data and db_timestamp:
+        # Check if database entry is still valid
+        if (current_time - db_timestamp) < _TIMELINE_CACHE_TTL:
+            # Store in memory cache for faster subsequent access
+            _timeline_cache[cache_key] = {
+                'data': db_data,
+                'timestamp': db_timestamp
+            }
+            age = int(current_time - db_timestamp)
+            print(f"Timeline Cache: HIT (database) for {cache_key} (age: {age}s) - loaded into memory")
+            return db_data
+        else:
+            print(f"Timeline Cache: MISS (database expired) for {cache_key}")
+            # Try to delete expired entry from DB
+            from database import delete_timeline_from_db
+            await delete_timeline_from_db(env, owner, repo, pr_number)
+    else:
+        print(f"Timeline Cache: MISS (database) for {cache_key}")
     
     return None
 
 
-def set_timeline_cache(owner, repo, pr_number, data):
-    """Cache timeline data.
+async def set_timeline_cache(env, owner, repo, pr_number, data):
+    """Cache timeline data in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         owner: Repository owner
         repo: Repository name
         pr_number: PR number
@@ -233,31 +262,46 @@ def set_timeline_cache(owner, repo, pr_number, data):
     """
     global _timeline_cache
     
+    # Import here to avoid circular dependency
+    from database import save_timeline_to_db
+    
     cache_key = get_timeline_cache_key(owner, repo, pr_number)
     current_time = Date.now() / 1000
     
+    # Store in memory cache
     _timeline_cache[cache_key] = {
         'data': data,
         'timestamp': current_time
     }
-    print(f"Timeline Cache: Stored for {cache_key}")
+    print(f"Timeline Cache: Stored (memory) for {cache_key}")
+    
+    # Also save to database for persistence
+    await save_timeline_to_db(env, owner, repo, pr_number, data)
 
 
-def invalidate_timeline_cache(owner, repo, pr_number):
-    """Invalidate cached timeline data for a PR.
+async def invalidate_timeline_cache(env, owner, repo, pr_number):
+    """Invalidate cached timeline data for a PR in both memory and database.
     
     Args:
+        env: Worker environment with database binding
         owner: Repository owner
         repo: Repository name
         pr_number: PR number
     """
     global _timeline_cache
     
+    # Import here to avoid circular dependency
+    from database import delete_timeline_from_db
+    
     cache_key = get_timeline_cache_key(owner, repo, pr_number)
     
+    # Remove from memory cache
     if cache_key in _timeline_cache:
         del _timeline_cache[cache_key]
-        print(f"Timeline Cache: Invalidated for {cache_key}")
+        print(f"Timeline Cache: Invalidated (memory) for {cache_key}")
+    
+    # Also remove from database
+    await delete_timeline_from_db(env, owner, repo, pr_number)
 
 import time
 

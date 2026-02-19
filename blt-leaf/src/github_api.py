@@ -660,11 +660,11 @@ async def fetch_paginated_data(url, headers, max_items=None, return_metadata=Fal
         return all_data
 
 
-async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
+async def fetch_pr_timeline_data(env, owner, repo, pr_number, github_token=None):
     """
     Fetch all timeline data for a PR: commits, reviews, review comments, issue comments
     
-    Uses in-memory caching (30 min TTL) to avoid redundant API calls across endpoints.
+    Uses in-memory caching (30 min TTL) with D1 fallback to avoid redundant API calls.
     All 4 API calls are made in parallel for optimal performance.
     
     Note: Reviews are fetched here (not in fetch_pr_data) to avoid duplication.
@@ -677,8 +677,8 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
         'issue_comments': [...]
     }
     """
-    # Check cache first
-    cached_data = get_timeline_cache(owner, repo, pr_number)
+    # Check cache first (async)
+    cached_data = await get_timeline_cache(env, owner, repo, pr_number)
     if cached_data:
         return cached_data
     
@@ -717,8 +717,8 @@ async def fetch_pr_timeline_data(owner, repo, pr_number, github_token=None):
             'issue_comments': issue_comments_data
         }
         
-        # Cache the result for future requests
-        set_timeline_cache(owner, repo, pr_number, timeline_data)
+        # Cache the result for future requests (async)
+        await set_timeline_cache(env, owner, repo, pr_number, timeline_data)
         
         return timeline_data
     except Exception as e:
