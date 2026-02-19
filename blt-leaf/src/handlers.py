@@ -97,14 +97,17 @@ async def handle_add_pr(request, env):
             ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             
             for item in prs_list:
+                # Safely access user fields - user can be null for deleted accounts
+                user = item.get('user') or {}
+                
                 pr_data = {
                     'title': item.get('title', ''), 
                     'state': 'open', 
                     'is_merged': 0,
                     'mergeable_state': 'unknown', 
                     'files_changed': 0,
-                    'author_login': item['user']['login'], 
-                    'author_avatar': item['user']['avatar_url'],
+                    'author_login': user.get('login', 'ghost'), 
+                    'author_avatar': user.get('avatar_url', ''),
                     'repo_owner_avatar': item.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
                     'checks_passed': 0, 
                     'checks_failed': 0, 
