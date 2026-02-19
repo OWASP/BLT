@@ -29,7 +29,10 @@ BLT-Leaf/
 │   ├── github_api.py   # GitHub API interactions
 │   ├── database.py     # Database operations
 │   └── cache.py        # Caching and rate limiting
-├── schema.sql          # Database schema for D1
+├── migrations/         # Database migrations for D1
+│   ├── 0001_create_prs_table.sql
+│   ├── 0002_create_timeline_cache.sql
+│   └── 0003_create_indexes.sql
 ├── wrangler.toml       # Cloudflare Workers configuration
 ├── package.json        # npm scripts for deployment
 ├── DEPLOYMENT.md       # Detailed deployment instructions
@@ -107,9 +110,13 @@ wrangler d1 create pr_tracker
 cp .env.example .env
 ```
 
-6. Initialize the database schema:
+6. Apply database migrations:
 ```bash
-wrangler d1 execute pr_tracker --file=./schema.sql
+# For local development
+wrangler d1 migrations apply pr-tracker --local
+
+# For production (remote database)
+wrangler d1 migrations apply pr-tracker --remote
 ```
 
 ### Development
