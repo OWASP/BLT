@@ -63,7 +63,7 @@
             </div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job from URL</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue, paste the job link, and submit. Our bot scrapes it and adds the listing; the issue is closed when done. Works with Greenhouse, Lever, Workable, LinkedIn, Indeed, and most career pages.</p>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting-from-link.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+            <a id="issue-link-job-url" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting-from-link.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-link mr-2"></i>Open issue: Post job from URL
             </a>
           </section>
@@ -71,7 +71,7 @@
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job (fill the form)</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue and fill in company, title, location, description, and how to apply. We turn it into a listing and close the issue.</p>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+            <a id="issue-link-job-form" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-edit mr-2"></i>Open issue: Post job (form)
             </a>
           </section>
@@ -82,7 +82,7 @@
             <p class="text-gray-600 dark:text-gray-400 mb-4">
               Open an issue and fill in your name, headline, skills, and links. Your profile appears on the <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Find Talent</a> page; we close the issue when done.
             </p>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-seeker.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+            <a id="issue-link-seeker" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-seeker.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-user-plus mr-2"></i>Open issue: Create seeker profile
             </a>
           </section>
@@ -103,5 +103,19 @@
     </div>
   </footer>
   <script src="assets/js/theme.js"></script>
+  <script>
+    (function () {
+      var repo = window.location.hostname.indexOf('pritz395.github.io') !== -1
+        ? 'Pritz395/BLT-Jobs'
+        : 'OWASP-BLT/BLT-Jobs';
+      var base = 'https://github.com/' + repo + '/issues/new';
+      var jobUrl = document.getElementById('issue-link-job-url');
+      var jobForm = document.getElementById('issue-link-job-form');
+      var seeker = document.getElementById('issue-link-seeker');
+      if (jobUrl) jobUrl.href = base + '?template=job-posting-from-link.yml';
+      if (jobForm) jobForm.href = base + '?template=job-posting.yml';
+      if (seeker) seeker.href = base + '?template=job-seeker.md';
+    })();
+  </script>
 </body>
 </html>
