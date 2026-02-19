@@ -4,82 +4,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vulnerabilities - BLT-NetGuardian</title>
+    <meta name="description" content="Vulnerability feed and severity breakdown for BLT-NetGuardian autonomous security scans.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+                    },
+                    boxShadow: {
+                        card: '0 10px 30px rgba(17, 24, 39, 0.07)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;family=Manrope:wght@400;500;600;700;800family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🐛 Vulnerability Database</h1>
-            <p>Discovered Security Issues</p>
-        </header>
-        
-        <div class="content">
-            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="window.location.href='index.html'">← Back to Home</button>
-                <button onclick="refreshVulnerabilities()">🔄 Refresh</button>
-                
-                <select id="severityFilter" onchange="filterBySeverity()" style="margin-left: auto;">
-                    <option value="">All Severities</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                    <option value="info">Info</option>
-                </select>
-            </div>
-            
-            <div class="section">
-                <h2>Vulnerability Summary</h2>
-                <div class="stats">
-                    <div class="stat-card" style="border-left-color: #dc3545;">
-                        <h3 id="criticalCount">-</h3>
-                        <p>Critical</p>
-                    </div>
-                    <div class="stat-card" style="border-left-color: #fd7e14;">
-                        <h3 id="highCount">-</h3>
-                        <p>High</p>
-                    </div>
-                    <div class="stat-card" style="border-left-color: #ffc107;">
-                        <h3 id="mediumCount">-</h3>
-                        <p>Medium</p>
-                    </div>
-                    <div class="stat-card" style="border-left-color: #28a745;">
-                        <h3 id="lowCount">-</h3>
-                        <p>Low</p>
+<body class="font-sans text-gray-900">
+    <div class="min-h-screen lg:flex">
+        <aside class="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
+            <div class="border-b border-neutral-border px-6 py-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">OWASP BLT</p>
+                <div class="mt-2 flex items-center gap-3">
+                    <img src="assets/img/logo.png" alt="BLT-NetGuardian Logo" class="h-8 w-8 rounded-full">
+                    <div>
+                        <h1 class="text-lg font-extrabold text-dark-base">BLT-NetGuardian</h1>
+                        <p class="text-xs text-gray-500">Vulnerability Intelligence</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="section">
-                <h2>Vulnerability List</h2>
-                <div class="table-container">
-                    <div id="vulnsLoading" class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading vulnerabilities...</p>
-                    </div>
-                    <table id="vulnsTable" style="display: none;">
-                        <thead>
-                            <tr>
-                                <th>Severity</th>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Component</th>
-                                <th>CVE</th>
-                                <th>CVSS</th>
-                                <th>Discovered</th>
-                            </tr>
-                        </thead>
-                        <tbody id="vulnsTableBody">
-                        </tbody>
-                    </table>
-                    <div id="vulnsEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">
-                        No vulnerabilities found. Great job! 🎉
+            <nav class="flex-1 space-y-8 overflow-y-auto px-4 py-6" aria-label="Primary navigation">
+                <div>
+                    <p class="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Platform</p>
+                    <div class="mt-3 space-y-1">
+                        <a href="index.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-house" aria-hidden="true"></i>
+                            Autonomous Overview
+                        </a>
+                        <a href="dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                            Jobs Dashboard
+                        </a>
+                        <a href="vulnerabilities.html" class="flex items-center gap-3 rounded-md bg-[#feeae9] px-3 py-2 text-sm font-semibold text-brand" aria-current="page">
+                            <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                            Vulnerability Feed
+                        </a>
                     </div>
                 </div>
-            </div>
+                <div>
+                    <p class="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Operations</p>
+                    <div class="mt-3 space-y-1">
+                        <a href="dashboard.html?view=discovery" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                            Discovery Queue
+                        </a>
+                        <a href="dashboard.html?view=contacts" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-envelopes-bulk" aria-hidden="true"></i>
+                            Contact Log
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <div class="flex-1">
+            <header class="border-b border-neutral-border bg-white/90 px-5 py-4 backdrop-blur lg:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Security Findings</p>
+                        <h2 class="text-2xl font-extrabold text-dark-base">Vulnerability Database</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="index.html" class="btn-outline">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                            Back to Home
+                        </a>
+                        <button type="button" class="btn-primary" onclick="refreshVulnerabilities()">
+                            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 lg:hidden">
+                    <a href="index.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Overview</a>
+                    <a href="dashboard.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Dashboard</a>
+                    <a href="vulnerabilities.html" class="rounded-md bg-[#feeae9] px-3 py-2 text-xs font-semibold text-brand">Vulnerabilities</a>
+                </div>
+            </header>
+
+            <main class="space-y-6 px-5 py-6 lg:px-8">
+                <section class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold text-dark-base">Filter Vulnerabilities</h3>
+                        <div class="flex w-full flex-wrap items-center gap-3 lg:w-auto">
+                            <div class="search-wrap w-full lg:w-80">
+                                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                                <label class="sr-only" for="vulnSearch">Search vulnerabilities</label>
+                                <input id="vulnSearch" class="input-field" type="text" placeholder="Search title, type, component, or CVE">
+                            </div>
+                            <label class="sr-only" for="severityFilter">Filter by severity</label>
+                            <select id="severityFilter" class="select-field w-full lg:w-52" onchange="filterBySeverity()">
+                                <option value="">All Severities</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="info">Info</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <article class="rounded-xl border border-red-200 bg-white p-5 shadow-card">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Critical</p>
+                        <p id="criticalCount" class="mt-2 text-3xl font-extrabold text-red-700">-</p>
+                    </article>
+                    <article class="rounded-xl border border-orange-200 bg-white p-5 shadow-card">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">High</p>
+                        <p id="highCount" class="mt-2 text-3xl font-extrabold text-orange-600">-</p>
+                    </article>
+                    <article class="rounded-xl border border-amber-200 bg-white p-5 shadow-card">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Medium</p>
+                        <p id="mediumCount" class="mt-2 text-3xl font-extrabold text-amber-600">-</p>
+                    </article>
+                    <article class="rounded-xl border border-emerald-200 bg-white p-5 shadow-card">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Low</p>
+                        <p id="lowCount" class="mt-2 text-3xl font-extrabold text-emerald-600">-</p>
+                    </article>
+                </section>
+
+                <section class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                    <h3 class="text-lg font-bold text-dark-base">Vulnerability List</h3>
+                    <div class="mt-5 overflow-x-auto rounded-lg border border-neutral-border">
+                        <div id="vulnsLoading" class="loading">
+                            <div class="spinner" aria-hidden="true"></div>
+                            <p>Loading vulnerabilities...</p>
+                        </div>
+                        <table id="vulnsTable" class="hidden min-w-[980px] bg-white">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Component</th>
+                                    <th>CVE</th>
+                                    <th>CVSS</th>
+                                    <th>Discovered</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vulnsTableBody"></tbody>
+                        </table>
+                        <div id="vulnsEmpty" class="hidden p-10 text-center text-sm text-gray-500">
+                            No vulnerabilities found. Great job.
+                        </div>
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
-    
+
     <script src="assets/js/config.js"></script>
     <script src="assets/js/vulnerabilities.js"></script>
 </body>

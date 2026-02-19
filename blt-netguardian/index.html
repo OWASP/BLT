@@ -4,166 +4,301 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT-NetGuardian - Autonomous Security Scanner</title>
+    <meta name="description" content="BLT-NetGuardian autonomously discovers and scans internet targets, then coordinates responsible disclosure for detected vulnerabilities.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+                    },
+                    boxShadow: {
+                        card: '0 10px 30px rgba(17, 24, 39, 0.07)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;family=Manrope:wght@400;500;600;700;800family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🛡️ BLT-NetGuardian</h1>
-            <p>Autonomous Internet Security Scanner</p>
-            <p class="subtitle">Continuously scanning the web for security vulnerabilities</p>
-        </header>
-        
-        <div class="content">
-            <!-- Live Scanning Status -->
-            <div class="section">
-                <h2>🔴 Live Scanning Status</h2>
-                <div class="scanning-status">
-                    <div class="status-card active">
-                        <div class="status-indicator"></div>
-                        <div class="status-info">
-                            <h3>Scanner Active</h3>
-                            <p id="scanningTarget">Currently scanning: <span class="highlight">example.com</span></p>
-                            <p id="scannedCount">Total scanned today: <span class="highlight">1,247</span> targets</p>
-                            <p id="foundVulns">Vulnerabilities found: <span class="highlight critical">23</span></p>
-                        </div>
+<body class="font-sans text-gray-900">
+    <div class="min-h-screen lg:flex">
+        <aside class="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
+            <div class="border-b border-neutral-border px-6 py-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">OWASP BLT</p>
+                <div class="mt-2 flex items-center gap-3">
+                    <img src="assets/img/logo.png" alt="BLT-NetGuardian Logo" class="h-8 w-8 rounded-full">
+                    <div>
+                        <h1 class="text-lg font-extrabold text-dark-base">BLT-NetGuardian</h1>
+                        <p class="text-xs text-gray-500">Autonomous Security Scanner</p>
                     </div>
                 </div>
             </div>
-
-            <!-- Suggest a Target -->
-            <div class="section">
-                <h2>💡 Suggest a Target</h2>
-                <p style="margin-bottom: 20px; color: #666;">
-                    Help guide the bot by suggesting websites, domains, or repositories for security scanning.
-                </p>
-                <form id="suggestionForm" class="suggestion-form">
-                    <div class="suggestion-input-group">
-                        <input type="text" id="suggestion" name="suggestion" 
-                               placeholder="Enter a domain, URL, or GitHub repo (e.g., example.com or github.com/user/repo)" required>
-                        <button type="submit">🎯 Suggest Target</button>
-                    </div>
-                    <div class="suggestion-options">
-                        <label>
-                            <input type="checkbox" id="priority" name="priority">
-                            Mark as priority for immediate scanning
-                        </label>
-                    </div>
-                </form>
-                
-                <div id="suggestionMessage" class="message"></div>
-            </div>
-
-            <!-- Autonomous Discovery Stats -->
-            <div class="section">
-                <h2>📊 Autonomous Discovery</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🌐</div>
-                        <h3 id="domainCount">12,458</h3>
-                        <p>Domains Discovered</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <h3 id="repoCount">3,721</h3>
-                        <p>Repositories Found</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔍</div>
-                        <h3 id="activeScans">47</h3>
-                        <p>Active Scans</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⚠️</div>
-                        <h3 id="contactedCount">156</h3>
-                        <p>Contacts Made</p>
+            <nav class="flex-1 space-y-8 overflow-y-auto px-4 py-6" aria-label="Primary navigation">
+                <div>
+                    <p class="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Platform</p>
+                    <div class="mt-3 space-y-1">
+                        <a href="index.html" class="flex items-center gap-3 rounded-md bg-[#feeae9] px-3 py-2 text-sm font-semibold text-brand" aria-current="page">
+                            <i class="fa-solid fa-house" aria-hidden="true"></i>
+                            Autonomous Overview
+                        </a>
+                        <a href="dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                            Jobs Dashboard
+                        </a>
+                        <a href="vulnerabilities.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                            Vulnerability Feed
+                        </a>
                     </div>
                 </div>
-            </div>
-
-            <!-- Recent Discoveries -->
-            <div class="section">
-                <h2>🔎 Recent Discoveries</h2>
-                <div class="discoveries-list" id="discoveriesList">
-                    <div class="discovery-item">
-                        <div class="discovery-info">
-                            <span class="discovery-type">Domain</span>
-                            <span class="discovery-target">newstartup.io</span>
-                            <span class="discovery-time">2 minutes ago</span>
-                        </div>
-                        <div class="discovery-status">
-                            <span class="status queued">Queued for scan</span>
-                        </div>
-                    </div>
-                    <div class="discovery-item">
-                        <div class="discovery-info">
-                            <span class="discovery-type">Repository</span>
-                            <span class="discovery-target">github.com/acme/webapp</span>
-                            <span class="discovery-time">8 minutes ago</span>
-                        </div>
-                        <div class="discovery-status">
-                            <span class="status running">Scanning...</span>
-                        </div>
-                    </div>
-                    <div class="discovery-item vulnerability-found">
-                        <div class="discovery-info">
-                            <span class="discovery-type">Domain</span>
-                            <span class="discovery-target">oldcompany.com</span>
-                            <span class="discovery-time">15 minutes ago</span>
-                        </div>
-                        <div class="discovery-status">
-                            <span class="severity high">2 High</span>
-                            <span class="severity medium">5 Medium</span>
-                            <span class="status contacted">Contact attempted</span>
-                        </div>
+                <div>
+                    <p class="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Operations</p>
+                    <div class="mt-3 space-y-1">
+                        <a href="dashboard.html?view=discovery" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                            Discovery Queue
+                        </a>
+                        <a href="dashboard.html?view=contacts" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-envelopes-bulk" aria-hidden="true"></i>
+                            Contact Log
+                        </a>
+                        <a href="README.md" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-book" aria-hidden="true"></i>
+                            Project README
+                        </a>
                     </div>
                 </div>
-            </div>
+            </nav>
+        </aside>
 
-            <!-- Discovery Methods -->
-            <div class="section">
-                <h2>🤖 Autonomous Discovery Methods</h2>
-                <div class="features">
-                    <div class="feature">
-                        <h3>🌐 Domain Discovery</h3>
-                        <p>Certificate Transparency logs, DNS zone transfers, subdomain enumeration</p>
+        <div class="flex-1">
+            <header class="border-b border-neutral-border bg-white/90 px-5 py-4 backdrop-blur lg:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Live Security Program</p>
+                        <h2 class="text-2xl font-extrabold text-dark-base">Autonomous Target Discovery</h2>
                     </div>
-                    <div class="feature">
-                        <h3>📦 Repository Scanning</h3>
-                        <p>GitHub trending, recently updated repos, public package registries</p>
-                    </div>
-                    <div class="feature">
-                        <h3>🕸️ Web Crawling</h3>
-                        <p>Link discovery, sitemap parsing, robots.txt analysis</p>
-                    </div>
-                    <div class="feature">
-                        <h3>⛓️ Blockchain Monitoring</h3>
-                        <p>New smart contracts, DeFi protocols, NFT projects</p>
-                    </div>
-                    <div class="feature">
-                        <h3>📡 API Discovery</h3>
-                        <p>Public API directories, OpenAPI specs, GraphQL endpoints</p>
-                    </div>
-                    <div class="feature">
-                        <h3>📧 Contact & Notify</h3>
-                        <p>WHOIS lookup, security contacts, responsible disclosure</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="dashboard.html" class="btn-outline">
+                            <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+                            Dashboard
+                        </a>
+                        <a href="vulnerabilities.html" class="btn-primary">
+                            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                            Vulnerabilities
+                        </a>
                     </div>
                 </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="section">
-                <h2>Quick Actions</h2>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="window.location.href='dashboard.html'">📊 View Dashboard</button>
-                    <button onclick="window.location.href='vulnerabilities.html'">🐛 View Vulnerabilities</button>
-                    <button onclick="viewDiscoveryQueue()">📋 Discovery Queue</button>
-                    <button onclick="viewContactLog()">📧 Contact Log</button>
+                <div class="mt-4 flex items-center gap-2 lg:hidden">
+                    <a href="index.html" class="rounded-md bg-[#feeae9] px-3 py-2 text-xs font-semibold text-brand">Overview</a>
+                    <a href="dashboard.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Dashboard</a>
+                    <a href="vulnerabilities.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Vulnerabilities</a>
                 </div>
-            </div>
+            </header>
+
+            <main class="space-y-6 px-5 py-6 lg:px-8">
+                <section class="relative overflow-hidden rounded-2xl border border-neutral-border bg-white p-6 shadow-card lg:p-8">
+                    <div class="absolute -right-16 -top-14 h-52 w-52 rounded-full bg-red-100 blur-2xl" aria-hidden="true"></div>
+                    <div class="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+                        <div>
+                            <p class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-700">
+                                <span class="status-indicator" aria-hidden="true"></span>
+                                Autonomous Mode Active
+                            </p>
+                            <h3 class="mt-4 text-3xl font-extrabold leading-tight text-dark-base">Continuous internet scanning that discovers, tests, and reports vulnerabilities automatically.</h3>
+                            <p class="mt-3 max-w-2xl text-sm leading-7 text-gray-600">BLT-NetGuardian combines domain discovery, repository monitoring, Web2/Web3 analysis, and responsible disclosure workflows in one practical interface built for active security teams.</p>
+                            <div class="mt-5 flex flex-wrap gap-3 text-sm">
+                                <span class="rounded-md border border-neutral-border bg-gray-50 px-3 py-2 text-gray-700"><i class="fa-solid fa-globe mr-2 text-brand" aria-hidden="true"></i>CT + DNS discovery</span>
+                                <span class="rounded-md border border-neutral-border bg-gray-50 px-3 py-2 text-gray-700"><i class="fa-brands fa-github mr-2 text-brand" aria-hidden="true"></i>Repository intelligence</span>
+                                <span class="rounded-md border border-neutral-border bg-gray-50 px-3 py-2 text-gray-700"><i class="fa-solid fa-user-shield mr-2 text-brand" aria-hidden="true"></i>Responsible disclosure</span>
+                            </div>
+                        </div>
+                        <div class="rounded-xl border border-neutral-border bg-gray-50 p-5">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">How Teams Use It</p>
+                            <ul class="mt-3 space-y-3 text-sm text-gray-700">
+                                <li class="flex gap-3"><i class="fa-solid fa-check mt-0.5 text-brand" aria-hidden="true"></i><span>Uncovers new attack surfaces from domains, APIs, repos, and contracts without manual submissions.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check mt-0.5 text-brand" aria-hidden="true"></i><span>Prioritizes active risk by severity and tracks remediation communications end to end.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check mt-0.5 text-brand" aria-hidden="true"></i><span>Gives contributors one interface for discovery operations, job monitoring, and vulnerability review.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid gap-6 xl:grid-cols-2">
+                    <article class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-lg font-bold text-dark-base">Live Scanning Status</h3>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700"><span class="status-indicator" aria-hidden="true"></span>scanner online</span>
+                        </div>
+                        <div class="mt-4 rounded-xl border border-red-100 bg-red-50/60 p-4">
+                            <p id="scanningTarget" class="text-sm text-gray-700">Currently scanning: <span class="highlight">example.com</span></p>
+                            <p id="scannedCount" class="mt-2 text-sm text-gray-700">Total scanned today: <span class="highlight">1,247</span> targets</p>
+                            <p id="foundVulns" class="mt-2 text-sm text-gray-700">Vulnerabilities found: <span class="highlight critical">23</span></p>
+                        </div>
+                    </article>
+
+                    <article class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                        <h3 class="text-lg font-bold text-dark-base">Suggest a Target</h3>
+                        <p class="mt-2 text-sm text-gray-600">Submit a domain, URL, or repository and optionally mark it as priority.</p>
+                        <form id="suggestionForm" class="mt-4 space-y-3" aria-label="Suggest target form">
+                            <div class="search-wrap">
+                                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                                <label for="suggestion" class="sr-only">Target suggestion</label>
+                                <input class="input-field" type="text" id="suggestion" name="suggestion" placeholder="example.com or github.com/org/repo" required>
+                            </div>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700" for="priority">
+                                <input type="checkbox" id="priority" name="priority" class="h-4 w-4 rounded border-gray-400 text-red-600 focus:ring-red-600">
+                                Mark as priority for immediate scanning
+                            </label>
+                            <button type="submit" class="btn-primary w-full sm:w-auto">
+                                <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+                                Suggest Target
+                            </button>
+                        </form>
+                        <div id="suggestionMessage" class="message" role="status" aria-live="polite"></div>
+                    </article>
+                </section>
+
+                <section class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold text-dark-base">Autonomous Discovery Metrics</h3>
+                        <a href="dashboard.html" class="text-sm font-semibold text-red-600 hover:underline">See operational dashboard</a>
+                    </div>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <div class="rounded-lg border border-neutral-border bg-gray-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Domains Discovered</p>
+                            <p id="domainCount" class="mt-2 text-3xl font-extrabold text-dark-base">12,458</p>
+                        </div>
+                        <div class="rounded-lg border border-neutral-border bg-gray-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Repositories Found</p>
+                            <p id="repoCount" class="mt-2 text-3xl font-extrabold text-dark-base">3,721</p>
+                        </div>
+                        <div class="rounded-lg border border-neutral-border bg-gray-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Active Scans</p>
+                            <p id="activeScans" class="mt-2 text-3xl font-extrabold text-dark-base">47</p>
+                        </div>
+                        <div class="rounded-lg border border-neutral-border bg-gray-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Contacts Made</p>
+                            <p id="contactedCount" class="mt-2 text-3xl font-extrabold text-dark-base">156</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+                    <article class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <h3 class="text-lg font-bold text-dark-base">Recent Discoveries</h3>
+                            <div class="w-full max-w-xs search-wrap">
+                                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                                <label for="discoverySearch" class="sr-only">Search discoveries</label>
+                                <input id="discoverySearch" type="text" class="input-field" placeholder="Search by target or type">
+                            </div>
+                        </div>
+                        <div class="mt-4 discoveries-list" id="discoveriesList">
+                            <div class="discovery-item">
+                                <div class="discovery-info">
+                                    <span class="discovery-type">Domain</span>
+                                    <span class="discovery-target">newstartup.io</span>
+                                    <span class="discovery-time">2 minutes ago</span>
+                                </div>
+                                <div class="discovery-status">
+                                    <span class="status queued">Queued for scan</span>
+                                </div>
+                            </div>
+                            <div class="discovery-item">
+                                <div class="discovery-info">
+                                    <span class="discovery-type">Repository</span>
+                                    <span class="discovery-target">github.com/acme/webapp</span>
+                                    <span class="discovery-time">8 minutes ago</span>
+                                </div>
+                                <div class="discovery-status">
+                                    <span class="status running">Scanning...</span>
+                                </div>
+                            </div>
+                            <div class="discovery-item vulnerability-found">
+                                <div class="discovery-info">
+                                    <span class="discovery-type">Domain</span>
+                                    <span class="discovery-target">oldcompany.com</span>
+                                    <span class="discovery-time">15 minutes ago</span>
+                                </div>
+                                <div class="discovery-status">
+                                    <span class="severity high">2 high</span>
+                                    <span class="severity medium">5 medium</span>
+                                    <span class="status contacted">Contact attempted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                        <h3 class="text-lg font-bold text-dark-base">Why BLT-NetGuardian</h3>
+                        <ul class="mt-4 space-y-3 text-sm text-gray-700">
+                            <li class="rounded-lg border border-neutral-border bg-gray-50 p-3"><i class="fa-solid fa-bolt text-brand mr-2" aria-hidden="true"></i>Fast autonomous discovery so teams can focus on remediation.</li>
+                            <li class="rounded-lg border border-neutral-border bg-gray-50 p-3"><i class="fa-solid fa-shield-heart text-brand mr-2" aria-hidden="true"></i>Built-in disclosure flow improves responsible communication.</li>
+                            <li class="rounded-lg border border-neutral-border bg-gray-50 p-3"><i class="fa-solid fa-layer-group text-brand mr-2" aria-hidden="true"></i>Unified operations across web apps, codebases, APIs, and smart contracts.</li>
+                        </ul>
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            <button onclick="viewDiscoveryQueue()" class="btn-outline">
+                                <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                                Discovery Queue
+                            </button>
+                            <button onclick="viewContactLog()" class="btn-outline">
+                                <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i>
+                                Contact Log
+                            </button>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="rounded-xl border border-neutral-border bg-white p-6 shadow-card">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold text-dark-base">Autonomous Discovery Methods</h3>
+                        <span class="rounded-md bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-500">How it works</span>
+                    </div>
+                    <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-solid fa-network-wired mr-2 text-brand" aria-hidden="true"></i>Domain Discovery</h4>
+                            <p class="mt-2 text-sm text-gray-600">Certificate Transparency logs, DNS enrichment, and subdomain expansion uncover new scope daily.</p>
+                        </article>
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-brands fa-github mr-2 text-brand" aria-hidden="true"></i>Repository Scanning</h4>
+                            <p class="mt-2 text-sm text-gray-600">Tracks trending and recently updated repositories for SAST and dependency-risk analysis.</p>
+                        </article>
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-solid fa-link mr-2 text-brand" aria-hidden="true"></i>Web Crawling</h4>
+                            <p class="mt-2 text-sm text-gray-600">Explores URLs, forms, and APIs to map application surfaces and queue targeted scanner workflows.</p>
+                        </article>
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-solid fa-cube mr-2 text-brand" aria-hidden="true"></i>Blockchain Monitoring</h4>
+                            <p class="mt-2 text-sm text-gray-600">Monitors smart-contract deployments, transaction behavior, and risky contract patterns in real time.</p>
+                        </article>
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-solid fa-plug mr-2 text-brand" aria-hidden="true"></i>API Discovery</h4>
+                            <p class="mt-2 text-sm text-gray-600">Discovers public API directories, OpenAPI endpoints, and GraphQL interfaces for coverage expansion.</p>
+                        </article>
+                        <article class="rounded-lg border border-neutral-border p-4">
+                            <h4 class="font-semibold text-dark-base"><i class="fa-solid fa-paper-plane mr-2 text-brand" aria-hidden="true"></i>Contact &amp; Notify</h4>
+                            <p class="mt-2 text-sm text-gray-600">Uses security.txt, WHOIS, and repo contacts to execute structured responsible disclosure outreach.</p>
+                        </article>
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
-    
+
     <script src="assets/js/config.js"></script>
     <script src="assets/js/autonomous.js"></script>
 </body>
