@@ -213,6 +213,8 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'ready': 'merge_ready',  # Boolean flag: ready to merge (0/1)
             'ready_score': 'overall_score',  # Numeric score: 0-100%
             'overall': 'overall_score',  # Alias for ready_score
+            'ci_score': 'ci_score',  # CI score: maps directly to database column
+            'review_score': 'review_score',  # Review score: maps directly to database column
             'response_score': 'response_rate',
             'feedback_score': 'responded_feedback',
             # All other columns map directly to database columns
