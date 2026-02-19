@@ -1673,7 +1673,7 @@
             
             document.querySelectorAll('.view-raw-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const prId = parseInt(e.currentTarget.dataset.prId);
+                    const prId = parseInt(e.currentTarget.dataset.prId, 10);
                     showRawDataModal(prId);
                 });
             });
