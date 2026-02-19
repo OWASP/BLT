@@ -1,0 +1,51 @@
+-- Migration: Create prs table
+-- Created: 2026-02-19
+-- Description: Initial table for tracking GitHub Pull Requests
+
+CREATE TABLE IF NOT EXISTS prs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pr_url TEXT NOT NULL UNIQUE,
+    repo_owner TEXT NOT NULL,
+    repo_name TEXT NOT NULL,
+    pr_number INTEGER NOT NULL,
+    title TEXT,
+    state TEXT,
+    is_merged INTEGER DEFAULT 0,
+    mergeable_state TEXT,
+    files_changed INTEGER DEFAULT 0,
+    author_login TEXT,
+    author_avatar TEXT,
+    author_avatar TEXT,
+    repo_owner_avatar TEXT,
+    checks_passed INTEGER DEFAULT 0,
+    checks_failed INTEGER DEFAULT 0,
+    checks_skipped INTEGER DEFAULT 0,
+    commits_count INTEGER DEFAULT 0,
+    behind_by INTEGER DEFAULT 0,
+    review_status TEXT,
+    last_updated_at TEXT,
+    last_refreshed_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    -- Readiness analysis fields
+    -- Persisted to database to survive page refreshes, worker restarts, and provide permanent record
+    overall_score INTEGER,
+    ci_score INTEGER,
+    review_score INTEGER,
+    classification TEXT,
+    merge_ready INTEGER DEFAULT 0,
+    blockers TEXT,
+    warnings TEXT,
+    recommendations TEXT,
+    review_health_classification TEXT,
+    review_health_score INTEGER,
+    response_rate REAL,
+    total_feedback INTEGER,
+    responded_feedback INTEGER,
+    stale_feedback_count INTEGER,
+    stale_feedback TEXT,
+    readiness_computed_at TEXT,
+    is_draft INTEGER DEFAULT 0,
+    open_conversations_count INTEGER DEFAULT 0,
+    reviewers_json TEXT
+);
