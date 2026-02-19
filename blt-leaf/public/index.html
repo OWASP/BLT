@@ -296,7 +296,7 @@
 
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-        <div class="mx-auto px-2 sm:px-4 lg:px-8">
+        <div class="mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Mobile: Compact two-line layout -->
             <div class="flex flex-col gap-1.5 py-2 md:hidden">
                 <!-- First line: Logo, title, and essential buttons -->
@@ -1377,19 +1377,27 @@
          * Update the auto-refresh button appearance
          */
         function updateAutoRefreshUI() {
-            const button = document.getElementById('autoRefreshToggle');
-            const icon = document.getElementById('autoRefreshIcon');
+            const buttons = document.querySelectorAll('#autoRefreshToggle');
+            const icons = document.querySelectorAll('#autoRefreshIcon');
 
             if (autoRefreshEnabled) {
-                button.classList.add('text-green-600', 'dark:text-green-400');
-                button.classList.remove('text-slate-500', 'dark:text-slate-400');
-                icon.classList.add('fa-spin');
-                button.title = 'Auto-refresh enabled (click to disable)';
+                buttons.forEach(button => {
+                    button.classList.add('text-green-600', 'dark:text-green-400');
+                    button.classList.remove('text-slate-500', 'dark:text-slate-400');
+                    button.title = 'Auto-refresh enabled (click to disable)';
+                });
+                icons.forEach(icon => {
+                    icon.classList.add('fa-spin');
+                });
             } else {
-                button.classList.remove('text-green-600', 'dark:text-green-400');
-                button.classList.add('text-slate-500', 'dark:text-slate-400');
-                icon.classList.remove('fa-spin');
-                button.title = 'Auto-refresh disabled (click to enable)';
+                buttons.forEach(button => {
+                    button.classList.remove('text-green-600', 'dark:text-green-400');
+                    button.classList.add('text-slate-500', 'dark:text-slate-400');
+                    button.title = 'Auto-refresh disabled (click to enable)';
+                });
+                icons.forEach(icon => {
+                    icon.classList.remove('fa-spin');
+                });
             }
         }
 
@@ -2315,30 +2323,54 @@
             }
         }
 
-        // Search listener
-        document.getElementById('prSearchInput').addEventListener('input', (e) => {
-            currentPage = 1;
-            filterPrs(e.target.value);
+        // Theme toggle - handle both mobile and desktop buttons
+        document.querySelectorAll('#themeToggle').forEach(btn => {
+            btn.addEventListener('click', toggleTheme);
+        });
+        
+        // Auto-refresh toggle - handle both mobile and desktop buttons
+        document.querySelectorAll('#autoRefreshToggle').forEach(btn => {
+            btn.addEventListener('click', toggleAutoRefresh);
+        });
+        
+        // Search input - sync both mobile and desktop inputs
+        document.querySelectorAll('#prSearchInput').forEach(input => {
+            input.addEventListener('input', (e) => {
+                currentPage = 1;
+                filterPrs(e.target.value);
+                // Sync the other input
+                document.querySelectorAll('#prSearchInput').forEach(otherInput => {
+                    if (otherInput !== e.target) {
+                        otherInput.value = e.target.value;
+                    }
+                });
+            });
+            
+            // Allow Enter key to trigger search
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const searchTerm = e.target.value;
+                    filterPrs(searchTerm);
+                }
+            });
         });
 
-        // Search button listener
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            const searchTerm = document.getElementById('prSearchInput').value;
-            filterPrs(searchTerm);
-        });
-
-        // Clear button listener
-        document.getElementById('clearSearchBtn').addEventListener('click', () => {
-            document.getElementById('prSearchInput').value = '';
-            filterPrs('');
-        });
-
-        // Allow Enter key to trigger search
-        document.getElementById('prSearchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const searchTerm = document.getElementById('prSearchInput').value;
+        // Search button - handle both mobile and desktop buttons
+        document.querySelectorAll('#searchBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const searchTerm = document.querySelector('#prSearchInput').value;
                 filterPrs(searchTerm);
-            }
+            });
+        });
+
+        // Clear button - handle both mobile and desktop buttons
+        document.querySelectorAll('#clearSearchBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#prSearchInput').forEach(input => {
+                    input.value = '';
+                });
+                filterPrs('');
+            });
         });
 
         document.getElementById('addPrBtn').addEventListener('click', addPr);
@@ -2400,33 +2432,38 @@
         function initTheme() {
             // Theme class is already set in the head, just update the icon
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcons = document.querySelectorAll('#themeIcon');
 
             if (isDark) {
-                themeIcon.className = 'fas fa-sun';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-sun' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
             } else {
-                themeIcon.className = 'fas fa-moon';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-moon' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
             }
         }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcons = document.querySelectorAll('#themeIcon');
 
             if (isDark) {
                 document.documentElement.classList.remove('dark');
-                themeIcon.className = 'fas fa-moon';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-moon' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
                 localStorage.setItem('theme', 'light');
             } else {
                 document.documentElement.classList.add('dark');
-                themeIcon.className = 'fas fa-sun';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-sun' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
                 localStorage.setItem('theme', 'dark');
             }
         }
 
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-        document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
-        
         // Raw data modal event listeners
         document.getElementById('closeRawDataModal').addEventListener('click', hideRawDataModal);
         document.getElementById('closeRawDataModalBtn').addEventListener('click', hideRawDataModal);
