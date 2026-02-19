@@ -197,8 +197,8 @@ async def handle_homepage(
                             <div class="flex items-start flex-1">
                                 <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                                 <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/issues</code>
-                                    <p class="text-gray-600 text-sm mt-1">List all issues (paginated)</p>
+                                    <code class="text-sm font-mono text-gray-800">/bugs</code>
+                                    <p class="text-gray-600 text-sm mt-1">List all bugs (paginated)</p>
                                     <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
                                         <span class="font-semibold text-red-600">Query params:</span> 
                                         <code class="bg-white px-1 py-0.5 rounded">page</code>, 
@@ -208,7 +208,7 @@ async def handle_homepage(
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="testEndpoint('GET', '/issues', {{page: 1, per_page: 10}})" 
+                            <button onclick="testEndpoint('GET', '/bugs', {{page: 1, per_page: 10}})" 
                                     class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-play mr-2"></i>Try it
                             </button>
@@ -219,11 +219,11 @@ async def handle_homepage(
                             <div class="flex items-start flex-1">
                                 <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                                 <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/issues/{{id}}</code>
-                                    <p class="text-gray-600 text-sm mt-1">Get a specific issue by ID</p>
+                                    <code class="text-sm font-mono text-gray-800">/bugs/{{id}}</code>
+                                    <p class="text-gray-600 text-sm mt-1">Get a specific bug by ID</p>
                                 </div>
                             </div>
-                            <button onclick="testEndpointWithParams('GET', '/issues/{{id}}', 'Enter issue ID:', '1')" 
+                            <button onclick="testEndpointWithParams('GET', '/bugs/{{{{id}}}}', 'Enter bug ID:', '1')" 
                                     class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-play mr-2"></i>Try it
                             </button>
@@ -234,8 +234,8 @@ async def handle_homepage(
                             <div class="flex items-start flex-1">
                                 <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
                                 <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/issues</code>
-                                    <p class="text-gray-600 text-sm mt-1">Create a new issue</p>
+                                    <code class="text-sm font-mono text-gray-800">/bugs</code>
+                                    <p class="text-gray-600 text-sm mt-1">Create a new bug</p>
                                 </div>
                             </div>
                             <button onclick="alert('POST endpoint requires authentication and a valid request body')" 
@@ -249,15 +249,15 @@ async def handle_homepage(
                             <div class="flex items-start flex-1">
                                 <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
                                 <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/issues/search</code>
-                                    <p class="text-gray-600 text-sm mt-1">Search issues</p>
+                                    <code class="text-sm font-mono text-gray-800">/bugs/search</code>
+                                    <p class="text-gray-600 text-sm mt-1">Search bugs</p>
                                     <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
                                         <span class="font-semibold text-red-600">Query params:</span> 
                                         <code class="bg-white px-1 py-0.5 rounded">q</code>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="testEndpointWithQuery('GET', '/issues/search', 'Enter search query:', 'xss')" 
+                            <button onclick="testEndpointWithQuery('GET', '/bugs/search', 'Enter search query:', 'xss')" 
                                     class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-play mr-2"></i>Try it
                             </button>
@@ -836,7 +836,7 @@ async def handle_homepage(
         function testEndpointWithParams(method, endpointTemplate, promptText, defaultValue) {{
             const value = prompt(promptText, defaultValue);
             if (value) {{
-                const endpoint = endpointTemplate.replace('{id}', value);
+                const endpoint = endpointTemplate.replace('{{{{id}}}}', value);
                 testEndpoint(method, endpoint);
             }}
         }}
