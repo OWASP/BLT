@@ -24,14 +24,19 @@ jobs:
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          node -e "require('fs').writeFileSync('issue_body.txt', process.env.ISSUE_BODY || '')"
-          URL=$(grep -oE 'https?://[^ \t\n\r]+' issue_body.txt | head -1)
-          echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          if [ -z "$URL" ]; then
-            echo "No URL found in issue body"
-            exit 1
-          fi
-          echo "Found URL: $URL"
+          node -e "
+            const body = process.env.ISSUE_BODY || '';
+            require('fs').writeFileSync('issue_body.txt', body);
+            // Extract value of the '### Job URL' section
+            const match = body.match(/###\s*Job URL\s*\n+([^\n#]+)/);
+            const url = match ? match[1].trim() : '';
+            if (!url || !url.startsWith('http')) {
+              console.error('No valid URL found in issue body');
+              process.exit(1);
+            }
+            require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'url=' + url + '\n');
+            console.log('Found URL: ' + url);
+          "
 
       - name: Setup Python
         uses: actions/setup-python@v5
