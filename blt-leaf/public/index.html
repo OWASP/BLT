@@ -295,90 +295,130 @@
 </head>
 
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
-    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-5 dark:border-slate-700 dark:bg-slate-800">
-        <div class="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-
-            <div class="flex items-center gap-4 lg:gap-6">
-                <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
-                    <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
-                    <h1 class="text-sm font-bold text-slate-900 dark:text-white sm:text-base">BLT-LEAF</h1>
-                </a>
-
-                <div class="flex items-center gap-1 sm:gap-2 pl-3 sm:pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
-                    <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
-                    <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
-                            id="rateLimitFill"></div>
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+        <div class="mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Mobile: Compact two-line layout -->
+            <div class="flex flex-col gap-1.5 py-2 md:hidden">
+                <!-- First line: Logo, title, and essential buttons -->
+                <div class="flex items-center justify-between">
+                    <a href="/" class="flex shrink-0 items-center gap-1.5 hover:opacity-80 transition-opacity">
+                        <img width="20" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
+                        <h1 class="text-xs font-bold text-slate-900 dark:text-white">BLT-LEAF</h1>
+                    </a>
+                    
+                    <div class="flex items-center gap-1.5">
+                        <button id="autoRefreshToggle"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+                            title="Toggle auto-refresh">
+                            <i class="fas fa-sync-alt text-xs" id="autoRefreshIcon"></i>
+                        </button>
+                        <button id="themeToggle"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700">
+                            <i class="fas fa-moon text-xs" id="themeIcon"></i>
+                        </button>
+                        <a href="/how-it-works.html"
+                            class="inline-flex items-center rounded-lg p-1.5 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                            title="How It Works">
+                            <i class="fas fa-question-circle text-xs"></i>
+                        </a>
+                        <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
+                            class="rounded-lg bg-red-600 p-1.5 text-white hover:bg-red-700"
+                            title="Contribute">
+                            <i class="fab fa-github text-xs"></i>
+                        </a>
                     </div>
-                    <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400"
-                        id="rateLimitText">N/A</span>
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
                 </div>
-            </div>
-
-            <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
-                <div class="flex w-full max-w-lg gap-2">
+                
+                <!-- Second line: Search bar and API limit -->
+                <div class="flex items-center gap-1.5">
                     <div class="relative flex-1">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <i class="fas fa-search text-slate-400"></i>
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                            <i class="fas fa-search text-slate-400 text-xs"></i>
                         </div>
                         <input type="text" id="prSearchInput"
-                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                            class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-1.5 pl-7 pr-2 text-xs text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400"
                             placeholder="Search PRs..." autocomplete="off">
                     </div>
                     <button id="searchBtn"
-                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
-                        <i class="fas fa-search"></i> Search
+                        class="rounded-md bg-red-600 px-2 py-1.5 text-xs font-semibold text-white hover:bg-red-700 whitespace-nowrap">
+                        <i class="fas fa-search"></i>
                     </button>
                     <button id="clearSearchBtn"
-                        class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
-                        <i class="fas fa-times"></i> Clear
+                        class="rounded-md bg-slate-500 px-2 py-1.5 text-xs font-semibold text-white hover:bg-slate-600 whitespace-nowrap">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="flex shrink-0 items-center gap-3">
-                <button id="autoRefreshToggle"
-                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
-                    title="Toggle auto-refresh">
-                    <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
-                </button>
-                <button id="themeToggle"
-                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <a href="/how-it-works.html"
-                    class="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-                    title="How It Works">
-                    <i class="fas fa-question-circle"></i>
-                    <span class="hidden sm:inline">How It Works</span>
-                </a>
-                <span id="releaseVersion"
-                    class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
-                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
-                    class="rounded-lg bg-red-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 inline-flex items-center gap-2 transition-colors shadow-sm"
-                    title="Contribute">
-                    <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
-                </a>
+            <!-- Desktop: Original single-line layout -->
+            <div class="hidden md:flex h-16 items-center justify-between">
+                <div class="flex items-center gap-4 lg:gap-6">
+                    <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
+                        <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
+                        <h1 class="text-sm font-bold text-slate-900 dark:text-white sm:text-base">BLT-LEAF</h1>
+                    </a>
+
+                    <div class="flex items-center gap-1 sm:gap-2 pl-3 sm:pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
+                        <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
+                        <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                            <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
+                                id="rateLimitFill"></div>
+                        </div>
+                        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400"
+                            id="rateLimitText">N/A</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
+                    </div>
+                </div>
+
+                <div class="flex flex-1 items-center justify-center px-4 md:px-8 lg:px-12">
+                    <div class="flex w-full max-w-lg gap-2">
+                        <div class="relative flex-1">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <i class="fas fa-search text-slate-400"></i>
+                            </div>
+                            <input type="text" id="prSearchInput"
+                                class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-red-500 transition-colors shadow-sm"
+                                placeholder="Search PRs..." autocomplete="off">
+                        </div>
+                        <button id="searchBtn"
+                            class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors shadow-sm whitespace-nowrap">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button id="clearSearchBtn"
+                            class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm whitespace-nowrap">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-3">
+                    <button id="autoRefreshToggle"
+                        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
+                        title="Toggle auto-refresh">
+                        <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
+                    </button>
+                    <button id="themeToggle"
+                        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+                    <a href="/how-it-works.html"
+                        class="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                        title="How It Works">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="hidden sm:inline">How It Works</span>
+                    </a>
+                    <span id="releaseVersion"
+                        class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
+                    <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
+                        class="rounded-lg bg-red-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 inline-flex items-center gap-2 transition-colors shadow-sm"
+                        title="Contribute">
+                        <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
-
-    <div class="bg-gradient-to-r from-red-50 to-orange-50 
-            border-b border-red-100
-            dark:bg-slate-200 dark:border-slate-300">
-    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
-        <p class="text-sm text-slate-700 leading-relaxed sm:text-base 
-                  dark:text-black">
-
-                Leaf is a Readiness and Security PR checker. It reviews pull requests for operational readiness,
-                security risks, and production-impacting changes before they ship. Inspired by the surge of AI-generated
-                PRs, Leaf helps teams maintain high standards by adding an automated layer of critical thinking and risk
-                detection to every change.
-            </p>
-        </div>
-    </div>
 
     <div class="mx-auto flex min-h-0 w-full flex-1 flex-col md:flex-row">
         <aside
@@ -1337,19 +1377,27 @@
          * Update the auto-refresh button appearance
          */
         function updateAutoRefreshUI() {
-            const button = document.getElementById('autoRefreshToggle');
-            const icon = document.getElementById('autoRefreshIcon');
+            const buttons = document.querySelectorAll('#autoRefreshToggle');
+            const icons = document.querySelectorAll('#autoRefreshIcon');
 
             if (autoRefreshEnabled) {
-                button.classList.add('text-green-600', 'dark:text-green-400');
-                button.classList.remove('text-slate-500', 'dark:text-slate-400');
-                icon.classList.add('fa-spin');
-                button.title = 'Auto-refresh enabled (click to disable)';
+                buttons.forEach(button => {
+                    button.classList.add('text-green-600', 'dark:text-green-400');
+                    button.classList.remove('text-slate-500', 'dark:text-slate-400');
+                    button.title = 'Auto-refresh enabled (click to disable)';
+                });
+                icons.forEach(icon => {
+                    icon.classList.add('fa-spin');
+                });
             } else {
-                button.classList.remove('text-green-600', 'dark:text-green-400');
-                button.classList.add('text-slate-500', 'dark:text-slate-400');
-                icon.classList.remove('fa-spin');
-                button.title = 'Auto-refresh disabled (click to enable)';
+                buttons.forEach(button => {
+                    button.classList.remove('text-green-600', 'dark:text-green-400');
+                    button.classList.add('text-slate-500', 'dark:text-slate-400');
+                    button.title = 'Auto-refresh disabled (click to enable)';
+                });
+                icons.forEach(icon => {
+                    icon.classList.remove('fa-spin');
+                });
             }
         }
 
@@ -2275,30 +2323,54 @@
             }
         }
 
-        // Search listener
-        document.getElementById('prSearchInput').addEventListener('input', (e) => {
-            currentPage = 1;
-            filterPrs(e.target.value);
+        // Theme toggle - handle both mobile and desktop buttons
+        document.querySelectorAll('#themeToggle').forEach(btn => {
+            btn.addEventListener('click', toggleTheme);
+        });
+        
+        // Auto-refresh toggle - handle both mobile and desktop buttons
+        document.querySelectorAll('#autoRefreshToggle').forEach(btn => {
+            btn.addEventListener('click', toggleAutoRefresh);
+        });
+        
+        // Search input - sync both mobile and desktop inputs
+        document.querySelectorAll('#prSearchInput').forEach(input => {
+            input.addEventListener('input', (e) => {
+                currentPage = 1;
+                filterPrs(e.target.value);
+                // Sync the other input
+                document.querySelectorAll('#prSearchInput').forEach(otherInput => {
+                    if (otherInput !== e.target) {
+                        otherInput.value = e.target.value;
+                    }
+                });
+            });
+            
+            // Allow Enter key to trigger search
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const searchTerm = e.target.value;
+                    filterPrs(searchTerm);
+                }
+            });
         });
 
-        // Search button listener
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            const searchTerm = document.getElementById('prSearchInput').value;
-            filterPrs(searchTerm);
-        });
-
-        // Clear button listener
-        document.getElementById('clearSearchBtn').addEventListener('click', () => {
-            document.getElementById('prSearchInput').value = '';
-            filterPrs('');
-        });
-
-        // Allow Enter key to trigger search
-        document.getElementById('prSearchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const searchTerm = document.getElementById('prSearchInput').value;
+        // Search button - handle both mobile and desktop buttons
+        document.querySelectorAll('#searchBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const searchTerm = document.querySelector('#prSearchInput').value;
                 filterPrs(searchTerm);
-            }
+            });
+        });
+
+        // Clear button - handle both mobile and desktop buttons
+        document.querySelectorAll('#clearSearchBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#prSearchInput').forEach(input => {
+                    input.value = '';
+                });
+                filterPrs('');
+            });
         });
 
         document.getElementById('addPrBtn').addEventListener('click', addPr);
@@ -2360,33 +2432,38 @@
         function initTheme() {
             // Theme class is already set in the head, just update the icon
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcons = document.querySelectorAll('#themeIcon');
 
             if (isDark) {
-                themeIcon.className = 'fas fa-sun';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-sun' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
             } else {
-                themeIcon.className = 'fas fa-moon';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-moon' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
             }
         }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcons = document.querySelectorAll('#themeIcon');
 
             if (isDark) {
                 document.documentElement.classList.remove('dark');
-                themeIcon.className = 'fas fa-moon';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-moon' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
                 localStorage.setItem('theme', 'light');
             } else {
                 document.documentElement.classList.add('dark');
-                themeIcon.className = 'fas fa-sun';
+                themeIcons.forEach(icon => {
+                    icon.className = 'fas fa-sun' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
+                });
                 localStorage.setItem('theme', 'dark');
             }
         }
 
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-        document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
-        
         // Raw data modal event listeners
         document.getElementById('closeRawDataModal').addEventListener('click', hideRawDataModal);
         document.getElementById('closeRawDataModalBtn').addEventListener('click', hideRawDataModal);
@@ -2464,6 +2541,26 @@
                 .catch(err => console.warn('SW Registration failed:', err));
         }
     </script>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="space-y-4">
+                <p class="text-sm text-slate-700 leading-relaxed dark:text-slate-300">
+                    Leaf is a Readiness and Security PR checker. It reviews pull requests for operational readiness,
+                    security risks, and production-impacting changes before they ship. Inspired by the surge of AI-generated
+                    PRs, Leaf helps teams maintain high standards by adding an automated layer of critical thinking and risk
+                    detection to every change.
+                </p>
+                <p class="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    🔒 Security features are coming soon!
+                </p>
+                <div class="pt-2 text-xs text-slate-500 dark:text-slate-500">
+                    <p>Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">OWASP Bug Logging Tool (BLT)</a> project</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 
 </html>
