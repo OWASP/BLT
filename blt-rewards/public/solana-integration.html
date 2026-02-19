@@ -5,44 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Solana Integration Guide for BACON - Using SPL Token Standard">
     <title>Solana Integration - BACON</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body>
-    <header class="hero" style="min-height: 40vh;">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">🥓 BACON</a></div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="getting-started.html">Getting Started</a></li>
-                    <li><a href="api-reference.html">API Reference</a></li>
-                    <li><a href="bitcoin-integration.html">Bitcoin</a></li>
-                    <li><a href="solana-integration.html">Solana</a></li>
-                    <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank">GitHub</a></li>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🥓</span>
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-gray-700 hover:text-blt-red transition-colors">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-gray-700 hover:text-blt-red transition-colors">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-blt-red">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
-        <div class="hero-content">
-            <h1>◎ Solana Integration</h1>
-            <p class="tagline">High-Speed Rewards with SPL Tokens</p>
-        </div>
     </header>
 
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-50 rounded-2xl mb-6">
+                <span class="text-3xl font-bold text-purple-600">◎</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Solana Integration</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">High-Speed Rewards with SPL Tokens</p>
+        </div>
+    </section>
+
     <main>
-        <section class="section">
-            <div class="container">
-                <h2>Why Solana for BACON?</h2>
-                <div class="feature-detail">
-                    <p>Solana is a high-performance blockchain that offers exceptional speed and low transaction costs, making it ideal for frequent reward distributions and micro-transactions in the BACON ecosystem.</p>
+        <!-- Why Solana -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Why Solana for BACON?</h2>
+                
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+                    <p class="text-gray-700 leading-relaxed mb-6">
+                        Solana is a high-performance blockchain that offers exceptional speed and low transaction costs, making it ideal for frequent reward distributions and micro-transactions in the BACON ecosystem.
+                    </p>
                     
-                    <h3>Key Advantages</h3>
-                    <ul>
-                        <li><strong>Ultra-Fast:</strong> Process 65,000+ transactions per second</li>
-                        <li><strong>Low Costs:</strong> Transaction fees average $0.00025</li>
-                        <li><strong>SPL Tokens:</strong> Native token standard with rich functionality</li>
-                        <li><strong>Developer-Friendly:</strong> Excellent tooling and documentation</li>
-                        <li><strong>Scalable:</strong> No compromise on decentralization</li>
-                    </ul>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Key Advantages</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-bolt text-purple-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Ultra-Fast</p>
+                                <p class="text-sm text-gray-600">Process 65,000+ transactions per second</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-coins text-green-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Low Costs</p>
+                                <p class="text-sm text-gray-600">Transaction fees average $0.00025</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-cube text-blue-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">SPL Tokens</p>
+                                <p class="text-sm text-gray-600">Native token standard with rich functionality</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-code text-orange-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Developer-Friendly</p>
+                                <p class="text-sm text-gray-600">Excellent tooling and documentation</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

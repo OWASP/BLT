@@ -5,56 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Bitcoin Integration Guide for BACON - Using Runes Protocol">
     <title>Bitcoin Integration - BACON</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body>
-    <header class="hero" style="min-height: 40vh;">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">🥓 BACON</a></div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="getting-started.html">Getting Started</a></li>
-                    <li><a href="api-reference.html">API Reference</a></li>
-                    <li><a href="bitcoin-integration.html">Bitcoin</a></li>
-                    <li><a href="solana-integration.html">Solana</a></li>
-                    <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank">GitHub</a></li>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🥓</span>
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-gray-700 hover:text-blt-red transition-colors">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-gray-700 hover:text-blt-red transition-colors">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-blt-red">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>
-        <div class="hero-content">
-            <h1>₿ Bitcoin Integration</h1>
-            <p class="tagline">Using Runes Protocol for BACON Tokens</p>
-        </div>
     </header>
 
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-50 rounded-2xl mb-6">
+                <i class="fab fa-bitcoin text-3xl text-orange-500"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Bitcoin Integration</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Using Runes Protocol for BACON Tokens</p>
+        </div>
+    </section>
+
     <main>
-        <section class="section">
-            <div class="container">
-                <h2>What is the Runes Protocol?</h2>
-                <div class="feature-detail">
-                    <p>The Runes protocol is a fungible token protocol built on Bitcoin that allows for the creation and transfer of tokens directly on the Bitcoin blockchain. Unlike other token standards, Runes leverages Bitcoin's native UTXO model for efficient and secure token transfers.</p>
+        <!-- What is Runes Protocol -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">What is the Runes Protocol?</h2>
+                
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+                    <p class="text-gray-700 leading-relaxed mb-6">
+                        The Runes protocol is a fungible token protocol built on Bitcoin that allows for the creation and transfer of tokens directly on the Bitcoin blockchain. Unlike other token standards, Runes leverages Bitcoin's native UTXO model for efficient and secure token transfers.
+                    </p>
                     
-                    <h3>Key Features</h3>
-                    <ul>
-                        <li><strong>Native Bitcoin:</strong> Tokens exist on the Bitcoin mainnet without requiring a separate layer</li>
-                        <li><strong>UTXO-based:</strong> Leverages Bitcoin's proven UTXO model for better efficiency</li>
-                        <li><strong>No Off-chain Dependencies:</strong> All data is stored on the Bitcoin blockchain</li>
-                        <li><strong>Fungible Tokens:</strong> Perfect for reward and incentive systems</li>
-                    </ul>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Key Features</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blt-red mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Native Bitcoin</p>
+                                <p class="text-sm text-gray-600">Tokens exist on the Bitcoin mainnet without requiring a separate layer</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blt-red mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">UTXO-based</p>
+                                <p class="text-sm text-gray-600">Leverages Bitcoin's proven UTXO model for better efficiency</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blt-red mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">No Off-chain Dependencies</p>
+                                <p class="text-sm text-gray-600">All data is stored on the Bitcoin blockchain</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blt-red mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Fungible Tokens</p>
+                                <p class="text-sm text-gray-600">Perfect for reward and incentive systems</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Setting Up Bitcoin Node</h2>
+        <!-- Setting Up -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Setting Up Bitcoin Node</h2>
                 
-                <div class="feature-detail">
-                    <h3>Option 1: Run Your Own Bitcoin Node</h3>
-                    <p>Use the provided setup script to deploy a Bitcoin Core node with Runes support:</p>
-                    <div class="code-block">
-<pre>#!/bin/bash
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Option 1: Run Your Own Bitcoin Node</h3>
+                        <p class="text-gray-700 mb-4">Use the provided setup script to deploy a Bitcoin Core node with Runes support:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">#!/bin/bash
 # Download and run the setup script
 curl -sSL https://raw.githubusercontent.com/OWASP-BLT/BLT-Bacon/main/setup_bacon_node.sh | bash
 
@@ -63,14 +132,14 @@ git clone https://github.com/OWASP-BLT/BLT-Bacon.git
 cd BLT-Bacon
 chmod +x setup_bacon_node.sh
 ./setup_bacon_node.sh</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Option 2: Use a Bitcoin Node Service</h3>
-                    <p>Connect to a third-party Bitcoin node provider:</p>
-                    <div class="code-block">
-<pre>// Configure with external node
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Option 2: Use a Bitcoin Node Service</h3>
+                        <p class="text-gray-700 mb-4">Connect to a third-party Bitcoin node provider:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Configure with external node
 const bacon = new BaconSDK({
   blockchain: 'bitcoin',
   network: 'mainnet',
@@ -80,14 +149,14 @@ const bacon = new BaconSDK({
     password: 'your_password'
   }
 });</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Bitcoin Node Configuration</h3>
-                    <p>Essential settings in <code>bitcoin.conf</code>:</p>
-                    <div class="code-block">
-<pre>server=1
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Bitcoin Node Configuration</h3>
+                        <p class="text-gray-700 mb-4">Essential settings in <code class="px-2 py-1 bg-gray-100 rounded text-sm">bitcoin.conf</code>:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">server=1
 daemon=1
 txindex=1
 rpcuser=yourusername
@@ -99,23 +168,30 @@ addresstype=bech32
 # Runes-specific settings
 enablerunes=1
 runesindex=1</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>Creating BACON Tokens on Bitcoin</h2>
+        <!-- Creating BACON Tokens -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Creating BACON Tokens on Bitcoin</h2>
                 
-                <div class="integration-steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h3>Initialize Token</h3>
-                            <p>Create your BACON token on Bitcoin:</p>
-                            <div class="code-block">
-<pre>const { BitcoinRunes } = require('@blt-bacon/bitcoin');
+                <div class="space-y-8">
+                    <!-- Step 1 -->
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                                1
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Initialize Token</h3>
+                            <p class="text-gray-700 mb-4">Create your BACON token on Bitcoin:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const { BitcoinRunes } = require('@blt-bacon/bitcoin');
 
 const runes = new BitcoinRunes({
   network: 'mainnet',
@@ -136,13 +212,18 @@ const tokenId = await runes.createToken({
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h3>Mint Tokens</h3>
-                            <p>Mint BACON tokens for distribution:</p>
-                            <div class="code-block">
-<pre>// Mint tokens to treasury wallet
+                    <!-- Step 2 -->
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                                2
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Mint Tokens</h3>
+                            <p class="text-gray-700 mb-4">Mint BACON tokens for distribution:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Mint tokens to treasury wallet
 await runes.mint({
   tokenId: 'BACON',
   amount: 1000000,
@@ -156,13 +237,18 @@ console.log(`Treasury balance: ${balance} BACON`);</pre>
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h3>Distribute Rewards</h3>
-                            <p>Send BACON tokens as rewards:</p>
-                            <div class="code-block">
-<pre>// Transfer tokens to contributor
+                    <!-- Step 3 -->
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                                3
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Distribute Rewards</h3>
+                            <p class="text-gray-700 mb-4">Send BACON tokens as rewards:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Transfer tokens to contributor
 await runes.transfer({
   tokenId: 'BACON',
   from: treasuryAddress,
@@ -188,15 +274,20 @@ await runes.batchTransfer({
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Bitcoin Features Integration</h2>
+        <!-- Advanced Features -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Bitcoin Features Integration</h2>
                 
-                <div class="feature-detail">
-                    <h3>Schnorr Signatures</h3>
-                    <p>Enhanced privacy and efficiency with Schnorr signatures:</p>
-                    <div class="code-block">
-<pre>// Use Schnorr signatures for transactions
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-signature text-xl text-orange-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Schnorr Signatures</h3>
+                        <p class="text-gray-600 mb-4">Enhanced privacy and efficiency with Schnorr signatures</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Use Schnorr signatures
 const tx = await runes.createTransaction({
   signatureType: 'schnorr',
   outputs: [{
@@ -205,188 +296,226 @@ const tx = await runes.createTransaction({
     tokenId: 'BACON'
   }]
 });</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Taproot Integration</h3>
-                    <p>Leverage Taproot for complex smart contracts:</p>
-                    <div class="code-block">
-<pre>// Create Taproot-based conditional reward
-const taprootContract = await runes.createTaprootContract({
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-layer-group text-xl text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Taproot Integration</h3>
+                        <p class="text-gray-600 mb-4">Leverage Taproot for complex smart contracts</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Taproot contract
+const contract = await runes.createTaprootContract({
   conditions: {
     minContributions: 5,
-    timelock: '30 days',
-    multiSig: [address1, address2, address3]
+    timelock: '30 days'
   },
-  reward: {
-    tokenId: 'BACON',
-    amount: 500
-  }
+  reward: { amount: 500 }
 });</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Lightning Network Support</h3>
-                    <p>Fast, low-cost transfers via Lightning Network:</p>
-                    <div class="code-block">
-<pre>// Initialize Lightning Network connection
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-bolt text-xl text-yellow-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Lightning Network</h3>
+                        <p class="text-gray-600 mb-4">Fast, low-cost transfers via Lightning Network</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Lightning payment
 const lightning = await runes.connectLightning({
   nodeUrl: process.env.LIGHTNING_NODE_URL
 });
 
-// Send instant reward via Lightning
 await lightning.sendPayment({
-  tokenId: 'BACON',
-  destination: lightningInvoice,
   amount: 25
 });</pre>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>Security Best Practices</h2>
-                
-                <div class="use-cases">
-                    <div class="use-case">
-                        <h3>🔐 Wallet Security</h3>
-                        <ul>
-                            <li>Use hardware wallets for treasury management</li>
-                            <li>Implement multi-signature requirements for large transfers</li>
-                            <li>Keep private keys encrypted and secure</li>
-                            <li>Use separate hot and cold wallets</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="use-case">
-                        <h3>🔒 Transaction Security</h3>
-                        <ul>
-                            <li>Verify all addresses before sending</li>
-                            <li>Use RBF (Replace-By-Fee) for stuck transactions</li>
-                            <li>Monitor for double-spend attempts</li>
-                            <li>Implement rate limiting on rewards</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="use-case">
-                        <h3>🛡️ Node Security</h3>
-                        <ul>
-                            <li>Keep Bitcoin Core updated</li>
-                            <li>Enable firewall and restrict RPC access</li>
-                            <li>Regular backups of wallet.dat</li>
-                            <li>Monitor node health and sync status</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="use-case">
-                        <h3>📊 Audit Trail</h3>
-                        <ul>
-                            <li>Log all reward distributions</li>
-                            <li>Maintain transaction history</li>
-                            <li>Regular audit of token balances</li>
-                            <li>Implement fraud detection</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Advanced Configuration</h2>
-                
-                <div class="feature-detail">
-                    <h3>Custom Fee Management</h3>
-                    <div class="code-block">
-<pre>// Configure transaction fees
-const bacon = new BaconSDK({
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-chart-line text-xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Fee Management</h3>
+                        <p class="text-gray-600 mb-4">Optimize transaction fees dynamically</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const bacon = new BaconSDK({
   blockchain: 'bitcoin',
   fees: {
-    strategy: 'dynamic', // or 'fixed'
-    priority: 'medium', // low, medium, high
-    maxFeeRate: 50, // sat/vB
-    estimator: 'mempool.space' // fee estimation service
+    strategy: 'dynamic',
+    priority: 'medium',
+    maxFeeRate: 50
   }
 });</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Transaction Batching</h3>
-                    <div class="code-block">
-<pre>// Batch multiple rewards into single transaction
-await bacon.batchRewards({
-  recipients: [
-    { user: 'alice', amount: 50, reason: 'PR #123' },
-    { user: 'bob', amount: 75, reason: 'Issue #456' },
-    { user: 'charlie', amount: 100, reason: 'Release v2.0' }
-  ],
-  optimization: 'minimize-fees' // or 'minimize-time'
-});</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Monitoring and Alerts</h3>
-                    <div class="code-block">
-<pre>// Set up monitoring
-bacon.monitor({
-  events: ['transaction', 'balance', 'error'],
-  alerting: {
-    lowBalance: {
-      threshold: 1000,
-      notify: ['admin@example.com']
-    },
-    largeTransaction: {
-      threshold: 10000,
-      requireConfirmation: true
-    }
-  }
-});</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container center">
-                <h2>Ready to Use Bitcoin?</h2>
-                <p class="lead">Start rewarding contributors with Bitcoin-based BACON tokens</p>
-                <div class="cta-buttons">
-                    <a href="getting-started.html" class="btn btn-primary">Get Started</a>
-                    <a href="api-reference.html" class="btn btn-secondary">View API Reference</a>
+        <!-- Security -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Security Best Practices</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-shield-alt text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Wallet Security</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use hardware wallets for treasury management</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Implement multi-signature requirements</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Keep private keys encrypted and secure</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use separate hot and cold wallets</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-lock text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Transaction Security</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Verify all addresses before sending</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use RBF for stuck transactions</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Monitor for double-spend attempts</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Implement rate limiting on rewards</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-server text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Node Security</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Keep Bitcoin Core updated</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Enable firewall and restrict RPC access</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Regular backups of wallet.dat</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Monitor node health and sync status</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-file-alt text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Audit Trail</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Log all reward distributions</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Maintain transaction history</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Regular audit of token balances</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Implement fraud detection</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Use Bitcoin?</h2>
+                <p class="text-xl text-gray-600 mb-8">Start rewarding contributors with Bitcoin-based BACON tokens</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="getting-started.html" class="inline-flex items-center gap-2 px-6 py-3 bg-blt-red text-white rounded-md hover:bg-blt-red-hover transition-colors font-medium">
+                        Get Started
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="api-reference.html" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:border-blt-red hover:text-blt-red transition-colors font-medium">
+                        View API Reference
+                    </a>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>BACON</h4>
-                    <p>Blockchain Assisted Contribution Network</p>
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-2xl">🥓</span>
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
                 </div>
-                <div class="footer-section">
-                    <h4>Documentation</h4>
-                    <ul>
-                        <li><a href="getting-started.html">Getting Started</a></li>
-                        <li><a href="api-reference.html">API Reference</a></li>
-                        <li><a href="bitcoin-integration.html">Bitcoin</a></li>
-                        <li><a href="solana-integration.html">Solana</a></li>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
                 <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
             </div>
         </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>
