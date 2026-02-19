@@ -3,7 +3,7 @@ name: Process issue submissions
 
 on:
   issues:
-    types: [opened, edited]
+    types: [labeled]
 
 permissions:
   contents: write
@@ -12,7 +12,7 @@ permissions:
 jobs:
   job-from-url:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, '[JOB-LINK]')
+    if: github.event.label.name == 'job-posting-from-link'
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
 
   job-form:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, '[JOB]')
+    if: github.event.label.name == 'job-posting'
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
 
   seeker:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, '[SEEKER]')
+    if: github.event.label.name == 'job-seeker'
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
