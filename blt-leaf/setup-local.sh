@@ -38,11 +38,11 @@ else
     exit 1
 fi
 
-# Apply schema locally
+# Apply migrations locally
 echo ""
-echo "📋 Step 4: Applying database schema locally..."
-wrangler d1 execute DB --local --file=./schema.sql  # <-- Changed this line
-echo "✅ Schema applied successfully"
+echo "📋 Step 4: Applying database migrations locally..."
+wrangler d1 migrations apply pr-tracker --local
+echo "✅ Migrations applied successfully"
 
 # Setup .env file
 echo ""
