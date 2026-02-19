@@ -344,6 +344,11 @@
                     title="Toggle auto-refresh">
                     <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
                 </button>
+                <button id="showRawDataBtn"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
+                    title="View raw PR data">
+                    <i class="fas fa-database"></i>
+                </button>
                 <button id="themeToggle"
                     class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
                     <i class="fas fa-moon" id="themeIcon"></i>
@@ -454,6 +459,32 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Raw Data Modal -->
+    <div id="rawDataModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="relative w-full max-w-4xl max-h-[90vh] m-4 bg-white dark:bg-slate-800 rounded-lg shadow-2xl flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Raw PR Data</h2>
+                <button id="closeRawDataModal" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-auto px-6 py-4">
+                <pre id="rawDataContent" class="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg overflow-x-auto"><code></code></pre>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                <button id="copyRawDataBtn" class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors shadow-sm">
+                    <i class="fas fa-copy mr-1"></i>Copy to Clipboard
+                </button>
+                <button id="closeRawDataModalBtn" class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1324,6 +1355,65 @@
                 button.classList.add('text-slate-500', 'dark:text-slate-400');
                 icon.classList.remove('fa-spin');
                 button.title = 'Auto-refresh disabled (click to enable)';
+            }
+        }
+
+        /**
+         * Show raw data modal with PR data
+         */
+        function showRawDataModal() {
+            const modal = document.getElementById('rawDataModal');
+            const content = document.getElementById('rawDataContent').querySelector('code');
+            
+            // Get the raw PR data from allPrs array
+            const rawData = {
+                total_prs: allPrs.length,
+                current_filters: {
+                    repo: currentRepo,
+                    search: document.getElementById('searchInput')?.value || '',
+                    page: currentPage,
+                    per_page: perPage
+                },
+                prs: allPrs
+            };
+            
+            // Format as pretty JSON
+            content.textContent = JSON.stringify(rawData, null, 2);
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Hide raw data modal
+         */
+        function hideRawDataModal() {
+            const modal = document.getElementById('rawDataModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Copy raw data to clipboard
+         */
+        async function copyRawDataToClipboard() {
+            const content = document.getElementById('rawDataContent').querySelector('code');
+            try {
+                await navigator.clipboard.writeText(content.textContent);
+                const btn = document.getElementById('copyRawDataBtn');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                showError('Failed to copy to clipboard');
             }
         }
 
@@ -2284,6 +2374,29 @@
 
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
+        
+        // Raw data modal event listeners
+        document.getElementById('showRawDataBtn').addEventListener('click', showRawDataModal);
+        document.getElementById('closeRawDataModal').addEventListener('click', hideRawDataModal);
+        document.getElementById('closeRawDataModalBtn').addEventListener('click', hideRawDataModal);
+        document.getElementById('copyRawDataBtn').addEventListener('click', copyRawDataToClipboard);
+        
+        // Close modal when clicking outside
+        document.getElementById('rawDataModal').addEventListener('click', (e) => {
+            if (e.target.id === 'rawDataModal') {
+                hideRawDataModal();
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('rawDataModal');
+                if (!modal.classList.contains('hidden')) {
+                    hideRawDataModal();
+                }
+            }
+        });
 
         // Make sortPrs globally accessible for onclick handlers
         window.sortPrs = sortPrs;
