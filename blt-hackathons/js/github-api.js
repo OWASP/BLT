@@ -618,7 +618,9 @@ class GitHubAPI {
                 const participant = participants.get(username);
                 participant.reviews.push({
                     ...review,
-                    html_url: review.pull_request_url || review.html_url
+                    html_url: review.pull_request_url || review.html_url,
+                    pull_request_title: review.pull_request_title,
+                    repository: review.repository
                 });
                 participant.reviewCount++;
             }
