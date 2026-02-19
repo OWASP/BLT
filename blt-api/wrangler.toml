@@ -4,6 +4,10 @@ main = "src/main.py"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["python_workers"]
 
+# Automatically run D1 migrations before deployment
+[build]
+command = "bash scripts/migrate.sh"
+
 # Static assets configuration
 [assets]
 directory = "./static"
@@ -24,3 +28,5 @@ vars = { BLT_API_BASE_URL = "http://localhost:8000/api/v1", BLT_WEBSITE_URL = "h
 binding = "blt_api"
 database_name = "blt-api"
 database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd"
+migrations_dir = "migrations"
+migrations_table = "d1_migrations"

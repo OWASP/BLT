@@ -516,28 +516,62 @@ Configure these in `wrangler.toml`:
 
 ## Deployment
 
+### Automatic Deployment with Migrations
+
+The project is configured to automatically run D1 migrations before every deployment using Wrangler's build command. The migrations are defined in `wrangler.toml`:
+
+```toml
+[build]
+command = "bash scripts/migrate.sh"
+```
+
+This means migrations will run automatically whenever you deploy, whether:
+- Deploying manually with `wrangler deploy`
+- Using Cloudflare's Git integration (automatic deploy on push)
+- Running in CI/CD pipelines
+
 ### Deploy to Cloudflare Workers
 
 ```bash
-# Login to Cloudflare
+# Login to Cloudflare (first time only)
 wrangler login
 
-# Apply database migrations to production
-wrangler d1 migrations apply blt-api --remote
-
-# Deploy to production
+# Deploy to production (migrations run automatically)
 wrangler deploy
+
+# Deploy to specific environment
+wrangler deploy --env production
+wrangler deploy --env development
 ```
 
-### Environment-specific Deployment
+### Cloudflare Git Integration (Recommended)
+
+For automatic deployments when code is pushed to your repository:
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
+2. Connect your GitHub/GitLab repository
+3. Configure build settings:
+   - **Build command**: Leave empty (build command is defined in `wrangler.toml`)
+   - **Deploy command**: `wrangler deploy`
+4. Every push to your main branch will automatically:
+   - Run D1 migrations (via build command in `wrangler.toml`)
+   - Deploy the updated worker
+
+See [Cloudflare Git Integration docs](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/) for details.
+
+### Manual Migration Control
+
+If you need to run migrations separately:
 
 ```bash
-# Deploy to development
-wrangler deploy --env development
+# Apply migrations only
+wrangler d1 migrations apply blt-api --remote
 
-# Deploy to production
-wrangler deploy --env production
+# Deploy without running build command (⚠️ WARNING: skips migrations!)
+wrangler deploy --no-build
 ```
+
+**Note:** Using `--no-build` will skip the migration step, which could lead to deploying code that expects schema changes that haven't been applied. Only use this if you've already run migrations separately.
 
 ## Authentication
 
