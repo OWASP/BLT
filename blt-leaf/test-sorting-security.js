@@ -76,8 +76,15 @@ function testSortingSecurity() {
     // Test 5: Verify column mapping includes computed fields
     testResult(
       'Column mapping includes computed fields',
-      /'issues_count':\s*'\(.*COALESCE.*json_array_length/.test(handlersContent),
-      'issues_count computed field with COALESCE for NULL handling'
+      /ISSUES_COUNT_SQL_EXPR/.test(handlersContent) && /'issues_count':\s*ISSUES_COUNT_SQL_EXPR/.test(handlersContent),
+      'issues_count mapped to ISSUES_COUNT_SQL_EXPR constant'
+    );
+    
+    // Test 5b: Verify the SQL expression constant is defined
+    testResult(
+      'ISSUES_COUNT_SQL_EXPR constant defined',
+      /ISSUES_COUNT_SQL_EXPR\s*=\s*'\(.*COALESCE.*json_array_length/.test(handlersContent),
+      'SQL expression uses COALESCE and json_array_length'
     );
     
     // Test 6: Verify security logging for rejected columns
@@ -108,11 +115,11 @@ function testSortingSecurity() {
       'Only ASC and DESC are allowed as sort directions'
     );
     
-    // Test 10: Verify no direct string concatenation with user input
+    // Test 10: Verify no unsafe f-string usage with unvalidated variables
     testResult(
-      'No unsafe string concatenation',
-      !/sort_by\s*\+\s*['"]/.test(handlersContent) && !/['"]\s*\+\s*sort_by/.test(handlersContent),
-      'No direct concatenation of user input into SQL strings'
+      'No unsafe f-string with sort_by',
+      !/f['"]\{sort_by\}/.test(handlersContent) && !/f['"].*\{.*sort_by.*\}/.test(handlersContent),
+      'No f-string interpolation of user input into SQL strings'
     );
     
   } catch (error) {
@@ -184,7 +191,7 @@ function testColumnMappings() {
       { pattern: /'ready_score':\s*'overall_score'/, name: 'ready_score -> overall_score' },
       { pattern: /'response_score':\s*'response_rate'/, name: 'response_score -> response_rate' },
       { pattern: /'feedback_score':\s*'responded_feedback'/, name: 'feedback_score -> responded_feedback' },
-      { pattern: /'issues_count':\s*'\(.*json_array_length\(blockers\).*json_array_length\(warnings\).*\)'/, name: 'issues_count -> SQL expression' },
+      { pattern: /'issues_count':\s*ISSUES_COUNT_SQL_EXPR/, name: 'issues_count -> SQL expression constant' },
     ];
     
     requiredMappings.forEach(({ pattern, name }) => {

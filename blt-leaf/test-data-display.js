@@ -143,8 +143,9 @@ function testPythonHandlers() {
     // Test for issues_count SQL expression
     testResult(
       'issues_count computed field support',
+      (/ISSUES_COUNT_SQL_EXPR/.test(handlersContent) && /'issues_count':\s*ISSUES_COUNT_SQL_EXPR/.test(handlersContent)) ||
       /'issues_count':\s*'\(.*json_array_length\(blockers\).*json_array_length\(warnings\).*\)'/.test(handlersContent),
-      'issues_count SQL expression found in column mapping'
+      'issues_count SQL expression found (as constant or inline)'
     );
     
     // Test for "ready" column mapping

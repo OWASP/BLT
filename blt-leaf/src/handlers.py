@@ -23,6 +23,11 @@ from github_api import (
     verify_github_signature, fetch_multiple_prs_batch
 )
 
+# SQL expression for computed field: issues_count
+# Calculates total issues as sum of blockers and warnings from JSON columns
+# Uses COALESCE to handle NULL values (returns 0 if column is NULL or invalid JSON)
+ISSUES_COUNT_SQL_EXPR = '(COALESCE(json_array_length(blockers), 0) + COALESCE(json_array_length(warnings), 0))'
+
 
 async def handle_add_pr(request, env):
     """
@@ -219,10 +224,8 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'review_score': 'review_score',  # Review score: maps directly to database column
             'response_score': 'response_rate',
             'feedback_score': 'responded_feedback',
-            # Computed field: issues_count = count of blockers + count of warnings
-            # Uses SQLite JSON functions with COALESCE to handle NULL/invalid JSON
-            # json_array_length returns NULL if column is NULL or not valid JSON
-            'issues_count': '(COALESCE(json_array_length(blockers), 0) + COALESCE(json_array_length(warnings), 0))',
+            # Computed field: uses module-level SQL expression constant
+            'issues_count': ISSUES_COUNT_SQL_EXPR,
             # All other columns map directly to database columns
         }
         
@@ -242,8 +245,8 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                 
             Returns:
                 tuple: (sql_expression, is_valid)
-                sql_expression: SQL expression to use in ORDER BY
-                is_valid: Whether the column is valid for sorting
+                - sql_expression: SQL expression to use in ORDER BY, or None if invalid
+                - is_valid: Whether the column is valid for sorting
             """
             # Check if column has a mapping (could be an expression)
             if col_name in column_mapping:
