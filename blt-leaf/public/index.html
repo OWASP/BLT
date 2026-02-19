@@ -1350,43 +1350,6 @@
                 </div>
             `;
 
-            // Add event delegation for sortable table headers
-            const tableElement = container.querySelector('table');
-            if (tableElement) {
-                tableElement.addEventListener('click', (e) => {
-                    // Find the closest th with data-sort-column attribute
-                    const th = e.target.closest('th[data-sort-column]');
-                    if (th) {
-                        const column = th.getAttribute('data-sort-column');
-                        const isShiftClick = e.shiftKey;
-                        sortPrs(column, isShiftClick);
-                    }
-                });
-            }
-
-            // Add event listeners for sort control buttons
-            const clearSortBtn = document.getElementById('clearSortBtn');
-            if (clearSortBtn) {
-                clearSortBtn.addEventListener('click', () => {
-                    // Reset to default sort (ready_score descending)
-                    sortColumns = [{ column: 'ready_score', direction: 'desc' }];
-                    localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
-                    currentPage = 1;
-                    loadPrs();
-                });
-            }
-
-            const sortByReadinessBtn = document.getElementById('sortByReadinessBtn');
-            if (sortByReadinessBtn) {
-                sortByReadinessBtn.addEventListener('click', () => {
-                    // Set ready_score as primary sort (descending by default)
-                    sortColumns = [{ column: 'ready_score', direction: 'desc' }];
-                    localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
-                    currentPage = 1;
-                    loadPrs();
-                });
-            }
-
             const tbody = document.getElementById('prTableBody');
             prs.forEach(pr => {
                 const row = createPrRow(pr);
@@ -2126,6 +2089,38 @@
 
         // Make sortPrs globally accessible for onclick handlers
         window.sortPrs = sortPrs;
+
+        // Set up event delegation for sorting (one-time setup)
+        // This persists across table re-renders since prListContainer is stable
+        const prListContainer = document.getElementById('prListContainer');
+        prListContainer.addEventListener('click', (e) => {
+            // Handle sortable table header clicks
+            const th = e.target.closest('th[data-sort-column]');
+            if (th) {
+                const column = th.getAttribute('data-sort-column');
+                const isShiftClick = e.shiftKey;
+                sortPrs(column, isShiftClick);
+                return;
+            }
+
+            // Handle Clear Sort button
+            if (e.target.closest('#clearSortBtn')) {
+                sortColumns = [{ column: 'ready_score', direction: 'desc' }];
+                localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
+                currentPage = 1;
+                loadPrs();
+                return;
+            }
+
+            // Handle Sort by Readiness button
+            if (e.target.closest('#sortByReadinessBtn')) {
+                sortColumns = [{ column: 'ready_score', direction: 'desc' }];
+                localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
+                currentPage = 1;
+                loadPrs();
+                return;
+            }
+        });
 
         initTheme();
         loadRateLimit();
