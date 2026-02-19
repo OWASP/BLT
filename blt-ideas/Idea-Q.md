@@ -82,6 +82,12 @@
 - **Complementary to Idea E:** Toasty focuses on content assistance + optional signal export; Idea E retains ownership of readiness states, CI/SAST aggregation, queues, and dashboard UX.
 - **Measurable value:** An evaluation suite + pilot KPIs (time saved, dupe precision) make impact clear to mentors and orgs.
 
+## Reuse patterns from other ideas (swap-ins)
+Toasty keeps its scope; the following are **swap-ins** that improve the assistant without expanding it:
+- **Idea L2 (Preflight):** When Preflight context exists (e.g. contributor declared intent, issue risk class), use it to enrich summaries and label suggestions (e.g. “This PR touches auth; consider reviewing [link]”). Toasty does not implement pre-contribution flows; it only consumes context when available.
+- **Idea N (RAG over BLT docs):** Reuse the RAG-over-BLT/OWASP-docs stack to suggest relevant documentation links in “missing info” hints and reviewer-assist snippets, instead of hard-coding all guidance.
+- **Idea E (PR Readiness / Risk):** Consume readiness or risk signals from Idea E when available to enrich Toasty summaries; Toasty continues to export signals to E and does not own dashboard or readiness UX.
+
 ## Non-overlap with Idea E (Extended) and Idea H
 - **Idea E (Extended)** owns PR Readiness & Security Dashboard (readiness states, CI/SAST/secret/dependency aggregation, check annotations, maintainer queues, and dashboard UX). **Toasty does not** compute readiness states, aggregate CI, emit check annotations, or build/own a dashboard.
 - **Idea H** focuses on contributor growth (Sizzle time tracking, “what to work on next,” mentoring on PR merge). Toasty may optionally expose read-only signals that H can consume later, but **does not** implement time tracking or mentoring features.
