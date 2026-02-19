@@ -344,11 +344,6 @@
                     title="Toggle auto-refresh">
                     <i class="fas fa-sync-alt" id="autoRefreshIcon"></i>
                 </button>
-                <button id="showRawDataBtn"
-                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
-                    title="View raw PR data">
-                    <i class="fas fa-database"></i>
-                </button>
                 <button id="themeToggle"
                     class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600">
                     <i class="fas fa-moon" id="themeIcon"></i>
@@ -1361,24 +1356,20 @@
         /**
          * Show raw data modal with PR data
          */
-        function showRawDataModal() {
+        function showRawDataModal(prId) {
             const modal = document.getElementById('rawDataModal');
             const content = document.getElementById('rawDataContent').querySelector('code');
             
-            // Get the raw PR data from allPrs array
-            const rawData = {
-                total_prs: allPrs.length,
-                current_filters: {
-                    repo: currentRepo,
-                    search: document.getElementById('searchInput')?.value || '',
-                    page: currentPage,
-                    per_page: perPage
-                },
-                prs: allPrs
-            };
+            // Find the specific PR data
+            const prData = allPrs.find(pr => pr.id === prId);
+            
+            if (!prData) {
+                console.error('PR not found:', prId);
+                return;
+            }
             
             // Format as pretty JSON
-            content.textContent = JSON.stringify(rawData, null, 2);
+            content.textContent = JSON.stringify(prData, null, 2);
             
             // Show modal
             modal.classList.remove('hidden');
@@ -1679,6 +1670,14 @@
                     await updatePr(prId, e.currentTarget);
                 });
             });
+            
+            document.querySelectorAll('.view-raw-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const prId = parseInt(e.currentTarget.dataset.prId);
+                    showRawDataModal(prId);
+                });
+            });
+            
             if (document.getElementById('prSearchInput').value.trim() === '') {
                 renderPagination();
             }
@@ -1892,9 +1891,14 @@
                 </td>
                 <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
                 <td class="px-2 py-3 text-center">
-                    <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
-                        <i class="fas fa-sync mr-1"></i>Update
-                    </button>
+                    <div class="flex items-center justify-center gap-2">
+                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
+                            <i class="fas fa-sync mr-1"></i>Update
+                        </button>
+                        <button class="view-raw-btn rounded-md border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="View raw PR data">
+                            <i class="fas fa-database"></i>
+                        </button>
+                    </div>
                 </td>
             `;
 
@@ -1949,6 +1953,14 @@
             if (updateBtn) {
                 updateBtn.addEventListener('click', async (e) => {
                     await updatePr(prId, e.currentTarget);
+                });
+            }
+            
+            // Re-attach the click event listener to the view raw button
+            const viewRawBtn = newRow.querySelector('.view-raw-btn');
+            if (viewRawBtn) {
+                viewRawBtn.addEventListener('click', (e) => {
+                    showRawDataModal(prId);
                 });
             }
         }
@@ -2376,7 +2388,6 @@
         document.getElementById('autoRefreshToggle').addEventListener('click', toggleAutoRefresh);
         
         // Raw data modal event listeners
-        document.getElementById('showRawDataBtn').addEventListener('click', showRawDataModal);
         document.getElementById('closeRawDataModal').addEventListener('click', hideRawDataModal);
         document.getElementById('closeRawDataModalBtn').addEventListener('click', hideRawDataModal);
         document.getElementById('copyRawDataBtn').addEventListener('click', copyRawDataToClipboard);
