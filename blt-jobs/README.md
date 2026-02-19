@@ -2,7 +2,7 @@
 
 A community-driven job board for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem, deployed on GitHub Pages. The UI exactly matches [jobs.owaspblt.org](https://jobs.owaspblt.org) (Inter font, slate/red palette, dark mode). **Issue-based workflow** — open an issue with a job URL or form, we add the listing and close the issue; no fork or PR required.
 
-**Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org) · [pritz395.github.io/BLT-Jobs](https://pritz395.github.io/BLT-Jobs/) *(fork preview)*
+**Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org)
 
 ---
 

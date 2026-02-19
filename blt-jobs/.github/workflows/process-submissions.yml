@@ -76,7 +76,7 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://pritz395.github.io/BLT-Jobs/jobs.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -126,7 +126,7 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Job posting added. [View on site](https://pritz395.github.io/BLT-Jobs/jobs.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Job posting added. [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Profile added. [View on site](https://pritz395.github.io/BLT-Jobs/seekers.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Profile added. [View on site](https://jobs.owaspblt.org/seekers.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
