@@ -76,11 +76,16 @@ async def handle_add_pr(request, env):
             
             headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
             
-            # Fetch all open PRs for the repo using pagination (supports unlimited PRs)
-            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=100"
+            # Fetch open PRs with a safety limit to prevent timeouts on very large repos
+            # Maximum 1000 PRs per import to stay within Cloudflare Workers execution limits
+            MAX_PRS_PER_IMPORT = 1000
+            # Explicitly sort by created date descending to get most recent PRs first
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&sort=created&direction=desc&per_page=100"
             
             try:
-                prs_list = await fetch_paginated_data(list_url, headers)
+                result = await fetch_paginated_data(list_url, headers, max_items=MAX_PRS_PER_IMPORT, return_metadata=True)
+                prs_list = result['items']
+                truncated = result['truncated']
             except Exception as e:
                 error_msg = str(e)
                 if 'status=403' in error_msg:
@@ -115,7 +120,19 @@ async def handle_add_pr(request, env):
                 await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
                 added_count += 1
             
-            return Response.new(json.dumps({'success': True, 'message': f'Successfully imported {added_count} PRs'}), 
+            # Build response message
+            message = f'Successfully imported {added_count} PR{"s" if added_count != 1 else ""}'
+            if truncated:
+                message += f' (limited to {MAX_PRS_PER_IMPORT} most recent open PR{"s" if MAX_PRS_PER_IMPORT != 1 else ""})'
+            
+            response_data = {
+                'success': True, 
+                'message': message,
+                'imported_count': added_count,
+                'truncated': truncated
+            }
+            
+            return Response.new(json.dumps(response_data), 
                               {'headers': {'Content-Type': 'application/json'}})
 
         else:
