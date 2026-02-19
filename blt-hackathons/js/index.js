@@ -150,7 +150,10 @@ class HackathonIndex {
             const status = this.getHackathonStatus(hackathon);
             const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
             const timeRemaining = this.getTimeRemaining(hackathon);
-            const repoCount = hackathon.github.repositories.length;
+            // Count repositories - show appropriate message for organization-based tracking
+            const explicitRepoCount = hackathon.github.repositories?.length || 0;
+            const hasOrganization = !!hackathon.github.organization;
+            const repoCount = hasOrganization ? `All repos in ${hackathon.github.organization}` : explicitRepoCount;
             const descriptionTrimmed = hackathon.description.trim();
             const descriptionPreview = descriptionTrimmed.substring(0, 150);
             const needsEllipsis = descriptionTrimmed.length > 150;
@@ -202,7 +205,7 @@ class HackathonIndex {
                         
                         <div class="flex items-center text-sm text-gray-600 mb-4">
                             <i class="fas fa-code-branch mr-2"></i>
-                            <span>${repoCount} repositor${repoCount !== 1 ? 'ies' : 'y'}</span>
+                            <span>${typeof repoCount === 'string' ? repoCount : `${repoCount} repositor${repoCount !== 1 ? 'ies' : 'y'}`}</span>
                         </div>
                         
                         <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 

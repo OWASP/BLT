@@ -261,6 +261,24 @@ class GitHubAPI {
             return repositories;
         }
         
+        // Check for cached organization repos first (with longer cache time)
+        const cacheKey = `org_repos_${organization}`;
+        const cachedOrgRepos = localStorage.getItem(cacheKey);
+        if (cachedOrgRepos) {
+            try {
+                const parsed = JSON.parse(cachedOrgRepos);
+                const age = Date.now() - parsed.timestamp;
+                // Cache organization repos for 1 hour to reduce API calls
+                if (age < 60 * 60 * 1000) {
+                    console.log(`Using cached organization repositories (${parsed.repos.length} repos)`);
+                    const allRepos = [...new Set([...repositories, ...parsed.repos])];
+                    return allRepos;
+                }
+            } catch (e) {
+                console.warn('Failed to parse cached organization repos:', e);
+            }
+        }
+        
         try {
             // Fetch all repositories from the organization
             const orgRepos = await this.fetchOrganizationRepos(organization);
@@ -271,19 +289,57 @@ class GitHubAPI {
                 console.warn(`  - The organization does not exist or is misspelled`);
                 console.warn(`  - The organization has no public repositories`);
                 console.warn(`  - Your token lacks access to this organization's repositories`);
+                console.warn(`  - CORS or network issues preventing API access`);
                 console.warn(`  Falling back to explicit repositories list.`);
+                
+                // If we have explicit repos, use those
+                if (repositories.length > 0) {
+                    return repositories;
+                }
+                
+                // Otherwise throw an error to be handled by the caller
+                throw new Error(`No repositories could be resolved for organization ${organization} and no explicit repositories were provided.`);
+            }
+            
+            // Cache the successful result
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    repos: orgRepos,
+                    timestamp: Date.now()
+                }));
+            } catch (e) {
+                console.warn('Failed to cache organization repos:', e);
             }
             
             // Combine with explicit repositories, removing duplicates
             const allRepos = [...new Set([...repositories, ...orgRepos])];
             
-            console.log(`Resolved ${allRepos.length} repositories (${repositories.length} explicit + ${orgRepos.length} from org ${organization})`);
+            console.log(`✅ Resolved ${allRepos.length} repositories (${repositories.length} explicit + ${orgRepos.length} from org ${organization})`);
             
             return allRepos;
         } catch (error) {
-            console.error(`Error resolving repositories for organization ${organization}:`, error);
+            console.error(`❌ Error resolving repositories for organization ${organization}:`, error);
+            
+            // Try to use stale cache if available
+            if (cachedOrgRepos) {
+                try {
+                    const parsed = JSON.parse(cachedOrgRepos);
+                    console.warn(`⚠️ Using stale cached organization repositories (${parsed.repos.length} repos) due to fetch error`);
+                    const allRepos = [...new Set([...repositories, ...parsed.repos])];
+                    return allRepos;
+                } catch (e) {
+                    console.error('Failed to parse stale cache:', e);
+                }
+            }
+            
             // Fall back to explicit repositories if organization fetch fails
-            return repositories;
+            if (repositories.length > 0) {
+                console.warn(`⚠️ Falling back to ${repositories.length} explicit repositories`);
+                return repositories;
+            }
+            
+            // Re-throw the error if we have no fallback
+            throw new Error(`Failed to resolve any repositories. Organization fetch failed and no explicit repositories were provided.`);
         }
     }
 
