@@ -411,9 +411,7 @@ class HackathonDashboard {
                             label: function(context) {
                                 // Show only the value without the dataset label
                                 const value = context.parsed.y;
-                                return (value !== null && value !== undefined && !isNaN(value)) 
-                                    ? value + ' PRs' 
-                                    : '0 PRs';
+                                return Number.isFinite(value) ? value + ' PRs' : '0 PRs';
                             }
                         }
                     }
