@@ -259,15 +259,33 @@ Build a **comprehensive gamification engine** that transforms security work into
 
 ### Synergy with Idea F (Reputation Graph)
 
-- **Complementary Systems:** F provides trust scoring; B provides rewards
-- **Data Sharing:** B can consume F's quality signals for reward weighting
-- **Independent Operation:** Both systems function standalone
+- **Complementary Systems:** F provides trust scoring; B provides rewards.
+- **Data Sharing:** B can consume F's quality signals for reward weighting.
+- **Independent Operation:** Both systems function standalone.
+
+### Integration with Idea G (BLT-NetGuardian)
+
+- **Verified, CVE-aware events:** B can consume NetGuardian's verified finding/issue events (including `cve_id`, `cve_score`, rule id, severity, repo/org) as a high-quality signal source.
+- **Impact-weighted rewards:** Use CVE severity and NetGuardian confidence to scale BACON and badge rewards toward higher-risk, well-validated fixes.
+- **Cross-project trust:** NetGuardian remains the detection/triage system; B becomes the recognition layer that rewards confirmed remediation work.
+
+### Integration with Idea W (BLT Security Campaigns)
+
+- **Campaign-aware incentives:** Reward contributors extra BACON/badges for fixes that land inside active security campaigns (e.g., “Auth Hardening Sprint”, “CVE Fix Week”).
+- **Contextual leaderboards:** Provide campaign-scoped leaderboards (per org/campaign) so maintainers can see who drove specific security pushes.
+- **Low coupling:** W orchestrates focused work; B simply listens to the same verified contribution events and decorates them with campaign context for rewards.
+
+### Integration with Idea X (RepoTrust Score)
+
+- **Quality and risk signals:** Use RepoTrust components (e.g., time-to-remediate, outstanding criticals, verified fix ratio) as optional weighting inputs when computing rewards and reputation.
+- **Healthy behavior incentives:** Award bonuses for work that materially improves a repo’s RepoTrust Score (e.g., closing long-lived high/CVE issues, improving verified-fix ratio).
+- **Read-only consumption:** B reads RepoTrust snapshots but does not depend on them being present; if RepoTrust is unavailable, rewards fall back to standard severity-based logic.
 
 ### Integration with Idea H (Growth Tracking)
 
-- **Distinct Focus:** B = recognition; H = personal development guidance
-- **Data Exchange:** H can use B's achievement data for growth recommendations
-- **Unified Experience:** Together provide comprehensive contributor journey
+- **Distinct Focus:** B = recognition; H = personal development guidance.
+- **Data Exchange:** H can use B's achievement data for growth recommendations.
+- **Unified Experience:** Together provide comprehensive contributor journey.
 
 ---
 
