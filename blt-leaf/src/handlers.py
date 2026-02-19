@@ -1,6 +1,7 @@
 """API endpoint handlers for PR tracking"""
 
 import json
+import re
 from datetime import datetime, timezone
 from js import Response, Headers, Object
 from pyodide.ffi import to_js
@@ -231,7 +232,6 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             Only allows alphanumeric characters and underscores.
             This prevents injection while allowing all legitimate column names.
             """
-            import re
             return bool(re.match(r'^[a-zA-Z0-9_]+$', col_name))
         
         def get_sort_expression(col_name):
@@ -279,13 +279,7 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                     
                     # Add NULL handling and column sort
                     # NULL values should appear last regardless of sort direction
-                    # For computed expressions, wrap in parentheses before NULL check
-                    if sql_expr.startswith('(') and sql_expr.endswith(')'):
-                        # Already an expression (like issues_count)
-                        sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
-                    else:
-                        # Regular column
-                        sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
+                    sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
                 else:
                     # Log invalid column attempts for security monitoring
                     print(f"Security: Rejected invalid sort column: {col}")

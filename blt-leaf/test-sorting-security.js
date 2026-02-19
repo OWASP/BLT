@@ -111,7 +111,7 @@ function testSortingSecurity() {
     // Test 10: Verify no direct string concatenation with user input
     testResult(
       'No unsafe string concatenation',
-      !/sort_by\s*[+]\s*['"]/.test(handlersContent) && !/['"][+]\s*sort_by/.test(handlersContent),
+      !/sort_by\s*\+\s*['"]/.test(handlersContent) && !/['"]\s*\+\s*sort_by/.test(handlersContent),
       'No direct concatenation of user input into SQL strings'
     );
     
