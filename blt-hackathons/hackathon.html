@@ -76,6 +76,18 @@
         .skeleton-leaderboard-item {
             height: 80px;
         }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 640px) {
+            .btn-text {
+                display: none;
+            }
+        }
+        @media (min-width: 641px) {
+            .btn-icon-only {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -84,20 +96,21 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="index.html" class="text-gray-600 hover:text-gray-900 mr-4" title="Back to all hackathons">
-                        <i class="fas fa-arrow-left text-xl"></i>
+                    <a href="index.html" class="text-gray-600 hover:text-gray-900 mr-3 sm:mr-4" title="Back to all hackathons">
+                        <i class="fas fa-arrow-left text-lg sm:text-xl"></i>
                     </a>
-                    <i class="fas fa-trophy text-red-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900" id="nav-title">Hackathon Dashboard</h1>
+                    <i class="fas fa-trophy text-red-600 text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                    <h1 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900" id="nav-title">Hackathon Dashboard</h1>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4">
                     <a href="https://github.com/OWASP-BLT/BLT-Hackathon" target="_blank" 
                        rel="noopener noreferrer"
-                       class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2">
+                       class="px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2 text-sm sm:text-base"
+                       aria-label="Contribute on GitHub">
                         <i class="fab fa-github"></i>
-                        <span>Contribute on GitHub</span>
+                        <span class="btn-text">Contribute on GitHub</span>
                     </a>
-                    <span id="hackathon-status" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+                    <span id="hackathon-status" class="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium"></span>
                 </div>
             </div>
         </div>
@@ -106,65 +119,65 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Banner Section -->
-        <div class="relative rounded-lg overflow-hidden mb-8 h-64 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-center" id="banner-section">
+        <div class="relative rounded-lg overflow-hidden mb-6 sm:mb-8 h-48 sm:h-56 lg:h-64 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-center" id="banner-section">
             <div class="text-center text-white p-4">
-                <h2 class="text-4xl font-bold mb-2" id="hackathon-name">Loading...</h2>
-                <p class="text-xl mb-2" id="hackathon-dates"></p>
-                <p class="text-lg" id="time-remaining"></p>
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2" id="hackathon-name">Loading...</h2>
+                <p class="text-base sm:text-lg lg:text-xl mb-2" id="hackathon-dates"></p>
+                <p class="text-sm sm:text-base lg:text-lg" id="time-remaining"></p>
             </div>
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-700">Participants</h3>
-                <p class="text-3xl font-bold text-red-600" id="participant-count">0</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+                <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Participants</h3>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600" id="participant-count">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-700">Pull Requests</h3>
-                <p class="text-3xl font-bold text-red-600" id="pr-count">0</p>
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+                <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Pull Requests</h3>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600" id="pr-count">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-700">Merged PRs</h3>
-                <p class="text-3xl font-bold text-red-600" id="merged-pr-count">0</p>
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+                <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Merged PRs</h3>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600" id="merged-pr-count">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-700">Issues</h3>
-                <p class="text-3xl font-bold text-red-600" id="issue-count">0</p>
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+                <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Issues</h3>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600" id="issue-count">0</p>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-lg font-semibold text-gray-700">Repositories</h3>
-                <p class="text-3xl font-bold text-red-600" id="repo-count">0</p>
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+                <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Repositories</h3>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600" id="repo-count">0</p>
             </div>
         </div>
 
         <!-- PR Activity Chart -->
-        <div class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">Pull Request Activity</h2>
-            <div class="h-64">
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Pull Request Activity</h2>
+            <div class="h-48 sm:h-56 lg:h-64">
                 <canvas id="prActivityChart"></canvas>
             </div>
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <!-- Left Column - Info & Repositories -->
             <div class="lg:col-span-2">
                 <!-- Description -->
-                <div class="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">About this Hackathon</h2>
+                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">About this Hackathon</h2>
                     <div class="prose max-w-none" id="hackathon-description">
                         <p class="text-gray-600">Loading description...</p>
                     </div>
                     <div class="mt-6" id="rules-section" style="display: none;">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Rules</h3>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">Rules</h3>
                         <div class="prose max-w-none whitespace-pre-line" id="hackathon-rules"></div>
                     </div>
                 </div>
 
                 <!-- Repositories -->
-                <div class="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-code-branch mr-2 text-red-600"></i>
                         Repositories <span id="repositories-title" aria-live="polite">(0)</span>
                     </h2>
@@ -182,8 +195,8 @@
             <!-- Right Column - Leaderboard & Sponsors -->
             <div class="lg:col-span-1">
                 <!-- Leaderboard -->
-                <div class="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-medal mr-2 text-red-600"></i>
                         Leaderboard
                     </h2>
@@ -195,8 +208,8 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-medal mr-2 text-red-600"></i>
                         Review Leaderboard
                     </h2>
@@ -209,8 +222,8 @@
                 </div>
 
                 <!-- Sponsors -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-handshake mr-2 text-red-600"></i>
                         Sponsors
                     </h2>
