@@ -301,10 +301,10 @@
             <div class="flex items-center gap-4 lg:gap-6">
                 <a href="/" class="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
                     <img width="28" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
-                    <h1 class="hidden font-bold text-slate-900 dark:text-white sm:block">BLT-LEAF</h1>
+                    <h1 class="text-sm font-bold text-slate-900 dark:text-white sm:text-base">BLT-LEAF</h1>
                 </a>
 
-                <div class="hidden items-center gap-2 sm:flex pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
+                <div class="flex items-center gap-1 sm:gap-2 pl-3 sm:pl-4 border-l border-slate-200 dark:border-slate-700 h-8">
                     <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">API Limit:</span>
                     <div class="rate-limit-bar h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                         <div class="h-full w-0 rounded-full bg-green-500 transition-all duration-300"
@@ -349,15 +349,17 @@
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 <a href="/how-it-works.html"
-                    class="hidden md:inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    class="inline-flex items-center gap-2 rounded-lg px-2 sm:px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                    title="How It Works">
                     <i class="fas fa-question-circle"></i>
-                    <span>How It Works</span>
+                    <span class="hidden sm:inline">How It Works</span>
                 </a>
                 <span id="releaseVersion"
-                    class="hidden text-xs text-slate-500 dark:text-slate-400 md:inline-block"></span>
+                    class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
                 <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
-                    class="hidden rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 md:inline-flex items-center gap-2 transition-colors shadow-sm">
-                    <i class="fab fa-github"></i> <span>Contribute</span>
+                    class="rounded-lg bg-red-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 inline-flex items-center gap-2 transition-colors shadow-sm"
+                    title="Contribute">
+                    <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
                 </a>
             </div>
         </div>

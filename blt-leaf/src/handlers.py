@@ -419,7 +419,7 @@ async def handle_refresh_pr(request, env):
         if pr_data['is_merged'] or pr_data['state'] == 'closed':
             # Invalidate caches since PR state changed
             await invalidate_readiness_cache(env, pr_id)
-            invalidate_timeline_cache(result['repo_owner'], result['repo_name'], result['pr_number'])
+            await invalidate_timeline_cache(env, result['repo_owner'], result['repo_name'], result['pr_number'])
             
             # Delete the PR from database
             delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
@@ -437,7 +437,7 @@ async def handle_refresh_pr(request, env):
         # Invalidate caches after successful refresh
         # This ensures cached results don't become stale after new commits or review activity
         await invalidate_readiness_cache(env, pr_id)
-        invalidate_timeline_cache(result['repo_owner'], result['repo_name'], result['pr_number'])
+        await invalidate_timeline_cache(env, result['repo_owner'], result['repo_name'], result['pr_number'])
         
         # Include repo_owner, repo_name, pr_number, and pr_url in the response for frontend display
         response_data = {
@@ -527,7 +527,7 @@ async def handle_batch_refresh_prs(request, env):
             # Note: GraphQL returns state in lowercase (e.g., 'closed', 'open')
             if pr_data['is_merged'] or pr_data['state'] == 'closed':
                 await invalidate_readiness_cache(env, pr_id)
-                invalidate_timeline_cache(owner, repo, pr_number)
+                await invalidate_timeline_cache(env, owner, repo, pr_number)
                 
                 delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
                 await delete_stmt.run()
@@ -540,7 +540,7 @@ async def handle_batch_refresh_prs(request, env):
             try:
                 await upsert_pr(db, pr_url, owner, repo, pr_number, pr_data)
                 await invalidate_readiness_cache(env, pr_id)
-                invalidate_timeline_cache(owner, repo, pr_number)
+                await invalidate_timeline_cache(env, owner, repo, pr_number)
                 updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
             except Exception as update_error:
                 print(f"Error updating PR #{pr_number} in {owner}/{repo}: {str(update_error)}")
@@ -834,7 +834,7 @@ async def handle_github_webhook(request, env):
             if action == 'closed' or merged or state == 'closed':
                 # Invalidate caches
                 await invalidate_readiness_cache(env, pr_id)
-                invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                await invalidate_timeline_cache(env, repo_owner, repo_name, pr_number)
                 
                 # Delete the PR
                 await db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id).run()
@@ -860,7 +860,7 @@ async def handle_github_webhook(request, env):
                     await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                     # Invalidate caches
                     await invalidate_readiness_cache(env, pr_id)
-                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    await invalidate_timeline_cache(env, repo_owner, repo_name, pr_number)
                     
                     return Response.new(
                         json.dumps({
@@ -882,7 +882,7 @@ async def handle_github_webhook(request, env):
                     await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                     # Invalidate caches to force fresh analysis
                     await invalidate_readiness_cache(env, pr_id)
-                    invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                    await invalidate_timeline_cache(env, repo_owner, repo_name, pr_number)
                     
                     return Response.new(
                         json.dumps({
@@ -990,7 +990,7 @@ async def handle_github_webhook(request, env):
                         await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                         # Invalidate caches to force fresh analysis
                         await invalidate_readiness_cache(env, pr_id)
-                        invalidate_timeline_cache(repo_owner, repo_name, pr_number)
+                        await invalidate_timeline_cache(env, repo_owner, repo_name, pr_number)
                         updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
                     except Exception as update_error:
                         print(f"Error updating PR #{pr_number} in {repo_owner}/{repo_name}: {str(update_error)}")
@@ -1087,7 +1087,7 @@ async def handle_pr_timeline(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        timeline_data = await fetch_pr_timeline_data(
+        timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
             pr['repo_name'],
             pr['pr_number']
@@ -1172,7 +1172,7 @@ async def handle_pr_review_analysis(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        timeline_data = await fetch_pr_timeline_data(
+        timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
             pr['repo_name'],
             pr['pr_number']
@@ -1292,7 +1292,7 @@ async def handle_pr_readiness(request, env, path):
         original_review_status = pr.get('review_status', 'pending')
         
         # Fetch timeline data from GitHub
-        timeline_data = await fetch_pr_timeline_data(
+        timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
             pr['repo_name'],
             pr['pr_number']
