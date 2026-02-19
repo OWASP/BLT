@@ -36,7 +36,9 @@
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl">🥓</span>
+                    <div class="w-8 h-8 bg-blt-red rounded flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">B</span>
+                    </div>
                     <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
                 </div>
                 <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -737,47 +739,37 @@ bacon.on('failed-transaction', (error) => {
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
                 <div>
                     <div class="flex items-center gap-2 mb-4">
-                        <span class="text-2xl">🥓</span>
-                        <h4 class="text-white font-bold text-lg">BACON</h4>
+                        <div class="w-8 h-8 bg-blt-red rounded flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">B</span>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
                     </div>
-                    <p class="text-sm mb-2">Blockchain Assisted Contribution Network</p>
-                    <p class="text-sm text-gray-400">Part of the OWASP BLT Project</p>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
                 </div>
-                
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Resources</h4>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="getting-started.html" class="hover:text-blt-red transition-colors">Getting Started</a></li>
-                        <li><a href="api-reference.html" class="hover:text-blt-red transition-colors">API Docs</a></li>
-                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="hover:text-blt-red transition-colors">GitHub</a></li>
-                        <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="hover:text-blt-red transition-colors">OWASP BLT</a></li>
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
                     </ul>
                 </div>
-                
                 <div>
-                    <h4 class="text-white font-semibold mb-4">Community</h4>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon/issues" target="_blank" class="hover:text-blt-red transition-colors">Issues</a></li>
-                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon/discussions" target="_blank" class="hover:text-blt-red transition-colors">Discussions</a></li>
-                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon/blob/main/CONTRIBUTING.md" target="_blank" class="hover:text-blt-red transition-colors">Contributing</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Blockchains</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="bitcoin-integration.html" class="hover:text-blt-red transition-colors">Bitcoin / Runes</a></li>
-                        <li><a href="solana-integration.html" class="hover:text-blt-red transition-colors">Solana / SPL</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
                     </ul>
                 </div>
             </div>
-            
-            <div class="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
                 <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
             </div>
         </div>

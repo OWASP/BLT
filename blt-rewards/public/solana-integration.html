@@ -36,7 +36,9 @@
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl">🥓</span>
+                    <div class="w-8 h-8 bg-blt-red rounded flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">B</span>
+                    </div>
                     <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
                 </div>
                 <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -113,14 +115,16 @@
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Setting Up Solana</h2>
+        <!-- Setting Up Solana -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Setting Up Solana</h2>
                 
-                <div class="feature-detail">
-                    <h3>Install Solana CLI</h3>
-                    <div class="code-block">
-<pre># Install Solana CLI tools
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Install Solana CLI</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Install Solana CLI tools
 sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
 
 # Verify installation
@@ -128,13 +132,13 @@ solana --version
 
 # Set cluster (mainnet-beta, devnet, or testnet)
 solana config set --url https://api.mainnet-beta.solana.com</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Create Solana Wallet</h3>
-                    <div class="code-block">
-<pre># Generate new keypair
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Create Solana Wallet</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Generate new keypair
 solana-keygen new --outfile ~/.config/solana/bacon-wallet.json
 
 # Check wallet address
@@ -145,34 +149,40 @@ solana balance
 
 # Airdrop SOL (devnet/testnet only)
 solana airdrop 2</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Install SPL Token CLI</h3>
-                    <div class="code-block">
-<pre># Install SPL Token program
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Install SPL Token CLI</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Install SPL Token program
 cargo install spl-token-cli
 
 # Verify installation
 spl-token --version</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>Creating BACON SPL Token</h2>
+        <!-- Creating BACON SPL Token -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Creating BACON SPL Token</h2>
                 
-                <div class="integration-steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h3>Create Token</h3>
-                            <p>Create your BACON SPL token on Solana:</p>
-                            <div class="code-block">
-<pre># Create token with 8 decimals
+                <div class="space-y-6">
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">1</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Create Token</h3>
+                            <p class="text-gray-700 mb-4">Create your BACON SPL token on Solana:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Create token with 8 decimals
 spl-token create-token --decimals 8
 
 # Save the token address (mint address)
@@ -187,13 +197,17 @@ spl-token accounts</pre>
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h3>Mint Initial Supply</h3>
-                            <p>Mint BACON tokens to your treasury:</p>
-                            <div class="code-block">
-<pre># Mint 21 million BACON tokens
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">2</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Mint Initial Supply</h3>
+                            <p class="text-gray-700 mb-4">Mint BACON tokens to your treasury:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Mint 21 million BACON tokens
 spl-token mint TOKEN_ADDRESS 21000000
 
 # Check supply
@@ -205,20 +219,24 @@ spl-token balance TOKEN_ADDRESS</pre>
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h3>Configure Token Metadata</h3>
-                            <p>Add metadata for your token (name, symbol, logo):</p>
-                            <div class="code-block">
-<pre>const { createMetadata } = require('@metaplex-foundation/mpl-token-metadata');
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">3</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Configure Token Metadata</h3>
+                            <p class="text-gray-700 mb-4">Add metadata for your token (name, symbol, logo):</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const { createMetadata } = require('@metaplex-foundation/mpl-token-metadata');
 
 await createMetadata({
   mint: tokenAddress,
   metadata: {
     name: 'BACON',
     symbol: 'BACON',
-    uri: 'https://blt-bacon.github.io/metadata.json',
+    uri: 'https://blt-bacon.github.io/metadata. json',
     sellerFeeBasisPoints: 0,
     creators: null,
     collection: null,
@@ -229,13 +247,17 @@ await createMetadata({
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <h3>Initialize BACON SDK</h3>
-                            <p>Connect BACON SDK to Solana:</p>
-                            <div class="code-block">
-<pre>const BaconSDK = require('@blt-bacon/sdk');
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">4</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Initialize BACON SDK</h3>
+                            <p class="text-gray-700 mb-4">Connect BACON SDK to Solana:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const BaconSDK = require('@blt-bacon/sdk');
 
 const bacon = new BaconSDK({
   blockchain: 'solana',
@@ -257,14 +279,16 @@ const bacon = new BaconSDK({
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Distributing Rewards</h2>
+        <!-- Distributing Rewards -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Distributing Rewards</h2>
                 
-                <div class="feature-detail">
-                    <h3>Single Transfer</h3>
-                    <div class="code-block">
-<pre>// Transfer BACON tokens to contributor
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Single Transfer</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Transfer BACON tokens to contributor
 await bacon.transfer({
   to: 'ContributorSolanaAddress',
   amount: 100,
@@ -273,13 +297,13 @@ await bacon.transfer({
 
 // Using SPL Token CLI
 spl-token transfer TOKEN_ADDRESS 100 RECIPIENT_ADDRESS</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Batch Transfers</h3>
-                    <div class="code-block">
-<pre>// Batch transfer to multiple recipients
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Batch Transfers</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Batch transfer to multiple recipients
 await bacon.batchTransfer({
   transfers: [
     { to: 'Address1', amount: 50, memo: 'Issue #101' },
@@ -290,13 +314,13 @@ await bacon.batchTransfer({
 
 // This creates one transaction with multiple instructions
 // Much more efficient than individual transfers</pre>
+                        </div>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Automated Rewards via Webhooks</h3>
-                    <div class="code-block">
-<pre>const express = require('express');
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Automated Rewards via Webhooks</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const express = require('express');
 const app = express();
 
 app.post('/webhook/github', async (req, res) => {
@@ -322,292 +346,255 @@ app.post('/webhook/github', async (req, res) => {
   
   res.sendStatus(200);
 });</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>Advanced Features</h2>
+        <!-- Advanced Features -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Advanced Features</h2>
                 
-                <div class="feature-detail">
-                    <h3>Associated Token Accounts</h3>
-                    <p>Automatically create token accounts for recipients:</p>
-                    <div class="code-block">
-<pre>const { getOrCreateAssociatedTokenAccount } = require('@solana/spl-token');
-
-// Create associated token account if it doesn't exist
-const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
-  connection,
-  payer,
-  tokenMint,
-  recipientPublicKey
-);
-
-// Now transfer to this account
-await bacon.transfer({
-  to: recipientTokenAccount.address,
-  amount: 100
-});</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Token Vesting</h3>
-                    <p>Implement vesting schedules for long-term rewards:</p>
-                    <div class="code-block">
-<pre>const { createVestingSchedule } = require('@blt-bacon/vesting');
-
-// Create vesting schedule for core contributor
-await createVestingSchedule({
-  recipient: contributorAddress,
-  amount: 10000,
-  startTime: Date.now(),
-  duration: 365 * 24 * 60 * 60, // 1 year in seconds
-  cliff: 90 * 24 * 60 * 60, // 90 day cliff
-  slices: 12 // Monthly releases
-});</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Staking Rewards</h3>
-                    <p>Allow users to stake BACON for additional rewards:</p>
-                    <div class="code-block">
-<pre>// Initialize staking pool
-const stakingPool = await bacon.createStakingPool({
-  rewardRate: 0.1, // 10% APY
-  minStake: 100,
-  lockPeriod: 30 * 24 * 60 * 60 // 30 days
-});
-
-// User stakes tokens
-await bacon.stake({
-  amount: 1000,
-  pool: stakingPool.address
-});
-
-// Claim rewards
-await bacon.claimStakingRewards();</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Multi-Signature Treasury</h3>
-                    <p>Secure treasury with multi-sig:</p>
-                    <div class="code-block">
-<pre>const { createMultisig } = require('@sqds/sdk');
-
-// Create 2-of-3 multisig for treasury
-const multisig = await createMultisig({
-  threshold: 2,
-  owners: [ownerKey1, ownerKey2, ownerKey3],
-  name: 'BACON Treasury'
-});
-
-// Propose transaction
-await multisig.proposeTransaction({
-  instructions: [transferInstruction]
-});
-
-// Approve and execute (requires 2 signatures)
-await multisig.approveTransaction(txId);
-await multisig.executeTransaction(txId);</pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Performance Optimization</h2>
-                
-                <div class="use-cases">
-                    <div class="use-case">
-                        <h3>🚀 Transaction Optimization</h3>
-                        <ul>
-                            <li>Batch multiple operations in single transaction</li>
-                            <li>Use compute unit price for priority</li>
-                            <li>Implement transaction retry logic</li>
-                            <li>Monitor and adjust compute budget</li>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-wallet text-2xl text-purple-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Associated Token Accounts</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Automatically create token accounts for recipients</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Auto-create if doesn't exist</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Simplifies recipient onboarding</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Reduces setup friction</span>
+                            </li>
                         </ul>
                     </div>
-                    
-                    <div class="use-case">
-                        <h3>💰 Cost Management</h3>
-                        <ul>
-                            <li>Optimize compute units per instruction</li>
-                            <li>Use versioned transactions for efficiency</li>
-                            <li>Implement account data compression</li>
-                            <li>Monitor and track transaction costs</li>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-clock text-2xl text-blue-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Token Vesting</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Implement vesting schedules for long-term rewards</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Custom vesting schedules</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Cliff and linear release</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Lock rewards over time</span>
+                            </li>
                         </ul>
                     </div>
-                    
-                    <div class="use-case">
-                        <h3>⚡ Speed Enhancement</h3>
-                        <ul>
-                            <li>Use WebSocket connections for real-time updates</li>
-                            <li>Implement transaction preflight checks</li>
-                            <li>Cache account data when possible</li>
-                            <li>Use GetProgramAccounts filters</li>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-coins text-2xl text-green-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Staking Rewards</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Allow users to stake BACON for additional rewards</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Configurable APY rates</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Flexible lock periods</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Automated reward distribution</span>
+                            </li>
                         </ul>
                     </div>
-                    
-                    <div class="use-case">
-                        <h3>🔧 Error Handling</h3>
-                        <ul>
-                            <li>Implement exponential backoff</li>
-                            <li>Handle blockhash expiration</li>
-                            <li>Monitor for transaction failures</li>
-                            <li>Implement automatic recovery</li>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-shield-alt text-2xl text-red-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Multi-Signature Treasury</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Secure treasury with multi-sig protection</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Multiple approvers required</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Enhanced security</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Transaction proposals</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>RPC Endpoint Configuration</h2>
+        <!-- Performance Optimization -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Performance Optimization</h2>
                 
-                <div class="feature-detail">
-                    <h3>Public RPC Endpoints</h3>
-                    <div class="code-block">
-<pre>// Mainnet Beta
-https://api.mainnet-beta.solana.com
-
-// Devnet
-https://api.devnet.solana.com
-
-// Testnet
-https://api.testnet.solana.com</pre>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-rocket text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Transaction Optimization</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Batch multiple operations</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use compute unit pricing</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Implement retry logic</span>
+                            </li>
+                        </ul>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Private RPC Services (Recommended for Production)</h3>
-                    <div class="code-block">
-<pre>// QuickNode
-const connection = new Connection(
-  'https://your-endpoint.solana-mainnet.quiknode.pro/YOUR_KEY/'
-);
-
-// Alchemy
-const connection = new Connection(
-  'https://solana-mainnet.g.alchemy.com/v2/YOUR_KEY'
-);
-
-// GenesysGo
-const connection = new Connection(
-  'https://ssc-dao.genesysgo.net/'
-);</pre>
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-dollar-sign text-2xl text-green-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Cost Management</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Optimize compute units</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use versioned transactions</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Monitor transaction costs</span>
+                            </li>
+                        </ul>
                     </div>
-                </div>
 
-                <div class="feature-detail">
-                    <h3>Connection Configuration</h3>
-                    <div class="code-block">
-<pre>const { Connection, ConnectionConfig } = require('@solana/web3.js');
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-bolt text-2xl text-yellow-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Speed Enhancement</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">WebSocket for real-time updates</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Preflight transaction checks</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Cache account data</span>
+                            </li>
+                        </ul>
+                    </div>
 
-const config = {
-  commitment: 'confirmed',
-  confirmTransactionInitialTimeout: 60000,
-  disableRetryOnRateLimit: false,
-  httpHeaders: {
-    'Content-Type': 'application/json'
-  }
-};
-
-const connection = new Connection(
-  process.env.SOLANA_RPC_URL,
-  config
-);</pre>
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-wrench text-2xl text-gray-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Error Handling</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Exponential backoff</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Handle blockhash expiration</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Automatic recovery</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="section section-alt">
-            <div class="container">
-                <h2>Monitoring and Analytics</h2>
-                
-                <div class="feature-detail">
-                    <h3>Track Token Metrics</h3>
-                    <div class="code-block">
-<pre>// Get token supply
-const supply = await connection.getTokenSupply(tokenMint);
-
-// Get largest token holders
-const largestAccounts = await connection.getTokenLargestAccounts(tokenMint);
-
-// Get account token balance
-const balance = await connection.getTokenAccountBalance(accountAddress);
-
-// Get all token accounts for a wallet
-const accounts = await connection.getParsedTokenAccountsByOwner(
-  walletAddress,
-  { mint: tokenMint }
-);</pre>
-                    </div>
-                </div>
-
-                <div class="feature-detail">
-                    <h3>Transaction History</h3>
-                    <div class="code-block">
-<pre>// Get signatures for address
-const signatures = await connection.getSignaturesForAddress(
-  walletAddress,
-  { limit: 100 }
-);
-
-// Get transaction details
-const tx = await connection.getTransaction(signature, {
-  maxSupportedTransactionVersion: 0
-});
-
-// Parse transaction for token transfers
-const transfers = parseTokenTransfers(tx);</pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="container center">
-                <h2>Ready to Use Solana?</h2>
-                <p class="lead">Start distributing fast, low-cost rewards with Solana</p>
-                <div class="cta-buttons">
-                    <a href="getting-started.html" class="btn btn-primary">Get Started</a>
-                    <a href="api-reference.html" class="btn btn-secondary">View API Reference</a>
+        <!-- CTA -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Use Solana?</h2>
+                <p class="text-xl text-gray-600 mb-8">Start distributing fast, low-cost rewards with Solana</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="getting-started.html" class="inline-flex items-center gap-2 px-6 py-3 bg-blt-red text-white rounded-md hover:bg-blt-red-hover transition-colors font-medium">
+                        Get Started
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="api-reference.html" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:border-blt-red hover:text-blt-red transition-colors font-medium">
+                        View API Reference
+                    </a>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>BACON</h4>
-                    <p>Blockchain Assisted Contribution Network</p>
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-blt-red rounded flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">B</span>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
                 </div>
-                <div class="footer-section">
-                    <h4>Documentation</h4>
-                    <ul>
-                        <li><a href="getting-started.html">Getting Started</a></li>
-                        <li><a href="api-reference.html">API Reference</a></li>
-                        <li><a href="bitcoin-integration.html">Bitcoin</a></li>
-                        <li><a href="solana-integration.html">Solana</a></li>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
                 <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
             </div>
         </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>
