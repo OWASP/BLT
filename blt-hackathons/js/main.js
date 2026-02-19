@@ -27,7 +27,20 @@ class HackathonDashboard {
             const endDate = new Date(this.config.endTime);
 
             // Resolve repositories (including organization repos if specified)
-            this.repositories = await this.api.resolveRepositories(this.config.github);
+            try {
+                this.repositories = await this.api.resolveRepositories(this.config.github);
+                
+                // Check if we have any repositories to work with
+                if (!this.repositories || this.repositories.length === 0) {
+                    throw new Error('No repositories could be resolved. Please check your configuration.');
+                }
+                
+                console.log(`✅ Successfully resolved ${this.repositories.length} repositories`);
+            } catch (repoError) {
+                console.error('Failed to resolve repositories:', repoError);
+                this.showError(`Unable to load repository list: ${repoError.message}. Please check your organization name or add explicit repositories to the configuration.`);
+                return;
+            }
 
             // Fetch all PRs, issues, and reviews
             const [prs, issues, reviews] = await Promise.all([
@@ -63,7 +76,19 @@ class HackathonDashboard {
             this.updateStats(stats);
             this.renderLeaderboard(stats.participants);
             this.renderReviewLeaderBoard(stats.participants);
-            this.renderChart(stats.dailyActivity, prs);
+            
+            // Render chart (optional - gracefully handle missing Chart.js)
+            try {
+                this.renderChart(stats.dailyActivity, prs);
+            } catch (chartError) {
+                console.warn('Failed to render chart (Chart.js may not be loaded):', chartError);
+                // Hide the chart section if Chart.js is not available
+                const chartCanvas = document.getElementById('prActivityChart');
+                if (chartCanvas && chartCanvas.parentElement) {
+                    chartCanvas.parentElement.parentElement.style.display = 'none';
+                }
+            }
+            
             this.renderRepositories(stats.repoStats);
             this.renderSponsors();
             this.hideLoading();
@@ -320,6 +345,12 @@ class HackathonDashboard {
      * Render the PR activity chart with repository breakdown
      */
     renderChart(dailyActivity, prs) {
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js is not available. Skipping chart rendering.');
+            return;
+        }
+        
         const dates = Object.keys(dailyActivity).sort();
         // Get unique repositories from PRs
         const repositories = [...new Set(prs.map(pr => pr.repository))];

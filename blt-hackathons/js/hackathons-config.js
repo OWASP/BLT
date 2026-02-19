@@ -40,8 +40,16 @@ const HACKATHONS_CONFIG = {
                 
                 // Organization field - all repos in this org will be tracked
                 organization: "OWASP-BLT",
-                // Can still specify additional repositories if needed
-                repositories: []
+                // Fallback repositories in case organization fetch fails
+                repositories: [
+                    "OWASP-BLT/BLT",
+                    "OWASP-BLT/BLT-Extension",
+                    "OWASP-BLT/BLT-Bacon",
+                    "OWASP-BLT/BLT-Action",
+                    "OWASP-BLT/BLT-Flutter",
+                    "OWASP-BLT/BLT-Lettuce",
+                    "OWASP-BLT/BLT-Raven"
+                ]
             },
             
             // Prizes Configuration
@@ -80,7 +88,16 @@ const HACKATHONS_CONFIG = {
                 token: "",
                 // Organization field - all repos in this org will be tracked
                 organization: "OWASP-BLT",
-                repositories: []
+                // Fallback repositories in case organization fetch fails
+                repositories: [
+                    "OWASP-BLT/BLT",
+                    "OWASP-BLT/BLT-Extension",
+                    "OWASP-BLT/BLT-Bacon",
+                    "OWASP-BLT/BLT-Action",
+                    "OWASP-BLT/BLT-Flutter",
+                    "OWASP-BLT/BLT-Lettuce",
+                    "OWASP-BLT/BLT-Raven"
+                ]
             },
             prizes: [
                 {
