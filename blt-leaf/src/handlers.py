@@ -288,7 +288,10 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                 'has_next': page * per_page < total,
                 'has_previous': page > 1
             }
-        }), {'headers': {'Content-Type': 'application/json'}})
+        }), {'headers': {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+        }})
 
     except Exception as e:
         return Response.new(
@@ -314,7 +317,10 @@ async def handle_list_repos(env):
         repos = result.results.to_py() if hasattr(result, 'results') else []
         
         return Response.new(json.dumps({'repos': repos}), 
-                          {'headers': {'Content-Type': 'application/json'}})
+                          {'headers': {
+                              'Content-Type': 'application/json',
+                              'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+                          }})
     except Exception as e:
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
