@@ -207,6 +207,7 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
 
         # Map frontend column names to database column names
         column_mapping = {
+            'ready': 'overall_score',  # Alias for ready_score
             'ready_score': 'overall_score',
             'response_score': 'response_rate',
             'feedback_score': 'responded_feedback',
@@ -221,7 +222,7 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
             'review_status', 'mergeable_state', 'repo_owner', 'repo_name',
             'commits_count', 'behind_by', 'open_conversations_count',
             # Readiness columns
-            'ready_score', 'ci_score', 'review_score', 'response_score',
+            'ready', 'ready_score', 'ci_score', 'review_score', 'response_score',
             'feedback_score'
         }
         

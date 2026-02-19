@@ -248,7 +248,7 @@ npm test
     - `?page=N` - Page number (default: 1)
     - `?sort_by=column` - Sort column (default: `last_updated_at`)
     - `?sort_dir=asc|desc` - Sort direction (default: `desc`)
-  - Supported sort columns: `title`, `author_login`, `pr_number`, `files_changed`, `checks_passed`, `checks_failed`, `checks_skipped`, `review_status`, `mergeable_state`, `commits_count`, `behind_by`, `ready_score`, `ci_score`, `review_score`, `response_score`, `feedback_score`, `last_updated_at`
+  - Supported sort columns: `title`, `author_login`, `pr_number`, `files_changed`, `checks_passed`, `checks_failed`, `checks_skipped`, `review_status`, `mergeable_state`, `commits_count`, `behind_by`, `ready`, `ready_score`, `ci_score`, `review_score`, `response_score`, `feedback_score`, `last_updated_at`
 - `POST /api/prs` - Add a new PR (body: `{"pr_url": "..."}`)
   - Returns 400 error if PR is merged or closed
 - `POST /api/refresh` - Refresh a PR's data (body: `{"pr_id": 123}`)
