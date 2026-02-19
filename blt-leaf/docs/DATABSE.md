@@ -786,13 +786,13 @@ For specific implementation details not covered here, refer to the official Clou
 ## Summary
 
 **Key Points:**
-- ✅ Database is managed through **migrations only** (no schema.sql)
-- ✅ Migrations work identically for `--local` and `--remote`
-- ✅ Always test migrations locally before applying to production
-- ✅ Use parameterized queries to prevent SQL injection
-- ✅ Convert D1 results to Python with `.to_py()` or `dict()`
-- ✅ Migrations are tracked automatically - run once and only once
-- ✅ All schema changes must be in migration files
+- Database is managed through **migrations only** (no schema.sql)
+- Migrations work identically for `--local` and `--remote`
+- Always test migrations locally before applying to production
+- Use parameterized queries to prevent SQL injection
+- Convert D1 results to Python with `.to_py()` or `dict()`
+- Migrations are tracked automatically - run once and only once
+- All schema changes must be in migration files
 
 **Workflow:**
 1. Create migration: `wrangler d1 migrations create pr-tracker "description"`
