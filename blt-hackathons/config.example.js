@@ -187,7 +187,10 @@ const EXAMPLE_CONFIG = {
         maxLeaderboardEntries: 15,
         
         // Show individual PRs in leaderboard entries
-        showPRsInLeaderboard: true
+        showPRsInLeaderboard: true,
+        
+        // Show individual reviews in review leaderboard entries
+        showReviewsInLeaderboard: true
     }
 };
 

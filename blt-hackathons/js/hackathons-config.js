@@ -62,7 +62,8 @@ const HACKATHONS_CONFIG = {
             display: {
                 showRepoStats: true,
                 maxLeaderboardEntries: 10,
-                showPRsInLeaderboard: true
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
             },
             
             // Banner image (optional)
@@ -111,7 +112,8 @@ const HACKATHONS_CONFIG = {
             display: {
                 showRepoStats: true,
                 maxLeaderboardEntries: 10,
-                showPRsInLeaderboard: true
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
             },
             
             // Banner image (optional)

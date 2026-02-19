@@ -76,6 +76,9 @@ const HACKATHON_CONFIG = {
         maxLeaderboardEntries: 10,
         
         // Show participant pull requests in leaderboard
-        showPRsInLeaderboard: true
+        showPRsInLeaderboard: true,
+        
+        // Show participant reviews in review leaderboard
+        showReviewsInLeaderboard: true
     }
 };
