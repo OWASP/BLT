@@ -108,7 +108,7 @@ async def get_bot_user_id(env):
     slack_token = getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
         return None
-    
+
     try:
         response = await fetch(
             "https://slack.com/api/auth.test",
@@ -185,7 +185,7 @@ async def handle_team_join(env, event):
 
     # Get channel IDs from env or use defaults
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
-    
+
     # Post a message in the private joins channel (if configured)
     if joins_channel:
         try:
@@ -224,23 +224,25 @@ async def handle_message_event(env, event):
     channel = event.get("channel")
     channel_type = event.get("channel_type")
     subtype = event.get("subtype")
-    
+
     # Get bot user ID to avoid responding to self
     bot_user_id = await get_bot_user_id(env)
-    
+
     # Don't respond to bot's own messages
     if user == bot_user_id:
         return {"ok": True, "message": "Ignoring bot message"}
-    
+
     # Get channel IDs from env or use defaults
     contribute_id = getattr(env, "CONTRIBUTE_ID", DEFAULT_CONTRIBUTE_ID)
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
-    
+
     # Handle "contribute" keyword detection (but not #contribute)
     if (
         subtype is None
         and "#contribute" not in message_text
-        and any(keyword in message_text for keyword in ("contribute", "contributing", "contributes"))
+        and any(
+            keyword in message_text for keyword in ("contribute", "contributing", "contributes")
+        )
     ):
         response_text = (
             f"Hello <@{user}>! Please check this channel "
@@ -248,25 +250,21 @@ async def handle_message_event(env, event):
         )
         result = await send_slack_message(env, channel, response_text)
         return {"ok": result.get("ok"), "action": "contribute_response"}
-    
+
     # Handle direct messages
     if channel_type == "im":
         # Log to joins channel (if configured)
         if joins_channel:
             try:
-                await send_slack_message(
-                    env,
-                    joins_channel,
-                    f"<@{user}> said {message_text}"
-                )
+                await send_slack_message(env, joins_channel, f"<@{user}> said {message_text}")
             except Exception:
                 pass
-        
+
         # Respond to the user
         response_text = f"Hello <@{user}>, you said: {event.get('text', '')}"
         result = await send_slack_message(env, user, response_text)
         return {"ok": result.get("ok"), "action": "dm_response"}
-    
+
     return {"ok": True, "message": "No action taken"}
 
 
@@ -310,19 +308,21 @@ def is_homepage_request(url, method):
     """Check if the request is for the homepage."""
     if method != "GET":
         return False
-    
+
     # Check if it's a root path or index request
     path = url.split("?")[0]  # Remove query parameters
     path_segments = path.split("/")
     last_segment = path_segments[-1] if path_segments else ""
-    
+
     # Match root path, index, or paths without file extensions
     return (
-        path.endswith("/") or
-        "/index" in path or
-        last_segment == "" or
-        ("." not in last_segment and last_segment not in ["webhook", "stats", "health"])
+        path.endswith("/")
+        or "/index" in path
+        or last_segment == ""
+        or ("." not in last_segment and last_segment not in ["webhook", "stats", "health"])
     )
+
+
 def get_homepage_html():
     # This is a simple placeholder - in production, you'd load from a file or KV
     return """<!DOCTYPE html>
@@ -332,7 +332,8 @@ def get_homepage_html():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT-Lettuce | OWASP Slack Bot</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
     <nav class="bg-white shadow-lg sticky top-0 z-50">
@@ -342,7 +343,7 @@ def get_homepage_html():
                     <h1 class="text-xl font-bold text-gray-900">🥬 BLT-Lettuce</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank" 
+                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce" target="_blank"
                        class="text-gray-500 hover:text-gray-900">
                         <i class="fab fa-github text-xl"></i> Contribute
                     </a>
@@ -350,34 +351,34 @@ def get_homepage_html():
             </div>
         </div>
     </nav>
-    
+
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section class="bg-white rounded-lg shadow p-8 mb-8 text-center">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                 BLT-Lettuce <span class="text-red-600">Slack Bot</span>
             </h1>
             <p class="text-xl text-gray-700 mb-8">
-                An intelligent OWASP Slack bot that welcomes new community members, 
-                helps them discover security projects, and connects the global 
+                An intelligent OWASP Slack bot that welcomes new community members,
+                helps them discover security projects, and connects the global
                 cybersecurity community.
             </p>
             <div class="flex justify-center gap-4 flex-wrap">
-                <a href="https://owasp.org/slack/invite" 
-                   class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg 
-                          hover:bg-red-700 transition-colors font-semibold shadow-md" 
+                <a href="https://owasp.org/slack/invite"
+                   class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg
+                          hover:bg-red-700 transition-colors font-semibold shadow-md"
                    target="_blank">
                     <i class="fab fa-slack mr-2"></i> Join OWASP Slack
                 </a>
-                <a href="https://github.com/OWASP-BLT/BLT-Lettuce" 
-                   class="inline-flex items-center px-6 py-3 bg-white border border-gray-300 
-                          text-gray-700 rounded-lg hover:bg-gray-50 transition-colors 
-                          font-semibold shadow-sm" 
+                <a href="https://github.com/OWASP-BLT/BLT-Lettuce"
+                   class="inline-flex items-center px-6 py-3 bg-white border border-gray-300
+                          text-gray-700 rounded-lg hover:bg-gray-50 transition-colors
+                          font-semibold shadow-sm"
                    target="_blank">
                     <i class="fab fa-github mr-2"></i> Star on GitHub
                 </a>
             </div>
         </section>
-        
+
         <section class="bg-white rounded-lg shadow p-6 mb-8" id="stats">
             <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Live Community Stats</h2>
             <div id="stats-container" class="grid md:grid-cols-3 gap-6">
@@ -388,75 +389,77 @@ def get_homepage_html():
             </div>
             <div id="last-updated" class="text-center text-xs text-gray-400 mt-4 h-4"></div>
         </section>
-        
+
         <section class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">What BLT-Lettuce Does</h2>
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">
+                What BLT-Lettuce Does
+            </h2>
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center 
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center
                                 justify-center mx-auto mb-4 text-2xl">👋</div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Smart Welcome System</h3>
-                    <p class="text-gray-600">Automatically welcomes new Slack members with 
+                    <p class="text-gray-600">Automatically welcomes new Slack members with
                        personalized messages and project recommendations.</p>
                 </div>
                 <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center 
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center
                                 justify-center mx-auto mb-4 text-2xl">🔍</div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Project Discovery</h3>
-                    <p class="text-gray-600">Helps members find OWASP projects matching their 
+                    <p class="text-gray-600">Helps members find OWASP projects matching their
                        skills and interests.</p>
                 </div>
                 <div class="text-center p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center 
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center
                                 justify-center mx-auto mb-4 text-2xl">🐙</div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">GitHub Integration</h3>
                     <p class="text-gray-600">Fetches real-time data from OWASP repositories.</p>
                 </div>
             </div>
         </section>
-        
+
         <section class="mb-12 text-center">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Built With</h2>
             <div class="flex flex-wrap justify-center gap-3">
-                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium 
+                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium
                              border border-gray-200">🐍 Python</span>
-                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium 
+                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium
                              border border-gray-200">☁️ Cloudflare Workers</span>
-                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium 
+                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium
                              border border-gray-200">💬 Slack API</span>
-                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium 
+                <span class="px-4 py-2 bg-white rounded-full shadow-sm text-sm font-medium
                              border border-gray-200">🗄️ KV Storage</span>
             </div>
         </section>
-        
+
         <footer class="bg-white border-t py-8 mt-12">
             <div class="max-w-7xl mx-auto px-4 text-center">
                 <p class="text-gray-600 mb-4">
-                    Made with ❤️ by the 
-                    <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" 
+                    Made with ❤️ by the
+                    <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank"
                        class="text-red-600 hover:underline font-medium">OWASP BLT Team</a>
                 </p>
                 <div class="flex justify-center space-x-6 text-sm text-gray-500">
-                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce" 
+                    <a href="https://github.com/OWASP-BLT/BLT-Lettuce"
                        class="hover:text-red-600 transition-colors">GitHub</a>
-                    <a href="https://owasp.org/slack/invite" 
+                    <a href="https://owasp.org/slack/invite"
                        class="hover:text-red-600 transition-colors">Join Slack</a>
-                    <a href="https://owasp.org" 
+                    <a href="https://owasp.org"
                        class="hover:text-red-600 transition-colors">OWASP Foundation</a>
                 </div>
             </div>
         </footer>
     </main>
-    
+
     <script>
         const STATS_API_URL = window.location.origin + "/stats";
-        
+
         const formatNumber = (num) => {
             if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
             if (num >= 1000) return (num / 1000).toFixed(1) + "K";
             return num.toLocaleString();
         };
-        
+
         async function fetchStats() {
             try {
                 const response = await fetch(STATS_API_URL);
@@ -467,16 +470,16 @@ def get_homepage_html():
                 return { joins: 0, commands: 0, last_updated: new Date().toISOString() };
             }
         }
-        
+
         function renderStats(stats) {
             const container = document.getElementById("stats-container");
             const teamJoins = stats.team_joins || stats.joins || 0;
             const commands = stats.commands || 0;
             const totalActivities = stats.total_activities || teamJoins + commands;
-            
+
             container.innerHTML = `
                 <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center 
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center
                                 justify-center mx-auto mb-3 text-xl">
                         <i class="fas fa-user-plus"></i>
                     </div>
@@ -484,7 +487,7 @@ def get_homepage_html():
                     <p class="text-gray-600 text-sm">Members Welcomed</p>
                 </div>
                 <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center 
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center
                                 justify-center mx-auto mb-3 text-xl">
                         <i class="fas fa-terminal"></i>
                     </div>
@@ -492,26 +495,28 @@ def get_homepage_html():
                     <p class="text-gray-600 text-sm">Commands Processed</p>
                 </div>
                 <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center 
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center
                                 justify-center mx-auto mb-3 text-xl">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900">${formatNumber(totalActivities)}</h3>
+                    <h3 class="text-2xl font-bold text-gray-900">
+                        ${formatNumber(totalActivities)}
+                    </h3>
                     <p class="text-gray-600 text-sm">Total Activities</p>
                 </div>
             `;
-            
+
             if (stats.last_updated) {
                 const date = new Date(stats.last_updated).toLocaleDateString();
                 document.getElementById("last-updated").textContent = `Last updated: ${date}`;
             }
         }
-        
+
         async function init() {
             const stats = await fetchStats();
             renderStats(stats);
         }
-        
+
         init();
     </script>
 </body>
@@ -600,7 +605,7 @@ async def on_fetch(request, env):
 
             return Response.json({"ok": True, "message": "Event received"})
 
-        except Exception as e:
+        except Exception:
             # Return sanitized error message to avoid exposing internal details
             return Response.json({"error": "Internal server error"}, {"status": 500})
 
