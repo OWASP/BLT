@@ -487,6 +487,7 @@ async def handle_batch_refresh_prs(request, env):
                 continue
             
             # Check if PR is now merged or closed - remove it
+            # Note: GraphQL returns state in lowercase (e.g., 'closed', 'open')
             if pr_data['is_merged'] or pr_data['state'] == 'closed':
                 await invalidate_readiness_cache(env, pr_id)
                 invalidate_timeline_cache(owner, repo, pr_number)
@@ -505,6 +506,7 @@ async def handle_batch_refresh_prs(request, env):
                 invalidate_timeline_cache(owner, repo, pr_number)
                 updated_prs.append({'pr_id': pr_id, 'pr_number': pr_number})
             except Exception as update_error:
+                print(f"Error updating PR #{pr_number} in {owner}/{repo}: {str(update_error)}")
                 errors.append({'pr_id': pr_id, 'pr_number': pr_number, 'error': str(update_error)})
         
         return Response.new(json.dumps({

@@ -343,6 +343,14 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
     This significantly reduces API calls when updating many PRs at once.
     Instead of making 4-5 REST API calls per PR, we make 1 GraphQL call for all PRs.
     
+    IMPORTANT TRADEOFFS:
+    - Does not fetch check run status (checks_passed/failed/skipped) - set to 0
+    - Does not fetch behind_by count - set to 0
+    - No ETag support for conditional requests
+    - Limited to first 100 review threads per PR
+    - Best for bulk updates where these fields are less critical
+    - For complete/accurate data, use individual fetch_pr_data() instead
+    
     Args:
         prs_to_fetch: List of tuples (owner, repo, pr_number) to fetch
         token: Optional GitHub token for authentication
@@ -480,13 +488,22 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
                     continue
                 
                 # Transform GraphQL response to match REST API format used by fetch_pr_data
-                # Note: This is a simplified version - some fields may need REST API fallback
+                # Note: Some fields (checks_passed, checks_failed, checks_skipped, behind_by) 
+                # are not available in this batch GraphQL query to keep it simple and fast.
+                # These fields are set to 0 and marked with _incomplete_data flag.
+                # For critical updates where these fields matter, use individual fetch_pr_data() instead.
                 author = pr_data.get('author', {})
                 base_repo = pr_data.get('baseRepository', {})
                 
                 # Count unresolved conversations
                 review_threads = pr_data.get('reviewThreads', {}).get('nodes', [])
                 open_conversations_count = sum(1 for thread in review_threads if not thread.get('isResolved', False))
+                
+                # Note: If there are more than 100 review threads, this count will be incomplete
+                # The pageInfo would indicate hasNextPage=true in that case
+                page_info = pr_data.get('reviewThreads', {}).get('pageInfo', {})
+                if page_info.get('hasNextPage'):
+                    print(f"Warning: PR {owner}/{repo}#{pr_number} has >100 review threads, count may be incomplete")
                 
                 # Process reviews to get latest state per reviewer
                 from utils import calculate_review_status
@@ -517,18 +534,19 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
                     'author_login': author.get('login', ''),
                     'author_avatar': author.get('avatarUrl', ''),
                     'repo_owner_avatar': base_repo.get('owner', {}).get('avatarUrl', ''),
-                    'checks_passed': 0,  # Will need REST API for this
-                    'checks_failed': 0,  # Will need REST API for this
-                    'checks_skipped': 0,  # Will need REST API for this
+                    'checks_passed': 0,  # Not available in batch query
+                    'checks_failed': 0,  # Not available in batch query
+                    'checks_skipped': 0,  # Not available in batch query
                     'commits_count': pr_data.get('commits', {}).get('totalCount', 0),
-                    'behind_by': 0,  # Will need REST API for this
+                    'behind_by': 0,  # Not available in batch query
                     'review_status': review_status,
                     'last_updated_at': pr_data.get('updatedAt', ''),
                     'is_draft': 1 if pr_data.get('isDraft', False) else 0,
                     'open_conversations_count': open_conversations_count,
                     'reviewers_json': json.dumps(reviewers_list),
                     'etag': None,  # GraphQL doesn't provide ETags
-                    '_batch_fetch': True  # Mark as batch-fetched for debugging
+                    '_batch_fetch': True,  # Mark as batch-fetched (incomplete data)
+                    '_incomplete_fields': ['checks_passed', 'checks_failed', 'checks_skipped', 'behind_by']
                 }
                 
                 all_results[(owner, repo, pr_number)] = transformed_data
