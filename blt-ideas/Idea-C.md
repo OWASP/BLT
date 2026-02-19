@@ -91,6 +91,13 @@ Core hands-on labs covering SQL Injection, XSS, and Configuration Security using
 - Establish public API for community access to security intelligence
 - Can later evolve into a dedicated security learning playground, enabling richer lab types, additional vulnerability categories, and deeper practice
 
+**Reuse patterns from other ideas (swap-ins)**  
+BLT University keeps its scope; the following are **swap-ins** that improve labs and dashboards without expanding the 350h slot:
+- **Idea G (NetGuardian):** Map NetGuardian findings to relevant learning labs automatically (already in Next-Steps); consume CVE-aware finding types to suggest “real-world” lab matches.
+- **Idea B (Rewards):** Use badge/BACON unlock for labs and learning achievements; optional campaign-scoped progress when Idea W is available.
+- **Idea X (RepoTrust):** Use RepoTrust “how to improve” or verified-fix ratio as optional context in dashboards or lab intros (e.g. “healthy repo” examples); read-only, no ownership of RepoTrust.
+- **Idea H (Growth):** Reuse “what next” suggestion pattern for recommending next labs based on progress and skill gaps (already in Phase 3 optional AI support); no implementation of Sizzle or full mentoring here.
+
 ---
 
 moved here https://github.com/orgs/OWASP-BLT/discussions/5705
