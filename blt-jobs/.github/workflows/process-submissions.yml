@@ -12,7 +12,7 @@ permissions:
 jobs:
   job-from-url:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'job-posting-from-link')
+    if: startsWith(github.event.issue.title, '[JOB-LINK]')
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -58,14 +58,14 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://pritz395.github.io/BLT-Jobs/jobs.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   job-form:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'job-posting') && !contains(github.event.issue.labels.*.name, 'job-posting-from-link')
+    if: startsWith(github.event.issue.title, '[JOB]')
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -95,14 +95,14 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Job posting added. [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Job posting added. [View on site](https://pritz395.github.io/BLT-Jobs/jobs.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   seeker:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'job-seeker')
+    if: startsWith(github.event.issue.title, '[SEEKER]')
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -132,7 +132,7 @@ jobs:
 
       - name: Comment and close issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Profile added. [View on site](https://jobs.owaspblt.org/seekers.html). This issue will be closed."
+          gh issue comment ${{ github.event.issue.number }} --body "Profile added. [View on site](https://pritz395.github.io/BLT-Jobs/seekers.html). This issue will be closed."
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
