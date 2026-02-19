@@ -377,7 +377,7 @@ class HackathonDashboard {
                 return dateMap ? (dateMap.get(repo) || 0) : 0;
             });
             datasets.push({
-                label: repo,
+                label: 'Merged PRs',
                 data: data,
                 backgroundColor: repoColors[index],
                 borderColor: repoColors[index],
