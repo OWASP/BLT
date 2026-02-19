@@ -14,7 +14,8 @@ function parseFormBody(body) {
   const sections = body.split(/\n### /).filter(Boolean);
   for (const section of sections) {
     const firstNewline = section.indexOf("\n");
-    const label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
+    let label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
+    label = label.replace(/^#+\s*/, "").trim();
     let value = firstNewline === -1 ? "" : section.slice(firstNewline).replace(/^\n+/, "");
     value = value.split(/\n\n###/)[0].trim();
     data[label] = value;

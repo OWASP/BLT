@@ -45,14 +45,27 @@ jobs:
         id: scrape
         run: |
           OUTPUT=$(python3 scripts/scrape-job-url.py "${{ steps.url.outputs.url }}")
+          OUTPUT=$(echo "$OUTPUT" | tail -1)
+          if [ -z "$OUTPUT" ] || [ ! -f "$OUTPUT" ]; then
+            echo "Scraper did not produce a job file"
+            exit 1
+          fi
           echo "path=$OUTPUT" >> "$GITHUB_OUTPUT"
           echo "Created $OUTPUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
 
       - name: Commit and push job file
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ steps.scrape.outputs.path }}"
+          git add "${{ steps.scrape.outputs.path }}" data/jobs.json data/seekers.json
           git commit -m "chore: add job from issue (quick add) #${{ github.event.issue.number }}"
           git push
 
@@ -82,14 +95,27 @@ jobs:
         id: create
         run: |
           PATH_OUT=$(node scripts/issue-form-to-job.js < issue_body.txt)
+          PATH_OUT=$(echo "$PATH_OUT" | tail -1)
+          if [ -z "$PATH_OUT" ] || [ ! -f "$PATH_OUT" ]; then
+            echo "Form parser did not produce a job file"
+            exit 1
+          fi
           echo "path=$PATH_OUT" >> "$GITHUB_OUTPUT"
           echo "Created $PATH_OUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
 
       - name: Commit and push job file
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ steps.create.outputs.path }}"
+          git add "${{ steps.create.outputs.path }}" data/jobs.json data/seekers.json
           git commit -m "chore: add job from issue #${{ github.event.issue.number }}"
           git push
 
@@ -119,14 +145,27 @@ jobs:
         id: create
         run: |
           PATH_OUT=$(node scripts/issue-form-to-seeker.js < issue_body.txt)
+          PATH_OUT=$(echo "$PATH_OUT" | tail -1)
+          if [ -z "$PATH_OUT" ] || [ ! -f "$PATH_OUT" ]; then
+            echo "Form parser did not produce a seeker file"
+            exit 1
+          fi
           echo "path=$PATH_OUT" >> "$GITHUB_OUTPUT"
           echo "Created $PATH_OUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
 
       - name: Commit and push seeker file
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ steps.create.outputs.path }}"
+          git add "${{ steps.create.outputs.path }}" data/jobs.json data/seekers.json
           git commit -m "chore: add seeker profile from issue #${{ github.event.issue.number }}"
           git push
 

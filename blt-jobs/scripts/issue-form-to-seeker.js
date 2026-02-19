@@ -15,8 +15,10 @@ function parseFormBody(body) {
   const formSections = body.split(/\n### /).filter(Boolean);
   for (const section of formSections) {
     const firstNewline = section.indexOf("\n");
-    const label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
-    const value = firstNewline === -1 ? "" : section.slice(firstNewline).replace(/^\n+/, "").trim();
+    let label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
+    label = label.replace(/^#+\s*/, "").trim();
+    let value = firstNewline === -1 ? "" : section.slice(firstNewline).replace(/^\n+/, "");
+    value = value.split(/\n\n###/)[0].trim();
     if (label) data[label] = value;
   }
   // **Label:** value (markdown template style) - only if not already set
