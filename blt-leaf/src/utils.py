@@ -76,8 +76,10 @@ def calculate_review_status(reviews_data):
         sorted_reviews = sorted(valid_reviews, key=lambda x: x.get('submitted_at', ''))
         latest_reviews = {}
         for review in sorted_reviews:
-            user = review['user']['login']
-            latest_reviews[user] = review['state']
+            # Safely access user field - can be null for deleted accounts
+            user = review.get('user')
+            if user and user.get('login'):
+                latest_reviews[user['login']] = review['state']
 
         # Determine overall status: changes_requested takes precedence over approved
         if 'CHANGES_REQUESTED' in latest_reviews.values():
