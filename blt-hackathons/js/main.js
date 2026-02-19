@@ -358,7 +358,7 @@ class HackathonDashboard {
     }
 
     /**
-     * Render the PR activity chart - simplified to show total PRs per day across all repositories
+     * Render the PR activity chart - simplified to show total merged PRs per day across all repositories
      */
     renderChart(dailyActivity, prs) {
         // Check if Chart.js is available
@@ -369,11 +369,12 @@ class HackathonDashboard {
         
         const dates = Object.keys(dailyActivity).sort();
         
-        // Calculate total PRs per day (combined across all repositories)
-        // We count all PRs by their creation date to show when activity occurred
+        // Calculate total merged PRs per day (combined across all repositories)
+        // We use merged_at date to show when contributions were actually accepted
         const prCountsByDate = {};
         prs.forEach(pr => {
-            const prDate = new Date(pr.created_at).toISOString().split('T')[0];
+            if (!pr.merged_at) return; // Only count merged PRs
+            const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
             if (!prCountsByDate[prDate]) {
                 prCountsByDate[prDate] = 0;
             }
