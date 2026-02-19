@@ -406,7 +406,14 @@ class HackathonDashboard {
                     },
                     tooltip: {
                         mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                // Show only the value without the dataset label
+                                const value = context.parsed.y;
+                                return Number.isFinite(value) ? value + ' PRs' : '0 PRs';
+                            }
+                        }
                     }
                 },
                 scales: {
