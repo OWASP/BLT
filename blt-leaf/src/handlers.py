@@ -570,6 +570,7 @@ async def handle_rate_limit(env):
     try:
         # Pull the latest state from the cache module
         rate_data = get_rate_limit_cache()
+        token_configured = bool(getattr(env, 'GITHUB_TOKEN', None))
         
         # If no calls have been made yet, provide a friendly initial state
         if not rate_data or not rate_data.get('limit'):
@@ -579,13 +580,14 @@ async def handle_rate_limit(env):
                     'remaining': 5000, 
                     'reset': 0, 
                     'used': 0,
-                    'status': 'waiting_for_first_request'
+                    'status': 'waiting_for_first_request',
+                    'token_configured': token_configured
                 }), 
                 {'headers': {'Content-Type': 'application/json'}}
             )
         
         return Response.new(
-            json.dumps(rate_data), 
+            json.dumps({**rate_data, 'token_configured': token_configured}), 
             {'headers': {
                 'Content-Type': 'application/json',
                 'Cache-Control': 'no-cache'
