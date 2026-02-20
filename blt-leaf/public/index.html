@@ -368,6 +368,7 @@
                             id="rateLimitText">N/A</span>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitUsed"></span>
                         <span class="text-[10px] text-slate-400 dark:text-slate-500" id="rateLimitReset"></span>
+                        <span class="text-[10px] font-medium hidden" id="rateLimitTokenIndicator"></span>
                     </div>
                 </div>
 
@@ -687,10 +688,26 @@
                 const fillEl = document.getElementById('rateLimitFill');
                 const usedEl = document.getElementById('rateLimitUsed');
                 const resetEl = document.getElementById('rateLimitReset');
+                const tokenEl = document.getElementById('rateLimitTokenIndicator');
 
                 if (!response.ok) return;
 
                 const data = await response.json();
+
+                // Show token indicator regardless of rate limit status
+                if (tokenEl) {
+                    if (data.token_configured) {
+                        tokenEl.textContent = '🔑';
+                        tokenEl.title = 'GitHub token configured (higher rate limits)';
+                        tokenEl.setAttribute('aria-label', 'GitHub token configured');
+                        tokenEl.classList.remove('hidden');
+                    } else {
+                        tokenEl.textContent = '⚠';
+                        tokenEl.title = 'No GitHub token configured (lower rate limits)';
+                        tokenEl.setAttribute('aria-label', 'No GitHub token configured');
+                        tokenEl.classList.remove('hidden');
+                    }
+                }
 
                 if (data.status === 'waiting_for_first_request') {
                     if (textEl) textEl.textContent = 'Ready';
@@ -758,9 +775,11 @@
                 const textEl = document.getElementById('rateLimitText');
                 const usedEl = document.getElementById('rateLimitUsed');
                 const resetEl = document.getElementById('rateLimitReset');
+                const tokenEl = document.getElementById('rateLimitTokenIndicator');
                 if (textEl) textEl.textContent = 'N/A';
                 if (usedEl) usedEl.textContent = '';
                 if (resetEl) resetEl.textContent = '';
+                if (tokenEl) tokenEl.classList.add('hidden');
             }
         }
 
