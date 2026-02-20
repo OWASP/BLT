@@ -72,7 +72,8 @@ async def handle_users(
     
     # Get total count for pagination
     count_result = await db.prepare('SELECT COUNT(*) as count FROM users WHERE is_active = 1').first()
-    total_count = count_result.count if count_result else len(users)
+    count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
+    total_count = count_result['count'] if count_result else len(users)
     
     return json_response({
         "success": True,
@@ -135,6 +136,7 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
         FROM bugs
         WHERE user = ?
     ''').bind(int(user_id)).first()
+    bug_stats = bug_stats.to_py() if hasattr(bug_stats, 'to_py') else dict(bug_stats)
     
     # Get domain count
     domain_count = await db.prepare('''
@@ -142,6 +144,7 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
         FROM domains
         WHERE user = ?
     ''').bind(int(user_id)).first()
+    domain_count = domain_count.to_py() if hasattr(domain_count, 'to_py') else dict(domain_count)
     
     # Get follower/following counts
     follower_count = await db.prepare('''
@@ -149,20 +152,22 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
         FROM user_follows
         WHERE following_id = ?
     ''').bind(int(user_id)).first()
+    follower_count = follower_count.to_py() if hasattr(follower_count, 'to_py') else dict(follower_count)
     
     following_count = await db.prepare('''
         SELECT COUNT(*) as count
         FROM user_follows
         WHERE follower_id = ?
     ''').bind(int(user_id)).first()
+    following_count = following_count.to_py() if hasattr(following_count, 'to_py') else dict(following_count)
     
     user['stats'] = {
-        'total_bugs': bug_stats.total_bugs if bug_stats else 0,
-        'verified_bugs': bug_stats.verified_bugs if bug_stats else 0,
-        'closed_bugs': bug_stats.closed_bugs if bug_stats else 0,
-        'domains': domain_count.count if domain_count else 0,
-        'followers': follower_count.count if follower_count else 0,
-        'following': following_count.count if following_count else 0
+        'total_bugs': bug_stats['total_bugs'] if bug_stats else 0,
+        'verified_bugs': bug_stats['verified_bugs'] if bug_stats else 0,
+        'closed_bugs': bug_stats['closed_bugs'] if bug_stats else 0,
+        'domains': domain_count['count'] if domain_count else 0,
+        'followers': follower_count['count'] if follower_count else 0,
+        'following': following_count['count'] if following_count else 0
     }
     
     return json_response({
@@ -187,7 +192,8 @@ async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> 
     bugs = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
     
     count_result = await db.prepare('SELECT COUNT(*) as count FROM bugs WHERE user = ?').bind(int(user_id)).first()
-    total_count = count_result.count if count_result else len(bugs)
+    count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
+    total_count = count_result['count'] if count_result else len(bugs)
     
     return json_response({
         "success": True,
@@ -216,7 +222,8 @@ async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) 
     domains = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
     
     count_result = await db.prepare('SELECT COUNT(*) as count FROM domains WHERE user = ?').bind(int(user_id)).first()
-    total_count = count_result.count if count_result else len(domains)
+    count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
+    total_count = count_result['count'] if count_result else len(domains)
     
     return json_response({
         "success": True,
@@ -248,7 +255,8 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
     count_result = await db.prepare('''
         SELECT COUNT(*) as count FROM user_follows WHERE following_id = ?
     ''').bind(int(user_id)).first()
-    total_count = count_result.count if count_result else len(followers)
+    count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
+    total_count = count_result['count'] if count_result else len(followers)
     
     return json_response({
         "success": True,
@@ -280,7 +288,8 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
     count_result = await db.prepare('''
         SELECT COUNT(*) as count FROM user_follows WHERE follower_id = ?
     ''').bind(int(user_id)).first()
-    total_count = count_result.count if count_result else len(following)
+    count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
+    total_count = count_result['count'] if count_result else len(following)
     
     return json_response({
         "success": True,
