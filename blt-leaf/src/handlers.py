@@ -50,8 +50,8 @@ async def handle_add_pr(request, env):
         
         pr_url = data.get('pr_url')
         add_all = data.get('add_all', False)
-        # Capture token from header
-        user_token = request.headers.get('x-github-token')
+        # Capture token from header - fall back to env secret for GraphQL API
+        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
         
         # Type validation for pr_url
         if not pr_url or not isinstance(pr_url, str):
@@ -367,7 +367,7 @@ async def handle_refresh_pr(request, env):
     try:
         data = (await request.json()).to_py()
         pr_id = data.get('pr_id')
-        user_token = request.headers.get('x-github-token')
+        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
         
         if not pr_id:
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
@@ -470,7 +470,7 @@ async def handle_batch_refresh_prs(request, env):
     try:
         data = (await request.json()).to_py()
         pr_ids = data.get('pr_ids', [])
-        user_token = request.headers.get('x-github-token')
+        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
         
         if not pr_ids or not isinstance(pr_ids, list):
             return Response.new(json.dumps({'error': 'pr_ids array is required'}), 
@@ -791,7 +791,8 @@ async def handle_github_webhook(request, env):
                     )
                 
                 # Fetch fresh PR data and add to tracking
-                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                webhook_token = getattr(env, 'GITHUB_TOKEN', None)
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number, webhook_token)
                 if fetched_pr_data:
                     await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                     
@@ -855,7 +856,8 @@ async def handle_github_webhook(request, env):
             # Handle reopened PRs - re-add to tracking if it was tracked before
             elif action == 'reopened':
                 # Fetch fresh PR data
-                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                webhook_token = getattr(env, 'GITHUB_TOKEN', None)
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number, webhook_token)
                 if fetched_pr_data:
                     await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                     # Invalidate caches
@@ -877,7 +879,8 @@ async def handle_github_webhook(request, env):
             # Handle synchronized (new commits) or edited PRs - update data
             elif action in ['synchronize', 'edited']:
                 # Fetch fresh PR data
-                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number)
+                webhook_token = getattr(env, 'GITHUB_TOKEN', None)
+                fetched_pr_data = await fetch_pr_data(repo_owner, repo_name, pr_number, webhook_token)
                 if fetched_pr_data:
                     await upsert_pr(db, pr_url, repo_owner, repo_name, pr_number, fetched_pr_data)
                     # Invalidate caches to force fresh analysis
