@@ -331,7 +331,11 @@ Bugs endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE
 |--------|----------|-------------|
 | GET | `/users` | List all users (paginated) |
 | GET | `/users/{id}` | Get a specific user |
-| GET | `/users/{id}/profile` | Get user profile details |
+| GET | `/users/{id}/profile` | Get user profile with statistics |
+| GET | `/users/{id}/bugs` | Get bugs reported by user |
+| GET | `/users/{id}/domains` | Get domains submitted by user |
+| GET | `/users/{id}/followers` | Get users following this user |
+| GET | `/users/{id}/following` | Get users this user follows |
 
 ### Domains
 
