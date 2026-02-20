@@ -10,7 +10,7 @@ database_id = "014201e7-6c0e-4b6a-8c0e-c53d18305dca"
 
 # Automatically run D1 migrations before deployment
 [build]
-command = "bash scripts/migrate.sh"
+command = "bash scripts/migration.sh"
 
 [vars]
 ENVIRONMENT = "production"
