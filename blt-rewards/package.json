@@ -1,0 +1,27 @@
+{
+    "name": "blt-rewards",
+    "version": "1.0.0",
+    "description": "BACON - Blockchain Assisted Contribution Network: Incentivize contributions with Bitcoin and Solana blockchain rewards",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "deploy:dev": "wrangler deploy --env dev",
+        "lint": "echo 'Linting not configured yet' && exit 0",
+        "format:check": "echo 'Format checking not configured yet' && exit 0"
+    },
+    "keywords": [
+        "bacon",
+        "blockchain",
+        "bitcoin",
+        "solana",
+        "rewards",
+        "cloudflare",
+        "workers",
+        "open-source"
+    ],
+    "author": "OWASP BLT",
+    "license": "MIT",
+    "devDependencies": {
+        "wrangler": "^4.64.0"
+    }
+}

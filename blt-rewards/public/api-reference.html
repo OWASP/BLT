@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BACON SDK API Reference - Complete documentation for developers">
+    <title>API Reference - BACON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-gray-700 hover:text-blt-red transition-colors">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-blt-red">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-book text-blt-red mr-3"></i>API Reference
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Complete SDK Documentation for BACON Integration</p>
+        </div>
+    </section>
+
+    <main>
+        <!-- BaconSDK Class -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">BaconSDK Class</h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-code text-blt-red mr-2"></i>Constructor
+                        </h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+new BaconSDK(config: BaconConfig)
+                        </div>
+                        <p class="text-gray-700 mb-4">Creates a new instance of the BACON SDK.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">config</code> (BaconConfig): Configuration object</span>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const bacon = new BaconSDK({
+  blockchain: 'bitcoin',
+  network: 'mainnet',
+  wallet: {
+    privateKey: process.env.PRIVATE_KEY
+  }
+});</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-cog text-blt-red mr-2"></i>Configuration
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">BaconConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">interface BaconConfig {
+  blockchain: 'bitcoin' | 'solana';
+  network: 'mainnet' | 'testnet' | 'devnet' | 'mainnet-beta';
+  wallet?: WalletConfig;
+  rewards?: RewardConfig;
+  rpc?: RPCConfig;
+  github?: GitHubConfig;
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">WalletConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">interface WalletConfig {
+  privateKey?: string;
+  publicKey?: string;
+  address?: string;
+  mnemonic?: string;
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">RewardConfig Interface</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">interface RewardConfig {
+  issueOpened?: number;
+  issueResolved?: number;
+  pullRequestMerged?: number;
+  codeReview?: number;
+  commitPushed?: number;
+  releasePublished?: number;
+  [key: string]: number;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Methods -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-cube text-blt-red mr-2"></i>Core Methods
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">initialize()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async initialize(): Promise&lt;void&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Initializes the SDK and connects to the blockchain network.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+await bacon.initialize();
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">reward()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async reward(recipient: string, amount: number, memo?: string): Promise&lt;Transaction&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Sends BACON tokens as a reward to a recipient.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">recipient</code> (string): Wallet address or GitHub username</span>
+                            </li>
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">amount</code> (number): Amount of BACON tokens to send</span>
+                            </li>
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">memo</code> (string, optional): Transaction memo</span>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Returns:</h4>
+                        <p class="text-gray-700 mb-4">Promise that resolves to a Transaction object.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const tx = await bacon.reward('alice', 100, 'Bug fix reward');
+console.log(`Transaction ID: ${tx.id}`);</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">batchReward()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async batchReward(rewards: Reward[]): Promise&lt;Transaction&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Sends rewards to multiple recipients in a single transaction.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">rewards</code> (Reward[]): Array of reward objects</span>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">await bacon.batchReward([
+  { recipient: 'alice', amount: 50 },
+  { recipient: 'bob', amount: 75 },
+  { recipient: 'charlie', amount: 100 }
+]);</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getBalance()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getBalance(address: string): Promise&lt;number&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets the BACON token balance for an address.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">address</code> (string): Wallet address to check</span>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Returns:</h4>
+                        <p class="text-gray-700 mb-4">Promise that resolves to the balance as a number.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const balance = await bacon.getBalance('wallet_address');
+console.log(`Balance: ${balance} BACON`);</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getTransaction()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getTransaction(txId: string): Promise&lt;Transaction&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets details of a specific transaction.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Parameters:</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li class="flex items-start gap-2 text-gray-700">
+                                <i class="fas fa-arrow-right text-blt-red mt-1 text-sm"></i>
+                                <span><code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">txId</code> (string): Transaction ID</span>
+                            </li>
+                        </ul>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Returns:</h4>
+                        <p class="text-gray-700 mb-4">Promise that resolves to a Transaction object.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const tx = await bacon.getTransaction('tx_id');
+console.log(`Status: ${tx.status}`);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GitHub Integration -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fab fa-github text-blt-red mr-2"></i>GitHub Integration
+                </h2>
+                
+                <div class="feature-detail">
+                    <h3>connectGitHub()</h3>
+                    <div class="code-block">
+<pre>async connectGitHub(config: GitHubConfig): Promise&lt;void&gt;</pre>
+                    </div>
+                    <p>Connects to GitHub webhooks for automatic reward distribution.</p>
+                    
+                    <h4>Parameters:</h4>
+                    <ul>
+                        <li><code>config</code> (GitHubConfig): GitHub configuration object</li>
+                    </ul>
+                    
+                    <h4>Example:</h4>
+                    <div class="code-block">
+<pre>await bacon.connectGitHub({
+  repository: 'owner/repo',
+  token: process.env.GITHUB_TOKEN,
+  webhookSecret: process.env.WEBHOOK_SECRET
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>on()</h3>
+                    <div class="code-block">
+<pre>on(event: string, handler: EventHandler): void</pre>
+                    </div>
+                    <p>Registers an event handler for GitHub events.</p>
+                    
+                    <h4>Supported Events:</h4>
+                    <ul>
+                        <li><code>issue.opened</code></li>
+                        <li><code>issue.closed</code></li>
+                        <li><code>pull_request.opened</code></li>
+                        <li><code>pull_request.merged</code></li>
+                        <li><code>pull_request.reviewed</code></li>
+                        <li><code>release.published</code></li>
+                    </ul>
+                    
+                    <h4>Example:</h4>
+                    <div class="code-block">
+<pre>bacon.on('issue.opened', async (event) => {
+  await bacon.reward(event.user, 10);
+});
+
+bacon.on('pull_request.merged', async (event) => {
+  await bacon.reward(event.user, 50);
+});</pre>
+                    </div>
+                </div>
+
+                <div class="feature-detail">
+                    <h3>start()</h3>
+                    <div class="code-block">
+<pre>start(options?: ServerOptions): void</pre>
+                    </div>
+                    <p>Starts the webhook server to listen for GitHub events.</p>
+                    
+                    <h4>Parameters:</h4>
+                    <ul>
+                        <li><code>options</code> (ServerOptions, optional): Server configuration</li>
+                    </ul>
+                    
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                    <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre>bacon.start({ 
+  port: 3000,
+  path: '/webhook'
+});</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Token Management -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-coins text-blt-red mr-2"></i>Token Management
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">createToken()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async createToken(params: TokenParams): Promise&lt;string&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Creates a new BACON token on the blockchain.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const tokenId = await bacon.createToken({
+  name: 'BACON',
+  symbol: 'BACON',
+  decimals: 8,
+  supply: 21000000
+});</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">mint()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async mint(amount: number, destination: string): Promise&lt;Transaction&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Mints new BACON tokens (requires mint authority).</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+await bacon.mint(1000000, treasuryAddress);
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">burn()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async burn(amount: number): Promise&lt;Transaction&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Burns BACON tokens from the connected wallet.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+await bacon.burn(100);
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getSupply()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getSupply(): Promise&lt;TokenSupply&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets the current token supply information.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const supply = await bacon.getSupply();
+console.log(`Total: ${supply.total}, Circulating: ${supply.circulating}`);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Management -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-users text-blt-red mr-2"></i>User Management
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">registerUser()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async registerUser(github: string, wallet: string): Promise&lt;User&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Links a GitHub username to a wallet address.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+await bacon.registerUser('alice', 'wallet_address');
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getUser()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getUser(identifier: string): Promise&lt;User&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets user information by GitHub username or wallet address.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const user = await bacon.getUser('alice');
+console.log(`Wallet: ${user.wallet}, Balance: ${user.balance}`);</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getLeaderboard()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getLeaderboard(limit?: number): Promise&lt;User[]&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets the top contributors by BACON balance.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const top10 = await bacon.getLeaderboard(10);
+top10.forEach((user, i) => {
+  console.log(`${i + 1}. ${user.github}: ${user.balance} BACON`);
+});</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics & Reporting -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-chart-bar text-blt-red mr-2"></i>Analytics & Reporting
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getStats()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getStats(): Promise&lt;Statistics&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets overall BACON ecosystem statistics.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const stats = await bacon.getStats();
+console.log(`
+  Total Rewards: ${stats.totalRewards}
+  Active Users: ${stats.activeUsers}
+  Transactions: ${stats.transactions}
+`);</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">getTransactionHistory()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async getTransactionHistory(address: string, options?: HistoryOptions): Promise&lt;Transaction[]&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Gets transaction history for an address.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const history = await bacon.getTransactionHistory('address', {
+  limit: 50,
+  offset: 0,
+  type: 'reward'
+});</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">exportReport()</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white mb-4 overflow-x-auto">
+async exportReport(format: 'json' | 'csv', options?: ReportOptions): Promise&lt;string&gt;
+                        </div>
+                        <p class="text-gray-700 mb-4">Exports reward distribution report.</p>
+                        
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Example:</h4>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const report = await bacon.exportReport('csv', {
+  startDate: '2024-01-01',
+  endDate: '2024-12-31'
+});</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Handling -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-exclamation-triangle text-blt-red mr-2"></i>Error Handling
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Error Types</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">class BaconError extends Error {
+  code: string;
+  details?: any;
+}
+
+// Common error codes:
+// - INSUFFICIENT_BALANCE
+// - INVALID_ADDRESS
+// - TRANSACTION_FAILED
+// - NETWORK_ERROR
+// - UNAUTHORIZED</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Error Handling Example</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">try {
+  await bacon.reward('alice', 1000000);
+} catch (error) {
+  if (error.code === 'INSUFFICIENT_BALANCE') {
+    console.error('Not enough tokens in treasury');
+  } else if (error.code === 'INVALID_ADDRESS') {
+    console.error('Invalid recipient address');
+  } else {
+    console.error('Unknown error:', error);
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">
+                    <i class="fas fa-bolt text-blt-red mr-2"></i>Events
+                </h2>
+                
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Event Emitter</h3>
+                    <p class="text-gray-700 mb-4">The BACON SDK emits various events that you can listen to:</p>
+                    
+                    <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Transaction events
+bacon.on('transaction:pending', (tx) => {
+  console.log('Transaction pending:', tx.id);
+});
+
+bacon.on('transaction:confirmed', (tx) => {
+  console.log('Transaction confirmed:', tx.id);
+});
+
+bacon.on('transaction:failed', (tx, error) => {
+  console.error('Transaction failed:', error);
+});
+
+// Reward events
+bacon.on('reward:sent', (reward) => {
+  console.log(`Sent ${reward.amount} to ${reward.recipient}`);
+});
+
+// Error events
+bacon.on('error', (error) => {
+  console.error('SDK error:', error);
+});</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="py-16 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Need More Information?</h2>
+                <p class="text-lg text-gray-600 mb-8">Check out our guides and examples</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="getting-started.html" class="inline-flex items-center gap-2 px-6 py-3 bg-blt-red text-white rounded-md font-medium hover:bg-blt-red-hover transition-colors">
+                        Getting Started
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Bacon/tree/main/examples" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors">
+                        View Examples
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
+                <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

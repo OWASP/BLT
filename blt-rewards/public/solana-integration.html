@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Solana Integration Guide for BACON - Using SPL Token Standard">
+    <title>Solana Integration - BACON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-gray-700 hover:text-blt-red transition-colors">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-gray-700 hover:text-blt-red transition-colors">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-blt-red">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-50 rounded-2xl mb-6">
+                <span class="text-3xl font-bold text-purple-600">◎</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Solana Integration</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">High-Speed Rewards with SPL Tokens</p>
+        </div>
+    </section>
+
+    <main>
+        <!-- Why Solana -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Why Solana for BACON?</h2>
+                
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+                    <p class="text-gray-700 leading-relaxed mb-6">
+                        Solana is a high-performance blockchain that offers exceptional speed and low transaction costs, making it ideal for frequent reward distributions and micro-transactions in the BACON ecosystem.
+                    </p>
+                    
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Key Advantages</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-bolt text-purple-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Ultra-Fast</p>
+                                <p class="text-sm text-gray-600">Process 65,000+ transactions per second</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-coins text-green-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Low Costs</p>
+                                <p class="text-sm text-gray-600">Transaction fees average $0.00025</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-cube text-blue-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">SPL Tokens</p>
+                                <p class="text-sm text-gray-600">Native token standard with rich functionality</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-code text-orange-600 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">Developer-Friendly</p>
+                                <p class="text-sm text-gray-600">Excellent tooling and documentation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setting Up Solana -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Setting Up Solana</h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Install Solana CLI</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Install Solana CLI tools
+sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+
+# Verify installation
+solana --version
+
+# Set cluster (mainnet-beta, devnet, or testnet)
+solana config set --url https://api.mainnet-beta.solana.com</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Create Solana Wallet</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Generate new keypair
+solana-keygen new --outfile ~/.config/solana/bacon-wallet.json
+
+# Check wallet address
+solana address
+
+# Check balance
+solana balance
+
+# Airdrop SOL (devnet/testnet only)
+solana airdrop 2</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Install SPL Token CLI</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Install SPL Token program
+cargo install spl-token-cli
+
+# Verify installation
+spl-token --version</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Creating BACON SPL Token -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Creating BACON SPL Token</h2>
+                
+                <div class="space-y-6">
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">1</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Create Token</h3>
+                            <p class="text-gray-700 mb-4">Create your BACON SPL token on Solana:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Create token with 8 decimals
+spl-token create-token --decimals 8
+
+# Save the token address (mint address)
+# Example: 7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs
+
+# Create token account
+spl-token create-account TOKEN_ADDRESS
+
+# Check token accounts
+spl-token accounts</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">2</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Mint Initial Supply</h3>
+                            <p class="text-gray-700 mb-4">Mint BACON tokens to your treasury:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Mint 21 million BACON tokens
+spl-token mint TOKEN_ADDRESS 21000000
+
+# Check supply
+spl-token supply TOKEN_ADDRESS
+
+# Check balance
+spl-token balance TOKEN_ADDRESS</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">3</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Configure Token Metadata</h3>
+                            <p class="text-gray-700 mb-4">Add metadata for your token (name, symbol, logo):</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const { createMetadata } = require('@metaplex-foundation/mpl-token-metadata');
+
+await createMetadata({
+  mint: tokenAddress,
+  metadata: {
+    name: 'BACON',
+    symbol: 'BACON',
+    uri: 'https://blt-bacon.github.io/metadata. json',
+    sellerFeeBasisPoints: 0,
+    creators: null,
+    collection: null,
+    uses: null
+  }
+});</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blt-red rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">4</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Initialize BACON SDK</h3>
+                            <p class="text-gray-700 mb-4">Connect BACON SDK to Solana:</p>
+                            <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const BaconSDK = require('@blt-bacon/sdk');
+
+const bacon = new BaconSDK({
+  blockchain: 'solana',
+  network: 'mainnet-beta',
+  cluster: 'https://api.mainnet-beta.solana.com',
+  wallet: {
+    privateKey: process.env.SOLANA_PRIVATE_KEY,
+    publicKey: process.env.SOLANA_PUBLIC_KEY
+  },
+  token: {
+    mint: process.env.SPL_TOKEN_MINT,
+    decimals: 8
+  }
+});</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Distributing Rewards -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Distributing Rewards</h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Single Transfer</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Transfer BACON tokens to contributor
+await bacon.transfer({
+  to: 'ContributorSolanaAddress',
+  amount: 100,
+  memo: 'Reward for PR #123'
+});
+
+// Using SPL Token CLI
+spl-token transfer TOKEN_ADDRESS 100 RECIPIENT_ADDRESS</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Batch Transfers</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Batch transfer to multiple recipients
+await bacon.batchTransfer({
+  transfers: [
+    { to: 'Address1', amount: 50, memo: 'Issue #101' },
+    { to: 'Address2', amount: 75, memo: 'PR #102' },
+    { to: 'Address3', amount: 100, memo: 'Bug fix #103' }
+  ]
+});
+
+// This creates one transaction with multiple instructions
+// Much more efficient than individual transfers</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Automated Rewards via Webhooks</h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const express = require('express');
+const app = express();
+
+app.post('/webhook/github', async (req, res) => {
+  const event = req.body;
+  
+  if (event.action === 'opened' && event.issue) {
+    // Reward issue reporter
+    await bacon.reward({
+      user: event.issue.user.login,
+      amount: 10,
+      reason: `Issue #${event.issue.number}`
+    });
+  }
+  
+  if (event.action === 'closed' && event.pull_request?.merged) {
+    // Reward PR merger
+    await bacon.reward({
+      user: event.pull_request.user.login,
+      amount: 50,
+      reason: `PR #${event.pull_request.number}`
+    });
+  }
+  
+  res.sendStatus(200);
+});</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Features -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Advanced Features</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-wallet text-2xl text-purple-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Associated Token Accounts</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Automatically create token accounts for recipients</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Auto-create if doesn't exist</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Simplifies recipient onboarding</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Reduces setup friction</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-clock text-2xl text-blue-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Token Vesting</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Implement vesting schedules for long-term rewards</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Custom vesting schedules</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Cliff and linear release</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Lock rewards over time</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-coins text-2xl text-green-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Staking Rewards</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Allow users to stake BACON for additional rewards</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Configurable APY rates</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Flexible lock periods</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Automated reward distribution</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-shield-alt text-2xl text-red-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Multi-Signature Treasury</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-4">Secure treasury with multi-sig protection</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Multiple approvers required</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Enhanced security</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Transaction proposals</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Optimization -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Performance Optimization</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-rocket text-2xl text-blt-red"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Transaction Optimization</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Batch multiple operations</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use compute unit pricing</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Implement retry logic</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-dollar-sign text-2xl text-green-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Cost Management</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Optimize compute units</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Use versioned transactions</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Monitor transaction costs</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-bolt text-2xl text-yellow-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Speed Enhancement</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">WebSocket for real-time updates</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Preflight transaction checks</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Cache account data</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-wrench text-2xl text-gray-600"></i>
+                            <h3 class="text-lg font-semibold text-gray-900">Error Handling</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Exponential backoff</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Handle blockhash expiration</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check text-blt-red mt-1 text-sm"></i>
+                                <span class="text-sm">Automatic recovery</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to Use Solana?</h2>
+                <p class="text-xl text-gray-600 mb-8">Start distributing fast, low-cost rewards with Solana</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="getting-started.html" class="inline-flex items-center gap-2 px-6 py-3 bg-blt-red text-white rounded-md hover:bg-blt-red-hover transition-colors font-medium">
+                        Get Started
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="api-reference.html" class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:border-blt-red hover:text-blt-red transition-colors font-medium">
+                        View API Reference
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
+                <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
