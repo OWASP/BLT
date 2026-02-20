@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<!--
+  BLT-Action GitHub Pages Site
+  
+  Design: BLT Official Style Guide
+  Stack: Pure HTML + Tailwind CSS + Font Awesome
+  
+  Note: HTML entities (&#123; and &#125;) are used to escape curly braces
+  in GitHub Actions YAML examples to ensure proper display in HTML context
+  and prevent potential template engine interpretation.
+-->
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-Action - Automated Issue Management for GitHub</title>
+    <meta name="description" content="Streamline GitHub issue and PR management with automated assignment, engagement features, and workflow automation.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind Configuration with BLT Brand Tokens -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-primary': '#E10101',
+                        'blt-primary-hover': '#b91c1c', // red-700
+                        'blt-neutral-border': '#E5E5E5',
+                        'blt-dark-base': '#111827',
+                        'blt-dark-surface': '#1F2937',
+                        'blt-active-bg': '#feeae9',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .active-nav {
+            background-color: #feeae9;
+            color: #E10101;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-blt-dark-base text-gray-900 dark:text-gray-100">
+    
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-blt-dark-surface shadow-sm border-b border-blt-neutral-border dark:border-gray-700">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-alt text-blt-primary text-2xl" aria-hidden="true"></i>
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">OWASP BLT-Action</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary hover:underline transition">Features</a>
+                    <a href="#installation" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary hover:underline transition">Installation</a>
+                    <a href="#usage" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary hover:underline transition">Usage</a>
+                    <a href="#api" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary hover:underline transition">API</a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 bg-blt-primary hover:bg-blt-primary-hover text-white rounded-md transition">
+                        <i class="fab fa-github mr-2" aria-hidden="true"></i>
+                        View on GitHub
+                    </a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-600 dark:text-gray-300 hover:text-blt-primary">
+                    <i class="fas fa-bars text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-3">
+                    <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary transition">Features</a>
+                    <a href="#installation" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary transition">Installation</a>
+                    <a href="#usage" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary transition">Usage</a>
+                    <a href="#api" class="text-gray-600 dark:text-gray-300 hover:text-blt-primary transition">API</a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 bg-blt-primary hover:bg-blt-primary-hover text-white rounded-md transition justify-center">
+                        <i class="fab fa-github mr-2" aria-hidden="true"></i>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-b from-gray-50 to-white dark:from-blt-dark-surface dark:to-blt-dark-base py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-flex items-center px-4 py-2 bg-blt-active-bg text-blt-primary rounded-full mb-6 text-sm font-semibold">
+                    <i class="fas fa-rocket mr-2" aria-hidden="true"></i>
+                    GitHub Actions powered workflow automation
+                </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+                    Streamline Your GitHub Workflow
+                </h1>
+                <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                    BLT-Action is an innovative GitHub Action that automates issue assignment, tracks progress, 
+                    engages contributors, and maintains an organized workflow. Keep your repository clean and contributors engaged.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="#installation" class="inline-flex items-center px-6 py-3 bg-blt-primary hover:bg-blt-primary-hover text-white rounded-md font-semibold transition shadow-lg">
+                        <i class="fas fa-download mr-2" aria-hidden="true"></i>
+                        Get Started
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-6 py-3 border-2 border-blt-primary text-blt-primary hover:bg-blt-primary hover:text-white rounded-md font-semibold transition">
+                        <i class="fab fa-github mr-2" aria-hidden="true"></i>
+                        View Source
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white dark:bg-blt-dark-base">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    Powerful Features
+                </h2>
+                <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                    Everything you need to manage issues and engage your contributor community
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Assignment Management -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-user-check text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Assignment Management</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Self-assign to issues using natural language commands. Prevents multi-assignment and automatically tracks with labels.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Multiple assignment commands</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Bot protection (human-only)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Automatic label management</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Automated Workflow -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-clock text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Automated Workflow</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Automatically unassigns users from stale issues after 24 hours if no PR is linked, keeping issues available.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>24-hour inactivity threshold</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Smart PR detection</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Daily scheduled execution</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Kudos System -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-trophy text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Kudos System</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Recognize contributor efforts publicly with kudos that integrate with OWASP BLT team API.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Works with any GitHub username</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>BLT profile integration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Custom appreciation messages</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tip System -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-dollar-sign text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Tip System</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Support contributors financially via GitHub Sponsors with direct payment links.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>GitHub Sponsors integration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Any amount support</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Automatic validation</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- GIF Integration -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-image text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">GIF Integration</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Add fun and personality to discussions with Giphy-powered GIF posting on issues and PRs.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Giphy API integration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Works on issues & PRs</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Simple search commands</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Smart Protection -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 hover:border-blt-primary dark:hover:border-blt-primary transition shadow-sm">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-lg mb-4">
+                        <i class="fas fa-shield-alt text-blt-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Smart Protection</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Prevents issue hoarding with multi-assignment protection and validates active pull requests.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Multi-assignment prevention</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>PR validation checks</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                            <span>Duplicate prevention</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="py-20 bg-gray-50 dark:bg-blt-dark-surface">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        Quick Installation
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        Get up and running in minutes with this simple workflow configuration
+                    </p>
+                </div>
+
+                <!-- Prerequisites -->
+                <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-clipboard-check text-blt-primary mr-3" aria-hidden="true"></i>
+                        Prerequisites
+                    </h3>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <span>A GitHub account with administrative privileges on your repository</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <span>A Giphy API key (free) from <a href="https://developers.giphy.com/" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline">developers.giphy.com</a></span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Configuration Inputs -->
+                <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-cog text-blt-primary mr-3" aria-hidden="true"></i>
+                        Configuration Inputs
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-blt-neutral-border dark:border-gray-700">
+                                    <th class="py-3 px-4 text-gray-900 dark:text-white font-semibold">Parameter</th>
+                                    <th class="py-3 px-4 text-gray-900 dark:text-white font-semibold">Required</th>
+                                    <th class="py-3 px-4 text-gray-900 dark:text-white font-semibold">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 dark:text-gray-300">
+                                <tr class="border-b border-blt-neutral-border dark:border-gray-700">
+                                    <td class="py-3 px-4 font-mono text-sm">repo-token</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2 py-1 bg-blt-active-bg text-blt-primary rounded text-xs font-semibold">Yes</span>
+                                    </td>
+                                    <td class="py-3 px-4">GitHub token for authentication (use <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">$&#123;&#123; secrets.GITHUB_TOKEN &#125;&#125;</code>)</td>
+                                </tr>
+                                <tr class="border-b border-blt-neutral-border dark:border-gray-700">
+                                    <td class="py-3 px-4 font-mono text-sm">repository</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2 py-1 bg-blt-active-bg text-blt-primary rounded text-xs font-semibold">Yes</span>
+                                    </td>
+                                    <td class="py-3 px-4">Repository identifier (use <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">$&#123;&#123; github.repository &#125;&#125;</code>)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-mono text-sm">giphy-api-key</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2 py-1 bg-blt-active-bg text-blt-primary rounded text-xs font-semibold">Yes</span>
+                                    </td>
+                                    <td class="py-3 px-4">API key for Giphy integration (add as repository secret)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Workflow Configuration -->
+                <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-code text-blt-primary mr-3" aria-hidden="true"></i>
+                        Workflow Configuration
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Create <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">.github/workflows/blt-action.yml</code> in your repository:
+                    </p>
+                    <div class="relative">
+                        <button onclick="copyToClipboard('workflow-code')" class="absolute top-4 right-4 px-3 py-2 bg-blt-primary hover:bg-blt-primary-hover text-white rounded-md text-sm transition">
+                            <i class="fas fa-copy mr-2" aria-hidden="true"></i>Copy
+                        </button>
+                        <pre id="workflow-code" class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm"><code>name: Auto Assign Issues
+
+on:
+  # Trigger on new comments on issues
+  issue_comment:
+    types: [created]
+  # Trigger on new review comments on pull requests
+  pull_request_review_comment:
+    types: [created]
+  # Run daily at midnight UTC to check for stale assignments
+  schedule:
+    - cron: '0 0 * * *'
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  auto-assign:
+    # Only run on relevant events to avoid unnecessary workflow runs
+    if: >
+      (github.event_name == 'issue_comment' && (
+      contains(github.event.comment.body, '/assign') || 
+      startsWith(github.event.comment.body, '/unassign') || 
+      startsWith(github.event.comment.body, '/giphy') || 
+      startsWith(github.event.comment.body, '/kudos') || 
+      startsWith(github.event.comment.body, '/tip') || 
+      contains(github.event.comment.body, 'assign to me') || 
+      contains(github.event.comment.body, 'assign this to me') || 
+      contains(github.event.comment.body, 'assign it to me') || 
+      contains(github.event.comment.body, 'assign me this') || 
+      contains(github.event.comment.body, 'work on this') || 
+      contains(github.event.comment.body, 'i can try fixing this') || 
+      contains(github.event.comment.body, 'i am interested in doing this') || 
+      contains(github.event.comment.body, 'be assigned this') || 
+      contains(github.event.comment.body, 'i am interested in contributing'))) || 
+      github.event_name == 'schedule' || 
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request_review_comment'
+    runs-on: ubuntu-latest
+    steps:
+      - name: BLT Action
+        uses: OWASP-BLT/BLT-Action@main
+        with:
+          # GitHub token is automatically available - no need to create a secret
+          repo-token: $&#123;&#123; secrets.GITHUB_TOKEN &#125;&#125;
+          # Repository identifier is automatically provided by GitHub
+          repository: $&#123;&#123; github.repository &#125;&#125;
+          # Giphy API key must be added as a repository secret
+          giphy-api-key: $&#123;&#123; secrets.GIPHY_API_KEY &#125;&#125;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage Section -->
+    <section id="usage" class="py-20 bg-white dark:bg-blt-dark-base">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        Usage Guide
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        Learn how to use all the powerful commands and features
+                    </p>
+                </div>
+
+                <!-- Assignment Commands -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-blt-active-bg rounded-lg mr-3">
+                            <i class="fas fa-user-plus text-blt-primary" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Assignment Commands</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Self-Assign to an Issue</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">Comment any of these natural language commands on an issue:</p>
+                            <div class="grid sm:grid-cols-2 gap-2 mb-4">
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">/assign</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">assign to me</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">assign this to me</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">work on this</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">i can try fixing this</code>
+                                <code class="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700">i am interested in doing this</code>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
+                                <p class="text-sm text-blue-900 dark:text-blue-200 flex items-start">
+                                    <i class="fas fa-info-circle mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>The action will check if you have other open assigned issues without pull requests. You'll be assigned if eligible and given 24 hours to submit a PR.</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Unassign Yourself</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">Comment this command to unassign yourself:</p>
+                            <code class="inline-block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700 mb-4">/unassign</code>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Removes you from the issue</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Removes the "assigned" label</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Makes the issue available for others</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-4 rounded-lg">
+                            <p class="text-sm text-yellow-900 dark:text-yellow-200 flex items-start">
+                                <i class="fas fa-exclamation-triangle mr-2 mt-1" aria-hidden="true"></i>
+                                <span><strong>Bot Protection:</strong> Only human users can use assignment commands. Bot accounts and GitHub Apps are automatically excluded.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engagement Commands -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-blt-active-bg rounded-lg mr-3">
+                            <i class="fas fa-smile text-blt-primary" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Engagement Commands</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- GIF Command -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Post a GIF</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">Add fun and personality to discussions:</p>
+                            <code class="inline-block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700 mb-3">/giphy [search term]</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Example: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/giphy celebration</code></p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Posts an animated GIF from Giphy matching your search term</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Works on both issues and pull request comments</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Kudos Command -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Send Kudos</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">Recognize contributor efforts publicly:</p>
+                            <code class="inline-block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700 mb-3">/kudos @username [optional message]</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Example: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/kudos @alice great work on the PR!</code></p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Posts kudos publicly on the issue/PR for everyone to see</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Works with any GitHub username - no BLT account required</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Automatically tracked on BLT profile if recipient has one</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Tip Command -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Send Tips</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">Support contributors financially via GitHub Sponsors:</p>
+                            <code class="inline-block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded border border-gray-400 dark:border-gray-700 mb-3">/tip @username $amount</code>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Example: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/tip @contributor $10</code></p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Generates a direct link to contributor's GitHub Sponsors page</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Supports any amount (e.g., $5, $10.50, $100)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Validates GitHub Sponsors availability</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automated Features -->
+                <div class="bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-blt-active-bg rounded-lg mr-3">
+                            <i class="fas fa-robot text-blt-primary" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Automated Features</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Stale Issue Unassignment</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                If an issue remains inactive for 24 hours without a linked pull request, the action automatically:
+                            </p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Unassigns the user</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Removes the "assigned" label</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Posts a notification that the issue is available again</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Runs daily via scheduled workflow (<code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">cron: '0 0 * * *'</code>)</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Assignment Protection</h4>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                Users cannot be assigned to new issues if they have existing assigned issues without open pull requests.
+                            </p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Lists all blocking issues in the response message</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blt-primary mr-2 mt-1" aria-hidden="true"></i>
+                                    <span>Prevents users from hoarding issues without active work</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Integrations Section -->
+    <section id="api" class="py-20 bg-gray-50 dark:bg-blt-dark-surface">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        API Integrations
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        BLT-Action integrates with multiple external APIs
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- GitHub API -->
+                    <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-blt-active-bg rounded-full mb-4">
+                            <i class="fab fa-github text-blt-primary text-2xl" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">GitHub API</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Uses <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">@actions/github</code> with the provided <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">GITHUB_TOKEN</code> for all GitHub operations
+                        </p>
+                        <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline text-sm">
+                            View Docs <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
+                    <!-- Giphy API -->
+                    <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-blt-active-bg rounded-full mb-4">
+                            <i class="fas fa-image text-blt-primary text-2xl" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Giphy API</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Requires a free API key from Giphy Developers for GIF integration features
+                        </p>
+                        <a href="https://developers.giphy.com/" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline text-sm">
+                            Get API Key <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
+                    <!-- OWASP BLT API -->
+                    <div class="bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-blt-active-bg rounded-full mb-4">
+                            <i class="fas fa-shield-alt text-blt-primary text-2xl" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">OWASP BLT Team API</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Sends kudos data to the BLT platform for tracking contributor recognition
+                        </p>
+                        <a href="https://owaspblt.org/teams/give-kudos/" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline text-sm">
+                            Learn More <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Attribution Section -->
+                <div class="mt-12 bg-white dark:bg-blt-dark-base p-6 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-tag text-blt-primary mr-3" aria-hidden="true"></i>
+                        Attribution
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        All comments generated by the BLT-Action include an attribution footer for transparency:
+                    </p>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border-l-4 border-blt-primary">
+                        <p class="text-sm text-gray-600 dark:text-gray-300 italic">
+                            ---<br>
+                            <em>This comment was generated by <a href="https://github.com/OWASP-BLT/BLT-Action" class="text-blt-primary hover:underline">OWASP BLT-Action</a></em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-20 bg-white dark:bg-blt-dark-base">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        How It Works
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        Understanding the workflow triggers and execution flow
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Trigger 1 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-full mr-4">
+                            <span class="text-blt-primary font-bold text-lg">1</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Comment-Triggered Actions</h3>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                When users comment on issues or pull requests with specific commands (<code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/assign</code>, <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/unassign</code>, <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/giphy</code>, <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/kudos</code>, <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/tip</code>), the action processes these commands immediately.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Trigger 2 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-full mr-4">
+                            <span class="text-blt-primary font-bold text-lg">2</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Scheduled Monitoring</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">
+                                A daily cron job (configurable) checks all assigned issues for inactivity:
+                            </p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm ml-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Identifies issues assigned for more than 24 hours without updates</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Verifies if the issue has a linked pull request via cross-references</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Automatically unassigns inactive issues without PRs to keep them available</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Trigger 3 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-full mr-4">
+                            <span class="text-blt-primary font-bold text-lg">3</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Smart Assignment Logic</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-3">
+                                The action implements intelligent assignment validation:
+                            </p>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm ml-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Prevents users from being assigned to multiple issues without active pull requests</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Blocks duplicate assignments to the same issue</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Validates existing assignments before allowing new ones</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-circle text-blt-primary mr-2 mt-1" style="font-size: 6px;" aria-hidden="true"></i>
+                                    <span>Automatically adds and removes the "assigned" label for tracking</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Trigger 4 -->
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 bg-blt-active-bg rounded-full mr-4">
+                            <span class="text-blt-primary font-bold text-lg">4</span>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Engagement & Recognition</h3>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Commands like <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/giphy</code>, <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/kudos</code>, and <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/tip</code> work across both issues and pull requests, making it easy to keep discussions lively, recognize contributor efforts, and support them financially via GitHub Sponsors.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Triggers -->
+                <div class="mt-12 bg-white dark:bg-blt-dark-surface p-6 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="fas fa-bolt text-blt-primary mr-3" aria-hidden="true"></i>
+                        Event Triggers
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        The action responds to the following GitHub events:
+                    </p>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <div>
+                                <strong class="text-gray-900 dark:text-white">issue_comment.created</strong>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">For commands on issue comments</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <div>
+                                <strong class="text-gray-900 dark:text-white">pull_request_review_comment.created</strong>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">For commands on PR review comments</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <div>
+                                <strong class="text-gray-900 dark:text-white">schedule</strong>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Daily cron job for stale issue checking</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-blt-primary mr-3 mt-1" aria-hidden="true"></i>
+                            <div>
+                                <strong class="text-gray-900 dark:text-white">workflow_dispatch</strong>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Manual trigger option</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contributing Section -->
+    <section class="py-20 bg-gray-50 dark:bg-blt-dark-surface">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        Contributing
+                    </h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        Join our open-source community and help make BLT-Action better
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-blt-dark-base p-8 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <p class="text-gray-600 dark:text-gray-300 mb-6 text-center text-lg">
+                        Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are <strong class="text-blt-primary">greatly appreciated</strong>.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">1</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Find an Issue</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">
+                                    Check the <a href="https://github.com/OWASP-BLT/BLT-Action/issues" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline">issues page</a> and choose one you'd like to work on.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">2</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Fork the Project</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">
+                                    Fork the repository to your GitHub account to start making changes.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">3</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Create your Feature Branch</h4>
+                                <code class="block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded mt-2 text-sm">git checkout -b feature/AmazingFeature</code>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">4</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Commit your Changes</h4>
+                                <code class="block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded mt-2 text-sm">git commit -m 'Add some AmazingFeature'</code>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">5</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Push to the Branch</h4>
+                                <code class="block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded mt-2 text-sm">git push origin feature/AmazingFeature</code>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 bg-blt-active-bg rounded-full mr-4">
+                                <span class="text-blt-primary font-bold">6</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Open a Pull Request</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">
+                                    Once you've pushed your new branch, create a new Pull Request from your forked repository to the original BLT-Action repository.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 text-center">
+                        <a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-6 py-3 bg-blt-primary hover:bg-blt-primary-hover text-white rounded-md font-semibold transition shadow-lg">
+                            <i class="fab fa-github mr-2" aria-hidden="true"></i>
+                            Start Contributing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-blt-dark-base text-gray-300 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <i class="fas fa-shield-alt text-blt-primary text-2xl" aria-hidden="true"></i>
+                        <span class="text-xl font-bold text-white">OWASP BLT-Action</span>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Automated issue management and contributor engagement for GitHub repositories.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="text-gray-400 hover:text-blt-primary hover:underline transition">Features</a></li>
+                        <li><a href="#installation" class="text-gray-400 hover:text-blt-primary hover:underline transition">Installation</a></li>
+                        <li><a href="#usage" class="text-gray-400 hover:text-blt-primary hover:underline transition">Usage</a></li>
+                        <li><a href="#api" class="text-gray-400 hover:text-blt-primary hover:underline transition">API</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Action" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blt-primary hover:underline transition">GitHub Repository</a></li>
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Action/issues" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blt-primary hover:underline transition">Report Issues</a></li>
+                        <li><a href="https://owaspblt.org" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blt-primary hover:underline transition">OWASP BLT</a></li>
+                        <li><a href="https://owasp-blt.github.io/BLT-Design/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blt-primary hover:underline transition">BLT Design System</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8 text-center">
+                <p class="text-sm text-gray-400">
+                    &copy; 2024 OWASP BLT-Action. Licensed under <a href="https://github.com/OWASP-BLT/BLT-Action/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline">MIT License</a>.
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                    Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-blt-primary hover:underline">OWASP Bug Logging Tool (BLT)</a> project.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-2" aria-hidden="true"></i>Copied!';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
