@@ -460,26 +460,27 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             etag = excluded.etag
     ''').bind(
         pr_url, owner, repo, pr_number,
-        pr_data['title'], 
-        pr_data['state'],
-        pr_data['is_merged'],
-        pr_data['mergeable_state'], 
-        pr_data['files_changed'],
-        pr_data['author_login'], 
-        pr_data['author_avatar'],
-        pr_data.get('repo_owner_avatar', ''),
-        pr_data['checks_passed'], 
-        pr_data['checks_failed'],
-        pr_data['checks_skipped'],
-        pr_data.get('commits_count', 0),
-        pr_data.get('behind_by', 0),
-        pr_data['review_status'],
-        pr_data['last_updated_at'], current_timestamp, current_timestamp,
-        pr_data.get('is_draft', 0),
-        pr_data.get('open_conversations_count', 0),
-        pr_data.get('reviewers_json', '[]'),
-        pr_data.get('etag')
+        pr_data.get('title') or '',
+        pr_data.get('state') or '',
+        1 if pr_data.get('is_merged') else 0,
+        pr_data.get('mergeable_state') or '',
+        pr_data.get('files_changed') or 0,
+        pr_data.get('author_login') or '',
+        pr_data.get('author_avatar') or '',
+        pr_data.get('repo_owner_avatar') or '',
+        pr_data.get('checks_passed') or 0,
+        pr_data.get('checks_failed') or 0,
+        pr_data.get('checks_skipped') or 0,
+        pr_data.get('commits_count') or 0,
+        pr_data.get('behind_by') or 0,
+        pr_data.get('review_status') or '',
+        pr_data.get('last_updated_at') or current_timestamp, current_timestamp, current_timestamp,
+        1 if pr_data.get('is_draft') else 0,
+        pr_data.get('open_conversations_count') or 0,
+        pr_data.get('reviewers_json') or '[]',
+        pr_data.get('etag') or ''
     )
+    
     await stmt.run()
 
 

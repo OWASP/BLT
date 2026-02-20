@@ -563,7 +563,7 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
     return all_results
 
 
-async def fetch_paginated_data(url, headers, max_items=None, return_metadata=False):
+async def fetch_paginated_data(url, headers_dict, github_token=None, max_items=None, return_metadata=False):
     """
     Fetch all pages of data from a GitHub API endpoint following Link headers
     
@@ -588,11 +588,10 @@ async def fetch_paginated_data(url, headers, max_items=None, return_metadata=Fal
     
     all_data = []
     current_url = url
-    fetch_options = to_js({'headers': headers}, dict_converter=Object.fromEntries)
     truncated = False
     
     while current_url:
-        response = await fetch(current_url, fetch_options)
+        response = await fetch_with_headers(current_url, headers_dict, github_token)
         
         # Log GitHub API call with rate limit information
         # Check if URL starts with GitHub API domain for logging purposes only
@@ -693,7 +692,6 @@ async def fetch_pr_timeline_data(env, owner, repo, pr_number, github_token=None)
     if github_token:
         headers_dict['Authorization'] = f'Bearer {github_token}'
     
-    headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
     
     try:
         # Fetch all timeline data in parallel (with pagination)
@@ -704,10 +702,10 @@ async def fetch_pr_timeline_data(env, owner, repo, pr_number, github_token=None)
         
         # Make truly parallel requests using asyncio.gather
         commits_data, reviews_data, review_comments_data, issue_comments_data = await asyncio.gather(
-            fetch_paginated_data(commits_url, headers),
-            fetch_paginated_data(reviews_url, headers),
-            fetch_paginated_data(review_comments_url, headers),
-            fetch_paginated_data(issue_comments_url, headers)
+            fetch_paginated_data(commits_url, headers_dict, github_token),
+            fetch_paginated_data(reviews_url, headers_dict, github_token),
+            fetch_paginated_data(review_comments_url, headers_dict, github_token),
+            fetch_paginated_data(issue_comments_url, headers_dict, github_token)
         )
         
         timeline_data = {

@@ -1090,10 +1090,14 @@ async def handle_pr_timeline(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        timeline_data = await fetch_pr_timeline_data(env, 
+        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+
+        timeline_data = await fetch_pr_timeline_data(
+            env,
             pr['repo_owner'],
             pr['repo_name'],
-            pr['pr_number']
+            pr['pr_number'],
+            github_token
         )
         
         # Build unified timeline
@@ -1175,10 +1179,13 @@ async def handle_pr_review_analysis(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
+        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+
         timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
             pr['repo_name'],
-            pr['pr_number']
+            pr['pr_number'],
+            github_token
         )
         
         # Build unified timeline
@@ -1295,10 +1302,14 @@ async def handle_pr_readiness(request, env, path):
         original_review_status = pr.get('review_status', 'pending')
         
         # Fetch timeline data from GitHub
-        timeline_data = await fetch_pr_timeline_data(env, 
+        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+
+        timeline_data = await fetch_pr_timeline_data(
+            env,
             pr['repo_owner'],
             pr['repo_name'],
-            pr['pr_number']
+            pr['pr_number'],
+            github_token
         )
         
         # Calculate and update review_status from timeline data
