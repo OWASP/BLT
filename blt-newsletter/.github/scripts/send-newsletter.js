@@ -1,7 +1,6 @@
 const sgMail = require('@sendgrid/mail');
 const fs = require('fs');
 const path = require('path');
-const { marked } = require('marked');
 
 // Configure SendGrid
 const apiKey = process.env.SENDGRID_API_KEY;
@@ -37,13 +36,20 @@ async function sendNewsletter() {
       const markdown = fs.readFileSync(contentFile, 'utf8');
       textContent = markdown;
       
-      // Convert markdown to HTML if marked is available
-      try {
-        const marked = require('marked');
-        htmlContent = marked.parse(markdown);
-      } catch (e) {
-        htmlContent = `<pre>${markdown}</pre>`;
-      }
+      // Convert markdown to HTML - simple conversion for headings and lists
+      htmlContent = markdown
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/^\* (.*$)/gim, '<li>$1</li>')
+        .replace(/^- (.*$)/gim, '<li>$1</li>')
+        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/<li>/g, '<ul><li>')
+        .replace(/<\/li>(?![\s]*<li>)/g, '</li></ul>');
+      
+      htmlContent = '<p>' + htmlContent + '</p>';
     } else {
       textContent = 'Newsletter content not found';
       htmlContent = '<p>Newsletter content not found</p>';
