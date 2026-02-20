@@ -5,3 +5,6 @@ node_modules/
 dist/
 build/
 subscribers.json
+__pycache__/
+*.pyc
+*.pyo

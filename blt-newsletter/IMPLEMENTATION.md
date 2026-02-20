@@ -50,8 +50,8 @@ This repository contains a newsletter signup and management system for the OWASP
   - Logs delivery status
 
 ### Newsletter System
-- **Send Script** (`.github/scripts/send-newsletter.js`):
-  - Node.js script for email sending
+- **Send Script** (`.github/scripts/send-newsletter.py`):
+  - Python script for email sending
   - Reads subscribers from JSON
   - Converts markdown to HTML
   - Wraps content in BLT email template

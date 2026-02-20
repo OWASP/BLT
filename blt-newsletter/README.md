@@ -125,10 +125,10 @@ The markdown is automatically converted to HTML and wrapped in a BLT-branded ema
 To test the site locally:
 
 ```bash
-# Serve the site locally (requires Python)
+# Or use Python's http.server
 python3 -m http.server 8000
 
-# Or use Node.js
+# Or use npx (if you have Node.js installed)
 npx http-server
 ```
 

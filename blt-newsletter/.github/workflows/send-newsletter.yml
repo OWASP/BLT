@@ -23,14 +23,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '18'
+          python-version: '3.11'
       
       - name: Install dependencies
         run: |
-          npm install @sendgrid/mail
+          pip install sendgrid
       
       - name: Get subscribers from issues
         id: get-subscribers
@@ -82,7 +82,7 @@ jobs:
           NEWSLETTER_SUBJECT: ${{ github.event.inputs.subject }}
           NEWSLETTER_CONTENT_FILE: ${{ github.event.inputs.newsletter_content }}
         run: |
-          node .github/scripts/send-newsletter.js
+          python .github/scripts/send-newsletter.py
         continue-on-error: true
       
       - name: Post summary
