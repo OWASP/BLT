@@ -203,7 +203,8 @@ function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
             const urlOwner = match[4];
             const urlRepo = match[5];
             const issueNumber = parseInt(match[6]);
-            if (urlOwner === currentOwner && urlRepo === currentRepo) {
+            if (urlOwner.toLowerCase() === currentOwner.toLowerCase() &&
+                urlRepo.toLowerCase() === currentRepo.toLowerCase()) {
                 issues.push(issueNumber);
             }
         }
