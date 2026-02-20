@@ -1,6 +1,9 @@
 #!/bin/bash
 # Script to setup local D1 database for development
-echo "Setting up local D1 database..."
+set -e
+
+echo "Setting up local D1 database for development..."
+echo ""
 
 # Check if wrangler is installed
 if ! command -v wrangler &> /dev/null; then
@@ -9,23 +12,30 @@ if ! command -v wrangler &> /dev/null; then
     exit 1
 fi
 
-# Create local D1 database
-echo "Creating local D1 database..."
-wrangler d1 create blt-api --local
+DATABASE_NAME="blt-api"
 
-# Apply migrations
-echo "Applying migrations..."
-wrangler d1 migrations apply blt-api --local
+# Apply migrations to local database
+echo "Applying migrations to local database..."
+if wrangler d1 migrations apply "$DATABASE_NAME" --local; then
+    echo "Migrations applied successfully!"
+else
+    echo "Note:: If migrations were already applied, this is expected."
+fi
 
-# Check if migrations were applied
+echo ""
 echo "Checking database tables..."
-wrangler d1 execute blt-api --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+wrangler d1 execute "$DATABASE_NAME" --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
 
 echo ""
 echo "Database setup complete!"
 echo ""
-echo "To insert test data, run:"
-echo "  wrangler d1 execute blt-api --local --file=test_data.sql"
+echo "Next steps:"
+echo "  1. Load test data:"
+echo "     wrangler d1 execute $DATABASE_NAME --local --file=test_data.sql"
 echo ""
-echo "To start the dev server:"
-echo "  wrangler dev"
+echo "  2. Start the dev server:"
+echo "     wrangler dev --port 8787"
+echo ""
+echo "  3. Test the API:"
+echo "     curl http://localhost:8787"
+echo ""
