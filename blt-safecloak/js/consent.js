@@ -195,7 +195,7 @@ const ConsentManager = (() => {
     });
   }
 
-  return { init, record, verifyEntry, deleteEntry, exportLog, getLog: () => log };
+  return { init, record, verifyEntry, deleteEntry, exportLog, getLog: () => log, renderLog, updateStats };
 })();
 
 document.addEventListener('DOMContentLoaded', () => ConsentManager.init());

@@ -13,6 +13,7 @@ const VideoChat = (() => {
   let micMuted = false;
   let camOff = false;
   let consentGiven = false;
+  let screenSharing = false;
 
   const state = {
     peerId: null,
@@ -153,7 +154,7 @@ const VideoChat = (() => {
     if (!remotePeerId) { showToast('Enter a Room ID to call', 'warning'); return; }
 
     if (!consentGiven) {
-      const ok = await askConsent('yourself (outgoing call)');
+      const ok = await askConsent('the remote participant');
       if (!ok) return;
     }
 
@@ -285,11 +286,12 @@ const VideoChat = (() => {
       }
       const localVideo = $('local-video');
       if (localVideo) localVideo.srcObject = screenStream;
-      screenTrack.onended = () => {
-        localStream.getVideoTracks()[0] && stopScreenShare();
-      };
       showToast('Screen sharing started', 'success');
+      screenSharing = true;
       $('btn-screen') && $('btn-screen').classList.add('active');
+      screenTrack.onended = () => {
+        if (screenSharing) stopScreenShare();
+      };
     } catch (err) {
       if (err.name !== 'NotAllowedError') showToast('Screen share error: ' + err.message, 'error');
     }
@@ -304,6 +306,7 @@ const VideoChat = (() => {
     const localVideo = $('local-video');
     if (localVideo) { localVideo.srcObject = localStream; }
     $('btn-screen') && $('btn-screen').classList.remove('active');
+    screenSharing = false;
     showToast('Screen sharing stopped', 'info');
   }
 

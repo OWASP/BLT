@@ -29,20 +29,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('navbar-toggle');
   const nav = document.getElementById('navbar-nav');
   if (toggle && nav) {
-    toggle.addEventListener('click', () => nav.classList.toggle('open'));
+    toggle.addEventListener('click', () => {
+      const isOpen = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
     // Close on outside click
     document.addEventListener('click', e => {
       if (!toggle.contains(e.target) && !nav.contains(e.target)) {
         nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
       }
     });
   }
 
   // Mark active nav link
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
   const links = document.querySelectorAll('.navbar-nav a');
   links.forEach(link => {
-    if (link.href === window.location.href ||
-        link.getAttribute('href') === window.location.pathname.split('/').pop()) {
+    const href = link.getAttribute('href');
+    if (link.href === window.location.href || href === currentPage) {
       link.classList.add('active');
     }
   });

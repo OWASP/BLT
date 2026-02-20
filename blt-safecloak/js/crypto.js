@@ -26,8 +26,13 @@ const Crypto = (() => {
     return crypto.subtle.importKey('raw', raw, { name: ENC }, true, ['encrypt', 'decrypt']);
   }
 
-  /** Derive a CryptoKey from a passphrase using PBKDF2 */
+  /** Derive a CryptoKey from a passphrase using PBKDF2.
+   *  @param {string} passphrase - Secret passphrase
+   *  @param {string} salt - Required: callers MUST provide a unique salt per key context (e.g. storageKey).
+   *                         The default 'blt-safecloak-v1' is only used as a last resort and weakens isolation.
+   */
   async function deriveKey(passphrase, salt) {
+    if (!salt) console.warn('deriveKey: no salt provided — pass a context-specific salt for stronger key isolation');
     const keyMaterial = await crypto.subtle.importKey(
       'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
     );
@@ -65,9 +70,10 @@ const Crypto = (() => {
 
   /** Generate a random session ID */
   function randomId(len = 8) {
+    // chars.length is 32 (2^5), so the bitmask 0x1f gives an unbiased index (no modulo bias)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     return Array.from(crypto.getRandomValues(new Uint8Array(len)))
-      .map(b => chars[b % chars.length]).join('');
+      .map(b => chars[b & 0x1f]).join('');
   }
 
   /** Encrypt an object and store in localStorage */

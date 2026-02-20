@@ -189,10 +189,10 @@
     }
   });
 
-  // Re-render log after template actions
+  // Re-render log and stats after template quick-actions
   function renderConsentPage() {
-    ConsentManager.init && document.dispatchEvent(new Event('DOMContentLoaded'));
-    location.reload();
+    ConsentManager.renderLog && ConsentManager.renderLog('consent-log');
+    ConsentManager.updateStats && ConsentManager.updateStats();
   }
 </script>
 </body>

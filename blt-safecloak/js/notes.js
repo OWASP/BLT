@@ -6,6 +6,8 @@
 const NotesApp = (() => {
   const STORAGE_KEY = 'safecloak_notes_v1';
   const PASS_KEY = 'safecloak_notes_pass';
+  const PREVIEW_LENGTH = 60;
+  const STOPWORDS = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','is','was','are','were','be','been','have','has','had','do','does','did','will','would','could','should','may','might','this','that','these','those','it','its','i','you','we','they','he','she','his','her','our','your','their']);
   let notes = [];
   let activeNoteId = null;
   let passphrase = null;
@@ -85,7 +87,7 @@ const NotesApp = (() => {
     const item = document.querySelector(`.note-item[data-id="${activeNoteId}"]`);
     if (item) {
       item.querySelector('.note-item-title').textContent = note.title;
-      item.querySelector('.note-item-preview').textContent = note.content.slice(0, 60);
+      item.querySelector('.note-item-preview').textContent = note.content.slice(0, PREVIEW_LENGTH);
       item.querySelector('.note-item-date').textContent = formatDateShort(note.updatedAt);
     }
     scheduleSave();
@@ -109,7 +111,7 @@ const NotesApp = (() => {
     container.innerHTML = notes.map(n => `
       <div class="note-item${n.id === activeNoteId ? ' active' : ''}" data-id="${n.id}" tabindex="0" role="button">
         <div class="note-item-title">${escHtml(n.title)}</div>
-        <div class="note-item-preview">${escHtml(n.content.slice(0, 60))}</div>
+        <div class="note-item-preview">${escHtml(n.content.slice(0, PREVIEW_LENGTH))}</div>
         <div class="note-item-date">${formatDateShort(n.updatedAt)}</div>
       </div>
     `).join('');
@@ -198,10 +200,9 @@ const NotesApp = (() => {
 
   function wordFrequency(text) {
     if (!text.trim()) return '(no content)';
-    const stopwords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','is','was','are','were','be','been','have','has','had','do','does','did','will','would','could','should','may','might','this','that','these','those','it','its','i','you','we','they','he','she','his','her','our','your','their']);
     const words = text.toLowerCase().match(/\b[a-z]{3,}\b/g) || [];
     const freq = {};
-    words.filter(w => !stopwords.has(w)).forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    words.filter(w => !STOPWORDS.has(w)).forEach(w => { freq[w] = (freq[w] || 0) + 1; });
     const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 10);
     if (!top.length) return '(no significant words)';
     return '📊 Top Keywords:\n' + top.map(([w, c]) => `• ${w} (${c}x)`).join('\n');
