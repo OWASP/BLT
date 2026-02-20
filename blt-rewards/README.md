@@ -54,6 +54,14 @@ BLT-Rewards/
 - Cloudflare account
 - Wrangler CLI
 
+### Architecture Notes
+
+This project uses **Cloudflare Workers with Python runtime** for dynamic API endpoints and **Cloudflare's built-in asset serving** for static files:
+
+- **Static Assets**: All files in `public/` are automatically served by Cloudflare's asset handling (configured in `wrangler.toml`)
+- **Python Worker**: Handles API routes and redirects - does NOT use file I/O operations
+- **No File Reading**: Cloudflare Workers runtime doesn't support traditional file operations like `open()`. Static files are served directly by Cloudflare.
+
 ### Setup
 
 1. Clone the repository:

@@ -7,6 +7,8 @@ compatibility_flags = ["python_workers"]
 ENVIRONMENT = "production"
 
 # Configure assets (static files)
+# All files in ./public are automatically served by Cloudflare
+# No Python file I/O needed - Cloudflare handles static asset serving
 [assets]
 directory = "./public"
 

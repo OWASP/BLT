@@ -19,20 +19,23 @@ async def on_fetch(request, env):
     if request.method == 'OPTIONS':
         return Response.new('', {'headers': cors_headers})
     
-    # Serve HTML for root path 
-    if path == '/' or path == '/index.html':
-        with open('public/index.html', 'r') as f:
-            html_content = f.read()
-        return Response.new(html_content, {
+    # Redirect root path to index.html
+    # Static assets are served directly by Cloudflare's asset handling configured in wrangler.toml
+    if path == '/':
+        return Response.new('', {
+            'status': 302,
             'headers': {
                 **cors_headers,
-                'Content-Type': 'text/html; charset=utf-8'
+                'Location': '/index.html'
             }
         })
     
-    # All other routes will be handled by static assets in public/
-    # Return 404 for unknown API routes
-    return Response.new('Not Found', {
-        'status': 404,
-        'headers': cors_headers
-    })
+    # API routes can be added here
+    # Example:
+    # if path.startswith('/api/'):
+    #     return handle_api_request(request, env)
+    
+    # All other routes (including /index.html and other static files) 
+    # are handled by Cloudflare's static asset serving
+    # Return None to let Cloudflare serve the static asset
+    return None
