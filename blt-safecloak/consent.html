@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consent Protection — BLT-SafeCloak</title>
+  <meta name="description" content="Record, timestamp, and cryptographically hash participant consent events. Export GDPR-compliant logs." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <a class="navbar-brand" href="index.html">
+    <div class="shield-icon" aria-hidden="true">🛡️</div>
+    BLT-SafeCloak
+  </a>
+  <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle menu">☰</button>
+  <ul class="navbar-nav" id="navbar-nav" role="list">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="video-chat.html">Video Chat</a></li>
+    <li><a href="notes.html">Secure Notes</a></li>
+    <li><a href="consent.html" class="active">Consent</a></li>
+    <li><a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="page-container">
+  <!-- ── Page Header ── -->
+  <header class="page-header">
+    <h1 class="page-title">⚖️ Consent Protection</h1>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+      <span class="badge badge-success">🔏 SHA-256 Hashed</span>
+      <span class="badge badge-primary">📋 GDPR Ready</span>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-sm btn-secondary" id="btn-export-json" aria-label="Export consent log as JSON">⬇ JSON</button>
+        <button class="btn btn-sm btn-secondary" id="btn-export-csv" aria-label="Export consent log as CSV">⬇ CSV</button>
+        <button class="btn btn-sm btn-danger" id="btn-clear-log" aria-label="Clear all consent records">🗑 Clear All</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <!-- Stats -->
+    <div class="stats-row" style="margin-bottom:1.5rem" aria-label="Consent statistics">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Total Records</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-given" style="color:var(--success)">0</div>
+        <div class="stat-label">Consents Given</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-withdrawn" style="color:var(--danger)">0</div>
+        <div class="stat-label">Consents Withdrawn</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-recorded" style="color:var(--secondary)">0</div>
+        <div class="stat-label">Events Recorded</div>
+      </div>
+    </div>
+
+    <div class="consent-layout">
+      <!-- ── Record Form ── -->
+      <section aria-label="Record new consent event">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📋 Record Consent Event</h2>
+          </div>
+          <div class="card-body">
+            <form id="consent-form" novalidate aria-label="Consent recording form">
+              <div style="margin-bottom:1rem">
+                <label class="form-label" for="consent-type">Consent Type *</label>
+                <select class="form-input" id="consent-type" name="consent-type" required aria-required="true">
+                  <option value="given">✅ Consent Given</option>
+                  <option value="withdrawn">❌ Consent Withdrawn</option>
+                  <option value="recorded">📌 Event Recorded</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom:1rem">
+                <label class="form-label" for="participant-name">Participant Name / ID *</label>
+                <input type="text" class="form-input" id="participant-name" name="participant-name" placeholder="e.g. Jane Doe or user@example.com" required aria-required="true" autocomplete="off" />
+              </div>
+
+              <div style="margin-bottom:1rem">
+                <label class="form-label" for="purpose">Purpose of Processing</label>
+                <input type="text" class="form-input" id="purpose" name="purpose" placeholder="e.g. Video call recording, AI note-taking" autocomplete="off" />
+              </div>
+
+              <div style="margin-bottom:1.25rem">
+                <label class="form-label" for="details">Additional Details</label>
+                <textarea class="form-input" id="details" name="details" placeholder="Optional notes about this consent event…" rows="3"></textarea>
+              </div>
+
+              <div class="checkbox-wrapper" style="margin-bottom:1.25rem">
+                <input type="checkbox" id="confirm-legal" required aria-required="true" />
+                <label for="confirm-legal">
+                  <span>I confirm this consent record is accurate and collected lawfully in accordance with applicable data protection regulations (GDPR, CCPA, etc.).</span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width:100%" aria-label="Record consent">
+                🔏 Record &amp; Hash Consent
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Templates -->
+        <div class="card" style="margin-top:1rem">
+          <div class="card-header">
+            <h2 class="card-title">📄 Quick Templates</h2>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:0.5rem">
+            <button class="btn btn-secondary" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'Video call recording',details:'Explicit consent given before session start via in-app prompt'}).then(()=>{renderConsentPage()})" aria-label="Record session consent">
+              ✅ Record Session Consent (All)
+            </button>
+            <button class="btn btn-secondary" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'AI meeting notes',details:'Consent to generate encrypted AI notes from meeting content'}).then(()=>{renderConsentPage()})" aria-label="Record AI notes consent">
+              📝 Consent to AI Notes
+            </button>
+            <button class="btn btn-secondary" onclick="ConsentManager.record({type:'recorded',name:'System',purpose:'Session metadata',details:'Secure session initiated — all participants anonymized'}).then(()=>{renderConsentPage()})" aria-label="Record session start">
+              🎥 Session Started
+            </button>
+            <button class="btn btn-secondary" onclick="ConsentManager.record({type:'withdrawn',name:'Participant',purpose:'Right to erasure',details:'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)'}).then(()=>{renderConsentPage()})" aria-label="Record consent withdrawal">
+              ❌ Withdraw Consent (GDPR Art. 17)
+            </button>
+          </div>
+        </div>
+
+        <!-- Legal info -->
+        <div class="card" style="margin-top:1rem">
+          <div class="card-header">
+            <h2 class="card-title">⚖️ Legal Basis</h2>
+          </div>
+          <div class="card-body" style="font-size:0.85rem;color:var(--text-muted)">
+            <p style="margin-bottom:0.75rem">SafeCloak's consent module is designed to support GDPR and CCPA compliance by providing:</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:0.35rem">
+              <li>✓ Explicit, informed consent capture</li>
+              <li>✓ Cryptographic timestamps (SHA-256)</li>
+              <li>✓ Tamper-evident hash verification</li>
+              <li>✓ Withdrawal mechanism</li>
+              <li>✓ Machine-readable export (JSON/CSV)</li>
+              <li>✓ Purpose-of-processing field</li>
+            </ul>
+            <p style="margin-top:0.75rem;font-style:italic">Note: This tool supports compliance practices but does not substitute legal counsel.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Consent Log ── -->
+      <section aria-label="Consent event log">
+        <div class="card" style="height:100%">
+          <div class="card-header">
+            <h2 class="card-title">📋 Consent Log</h2>
+            <span class="text-muted text-small">SHA-256 integrity hashed</span>
+          </div>
+          <div class="card-body consent-log" id="consent-log" aria-live="polite" aria-label="Consent records list">
+            <!-- Populated by consent.js -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer" role="contentinfo">
+  <p>BLT-SafeCloak — <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">OWASP BLT Project</a></p>
+</footer>
+
+<div id="toast-container" role="status" aria-live="polite"></div>
+
+<script src="js/crypto.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/consent.js"></script>
+<script>
+  // Form validation
+  document.getElementById('consent-form').addEventListener('submit', e => {
+    const confirm = document.getElementById('confirm-legal');
+    if (!confirm.checked) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showToast('Please confirm the legal attestation before recording', 'warning');
+    }
+  });
+
+  // Re-render log after template actions
+  function renderConsentPage() {
+    ConsentManager.init && document.dispatchEvent(new Event('DOMContentLoaded'));
+    location.reload();
+  }
+</script>
+</body>
+</html>

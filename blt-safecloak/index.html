@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT-SafeCloak — Secure Video Chat & Privacy Protection</title>
+  <meta name="description" content="End-to-end encrypted video chat, voice protection, secure AI notes, and consent management — built on the open web." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <a class="navbar-brand" href="index.html">
+    <div class="shield-icon" aria-hidden="true">🛡️</div>
+    BLT-SafeCloak
+  </a>
+  <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  <ul class="navbar-nav" id="navbar-nav" role="list">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="video-chat.html">Video Chat</a></li>
+    <li><a href="notes.html">Secure Notes</a></li>
+    <li><a href="consent.html">Consent</a></li>
+    <li><a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a></li>
+    <li><a href="video-chat.html" class="btn-nav">Start Secure Call</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-badge" aria-label="Security badge">
+    🔒 OWASP BLT Project &nbsp;·&nbsp; End-to-End Encrypted
+  </div>
+  <h1 id="hero-heading">
+    Secure Communication,<br>
+    <span class="gradient-text">Yours to Control</span>
+  </h1>
+  <p>
+    End-to-end encrypted video calls, voice noise suppression, AI-powered meeting notes,
+    and cryptographic consent management — all running privately in your browser.
+  </p>
+  <div class="hero-actions">
+    <a href="video-chat.html" class="btn btn-primary btn-lg">
+      🎥 Start Secure Call
+    </a>
+    <a href="#features" class="btn btn-secondary btn-lg">
+      Learn More ↓
+    </a>
+  </div>
+  <div style="margin-top:2rem;display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
+    <span class="security-badge">🔐 AES-256-GCM Encrypted</span>
+    <span class="security-badge">🌐 WebRTC Peer-to-Peer</span>
+    <span class="security-badge">🔏 No Data Sent to Servers</span>
+    <span class="security-badge">⚖️ GDPR Consent Records</span>
+  </div>
+</section>
+
+<!-- ── Stats ── -->
+<div style="max-width:1100px;margin:0 auto;padding:0 1.5rem 3rem">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value">256</div>
+      <div class="stat-label">Bit AES Encryption</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">P2P</div>
+      <div class="stat-label">Direct Peer Connection</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Data Stored on Servers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">✓</div>
+      <div class="stat-label">OWASP Best Practices</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ── -->
+<section id="features" aria-labelledby="features-heading">
+  <div style="max-width:1100px;margin:0 auto;padding:0 1.5rem 1rem">
+    <div class="text-center" style="margin-bottom:2.5rem">
+      <h2 class="section-title" id="features-heading">Everything You Need for Private Communication</h2>
+      <p class="section-subtitle">Four pillars of secure, consent-first digital communication.</p>
+    </div>
+  </div>
+  <div class="features-grid">
+    <a href="video-chat.html" class="feature-card" aria-label="Secure Video Chat">
+      <div class="feature-icon blue" aria-hidden="true">🎥</div>
+      <h3>Secure Video Chat</h3>
+      <p>WebRTC peer-to-peer video calls with end-to-end encryption. No media passes through our servers. Includes screen sharing and real-time voice meters.</p>
+      <span class="feature-link">Open Video Chat →</span>
+    </a>
+    <a href="video-chat.html#voice" class="feature-card" aria-label="Voice Protection">
+      <div class="feature-icon green" aria-hidden="true">🎙️</div>
+      <h3>Voice Protection</h3>
+      <p>Browser-native noise suppression, echo cancellation, and automatic gain control. Visual voice-activity indicator keeps you aware of audio state.</p>
+      <span class="feature-link">Configure Audio →</span>
+    </a>
+    <a href="notes.html" class="feature-card" aria-label="Secure AI Notes">
+      <div class="feature-icon purple" aria-hidden="true">📝</div>
+      <h3>Secure AI Notes</h3>
+      <p>AES-256-GCM encrypted meeting notes stored only in your browser. AI-powered summarization, key-point extraction, and action-item detection — all offline.</p>
+      <span class="feature-link">Open Notes →</span>
+    </a>
+    <a href="consent.html" class="feature-card" aria-label="Consent Protection">
+      <div class="feature-icon orange" aria-hidden="true">⚖️</div>
+      <h3>Consent Protection</h3>
+      <p>Record, timestamp, and cryptographically hash participant consent events. Export GDPR-compliant logs as JSON or CSV. Verify record integrity at any time.</p>
+      <span class="feature-link">Manage Consent →</span>
+    </a>
+  </div>
+</section>
+
+<!-- ── How it Works ── -->
+<section class="section" aria-labelledby="how-heading">
+  <h2 class="section-title" id="how-heading">How It Works</h2>
+  <p class="section-subtitle">Start a private, encrypted session in under 30 seconds.</p>
+  <div class="steps">
+    <div class="step">
+      <h4>1. Open Video Chat</h4>
+      <p>Grant camera and microphone permissions. Your Room ID is generated locally — no account needed.</p>
+    </div>
+    <div class="step">
+      <h4>2. Share Your Room ID</h4>
+      <p>Send your unique Room ID to your participant via any channel. Only people with the ID can connect.</p>
+    </div>
+    <div class="step">
+      <h4>3. Record Consent</h4>
+      <p>Before connecting, SafeCloak prompts all participants for cryptographically-timestamped consent.</p>
+    </div>
+    <div class="step">
+      <h4>4. Communicate Securely</h4>
+      <p>Your call is WebRTC peer-to-peer. Take encrypted notes and manage voice settings in real time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Security Features ── -->
+<section class="section" style="padding-top:0" aria-labelledby="security-heading">
+  <h2 class="section-title" id="security-heading">Security Architecture</h2>
+  <p class="section-subtitle">Built on open standards and browser security primitives.</p>
+  <ul class="security-list" role="list">
+    <li><span class="check" aria-hidden="true">✓</span> AES-256-GCM encryption via Web Crypto API</li>
+    <li><span class="check" aria-hidden="true">✓</span> PBKDF2 key derivation (100,000 iterations, SHA-256)</li>
+    <li><span class="check" aria-hidden="true">✓</span> WebRTC DTLS/SRTP transport encryption</li>
+    <li><span class="check" aria-hidden="true">✓</span> Peer-to-peer — no media relayed through servers</li>
+    <li><span class="check" aria-hidden="true">✓</span> Notes encrypted at rest in localStorage</li>
+    <li><span class="check" aria-hidden="true">✓</span> SHA-256 consent integrity hashes</li>
+    <li><span class="check" aria-hidden="true">✓</span> No third-party analytics or tracking</li>
+    <li><span class="check" aria-hidden="true">✓</span> Open-source under OWASP BLT</li>
+    <li><span class="check" aria-hidden="true">✓</span> Content Security Policy headers</li>
+    <li><span class="check" aria-hidden="true">✓</span> Browser-only — no backend, no accounts</li>
+    <li><span class="check" aria-hidden="true">✓</span> GDPR-ready consent export (JSON/CSV)</li>
+    <li><span class="check" aria-hidden="true">✓</span> Voice noise suppression &amp; echo cancellation</li>
+  </ul>
+</section>
+
+<!-- ── CTA ── -->
+<section style="padding:3rem 1.5rem 5rem;text-align:center" aria-label="Call to action">
+  <div style="max-width:600px;margin:0 auto">
+    <h2 style="font-size:1.75rem;font-weight:800;color:#fff;margin-bottom:0.75rem">Ready to Communicate Privately?</h2>
+    <p style="color:var(--text-muted);margin-bottom:2rem">No signup. No data collection. Just open your browser and go.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="video-chat.html" class="btn btn-primary btn-lg">🎥 Start Secure Call</a>
+      <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">⭐ Star on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer" role="contentinfo">
+  <p>
+    BLT-SafeCloak is an <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener">OWASP BLT</a> project.
+    Open-source under the <a href="https://github.com/OWASP-BLT/BLT-SafeCloak/blob/main/LICENSE" target="_blank" rel="noopener">AGPL-3.0 License</a>.
+  </p>
+  <p style="margin-top:0.5rem">
+    <a href="index.html">Home</a> &nbsp;·&nbsp;
+    <a href="video-chat.html">Video Chat</a> &nbsp;·&nbsp;
+    <a href="notes.html">Secure Notes</a> &nbsp;·&nbsp;
+    <a href="consent.html">Consent</a> &nbsp;·&nbsp;
+    <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a>
+  </p>
+</footer>
+
+<div id="toast-container" role="status" aria-live="polite"></div>
+<script src="js/ui.js"></script>
+</body>
+</html>
