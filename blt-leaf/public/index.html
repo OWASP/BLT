@@ -999,6 +999,14 @@
                     </div>
                 `;
 
+                const addAllBtn = li.querySelector('.add-all-prs-btn');
+                if (addAllBtn) {
+                    addAllBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        addAllPrsFromRepo(repo.repo_owner, repo.repo_name, addAllBtn);
+                    });
+                }
+
                 li.addEventListener('click', () => {
                     currentPage = 1;
                     currentRepo = li.dataset.repo;
