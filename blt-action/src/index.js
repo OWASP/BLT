@@ -182,7 +182,7 @@ async function ensureClosedPRLabel(octokit, owner, repoName) {
 
 function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
     if (!prBody) return [];
-    const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
+    const regex = /(?<!\w)(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
     const matches = [...prBody.matchAll(regex)];
     const issues = [];
     

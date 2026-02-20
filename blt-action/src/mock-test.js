@@ -43,10 +43,10 @@ async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKe
 
 async function postTipComment(owner, repo, issueNumber, receiver, amount) {
   const sponsorUrl = `https://github.com/sponsors/${receiver}`;
-  
+
   // Check if GitHub Sponsors is enabled
   await axios.head(sponsorUrl);
-  
+
   const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`;
   const response = await axios.post(url, {
     body: `💰 **Tip Request from @sender to @${receiver}**\n\nAmount: **$${amount}**\n\nTo complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*`
@@ -229,10 +229,10 @@ describe('GitHub API Mock Test', () => {
 
     const githubScope = nock('https://api.github.com')
       .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, (body) => {
-        return body.body.includes('Tip Request') && 
-               body.body.includes(`@${receiver}`) && 
-               body.body.includes(`$${amount}`) &&
-               body.body.includes(`https://github.com/sponsors/${receiver}`);
+        return body.body.includes('Tip Request') &&
+          body.body.includes(`@${receiver}`) &&
+          body.body.includes(`$${amount}`) &&
+          body.body.includes(`https://github.com/sponsors/${receiver}`);
       })
       .reply(201, { status: 'success' });
 
@@ -452,11 +452,11 @@ describe('GitHub API Mock Test', () => {
 
   describe('Human commenter guard for /assign and /unassign', () => {
     function isHumanCommenter(comment) {
-        return (
-            comment &&
-            comment.user &&
-            (comment.user.type === 'User' || comment.user.type === 'Mannequin')
-        );
+      return (
+        comment &&
+        comment.user &&
+        (comment.user.type === 'User' || comment.user.type === 'Mannequin')
+      );
     }
 
     const assignKeywords = [
@@ -551,39 +551,7 @@ describe('GitHub API Mock Test', () => {
   });
 
   describe('Extract Linked Issue from PR Body', () => {
-    // Re-implement the function here for unit testing (mirrors src/index.js)
-    function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
-      if (!prBody) return [];
-      const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
-      const matches = [...prBody.matchAll(regex)];
-      const issues = [];
-
-      for (const match of matches) {
-        if (match[3]) {
-          const refOwner = match[1];
-          const refRepo = match[2];
-          const issueNumber = parseInt(match[3]);
-
-          if (refOwner && refRepo) {
-            if (refOwner.toLowerCase() === currentOwner.toLowerCase() && refRepo.toLowerCase() === currentRepo.toLowerCase()) {
-              issues.push(issueNumber);
-            }
-          } else {
-            issues.push(issueNumber);
-          }
-        } else if (match[4] && match[5] && match[6]) {
-          const urlOwner = match[4];
-          const urlRepo = match[5];
-          const issueNumber = parseInt(match[6]);
-
-          if (urlOwner === currentOwner && urlRepo === currentRepo) {
-            issues.push(issueNumber);
-          }
-        }
-      }
-
-      return [...new Set(issues)];
-    }
+    const { extractLinkedIssuesFromPRBody } = require('./index.js');
 
     it('parses plain "Fixes #123" format', () => {
       const body = 'This PR fixes a bug.\n\nFixes #3753';
@@ -611,6 +579,12 @@ describe('GitHub API Mock Test', () => {
 
     it('handles case-insensitive owner/repo matching', () => {
       const body = 'Fixes owasp-blt/blt#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('handles case-insensitive URL matching', () => {
+      const body = 'Fixes https://github.com/owasp-blt/blt/issues/3753';
       const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
       assert.deepStrictEqual(result, [3753]);
     });
