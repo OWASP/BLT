@@ -1,0 +1,222 @@
+[
+    {
+        "app_name": "GitHub",
+        "category": "Development",
+        "developer": "GitHub, Inc.",
+        "security_rating": "A",
+        "permissions": ["Read messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Minimal data access; sends repository notifications only. SOC 2 Type II certified. Strong privacy policy with no third-party data selling.",
+        "source_url": "https://slack.com/apps/A8GBNUWU8-github"
+    },
+    {
+        "app_name": "Google Drive",
+        "category": "Productivity",
+        "developer": "Google LLC",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Access file metadata", "Post messages"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Accesses file metadata to generate previews. Google is SOC 2 / ISO 27001 certified. Privacy policy is comprehensive but data may be used for ad targeting.",
+        "source_url": "https://slack.com/apps/A6NL8MJ6Q-google-drive"
+    },
+    {
+        "app_name": "Zoom",
+        "category": "Video Conferencing",
+        "developer": "Zoom Video Communications",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Collects meeting metadata. Has had past security vulnerabilities (resolved). SOC 2 Type II certified. Data encryption in transit and at rest.",
+        "source_url": "https://slack.com/apps/A5GE9BMQC-zoom"
+    },
+    {
+        "app_name": "Jira",
+        "category": "Project Management",
+        "developer": "Atlassian",
+        "security_rating": "A",
+        "permissions": ["Read messages", "Post messages", "Access project data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Atlassian is ISO 27001 and SOC 2 Type II certified. Secure OAuth 2.0 integration. Limited data scope aligned to Jira issue notifications.",
+        "source_url": "https://slack.com/apps/AC8NFKCS6-jira-cloud"
+    },
+    {
+        "app_name": "Trello",
+        "category": "Project Management",
+        "developer": "Atlassian",
+        "security_rating": "A",
+        "permissions": ["Read messages", "Post messages"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Minimal permissions; sends card/board activity notifications. Backed by Atlassian security infrastructure (SOC 2, ISO 27001).",
+        "source_url": "https://slack.com/apps/A074YH40Z-trello"
+    },
+    {
+        "app_name": "PagerDuty",
+        "category": "Incident Management",
+        "developer": "PagerDuty, Inc.",
+        "security_rating": "A",
+        "permissions": ["Read messages", "Post messages", "Trigger alerts"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "SOC 2 Type II certified. Focused on incident alerting; does not collect personal data beyond authentication. Strong encryption practices.",
+        "source_url": "https://slack.com/apps/A3TD3MHOU-pagerduty"
+    },
+    {
+        "app_name": "Salesforce",
+        "category": "CRM",
+        "developer": "Salesforce, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access CRM records", "Access user profile"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "Accesses CRM data which may contain sensitive customer information. Salesforce is ISO 27001 and SOC 2 certified. Strong enterprise security controls.",
+        "source_url": "https://slack.com/apps/A7SK0PSWU-salesforce"
+    },
+    {
+        "app_name": "Asana",
+        "category": "Project Management",
+        "developer": "Asana, Inc.",
+        "security_rating": "A",
+        "permissions": ["Read messages", "Post messages"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "SOC 2 Type II certified. Notifications-focused integration with minimal data footprint. Supports SSO and strong access controls.",
+        "source_url": "https://slack.com/apps/A01734836JY-asana"
+    },
+    {
+        "app_name": "Notion",
+        "category": "Productivity",
+        "developer": "Notion Labs, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Read workspace content"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "SOC 2 Type II certified. Reads page content to generate link previews. Data retention policies are reasonable and opt-out available.",
+        "source_url": "https://slack.com/apps/A02RDNCTCTX-notion"
+    },
+    {
+        "app_name": "Datadog",
+        "category": "Monitoring",
+        "developer": "Datadog, Inc.",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Manage notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "SOC 2 Type II certified. Alert-only integration; does not read channel messages. ISO 27001 compliant with strong encryption.",
+        "source_url": "https://slack.com/apps/A0YH26ASM-datadog"
+    },
+    {
+        "app_name": "Zapier",
+        "category": "Automation",
+        "developer": "Zapier, Inc.",
+        "security_rating": "C",
+        "permissions": ["Read messages", "Post messages", "Read channels", "Read user profiles", "Access files"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "Broad permissions due to automation capabilities. SOC 2 Type II certified, but extensive data access requires careful configuration. Review each Zap's data flow.",
+        "source_url": "https://slack.com/apps/A024R9PQM-zapier"
+    },
+    {
+        "app_name": "Figma",
+        "category": "Design",
+        "developer": "Figma, Inc.",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Minimal data scope; sends design file notifications and previews only. SOC 2 Type II certified. Strong privacy policy.",
+        "source_url": "https://slack.com/apps/A7YN2HE3Q-figma"
+    },
+    {
+        "app_name": "Dropbox",
+        "category": "File Storage",
+        "developer": "Dropbox, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access file metadata"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Accesses file metadata for previews. SOC 2 Type II certified with ISO 27001 compliance. Data encrypted at rest with AES-256.",
+        "source_url": "https://slack.com/apps/A0F7YS2SX-dropbox"
+    },
+    {
+        "app_name": "HubSpot",
+        "category": "CRM / Marketing",
+        "developer": "HubSpot, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access CRM records", "Access user profile"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "Accesses CRM and marketing data. SOC 2 Type II certified. GDPR compliant. High data access scope should be reviewed against least-privilege principles.",
+        "source_url": "https://slack.com/apps/A3M7PBT3F-hubspot"
+    },
+    {
+        "app_name": "Polly",
+        "category": "Surveys & Polls",
+        "developer": "Polly.ai",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Collects survey response data and user identities. SOC 2 compliant. Data used for analytics; review data retention settings. Not independently verified.",
+        "source_url": "https://slack.com/apps/A04E6JX41-polly"
+    },
+    {
+        "app_name": "Giphy",
+        "category": "Entertainment",
+        "developer": "Giphy, Inc.",
+        "security_rating": "C",
+        "permissions": ["Post messages", "Access user profile", "Track usage"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Tracks GIF search queries and usage patterns. Privacy policy allows sharing data with third parties including advertisers. Limited security certifications disclosed.",
+        "source_url": "https://slack.com/apps/A0CEFA0RX-giphy"
+    },
+    {
+        "app_name": "Workato",
+        "category": "Automation",
+        "developer": "Workato, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Read channels", "Access files"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "Enterprise automation platform with broad permissions. SOC 2 Type II and ISO 27001 certified. Data isolation per tenant. High access scope requires governance.",
+        "source_url": "https://slack.com/apps/A0QKQRQQ2-workato"
+    },
+    {
+        "app_name": "Donut",
+        "category": "Team Culture",
+        "developer": "Donut Technologies, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Accesses user profiles and channel membership to facilitate introductions. No major security incidents reported. Privacy policy lacks detail on data retention timelines.",
+        "source_url": "https://slack.com/apps/A11MJ51SR-donut"
+    },
+    {
+        "app_name": "Simple Poll",
+        "category": "Surveys & Polls",
+        "developer": "Simple Poll",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Collects poll questions and responses. Minimal data scope beyond poll content. No known security incidents. Privacy policy is basic.",
+        "source_url": "https://slack.com/apps/A0HFW7MR6-simple-poll"
+    },
+    {
+        "app_name": "Clockwise",
+        "category": "Productivity",
+        "developer": "Clockwise, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile", "Access calendar data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "SOC 2 Type II certified. Reads calendar data to optimize scheduling. Clear data use policy. Does not sell personal data.",
+        "source_url": "https://slack.com/apps/AKJKXLMAH-clockwise"
+    }
+]
