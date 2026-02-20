@@ -563,6 +563,71 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
     return all_results
 
 
+async def fetch_org_repos(owner, token=None, max_repos=200):
+    """
+    Fetch all public repositories for a GitHub organization or user.
+    
+    Tries the /orgs/ endpoint first; if the owner is a user (not an org),
+    falls back to the /users/ endpoint. If authentication fails (401),
+    retries without the token since public repos don't require auth.
+    
+    Args:
+        owner: GitHub org or user name
+        token: Optional GitHub token for authentication
+        max_repos: Maximum number of repos to return (default 200)
+    
+    Returns:
+        List of repository dicts with 'name' and 'owner' keys, or raises Exception.
+    """
+    headers_dict = {
+        'User-Agent': 'PR-Tracker/1.0',
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+    }
+    
+    # Try org endpoint first, then fall back to user endpoint
+    org_url = f"https://api.github.com/orgs/{owner}/repos?type=public&sort=updated&direction=desc&per_page=100"
+    user_url = f"https://api.github.com/users/{owner}/repos?type=public&sort=updated&direction=desc&per_page=100"
+    
+    # Trying without token first to preserve token rate limit (public repos don't need auth).
+    # If we get 401/403 (private org requiring auth) - retry with token.
+    tokens_to_try = [None, token] if token else [None]
+    
+    for current_token in tokens_to_try:
+        for url in [org_url, user_url]:
+            try:
+                result = await fetch_paginated_data(
+                    url, headers_dict, github_token=current_token,
+                    max_items=max_repos, return_metadata=True
+                )
+                repos = result['items']
+                if repos is not None:
+                    # Filter to non-fork, non-archived repos and extract name + owner
+                    filtered = []
+                    for r in repos:
+                        if r.get('archived'):
+                            continue
+                        filtered.append({
+                            'name': r['name'],
+                            'owner': r.get('owner', {}).get('login', owner),
+                            'open_issues_count': r.get('open_issues_count', 0),
+                            'has_issues': r.get('has_issues', True)
+                        })
+                    return filtered
+            except Exception as e:
+                error_msg = str(e)
+                # 404 means this endpoint type is wrong (org vs user), try next URL
+                if 'status=404' in error_msg:
+                    continue
+                # 401/403 means auth needed (e.g. private org) - break inner loop to retry with token
+                if 'status=401' in error_msg or 'status=403' in error_msg:
+                    print(f"GitHub API returned auth error for {url} - will retry with token")
+                    break
+                raise
+    
+    raise Exception(f"Could not find GitHub organization or user: {owner}")
+
+
 async def fetch_paginated_data(url, headers_dict, github_token=None, max_items=None, return_metadata=False):
     """
     Fetch all pages of data from a GitHub API endpoint following Link headers
