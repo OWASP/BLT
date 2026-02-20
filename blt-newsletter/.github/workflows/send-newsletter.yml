@@ -15,6 +15,9 @@ on:
 jobs:
   send-newsletter:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
     
     steps:
       - name: Checkout repository
