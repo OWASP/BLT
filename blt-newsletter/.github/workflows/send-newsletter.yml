@@ -30,7 +30,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install sendgrid
+          pip install sendgrid markdown2
       
       - name: Get subscribers from issues
         id: get-subscribers
@@ -83,7 +83,6 @@ jobs:
           NEWSLETTER_CONTENT_FILE: ${{ github.event.inputs.newsletter_content }}
         run: |
           python .github/scripts/send-newsletter.py
-        continue-on-error: true
       
       - name: Post summary
         run: |

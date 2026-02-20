@@ -7,48 +7,33 @@ Sends newsletters to subscribers via SendGrid
 import os
 import sys
 import json
-import re
+import markdown2
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 # Configuration
 API_KEY = os.environ.get('SENDGRID_API_KEY')
 FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'newsletter@blt.owasp.org')
+if not os.environ.get('SENDGRID_FROM_EMAIL'):
+    print(
+        "⚠️  Warning: SENDGRID_FROM_EMAIL is not set. Using default "
+        f"'{FROM_EMAIL}'. Make sure this address is verified in SendGrid "
+        "or emails will be rejected.",
+        file=sys.stderr
+    )
 SUBJECT = os.environ.get('NEWSLETTER_SUBJECT', 'BLT Newsletter')
 CONTENT_FILE = os.environ.get('NEWSLETTER_CONTENT_FILE', 'newsletters/latest.md')
 
 def convert_markdown_to_html(markdown_text):
     """
-    Convert markdown to HTML using simple regex replacements
+    Convert markdown to HTML using the markdown2 library.
+    Handles headings, bold, italic, bullet lists, ordered lists, links,
+    and paragraphs correctly — without producing invalid nested block elements.
     """
-    html = markdown_text
-    
-    # Convert headings
-    html = re.sub(r'^### (.*)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
-    html = re.sub(r'^## (.*)$', r'<h2>\1</h2>', html, flags=re.MULTILINE)
-    html = re.sub(r'^# (.*)$', r'<h1>\1</h1>', html, flags=re.MULTILINE)
-    
-    # Convert lists
-    html = re.sub(r'^\* (.*)$', r'<li>\1</li>', html, flags=re.MULTILINE)
-    html = re.sub(r'^- (.*)$', r'<li>\1</li>', html, flags=re.MULTILINE)
-    
-    # Convert bold
-    html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html)
-    
-    # Convert links
-    html = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', html)
-    
-    # Convert paragraphs
-    html = html.replace('\n\n', '</p><p>')
-    
-    # Wrap lists in ul tags
-    html = re.sub(r'<li>', r'<ul><li>', html)
-    html = re.sub(r'</li>(?!\s*<li>)', r'</li></ul>', html)
-    
-    # Wrap in paragraph tags
-    html = '<p>' + html + '</p>'
-    
-    return html
+    return markdown2.markdown(
+        markdown_text,
+        extras=["fenced-code-blocks", "tables", "strike", "task_list"]
+    )
 
 def create_email_template(content_html):
     """
@@ -200,6 +185,7 @@ def send_newsletter():
     print(f'\n✅ Newsletter sent successfully to {successful} subscribers')
     if failed > 0:
         print(f'❌ Failed to send to {failed} subscribers')
+        sys.exit(1)
 
 if __name__ == '__main__':
     send_newsletter()
