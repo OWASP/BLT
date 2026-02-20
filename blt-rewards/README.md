@@ -14,19 +14,35 @@ This is a Cloudflare Worker-based application with the following structure:
 
 ```
 BLT-Rewards/
-├── public/              # Static HTML pages and assets
-│   ├── index.html       # Main landing page
-│   ├── styles.css       # Styles
-│   ├── script.js        # Client-side JavaScript
-│   └── *.html           # Other static pages
-├── src/                 # Python worker source code
-│   └── index.py         # Main entry point
-├── ord-server/          # Bitcoin Ordinals/Runes server
-│   └── ...             # Ord server files
-├── wrangler.toml        # Cloudflare Worker configuration
-├── package.json         # Node.js dependencies
 ├── .env.example         # Environment variables template
-└── README.md           # This file
+├── LICENSE              # License file
+├── package.json         # Node.js dependencies
+├── README.md            # This file
+├── setup_bacon_node.sh  # Setup script for BACON node
+├── wrangler.toml        # Cloudflare Worker configuration
+├── public/              # Static HTML pages and assets
+│   ├── static/          # Static assets
+│   │   └── images/      # Image files
+│   │       └── logo.png # BACON logo
+│   ├── _config.yml      # Jekyll configuration
+│   ├── README.md        # Public documentation readme
+│   ├── index.html       # Main landing page
+│   ├── getting-started.html      # Getting started guide
+│   ├── api-reference.html        # API documentation
+│   ├── bitcoin-integration.html  # Bitcoin integration guide
+│   ├── solana-integration.html   # Solana integration guide
+│   ├── github-actions.html       # GitHub Actions guide
+│   ├── security.html             # Security documentation
+│   ├── styles.css       # Tailwind CSS styles
+│   └── script.js        # Client-side JavaScript
+├── src/                 # Python worker source code
+│   └── index.py         # Main Cloudflare Worker entry point
+└── ord-server/          # Bitcoin Ordinals/Runes server
+    ├── .env.example     # Ord server environment variables
+    ├── example-split.yaml        # Example split configuration
+    ├── ord-api.py                # Ord API server
+    ├── ord-flask.service         # Flask service configuration
+    └── requirements.txt          # Python dependencies
 ```
 
 ## 🛠️ Development
@@ -91,17 +107,22 @@ npm run deploy:dev
 
 ## 📚 Documentation
 
-Visit the [public documentation](public/index.html) to learn more about:
-- Getting started with BACON
-- Bitcoin integration (Runes protocol)
-- Solana integration
-- GitHub Actions setup
-- API reference
-- Security considerations
+The documentation is available as static HTML pages in the `public/` directory:
+
+- [**Getting Started**](public/getting-started.html) - Installation and setup guide
+- [**Bitcoin Integration**](public/bitcoin-integration.html) - Bitcoin & Runes protocol integration
+- [**Solana Integration**](public/solana-integration.html) - Solana blockchain integration
+- [**GitHub Actions**](public/github-actions.html) - CI/CD automation setup
+- [**API Reference**](public/api-reference.html) - Complete API documentation
+- [**Security**](public/security.html) - Security best practices and considerations
+
+Visit the [main documentation site](public/index.html) for a complete overview.
 
 ## 🔐 Security
 
-For security concerns, please refer to [security.html](public/security.html) or contact the OWASP BLT team.
+For security concerns and best practices, please refer to our [Security Documentation](public/security.html) or contact the OWASP BLT team.
+
+**Important:** Never commit private keys or sensitive credentials to the repository. Use environment variables and GitHub Secrets for sensitive data.
 
 ## 📄 License
 
@@ -113,8 +134,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 🔗 Links
 
-- [OWASP BLT](https://github.com/OWASP-BLT)
-- [Documentation](public/index.html)
+- [OWASP BLT Project](https://github.com/OWASP-BLT)
+- [BLT Main Repository](https://github.com/OWASP-BLT/BLT)
+- [Documentation Site](public/index.html)
 - [GitHub Repository](https://github.com/OWASP-BLT/BLT-Rewards)
 
 ---
