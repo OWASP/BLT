@@ -458,7 +458,8 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
             open_conversations_count = excluded.open_conversations_count,
             reviewers_json = excluded.reviewers_json,
             etag = excluded.etag
-    ''').bind(pr_url, owner, repo, pr_number,
+    ''').bind(
+        pr_url, owner, repo, pr_number,
         pr_data.get('title') or '',
         pr_data.get('state') or '',
         1 if pr_data.get('is_merged') else 0,
@@ -473,14 +474,13 @@ async def upsert_pr(db, pr_url, owner, repo, pr_number, pr_data):
         pr_data.get('commits_count') or 0,
         pr_data.get('behind_by') or 0,
         pr_data.get('review_status') or '',
-        pr_data.get('last_updated_at') or current_timestamp,
-        current_timestamp,
-        current_timestamp,
+        pr_data.get('last_updated_at') or current_timestamp, current_timestamp, current_timestamp,
         1 if pr_data.get('is_draft') else 0,
         pr_data.get('open_conversations_count') or 0,
         pr_data.get('reviewers_json') or '[]',
         pr_data.get('etag') or ''
-)
+    )
+    
     await stmt.run()
 
 
