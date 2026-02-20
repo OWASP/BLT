@@ -938,8 +938,9 @@
 
         async function loadRepos(bypassCache = false) {
             try {
-                const url = bypassCache ? `/api/repos?_=${Date.now()}` : '/api/repos';
-                const response = await fetch(url);
+                const response = bypassCache
+                    ? await fetch(`/api/repos?_=${Date.now()}`)
+                    : await fetch('/api/repos');
                 const data = await response.json();
 
                 if (data.error) {
