@@ -51,6 +51,10 @@ router.add_route("GET", "/bugs/search", handle_bugs)
 router.add_route("GET", "/users", handle_users)
 router.add_route("GET", "/users/{id}", handle_users)
 router.add_route("GET", "/users/{id}/profile", handle_users)
+router.add_route("GET", "/users/{id}/bugs", handle_users)
+router.add_route("GET", "/users/{id}/domains", handle_users)
+router.add_route("GET", "/users/{id}/followers", handle_users)
+router.add_route("GET", "/users/{id}/following", handle_users)
 
 # Domains API
 router.add_route("GET", "/domains", handle_domains)
