@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT Newsletter - Stay Updated</title>
+    <meta name="description" content="Subscribe to the BLT Newsletter for stats, updates, and insights from the OWASP Bug Logging Tool platform." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
+      crossorigin="anonymous" 
+      referrerpolicy="no-referrer" 
+    />
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+    <!-- Navigation -->
+    <nav class="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-bug text-2xl text-red-600" aria-hidden="true"></i>
+            <span class="text-xl font-bold tracking-tight">BLT Newsletter</span>
+          </div>
+          <a 
+            href="https://github.com/OWASP-BLT" 
+            target="_blank" 
+            rel="noreferrer noopener"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <span class="hidden sm:inline">View on GitHub</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <!-- Left Column - Content -->
+        <div class="flex flex-col justify-center">
+          <div class="mb-4">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600">
+              <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+              Newsletter
+            </span>
+          </div>
+          
+          <h1 class="mb-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            Stay Updated with <span class="text-red-600">BLT</span>
+          </h1>
+          
+          <p class="mb-6 text-lg text-slate-600 sm:text-xl">
+            Get the latest stats, insights, and updates from the OWASP Bug Logging Tool platform delivered directly to your inbox.
+          </p>
+
+          <!-- Features List -->
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-50">
+                <i class="fa-solid fa-chart-line text-red-600" aria-hidden="true"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold">Platform Statistics</h3>
+                <p class="text-sm text-slate-600">Key metrics and insights from the BLT ecosystem</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-50">
+                <i class="fa-solid fa-rocket text-red-600" aria-hidden="true"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold">New Features</h3>
+                <p class="text-sm text-slate-600">Be the first to know about upcoming improvements</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-50">
+                <i class="fa-solid fa-shield-halved text-red-600" aria-hidden="true"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold">Security Insights</h3>
+                <p class="text-sm text-slate-600">Best practices and vulnerability disclosure tips</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-50">
+                <i class="fa-solid fa-users text-red-600" aria-hidden="true"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold">Community Highlights</h3>
+                <p class="text-sm text-slate-600">Success stories and contributor spotlights</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Signup Form -->
+        <div class="flex items-center justify-center lg:justify-end">
+          <div class="w-full max-w-md">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+              <h2 class="mb-2 text-2xl font-bold">Subscribe Now</h2>
+              <p class="mb-6 text-sm text-slate-600">Join our community and never miss an update</p>
+
+              <form id="newsletter-form" class="space-y-4">
+                <div>
+                  <label for="name" class="mb-2 block text-sm font-medium text-slate-700">
+                    Name <span class="text-slate-400">(optional)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="name" 
+                    name="name"
+                    placeholder="John Doe"
+                    class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 transition placeholder:text-slate-400 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+                  />
+                </div>
+
+                <div>
+                  <label for="email" class="mb-2 block text-sm font-medium text-slate-700">
+                    Email Address <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    placeholder="you@example.com"
+                    required
+                    class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 transition placeholder:text-slate-400 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+                  />
+                </div>
+
+                <div class="flex items-start gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="consent" 
+                    name="consent"
+                    required
+                    class="mt-1 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-2 focus:ring-red-600/20"
+                  />
+                  <label for="consent" class="text-sm text-slate-600">
+                    I agree to receive newsletters from OWASP BLT and can unsubscribe at any time.
+                  </label>
+                </div>
+
+                <button 
+                  type="submit" 
+                  id="submit-btn"
+                  class="w-full rounded-lg bg-red-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span id="btn-text">Subscribe to Newsletter</span>
+                  <span id="btn-loading" class="hidden">
+                    <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+                    Subscribing...
+                  </span>
+                </button>
+              </form>
+
+              <!-- Message Area -->
+              <div id="message" class="mt-4 hidden rounded-lg p-4"></div>
+
+              <p class="mt-6 text-center text-xs text-slate-500">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                Your email is safe with us. We never share your information.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="mt-16">
+        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h2 class="mb-6 text-center text-2xl font-bold">BLT by the Numbers</h2>
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="text-center">
+              <div class="mb-2 text-3xl font-bold text-red-600">5000+</div>
+              <div class="text-sm text-slate-600">Bugs Reported</div>
+            </div>
+            <div class="text-center">
+              <div class="mb-2 text-3xl font-bold text-red-600">1000+</div>
+              <div class="text-sm text-slate-600">Active Contributors</div>
+            </div>
+            <div class="text-center">
+              <div class="mb-2 text-3xl font-bold text-red-600">250+</div>
+              <div class="text-sm text-slate-600">Companies Protected</div>
+            </div>
+            <div class="text-center">
+              <div class="mb-2 text-3xl font-bold text-red-600">$50K+</div>
+              <div class="text-sm text-slate-600">Bounties Awarded</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-slate-200 bg-white py-8">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center text-sm text-slate-600">
+          <p class="mb-2">
+            &copy; <script>document.write(new Date().getFullYear())</script> OWASP BLT. Licensed under 
+            <a href="https://github.com/OWASP-BLT/BLT-Newsletter/blob/main/LICENSE" class="text-red-600 hover:underline">AGPL-3.0</a>
+          </p>
+          <p>
+            Part of the <a href="https://owasp.org/" class="text-red-600 hover:underline" target="_blank" rel="noopener">OWASP Foundation</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+      const form = document.getElementById('newsletter-form');
+      const submitBtn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
+      const btnLoading = document.getElementById('btn-loading');
+      const messageDiv = document.getElementById('message');
+
+      // Email validation regex
+      const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        // Validate email
+        if (!email || !EMAIL_REGEX.test(email)) {
+          messageDiv.className = 'mt-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800';
+          messageDiv.innerHTML = `
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-xmark mt-0.5 text-red-600" aria-hidden="true"></i>
+              <div>
+                <strong>Error:</strong> Please provide a valid email address.
+              </div>
+            </div>
+          `;
+          messageDiv.classList.remove('hidden');
+          return;
+        }
+
+        // Show loading state
+        submitBtn.disabled = true;
+        btnText.classList.add('hidden');
+        btnLoading.classList.remove('hidden');
+        messageDiv.classList.add('hidden');
+
+        try {
+          // Create a GitHub issue to track the subscription
+          const issueTitle = `Newsletter Subscription: ${email}`;
+          const issueBody = `New newsletter subscription request:\n\n- **Name:** ${name || 'Not provided'}\n- **Email:** ${email}\n- **Subscribed:** ${new Date().toISOString()}\n\n---\n*This issue was automatically created by the newsletter signup form.*`;
+          
+          const response = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Newsletter/issues', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json',
+            },
+            body: JSON.stringify({
+              title: issueTitle,
+              body: issueBody,
+              labels: ['newsletter-subscription']
+            }),
+          });
+
+          if (response.ok) {
+            // Success message
+            messageDiv.className = 'mt-4 rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800';
+            messageDiv.innerHTML = `
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check mt-0.5 text-green-600" aria-hidden="true"></i>
+                <div>
+                  <strong>Success!</strong> Thank you for subscribing! You'll receive updates about BLT stats, new features, and more.
+                </div>
+              </div>
+            `;
+            form.reset();
+          } else {
+            // API error
+            messageDiv.className = 'mt-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800';
+            messageDiv.innerHTML = `
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-xmark mt-0.5 text-red-600" aria-hidden="true"></i>
+                <div>
+                  <strong>Error:</strong> Unable to process subscription. Please try again or email us directly at newsletter@blt.owasp.org
+                </div>
+              </div>
+            `;
+          }
+        } catch (error) {
+          // Network error
+          messageDiv.className = 'mt-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800';
+          messageDiv.innerHTML = `
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-xmark mt-0.5 text-red-600" aria-hidden="true"></i>
+              <div>
+                <strong>Error:</strong> Network error. Please try again later or email us at newsletter@blt.owasp.org
+              </div>
+            </div>
+          `;
+        } finally {
+          // Reset button state
+          submitBtn.disabled = false;
+          btnText.classList.remove('hidden');
+          btnLoading.classList.add('hidden');
+          messageDiv.classList.remove('hidden');
+        }
+      });
+    </script>
+  </body>
+</html>
