@@ -282,7 +282,7 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
                     
                     # Add NULL handling and column sort
                     # NULL values should appear last regardless of sort direction
-                    sort_clauses.append(f'{sql_expr} IS NOT NULL, {sql_expr} {direction}')
+                    sort_clauses.append(f'{sql_expr} IS NOT NULL DESC, {sql_expr} {direction}')
                 else:
                     # Log invalid column attempts for security monitoring
                     print(f"Security: Rejected invalid sort column: {col}")
