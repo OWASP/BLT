@@ -6,7 +6,7 @@ set -e
 
 echo "Applying D1 database migrations..."
 # Database name from wrangler.toml
-DATABASE_NAME="${DATABASE_NAME:-blt-api}"
+DATABASE_NAME="${DATABASE_NAME:-pr_tracker}"
 
 # Apply migrations to the remote database
 if ! wrangler d1 migrations apply "$DATABASE_NAME" --remote; then
