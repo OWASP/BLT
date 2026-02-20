@@ -1,0 +1,91 @@
+name: Send Newsletter
+
+on:
+  workflow_dispatch:
+    inputs:
+      subject:
+        description: 'Email subject line'
+        required: true
+        default: 'BLT Newsletter - Latest Updates'
+      newsletter_content:
+        description: 'Newsletter content file (markdown)'
+        required: true
+        default: 'newsletters/latest.md'
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: |
+          npm install @sendgrid/mail dotenv
+      
+      - name: Get subscribers from issues
+        id: get-subscribers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'newsletter-subscription',
+              state: 'open',
+              per_page: 100
+            });
+            
+            const subscribers = issues.data
+              .map(issue => {
+                const emailMatch = issue.body.match(/\*\*Email:\*\* (.+)/);
+                const nameMatch = issue.body.match(/\*\*Name:\*\* (.+)/);
+                if (emailMatch) {
+                  return {
+                    email: emailMatch[1].trim(),
+                    name: nameMatch ? nameMatch[1].trim() : 'Subscriber'
+                  };
+                }
+                return null;
+              })
+              .filter(sub => sub !== null);
+            
+            console.log(`Found ${subscribers.length} subscribers`);
+            const fs = require('fs');
+            fs.writeFileSync('subscribers.json', JSON.stringify(subscribers, null, 2));
+      
+      - name: Read newsletter content
+        id: content
+        run: |
+          if [ -f "${{ github.event.inputs.newsletter_content }}" ]; then
+            content=$(cat "${{ github.event.inputs.newsletter_content }}")
+            echo "content<<EOF" >> $GITHUB_OUTPUT
+            echo "$content" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "content=Newsletter content file not found" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Send newsletter via SendGrid
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          NEWSLETTER_SUBJECT: ${{ github.event.inputs.subject }}
+          NEWSLETTER_CONTENT_FILE: ${{ github.event.inputs.newsletter_content }}
+        run: |
+          node .github/scripts/send-newsletter.js
+        continue-on-error: true
+      
+      - name: Post summary
+        run: |
+          echo "### Newsletter Sent! 📧" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Subject:** ${{ github.event.inputs.subject }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Content File:** ${{ github.event.inputs.newsletter_content }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY

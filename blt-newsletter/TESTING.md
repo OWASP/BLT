@@ -1,95 +1,105 @@
 # BLT Newsletter - Testing Guide
 
-## Manual Testing Checklist
+## Testing the Static Site
 
 ### Prerequisites
-- Node.js installed
-- SendGrid API key configured in `.env`
+- Modern web browser
+- Internet connection (for CDN resources)
 
 ### Test Cases
 
-#### 1. Server Health Check
-```bash
-curl http://localhost:3000/api/health
-```
-Expected response:
-```json
-{
-  "status": "ok",
-  "sendgridConfigured": true
-}
-```
+#### 1. Page Load
+- Open `index.html` in a browser or visit the GitHub Pages URL
+- Verify BLT branding appears correctly
+- Check that all styles load properly
+- Verify responsive design on different screen sizes
 
-#### 2. Newsletter Subscription - Valid Email
-```bash
-curl -X POST http://localhost:3000/api/subscribe \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","name":"Test User"}'
-```
-Expected response:
-```json
-{
-  "success": true,
-  "message": "Successfully subscribed! Check your email for confirmation."
-}
-```
+#### 2. Form Validation - Valid Email
+1. Fill in name (optional)
+2. Enter valid email: `test@example.com`
+3. Check consent checkbox
+4. Click "Subscribe to Newsletter"
+5. Verify success message appears
 
-#### 3. Newsletter Subscription - Invalid Email
-```bash
-curl -X POST http://localhost:3000/api/subscribe \
-  -H "Content-Type: application/json" \
-  -d '{"email":"invalid-email","name":"Test User"}'
-```
-Expected response:
-```json
-{
-  "success": false,
-  "message": "Please provide a valid email address."
-}
-```
+Expected: Green success message
 
-#### 4. Newsletter Subscription - Missing Email
-```bash
-curl -X POST http://localhost:3000/api/subscribe \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test User"}'
-```
-Expected response:
-```json
-{
-  "success": false,
-  "message": "Please provide a valid email address."
-}
-```
+#### 3. Form Validation - Invalid Email
+1. Enter invalid email: `invalid-email`
+2. Check consent checkbox
+3. Click "Subscribe"
 
-### UI Testing
+Expected: Red error message about invalid email
 
-1. **Open the newsletter page**
-   - Navigate to `http://localhost:3000`
-   - Verify the page loads with BLT branding
-   - Check responsive design on mobile/tablet/desktop
+#### 4. Form Validation - Missing Consent
+1. Enter valid email
+2. Don't check consent checkbox
+3. Try to submit
 
-2. **Test form validation**
-   - Try submitting without checking consent checkbox
-   - Try submitting with invalid email format
-   - Try submitting with valid email
+Expected: Browser validation prevents submission
 
-3. **Test form submission**
-   - Fill in name (optional)
-   - Enter valid email address
-   - Check consent checkbox
-   - Click "Subscribe to Newsletter"
-   - Verify loading state appears
-   - Verify success/error message displays
+#### 5. GitHub Issue Creation
+1. Submit valid subscription
+2. Go to repository Issues
+3. Filter by label: `newsletter-subscription`
+4. Verify new issue was created with subscriber info
 
-4. **Test email receipt**
-   - Check inbox for welcome email
-   - Verify email content and formatting
-   - Check that contact was added to SendGrid list
+Expected: Issue created with email and name
 
-### Visual Regression Testing
+## Testing GitHub Actions
 
-Compare the page appearance with BLT-Design guidelines:
+### Prerequisites
+- Repository with Actions enabled
+- SendGrid API key configured in secrets
+- At least one subscriber (open issue with label)
+
+### Test Newsletter Workflow
+
+#### 1. Manual Workflow Trigger
+1. Go to Actions > Send Newsletter
+2. Click "Run workflow"
+3. Enter subject: "Test Newsletter"
+4. Enter content file: `newsletters/latest.md`
+5. Click "Run workflow"
+6. Wait for completion
+
+Expected: Workflow completes successfully
+
+#### 2. Check Workflow Logs
+1. Open the workflow run
+2. Expand "Get subscribers from issues"
+3. Verify subscriber count is correct
+4. Expand "Send newsletter via SendGrid"
+5. Check for successful sends
+
+Expected: All subscribers receive email
+
+#### 3. Verify Email Receipt
+1. Check inbox for test subscriber
+2. Verify email has correct subject
+3. Verify content matches newsletter file
+4. Verify BLT branding in email
+
+Expected: Well-formatted email received
+
+### Test Subscriber Management
+
+#### 1. Add Subscriber via Form
+- Submit form with test email
+- Check Issues for new entry
+
+#### 2. Remove Subscriber
+- Close a subscription issue
+- Run newsletter workflow
+- Verify closed issue subscriber doesn't receive email
+
+#### 3. Export Subscribers
+- Run workflow
+- Check logs for subscriber list
+- Verify all open issues are included
+
+## Visual Regression Testing
+
+Compare with BLT-Design guidelines:
 - [ ] Uses BLT red color (#dc2626)
 - [ ] Uses Inter font family
 - [ ] Gradient background matches BLT style
@@ -97,7 +107,7 @@ Compare the page appearance with BLT-Design guidelines:
 - [ ] Shadows and hover states work correctly
 - [ ] Icons display correctly
 
-### Browser Compatibility
+## Browser Compatibility
 
 Test in the following browsers:
 - [ ] Chrome/Chromium
@@ -105,18 +115,72 @@ Test in the following browsers:
 - [ ] Safari
 - [ ] Edge
 
-### Accessibility Testing
+## Mobile Testing
+
+Test on different devices:
+- [ ] iPhone (Safari)
+- [ ] Android (Chrome)
+- [ ] Tablet (iPad/Android)
+
+## Accessibility Testing
 
 - [ ] All form inputs have labels
 - [ ] Focus states are visible
 - [ ] Tab navigation works correctly
-- [ ] Screen reader compatible
+- [ ] Screen reader compatible (test with VoiceOver/NVDA)
 - [ ] Color contrast meets WCAG guidelines
+- [ ] Alt text for all images
 
-## Automated Testing (Future Enhancement)
+## Performance Testing
+
+- [ ] Page loads in under 3 seconds
+- [ ] No console errors
+- [ ] CDN resources load properly
+- [ ] Form submission is responsive
+
+## Security Testing
+
+- [ ] Email validation prevents injection
+- [ ] No sensitive data in client code
+- [ ] HTTPS enabled (in production)
+- [ ] No XSS vulnerabilities
+
+## GitHub Pages Deployment
+
+### 1. Verify Deployment
+- Push to main branch
+- Wait for Actions to complete
+- Visit GitHub Pages URL
+- Verify site is live
+
+### 2. Check DNS/SSL
+- Verify HTTPS is enabled
+- Check custom domain (if configured)
+- Test SSL certificate validity
+
+## Troubleshooting
+
+### Form Not Submitting
+- Check browser console for errors
+- Verify GitHub API is accessible
+- Check repository name in JavaScript
+
+### Newsletter Not Sending
+- Verify SendGrid secrets are set
+- Check workflow logs for errors
+- Verify subscriber issues exist
+- Check SendGrid dashboard
+
+### Page Not Loading
+- Check GitHub Pages is enabled
+- Verify source branch is correct
+- Check for deployment errors in Actions
+
+## Automated Testing (Future)
 
 Consider adding:
-- Unit tests for API endpoints (Jest, Mocha)
-- Integration tests for SendGrid
-- E2E tests for form submission (Playwright, Cypress)
-- Visual regression tests (Percy, Chromatic)
+- E2E tests with Playwright/Cypress
+- Unit tests for JavaScript functions
+- Visual regression tests
+- API integration tests
+- Load testing for high subscriber counts
