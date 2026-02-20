@@ -549,4 +549,101 @@ describe('GitHub API Mock Test', () => {
       assert.strictEqual(isHumanCommenter(mannequinComment), true);
     });
   });
+
+  describe('Extract Linked Issue from PR Body', () => {
+    // Re-implement the function here for unit testing (mirrors src/index.js)
+    function extractLinkedIssuesFromPRBody(prBody, currentOwner, currentRepo) {
+      if (!prBody) return [];
+      const regex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?:\s*:\s*|\s+)(?:(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)|https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+))/gi;
+      const matches = [...prBody.matchAll(regex)];
+      const issues = [];
+
+      for (const match of matches) {
+        if (match[3]) {
+          const refOwner = match[1];
+          const refRepo = match[2];
+          const issueNumber = parseInt(match[3]);
+
+          if (refOwner && refRepo) {
+            if (refOwner.toLowerCase() === currentOwner.toLowerCase() && refRepo.toLowerCase() === currentRepo.toLowerCase()) {
+              issues.push(issueNumber);
+            }
+          } else {
+            issues.push(issueNumber);
+          }
+        } else if (match[4] && match[5] && match[6]) {
+          const urlOwner = match[4];
+          const urlRepo = match[5];
+          const issueNumber = parseInt(match[6]);
+
+          if (urlOwner === currentOwner && urlRepo === currentRepo) {
+            issues.push(issueNumber);
+          }
+        }
+      }
+
+      return [...new Set(issues)];
+    }
+
+    it('parses plain "Fixes #123" format', () => {
+      const body = 'This PR fixes a bug.\n\nFixes #3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses "Fixes Owner/Repo#123" format (Copilot style)', () => {
+      const body = 'Fixes OWASP-BLT/BLT#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses full URL format "Fixes https://github.com/owner/repo/issues/123"', () => {
+      const body = 'Fixes https://github.com/OWASP-BLT/BLT/issues/3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('rejects Owner/Repo#123 from a different repository', () => {
+      const body = 'Fixes SomeOtherOrg/OtherRepo#999';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, []);
+    });
+
+    it('handles case-insensitive owner/repo matching', () => {
+      const body = 'Fixes owasp-blt/blt#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('returns empty array for null or empty body', () => {
+      assert.deepStrictEqual(extractLinkedIssuesFromPRBody(null, 'OWASP-BLT', 'BLT'), []);
+      assert.deepStrictEqual(extractLinkedIssuesFromPRBody('', 'OWASP-BLT', 'BLT'), []);
+    });
+
+    it('deduplicates issue numbers when mentioned multiple times', () => {
+      const body = 'Fixes OWASP-BLT/BLT#3753\n\n- Fixes OWASP-BLT/BLT#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses a real Copilot PR body (PR #4969)', () => {
+      const body = [
+        'This PR implements a complete zero-trust vulnerability disclosure system.',
+        '',
+        'Fixes OWASP-BLT/BLT#3753',
+        '',
+        '<!-- START COPILOT CODING AGENT SUFFIX -->',
+        '',
+        '- Fixes OWASP-BLT/BLT#3753',
+      ].join('\n');
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('handles multiple keyword variations (closes, resolved, fix)', () => {
+      const body = 'Closes #100\nResolved #200\nFix #300';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [100, 200, 300]);
+    });
+  });
 });
