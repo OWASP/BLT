@@ -916,6 +916,24 @@
             }, 5000);
         }
 
+        function showError(message) {
+            // Show a temporary global error message (toast)
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 z-[100] flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-lg dark:border-red-900 dark:bg-red-950/30 dark:text-red-400 max-w-md animate-slide-in';
+            toast.innerHTML = `
+                <span class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900 dark:text-red-400">!</span>
+                <div class="leading-5">${escapeHtml(message)}</div>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
         async function loadRepos() {
             try {
                 const response = await fetch('/api/repos');
