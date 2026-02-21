@@ -36,6 +36,22 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/build_showcase.py
 
+      - name: Commit updated index.html to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp index.html /tmp/generated_index.html
+          git fetch origin main
+          git checkout origin/main
+          cp /tmp/generated_index.html index.html
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes to index.html -- skipping commit."
+            exit 0
+          fi
+          git commit -m "chore: rebuild showcase"
+          git push origin HEAD:main
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
