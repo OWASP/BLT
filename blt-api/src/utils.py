@@ -7,7 +7,6 @@ CORS headers, and HTTP client operations.
 
 from typing import Any, Dict, List, Optional
 import json
-
 # Try to import Cloudflare Workers JS bindings
 # Falls back to mock implementations for testing
 try:
@@ -286,3 +285,25 @@ async def convert_single_d1_result(data):
     else:
         return dict(data)
 
+def extract_id_from_result(result: Any, field:str) -> Optional[int]:
+    """
+    Extract ID from a database query result.
+    
+    Args:
+        result: Database query result (JsProxy, dict, or other)
+        field: Name of the ID field to extract
+    
+    Returns:
+        The extracted ID value or None if not found
+    """
+    if not result:
+        return None
+    
+    if hasattr(result, 'to_py'):
+        return result.to_py().get(field)
+    elif hasattr(result, field):
+        return getattr(result, field)
+    elif isinstance(result, dict):
+        return result.get(field)
+    
+    return None

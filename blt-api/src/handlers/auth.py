@@ -1,10 +1,11 @@
 
 import hashlib
 import secrets
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result, extract_id_from_result
+
 
 
 async def handle_signup(
@@ -40,7 +41,10 @@ async def handle_signup(
 
         # Check if username or email already exists
         stmt = await db.prepare("SELECT id FROM users WHERE username = ? OR email = ?").bind(body["username"], body["email"]).first()
-        existing_user = await convert_single_d1_result(stmt)
+        
+        existing_user = None
+        if stmt:
+            existing_user = stmt.to_py() if hasattr(stmt, 'to_py') else dict(stmt)
 
         if existing_user:
             return error_response("User already exists", 400)
@@ -51,10 +55,13 @@ async def handle_signup(
         hashed_password = f"{salt}${password_hash.hex()}"
 
         # Insert the new user into the database
-        stmt=await db.prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)").bind(body["username"], body["email"], hashed_password)
-        result = await stmt.run()
-        print(f"Inserted user with ID: {str(result)}") 
-        return json_response({"message": "User registered successfully"}, status=201, headers=cors_headers())
+        result = await db.prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)").bind(body["username"], body["email"], hashed_password).run()
+        
+        # Get the last inserted ID
+        last_id_result = await db.prepare('SELECT last_insert_rowid() as id').first()
+        user_id = extract_id_from_result(last_id_result, 'id')
+        
+        return json_response({"message": "User registered successfully", "user_id": user_id}, status=201, headers=cors_headers())
 
     except Exception as e:
         print("Error during signup:", str(e))
