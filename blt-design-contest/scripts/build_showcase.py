@@ -36,6 +36,7 @@ REACTION_LABELS = {
 }
 
 API_BASE = "https://api.github.com"
+MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\((https?://[^)]+)\)")
 
 
 def github_request(path: str) -> list | dict:
@@ -109,13 +110,19 @@ def parse_issue_body(body: str) -> dict:
 
 def extract_preview_url(fields: dict, body: str) -> str:
     """Find the preview image URL from parsed fields or raw body."""
-    for key in ("preview_image_url", "preview_url"):
+    # Check known field keys (including legacy keys for backward compatibility)
+    for key in ("preview_image_url", "preview_url", "preview_image"):
         val = fields.get(key, "").strip()
         if val and val.startswith("http"):
             return val
+        # Handle markdown image syntax: ![alt](url) (from drag-and-drop uploads)
+        if val:
+            m = MARKDOWN_IMAGE_RE.search(val)
+            if m:
+                return m.group(1)
 
     # Fallback: first markdown image in body  ![alt](url)
-    m = re.search(r"!\[.*?\]\((https?://[^)]+)\)", body or "")
+    m = MARKDOWN_IMAGE_RE.search(body or "")
     if m:
         return m.group(1)
 
@@ -164,11 +171,7 @@ def build_card(issue: dict, reactions: dict) -> str:
     body = issue.get("body", "") or ""
     fields = parse_issue_body(body)
 
-    designer_name = html.escape(
-        fields.get("designer_name___handle",
-                   fields.get("designer_name", author_login)).strip()
-        or author_login
-    )
+    designer_name = html.escape(author_login)
     preview_url = html.escape(extract_preview_url(fields, body))
     design_url = html.escape(extract_design_url(fields))
     category = html.escape(extract_category(fields))
