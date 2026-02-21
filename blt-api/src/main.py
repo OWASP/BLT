@@ -42,10 +42,10 @@ router.add_route("GET", "/", handle_homepage)
 router.add_route("GET", "/health", handle_health)
 
 # Bugs API
-router.add_route("GET", "/bugs", handle_bugs)
-router.add_route("GET", "/bugs/{id}", handle_bugs)
-router.add_route("POST", "/bugs", handle_bugs)
 router.add_route("GET", "/bugs/search", handle_bugs)
+router.add_route("GET", "/bugs", handle_bugs)
+router.add_route("POST", "/bugs", handle_bugs)
+router.add_route("GET", "/bugs/{id}", handle_bugs)
 
 # Users API
 router.add_route("GET", "/users", handle_users)
@@ -69,11 +69,11 @@ router.add_route("GET", "/projects/{id}", handle_projects)
 router.add_route("GET", "/projects/{id}/contributors", handle_projects)
 
 # Bug Hunts API
-router.add_route("GET", "/hunts", handle_hunts)
-router.add_route("GET", "/hunts/{id}", handle_hunts)
 router.add_route("GET", "/hunts/active", handle_hunts)
 router.add_route("GET", "/hunts/previous", handle_hunts)
 router.add_route("GET", "/hunts/upcoming", handle_hunts)
+router.add_route("GET", "/hunts", handle_hunts)
+router.add_route("GET", "/hunts/{id}", handle_hunts)
 
 # Stats API
 router.add_route("GET", "/stats", handle_stats)
