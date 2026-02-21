@@ -85,7 +85,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cp index.html /tmp/generated_index.html
           git fetch origin main
-          git checkout origin/main
+          git checkout -f origin/main
           cp /tmp/generated_index.html index.html
           git add index.html
           if git diff --cached --quiet; then
