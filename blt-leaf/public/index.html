@@ -425,7 +425,15 @@
         <aside
             class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
-                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span></h2>
+                <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span>
+                    <button id="repoSortBtn" title="Sort repositories by open PRs" onclick="toggleRepoSort()"
+                        class="ml-1 inline-flex items-center rounded px-1 py-0.5 text-slate-400 hover:text-[#BC0000] dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors align-middle"
+                        aria-label="Sort repositories by open PRs">
+                        <svg id="repoSortIcon" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M3 3a1 1 0 0 0 0 2h10a1 1 0 1 0 0-2H3zm2 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H5zm2 4a1 1 0 0 0 0 2h2a1 1 0 1 0 0-2H7z"/>
+                        </svg>
+                    </button>
+                </h2>
                 
                 <!-- Mobile: Dropdown with search -->
                 <div class="mobile-repo-search mb-2 md:hidden">
@@ -527,6 +535,7 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
+        let repoSortByPrs = localStorage.getItem('repoSortByPrs') === 'true';
         // Support unlimited sort columns
         // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
         let sortColumns = [];
@@ -954,6 +963,12 @@
             }, 5000);
         }
 
+        function toggleRepoSort() {
+            repoSortByPrs = !repoSortByPrs;
+            localStorage.setItem('repoSortByPrs', repoSortByPrs);
+            renderRepoList();
+        }
+
         async function loadRepos(bypassCache = false) {
             try {
                 const response = bypassCache
@@ -984,6 +999,19 @@
             const repoCount = repos.length;
             repoCountDisplay.textContent = repoCount > 0 ? `(${repoCount})` : '';
 
+            // Update sort button appearance
+            const repoSortBtn = document.getElementById('repoSortBtn');
+            if (repoSortBtn) {
+                repoSortBtn.classList.toggle('text-[#BC0000]', repoSortByPrs);
+                repoSortBtn.classList.toggle('dark:text-red-400', repoSortByPrs);
+                repoSortBtn.classList.toggle('text-slate-400', !repoSortByPrs);
+            }
+
+            // Sort repos by pr_count descending when enabled
+            const displayRepos = repoSortByPrs
+                ? [...repos].sort((a, b) => b.pr_count - a.pr_count)
+                : repos;
+
             while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
             const allItem = repoList.querySelector('[data-repo="all"]');
@@ -995,7 +1023,7 @@
             // Update selected repository display for mobile
             updateMobileRepoDisplay();
 
-            repos.forEach(repo => {
+            displayRepos.forEach(repo => {
                 const li = document.createElement('li');
                 li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
                 setRepoItemActiveState(li, currentRepo === li.dataset.repo);
