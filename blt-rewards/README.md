@@ -138,7 +138,7 @@ This project is licensed under the terms specified in the LICENSE file.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please read our [**CONTRIBUTING.md**](CONTRIBUTING.md) for the full local setup guide, environment variable instructions, branching conventions, and PR guidelines before getting started.
 
 ## 🔗 Links
 
