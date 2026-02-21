@@ -1,50 +1,8 @@
 ---
-layout: null
+layout: default
 title: Request a Course
 permalink: /request/
 ---
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request a Course | BLT University</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: { bltRed: '#dc2626', bltRedLight: '#fef2f2', bltRedHover: '#b91c1c' },
-                    boxShadow: { 'soft': '0 20px 40px -15px rgba(0,0,0,0.05)', 'float': '0 30px 60px -15px rgba(0,0,0,0.08)' }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-[#fafafa] text-gray-900 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
-
-    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-            <a href="{{ '/' | relative_url }}" class="flex items-center gap-2.5 font-bold text-xl tracking-tight group">
-                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm shadow-sm group-hover:scale-105 transition-transform">🛡️</div>
-                <span class="text-gray-900">blt-university</span>
-            </a>
-            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
-                <a href="{{ '/' | relative_url }}" class="hover:text-gray-900 transition-colors">Home</a>
-                <a href="{{ '/courses/' | relative_url }}" class="hover:text-gray-900 transition-colors">Course</a>
-                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
-                <a href="{{ '/instructors/' | relative_url }}" class="hover:text-gray-900 transition-colors">Instructors</a>
-                <a href="{{ '/about/' | relative_url }}" class="hover:text-gray-900 transition-colors">About</a>
-            </nav>
-        </div>
-    </header>
-
     <section class="bg-white border-b border-gray-100 py-16 relative overflow-hidden">
         <div class="absolute top-0 right-1/4 -z-10 w-96 h-96 bg-red-50 rounded-full mix-blend-multiply filter blur-[100px] opacity-60"></div>
         
@@ -192,46 +150,3 @@ permalink: /request/
         </div>
 
     </main>
-
-    <footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800 mt-auto">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div class="col-span-1 md:col-span-1">
-                <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-6">
-                    <div class="w-6 h-6 bg-bltRed rounded flex items-center justify-center text-white text-xs">🛡️</div>
-                    blt-university
-                </div>
-                <p class="text-sm leading-relaxed">Empowering the next generation of security professionals through open-source education.</p>
-            </div>
-            
-            <div>
-                <h4 class="text-white font-semibold mb-6">Resources</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
-                    <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-white transition-colors">Course Catalog</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-white font-semibold mb-6">OWASP BLT</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><a href="{{ '/about/' | relative_url }}" class="hover:text-white transition-colors">About Us</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Become an Instructor</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-white font-semibold mb-6">Community</h4>
-                <ul class="space-y-3 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">GitHub Repository</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Discord Server</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Report Issues</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>&copy; 2026 OWASP BLT Project. Licensed under MIT.</p>
-        </div>
-    </footer>
-
-</body>
-</html>

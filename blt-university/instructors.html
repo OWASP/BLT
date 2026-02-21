@@ -1,40 +1,8 @@
 ---
-layout: null
+layout: default
 title: Instructors
 permalink: /instructors/
 ---
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instructors | BLT University</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { bltRed: '#dc2626', bltRedLight: '#fef2f2', bltRedHover: '#b91c1c' }, boxShadow: { 'soft': '0 20px 40px -15px rgba(0,0,0,0.05)', 'float': '0 30px 60px -15px rgba(0,0,0,0.08)' }}}}
-    </script>
-</head>
-<body class="bg-[#fafafa] text-gray-900 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
-
-    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-            <a href="{{ '/' | relative_url }}" class="flex items-center gap-2.5 font-bold text-xl tracking-tight">
-                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm">🛡️</div>
-                blt-university
-            </a>
-            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
-                <a href="{{ '/' | relative_url }}" class="hover:text-gray-900 transition-colors">Home</a>
-                <a href="{{ '/courses/' | relative_url }}" class="hover:text-gray-900 transition-colors">Course</a>
-                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
-                <a href="{{ '/instructors/' | relative_url }}" class="text-bltRed relative after:absolute after:bottom-[-20px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed">Instructors</a>
-                <a href="{{ '/about/' | relative_url }}" class="hover:text-gray-900 transition-colors">About</a>
-            </nav>
-        </div>
-    </header>
-
     <section class="bg-white border-b border-gray-100 py-16 text-center relative overflow-hidden">
         <div class="absolute top-0 left-1/4 -z-10 w-64 h-64 bg-red-50 rounded-full mix-blend-multiply blur-3xl opacity-70"></div>
         <div class="max-w-7xl mx-auto px-6 relative z-10">
@@ -81,5 +49,3 @@ permalink: /instructors/
             </div>
         </div>
     </main>
-</body>
-</html>
