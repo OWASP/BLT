@@ -153,11 +153,8 @@ class EmailService:
                     Best regards,
                     OWASP BLT Team
                     """
-                    
-                    
-        await self.send_email(to_email, subject, content)
         self.logger.info(f"Verification email sent to {to_email} for user {username}")
-        return 
+        return await self.send_email(to_email, subject, content)
     
     async def send_password_reset_email(
         self,
