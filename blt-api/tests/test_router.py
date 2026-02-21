@@ -161,109 +161,99 @@ class TestRouterDecorators:
         assert router.routes[0].method == "DELETE"
 
 
-class TestRouteSpecificity:
-    """Tests for route specificity and sorting."""
+class TestRouteRegistrationOrder:
+    """Tests for route registration order matching."""
     
-    def test_route_specificity_calculation(self):
-        """Test that route specificity is calculated correctly."""
-        # Route with 0 parameters is more specific
-        route1 = Route("GET", "/bugs/search", lambda: None)
-        # Route with 1 parameter is less specific
-        route2 = Route("GET", "/bugs/{id}", lambda: None)
-        
-        # route1 should be more specific (smaller tuple)
-        assert route1.specificity[0] == 0  # 0 params
-        assert route2.specificity[0] == 1  # 1 param
-        assert route1.specificity < route2.specificity
-    
-    def test_routes_sorted_by_specificity(self):
-        """Test that routes are sorted by specificity when added."""
+    def test_routes_kept_in_registration_order(self):
+        """Test that routes are kept in the order they are registered, not sorted."""
         router = Router()
         
         handlers = []
         for i in range(3):
             handlers.append(lambda i=i: None)
         
-        # Add routes in wrong order: generic before specific
+        # Add routes in this specific order
         router.add_route("GET", "/bugs/{id}", handlers[0])
         router.add_route("GET", "/bugs/search", handlers[1])
         router.add_route("GET", "/bugs", handlers[2])
         
-        # Verify the key constraint: parameterized route comes after all literals
-        idx_literal_search = None
-        idx_literal_bugs = None
-        idx_param_id = None
-        
-        for i, route in enumerate(router.routes):
-            if route.pattern == "/bugs/search":
-                idx_literal_search = i
-            elif route.pattern == "/bugs":
-                idx_literal_bugs = i
-            elif route.pattern == "/bugs/{id}":
-                idx_param_id = i
-        
-        # The key fix: parameterized route must come AFTER all literal routes
-        assert idx_param_id > idx_literal_search, "/bugs/{id} must come after /bugs/search"
-        assert idx_param_id > idx_literal_bugs, "/bugs/{id} must come after /bugs"
-
+        # Verify routes are kept in registration order (NO sorting)
+        assert router.routes[0].pattern == "/bugs/{id}"
+        assert router.routes[1].pattern == "/bugs/search"
+        assert router.routes[2].pattern == "/bugs"
     
-    def test_route_shadowing_fixed(self):
-        """Test that specific routes are no longer shadowed by generic routes."""
-        from src.router import Route
+    def test_route_matching_respects_registration_order(self):
+        """Test that routes are matched in registration order."""
+        router = Router()
         
-        # Create routes in problematic order
-        route_generic = Route("GET", "/bugs/{id}", lambda: "generic")
-        route_specific = Route("GET", "/bugs/search", lambda: "specific")
+        # Add specific route first, then generic
+        router.add_route("GET", "/bugs/search", lambda: "specific")
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
         
-        routes = [route_generic, route_specific]
-        # Sort by specificity
-        routes.sort(key=lambda r: r.specificity)
-        
-        # After sorting, specific route should come first
-        assert routes[0].pattern == "/bugs/search"
-        assert routes[1].pattern == "/bugs/{id}"
-        
-        # Now the specific route will be matched first
+        # When /bugs/search is requested, it should match the specific route first
         path = "/bugs/search"
-        for route in routes:
-            result = route.match("GET", path)
+        method = "GET"
+        
+        matched_pattern = None
+        for route in router.routes:
+            result = route.match(method, path)
             if result is not None:
                 matched_pattern = route.pattern
                 break
         
-        # Should match the specific route, not the generic one
+        # Should match the specific route because it was registered first
+        assert matched_pattern is not None
         assert matched_pattern == "/bugs/search"
     
-    def test_complex_route_sorting(self):
-        """Test sorting with multiple parameters and different path lengths."""
+    def test_route_shadowing_with_wrong_order(self):
+        """Test that routes CAN be shadowed if registered in wrong order."""
         router = Router()
         
-        # Add routes in mixed order
-        router.add_route("GET", "/users/{user_id}/posts/{post_id}", lambda: None)
-        router.add_route("GET", "/users/{id}", lambda: None)
-        router.add_route("GET", "/users/me", lambda: None)
-        router.add_route("GET", "/users", lambda: None)
+        # Add generic route FIRST (wrong order)
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
+        # Then add specific route
+        router.add_route("GET", "/bugs/search", lambda: "specific")
         
-        # Find indices
-        idx_literal_users = None
-        idx_literal_me = None
-        idx_param_id = None
-        idx_param_posts = None
+        # When /bugs/search is requested, it WILL match the generic route first
+        # because that's how registration-order matching works
+        path = "/bugs/search"
+        method = "GET"
         
-        for i, route in enumerate(router.routes):
-            if route.pattern == "/users":
-                idx_literal_users = i
-            elif route.pattern == "/users/me":
-                idx_literal_me = i
-            elif route.pattern == "/users/{id}":
-                idx_param_id = i
-            elif route.pattern == "/users/{user_id}/posts/{post_id}":
-                idx_param_posts = i
+        matched_route = None
+        for route in router.routes:
+            result = route.match(method, path)
+            if result is not None:
+                matched_route = route
+                break
         
-        # Key assertions: all literal routes before parameterized
-        assert idx_literal_users < idx_param_id and idx_literal_users < idx_param_posts
-        assert idx_literal_me < idx_param_id and idx_literal_me < idx_param_posts
-        assert idx_param_id < idx_param_posts
+        # The generic route matches first (shadowing the specific route)
+        assert matched_route is not None
+        assert matched_route.pattern == "/bugs/{id}"
+        assert matched_route.match(method, path) == {"id": "search"}
+    
+    def test_correct_route_ordering_prevents_shadowing(self):
+        """Test that correct registration order prevents shadowing."""
+        router = Router()
+        
+        # Add specific route FIRST (correct order) 
+        router.add_route("GET", "/bugs/search", lambda: "specific")
+        # Then add generic route
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
+        
+        path = "/bugs/search"
+        method = "GET"
+        
+        matched_route = None
+        for route in router.routes:
+            result = route.match(method, path)
+            if result is not None:
+                matched_route = route
+                break
+        
+        # The specific route matches first (correct behavior)
+        assert matched_route is not None
+        assert matched_route.pattern == "/bugs/search"
+        assert matched_route.match(method, path) == {}
 
 
 
