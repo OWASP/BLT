@@ -104,10 +104,10 @@ function testSortingSecurity() {
     // Test 8: Verify NULL handling in sort
     testResult(
       'NULL values handling in sort',
-      /IS NOT NULL/.test(handlersContent),
-      'NULL values are handled (appear last in results)'
+      /IS NOT NULL DESC/.test(handlersContent),
+      'NULL values are handled correctly (IS NOT NULL DESC ensures they appear last)'
     );
-    
+
     // Test 9: Verify direction validation (ASC/DESC only)
     testResult(
       'Sort direction validation',

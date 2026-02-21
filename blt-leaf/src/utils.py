@@ -59,6 +59,30 @@ def parse_repo_url(url):
     return None
 
 
+def parse_org_url(url):
+    """Parse GitHub Organization/User URL to extract the org/user name.  
+    Returns dict with 'owner' key, or None if not a valid org URL.
+    """
+    if not url:
+        return None
+    url = url.strip().rstrip('/')
+    # Match org/user URL: github.com/<owner> with no further path segments
+    pattern = r'^https?://github\.com/([A-Za-z0-9_.-]+)$'
+    match = re.match(pattern, url)
+    if match:
+        owner = match.group(1)
+        # Exclude GitHub reserved paths that aren't orgs/users
+        reserved = {'settings', 'organizations', 'explore', 'marketplace',
+                    'notifications', 'new', 'login', 'signup', 'features',
+                    'enterprise', 'pricing', 'topics', 'collections',
+                    'trending', 'sponsors', 'about', 'security', 'pulls',
+                    'issues', 'codespaces', 'discussions'}
+        if owner.lower() in reserved:
+            return None
+        return {'owner': owner}
+    return None
+
+
 def calculate_review_status(reviews_data):
     """
     Calculate overall review status from reviews data.

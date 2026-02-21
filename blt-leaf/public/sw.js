@@ -80,8 +80,32 @@ self.addEventListener('fetch', (event) => {
     if (url.origin !== self.location.origin) return;
 
     // API endpoints - stale-while-revalidate
+    // Skip cache if URL contains cache-busting parameter
     if (CACHEABLE_API_PATHS.some((p) => url.pathname.startsWith(p))) {
-        event.respondWith(staleWhileRevalidate(request, API_CACHE, API_CACHE_MAX_AGE));
+        if (url.searchParams.has('_')) {
+            // Cache-busted request: go directly to network, then update SW cache for future non-busted requests
+            event.respondWith(
+                fetch(request).then(async (response) => {
+                    if (response.ok) {
+                        // Update cache with a clean URL so subsequent normal loads are fresh
+                        const cleanUrl = new URL(request.url);
+                        cleanUrl.searchParams.delete('_');
+                        const cache = await caches.open(API_CACHE);
+                        const headers = new Headers(response.headers);
+                        headers.set('sw-cache-time', Date.now().toString());
+                        const timedResponse = new Response(response.clone().body, {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers
+                        });
+                        cache.put(new Request(cleanUrl.toString()), timedResponse);
+                    }
+                    return response;
+                })
+            );
+        } else {
+            event.respondWith(staleWhileRevalidate(request, API_CACHE, API_CACHE_MAX_AGE));
+        }
         return;
     }
 
