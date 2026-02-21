@@ -28,7 +28,8 @@ from handlers import (
     handle_repos,
     handle_health,
     handle_homepage,
-    handle_signup
+    handle_signup,
+    handle_signin
 )
 from utils import json_response, error_response, cors_headers
 from libs.db import get_db_safe 
@@ -59,6 +60,7 @@ router.add_route("GET", "/users/{id}/following", handle_users)
 
 # Auth API
 router.add_route("POST", "/auth/signup", handle_signup)
+router.add_route("POST", "/auth/signin", handle_signin)
 
 # Domains API
 router.add_route("GET", "/domains", handle_domains)

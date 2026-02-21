@@ -18,7 +18,8 @@ from .handlers import (
     handle_contributors,
     handle_repos,
     handle_health,
-    handle_signup
+    handle_signup,
+    handle_signin
 )
 
 __all__ = [
@@ -35,6 +36,7 @@ __all__ = [
     "handle_repos",
     "handle_health",
     "handle_signup",
+    "handle_signin",
 ]
 
 __version__ = "1.0.0"
