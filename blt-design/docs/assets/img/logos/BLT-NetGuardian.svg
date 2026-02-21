@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="netguardian-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#netguardian-grad)"/>
+  <path d="M100 40 L140 60 L140 100 Q140 130 100 150 Q60 130 60 100 L60 60 Z" fill="white"/>
+  <circle cx="100" cy="90" r="8" fill="#DC2626"/>
+  <path d="M80 110 L90 120 L110 100" stroke="#DC2626" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

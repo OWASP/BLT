@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="gsoc2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#gsoc2-grad)"/>
+  <text x="100" y="90" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">G</text>
+  <text x="100" y="125" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">SOC</text>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="white" stroke-width="3"/>
+</svg>
