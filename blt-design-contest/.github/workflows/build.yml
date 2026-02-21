@@ -14,7 +14,7 @@ on:
 
 permissions:
   contents: write   # needed to push to gh-pages
-  issues: read      # needed to read issue reactions
+  issues: write     # needed to create/apply labels and read reactions
 
 jobs:
   build-and-deploy:
@@ -24,6 +24,49 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Ensure design-submission label exists and label open [Design] issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const labelName = 'design-submission';
+
+            // Create the label if it doesn't exist
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner, repo,
+                  name: labelName,
+                  color: 'e10101',
+                  description: 'Design contest submission',
+                });
+                console.log(`Created label: ${labelName}`);
+              } else {
+                throw e;
+              }
+            }
+
+            // Apply the label to any open [Design] issues that are missing it
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+            for (const issue of issues) {
+              const title = issue.title || '';
+              const hasLabel = issue.labels.some(l => l.name === labelName);
+              if (title.startsWith('[Design]') && !hasLabel) {
+                await github.rest.issues.addLabels({
+                  owner, repo,
+                  issue_number: issue.number,
+                  labels: [labelName],
+                });
+                console.log(`Labelled issue #${issue.number}: ${title}`);
+              }
+            }
 
       - name: Set up Python
         uses: actions/setup-python@v5

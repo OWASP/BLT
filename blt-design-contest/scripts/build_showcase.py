@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 REPO = os.environ.get("GITHUB_REPOSITORY", "OWASP-BLT/BLT-Design-Contest")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 LABEL = "design-submission"
+TITLE_PREFIX = "[Design]"
 REACTION_LABELS = {
     "+1": "👍",
     "heart": "❤️",
@@ -160,7 +161,7 @@ def extract_description(fields: dict) -> str:
 def build_card(issue: dict, reactions: dict) -> str:
     """Return the HTML card markup for a single submission."""
     number = issue["number"]
-    title = html.escape(issue.get("title", "Untitled").replace("[Design] ", "").strip())
+    title = html.escape(issue.get("title", "Untitled").replace(TITLE_PREFIX + " ", "").strip())
     issue_url = html.escape(issue.get("html_url", "#"))
     created = issue.get("created_at", "")[:10]
     user = issue.get("user", {})
@@ -577,7 +578,18 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
 def main() -> None:
     print(f"Fetching issues from {REPO} with label '{LABEL}'…")
     issues = github_request(f"/repos/{REPO}/issues?state=open&labels={LABEL}")
-    print(f"  Found {len(issues)} open submissions.")
+    print(f"  Found {len(issues)} labelled submissions.")
+
+    # Also pick up any [Design] issues that may be missing the label
+    all_issues = github_request(f"/repos/{REPO}/issues?state=open")
+    seen = {i["number"] for i in issues}
+    for issue in all_issues:
+        if issue["number"] not in seen and issue.get("title", "").startswith(TITLE_PREFIX):
+            issues.append(issue)
+            seen.add(issue["number"])
+            print(f"  Picked up unlabelled issue #{issue['number']}: {issue.get('title', '')[:60]}")
+
+    print(f"  Total submissions: {len(issues)}.")
 
     cards = []
     for issue in issues:
