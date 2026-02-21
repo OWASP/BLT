@@ -1,0 +1,47 @@
+name: Build & Deploy Design Showcase
+
+on:
+  # Rebuild whenever a design-submission issue is opened, edited, or labelled
+  issues:
+    types: [opened, edited, labeled, unlabeled, closed, reopened]
+
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+  # Nightly rebuild to keep reaction counts fresh
+  schedule:
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: write   # needed to push to gh-pages
+  issues: read      # needed to read issue reactions
+
+jobs:
+  build-and-deploy:
+    name: Build showcase & deploy to GitHub Pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate index.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/build_showcase.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          exclude_assets: ".github,scripts,README.md,LICENSE,.gitignore"
+          commit_message: "chore: rebuild showcase [skip ci]"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
