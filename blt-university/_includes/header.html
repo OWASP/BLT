@@ -1,33 +1,22 @@
 <header class="sticky top-0 w-full z-50 bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
-        <div class="flex items-center">
-            <a href="{{ '/' | relative_url }}" class="flex items-center gap-3 font-bold text-xl tracking-tight group">
-                <div class="w-9 h-9 flex items-center justify-center bg-white rounded-xl shadow-sm overflow-hidden">
-                    <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
-                         onerror="this.src='/assets/images/blt-logo.png'"
-                         alt="BLT Logo"
-                         class="w-full h-full object-contain p-1">
-                </div>
-                
-                <div class="flex flex-col justify-center">
-                    <span class="text-gray-900 leading-none">
-                        {{ site.university.name | default: "BLT University" }}
-                    </span>
-                    {% if site.university.tagline %}
-                        <span class="text-xs text-gray-500 uppercase tracking-widest mt-1">
-                            {{ site.university.tagline }}
-                        </span>
-                    {% endif %}
-                </div>
-            </a>
-        </div>
-        
-        <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
+        <!-- Logo -->
+        <a href="{{ '/' | relative_url }}" class="flex items-center gap-3 font-semibold text-lg text-gray-900">
+            <div class="w-9 h-9 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden">
+                <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
+                     alt="BLT Logo"
+                     class="w-full h-full object-contain p-1">
+            </div>
+            <span>{{ site.university.name | default: "BLT University" }}</span>
+        </a>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex gap-8 text-sm font-medium text-gray-600">
             {% for item in site.navigation %}
                 <a href="{{ item.url | relative_url }}"
                    class="{% if page.url == item.url %}
-                          text-bltRed relative after:absolute after:bottom-[-26px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed
+                          text-bltRed border-b-2 border-bltRed pb-1
                           {% else %}
                           hover:text-gray-900 transition-colors
                           {% endif %}">
@@ -35,6 +24,6 @@
                 </a>
             {% endfor %}
         </nav>
-        
+
     </div>
 </header>
