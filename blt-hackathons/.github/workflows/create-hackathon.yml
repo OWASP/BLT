@@ -1,0 +1,263 @@
+name: Create Hackathon from Issue
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  create-hackathon:
+    if: contains(github.event.issue.labels.*.name, 'hackathon-creation')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Parse issue and add hackathon
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = context.payload.issue.body || '';
+            const issueNumber = context.payload.issue.number;
+
+            // Helper: extract the value under a specific heading in the issue form body
+            function extractField(heading) {
+              const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(
+                `###\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n###|$)`,
+                'i'
+              );
+              const match = body.match(regex);
+              if (!match) return '';
+              return match[1].trim();
+            }
+
+            const name        = extractField('Hackathon Name');
+            const slug        = extractField('Slug (URL identifier)');
+            const description = extractField('Description');
+            const startTime   = extractField('Start Date & Time (ISO 8601)');
+            const endTime     = extractField('End Date & Time (ISO 8601)');
+            const bannerRaw   = extractField('Banner Image');
+            const organization = extractField('GitHub Organization (optional)');
+            const reposRaw    = extractField('Repositories (one per line, optional)');
+            const rulesRaw    = extractField('Rules (optional)');
+            const prizesRaw   = extractField('Prizes JSON (optional)');
+
+            // Validate required fields
+            const missing = [];
+            if (!name)        missing.push('Hackathon Name');
+            if (!slug)        missing.push('Slug');
+            if (!description) missing.push('Description');
+            if (!startTime)   missing.push('Start Date & Time');
+            if (!endTime)     missing.push('End Date & Time');
+
+            if (missing.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ Could not create hackathon — the following required fields are missing or empty:\n\n${missing.map(f => `- **${f}**`).join('\n')}\n\nPlease edit the issue and fill in all required fields.`
+              });
+              core.setFailed('Missing required fields: ' + missing.join(', '));
+              return;
+            }
+
+            // Validate slug format
+            if (!/^[a-z0-9-]+$/.test(slug)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ The slug **"${slug}"** is invalid. Slugs may only contain lowercase letters, numbers, and hyphens.`
+              });
+              core.setFailed('Invalid slug: ' + slug);
+              return;
+            }
+
+            // Validate ISO 8601 date format (basic check: parseable and not NaN)
+            const iso8601Re = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+            const startMs = Date.parse(startTime);
+            const endMs   = Date.parse(endTime);
+            if (!iso8601Re.test(startTime) || isNaN(startMs)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ **Start Date & Time** is not a valid ISO 8601 date (expected format: \`YYYY-MM-DDTHH:MM:SSZ\`).`
+              });
+              core.setFailed('Invalid start date: ' + startTime);
+              return;
+            }
+            if (!iso8601Re.test(endTime) || isNaN(endMs)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ **End Date & Time** is not a valid ISO 8601 date (expected format: \`YYYY-MM-DDTHH:MM:SSZ\`).`
+              });
+              core.setFailed('Invalid end date: ' + endTime);
+              return;
+            }
+            if (endMs <= startMs) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ **End Date** must be after **Start Date**.`
+              });
+              core.setFailed('End date is not after start date');
+              return;
+            }
+
+            // Extract banner image URL from markdown image syntax: ![alt](url)
+            let bannerImage = '';
+            const imgMatch = bannerRaw.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+            if (imgMatch) {
+              bannerImage = imgMatch[1];
+            }
+
+            // Parse repositories (one per line)
+            const repositories = reposRaw
+              ? reposRaw.split('\n').map(r => r.trim()).filter(r => r.length > 0)
+              : [];
+
+            // Parse prizes JSON (best-effort; warn user if invalid)
+            let prizes = [];
+            let prizesWarning = '';
+            if (prizesRaw && prizesRaw !== '_No response_') {
+              try {
+                prizes = JSON.parse(prizesRaw);
+              } catch (e) {
+                prizesWarning = `\n\n⚠️ The **Prizes JSON** field could not be parsed (${e.message}) — prizes have been set to an empty array. You can edit the config manually to add prizes.`;
+                console.warn('Could not parse prizes JSON:', e.message);
+              }
+            }
+
+            // Build the new hackathon entry as a JS object literal string
+            const reposArray = repositories.length > 0
+              ? `[\n                    ${repositories.map(r => JSON.stringify(r)).join(',\n                    ')}\n                ]`
+              : '[]';
+
+            const prizesArray = prizes.length > 0
+              ? JSON.stringify(prizes, null, 4).replace(/^/gm, '            ')
+              : '[]';
+
+            const bannerLine = bannerImage
+              ? `\n            // Banner image\n            bannerImage: ${JSON.stringify(bannerImage)}`
+              : '';
+
+            const orgLine = organization && organization !== '_No response_'
+              ? `\n                // Organization field - all repos in this org will be tracked\n                organization: ${JSON.stringify(organization)},`
+              : '';
+
+            const rulesValue = (rulesRaw && rulesRaw !== '_No response_') ? rulesRaw : '';
+
+            const newEntry = `
+        {
+            slug: ${JSON.stringify(slug)},
+            name: ${JSON.stringify(name)},
+            description: \`\n                ${description.replace(/`/g, '\\`')}\n            \`,
+            rules: \`\n                ${rulesValue.replace(/`/g, '\\`')}\n            \`,
+            startTime: ${JSON.stringify(startTime)},
+            endTime: ${JSON.stringify(endTime)},
+            github: {
+                token: "",${orgLine}
+                repositories: ${reposArray}
+            },
+            prizes: ${prizesArray},
+            sponsors: [],
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: 10,
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
+            }${bannerLine}
+        }`;
+
+            // Read the current config file
+            const configPath = 'js/hackathons-config.js';
+            let config = fs.readFileSync(configPath, 'utf8');
+
+            // Check for duplicate slug using a regex to avoid false substring matches
+            const slugCheckRe = new RegExp(`slug:\\s*${JSON.stringify(slug).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, '');
+            if (slugCheckRe.test(config)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ A hackathon with slug **"${slug}"** already exists. Please choose a different slug.`
+              });
+              core.setFailed('Duplicate slug: ' + slug);
+              return;
+            }
+
+            // Insert the new hackathon at the beginning of the hackathons array
+            const updatedConfig = config.replace(
+              /hackathons:\s*\[/,
+              `hackathons: [${newEntry},`
+            );
+
+            if (updatedConfig === config) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ Could not insert hackathon into the config file — the expected \`hackathons: [\` marker was not found. Please check the config file format.`
+              });
+              core.setFailed('Config file does not contain expected hackathons array marker');
+              return;
+            }
+
+            fs.writeFileSync(configPath, updatedConfig, 'utf8');
+            console.log(`Hackathon "${name}" (${slug}) added to config.`);
+
+            // Store outputs for later steps
+            core.setOutput('slug', slug);
+            core.setOutput('name', name);
+            core.setOutput('issue_number', String(issueNumber));
+            core.setOutput('prizes_warning', prizesWarning);
+
+      - name: Commit and push changes
+        if: steps.parse.outputs.slug != ''
+        env:
+          SLUG: ${{ steps.parse.outputs.slug }}
+          ISSUE_NUMBER: ${{ steps.parse.outputs.issue_number }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add js/hackathons-config.js
+          git diff --staged --quiet || git commit -m "Add hackathon: ${SLUG} (issue #${ISSUE_NUMBER})"
+          git push
+
+      - name: Comment success on issue
+        if: steps.parse.outputs.slug != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = Number('${{ steps.parse.outputs.issue_number }}');
+            const slug = '${{ steps.parse.outputs.slug }}';
+            const name = '${{ steps.parse.outputs.name }}';
+            const prizesWarning = `${{ steps.parse.outputs.prizes_warning }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `✅ Hackathon **${name}** has been successfully added to the platform!\n\nSlug: \`${slug}\`\n\nIt will appear on the site after the next deployment.${prizesWarning}`
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed'
+            });

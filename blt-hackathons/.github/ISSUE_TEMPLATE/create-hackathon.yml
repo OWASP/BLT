@@ -1,0 +1,87 @@
+name: Create Hackathon
+description: Submit a new hackathon to be added to the platform
+title: "[Hackathon]: "
+labels: ["hackathon-creation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill in the details below to create a new hackathon.
+        For the banner image field, drag-and-drop or paste an image and GitHub will upload it automatically.
+
+  - type: input
+    id: name
+    attributes:
+      label: Hackathon Name
+      placeholder: e.g., "Summer 2026 Hackathon"
+    validations:
+      required: true
+
+  - type: input
+    id: slug
+    attributes:
+      label: Slug (URL identifier)
+      description: Lowercase letters, numbers, and hyphens only. Used in the page URL.
+      placeholder: e.g., "summer-2026-hackathon"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe the hackathon…
+    validations:
+      required: true
+
+  - type: input
+    id: start-time
+    attributes:
+      label: Start Date & Time (ISO 8601)
+      placeholder: e.g., "2026-06-01T00:00:00Z"
+    validations:
+      required: true
+
+  - type: input
+    id: end-time
+    attributes:
+      label: End Date & Time (ISO 8601)
+      placeholder: e.g., "2026-06-30T23:59:59Z"
+    validations:
+      required: true
+
+  - type: textarea
+    id: banner-image
+    attributes:
+      label: Banner Image
+      description: Drag-and-drop or paste your banner image here. GitHub will upload it and insert a markdown image link automatically.
+      placeholder: Paste or drag your banner image here…
+
+  - type: input
+    id: organization
+    attributes:
+      label: GitHub Organization (optional)
+      description: Track all repositories in this organization.
+      placeholder: e.g., "OWASP-BLT"
+
+  - type: textarea
+    id: repositories
+    attributes:
+      label: Repositories (one per line, optional)
+      description: List repositories to track (owner/repo format, one per line). Leave empty when using organization tracking.
+      placeholder: |
+        OWASP-BLT/BLT
+        OWASP-BLT/BLT-Extension
+
+  - type: textarea
+    id: rules
+    attributes:
+      label: Rules (optional)
+      placeholder: List the hackathon rules…
+
+  - type: textarea
+    id: prizes
+    attributes:
+      label: Prizes JSON (optional)
+      description: Provide an array of prize objects in JSON format.
+      placeholder: '[{"position": 1, "title": "First Place", "description": "Most merged PRs", "value": "$100"}]'
