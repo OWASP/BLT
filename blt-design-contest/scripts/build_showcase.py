@@ -38,6 +38,7 @@ REACTION_LABELS = {
 
 API_BASE = "https://api.github.com"
 MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\((https?://[^)]+)\)")
+HTML_IMAGE_RE = re.compile(r'<img\s[^>]*src="(https?://[^"]+)"', re.IGNORECASE)
 
 
 def github_request(path: str) -> list | dict:
@@ -116,14 +117,22 @@ def extract_preview_url(fields: dict, body: str) -> str:
         val = fields.get(key, "").strip()
         if val and val.startswith("http"):
             return val
-        # Handle markdown image syntax: ![alt](url) (from drag-and-drop uploads)
+        # Handle markdown image syntax: ![alt](url) or HTML <img src="url">
         if val:
             m = MARKDOWN_IMAGE_RE.search(val)
+            if m:
+                return m.group(1)
+            m = HTML_IMAGE_RE.search(val)
             if m:
                 return m.group(1)
 
     # Fallback: first markdown image in body  ![alt](url)
     m = MARKDOWN_IMAGE_RE.search(body or "")
+    if m:
+        return m.group(1)
+
+    # Fallback: HTML <img src="url"> in body
+    m = HTML_IMAGE_RE.search(body or "")
     if m:
         return m.group(1)
 
