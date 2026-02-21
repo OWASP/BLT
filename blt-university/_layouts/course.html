@@ -1,85 +1,80 @@
 ---
 layout: default
 ---
-
-<article class="course-page">
-    <div class="course-header">
-        {% if page.image %}
-        <div class="course-header-image">
-            <img src="{{ page.image | relative_url }}" alt="{{ page.title }}">
+<article>
+    <section class="bg-bltDark text-white pt-32 pb-40 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+        <div class="absolute inset-0 z-0">
+            <img src="{{ page.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80' | relative_url }}" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
         </div>
-        {% endif %}
-        <h1>{{ page.title }}</h1>
-        <div class="course-meta">
-            <span class="course-category">{{ page.category }}</span>
-            <span class="course-level">{{ page.level }}</span>
-            <span class="course-duration">{{ page.duration }}</span>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="px-3 py-1 bg-bltRed text-white rounded-md text-xs font-bold uppercase">{{ page.category }}</span>
+                <span class="px-3 py-1 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-xs font-semibold uppercase">{{ page.level }}</span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-8 leading-tight max-w-4xl">{{ page.title }}</h1>
+            <div class="flex flex-wrap items-center gap-6 text-sm text-gray-400">
+                <div class="flex items-center gap-2">👤 <strong class="text-white">{{ page.instructor }}</strong></div>
+                <div class="flex items-center gap-2">⏱️ <strong class="text-white">{{ page.duration }}</strong></div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="course-info">
-        <div class="course-description">
-            <h2>Course Description</h2>
-            {{ content }}
+    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-3 gap-10 -mt-20 relative z-20 pb-24">
+        <div class="lg:col-span-2">
+            <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-float border border-gray-100">
+                <div class="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:border-b prose-h2:pb-3 prose-a:text-bltRed prose-p:text-gray-600 mb-12">
+                    {{ content }}
+                </div>
+
+                {% if page.syllabus %}
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Detailed Syllabus</h2>
+                <div class="space-y-6">
+                    {% for module in page.syllabus %}
+                    <div class="border border-gray-100 rounded-2xl p-6 hover:shadow-soft transition-all group">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-bltRedLight text-bltRed rounded-xl flex items-center justify-center font-bold group-hover:bg-bltRed group-hover:text-white transition-colors">
+                                {{ forloop.index }}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 mb-1">{{ module.title }}</h3>
+                                <p class="text-sm text-gray-500 mb-3">{{ module.description }}</p>
+                                {% if module.topics %}
+                                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                                    {% for topic in module.topics %}<li class="flex gap-2">✔ {{ topic }}</li>{% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
         </div>
 
-        <aside class="course-sidebar">
-            <div class="enrollment-box">
-                <h3>Enroll Now</h3>
-                <p><strong>Instructor:</strong> {{ page.instructor }}</p>
-                <p><strong>Prerequisites:</strong> {{ page.prerequisites | default: "None" }}</p>
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml&title=[ENROLLMENT]%20{{ page.title | url_encode }}%20-%20" class="btn btn-primary" target="_blank">Enroll in Course</a>
+        <aside class="space-y-6">
+            <div class="bg-white p-8 rounded-[2rem] shadow-float border border-gray-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Enroll Now</h3>
+                <div class="mb-6 bg-gray-50 p-4 rounded-xl text-sm border border-gray-100">
+                    <h4 class="text-xs font-bold text-gray-900 uppercase mb-2">Prerequisites</h4>
+                    <p class="text-gray-600">{{ page.prerequisites | default: "Basic computer skills" }}</p>
+                </div>
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new" class="w-full flex items-center justify-center px-6 py-4 bg-bltRed text-white font-bold rounded-xl shadow-lg hover:bg-bltRedHover hover:-translate-y-0.5 transition-all">Enroll via GitHub</a>
             </div>
 
             {% if page.resources %}
-            <div class="course-resources">
-                <h3>Resources</h3>
-                <ul>
-                {% for resource in page.resources %}
-                    <li>
-                        <a href="{{ resource.url }}" {% if resource.type == 'external' %}target="_blank" rel="noopener"{% endif %}>
-                            {% if resource.type == 'video' %}📹{% elsif resource.type == 'pdf' %}📄{% elsif resource.type == 'link' %}🔗{% endif %}
-                            {{ resource.title }}
-                        </a>
-                    </li>
-                {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            {% if page.schedule %}
-            <div class="course-schedule">
-                <h3>Schedule</h3>
-                <ul>
-                {% for session in page.schedule %}
-                    <li>
-                        <strong>{{ session.date }}</strong>: {{ session.topic }}
-                    </li>
-                {% endfor %}
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Resources</h3>
+                <ul class="space-y-3">
+                    {% for res in page.resources %}
+                    <li><a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-all">📄 {{ res.title }}</a></li>
+                    {% endfor %}
                 </ul>
             </div>
             {% endif %}
         </aside>
-    </div>
-
-    {% if page.syllabus %}
-    <div class="course-syllabus">
-        <h2>Syllabus</h2>
-        <ol>
-        {% for module in page.syllabus %}
-            <li>
-                <h3>{{ module.title }}</h3>
-                <p>{{ module.description }}</p>
-                {% if module.topics %}
-                <ul>
-                {% for topic in module.topics %}
-                    <li>{{ topic }}</li>
-                {% endfor %}
-                </ul>
-                {% endif %}
-            </li>
-        {% endfor %}
-        </ol>
-    </div>
-    {% endif %}
+    </main>
 </article>

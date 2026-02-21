@@ -1,40 +1,85 @@
 ---
-layout: default
+layout: null
 title: Instructors
 permalink: /instructors/
 ---
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructors | BLT University</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { bltRed: '#dc2626', bltRedLight: '#fef2f2', bltRedHover: '#b91c1c' }, boxShadow: { 'soft': '0 20px 40px -15px rgba(0,0,0,0.05)', 'float': '0 30px 60px -15px rgba(0,0,0,0.08)' }}}}
+    </script>
+</head>
+<body class="bg-[#fafafa] text-gray-900 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
 
-<div class="page-header">
-    <div class="container">
-        <h1>Our Instructors</h1>
-        <p>Learn from experienced cybersecurity professionals</p>
-    </div>
-</div>
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="{{ '/' | relative_url }}" class="flex items-center gap-2.5 font-bold text-xl tracking-tight">
+                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm">🛡️</div>
+                blt-university
+            </a>
+            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
+                <a href="{{ '/' | relative_url }}" class="hover:text-gray-900 transition-colors">Home</a>
+                <a href="{{ '/courses/' | relative_url }}" class="hover:text-gray-900 transition-colors">Course</a>
+                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
+                <a href="{{ '/instructors/' | relative_url }}" class="text-bltRed relative after:absolute after:bottom-[-20px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed">Instructors</a>
+                <a href="{{ '/about/' | relative_url }}" class="hover:text-gray-900 transition-colors">About</a>
+            </nav>
+        </div>
+    </header>
 
-<div class="instructors-page">
-    <div class="container">
-        <div class="instructors-grid">
+    <section class="bg-white border-b border-gray-100 py-16 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-1/4 -z-10 w-64 h-64 bg-red-50 rounded-full mix-blend-multiply blur-3xl opacity-70"></div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">Our Instructors</h1>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Learn from experienced cybersecurity professionals and active open-source contributors.</p>
+        </div>
+    </section>
+
+    <main class="flex-1 max-w-7xl mx-auto px-6 py-16 w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
         {% for instructor in site.instructors %}
-            <div class="instructor-card">
-                {% if instructor.avatar %}
-                <img src="{{ instructor.avatar }}" alt="{{ instructor.title }}" class="instructor-card-avatar">
-                {% else %}
-                <div class="instructor-card-avatar-placeholder">👤</div>
-                {% endif %}
-                <h3><a href="{{ instructor.url | relative_url }}">{{ instructor.title }}</a></h3>
+            <div class="bg-white rounded-[2rem] p-8 shadow-sm hover:shadow-float border border-gray-100 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1">
+                <div class="w-24 h-24 rounded-full border-4 border-bltRedLight shadow-inner overflow-hidden mb-5">
+                    {% if instructor.avatar %}
+                    <img src="{{ instructor.avatar }}" alt="{{ instructor.title }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">👤</div>
+                    {% endif %}
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-900 mb-1"><a href="{{ instructor.url | relative_url }}" class="hover:text-bltRed">{{ instructor.title }}</a></h3>
+                
                 {% if instructor.expertise %}
-                <p class="instructor-expertise">{{ instructor.expertise }}</p>
+                <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">{{ instructor.expertise }}</span>
                 {% endif %}
-                <p class="instructor-bio">{{ instructor.content | strip_html | truncate: 120 }}</p>
-                <a href="{{ instructor.url | relative_url }}" class="btn btn-small">View Profile</a>
+                
+                <p class="text-gray-500 text-sm mb-6 flex-1">{{ instructor.content | strip_html | truncate: 120 }}</p>
+                
+                <a href="{{ instructor.url | relative_url }}" class="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    View Profile
+                </a>
             </div>
         {% endfor %}
         </div>
         
-        <div class="become-instructor">
-            <h2>Become an Instructor</h2>
-            <p>Share your cybersecurity expertise with our global community.</p>
-            <a href="{{ '/contributing/' | relative_url }}" class="btn btn-primary">Learn How to Teach</a>
+        <div class="mt-20 bg-gray-900 rounded-3xl p-10 lg:p-16 text-center border border-gray-800 shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.8)_0,rgba(255,255,255,0)_1px)] bg-[length:24px_24px]"></div>
+            <div class="relative z-10">
+                <h2 class="text-3xl font-bold text-white mb-4">Become an Instructor</h2>
+                <p class="text-gray-400 mb-8 max-w-xl mx-auto">Share your cybersecurity expertise with our global community. Help shape the next generation of security professionals.</p>
+                <a href="{{ '/contributing/' | relative_url }}" class="inline-block px-8 py-3.5 bg-bltRed text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.3)] hover:bg-bltRedHover transition-colors">
+                    Learn How to Teach
+                </a>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
+</body>
+</html>

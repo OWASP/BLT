@@ -1,46 +1,88 @@
 ---
 layout: default
 ---
-
 <article class="instructor-profile">
-    <div class="instructor-header">
-        {% if page.avatar %}
-        <img src="{{ page.avatar }}" alt="{{ page.title }}" class="instructor-avatar">
-        {% endif %}
-        <div class="instructor-info">
-            <h1>{{ page.title }}</h1>
-            {% if page.expertise %}
-            <p class="instructor-expertise">{{ page.expertise }}</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="instructor-bio">
-        {{ content }}
-    </div>
-
-    {% if page.github or page.linkedin or page.twitter or page.website %}
-    <div class="instructor-social">
-        <h3>Connect</h3>
-        <ul>
-            {% if page.github %}<li><a href="https://github.com/{{ page.github }}" target="_blank">GitHub</a></li>{% endif %}
-            {% if page.linkedin %}<li><a href="https://linkedin.com/in/{{ page.linkedin }}" target="_blank">LinkedIn</a></li>{% endif %}
-            {% if page.twitter %}<li><a href="https://twitter.com/{{ page.twitter }}" target="_blank">Twitter</a></li>{% endif %}
-            {% if page.website %}<li><a href="{{ page.website }}" target="_blank">Website</a></li>{% endif %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <div class="instructor-courses">
-        <h2>Courses Taught</h2>
-        <div class="course-grid">
-        {% assign instructor_courses = site.courses | where: "instructor", page.title %}
-        {% for course in instructor_courses %}
-            <div class="course-card">
-                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
-                <p>{{ course.category }} • {{ course.level }}</p>
+    
+    <section class="bg-gray-900 text-white pt-16 pb-32 border-b border-gray-800 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-red-500/10 rounded-full filter blur-[100px]"></div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-10">
+            <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-800 shadow-2xl overflow-hidden shrink-0 bg-gray-800 flex items-center justify-center">
+                {% if page.avatar %}
+                <img src="{{ page.avatar | relative_url }}" alt="{{ page.title }}" class="w-full h-full object-cover">
+                {% else %}
+                <span class="text-6xl">👤</span>
+                {% endif %}
             </div>
-        {% endfor %}
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">{{ page.title }}</h1>
+                {% if page.expertise %}
+                <div class="inline-block px-4 py-1.5 bg-gray-800 text-gray-300 rounded-lg text-sm font-semibold uppercase tracking-wider mb-4 border border-gray-700">
+                    {{ page.expertise }}
+                </div>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-6 w-full flex flex-col lg:flex-row gap-12 lg:gap-16 -mt-16 relative z-20 mb-24">
+        
+        <div class="lg:w-2/3 bg-white p-8 md:p-12 rounded-[2rem] shadow-float border border-gray-100">
+            <div class="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:border-b prose-h2:border-gray-100 prose-h2:pb-3 prose-a:text-bltRed hover:prose-a:text-bltRedHover prose-li:text-gray-600 prose-p:text-gray-600">
+                {{ content }}
+            </div>
+        </div>
+
+        <aside class="lg:w-1/3 space-y-8">
+            
+            {% if page.github or page.linkedin or page.twitter or page.website %}
+            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2"><span class="text-2xl">🤝</span> Connect</h3>
+                <div class="flex flex-col gap-3">
+                    {% if page.github %}
+                    <a href="https://github.com/{{ page.github }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group">
+                        <span class="text-xl">🐙</span>
+                        <span class="font-medium text-gray-700 group-hover:text-gray-900">GitHub</span>
+                    </a>
+                    {% endif %}
+                    {% if page.linkedin %}
+                    <a href="https://linkedin.com/in/{{ page.linkedin }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group">
+                        <span class="text-xl">💼</span>
+                        <span class="font-medium text-gray-700 group-hover:text-gray-900">LinkedIn</span>
+                    </a>
+                    {% endif %}
+                    {% if page.twitter %}
+                    <a href="https://twitter.com/{{ page.twitter }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group">
+                        <span class="text-xl">🐦</span>
+                        <span class="font-medium text-gray-700 group-hover:text-gray-900">Twitter</span>
+                    </a>
+                    {% endif %}
+                    {% if page.website %}
+                    <a href="{{ page.website }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group">
+                        <span class="text-xl">🌐</span>
+                        <span class="font-medium text-gray-700 group-hover:text-gray-900">Website</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% assign instructor_courses = site.courses | where: "instructor", page.title %}
+            {% if instructor_courses.size > 0 %}
+            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2"><span class="text-2xl">📚</span> Courses Taught</h3>
+                <div class="space-y-4">
+                    {% for course in instructor_courses %}
+                    <a href="{{ course.url | relative_url }}" class="block p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:shadow-float hover:-translate-y-1 hover:border-red-200 transition-all duration-300 group">
+                        <h4 class="font-bold text-gray-900 mb-1 group-hover:text-bltRed transition-colors">{{ course.title }}</h4>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <span>{{ course.category }}</span><span>•</span><span>{{ course.level }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+        </aside>
+    </main>
 </article>

@@ -1,133 +1,237 @@
 ---
-layout: default
+layout: null
 title: Request a Course
 permalink: /request/
 ---
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request a Course | BLT University</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { bltRed: '#dc2626', bltRedLight: '#fef2f2', bltRedHover: '#b91c1c' },
+                    boxShadow: { 'soft': '0 20px 40px -15px rgba(0,0,0,0.05)', 'float': '0 30px 60px -15px rgba(0,0,0,0.08)' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#fafafa] text-gray-900 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
 
-<div class="page-header">
-    <div class="container">
-        <h1>Request a Course or Topic</h1>
-        <p>Help us shape the future of BLT University by telling us what you'd like to learn</p>
-    </div>
-</div>
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="{{ '/' | relative_url }}" class="flex items-center gap-2.5 font-bold text-xl tracking-tight group">
+                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm shadow-sm group-hover:scale-105 transition-transform">🛡️</div>
+                <span class="text-gray-900">blt-university</span>
+            </a>
+            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
+                <a href="{{ '/' | relative_url }}" class="hover:text-gray-900 transition-colors">Home</a>
+                <a href="{{ '/courses/' | relative_url }}" class="hover:text-gray-900 transition-colors">Course</a>
+                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
+                <a href="{{ '/instructors/' | relative_url }}" class="hover:text-gray-900 transition-colors">Instructors</a>
+                <a href="{{ '/about/' | relative_url }}" class="hover:text-gray-900 transition-colors">About</a>
+            </nav>
+        </div>
+    </header>
 
-<div class="request-page">
-    <div class="container">
-        <div class="request-content">
-            <div class="request-intro">
-                <h2>Your Voice Matters</h2>
-                <p>BLT University is built by the community, for the community. We want to know what <strong>you</strong> want to learn!</p>
-                <p>Whether it's a brand new course, a specific topic within cybersecurity, or an advanced deep-dive into a specialized area, we're here to listen and help create the educational content you need.</p>
-            </div>
+    <section class="bg-white border-b border-gray-100 py-16 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 -z-10 w-96 h-96 bg-red-50 rounded-full mix-blend-multiply filter blur-[100px] opacity-60"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">Request a Course or Topic</h1>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Help us shape the future of BLT University by telling us what you'd like to learn.</p>
+        </div>
+    </section>
+
+    <main class="flex-1 max-w-7xl mx-auto px-6 py-16 w-full grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16">
+        
+        <div class="lg:col-span-2 space-y-16">
             
-            <div class="request-benefits">
-                <h2>Why Submit a Request?</h2>
-                <div class="benefits-grid">
-                    <div class="benefit-card">
-                        <div class="benefit-icon">🎯</div>
-                        <h3>Shape Our Curriculum</h3>
-                        <p>Your requests directly influence which courses we prioritize and develop next.</p>
-                    </div>
-                    
-                    <div class="benefit-card">
-                        <div class="benefit-icon">🤝</div>
-                        <h3>Connect with Others</h3>
-                        <p>See what others are interested in and join forces with students who share your learning goals.</p>
-                    </div>
-                    
-                    <div class="benefit-card">
-                        <div class="benefit-icon">📚</div>
-                        <h3>Get Personalized Learning</h3>
-                        <p>Help us create content that matches your skill level and career aspirations.</p>
-                    </div>
-                    
-                    <div class="benefit-card">
-                        <div class="benefit-icon">🚀</div>
-                        <h3>Early Access</h3>
-                        <p>Requesters get priority notifications when their requested course becomes available.</p>
-                    </div>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-bltRed">📣</span> Your Voice Matters
+                </h2>
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p>BLT University is built by the community, for the community. We want to know what <strong>you</strong> want to learn!</p>
+                    <p>Whether it's a brand new course, a specific topic within cybersecurity, or an advanced deep-dive into a specialized area, we're here to listen and help create the educational content you need.</p>
                 </div>
             </div>
-            
-            <div class="request-instructions">
-                <h2>How to Submit a Request</h2>
-                
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Check Existing Requests</h3>
-                        <p>Browse <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request" target="_blank">existing course requests</a> to see if someone has already requested your topic. If so, add a 👍 reaction and comment to show your interest!</p>
+
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Why Submit a Request?</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-soft transition-shadow">
+                        <div class="w-12 h-12 bg-bltRedLight rounded-xl flex items-center justify-center text-xl mb-4">🎯</div>
+                        <h3 class="font-bold text-gray-900 mb-2">Shape Our Curriculum</h3>
+                        <p class="text-sm text-gray-500">Your requests directly influence which courses we prioritize and develop next.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-soft transition-shadow">
+                        <div class="w-12 h-12 bg-bltRedLight rounded-xl flex items-center justify-center text-xl mb-4">🤝</div>
+                        <h3 class="font-bold text-gray-900 mb-2">Connect with Others</h3>
+                        <p class="text-sm text-gray-500">See what others are interested in and join forces with students who share your learning goals.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-soft transition-shadow">
+                        <div class="w-12 h-12 bg-bltRedLight rounded-xl flex items-center justify-center text-xl mb-4">📚</div>
+                        <h3 class="font-bold text-gray-900 mb-2">Personalized Learning</h3>
+                        <p class="text-sm text-gray-500">Help us create content that matches your specific skill level and career aspirations.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-soft transition-shadow">
+                        <div class="w-12 h-12 bg-bltRedLight rounded-xl flex items-center justify-center text-xl mb-4">🚀</div>
+                        <h3 class="font-bold text-gray-900 mb-2">Early Access</h3>
+                        <p class="text-sm text-gray-500">Requesters get priority notifications when their requested course goes live.</p>
                     </div>
                 </div>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-8">How to Submit a Request</h2>
                 
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Submit Your Request</h3>
-                        <p>Click the button below to open a course request form. Tell us what you want to learn, why it matters, and how you'd use the knowledge.</p>
+                <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                    
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-bltRedLight text-bltRed font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">1</div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-900 mb-2">Check Existing Requests</h3>
+                            <p class="text-sm text-gray-500">Browse <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request" target="_blank" class="text-bltRed hover:underline font-medium">existing requests</a> to see if someone has already requested your topic. If so, add a 👍 reaction!</p>
+                        </div>
+                    </div>
+
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-bltRedLight text-bltRed font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">2</div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-900 mb-2">Submit Your Request</h3>
+                            <p class="text-sm text-gray-500">Click the button below to open a request form. Tell us what you want to learn, why it matters, and how you'd use it.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-bltRedLight text-bltRed font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">3</div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-900 mb-2">Engage with Community</h3>
+                            <p class="text-sm text-gray-500">Other students and instructors may comment. Join the discussion to help refine the course concept.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-bltRed text-white font-bold shadow-md shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">4</div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-bltRed text-white p-6 rounded-2xl shadow-md border border-red-700">
+                            <h3 class="font-bold mb-2">Get Notified</h3>
+                            <p class="text-sm text-red-100">When your requested course goes into development, you'll be notified automatically via GitHub.</p>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Engage with the Community</h3>
-                        <p>Other students and instructors may comment on your request. Join the discussion and help refine the course concept.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Get Notified</h3>
-                        <p>When your requested course goes into development or becomes available, you'll be notified automatically via GitHub.</p>
-                    </div>
-                </div>
-                
-                <div class="request-actions">
-                    <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml" 
-                       class="btn btn-primary btn-large" 
-                       target="_blank">
+
+                <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml" target="_blank" class="px-7 py-3.5 bg-bltRed text-white text-center font-semibold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.25)] hover:bg-bltRedHover hover:-translate-y-0.5 transition-all duration-200">
                         Submit Course Request
                     </a>
-                    <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request" 
-                       class="btn btn-secondary"
-                       target="_blank">
+                    <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request" target="_blank" class="px-7 py-3.5 bg-white text-gray-700 text-center font-semibold border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
                         View Existing Requests
                     </a>
                 </div>
             </div>
+
         </div>
-        
-        <div class="request-sidebar">
-            <div class="info-box">
-                <h3>💡 Tips for Great Requests</h3>
-                <ul>
-                    <li>Be specific about what you want to learn</li>
-                    <li>Explain your current skill level</li>
-                    <li>Describe real-world applications</li>
-                    <li>Share relevant resources you've found</li>
-                    <li>Indicate your timeline and urgency</li>
+
+        <div class="space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-xl">💡</span> Tips for Great Requests
+                </h3>
+                <ul class="space-y-3 text-sm text-gray-600">
+                    <li class="flex items-start gap-2"><span class="text-bltRed mt-0.5">✔</span> Be specific about what you want to learn.</li>
+                    <li class="flex items-start gap-2"><span class="text-bltRed mt-0.5">✔</span> Explain your current skill level.</li>
+                    <li class="flex items-start gap-2"><span class="text-bltRed mt-0.5">✔</span> Describe real-world applications.</li>
+                    <li class="flex items-start gap-2"><span class="text-bltRed mt-0.5">✔</span> Share relevant resources you've found.</li>
+                    <li class="flex items-start gap-2"><span class="text-bltRed mt-0.5">✔</span> Indicate your timeline and urgency.</li>
                 </ul>
             </div>
             
-            <div class="info-box">
-                <h3>🎓 Popular Requests</h3>
-                <p>Check out what other students are asking for and vote on topics you're interested in!</p>
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request+sort%3Areactions-%2B1-desc" 
-                   target="_blank"
-                   class="btn btn-sm">View Popular</a>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <span class="text-xl">🎓</span> Popular Requests
+                </h3>
+                <p class="text-sm text-gray-500 mb-4">Check out what other students are asking for and vote on topics you're interested in!</p>
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request+sort%3Areactions-%2B1-desc" target="_blank" class="inline-block w-full text-center px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    View Popular Topics
+                </a>
             </div>
             
-            <div class="info-box">
-                <h3>🤔 Not Sure What to Request?</h3>
-                <p>Browse our <a href="{{ '/courses/' | relative_url }}">existing courses</a> for inspiration, or check current <a href="https://github.com/OWASP-BLT/BLT-University/discussions" target="_blank">community discussions</a>.</p>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <span class="text-xl">🤔</span> Not Sure What to Request?
+                </h3>
+                <p class="text-sm text-gray-500">Browse our <a href="{{ '/courses/' | relative_url }}" class="text-bltRed hover:underline font-medium">existing courses</a> for inspiration, or check current <a href="https://github.com/OWASP-BLT/BLT-University/discussions" target="_blank" class="text-bltRed hover:underline font-medium">community discussions</a>.</p>
             </div>
             
-            <div class="info-box">
-                <h3>👨‍🏫 Are You an Instructor?</h3>
-                <p>See a request you can teach? Use our <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank">course submission form</a> to propose teaching it!</p>
+            <div class="bg-gray-900 p-6 rounded-2xl shadow-md border border-gray-800">
+                <h3 class="font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="text-xl">👨‍🏫</span> Are You an Instructor?
+                </h3>
+                <p class="text-sm text-gray-400 mb-4">See a request you can teach? Use our course submission form to propose teaching it!</p>
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank" class="inline-block text-bltRed text-sm font-semibold hover:text-white transition-colors">
+                    Submit a Course Proposal →
+                </a>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1">
+                <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-6">
+                    <div class="w-6 h-6 bg-bltRed rounded flex items-center justify-center text-white text-xs">🛡️</div>
+                    blt-university
+                </div>
+                <p class="text-sm leading-relaxed">Empowering the next generation of security professionals through open-source education.</p>
+            </div>
+            
+            <div>
+                <h4 class="text-white font-semibold mb-6">Resources</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                    <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-white transition-colors">Course Catalog</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">OWASP BLT</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="{{ '/about/' | relative_url }}" class="hover:text-white transition-colors">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Become an Instructor</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Community</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">GitHub Repository</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Discord Server</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Report Issues</a></li>
+                </ul>
             </div>
         </div>
-    </div>
-</div>
+        <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <p>&copy; 2026 OWASP BLT Project. Licensed under MIT.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

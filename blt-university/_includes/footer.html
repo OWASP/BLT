@@ -1,36 +1,51 @@
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>{{ site.university.name }}</h3>
-                <p>{{ site.description }}</p>
-                <p>Established {{ site.university.established }}</p>
+<footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        
+        <div class="col-span-1 md:col-span-1">
+            <div class="flex items-center gap-2.5 font-bold text-xl tracking-tight text-white mb-6">
+                <div class="w-7 h-7 flex items-center justify-center bg-white rounded-lg shadow-sm overflow-hidden">
+                    <img src="{{ site.baseurl }}/assets/images/courses/blt-logo.png" onerror="this.src='/assets/images/blt-logo.png'" alt="BLT Logo" class="w-full h-full object-contain p-0.5">
+                </div>
+                
+                {{ site.university.name | default: "BLT University" }}
             </div>
-            
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="{{ '/courses/' | relative_url }}">Browse Courses</a></li>
-                    <li><a href="{{ '/enroll/' | relative_url }}">Enroll</a></li>
-                    <li><a href="{{ '/instructors/' | relative_url }}">Meet Our Instructors</a></li>
-                    <li><a href="{{ '/about/' | relative_url }}">About Us</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Get Involved</h3>
-                <ul>
-                    <li><a href="https://github.com/OWASP-BLT/BLT-University">GitHub Repository</a></li>
-                    <li><a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml">Submit a Course</a></li>
-                    <li><a href="{{ '/contributing/' | relative_url }}">Become an Instructor</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>License</h3>
-                <p>All content is licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">AGPL-3.0</a></p>
-                <p>&copy; {{ site.time | date: "%Y" }} BLT University</p>
-            </div>
+            <p class="text-sm leading-relaxed mb-4 text-gray-400">
+                {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages. Learn, teach, and collaborate on security courses through open-source education." }}
+            </p>
+            <p class="text-xs font-bold uppercase tracking-wider text-gray-500">
+                Established {{ site.university.established | default: "2026" }}
+            </p>
         </div>
+        
+        <div>
+            <h4 class="text-white font-semibold mb-6">Quick Links</h4>
+            <ul class="space-y-3 text-sm">
+                <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-white transition-colors">Browse Courses</a></li>
+                <li><a href="{{ '/enroll/' | relative_url }}" class="hover:text-white transition-colors">Enroll</a></li>
+                <li><a href="{{ '/instructors/' | relative_url }}" class="hover:text-white transition-colors">Instructors</a></li>
+                <li><a href="{{ '/about/' | relative_url }}" class="hover:text-white transition-colors">About Us</a></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 class="text-white font-semibold mb-6">Get Involved</h4>
+            <ul class="space-y-3 text-sm">
+                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="hover:text-white transition-colors">GitHub Repository</a></li>
+                <li><a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank" class="hover:text-white transition-colors">Submit a Course</a></li>
+                <li><a href="{{ '/contributing/' | relative_url }}" class="hover:text-white transition-colors">Become an Instructor</a></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 class="text-white font-semibold mb-6">License</h4>
+            <ul class="space-y-3 text-sm">
+                <li class="leading-relaxed">All content is licensed under <br/> <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" class="text-bltRed hover:text-red-400 transition-colors font-semibold">AGPL-3.0</a></li>
+            </ul>
+        </div>
+        
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+        <p>&copy; {{ site.time | date: "%Y" }} {{ site.university.name | default: "BLT University" }}. All rights reserved.</p>
     </div>
 </footer>

@@ -1,20 +1,35 @@
-<header class="site-header">
-    <div class="container">
-        <div class="header-content">
-            <div class="site-branding">
-                <a href="{{ '/' | relative_url }}" class="site-title">
-                    🎓 {{ site.university.name }}
-                </a>
-                <p class="site-tagline">{{ site.university.tagline }}</p>
-            </div>
-            
-            <nav class="site-navigation">
-                <ul>
-                {% for item in site.navigation %}
-                    <li><a href="{{ item.url | relative_url }}" {% if page.url == item.url %}class="active"{% endif %}>{{ item.title }}</a></li>
-                {% endfor %}
-                </ul>
-            </nav>
+<header class="absolute top-0 w-full z-50 bg-transparent border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        
+        <div class="flex items-center">
+            <a href="{{ '/' | relative_url }}" class="flex items-center gap-3 font-bold text-xl tracking-tight group">
+                <div class="w-9 h-9 flex items-center justify-center bg-white rounded-xl shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+                    <img src="{{ site.baseurl }}/assets/images/courses/blt-logo.png" onerror="this.src='/assets/images/blt-logo.png'" alt="BLT Logo" class="w-full h-full object-contain p-1">
+                </div>
+                
+                <div class="flex flex-col justify-center">
+                    <span class="text-white leading-none">{{ site.university.name | default: "BLT University" }}</span>
+                    {% if site.university.tagline %}
+                        <span class="text-[0.65rem] text-gray-400 font-bold uppercase tracking-widest mt-1">{{ site.university.tagline }}</span>
+                    {% endif %}
+                </div>
+            </a>
         </div>
+        
+        <nav class="hidden md:flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm font-semibold text-gray-300">
+            {% for item in site.navigation %}
+                <a href="{{ item.url | relative_url }}" 
+                   class="{% if page.url == item.url %}text-white relative after:absolute md:after:bottom-[-26px] after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed{% else %}hover:text-white transition-colors{% endif %}">
+                    {{ item.title }}
+                </a>
+            {% endfor %}
+            {% if site.navigation == null %}
+                <a href="/" class="hover:text-white transition-colors">Home</a>
+                <a href="/courses/" class="hover:text-white transition-colors">Courses</a>
+                <a href="/enroll/" class="hover:text-white transition-colors">Enroll</a>
+                <a href="/instructors/" class="hover:text-white transition-colors">Instructors</a>
+            {% endif %}
+        </nav>
+        
     </div>
 </header>

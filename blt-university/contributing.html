@@ -4,179 +4,150 @@ title: Contributing Guide
 permalink: /contributing/
 ---
 
-<div class="page-header">
-    <div class="container">
-        <h1>Become an Instructor</h1>
-        <p>Share your cybersecurity expertise with our community</p>
+<section class="bg-bltDark text-white pt-20 pb-32 relative overflow-hidden">
+    <div class="absolute top-0 right-1/4 w-[400px] h-[400px] bg-red-600/10 rounded-full filter blur-[100px] pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4">Become an Instructor</h1>
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">Share your cybersecurity expertise with our global open-source community.</p>
     </div>
-</div>
+</section>
 
-<div class="contributing-page">
-    <div class="container">
-        <section class="contributing-section">
-            <h2>Why Teach at BLT University?</h2>
-            <ul>
-                <li>Share your knowledge with a global audience</li>
-                <li>Build your reputation in the cybersecurity community</li>
-                <li>Collaborate with other security professionals</li>
-                <li>Help make security education accessible to everyone</li>
-                <li>Keep your skills sharp by teaching others</li>
-            </ul>
-        </section>
+<div class="max-w-7xl mx-auto px-6 w-full -mt-16 relative z-20 pb-24 space-y-10">
+    
+    <section class="bg-white p-8 md:p-10 rounded-[2rem] shadow-float border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-bltRedLight text-bltRed flex items-center justify-center text-xl">🌟</span> 
+            Why Teach at BLT University?
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-gray-600">
+            <div class="flex items-start gap-3"><span class="text-bltRed mt-0.5">✔</span> <span>Share your knowledge with a global audience.</span></div>
+            <div class="flex items-start gap-3"><span class="text-bltRed mt-0.5">✔</span> <span>Build your reputation in the infosec community.</span></div>
+            <div class="flex items-start gap-3"><span class="text-bltRed mt-0.5">✔</span> <span>Collaborate with other security professionals.</span></div>
+            <div class="flex items-start gap-3"><span class="text-bltRed mt-0.5">✔</span> <span>Help make education accessible to everyone.</span></div>
+            <div class="flex items-start gap-3"><span class="text-bltRed mt-0.5">✔</span> <span>Keep your skills sharp by teaching others.</span></div>
+        </div>
+    </section>
 
-        <section class="contributing-section">
-            <h2>How to Create a Course</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        <section class="bg-white p-8 md:p-10 rounded-[2rem] shadow-sm border border-gray-100 h-full">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">How to Create a Course</h2>
             
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <h3>Fork the Repository</h3>
-                    <p>Start by forking the <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank">BLT-University repository</a> on GitHub.</p>
+            <div class="space-y-8 relative before:absolute before:inset-0 before:ml-[1.15rem] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:via-gray-200 before:to-transparent">
+                
+                <div class="relative flex items-start gap-6 group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRedLight group-hover:text-bltRed transition-colors">1</div>
+                    <div class="pt-1.5 w-full">
+                        <h3 class="font-bold text-lg text-gray-900 mb-2">Fork the Repository</h3>
+                        <p class="text-sm text-gray-500">Start by forking the <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="text-bltRed hover:underline font-semibold">BLT-University repository</a> on GitHub.</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <h3>Create Your Instructor Profile</h3>
-                    <p>Add a new file in the <code>_instructors</code> directory:</p>
-                    <pre><code>---
+
+                <div class="relative flex items-start gap-6 group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRedLight group-hover:text-bltRed transition-colors">2</div>
+                    <div class="pt-1.5 w-full overflow-hidden">
+                        <h3 class="font-bold text-lg text-gray-900 mb-2">Create Instructor Profile</h3>
+                        <p class="text-sm text-gray-500 mb-3">Add a new file in the <code>_instructors</code> directory:</p>
+<pre class="bg-gray-900 text-gray-300 p-4 rounded-xl text-xs overflow-x-auto border border-gray-800 font-mono leading-relaxed"><code>---
 layout: instructor
 title: Your Name
 expertise: Your Area of Expertise
-avatar: /assets/images/instructors/yourname.jpg
-github: yourusername
-linkedin: yourprofile
 ---
-
-Your bio and teaching philosophy goes here...</code></pre>
+Your bio goes here...</code></pre>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <h3>Create Your Course</h3>
-                    <p>Add a new file in the <code>_courses</code> directory:</p>
-                    <pre><code>---
+
+                <div class="relative flex items-start gap-6 group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRedLight group-hover:text-bltRed transition-colors">3</div>
+                    <div class="pt-1.5 w-full overflow-hidden">
+                        <h3 class="font-bold text-lg text-gray-900 mb-2">Create Your Course</h3>
+                        <p class="text-sm text-gray-500 mb-3">Add a new file in the <code>_courses</code> directory:</p>
+<pre class="bg-gray-900 text-gray-300 p-4 rounded-xl text-xs overflow-x-auto border border-gray-800 font-mono leading-relaxed"><code>---
 layout: course
-title: Your Course Title
-category: Course Category
-level: Beginner/Intermediate/Advanced
-duration: 4 weeks
-instructor: Your Name
-featured: false
-prerequisites: Any prerequisites
-description: Short course description
-
-resources:
-  - title: Introduction Video
-    url: https://youtube.com/watch?v=...
-    type: video
-  - title: Course Slides
-    url: /assets/courses/yourcourse/slides.pdf
-    type: pdf
-
-syllabus:
-  - title: Week 1 - Introduction
-    description: Course overview
-    topics:
-      - Topic 1
-      - Topic 2
-  - title: Week 2 - Deep Dive
-    description: Advanced concepts
-    topics:
-      - Topic 3
-      - Topic 4
+title: Course Title
+category: Category
+level: Beginner
 ---
-
-# Course Content
-
-Your detailed course content goes here using Markdown...
-
-## Module 1: Introduction
-
-Content for module 1...
-
-## Module 2: Advanced Topics
-
-Content for module 2...</code></pre>
+## Module 1: Intro
+Course content here...</code></pre>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <h3>Submit a Pull Request</h3>
-                    <p>Once your course is ready, submit a pull request using the course submission template. Our team will review and provide feedback.</p>
-                </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">5</div>
-                <div class="step-content">
-                    <h3>Course Goes Live</h3>
-                    <p>After approval, your course will be merged and automatically published to the BLT University website!</p>
+
+                <div class="relative flex items-start gap-6 group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-bltRed text-white font-bold shadow-md shrink-0 z-10">4</div>
+                    <div class="pt-1.5 w-full">
+                        <h3 class="font-bold text-lg text-gray-900 mb-2">Submit Pull Request</h3>
+                        <p class="text-sm text-gray-500">Submit a pull request. Once approved, your course merges and automatically goes live!</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="contributing-section">
-            <h2>Course Guidelines</h2>
-            <ul>
-                <li><strong>Focus on Cybersecurity:</strong> All courses should be related to information security</li>
-                <li><strong>Clear Structure:</strong> Organize content with clear learning objectives</li>
-                <li><strong>Practical Examples:</strong> Include hands-on exercises and real-world scenarios</li>
-                <li><strong>Multiple Formats:</strong> Combine videos, documents, and interactive content</li>
-                <li><strong>Prerequisites:</strong> Clearly state any required prior knowledge</li>
-                <li><strong>Open License:</strong> All content must be compatible with AGPL-3.0</li>
-            </ul>
-        </section>
+        <div class="space-y-10">
+            <section class="bg-gray-50 p-8 md:p-10 rounded-[2rem] border border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Course Guidelines</h2>
+                <ul class="space-y-4 text-sm text-gray-600">
+                    <li class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-bltRed shrink-0 mt-0.5">🛡️</span>
+                        <div><strong class="text-gray-900 block">Focus on Cybersecurity:</strong> Content should relate to info-sec.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-bltRed shrink-0 mt-0.5">📋</span>
+                        <div><strong class="text-gray-900 block">Clear Structure:</strong> Organize with clear learning objectives.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-bltRed shrink-0 mt-0.5">🛠️</span>
+                        <div><strong class="text-gray-900 block">Practical Examples:</strong> Include hands-on exercises.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-bltRed shrink-0 mt-0.5">🔐</span>
+                        <div><strong class="text-gray-900 block">Open License:</strong> Content must be compatible with AGPL-3.0.</div>
+                    </li>
+                </ul>
+            </section>
 
-        <section class="contributing-section">
-            <h2>Supported Content Types</h2>
-            <div class="content-grid">
-                <div class="content-item">
-                    <h3>📹 Videos</h3>
-                    <p>YouTube, Vimeo, or self-hosted videos</p>
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Supported Content</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">📹</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Videos</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">📄</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Documents</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Code/Repos</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">🔗</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Links</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">📅</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Events</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">✏️</div>
+                        <h3 class="font-bold text-gray-900 text-sm">Assignments</h3>
+                    </div>
                 </div>
-                <div class="content-item">
-                    <h3>📄 Documents</h3>
-                    <p>PDFs, slides, and written materials</p>
-                </div>
-                <div class="content-item">
-                    <h3>💻 Code</h3>
-                    <p>GitHub repositories and coding exercises</p>
-                </div>
-                <div class="content-item">
-                    <h3>🔗 Links</h3>
-                    <p>External resources and references</p>
-                </div>
-                <div class="content-item">
-                    <h3>📅 Events</h3>
-                    <p>Live meetups and virtual sessions</p>
-                </div>
-                <div class="content-item">
-                    <h3>✏️ Assignments</h3>
-                    <p>GitHub-based homework and projects</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="contributing-section">
-            <h2>Get Started</h2>
-            <div class="cta-buttons">
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" 
-                   class="btn btn-primary" 
-                   target="_blank">
-                    Submit Course Proposal
-                </a>
-                <a href="https://github.com/OWASP-BLT/BLT-University" 
-                   class="btn btn-secondary" 
-                   target="_blank">
-                    View on GitHub
-                </a>
-            </div>
-        </section>
+            </section>
+        </div>
     </div>
+
+    <section class="text-center pt-8 border-t border-gray-100 mt-10">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">Ready to Build a Course?</h2>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank" class="px-8 py-4 bg-bltRed text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.3)] hover:bg-bltRedHover hover:-translate-y-0.5 transition-all duration-200">
+                Submit Course Proposal
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="px-8 py-4 bg-white text-gray-700 font-bold border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                View on GitHub
+            </a>
+        </div>
+    </section>
+
 </div>

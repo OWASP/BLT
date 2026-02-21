@@ -1,72 +1,211 @@
 ---
-layout: default
+layout: null
 title: Courses
 permalink: /courses/
 ---
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Catalog | BLT University</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fef2f2',
+                        bltRedHover: '#b91c1c',
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        'float': '0 30px 60px -15px rgba(0,0,0,0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#fafafa] text-gray-900 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
 
-<div class="page-header">
-    <div class="container">
-        <h1>Course Catalog</h1>
-        <p>Explore our comprehensive cybersecurity curriculum</p>
-    </div>
-</div>
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="{{ '/' | relative_url }}" class="flex items-center gap-2.5 font-bold text-xl tracking-tight group">
+                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm shadow-sm group-hover:scale-105 transition-transform">
+                
+                </div>
+                <span class="text-gray-900">blt-university</span>
+            </a>
+            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
+                <a href="{{ '/' | relative_url }}" class="hover:text-gray-900 transition-colors">Home</a>
+                <a href="{{ '/courses/' | relative_url }}" class="text-bltRed relative after:absolute after:bottom-[-20px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed">Course</a>
+                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
+                <a href="#" class="hover:text-gray-900 transition-colors">Instructors</a>
+                <a href="#" class="hover:text-gray-900 transition-colors">About</a>
+            </nav>
+        </div>
+    </header>
 
-<div class="courses-page">
-    <div class="container">
-        <div class="courses-filters">
-            <div class="filter-group">
-                <label for="category-filter">Category:</label>
-                <select id="category-filter" class="filter-select">
-                    <option value="">All Categories</option>
-                    {% for category in site.categories %}
-                    <option value="{{ category | slugify }}">{{ category }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="level-filter">Level:</label>
-                <select id="level-filter" class="filter-select">
-                    <option value="">All Levels</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <input type="text" id="search-filter" class="filter-input" placeholder="Search courses...">
+    <section class="bg-white border-b border-gray-100 py-16 lg:py-24 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 -z-10 w-96 h-96 bg-red-100 rounded-full mix-blend-multiply filter blur-[100px] opacity-40"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+                Course Catalog
+            </h1>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+                Explore our comprehensive cybersecurity curriculum. From foundational concepts to advanced penetration testing, all 100% open-source.
+            </p>
+        </div>
+    </section>
+
+    <main class="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
+        
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-10">
+            <div class="flex flex-col md:flex-row gap-4">
+                
+                <div class="flex-1 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" id="search-filter" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors" placeholder="Search courses, topics, or instructors...">
+                </div>
+
+                <div class="w-full md:w-48 relative">
+                    <select id="category-filter" class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer">
+                        <option value="">All Categories</option>
+                        {% for category in site.categories %}
+                        <option value="{{ category | slugify }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-48 relative">
+                    <select id="level-filter" class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer">
+                        <option value="">All Levels</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <div class="courses-grid" id="courses-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="courses-grid">
         {% for course in site.courses %}
-            <div class="course-card" 
+            <div class="group bg-white rounded-2xl shadow-sm hover:shadow-float border border-gray-100 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1" 
                  data-category="{{ course.category | slugify }}" 
                  data-level="{{ course.level | downcase }}"
                  data-search="{{ course.title | downcase }} {{ course.description | downcase }} {{ course.instructor | downcase }}">
-                {% if course.image %}
-                <div class="course-card-image">
-                    <img src="{{ course.image | relative_url }}" alt="{{ course.title }}">
+                
+                <a href="{{ course.url | relative_url }}" class="block h-48 bg-gray-900 relative overflow-hidden">
+                    {% if course.image %}
+                        <img src="{{ course.image | relative_url }}" alt="{{ course.title }}" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="{{ course.title }}" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700">
+                    {% endif %}
+                    
+                    <div class="absolute top-4 left-4 flex gap-2 z-20">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-xs font-bold tracking-wide shadow-sm">{{ course.category | default: "Cybersecurity" }}</span>
+                        <span class="px-2.5 py-1 bg-gray-900/70 backdrop-blur-md text-white rounded-md text-xs font-semibold capitalize tracking-wide border border-white/10">{{ course.level | default: "All Levels" }}</span>
+                    </div>
+                </a>
+
+                <div class="p-6 flex-1 flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-bltRed transition-colors">
+                        <a href="{{ course.url | relative_url }}" class="focus:outline-none">{{ course.title | default: "Untitled Course" }}</a>
+                    </h3>
+                    
+                    <p class="text-gray-500 text-sm mb-6 flex-1 leading-relaxed">
+                        {{ course.description | truncate: 120 }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between text-xs font-medium text-gray-500 pt-4 border-t border-gray-100 mb-5">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">👤</div>
+                            <span>{{ course.instructor | default: "OWASP Community" }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            ⏱️ <span>{{ course.duration | default: "Self-paced" }}</span>
+                        </div>
+                    </div>
+
+                    <a href="{{ course.url | relative_url }}" class="w-full block text-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-bltRed hover:text-white hover:border-bltRed transition-all duration-200">
+                        View Course
+                    </a>
                 </div>
-                {% endif %}
-                <div class="course-card-header">
-                    <span class="course-category">{{ course.category }}</span>
-                    <span class="course-level">{{ course.level }}</span>
-                </div>
-                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
-                <p>{{ course.description | truncate: 150 }}</p>
-                <div class="course-card-footer">
-                    <span class="course-instructor">👤 {{ course.instructor }}</span>
-                    <span class="course-duration">⏱️ {{ course.duration }}</span>
-                </div>
-                <a href="{{ course.url | relative_url }}" class="btn btn-small">View Course</a>
             </div>
         {% endfor %}
         </div>
         
-        <div id="no-results" class="no-results" style="display: none;">
-            <p>No courses found matching your criteria.</p>
+        <div id="no-results" class="hidden py-20 text-center">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">No courses found</h3>
+            <p class="text-gray-500 text-sm">We couldn't find anything matching your search criteria. Try adjusting your filters.</p>
+            <button onclick="document.getElementById('search-filter').value=''; document.getElementById('category-filter').value=''; document.getElementById('level-filter').value=''; /* trigger your JS filter update here */" class="mt-4 text-bltRed text-sm font-semibold hover:underline focus:outline-none">
+                Clear all filters
+            </button>
         </div>
-    </div>
-</div>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1">
+                <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-6">
+                    <div class="w-6 h-6 bg-bltRed rounded flex items-center justify-center text-white text-xs">🛡️</div>
+                    blt-university
+                </div>
+                <p class="text-sm leading-relaxed">Empowering the next generation of security professionals through open-source education.</p>
+            </div>
+            
+            <div>
+                <h4 class="text-white font-semibold mb-6">Resources</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                    <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-white transition-colors">Course Catalog</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">OWASP BLT</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Become an Instructor</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Community</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">GitHub Repository</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Discord Server</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Report Issues</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <p>&copy; 2026 OWASP BLT Project. Licensed under MIT.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

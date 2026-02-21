@@ -4,84 +4,108 @@ title: Enroll
 permalink: /enroll/
 ---
 
-<div class="page-header">
-    <div class="container">
-        <h1>Enroll in a Course</h1>
-        <p>Start your cybersecurity learning journey today</p>
+<section class="relative pt-24 pb-40 overflow-hidden bg-bltDark">
+    <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-600/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-10 w-[400px] h-[400px] bg-red-500/5 rounded-full filter blur-[100px] pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-red-400 text-xs font-bold tracking-wide uppercase mb-8 backdrop-blur-md">
+            <span class="w-2 h-2 rounded-full bg-bltRed animate-pulse"></span>
+            Enrollment is Open
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+            Enroll in a Course
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Start your cybersecurity learning journey today using our seamless GitHub workflow.
+        </p>
     </div>
-</div>
+</section>
 
-<div class="enroll-page">
-    <div class="container">
-        <div class="enroll-content">
-            <div class="enroll-instructions">
-                <h2>How to Enroll</h2>
-                <p>BLT University uses GitHub for course enrollment and management. Follow these steps:</p>
-                
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Choose Your Course</h3>
-                        <p>Browse our <a href="{{ '/courses/' | relative_url }}">course catalog</a> and select the course you want to enroll in.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Create GitHub Account</h3>
-                        <p>If you don't have one already, <a href="https://github.com/signup" target="_blank">create a free GitHub account</a>.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Submit Enrollment Request</h3>
-                        <p>Click the button below to open an enrollment issue on GitHub. Fill in the course details and your information.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Start Learning</h3>
-                        <p>Once enrolled, you'll receive access to course materials and be added to the course repository.</p>
-                    </div>
-                </div>
-                
-                <div class="enroll-actions">
-                    <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml" 
-                       class="btn btn-primary btn-large" 
-                       data-enrollment-button
-                       target="_blank">
-                        Submit Enrollment Request
-                    </a>
-                    <a href="{{ '/courses/' | relative_url }}" class="btn btn-secondary">Browse Courses</a>
-                </div>
-            </div>
+<div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-3 gap-10 -mt-20 relative z-20 pb-32">
+    
+    <div class="lg:col-span-2">
+        <div class="bg-white p-10 md:p-14 rounded-[2.5rem] shadow-float border border-gray-100 h-full">
+            <h2 class="text-3xl font-bold text-gray-900 mb-12 flex items-center gap-4">
+                <span class="w-12 h-12 rounded-2xl bg-bltRedLight flex items-center justify-center text-2xl">🚀</span> 
+                How to Enroll
+            </h2>
             
-            <div class="enroll-sidebar">
-                <div class="info-box">
-                    <h3>💰 Cost</h3>
-                    <p>All courses are <strong>100% FREE</strong>. BLT University is committed to open-source education.</p>
-                </div>
+            <div class="space-y-12 relative before:absolute before:inset-0 before:ml-[1.4rem] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-red-100 before:to-transparent">
                 
-                <div class="info-box">
-                    <h3>⏰ Time Commitment</h3>
-                    <p>Course durations vary from 2 weeks to 12 weeks. Each course page shows the expected time commitment.</p>
+                <div class="relative flex items-start gap-8 group">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRed group-hover:text-white transition-all duration-300">1</div>
+                    <div class="pt-2">
+                        <h3 class="font-bold text-xl text-gray-900 mb-2">Choose Your Course</h3>
+                        <p class="text-gray-500 leading-relaxed text-lg">Browse our <a href="{{ '/courses/' | relative_url }}" class="text-bltRed hover:underline font-semibold transition-colors">course catalog</a> and select the module you want to enroll in.</p>
+                    </div>
                 </div>
-                
-                <div class="info-box">
-                    <h3>🎓 Certificates</h3>
-                    <p>Complete course requirements to earn a certificate of completion, issued via GitHub.</p>
+
+                <div class="relative flex items-start gap-8 group">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRed group-hover:text-white transition-all duration-300">2</div>
+                    <div class="pt-2">
+                        <h3 class="font-bold text-xl text-gray-900 mb-2">Create GitHub Account</h3>
+                        <p class="text-gray-500 leading-relaxed text-lg">Our platform runs entirely on GitHub. If you don't have one already, <a href="https://github.com/signup" target="_blank" class="text-bltRed hover:underline font-semibold transition-colors">create a free account</a>.</p>
+                    </div>
                 </div>
-                
-                <div class="info-box">
-                    <h3>❓ Questions?</h3>
-                    <p>Check our <a href="https://github.com/OWASP-BLT/BLT-University/discussions">discussions</a> or <a href="https://github.com/OWASP-BLT/BLT-University/issues">open an issue</a>.</p>
+
+                <div class="relative flex items-start gap-8 group">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-gray-100 text-gray-500 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRed group-hover:text-white transition-all duration-300">3</div>
+                    <div class="pt-2">
+                        <h3 class="font-bold text-xl text-gray-900 mb-2">Submit Enrollment Request</h3>
+                        <p class="text-gray-500 leading-relaxed text-lg">Click the button below to open an enrollment issue on GitHub. Fill in the course details and your information.</p>
+                    </div>
                 </div>
+
+                <div class="relative flex items-start gap-8">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white bg-bltRed text-white font-bold shadow-md shrink-0 z-10">4</div>
+                    <div class="w-full bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
+                        <h3 class="font-bold text-xl text-gray-900 mb-3">Start Learning</h3>
+                        <p class="text-gray-600 mb-8 text-lg">Once enrolled, you'll receive repository access and can begin your open-source education instantly.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml" target="_blank" class="px-8 py-4 bg-bltRed text-white text-center font-bold rounded-2xl shadow-lg hover:bg-bltRedHover hover:-translate-y-1 transition-all duration-300">
+                                Submit Enrollment Request
+                            </a>
+                            <a href="{{ '/courses/' | relative_url }}" class="px-8 py-4 bg-white text-gray-700 text-center font-bold border border-gray-200 rounded-2xl hover:bg-gray-50 hover:shadow-md transition-all duration-300">
+                                Browse Courses
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
+            <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 text-3xl mb-6 group-hover:scale-110 transition-transform">💰</div>
+            <h3 class="font-bold text-gray-900 text-xl mb-2">100% Free</h3>
+            <p class="text-gray-500 leading-relaxed">All courses are completely free. BLT University is committed to open-source education.</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-3xl mb-6 group-hover:scale-110 transition-transform">⏰</div>
+            <h3 class="font-bold text-gray-900 text-xl mb-2">Time Commitment</h3>
+            <p class="text-gray-500 leading-relaxed">Course durations vary from 2 to 12 weeks. Learn entirely at your own pace.</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
+            <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 text-3xl mb-6 group-hover:scale-110 transition-transform">🎓</div>
+            <h3 class="font-bold text-gray-900 text-xl mb-2">Certificates</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Complete course requirements to earn a certificate of completion via GitHub.</p>
+        </div>
+
+        <div class="bg-gradient-to-br from-white to-red-50 p-8 rounded-[2rem] border border-red-100 shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-bltRed/5 rounded-full filter blur-xl group-hover:bg-bltRed/10 transition-all"></div>
+            <h3 class="font-bold text-gray-900 text-xl mb-3 flex items-center gap-2">
+                <span class="text-bltRed text-2xl">❓</span> Questions?
+            </h3>
+            <p class="text-gray-600 mb-6 leading-relaxed">Having trouble enrolling? Ask the community for help.</p>
+            <a href="https://github.com/OWASP-BLT/BLT-University/discussions" target="_blank" class="block w-full text-center px-6 py-4 bg-white border border-red-100 rounded-2xl font-bold text-bltRed hover:bg-bltRed hover:text-white transition-all duration-300 shadow-sm">
+                View Discussions
+            </a>
         </div>
     </div>
 </div>

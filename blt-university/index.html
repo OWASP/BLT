@@ -1,133 +1,241 @@
 ---
-layout: default
+layout: null
 title: Home
 ---
-
-<section class="hero">
-    <div class="container">
-        <h1>Welcome to BLT University</h1>
-        <p class="hero-subtitle">Your Open-Source Gateway to Cybersecurity Excellence</p>
-        <p class="hero-description">
-            Learn cybersecurity through GitHub-powered courses. Collaborate, contribute, and 
-            advance your skills with industry experts and a global community of learners.
-        </p>
-        <div class="hero-actions">
-            <a href="{{ '/courses/' | relative_url }}" class="btn btn-primary">Browse Courses</a>
-            <a href="{{ '/enroll/' | relative_url }}" class="btn btn-secondary">Enroll Now</a>
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT University | Open Source Cybersecurity</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fef2f2',
+                        bltRedHover: '#b91c1c',
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        'float': '0 30px 60px -15px rgba(0,0,0,0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#fafafa] text-gray-900 font-sans antialiased overflow-x-hidden selection:bg-bltRed selection:text-white">
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-2.5 font-bold text-xl tracking-tight group">
+                <div class="w-7 h-7 bg-bltRed rounded-lg flex items-center justify-center text-white text-sm shadow-sm group-hover:scale-105 transition-transform">
+                    <img src="{{ '/assets/images/courses/blt-logo.png' | relative_url }}" alt="BLT Logo" class="w-8 h-8 object-contain group-hover:scale-110 transition-transform">                </div>
+                <span class="text-gray-900">blt-university</span>
+            </a>
+            <nav class="hidden md:flex gap-8 text-sm font-semibold text-gray-600">
+                <a href="#" class="text-bltRed relative after:absolute after:bottom-[-20px] after:left-0 after:w-full after:h-[2px] after:bg-bltRed">Home</a>
+                <a href="{{ '/courses/' | relative_url }}" class="hover:text-gray-900 transition-colors">Course</a>
+                <a href="{{ '/enroll/' | relative_url }}" class="hover:text-gray-900 transition-colors">Enroll</a>
+                <a href="#" class="hover:text-gray-900 transition-colors">Instructors</a>
+                <a href="#" class="hover:text-gray-900 transition-colors">About</a>
+            </nav>
         </div>
-    </div>
-</section>
+    </header>
 
-<section class="features">
-    <div class="container">
-        <h2>Why Choose BLT University?</h2>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🔓</div>
-                <h3>Open Source Education</h3>
-                <p>All courses are free and open-source. Learn, contribute, and help others learn.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🔐</div>
-                <h3>Cybersecurity Focus</h3>
-                <p>Specialized curriculum covering all aspects of information security and ethical hacking.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🤝</div>
-                <h3>GitHub-Powered</h3>
-                <p>Learn through pull requests, issues, and GitHub Actions. Real-world collaboration skills.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📚</div>
-                <h3>Rich Content</h3>
-                <p>Videos, PDFs, interactive labs, meetups, and hands-on projects.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">👥</div>
-                <h3>Expert Instructors</h3>
-                <p>Learn from experienced security professionals and industry leaders.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🌐</div>
-                <h3>Global Community</h3>
-                <p>Connect with students and professionals from around the world.</p>
-            </div>
-        </div>
-    </div>
-</section>
+    <section class="relative pt-20 pb-32 overflow-hidden">
+        <div class="absolute top-0 right-0 -z-10 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.03),transparent_40%)]"></div>
 
-<section class="featured-courses">
-    <div class="container">
-        <h2>Featured Courses</h2>
-        <div class="course-grid">
-        {% assign featured = site.courses | where: "featured", true | limit: 3 %}
-        {% for course in featured %}
-            <div class="course-card">
-                <div class="course-card-header">
-                    <span class="course-category">{{ course.category }}</span>
-                    <span class="course-level">{{ course.level }}</span>
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            
+            <div class="space-y-8 max-w-xl relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bltRedLight border border-red-100 text-bltRed text-xs font-bold tracking-wide uppercase">
+                    <span class="w-2 h-2 rounded-full bg-bltRed animate-pulse"></span>
+                    Open Source cybersecurity
                 </div>
-                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
-                <p>{{ course.description | truncate: 120 }}</p>
-                <div class="course-card-footer">
-                    <span class="course-instructor">👤 {{ course.instructor }}</span>
-                    <span class="course-duration">⏱️ {{ course.duration }}</span>
+
+                <h1 class="text-5xl lg:text-[4rem] font-extrabold text-gray-900 tracking-tight leading-[1.05]">
+                    your open source <br/>gateway to <span class="text-transparent bg-clip-text bg-gradient-to-r from-bltRed to-red-500">cybersecurity</span> excellence
+                </h1>
+                
+                <p class="text-lg text-gray-500 leading-relaxed max-w-md">
+                    Built by the OWASP community. Learn cybersecurity through GitHub-powered courses, collaborate, and advance your skills.
+                </p>
+                
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <a href="{{ '/courses/' | relative_url }}" class="px-7 py-3.5 bg-bltRed text-white font-semibold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.25)] hover:bg-bltRedHover hover:-translate-y-0.5 transition-all duration-200">
+                        Explore Courses
+                    </a>
+                    <a href="{{ '/enroll/' | relative_url }}" class="px-7 py-3.5 bg-white text-gray-700 font-semibold border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                        Learn More
+                    </a>
                 </div>
             </div>
-        {% endfor %}
-        </div>
-        <div class="text-center">
-            <a href="{{ '/courses/' | relative_url }}" class="btn btn-primary">View All Courses</a>
-        </div>
-    </div>
-</section>
 
-<section class="request-cta">
-    <div class="container">
-        <div class="request-cta-content">
-            <div class="request-cta-text">
-                <h2>💡 Don't See What You're Looking For?</h2>
-                <p>Tell us what you want to learn! Your feedback helps shape our curriculum and ensures we're creating courses that matter to you.</p>
-            </div>
-            <div class="request-cta-action">
-                <a href="{{ '/request/' | relative_url }}" class="btn btn-accent btn-large">Request a Course</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="stats">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">{{ site.courses.size }}</div>
-                <div class="stat-label">Courses Available</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ site.instructors.size }}</div>
-                <div class="stat-label">Expert Instructors</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">{{ site.categories.size }}</div>
-                <div class="stat-label">Specializations</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Open Source & Free</div>
+            <div class="flex justify-center lg:justify-end relative">
+                <div class="absolute inset-0 bg-red-100 blur-[80px] opacity-30 rounded-full"></div>
+                
+                <div class="bg-white p-4 rounded-[1.5rem] shadow-float border border-gray-100/80 max-w-sm w-full transform hover:-translate-y-2 transition-transform duration-500 relative z-10">
+                    <div class="rounded-2xl overflow-hidden mb-5 border border-gray-100 relative group">
+                        <div class="absolute inset-0 bg-gray-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg text-bltRed">
+                                <svg class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80" alt="Cybersecurity Code" class="w-full object-cover h-52 group-hover:scale-105 transition-transform duration-700">
+                    </div>
+                    
+                    <h3 class="font-bold text-xl text-gray-900 mb-5 px-2">Cybersecurity Course Demo</h3>
+                    
+                    <div class="flex items-center gap-3 px-2 pb-2">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80" alt="Dr. Anya Sharma" class="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">Dr. Anya Sharma</p>
+                            <p class="text-xs text-gray-500 font-medium">Lead Instructor</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="cta">
-    <div class="container">
-        <h2>Ready to Start Your Security Journey?</h2>
-        <p>Join our community of learners and security professionals today.</p>
-        <a href="{{ '/enroll/' | relative_url }}" class="btn btn-primary btn-large">Get Started</a>
-    </div>
-</section>
+    <section class="py-24 bg-white border-y border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Featured Courses</h2>
+                    <p class="text-gray-500">Dive into our most popular security modules.</p>
+                </div>
+                <a href="{{ '/courses/' | relative_url }}" class="hidden md:flex items-center gap-2 text-sm font-semibold text-bltRed hover:text-bltRedHover transition-colors">
+                    View all courses <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% assign featured = site.courses | where: "featured", true | limit: 3 %}
+            {% for course in featured %}
+                <a href="{{ course.url | relative_url }}" class="group bg-white rounded-2xl shadow-sm hover:shadow-soft border border-gray-100 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1">
+                    <div class="h-48 bg-gray-900 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80" alt="Course Cover" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute bottom-4 left-4 z-20 flex gap-2">
+                            <span class="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-md text-white text-xs font-semibold uppercase tracking-wider">Free</span>
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-bltRed transition-colors">
+                            {{ course.title | default: "Advanced Penetration Testing" }}
+                        </h3>
+                        <p class="text-gray-500 text-sm mb-6 flex-1 leading-relaxed">
+                            {{ course.description | default: "Learn the fundamentals of cybersecurity and advanced penetration testing techniques." | truncate: 120 }}
+                        </p>
+                        <div class="flex items-center text-sm font-semibold text-gray-900">
+                            Start Learning <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 bg-[#fafafa] overflow-hidden relative">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose Us</h2>
+            <p class="text-gray-500 max-w-2xl mx-auto mb-20">We bridge the gap between open-source contribution and professional cybersecurity education.</p>
+            
+            <div class="relative max-w-5xl mx-auto">
+                <div class="hidden md:block absolute top-[40%] left-[15%] w-[70%] border-t-[1.5px] border-dashed border-gray-300 z-0"></div>
+                <div class="hidden md:block absolute top-[40%] left-1/2 h-[90px] border-l-[1.5px] border-dashed border-gray-300 z-0 transform -translate-x-1/2"></div>
+                <div class="hidden md:block absolute top-[calc(40%+90px)] left-[30%] w-[40%] border-t-[1.5px] border-dashed border-gray-300 z-0"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 relative z-10">
+                    
+                    <div class="bg-white p-8 rounded-3xl shadow-sm hover:shadow-soft border border-gray-100 text-left mt-8 transition-shadow">
+                        <div class="w-14 h-14 bg-bltRedLight rounded-2xl flex items-center justify-center text-bltRed mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Cybersecurity Focus</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Specialized curriculum covering all aspects of information security, built by practitioners.</p>
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-3xl shadow-float border border-gray-100 text-left mb-8 relative transform md:-translate-y-2">
+                        <div class="w-14 h-14 bg-bltRedLight rounded-2xl flex items-center justify-center text-bltRed mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Expert Instructors</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Learn from experienced OWASP contributors, security professionals, and industry leaders.</p>
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-3xl shadow-sm hover:shadow-soft border border-gray-100 text-left mt-8 transition-shadow">
+                        <div class="w-14 h-14 bg-bltRedLight rounded-2xl flex items-center justify-center text-bltRed mb-6">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">GitHub-Powered</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">Master git workflows alongside security concepts with GitHub-based interactive learning.</p>
+                    </div>
+
+                </div>
+                
+                <div class="hidden md:flex absolute -bottom-5 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-bltRed rounded-lg items-center justify-center text-white text-xs tracking-widest z-20 shadow-md">
+                    •••
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1">
+                <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-6">
+                    <div class="w-6 h-6 bg-bltRed rounded flex items-center justify-center text-white text-xs">🛡️</div>
+                    blt-university
+                </div>
+                <p class="text-sm leading-relaxed">Empowering the next generation of security professionals through open-source education.</p>
+            </div>
+            
+            <div>
+                <h4 class="text-white font-semibold mb-6">Resources</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Course Catalog</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">OWASP BLT</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Become an Instructor</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Community</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">GitHub Repository</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Report Issues</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <p>&copy; 2026 OWASP BLT Project. Licensed under MIT.</p>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-white transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+                <a href="#" class="hover:text-white transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
