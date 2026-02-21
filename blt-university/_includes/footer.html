@@ -1,51 +1,53 @@
-<footer class="bg-gray-900 text-gray-400 py-16 border-t border-gray-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-        
-        <div class="col-span-1 md:col-span-1">
-            <div class="flex items-center gap-2.5 font-bold text-xl tracking-tight text-white mb-6">
-                <div class="w-7 h-7 flex items-center justify-center bg-white rounded-lg shadow-sm overflow-hidden">
-                    <img src="{{ site.baseurl }}/assets/images/blt-logo.png" onerror="this.src='/assets/images/blt-logo.png'" alt="BLT Logo" class="w-full h-full object-contain p-0.5">
-                </div>
-                
-                {{ site.university.name | default: "BLT University" }}
+<footer class="bg-[#D3D3D3] border-t border-gray-100 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div class="col-span-1">
+            <div class="flex items-center gap-2 font-display font-bold text-lg text-gray-900 mb-4">
+                <img src="{{ site.baseurl }}/assets/images/blt-logo.png" onerror="this.src='/assets/images/blt-logo.png'" alt="Logo" class="w-6 h-6 object-contain">
+                {{ site.university.name | default: "blt-university" }}
             </div>
-            <p class="text-sm leading-relaxed mb-4 text-gray-400">
-                {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages. Learn, teach, and collaborate on security courses through open-source education." }}
+            <p class="text-xs leading-relaxed text-gray-500 mb-4">
+                {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages." | truncate: 120 }}
             </p>
-            <p class="text-xs font-bold uppercase tracking-wider text-gray-500">
-                Established {{ site.university.established | default: "2026" }}
+            <div class="inline-block px-2 py-0.5 rounded-full bg-white border border-gray-200 text-[8px] font-bold uppercase tracking-widest text-gray-400 shadow-sm">
+                ESTABLISHED 2026
+            </div>
+        </div>
+        
+        <div>
+            <h4 class="text-gray-900 font-bold text-[9px] uppercase tracking-[0.2em] mb-4">Quick Links</h4>
+            <ul class="space-y-2 text-[13px] font-medium text-gray-500">
+                <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-bltRed transition-colors">Browse Courses</a></li>
+                <li><a href="{{ '/enroll/' | relative_url }}" class="hover:text-bltRed transition-colors">Enroll Now</a></li>
+                <li><a href="{{ '/instructors/' | relative_url }}" class="hover:text-bltRed transition-colors">Our Instructors</a></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 class="text-gray-900 font-bold text-[9px] uppercase tracking-[0.2em] mb-4">Get Involved</h4>
+            <ul class="space-y-2 text-[13px] font-medium text-gray-500">
+                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="hover:text-bltRed transition-colors">GitHub Repository</a></li>
+                <li><a href="{{ '/contributing/' | relative_url }}" class="hover:text-bltRed transition-colors">Become an Instructor</a></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 class="text-gray-900 font-bold text-[9px] uppercase tracking-[0.2em] mb-4">License</h4>
+            <p class="text-[13px] font-medium text-gray-500 leading-relaxed">
+                Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" class="text-bltRed font-bold hover:underline">AGPL-3.0</a>
             </p>
         </div>
-        
-        <div>
-            <h4 class="text-white font-semibold mb-6">Quick Links</h4>
-            <ul class="space-y-3 text-sm">
-                <li><a href="{{ '/courses/' | relative_url }}" class="hover:text-white transition-colors">Browse Courses</a></li>
-                <li><a href="{{ '/enroll/' | relative_url }}" class="hover:text-white transition-colors">Enroll</a></li>
-                <li><a href="{{ '/instructors/' | relative_url }}" class="hover:text-white transition-colors">Instructors</a></li>
-                <li><a href="{{ '/about/' | relative_url }}" class="hover:text-white transition-colors">About Us</a></li>
-            </ul>
-        </div>
-        
-        <div>
-            <h4 class="text-white font-semibold mb-6">Get Involved</h4>
-            <ul class="space-y-3 text-sm">
-                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="hover:text-white transition-colors">GitHub Repository</a></li>
-                <li><a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank" class="hover:text-white transition-colors">Submit a Course</a></li>
-                <li><a href="{{ '/contributing/' | relative_url }}" class="hover:text-white transition-colors">Become an Instructor</a></li>
-            </ul>
-        </div>
-        
-        <div>
-            <h4 class="text-white font-semibold mb-6">License</h4>
-            <ul class="space-y-3 text-sm">
-                <li class="leading-relaxed">All content is licensed under <br/> <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" class="text-bltRed hover:text-red-400 transition-colors font-semibold">AGPL-3.0</a></li>
-            </ul>
-        </div>
-        
     </div>
 
-    <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-        <p>&copy; {{ site.time | date: "%Y" }} {{ site.university.name | default: "BLT University" }}. All rights reserved.</p>
+    <div class="border-t border-black/10"></div>
+
+    <div class="bg-[#D3D3D3] py-8 px-6">
+        <div class="max-w-7xl mx-auto text-center space-y-1">
+            <p class="text-gray-700 text-[10px] font-bold tracking-wide">
+                &copy; {{ site.time | date: "%Y" }} {{ site.university.name | default: "BLT University" }}.
+            </p>
+            <p class="text-gray-600 text-[10px] font-bold tracking-widest uppercase">
+                Built by the <span class="text-bltRed">OWASP community</span>
+            </p>
+        </div>
     </div>
 </footer>

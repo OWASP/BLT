@@ -1,8 +1,10 @@
 ---
 layout: default
 ---
-<article>
-    <section class="bg-bltDark text-white pt-32 pb-40 relative overflow-hidden">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<article class="bg-[#fafafa]">
+    <section class="bg-bltDark text-white pt-20 pb-32 relative overflow-hidden">
         <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
         <div class="absolute inset-0 z-0">
             <img src="{{ page.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80' | relative_url }}" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
@@ -10,71 +12,126 @@ layout: default
         
         <div class="max-w-7xl mx-auto px-6 relative z-10">
             <div class="flex items-center gap-3 mb-6">
-                <span class="px-3 py-1 bg-bltRed text-white rounded-md text-xs font-bold uppercase">{{ page.category }}</span>
-                <span class="px-3 py-1 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-xs font-semibold uppercase">{{ page.level }}</span>
+                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
+                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">{{ page.level }}</span>
             </div>
-            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-8 leading-tight max-w-4xl">{{ page.title }}</h1>
-            <div class="flex flex-wrap items-center gap-6 text-sm text-gray-400">
-                <div class="flex items-center gap-2">👤 <strong class="text-white">{{ page.instructor }}</strong></div>
-                <div class="flex items-center gap-2">⏱️ <strong class="text-white">{{ page.duration }}</strong></div>
+            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">{{ page.title }}</h1>
+            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i> 
+                    <strong class="text-white">{{ page.instructor }}</strong>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-clock text-lg text-bltRed"></i> 
+                    <strong class="text-white">{{ page.duration }}</strong>
+                </div>
             </div>
         </div>
     </section>
 
-    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-3 gap-10 -mt-20 relative z-20 pb-24">
-        <div class="lg:col-span-2">
-            <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-float border border-gray-100">
-                <div class="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:border-b prose-h2:pb-3 prose-a:text-bltRed prose-p:text-gray-600 mb-12">
+    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
+        
+        <div class="lg:col-span-8 space-y-8">
+            
+            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
+                </h2>
+                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 mb-8">
                     {{ content }}
                 </div>
 
                 {% if page.syllabus %}
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Detailed Syllabus</h2>
-                <div class="space-y-6">
-                    {% for module in page.syllabus %}
-                    <div class="border border-gray-100 rounded-2xl p-6 hover:shadow-soft transition-all group">
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 bg-bltRedLight text-bltRed rounded-xl flex items-center justify-center font-bold group-hover:bg-bltRed group-hover:text-white transition-colors">
-                                {{ forloop.index }}
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-900 mb-1">{{ module.title }}</h3>
-                                <p class="text-sm text-gray-500 mb-3">{{ module.description }}</p>
-                                {% if module.topics %}
-                                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                                    {% for topic in module.topics %}<li class="flex gap-2">✔ {{ topic }}</li>{% endfor %}
-                                </ul>
-                                {% endif %}
+                <div class="mt-12 pt-10 border-t border-gray-50">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-10 flex items-center gap-3">
+                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
+                    </h2>
+                    <div class="space-y-4">
+                        {% for module in page.syllabus %}
+                        <div class="group border border-gray-100 rounded-3xl p-6 hover:border-red-100 hover:shadow-soft transition-all bg-gray-50/30">
+                            <div class="flex items-start gap-6">
+                                <div class="w-12 h-12 rounded-2xl bg-white border border-gray-100 text-gray-900 flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                    {{ forloop.index | prepend: '0' | slice: -2, 2 }}
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-2">{{ module.title }}</h3>
+                                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">{{ module.description }}</p>
+                                    {% if module.topics %}
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600">
+                                        {% for topic in module.topics %}
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> {{ topic }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <aside class="space-y-6">
-            <div class="bg-white p-8 rounded-[2rem] shadow-float border border-gray-100 relative overflow-hidden">
+        <aside class="lg:col-span-4 space-y-6">
+            
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">Enroll Now</h3>
-                <div class="mb-6 bg-gray-50 p-4 rounded-xl text-sm border border-gray-100">
-                    <h4 class="text-xs font-bold text-gray-900 uppercase mb-2">Prerequisites</h4>
-                    <p class="text-gray-600">{{ page.prerequisites | default: "Basic computer skills" }}</p>
+                <h3 class="text-xl font-bold text-gray-900 mb-6">Enroll Now</h3>
+                
+                <div class="mb-8 space-y-4">
+                    <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                        <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Prerequisites</h4>
+                        <p class="text-xs text-gray-700 leading-relaxed font-medium">
+                            {{ page.prerequisites | default: "Familiarity with cybersecurity fundamentals." }}
+                        </p>
+                    </div>
                 </div>
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new" class="w-full flex items-center justify-center px-6 py-4 bg-bltRed text-white font-bold rounded-xl shadow-lg hover:bg-bltRedHover hover:-translate-y-0.5 transition-all">Enroll via GitHub</a>
+
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml" 
+                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 hover:bg-bltRedHover hover:-translate-y-1 transition-all">
+                    <i class="ph-bold ph-github-logo text-xl"></i>
+                    Enroll via GitHub
+                </a>
+                
+                <p class="mt-4 text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">
+                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
+                </p>
             </div>
 
             {% if page.resources %}
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Resources</h3>
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
+                <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
+                </h3>
                 <ul class="space-y-3">
                     {% for res in page.resources %}
-                    <li><a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-all">📄 {{ res.title }}</a></li>
+                    <li>
+                        <a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                                <i class="ph-bold ph-file-text text-lg text-gray-400 group-hover:text-bltRed"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-gray-900">{{ res.title }}</span>
+                        </a>
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
             {% endif %}
+
+            <div class="bg-gray-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
+                    <i class="ph-fill ph-seal-check text-8xl"></i>
+                </div>
+                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
+                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
+                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
+                    Earn a completion certificate verified through Git commit signatures on our public chain.
+                </p>
+                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
+            </div>
         </aside>
     </main>
 </article>
