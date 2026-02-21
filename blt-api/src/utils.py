@@ -273,3 +273,16 @@ def convert_d1_results(results) -> List[Dict]:
         return results
     
     return []
+
+async def check_required_fields(body, required_fields):
+    for field in required_fields:
+        if field not in body:
+            return False, field
+    return True, None
+
+async def convert_single_d1_result(data):
+    if hasattr(data, 'to_py'):
+        return data.to_py()
+    else:
+        return dict(data)
+
