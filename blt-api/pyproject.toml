@@ -18,7 +18,9 @@ classifiers = [
     "Topic :: Security",
 ]
 
-dependencies = []
+dependencies = [
+    "sendgrid>=6.12.5",
+]
 
 [project.optional-dependencies]
 dev = [
