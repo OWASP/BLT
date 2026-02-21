@@ -1,6 +1,7 @@
 name = "blt-netguardian"
 main = "src/worker.py"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["python_workers"]
 workers_dev = true
 
 # KV Namespaces for job state and task storage
