@@ -469,7 +469,7 @@
                 <div class="flex w-full max-w-4xl flex-col gap-2 sm:flex-row">
                     <input type="text" id="prUrlInput"
                         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-2 focus:ring-[#ffe3e3] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-red-900/50"
-                        placeholder="Enter GitHub PR URL or Repository URL" autocomplete="off" />
+                        placeholder="Enter GitHub PR URL, Repository URL, or Organization URL" autocomplete="off" />
                     <button id="addPrBtn"
                         class="btn-fallback w-[6rem] rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[#BC0000] disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-200 disabled:text-red-700 dark:disabled:border-red-800 dark:disabled:bg-red-950 dark:disabled:text-red-400">
                         Add PR
@@ -481,7 +481,7 @@
                         class="h-4 w-4 rounded border-slate-300 text-[#E10000] focus:ring-[#E10000] dark:border-slate-600 dark:bg-slate-700">
                     <label for="addAllPrsCheckbox"
                         class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                        Add all active PRs from this repo
+                        Add all active PRs from this repo or organization
                     </label>
                 </div>
             </section>
@@ -678,12 +678,13 @@
             }
         }
 
-        async function loadRateLimit() {
+        async function loadRateLimit(bypassCache = false) {
             try {
                 const MS_PER_MINUTE = 60000;
                 const MINUTES_PER_HOUR = 60;
 
-                const response = await fetch('/api/rate-limit');
+                const url = bypassCache ? `/api/rate-limit?_=${Date.now()}` : '/api/rate-limit';
+                const response = await fetch(url);
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
                 const usedEl = document.getElementById('rateLimitUsed');
@@ -953,9 +954,11 @@
             }, 5000);
         }
 
-        async function loadRepos() {
+        async function loadRepos(bypassCache = false) {
             try {
-                const response = await fetch('/api/repos');
+                const response = bypassCache
+                    ? await fetch(`/api/repos?_=${Date.now()}`)
+                    : await fetch('/api/repos');
                 const data = await response.json();
 
                 if (data.error) {
@@ -1146,7 +1149,7 @@
             }
         }
 
-        async function loadPrs() {
+        async function loadPrs(bypassCache = false) {
             const container = document.getElementById('prListContainer');
             // Only show spinner if search is empty to avoid flickering while typing
             if (document.getElementById('prSearchInput').value.trim() === '') {
@@ -1170,6 +1173,7 @@
                 } else {
                     url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
+                if (bypassCache) url += `&_=${Date.now()}`;
 
                 const response = await fetch(url);
                 
@@ -1336,12 +1340,12 @@
                 // Reload if there are changes (not removals, as those are already handled)
                 if (changedPrIds.length > 0) {
                     console.log('PR updates detected, refreshing...');
-                    await loadPrs();
+                    await loadPrs(true);
                 }
 
                 // Update repo counts if there were any changes or removals
                 if (changedPrIds.length > 0 || removedPrIds.length > 0) {
-                    await loadRepos();
+                    await loadRepos(true);
                 }
             } catch (error) {
                 console.error('Error checking for PR updates:', error);
@@ -2106,7 +2110,7 @@
                             row.remove();
 
                             // Update repos list (counts might have changed)
-                            await loadRepos();
+                            await loadRepos(true);
 
                             // Check if there are no PRs left
                             if (allPrs.length === 0) {
@@ -2120,13 +2124,13 @@
 
                     // Show success message
                     showError(refreshData.message || 'PR has been closed and removed from tracking');
-                    await loadRateLimit();
+                    await loadRateLimit(true);
                     return;
                 }
 
                 // Update only this PR row with fresh data
                 updateSinglePrRow(prId, refreshData.data);
-                await loadRateLimit();
+                await loadRateLimit(true);
 
                 // Get the new button reference after row update
                 const updatedRow = document.getElementById(`pr-row-${prId}`);
@@ -2289,8 +2293,13 @@
                 return;
             }
 
+            // Auto-detect if URL is an org or repo URL (not a PR URL)
+            const isOrgOrRepoUrl = prUrl.match(/^https?:\/\/github\.com\/[^/]+\/?$/) || 
+                                   (prUrl.match(/^https?:\/\/github\.com\/[^/]+\/[^/]+\/?$/) && !prUrl.includes('/pull/'));
+            const effectiveAddAll = addAll || !!isOrgOrRepoUrl;
+
             btn.disabled = true;
-            btn.textContent = addAll ? 'Importing...' : 'Adding...';
+            btn.textContent = effectiveAddAll ? 'Importing...' : 'Adding...';
 
             try {
                 // If importing all, handle logic to send repo_url appropriately
@@ -2311,10 +2320,19 @@
                     showInputError('prUrlInput', data.error);
                 } else {
                     input.value = '';
+                    // Show success message for bulk imports
+                    if (data.imported_count !== undefined) {
+                        if (data.truncated) {
+                            alert(`⚠️ Import Completed with Limit\n\n${data.message}\n\nNote: More open PRs exist than can be imported at once.`);
+                        } else {
+                            alert(`✅ ${data.message || 'Import completed successfully.'}`);
+                        }
+                    }
                     invalidateApiCache();
-                    await loadRepos();
-                    await loadPrs();
-                    await loadRateLimit();
+                    // Force bypass service worker cache after import
+                    await loadRepos(true);
+                    await loadPrs(true);
+                    await loadRateLimit(true);
                 }
             } catch (error) {
                 console.error('Error adding PR:', error);
@@ -2355,9 +2373,9 @@
                         alert(`✅ Import completed successfully.\n\n${data.message || 'All open PRs were imported successfully.'}`);
                     }
                     invalidateApiCache();
-                    await loadRepos();
-                    await loadPrs();
-                    await loadRateLimit();
+                    await loadRepos(true);
+                    await loadPrs(true);
+                    await loadRateLimit(true);
                 }
             } catch (error) {
                 console.error('Error importing PRs:', error);
