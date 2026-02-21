@@ -65,10 +65,11 @@ class Router:
     """
     URL Router for the BLT API.
     
-    This class manages route registration and request dispatching.
+    Manages route registration and request dispatching.
     """
     
     def __init__(self):
+        """Initialize the router."""
         self.routes: List[Route] = []
     
     def add_route(self, method: str, pattern: str, handler: Callable) -> None:

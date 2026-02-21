@@ -159,3 +159,102 @@ class TestRouterDecorators:
         
         assert len(router.routes) == 1
         assert router.routes[0].method == "DELETE"
+
+
+class TestRouteRegistrationOrder:
+    """Tests for route registration order matching."""
+    
+    def test_routes_kept_in_registration_order(self):
+        """Test that routes are kept in the order they are registered, not sorted."""
+        router = Router()
+        
+        handlers = []
+        for i in range(3):
+            handlers.append(lambda i=i: None)
+        
+        # Add routes in this specific order
+        router.add_route("GET", "/bugs/{id}", handlers[0])
+        router.add_route("GET", "/bugs/search", handlers[1])
+        router.add_route("GET", "/bugs", handlers[2])
+        
+        # Verify routes are kept in registration order (NO sorting)
+        assert router.routes[0].pattern == "/bugs/{id}"
+        assert router.routes[1].pattern == "/bugs/search"
+        assert router.routes[2].pattern == "/bugs"
+    
+    def test_route_matching_respects_registration_order(self):
+        """Test that routes are matched in registration order."""
+        router = Router()
+        
+        # Add specific route first, then generic
+        router.add_route("GET", "/bugs/search", lambda: "specific")
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
+        
+        # When /bugs/search is requested, it should match the specific route first
+        path = "/bugs/search"
+        method = "GET"
+        
+        matched_pattern = None
+        for route in router.routes:
+            result = route.match(method, path)
+            if result is not None:
+                matched_pattern = route.pattern
+                break
+        
+        # Should match the specific route because it was registered first
+        assert matched_pattern is not None
+        assert matched_pattern == "/bugs/search"
+    
+    def test_route_shadowing_with_wrong_order(self):
+        """Test that routes CAN be shadowed if registered in wrong order."""
+        router = Router()
+        
+        # Add generic route FIRST (wrong order)
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
+        # Then add specific route
+        router.add_route("GET", "/bugs/search", lambda: "specific")
+        
+        # When /bugs/search is requested, it WILL match the generic route first
+        # because that's how registration-order matching works
+        path = "/bugs/search"
+        method = "GET"
+        
+        matched_route = None
+        for route in router.routes:
+            result = route.match(method, path)
+            if result is not None:
+                matched_route = route
+                break
+        
+        # The generic route matches first (shadowing the specific route)
+        assert matched_route is not None
+        assert matched_route.pattern == "/bugs/{id}"
+        assert matched_route.match(method, path) == {"id": "search"}
+    
+    def test_correct_route_ordering_prevents_shadowing(self):
+        """Test that correct registration order prevents shadowing."""
+        router = Router()
+        
+        # Add specific route FIRST (correct order) 
+        router.add_route("GET", "/bugs/search", lambda: "specific")
+        # Then add generic route
+        router.add_route("GET", "/bugs/{id}", lambda: "generic")
+        
+        path = "/bugs/search"
+        method = "GET"
+        
+        matched_route = None
+        for route in router.routes:
+            result = route.match(method, path)
+            if result is not None:
+                matched_route = route
+                break
+        
+        # The specific route matches first (correct behavior)
+        assert matched_route is not None
+        assert matched_route.pattern == "/bugs/search"
+        assert matched_route.match(method, path) == {}
+
+
+
+
