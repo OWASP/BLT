@@ -1,0 +1,75 @@
+name: Design Submission
+description: Submit your design entry to the BLT Design Contest
+title: "[Design] "
+labels: ["design-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎨 BLT Design Contest Submission
+        Thank you for submitting your design! Please fill out all fields below.
+        Your submission will appear on the [Design Showcase](https://owasp-blt.github.io/BLT-Design-Contest/) once approved.
+
+  - type: input
+    id: designer_name
+    attributes:
+      label: Designer Name / Handle
+      description: Your name or GitHub username to be credited
+      placeholder: "e.g. Jane Doe or @janedoe"
+    validations:
+      required: true
+
+  - type: input
+    id: preview_url
+    attributes:
+      label: Preview Image URL
+      description: >
+        Direct link to your design preview image (PNG, JPG, or GIF).
+        You can upload to GitHub by dragging an image into this form,
+        or use Imgur / any public image host.
+      placeholder: "https://i.imgur.com/example.png"
+    validations:
+      required: true
+
+  - type: input
+    id: design_url
+    attributes:
+      label: Design / Prototype Link
+      description: Link to your Figma file, prototype, or hosted design
+      placeholder: "https://www.figma.com/file/..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Design Category
+      options:
+        - UI / Website Redesign
+        - Logo / Brand Identity
+        - Banner / Marketing
+        - Icon Set
+        - Mobile App
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe your design, the problem it solves, and any decisions you made
+      placeholder: "My design focuses on..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission Agreement
+      options:
+        - label: >
+            I confirm this is my original work and I grant OWASP BLT
+            permission to display it on the showcase.
+          required: true

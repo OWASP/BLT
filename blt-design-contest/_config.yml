@@ -1,0 +1,6 @@
+# GitHub Pages configuration
+# The site is built by the GitHub Actions workflow in .github/workflows/build.yml
+# and the generated index.html is pushed to the gh-pages branch.
+
+title: BLT Design Contest
+description: Community design showcase for OWASP BLT
