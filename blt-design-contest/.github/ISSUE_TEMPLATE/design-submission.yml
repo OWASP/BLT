@@ -10,24 +10,15 @@ body:
         Thank you for submitting your design! Please fill out all fields below.
         Your submission will appear on the [Design Showcase](https://owasp-blt.github.io/BLT-Design-Contest/) once approved.
 
-  - type: input
-    id: designer_name
+  - type: textarea
+    id: preview_image
     attributes:
-      label: Designer Name / Handle
-      description: Your name or GitHub username to be credited
-      placeholder: "e.g. Jane Doe or @janedoe"
-    validations:
-      required: true
-
-  - type: input
-    id: preview_url
-    attributes:
-      label: Preview Image URL
+      label: Preview Image
       description: >
-        Direct link to your design preview image (PNG, JPG, or GIF).
-        You can upload to GitHub by dragging an image into this form,
-        or use Imgur / any public image host.
-      placeholder: "https://i.imgur.com/example.png"
+        Upload your design preview image by dragging and dropping it here,
+        pasting it, or clicking the attachment button below.
+        GitHub will host the image automatically.
+      placeholder: "Drag & drop or paste your image here…"
     validations:
       required: true
 
