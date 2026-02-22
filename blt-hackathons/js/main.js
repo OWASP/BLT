@@ -205,34 +205,9 @@ class HackathonDashboard {
                 bgClass = 'bg-orange-50';
             }
 
-            const prsHtml = this.config.display.showPRsInLeaderboard ? `
-                <div class="mt-2 pl-11">
-                    <div class="text-sm font-medium text-gray-700 mb-2">Contributions:</div>
-                    <div class="space-y-2 max-h-48 overflow-y-auto">
-                        ${participant.prs.filter(pr => pr.merged_at).slice(0, 5).map(pr => `
-                            <a href="${pr.html_url}" target="_blank" rel="noopener noreferrer"
-                               class="block p-2 bg-gray-50 hover:bg-gray-100 rounded border-l-4 border-red-600 transition">
-                                <div class="font-medium text-sm truncate">${this.escapeHtml(pr.title)}</div>
-                                <div class="flex items-center text-xs text-gray-500 mt-1">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-code-branch mr-1"></i>
-                                        ${pr.repository}
-                                    </span>
-                                    <span class="mx-2">•</span>
-                                    <span>
-                                        <i class="far fa-calendar-alt mr-1"></i>
-                                        ${new Date(pr.merged_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : '';
-
             return `
                 <div class="p-4 ${bgClass} rounded-lg border border-gray-200">
-                    <div class="flex items-center mb-3">
+                    <div class="flex items-center">
                         <div class="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 text-gray-600 rounded-full font-bold">
                             ${position}
                         </div>
@@ -258,7 +233,6 @@ class HackathonDashboard {
                             <span class="hidden sm:inline">View PRs</span>
                         </a>
                     </div>
-                    ${prsHtml}
                 </div>
             `;
         }).join('');
@@ -293,38 +267,9 @@ class HackathonDashboard {
                 bgClass = 'bg-orange-50';
             }
 
-            const reviewsHtml = this.config.display.showReviewsInLeaderboard ? `
-                <div class="mt-2 pl-11">
-                    <div class="text-sm font-medium text-gray-700 mb-2">Recent Reviews:</div>
-                    <div class="space-y-2 max-h-48 overflow-y-auto">
-                        ${participant.reviews ? participant.reviews.slice(0, 5).map(review => `
-                            <a href="${review.html_url}" target="_blank" rel="noopener noreferrer"
-                               class="block p-2 bg-gray-50 hover:bg-gray-100 rounded border-l-4 border-green-600 transition">
-                                <div class="font-medium text-sm truncate">${this.escapeHtml(review.pull_request_title || 'PR Review')}</div>
-                                <div class="flex items-center text-xs text-gray-500 mt-1">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-eye mr-1"></i>
-                                         ${this.escapeHtml(review.repository)}
-                                    </span>
-                                    <span class="mx-2">•</span>
-                                    <span class="flex items-center">
-                                        <i class="far fa-calendar-alt mr-1"></i>
-                                        ${new Date(review.submitted_at).toLocaleDateString()}
-                                    </span>
-                                    <span class="mx-2">•</span>
-                                    <span class="px-1 rounded text-xs ${this.getReviewStateClass(review.state)}">
-                                        ${review.state}
-                                    </span>
-                                </div>
-                            </a>
-                        `).join('') : ''}
-                    </div>
-                </div>
-            ` : '';
-
             return `
                 <div class="p-4 ${bgClass} rounded-lg border border-gray-200">
-                    <div class="flex items-center mb-3">
+                    <div class="flex items-center">
                         <div class="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 text-gray-600 rounded-full font-bold">
                             ${position}
                         </div>
@@ -336,22 +281,20 @@ class HackathonDashboard {
                                     ${this.escapeHtml(participant.username)}
                                 </a>
                                 ${trophyIcon}
-                                ${participant.is_contributor ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Contributor</span>' : ''}
                             </div>
                             <div class="text-sm text-gray-500">
                                 ${participant.reviewCount} review${participant.reviewCount !== 1 ? 's' : ''}
                             </div>
                         </div>
-                        <a href="https://github.com/search?q=author%3A${participant.username}+type%3Apr" 
+                        <a href="https://github.com/search?q=reviewed-by%3A${participant.username}+type%3Apr" 
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                           title="View all PRs by ${this.escapeHtml(participant.username)}">
+                           title="View all reviews by ${this.escapeHtml(participant.username)}">
                             <i class="fas fa-external-link-alt mr-1"></i>
-                            <span class="hidden sm:inline">View PRs</span>
+                            <span class="hidden sm:inline">View Reviews</span>
                         </a>
                     </div>
-                    ${reviewsHtml}
                 </div>
             `;
         }).join('');
