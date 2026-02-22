@@ -2325,8 +2325,6 @@
         }
 
         async function updatePr(prId, button) {
-            const originalHtml = button.innerHTML;
-
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyzing...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
@@ -2344,6 +2342,9 @@
                 const refreshData = await refreshResponse.json();
                 if (refreshData.error) {
                     showInlineError(`pr-row-${prId}`, refreshData.error);
+                    button.innerHTML = '<i class="fas fa-chart-bar mr-1"></i>Analyze';
+                    button.disabled = false;
+                    button.classList.remove('opacity-70', 'cursor-not-allowed');
                     return;
                 }
 
@@ -2389,24 +2390,15 @@
                     return;
                 }
 
-                // Update only this PR row with fresh data
-                updateSinglePrRow(prId, refreshData.data);
-                await loadRateLimit(true);
-
-                // Get the new button reference after row update
-                const updatedRow = document.getElementById(`pr-row-${prId}`);
-                const updatedButton = updatedRow ? updatedRow.querySelector('.update-btn') : null;
-                if (!updatedButton) {
-                    console.error('Could not find updated button');
-                    return;
-                }
-
                 // Step 2: Analyze readiness
                 const readinessResponse = await fetch(`/api/prs/${prId}/readiness`);
                 const readinessData = await readinessResponse.json();
 
                 if (readinessData.error) {
                     showInlineError(`pr-row-${prId}`, readinessData.error);
+                    // Still update the row with the refreshed PR data even if readiness failed
+                    updateSinglePrRow(prId, refreshData.data);
+                    await loadRateLimit(true);
                     return;
                 }
 
@@ -2416,12 +2408,40 @@
                 // Save readiness data to localStorage
                 saveReadinessData(prId, readiness, reviewHealth);
 
-                // Update all inline cells with readiness data
-                updateInlineCells(prId, readiness, reviewHealth);
+                // Merge readiness results into the PR data so updateSinglePrRow can render
+                // everything in one single glide — no two-step visual update.
+                const mergedData = {
+                    ...refreshData.data,
+                    overall_score: readiness.overall_score,
+                    ci_score: readiness.ci_score,
+                    review_score: readiness.review_score,
+                    classification: readiness.classification,
+                    merge_ready: readiness.merge_ready ? 1 : 0,
+                    blockers: JSON.stringify(readiness.blockers || []),
+                    warnings: JSON.stringify(readiness.warnings || []),
+                    recommendations: JSON.stringify(readiness.recommendations || []),
+                    review_health_classification: reviewHealth.classification,
+                    review_health_score: reviewHealth.score,
+                    response_rate: reviewHealth.response_rate,
+                    total_feedback: reviewHealth.total_feedback,
+                    responded_feedback: reviewHealth.responded_feedback,
+                    stale_feedback_count: reviewHealth.stale_feedback_count,
+                    stale_feedback: JSON.stringify(reviewHealth.stale_feedback || [])
+                };
 
-                updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
-                updatedButton.disabled = false;
-                updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                // Single row replacement: refresh data + readiness in one smooth glide
+                updateSinglePrRow(prId, mergedData);
+                await loadRateLimit(true);
+
+                // Button is already set to "Analyzed" inside updateSinglePrRow,
+                // but ensure it's enabled in case the DOM ref shifted
+                const updatedRow = document.getElementById(`pr-row-${prId}`);
+                const updatedButton = updatedRow ? updatedRow.querySelector('.update-btn') : null;
+                if (updatedButton) {
+                    updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                    updatedButton.disabled = false;
+                    updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
             } catch (error) {
                 console.error('Error updating PR:', error);
                 showInlineError(`pr-row-${prId}`, 'Failed to update PR');
