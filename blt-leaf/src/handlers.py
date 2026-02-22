@@ -441,6 +441,7 @@ async def handle_refresh_pr(request, env):
     try:
         data = (await request.json()).to_py()
         pr_id = data.get('pr_id')
+        quick_refresh = bool(data.get('quick_refresh', False))
         user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
         
         if not pr_id:
@@ -508,9 +509,10 @@ async def handle_refresh_pr(request, env):
         
         await upsert_pr(db, result['pr_url'], result['repo_owner'], result['repo_name'], result['pr_number'], pr_data)
         
-        # Invalidate caches after successful refresh
-        # This ensures cached results don't become stale after new commits or review activity
-        await invalidate_readiness_cache(env, pr_id)
+        # For a full Analyze refresh, invalidate readiness so stale scores are cleared.
+        # For a quick refresh, preserve existing readiness data so the UI stays intact.
+        if not quick_refresh:
+            await invalidate_readiness_cache(env, pr_id)
         await invalidate_timeline_cache(env, result['repo_owner'], result['repo_name'], result['pr_number'])
         
         # Fetch the full updated DB row so the frontend receives all fields

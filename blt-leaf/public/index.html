@@ -291,6 +291,21 @@
                 display: none;
             }
         }
+
+        @keyframes pr-row-glide-in {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pr-row-glide-in {
+            animation: pr-row-glide-in 0.25s ease-out forwards;
+        }
     </style>
 </head>
 
@@ -2211,7 +2226,8 @@
             // Create new row with updated data
             const newRow = createPrRow({ ...prData, id: prId });
 
-            // Replace the old row with the new one
+            // Replace the old row with the new one (with glide-in animation)
+            newRow.classList.add('pr-row-glide-in');
             existingRow.replaceWith(newRow);
 
             // Restore readiness data so analysis cells are not lost after a quick refresh.
@@ -2404,7 +2420,7 @@
                 const refreshResponse = await fetch('/api/refresh', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pr_id: prId })
+                    body: JSON.stringify({ pr_id: prId, quick_refresh: true })
                 });
 
                 const refreshData = await refreshResponse.json();
