@@ -30,38 +30,24 @@ except ImportError:
 
 
 class EmailService:
-    """
-    Mailgun email service using direct HTTP API calls.
-    
-    Supports both:
-    - Sandbox domain (testing only - requires authorized recipients)
-    - Custom domain (production - can send to anyone after DNS verification)
-    """
+    """Mailgun email service using direct HTTP API calls."""
     
     MAILGUN_API_URL = "https://api.mailgun.net"
     
-    def __init__(
-        self, 
-        api_key: str, 
-        domain: str,
-        from_email: str = None, 
-        from_name: str = "OWASP BLT"
-    ):
+    def __init__(self, api_key: str, from_email: str = "postmaster@sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org", from_name: str = "OWASP BLT", sandbox_domain: str = None):
         """
         Initialize EmailService.
         
         Args:
-            api_key: Mailgun API key (Private API Key or Sending API Key)
-            domain: Your Mailgun domain 
-                   - Sandbox: "sandbox123...mailgun.org" (testing only)
-                   - Custom: "yourdomain.com" or "mg.yourdomain.com" (production)
-            from_email: Default sender email (if None, uses postmaster@domain)
+            api_key: Mailgun API key
+            from_email: Default sender email (just the email address)
             from_name: Default sender name
+            sandbox_domain: Mailgun sandbox domain (optional)
         """
         self.api_key = api_key
-        self.domain = domain
-        self.from_email = from_email or f"postmaster@{domain}"
+        self.from_email = from_email
         self.from_name = from_name
+        self.sandbox_domain = sandbox_domain
         self.logger = logging.getLogger(__name__)
 
     
@@ -133,11 +119,11 @@ class EmailService:
                 request_init.headers = js_headers
                 request_init.body = encoded_data
                 
-                response = await fetch(f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages", request_init)
+                response = await fetch(f"{self.MAILGUN_API_URL}/v3/{self.sandbox_domain}/messages", request_init)
             else:
                 # Fallback for testing
                 response = await fetch(
-                    f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages",
+                    f"{self.MAILGUN_API_URL}/v3/{self.sandbox_domain}/messages",
                     {
                         "method": "POST",
                         "headers": {
