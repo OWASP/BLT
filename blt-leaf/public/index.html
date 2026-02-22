@@ -992,9 +992,8 @@
             const mainEl = document.querySelector('main');
             if (mainEl) {
                 mainEl.scrollTo({ top: 0, behavior: 'instant' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'instant' });
             }
+            window.scrollTo({ top: 0, behavior: 'instant' });
         }
 
         async function loadRepos(bypassCache = false) {
