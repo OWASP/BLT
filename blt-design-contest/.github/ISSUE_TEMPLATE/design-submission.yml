@@ -41,6 +41,7 @@ body:
         - Banner / Marketing
         - Icon Set
         - Mobile App
+        - T-Shirt / Apparel Design
         - Other
     validations:
       required: true
