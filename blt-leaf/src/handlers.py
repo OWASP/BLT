@@ -415,6 +415,7 @@ async def handle_list_repos(env):
         stmt = db.prepare('''
             SELECT DISTINCT repo_owner, repo_name, 
                    COUNT(*) as pr_count,
+                   SUM(CASE WHEN readiness_computed_at IS NOT NULL THEN 1 ELSE 0 END) as analyzed_count,
                    MAX(repo_owner_avatar) as repo_owner_avatar
             FROM prs 
             WHERE is_merged = 0 AND state = 'open'
