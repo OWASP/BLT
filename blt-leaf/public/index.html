@@ -2685,9 +2685,51 @@
                 <div class="pt-2 text-xs text-slate-500 dark:text-slate-500">
                     <p>Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">OWASP Bug Logging Tool (BLT)</a> project</p>
                 </div>
+                <!-- DB Status -->
+                <div id="dbStatusBar" class="pt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-500">
+                    <span class="font-medium">DB Status:</span>
+                    <span id="dbStatusIndicator" class="inline-flex items-center gap-1">
+                        <span class="inline-block h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                        <span>checking…</span>
+                    </span>
+                    <span id="dbRowCounts" class="hidden">
+                        &bull; PRs: <span id="dbPrsCount">—</span>
+                        &bull; Timeline cache: <span id="dbTimelineCount">—</span>
+                    </span>
+                </div>
             </div>
         </div>
     </footer>
+    <script>
+        (async function loadDbStatus() {
+            try {
+                const res = await fetch('/api/status');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const indicator = document.getElementById('dbStatusIndicator');
+                const rowCounts = document.getElementById('dbRowCounts');
+                const prsCount = document.getElementById('dbPrsCount');
+                const timelineCount = document.getElementById('dbTimelineCount');
+                if (data.database_configured) {
+                    indicator.innerHTML =
+                        '<span class="inline-block h-2 w-2 rounded-full bg-green-500"></span>' +
+                        '<span class="text-green-600 dark:text-green-400">Connected</span>';
+                    prsCount.textContent = (data.row_counts && data.row_counts.prs != null) ? data.row_counts.prs : '—';
+                    timelineCount.textContent = (data.row_counts && data.row_counts.timeline_cache != null) ? data.row_counts.timeline_cache : '—';
+                    rowCounts.classList.remove('hidden');
+                } else {
+                    indicator.innerHTML =
+                        '<span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>' +
+                        '<span class="text-red-600 dark:text-red-400">Not configured</span>';
+                }
+            } catch (err) {
+                const indicator = document.getElementById('dbStatusIndicator');
+                indicator.innerHTML =
+                    '<span class="inline-block h-2 w-2 rounded-full bg-yellow-500"></span>' +
+                    '<span class="text-yellow-600 dark:text-yellow-400">Unavailable</span>';
+            }
+        })();
+    </script>
 </body>
 
 </html>
