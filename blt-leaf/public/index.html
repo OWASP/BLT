@@ -1676,6 +1676,11 @@
                 return '<i class="fas fa-sort text-slate-400 ml-1"></i>';
             };
 
+            const refreshApiCalls = Math.ceil(allPrs.length / 50);
+            // Each readiness check fetches at least 4 GitHub endpoints in parallel:
+            // commits, reviews, review_comments, issue_comments
+            // NOTE: This is a lower-bound estimate; pagination can require additional API calls per PR.
+
             container.innerHTML = `
                 <div class="mb-2 flex gap-2">
                     <button 
@@ -1690,12 +1695,18 @@
                         title="Sort by Readiness Score (Ready column)">
                         <i class="fas fa-sort-amount-down"></i> Sort by Readiness
                     </button>
-                    ${currentRepo !== 'all' ? `<button 
+                    <button 
                         id="refreshPrsBtn" 
                         class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
-                        title="Refresh PR data from GitHub API">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>` : ''}
+                        title="Refresh essential PR data from GitHub API (uses GraphQL batch: 1 call per 50 PRs)">
+                        <i class="fas fa-sync-alt"></i> Refresh All Essential <span class="font-semibold text-slate-500 dark:text-slate-400">(${refreshApiCalls} API call${refreshApiCalls !== 1 ? 's' : ''})</span>
+                    </button>
+                    <button 
+                        id="analyzeAllBtn" 
+                        class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                        title="Analyze readiness for all PRs (at least 4 GitHub API calls per PR: commits, reviews, review comments, issue comments; more if paginated)">
+                        <i class="fas fa-chart-bar"></i> Analyze All <span class="font-semibold text-slate-500 dark:text-slate-400">(${allPrs.length} × 4+ API calls)</span>
+                    </button>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
                     <table class="w-full text-left text-sm" style="min-width: 1920px;">
@@ -2716,6 +2727,109 @@
                     await loadPrs(true);
                 } catch (err) {
                     showError(`Failed to refresh PRs: ${err.message}`);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+                return;
+            }
+
+            // Handle Analyze All button (run readiness analysis for every tracked PR)
+            if (e.target.closest('#analyzeAllBtn')) {
+                const ANALYZE_MAX_RETRIES = 3;
+                // Default wait when the server doesn't tell us how long: full rate-limit window + 1s buffer
+                const ANALYZE_DEFAULT_WAIT_SECS = 61;
+                // Short delay before retrying on transient server errors (5xx)
+                const ANALYZE_5XX_RETRY_DELAY_SECS = 5;
+                const btn = e.target.closest('#analyzeAllBtn');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                const total = allPrs.length;
+                let done = 0;
+                // Track failures as {id, reason} objects so the user can diagnose errors
+                const failures = [];
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing 0/${total}...`;
+                try {
+                    for (const pr of allPrs) {
+                        let retries = 0;
+                        let succeeded = false;
+                        while (retries < ANALYZE_MAX_RETRIES) {
+                            try {
+                                const resp = await fetch(`/api/prs/${pr.id}/readiness`);
+                                if (resp.status === 429) {
+                                    // App rate-limit — wait for server-provided retry_after then retry
+                                    let waitSecs = ANALYZE_DEFAULT_WAIT_SECS;
+                                    try {
+                                        const errData = await resp.json();
+                                        // Use server-provided retry_after (already includes buffer) when valid
+                                        if (typeof errData.retry_after === 'number' && Number.isFinite(errData.retry_after)) {
+                                            waitSecs = errData.retry_after;
+                                        }
+                                    } catch (_) {}
+                                    for (let s = waitSecs; s > 0; s--) {
+                                        btn.innerHTML = `<i class="fas fa-clock"></i> Rate limited, retrying in ${s}s... (${done}/${total})`;
+                                        await new Promise(r => setTimeout(r, 1000));
+                                    }
+                                    retries++;
+                                    continue;
+                                }
+                                if (resp.status >= 500) {
+                                    // Server/GitHub API error — retry with short delay for transient failures
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    retries++;
+                                    if (retries < ANALYZE_MAX_RETRIES) {
+                                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Retrying PR ${pr.id} (${reason})...`;
+                                        await new Promise(r => setTimeout(r, ANALYZE_5XX_RETRY_DELAY_SECS * 1000));
+                                        continue;
+                                    }
+                                    failures.push({ id: pr.id, reason });
+                                    break;
+                                }
+                                if (resp.ok) {
+                                    const data = await resp.json();
+                                    if (!data.error) {
+                                        saveReadinessData(pr.id, data.readiness, data.review_health);
+                                        updateInlineCells(pr.id, data.readiness, data.review_health);
+                                        succeeded = true;
+                                    } else {
+                                        failures.push({ id: pr.id, reason: data.error });
+                                    }
+                                } else {
+                                    // Non-429 non-5xx non-2xx (e.g. 404)
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    failures.push({ id: pr.id, reason });
+                                }
+                                break;
+                            } catch (networkErr) {
+                                failures.push({ id: pr.id, reason: networkErr.message || 'Network error' });
+                                break;
+                            }
+                        }
+                        // 429 retries exhausted
+                        if (!succeeded && retries >= ANALYZE_MAX_RETRIES && !failures.find(f => f.id === pr.id)) {
+                            failures.push({ id: pr.id, reason: 'Rate limit retries exhausted' });
+                        }
+                        done++;
+                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing ${done}/${total}...`;
+                    }
+                    if (failures.length > 0) {
+                        // Group by reason to give a concise diagnostic summary
+                        const reasonCounts = failures.reduce((acc, f) => {
+                            const key = f.reason.substring(0, 80);
+                            acc[key] = (acc[key] || 0) + 1;
+                            return acc;
+                        }, {});
+                        const reasonSummary = Object.entries(reasonCounts)
+                            .map(([r, c]) => `${c}× ${r}`)
+                            .join('; ');
+                        showError(`Analyze All: ${failures.length} PR${failures.length !== 1 ? 's' : ''} could not be analyzed — ${reasonSummary}`);
+                    }
+                } catch (err) {
+                    showError(`Failed to analyze PRs: ${err.message}`);
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
