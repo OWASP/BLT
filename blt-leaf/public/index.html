@@ -1105,6 +1105,13 @@
                     document.querySelectorAll('.repo-item').forEach(item => {
                         setRepoItemActiveState(item, item.dataset.repo === currentRepo);
                     });
+                    // Move clicked repo to top of list (after "All Repositories")
+                    const allItem = repoList.querySelector('[data-repo="all"]');
+                    if (allItem && allItem.nextSibling !== li) {
+                        repoList.insertBefore(li, allItem.nextSibling);
+                    }
+                    // Scroll to top of page
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     loadPrs();
                 });
 
