@@ -29,8 +29,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pull_number = pr.number;
-            const prUrl = pr.html_url;
-            const leafUrl = `https://leaf.owaspblt.org/?pr=${encodeURIComponent(prUrl)}`;
+            const leafUrl = `https://leaf.owaspblt.org/?owner=${owner}&repo=${repo}&pr=${pull_number}`;
 
             // Check if a readiness comment already exists to avoid duplicates
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -41,7 +40,7 @@ jobs:
             });
 
             const existing = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('leaf.owaspblt.org/?pr=')
+              c.user.type === 'Bot' && c.body.includes('leaf.owaspblt.org/?')
             );
 
             if (existing) {
@@ -53,7 +52,7 @@ jobs:
               '## 🍃 PR Readiness Check',
               '',
               'Check the readiness of this PR on **Leaf**:',
-              `👉 ${leafUrl}`,
+              `👉 [Open on Leaf](${leafUrl})`,
               '',
               '_Leaf reviews pull requests for operational readiness, security risks, and production-impacting changes before they ship._',
             ].join('\n');
