@@ -15,7 +15,8 @@ from utils import (
 from cache import (
     check_rate_limit, get_readiness_cache, set_readiness_cache,
     invalidate_readiness_cache, invalidate_timeline_cache, get_rate_limit_cache,
-    _READINESS_CACHE_TTL, _RATE_LIMIT_CACHE_TTL, _rate_limit_cache
+    _READINESS_CACHE_TTL, _RATE_LIMIT_CACHE_TTL, _READINESS_RATE_LIMIT,
+    _READINESS_RATE_WINDOW, _rate_limit_cache
 )
 from database import get_db, upsert_pr
 from github_api import (
@@ -224,6 +225,18 @@ async def handle_add_pr(request, env):
             
             await upsert_pr(db, pr_url, parsed['owner'], parsed['repo'], parsed['pr_number'], pr_data)
             
+            # Auto-run readiness analysis for the newly added PR
+            readiness_data = None
+            try:
+                pr_result = await db.prepare(
+                    'SELECT * FROM prs WHERE pr_url = ?'
+                ).bind(pr_url).first()
+                if pr_result:
+                    pr_row = pr_result.to_py()
+                    readiness_data = await _run_readiness_analysis(env, pr_row, pr_row['id'], user_token)
+            except Exception as analysis_err:
+                print(f"Auto-analysis failed for PR {pr_url}: {type(analysis_err).__name__}: {str(analysis_err)}")
+            
             # Include repo_owner, repo_name, pr_number, and pr_url in the response for frontend display
             response_data = {
                 **pr_data,
@@ -233,7 +246,11 @@ async def handle_add_pr(request, env):
                 'pr_url': pr_url
             }
             
-            return Response.new(json.dumps({'success': True, 'data': response_data}), 
+            result_obj = {'success': True, 'data': response_data}
+            if readiness_data:
+                result_obj['readiness'] = readiness_data
+            
+            return Response.new(json.dumps(result_obj), 
                               {'headers': {'Content-Type': 'application/json'}})
 
     except Exception as e:
@@ -1334,6 +1351,106 @@ async def handle_pr_review_analysis(request, env, path):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+async def _run_readiness_analysis(env, pr, pr_id, github_token):
+    """
+    Compute PR readiness analysis and cache the result.
+    
+    Shared logic used by handle_add_pr (auto-analysis on single PR add)
+    and handle_pr_readiness (on-demand readiness endpoint).
+    
+    Args:
+        env: Worker environment
+        pr: PR data dict (from database SELECT *)
+        pr_id: PR ID
+        github_token: Optional GitHub token for API calls
+    
+    Returns:
+        Dict containing readiness analysis data, or None if analysis fails
+    """
+    try:
+        # Normalize pr_id to str so cache keys are consistent regardless of
+        # whether the caller passes an int (handle_add_pr) or str (handle_pr_readiness)
+        pr_id = str(pr_id)
+        
+        # Fetch timeline data from GitHub
+        timeline_data = await fetch_pr_timeline_data(
+            env,
+            pr['repo_owner'],
+            pr['repo_name'],
+            pr['pr_number'],
+            github_token
+        )
+        
+        # Calculate and update review_status from timeline data
+        # This ensures the database has the latest review status without making duplicate API calls
+        original_review_status = pr.get('review_status', 'pending')
+        review_status = calculate_review_status(timeline_data.get('reviews', []))
+        if review_status != original_review_status:
+            # Update review_status in database only if it actually changed
+            db = get_db(env)
+            await db.prepare(
+                'UPDATE prs SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+            ).bind(review_status, pr_id).run()
+            pr['review_status'] = review_status
+        
+        # Build unified timeline
+        timeline = build_pr_timeline(timeline_data)
+        
+        # Analyze review progress
+        review_data = analyze_review_progress(timeline, pr['author_login'])
+        
+        # Classify review health
+        review_classification, review_score = classify_review_health(review_data)
+        
+        # Calculate combined readiness
+        readiness = calculate_pr_readiness(pr, review_classification, review_score)
+        
+        # Build response data with percentage formatting
+        response_data = {
+            'pr': {
+                'id': pr['id'],
+                'title': pr['title'],
+                'author': pr['author_login'],
+                'repo': f"{pr['repo_owner']}/{pr['repo_name']}",
+                'number': pr['pr_number'],
+                'state': pr['state'],
+                'is_merged': pr['is_merged'] == 1,
+                'mergeable_state': pr['mergeable_state'],
+                'files_changed': pr['files_changed']
+            },
+            'readiness': {
+                **readiness,
+                'overall_score_display': f"{readiness['overall_score']}%",
+                'ci_score_display': f"{readiness['ci_score']}%",
+                'review_score_display': f"{readiness.get('review_score', review_score)}%"
+            },
+            'review_health': {
+                'classification': review_classification,
+                'score': review_score,
+                'score_display': f"{review_score}%",
+                'total_feedback': review_data['total_feedback_count'],
+                'responded_feedback': review_data['responded_count'],
+                'response_rate': review_data['response_rate'],
+                'response_rate_display': f"{int(review_data['response_rate'] * 100)}%",
+                'stale_feedback_count': len(review_data['stale_feedback']),
+                'stale_feedback': review_data['stale_feedback']
+            },
+            'ci_checks': {
+                'passed': pr['checks_passed'],
+                'failed': pr['checks_failed'],
+                'skipped': pr['checks_skipped']
+            }
+        }
+        
+        # Cache the result
+        await set_readiness_cache(env, pr_id, response_data)
+        
+        return response_data
+    except Exception as e:
+        print(f"Error running readiness analysis for PR {pr_id}: {type(e).__name__}: {str(e)}")
+        return None
+
+
 async def handle_pr_readiness(request, env, path):
     """
     GET /api/prs/{id}/readiness
@@ -1404,81 +1521,15 @@ async def handle_pr_readiness(request, env, path):
         
         pr = result.to_py()
         
-        # Save the current review_status from database for comparison later
-        original_review_status = pr.get('review_status', 'pending')
-        
         # Fetch timeline data from GitHub
         github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
-
-        timeline_data = await fetch_pr_timeline_data(
-            env,
-            pr['repo_owner'],
-            pr['repo_name'],
-            pr['pr_number'],
-            github_token
-        )
         
-        # Calculate and update review_status from timeline data
-        # This ensures the database has the latest review status without making duplicate API calls
-        review_status = calculate_review_status(timeline_data.get('reviews', []))
-        if review_status != original_review_status:
-            # Update review_status in database only if it actually changed
-            await db.prepare(
-                'UPDATE prs SET review_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-            ).bind(review_status, pr_id).run()
-            pr['review_status'] = review_status
+        # Run readiness analysis
+        response_data = await _run_readiness_analysis(env, pr, pr_id, github_token)
         
-        # Build unified timeline
-        timeline = build_pr_timeline(timeline_data)
-        
-        # Analyze review progress
-        review_data = analyze_review_progress(timeline, pr['author_login'])
-        
-        # Classify review health
-        review_classification, review_score = classify_review_health(review_data)
-        
-        # Calculate combined readiness
-        readiness = calculate_pr_readiness(pr, review_classification, review_score)
-        
-        # Build response data with percentage formatting
-        response_data = {
-            'pr': {
-                'id': pr['id'],
-                'title': pr['title'],
-                'author': pr['author_login'],
-                'repo': f"{pr['repo_owner']}/{pr['repo_name']}",
-                'number': pr['pr_number'],
-                'state': pr['state'],
-                'is_merged': pr['is_merged'] == 1,
-                'mergeable_state': pr['mergeable_state'],
-                'files_changed': pr['files_changed']
-            },
-            'readiness': {
-                **readiness,
-                'overall_score_display': f"{readiness['overall_score']}%",
-                'ci_score_display': f"{readiness['ci_score']}%",
-                'review_score_display': f"{readiness.get('review_score', review_score)}%"
-            },
-            'review_health': {
-                'classification': review_classification,
-                'score': review_score,
-                'score_display': f"{review_score}%",
-                'total_feedback': review_data['total_feedback_count'],
-                'responded_feedback': review_data['responded_count'],
-                'response_rate': review_data['response_rate'],
-                'response_rate_display': f"{int(review_data['response_rate'] * 100)}%",
-                'stale_feedback_count': len(review_data['stale_feedback']),
-                'stale_feedback': review_data['stale_feedback']
-            },
-            'ci_checks': {
-                'passed': pr['checks_passed'],
-                'failed': pr['checks_failed'],
-                'skipped': pr['checks_skipped']
-            }
-        }
-        
-        # Cache the result
-        await set_readiness_cache(env, pr_id, response_data)
+        if response_data is None:
+            return Response.new(json.dumps({'error': 'Failed to compute readiness analysis'}),
+                              {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
         return Response.new(
             json.dumps(response_data),

@@ -2858,21 +2858,59 @@
 
         async function handlePrUrlParam() {
             const params = new URLSearchParams(window.location.search);
+            const ownerParam = params.get('owner');
+            const repoParam = params.get('repo');
             const prParam = params.get('pr');
-            if (!prParam) return;
+
+            // Support new format: ?owner=X&repo=Y&pr=N (PR number)
+            // Support old format: ?pr=full_github_url
+            let prUrl = null;
+            let repoKey = null;
+
+            // Basic validation for new format parameters
+            const ownerValid = typeof ownerParam === 'string' && /^[a-zA-Z0-9._-]+$/.test(ownerParam);
+            const repoValid = typeof repoParam === 'string' && /^[a-zA-Z0-9._-]+$/.test(repoParam);
+            const prValid = typeof prParam === 'string' && /^\d+$/.test(prParam);
+
+            if (ownerValid && repoValid && prValid) {
+                // New format: construct the full PR URL from parts
+                prUrl = `https://github.com/${ownerParam}/${repoParam}/pull/${prParam}`;
+                repoKey = `${ownerParam}/${repoParam}`;
+            } else if (prParam) {
+                // Old format: only accept prParam if it looks like a GitHub PR URL
+                const legacyPrUrlPattern = /^https?:\/\/github\.com\/([a-zA-Z0-9._-]+)\/([a-zA-Z0-9._-]+)\/pull\/\d+$/;
+                const match = prParam.match(legacyPrUrlPattern);
+                if (match) {
+                    prUrl = prParam;
+                    repoKey = `${match[1]}/${match[2]}`;
+                }
+            }
+
+            if (!prUrl) return;
 
             // Pre-fill the input with the PR URL
             const input = document.getElementById('prUrlInput');
-            if (input) input.value = prParam;
+            if (input) input.value = prUrl;
+
+            // Select the correct repo in the sidebar if needed
+            if (repoKey && repoKey !== currentRepo) {
+                currentRepo = repoKey;
+                localStorage.setItem('currentRepo', currentRepo);
+                updateMobileRepoDisplay();
+                document.querySelectorAll('.repo-item').forEach(item => {
+                    setRepoItemActiveState(item, item.dataset.repo === currentRepo);
+                });
+                await loadPrs();
+            }
 
             // Check if the PR is already tracked
-            const existing = allPrs.find(pr => pr.pr_url === prParam);
+            const existing = allPrs.find(pr => pr.pr_url === prUrl);
             if (existing) {
                 highlightPrRow(existing.id);
             } else {
                 // Auto-add the PR, then highlight it
                 await addPr();
-                const added = allPrs.find(pr => pr.pr_url === prParam);
+                const added = allPrs.find(pr => pr.pr_url === prUrl);
                 if (added) highlightPrRow(added.id);
             }
         }
