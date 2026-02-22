@@ -11,6 +11,13 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('phc_AsrbKREZs1Q8OiQJJfZgzA3OBYLHvScQc4t3OmP9cxF', {
+            api_host: 'https://us.i.posthog.com',
+            defaults: '2026-01-30'
+        })
+    </script>
+    <script>
         window.tailwind = {
             config: {
                 darkMode: 'class'
@@ -290,6 +297,21 @@
             .mobile-repo-search {
                 display: none;
             }
+        }
+
+        @keyframes pr-row-glide-in {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pr-row-glide-in {
+            animation: pr-row-glide-in 0.25s ease-out forwards;
         }
     </style>
 </head>
@@ -902,7 +924,7 @@
 
             // Create error cell that spans all columns
             const errorCell = document.createElement('td');
-            errorCell.colSpan = 19; // Total number of columns in the table
+            errorCell.colSpan = 22; // Total number of columns in the table
             errorCell.className = 'px-2 py-3';
             errorCell.innerHTML = `
                 <div class="flex items-start gap-2 rounded-lg border border-red-200 border-l-4 border-l-red-600 bg-red-50 px-3 py-2.5 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
@@ -1124,6 +1146,18 @@
 
                 repoList.appendChild(li);
             });
+
+            // On page load, move the selected repo to the top of the list (after "All Repositories")
+            if (currentRepo !== 'all') {
+                const selectedItem = repoList.querySelector(`[data-repo="${CSS.escape(currentRepo)}"]`);
+                const allReposItem = repoList.querySelector('[data-repo="all"]');
+                if (selectedItem && allReposItem) {
+                    const nextElement = allReposItem.nextElementSibling;
+                    if (nextElement !== selectedItem) {
+                        repoList.insertBefore(selectedItem, nextElement || null);
+                    }
+                }
+            }
         }
 
         function updateMobileDropdown(searchTerm = '') {
@@ -1817,12 +1851,25 @@
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by PR last updated time. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
-                                        <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
+                                        <i class="fas fa-clock text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">PR Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 100px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_refreshed_at" style="min-width: 90px;" title="Click to sort by last data refresh time. Shift+Click to add to sort columns.&#10;Timestamp of last data refresh from GitHub">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <i class="fas fa-sync-alt text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">Refreshed</span> ${getSortIcon('last_refreshed_at')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="readiness_computed_at" style="min-width: 90px;" title="Click to sort by last readiness analysis time. Shift+Click to add to sort columns.&#10;Timestamp of last readiness analysis">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <i class="fas fa-chart-bar text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">Analyzed</span> ${getSortIcon('readiness_computed_at')}
+                                    </div>
+                                </th>
+                                <th class="px-2 py-3 text-center" style="min-width: 180px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
@@ -1891,10 +1938,10 @@
                 // Display the readiness data if available
                 if (readiness && reviewHealth) {
                     updateInlineCells(pr.id, readiness, reviewHealth);
-                    // Update button to show it was updated
+                    // Update button to show it was analyzed
                     const updateBtn = row.querySelector('.update-btn');
                     if (updateBtn) {
-                        updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
+                        updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
                     }
                 }
             });
@@ -1903,6 +1950,13 @@
                 btn.addEventListener('click', async (e) => {
                     const prId = e.currentTarget.dataset.prId;
                     await updatePr(prId, e.currentTarget);
+                });
+            });
+            
+            document.querySelectorAll('.quick-refresh-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const prId = parseInt(e.currentTarget.dataset.prId, 10);
+                    await quickRefreshPr(prId, e.currentTarget);
                 });
             });
             
@@ -2124,11 +2178,22 @@
                 <td class="px-2 py-3" id="readiness-issues-${pr.id}">
                     <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
                 </td>
-                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-clock text-slate-400 dark:text-slate-500"></i>${escapeHtml(timeAgo(pr.last_updated_at))}</span>
+                </td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-sync-alt text-slate-400 dark:text-slate-500"></i>${pr.last_refreshed_at ? escapeHtml(timeAgo(pr.last_refreshed_at)) : '<span class="text-slate-400">-</span>'}</span>
+                </td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-chart-bar text-slate-400 dark:text-slate-500"></i>${pr.readiness_computed_at ? escapeHtml(timeAgo(pr.readiness_computed_at)) : '<span class="text-slate-400">-</span>'}</span>
+                </td>
                 <td class="px-2 py-3 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
-                            <i class="fas fa-sync mr-1"></i>Update
+                    <div class="flex items-center justify-center gap-1">
+                        <button class="quick-refresh-btn rounded-md border border-slate-400 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="Quick refresh: update essential PR data only (no readiness analysis)" aria-label="Quick refresh pull request">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                        <button class="update-btn inline-flex items-center justify-center rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" style="min-width:6.5rem;" data-pr-id="${pr.id}" title="Refresh PR data and analyze readiness">
+                            <i class="fas fa-chart-bar mr-1"></i>Analyze
                         </button>
                         <button class="view-raw-btn rounded-md border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="View raw PR data">
                             <i class="fas fa-database"></i>
@@ -2180,14 +2245,73 @@
             // Create new row with updated data
             const newRow = createPrRow({ ...prData, id: prId });
 
-            // Replace the old row with the new one
+            // Replace the old row with the new one (with glide-in animation)
+            newRow.classList.add('pr-row-glide-in');
             existingRow.replaceWith(newRow);
+
+            // Restore readiness data so analysis cells are not lost after a quick refresh.
+            // Prefer fields already in prData (full DB row), fall back to localStorage.
+            let readiness = null;
+            let reviewHealth = null;
+            if (prData.overall_score != null) {
+                try {
+                    readiness = {
+                        overall_score: prData.overall_score,
+                        overall_score_display: `${prData.overall_score}%`,
+                        ci_score: prData.ci_score,
+                        ci_score_display: `${prData.ci_score}%`,
+                        review_score: prData.review_score,
+                        review_score_display: `${prData.review_score}%`,
+                        classification: prData.classification,
+                        merge_ready: prData.merge_ready === 1,
+                        blockers: prData.blockers ? JSON.parse(prData.blockers) : [],
+                        warnings: prData.warnings ? JSON.parse(prData.warnings) : [],
+                        recommendations: prData.recommendations ? JSON.parse(prData.recommendations) : []
+                    };
+                    reviewHealth = {
+                        classification: prData.review_health_classification,
+                        score: prData.review_health_score,
+                        score_display: `${prData.review_health_score || 0}%`,
+                        response_rate: prData.response_rate || 0,
+                        response_rate_display: `${Math.round((prData.response_rate || 0) * 100)}%`,
+                        total_feedback: prData.total_feedback || 0,
+                        responded_feedback: prData.responded_feedback || 0,
+                        stale_feedback_count: prData.stale_feedback_count || 0,
+                        stale_feedback: prData.stale_feedback ? JSON.parse(prData.stale_feedback) : []
+                    };
+                } catch (e) {
+                    readiness = null;
+                    reviewHealth = null;
+                }
+            }
+            if (!readiness || !reviewHealth) {
+                const stored = loadReadinessData(prId);
+                if (stored && stored.readiness && stored.reviewHealth) {
+                    readiness = stored.readiness;
+                    reviewHealth = stored.reviewHealth;
+                }
+            }
+            if (readiness && reviewHealth) {
+                updateInlineCells(prId, readiness, reviewHealth);
+                const updateBtn = newRow.querySelector('.update-btn');
+                if (updateBtn) {
+                    updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                }
+            }
 
             // Re-attach the click event listener to the new button
             const updateBtn = newRow.querySelector('.update-btn');
             if (updateBtn) {
                 updateBtn.addEventListener('click', async (e) => {
                     await updatePr(prId, e.currentTarget);
+                });
+            }
+            
+            // Re-attach the click event listener to the quick refresh button
+            const quickRefreshBtn = newRow.querySelector('.quick-refresh-btn');
+            if (quickRefreshBtn) {
+                quickRefreshBtn.addEventListener('click', async (e) => {
+                    await quickRefreshPr(prId, e.currentTarget);
                 });
             }
             
@@ -2201,10 +2325,8 @@
         }
 
         async function updatePr(prId, button) {
-            const originalHtml = button.innerHTML;
-
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Updating...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyzing...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
@@ -2220,6 +2342,9 @@
                 const refreshData = await refreshResponse.json();
                 if (refreshData.error) {
                     showInlineError(`pr-row-${prId}`, refreshData.error);
+                    button.innerHTML = '<i class="fas fa-chart-bar mr-1"></i>Analyze';
+                    button.disabled = false;
+                    button.classList.remove('opacity-70', 'cursor-not-allowed');
                     return;
                 }
 
@@ -2265,24 +2390,15 @@
                     return;
                 }
 
-                // Update only this PR row with fresh data
-                updateSinglePrRow(prId, refreshData.data);
-                await loadRateLimit(true);
-
-                // Get the new button reference after row update
-                const updatedRow = document.getElementById(`pr-row-${prId}`);
-                const updatedButton = updatedRow ? updatedRow.querySelector('.update-btn') : null;
-                if (!updatedButton) {
-                    console.error('Could not find updated button');
-                    return;
-                }
-
                 // Step 2: Analyze readiness
                 const readinessResponse = await fetch(`/api/prs/${prId}/readiness`);
                 const readinessData = await readinessResponse.json();
 
                 if (readinessData.error) {
                     showInlineError(`pr-row-${prId}`, readinessData.error);
+                    // Still update the row with the refreshed PR data even if readiness failed
+                    updateSinglePrRow(prId, refreshData.data);
+                    await loadRateLimit(true);
                     return;
                 }
 
@@ -2292,15 +2408,113 @@
                 // Save readiness data to localStorage
                 saveReadinessData(prId, readiness, reviewHealth);
 
-                // Update all inline cells with readiness data
-                updateInlineCells(prId, readiness, reviewHealth);
+                // Merge readiness results into the PR data so updateSinglePrRow can render
+                // everything in one single glide — no two-step visual update.
+                // Set readiness_computed_at to now since the backend just wrote CURRENT_TIMESTAMP
+                // but doesn't return it in the readiness response.
+                const nowIso = new Date().toISOString();
+                const mergedData = {
+                    ...refreshData.data,
+                    overall_score: readiness.overall_score,
+                    ci_score: readiness.ci_score,
+                    review_score: readiness.review_score,
+                    classification: readiness.classification,
+                    merge_ready: readiness.merge_ready ? 1 : 0,
+                    blockers: JSON.stringify(readiness.blockers || []),
+                    warnings: JSON.stringify(readiness.warnings || []),
+                    recommendations: JSON.stringify(readiness.recommendations || []),
+                    review_health_classification: reviewHealth.classification,
+                    review_health_score: reviewHealth.score,
+                    response_rate: reviewHealth.response_rate,
+                    total_feedback: reviewHealth.total_feedback,
+                    responded_feedback: reviewHealth.responded_feedback,
+                    stale_feedback_count: reviewHealth.stale_feedback_count,
+                    stale_feedback: JSON.stringify(reviewHealth.stale_feedback || []),
+                    readiness_computed_at: nowIso
+                };
 
-                updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
-                updatedButton.disabled = false;
-                updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                // Single row replacement: refresh data + readiness in one smooth glide
+                updateSinglePrRow(prId, mergedData);
+                await loadRateLimit(true);
+
+                // Button is already set to "Analyzed" inside updateSinglePrRow,
+                // but ensure it's enabled in case the DOM ref shifted
+                const updatedRow = document.getElementById(`pr-row-${prId}`);
+                const updatedButton = updatedRow ? updatedRow.querySelector('.update-btn') : null;
+                if (updatedButton) {
+                    updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                    updatedButton.disabled = false;
+                    updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
             } catch (error) {
                 console.error('Error updating PR:', error);
                 showInlineError(`pr-row-${prId}`, 'Failed to update PR');
+                // Restore button to original state so it can be clicked again
+                button.innerHTML = '<i class="fas fa-chart-bar mr-1"></i>Analyze';
+                button.disabled = false;
+                button.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+
+        async function quickRefreshPr(prId, button) {
+            const originalHtml = button.innerHTML;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                const refreshResponse = await fetch('/api/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pr_id: prId, quick_refresh: true })
+                });
+
+                const refreshData = await refreshResponse.json();
+                if (refreshData.error) {
+                    showInlineError(`pr-row-${prId}`, refreshData.error);
+                    button.innerHTML = originalHtml;
+                    button.disabled = false;
+                    button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    return;
+                }
+
+                if (refreshData.removed) {
+                    const prIndex = allPrs.findIndex(pr => pr.id === prId);
+                    if (prIndex !== -1) allPrs.splice(prIndex, 1);
+                    const row = document.getElementById(`pr-row-${prId}`);
+                    if (row) {
+                        row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        setTimeout(async () => {
+                            row.remove();
+                            await loadRepos(true);
+                            if (allPrs.length === 0) { currentPage = 1; await loadPrs(true); }
+                        }, 300);
+                    }
+                    showError(refreshData.message || 'PR has been closed and removed from tracking');
+                    await loadRateLimit(true);
+                    return;
+                }
+
+                invalidateApiCache();
+                updateSinglePrRow(prId, refreshData.data);
+                await loadRateLimit(true);
+
+                const updatedRow = document.getElementById(`pr-row-${prId}`);
+                const updatedBtn = updatedRow ? updatedRow.querySelector('.quick-refresh-btn') : null;
+                if (updatedBtn) {
+                    updatedBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    updatedBtn.disabled = false;
+                    updatedBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            } catch (error) {
+                console.error('Error quick-refreshing PR:', error);
+                showInlineError(`pr-row-${prId}`, 'Failed to refresh PR');
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                button.classList.remove('opacity-70', 'cursor-not-allowed');
             }
         }
 

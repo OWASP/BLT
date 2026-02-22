@@ -7,6 +7,13 @@ set -e
 echo "Applying D1 database migrations..."
 # Database name from wrangler.toml
 DATABASE_NAME="${DATABASE_NAME:-pr_tracker}"
+# Migration target: "remote" (default) or "local"
+MIGRATION_TARGET="${MIGRATION_TARGET:-remote}"
+
+if [ "$MIGRATION_TARGET" != "remote" ] && [ "$MIGRATION_TARGET" != "local" ]; then
+    echo "Error: MIGRATION_TARGET must be 'remote' or 'local', got '$MIGRATION_TARGET'"
+    exit 1
+fi
 
 # Support legacy WRANGLER_API_TOKEN for backwards compatibility.
 if [ -z "$CLOUDFLARE_API_TOKEN" ] && [ -n "$WRANGLER_API_TOKEN" ]; then
@@ -33,8 +40,8 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ] && [ "${APPLY_REMOTE_MIGRATIONS}" != "true" ];
     exit 0
 fi
 
-# Apply migrations to the remote database
-if ! wrangler d1 migrations apply "$DATABASE_NAME" --remote; then
+# Apply migrations to the target database (remote or local)
+if ! wrangler d1 migrations apply "$DATABASE_NAME" --$MIGRATION_TARGET; then
     echo "Error: Failed to apply migrations to database '$DATABASE_NAME'"
     echo "   Make sure the database exists and wrangler is properly authenticated"
     exit 1

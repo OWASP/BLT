@@ -119,6 +119,17 @@ wrangler d1 migrations apply pr_tracker --local
 wrangler d1 migrations apply pr_tracker --remote
 ```
 
+Alternatively, use `scripts/migration.sh` with the `MIGRATION_TARGET` environment variable:
+```bash
+# Apply migrations locally (default: remote)
+MIGRATION_TARGET=local ./scripts/migration.sh
+
+# Apply migrations to the remote database (default behavior)
+MIGRATION_TARGET=remote ./scripts/migration.sh
+# or simply:
+./scripts/migration.sh
+```
+
 ### Development
 
 Run the development server:
