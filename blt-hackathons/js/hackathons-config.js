@@ -64,7 +64,7 @@ const HACKATHONS_CONFIG = {
             },
             
             // Banner image (optional)
-            bannerImage: "images/97137d26-6b7a-44cc-b43e-24229ba60061.png"
+            bannerImage: "images/How-do-hackathons-work-1024x576.png"
         },
         {
             slug: "may-2025-hackathon",
@@ -112,7 +112,10 @@ const HACKATHONS_CONFIG = {
             },
             
             // Banner image (optional)
-            bannerImage: "images/How-do-hackathons-work-1024x576.png"
+            bannerImage: "images/97137d26-6b7a-44cc-b43e-24229ba60061.png",
+
+            // Number of contributors (optional)
+            contributors: 12
         },
         {
             slug: "summer-2025-hackathon",
@@ -160,7 +163,10 @@ const HACKATHONS_CONFIG = {
             },
             
             // Banner image (optional)
-            bannerImage: "images/b43f3d7d-5626-4678-bf0f-a149d8938f84 (1).webp"
+            bannerImage: "images/b43f3d7d-5626-4678-bf0f-a149d8938f84 (1).webp",
+
+            // Number of contributors (optional)
+            contributors: 15
         }
     ],
     

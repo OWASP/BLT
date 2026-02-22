@@ -211,10 +211,17 @@ class HackathonIndex {
                             ${this.escapeHtml(descriptionPreview)}${needsEllipsis ? '...' : ''}
                         </p>
                         
-                        <div class="flex items-center text-sm text-gray-600 mb-4">
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="fas fa-code-branch mr-2"></i>
                             <span>${typeof repoCount === 'string' ? repoCount : `${repoCount} repositor${repoCount !== 1 ? 'ies' : 'y'}`}</span>
                         </div>
+                        
+                        ${hackathon.contributors !== undefined ? `
+                        <div class="flex items-center text-sm text-gray-600 mb-4">
+                            <i class="fas fa-user-friends mr-2"></i>
+                            <span>${hackathon.contributors} contributor${hackathon.contributors !== 1 ? 's' : ''}</span>
+                        </div>
+                        ` : '<div class="mb-4"></div>'}
                         
                         <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 
                            class="block w-full text-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
