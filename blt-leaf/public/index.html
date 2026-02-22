@@ -1131,6 +1131,18 @@
 
                 repoList.appendChild(li);
             });
+
+            // On page load, move the selected repo to the top of the list (after "All Repositories")
+            if (currentRepo !== 'all') {
+                const selectedItem = repoList.querySelector(`[data-repo="${CSS.escape(currentRepo)}"]`);
+                const allReposItem = repoList.querySelector('[data-repo="all"]');
+                if (selectedItem && allReposItem) {
+                    const nextElement = allReposItem.nextElementSibling;
+                    if (nextElement !== selectedItem) {
+                        repoList.insertBefore(selectedItem, nextElement || null);
+                    }
+                }
+            }
         }
 
         function updateMobileDropdown(searchTerm = '') {
