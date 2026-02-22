@@ -34,7 +34,7 @@ class EmailService:
     
     MAILGUN_API_URL = "https://api.mailgun.net"
     
-    def __init__(self, api_key: str, from_email: str = "postmaster@sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org", from_name: str = "OWASP BLT", sandbox_domain: str = None):
+    def __init__(self, api_key: str, from_email: str = "postmaster@sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org", from_name: str = "OWASP BLT", domain: str = None):
         """
         Initialize EmailService.
         
@@ -42,12 +42,12 @@ class EmailService:
             api_key: Mailgun API key
             from_email: Default sender email (just the email address)
             from_name: Default sender name
-            sandbox_domain: Mailgun sandbox domain (optional)
+            domain: Mailgun domain (optional)
         """
         self.api_key = api_key
         self.from_email = from_email
         self.from_name = from_name
-        self.sandbox_domain = sandbox_domain
+        self.domain = domain
         self.logger = logging.getLogger(__name__)
 
     
@@ -119,11 +119,11 @@ class EmailService:
                 request_init.headers = js_headers
                 request_init.body = encoded_data
                 
-                response = await fetch(f"{self.MAILGUN_API_URL}/v3/{self.sandbox_domain}/messages", request_init)
+                response = await fetch(f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages", request_init)
             else:
                 # Fallback for testing
                 response = await fetch(
-                    f"{self.MAILGUN_API_URL}/v3/{self.sandbox_domain}/messages",
+                    f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages",
                     {
                         "method": "POST",
                         "headers": {
@@ -175,7 +175,7 @@ class EmailService:
         Returns:
             Tuple of (status_code, response_text)
         """
-        verification_link = f"{base_url}/verify-email?token={verification_token}"
+        verification_link = f"{base_url}/auth/verify-email?token={verification_token}"
         
         subject = "Verify your OWASP BLT account"
         html_content = get_verification_email(username, verification_link, expires_hours)
@@ -204,7 +204,7 @@ class EmailService:
         Returns:
             Tuple of (status_code, response_text)
         """
-        reset_link = f"{base_url}/reset-password?token={reset_token}"
+        reset_link = f"{base_url}/auth/reset-password?token={reset_token}"
         
         subject = "Reset your OWASP BLT password"
         html_content = get_password_reset_email(username, reset_link, expires_hours)

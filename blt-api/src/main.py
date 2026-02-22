@@ -62,7 +62,7 @@ router.add_route("GET", "/users/{id}/following", handle_users)
 # Auth API
 router.add_route("POST", "/auth/signup", handle_signup)
 router.add_route("POST", "/auth/signin", handle_signin)
-router.add_route("GET", "/auth/verify-email/?token={token}", handle_verify_email)  # Email verification route
+router.add_route("GET", "/auth/verify-email", handle_verify_email)  # Email verification route
 
 # Domains API
 router.add_route("GET", "/domains", handle_domains)
