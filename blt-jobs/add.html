@@ -69,7 +69,7 @@
             <div class="tutorial-embed mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50">
               <p class="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center gap-2"><i class="fas fa-play-circle" aria-hidden="true"></i> Quick tutorial</p>
               <div class="aspect-video">
-                <iframe id="tutorial-job-url" class="w-full h-full" src="" title="How to post a job from URL" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <video class="w-full h-full" src="assets/videos/tutorial-job-from-url.mov" controls title="How to post a job from URL" preload="metadata">Your browser does not support the video tag.</video>
               </div>
             </div>
           </section>
@@ -130,7 +130,6 @@
         seeker: ""
       };
       var t;
-      if ((t = document.getElementById("tutorial-job-url")) && TUTORIAL_VIDEOS.jobUrl) t.src = TUTORIAL_VIDEOS.jobUrl;
       if ((t = document.getElementById("tutorial-job-form")) && TUTORIAL_VIDEOS.jobForm) t.src = TUTORIAL_VIDEOS.jobForm;
       if ((t = document.getElementById("tutorial-seeker")) && TUTORIAL_VIDEOS.seeker) t.src = TUTORIAL_VIDEOS.seeker;
       document.querySelectorAll(".tutorial-embed").forEach(function (el) {
