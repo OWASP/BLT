@@ -1612,12 +1612,12 @@
                         title="Sort by Readiness Score (Ready column)">
                         <i class="fas fa-sort-amount-down"></i> Sort by Readiness
                     </button>
-                    <button 
+                    ${currentRepo !== 'all' ? `<button 
                         id="refreshPrsBtn" 
                         class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
-                        title="Refresh PR list (single API call)">
+                        title="Refresh PR data from GitHub API">
                         <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
+                    </button>` : ''}
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
                     <table class="w-full text-left text-sm" style="min-width: 1920px;">
@@ -2617,9 +2617,33 @@
                 return;
             }
 
-            // Handle Refresh PRs button (single API call)
+            // Handle Refresh PRs button (batch refresh from GitHub API)
             if (e.target.closest('#refreshPrsBtn')) {
-                loadPrs(true);
+                const btn = e.target.closest('#refreshPrsBtn');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                try {
+                    const prIds = allPrs.map(pr => pr.id);
+                    if (prIds.length > 0) {
+                        const resp = await fetch('/api/refresh-batch', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ pr_ids: prIds })
+                        });
+                        if (!resp.ok) throw new Error(`Refresh failed (${resp.status})`);
+                        const data = await resp.json();
+                        if (data.error) throw new Error(data.error);
+                    }
+                    await loadPrs(true);
+                } catch (err) {
+                    showError(`Failed to refresh PRs: ${err.message}`);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
                 return;
             }
         });
