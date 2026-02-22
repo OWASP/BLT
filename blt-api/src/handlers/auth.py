@@ -17,7 +17,7 @@ def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str
         "user_id": user_id,
         "exp": int(time.time()) + expires_in
     }
-    token = create_access_token(payload, secret)
+    token = create_access_token(payload, secret, expires_in=expires_in)
     return token
 
 async def handle_signup(
@@ -63,7 +63,7 @@ async def handle_signup(
 
         # Hash the password using PBKDF2
         salt = secrets.token_hex(16)
-        password_hash = hashlib.pbkdf2_hmac('sha256', body["password"].encode('utf-8'), salt.encode('utf-8'), 100000)
+        password_hash = hashlib.pbkdf2_hmac(__HASHING_ALGORITHM, body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS)
         hashed_password = f"{salt}${password_hash.hex()}"
 
         # Insert the new user into the database
