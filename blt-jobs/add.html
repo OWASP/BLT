@@ -105,7 +105,9 @@
   <script src="assets/js/theme.js"></script>
   <script>
     (function () {
-      var repo = 'OWASP-BLT/BLT-Jobs';
+      // Use repo from URL ?repo=owner/repo for testing (e.g. add.html?repo=Pritz395/BLT-Jobs)
+      var params = new URLSearchParams(window.location.search);
+      var repo = params.get('repo') || 'OWASP-BLT/BLT-Jobs';
       var base = 'https://github.com/' + repo + '/issues/new';
       var jobUrl = document.getElementById('issue-link-job-url');
       var jobForm = document.getElementById('issue-link-job-form');
