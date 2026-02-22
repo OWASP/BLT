@@ -84,7 +84,8 @@ jobs:
 
   job-form:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'job-posting'
+    # Run when: issue has label job-posting, OR issue was opened/edited with job form sections (no label needed)
+    if: github.event.label.name == 'job-posting' || ((github.event.action == 'opened' || github.event.action == 'edited') && contains(github.event.issue.body, '### Company Name') && contains(github.event.issue.body, '### Job Title'))
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -134,7 +135,8 @@ jobs:
 
   seeker:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'job-seeker'
+    # Run when: issue has label job-seeker, OR issue was opened/edited with seeker form content (no label needed)
+    if: github.event.label.name == 'job-seeker' || ((github.event.action == 'opened' || github.event.action == 'edited') && (contains(github.event.issue.body, '**Name:**') || contains(github.event.issue.body, '## Personal Information')))
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
