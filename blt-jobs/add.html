@@ -39,7 +39,7 @@
           <a href="./index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Home</a>
           <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Browse Jobs</a>
           <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Find Talent</a>
-          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+          <a id="nav-github" href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
             <i class="fa-brands fa-github" aria-hidden="true"></i>
             GitHub
           </a>
@@ -95,7 +95,7 @@
           © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">OWASP BLT Project</a>
         </p>
         <div class="flex gap-4">
-          <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
+          <a id="footer-github" href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
             <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
           </a>
         </div>
@@ -105,14 +105,21 @@
   <script src="assets/js/theme.js"></script>
   <script>
     (function () {
-      var repo = 'OWASP-BLT/BLT-Jobs';
+      // Fork GitHub Pages (pritz395.github.io) → fork links for testing. Main repo / localhost → OWASP-BLT/BLT-Jobs. ?repo= overrides.
+      var params = new URLSearchParams(window.location.search);
+      var repo = params.get('repo') || (window.location.hostname.indexOf('pritz395.github.io') !== -1 ? 'Pritz395/BLT-Jobs' : 'OWASP-BLT/BLT-Jobs');
       var base = 'https://github.com/' + repo + '/issues/new';
+      var gh = 'https://github.com/' + repo;
       var jobUrl = document.getElementById('issue-link-job-url');
       var jobForm = document.getElementById('issue-link-job-form');
       var seeker = document.getElementById('issue-link-seeker');
+      var navGh = document.getElementById('nav-github');
+      var footerGh = document.getElementById('footer-github');
       if (jobUrl) jobUrl.href = base + '?template=job-posting-from-link.yml';
       if (jobForm) jobForm.href = base + '?template=job-posting.yml';
       if (seeker) seeker.href = base + '?template=job-seeker.md';
+      if (navGh) navGh.href = gh;
+      if (footerGh) footerGh.href = gh;
     })();
   </script>
 </body>

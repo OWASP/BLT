@@ -1,9 +1,9 @@
-# When an issue is opened with a job or seeker label, create the .md file, push to main, then close the issue.
+# When an issue is opened/edited with a job or seeker label (or with a Job URL in the body), create the .md file, push to main, then close the issue.
 name: Process issue submissions
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: write
@@ -12,7 +12,8 @@ permissions:
 jobs:
   job-from-url:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'job-posting-from-link'
+    # Run when: issue has label job-posting-from-link, OR issue was opened/edited with "### Job URL" section (no label needed)
+    if: github.event.label.name == 'job-posting-from-link' || ((github.event.action == 'opened' || github.event.action == 'edited') && contains(github.event.issue.body, '### Job URL'))
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -27,13 +28,13 @@ jobs:
           node -e "
             const body = process.env.ISSUE_BODY || '';
             require('fs').writeFileSync('issue_body.txt', body);
-            // Extract value of the '### Job URL' section
             const match = body.match(/###\s*Job URL\s*\n+([^\n#]+)/);
-            const url = match ? match[1].trim() : '';
-            if (!url || !url.startsWith('http')) {
-              console.error('No valid URL found in issue body');
+            let url = match ? match[1].trim() : '';
+            if (!url) {
+              console.error('No Job URL found in issue body');
               process.exit(1);
             }
+            if (!url.startsWith('http')) url = 'https://' + url.replace(/^\/+/, '');
             require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'url=' + url + '\n');
             console.log('Found URL: ' + url);
           "
