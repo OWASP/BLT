@@ -1,0 +1,24 @@
+{
+  "id": "BLT-2026-0001",
+  "published": "2026-02-22T00:00:00Z",
+  "modified": "2026-02-22T00:00:00Z",
+  "title": "Example SQL Injection in ExampleApp Login Endpoint",
+  "description": "An unauthenticated SQL injection vulnerability exists in the login endpoint of ExampleApp v1.0.0 through v1.2.3. An attacker can supply a crafted username parameter to bypass authentication and exfiltrate the contents of the underlying database.",
+  "affected": [
+    {
+      "vendor": "ExampleCorp",
+      "product": "ExampleApp",
+      "versions": "1.0.0 through 1.2.3"
+    }
+  ],
+  "severity": {
+    "cvss_score": 9.8,
+    "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+  },
+  "references": [
+    "https://example.com/advisory/2026-001",
+    "https://github.com/ExampleCorp/ExampleApp/issues/42"
+  ],
+  "reporter": "blt-community",
+  "signature": ""
+}

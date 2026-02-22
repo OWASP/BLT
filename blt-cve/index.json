@@ -1,0 +1,12 @@
+{
+  "namespace": "BLT",
+  "updated": "2026-02-22T19:59:27Z",
+  "count": 1,
+  "entries": [
+    {
+      "id": "BLT-2026-0001",
+      "path": "/cves/2026/BLT-2026-0001.json",
+      "severity": 9.8
+    }
+  ]
+}

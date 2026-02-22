@@ -1,228 +1,171 @@
-# BLT-CVE: Decentralized CVE Database
+# BLT-CVE: Decentralized, Federated Vulnerability Registry
 
-A resilient, blockchain-based CVE (Common Vulnerabilities and Exposures) database that ensures continuity of service and community contribution. This system backs up the main CVE database from multiple sources and stores data on a blockchain for immutability and decentralization.
+A standards-driven, machine-readable, cryptographically verifiable, federated vulnerability namespace that runs entirely on **GitHub Pages** and **GitHub Actions** — no backend required.
 
-## 🎯 Features
+> ⚠️ BLT IDs are **not** MITRE-issued CVE IDs. They are community-assigned identifiers within the OWASP BLT ecosystem. Always cross-reference with official CVE sources for production security decisions.
 
-- **Blockchain Storage**: CVE data stored on an immutable blockchain for tamper-proof records
-- **Multi-Source Backup**: Automatically backs up CVEs from NVD (National Vulnerability Database)
-- **Community Reporting**: Users can report new CVEs directly to the system
-- **Resilient Design**: Decentralized architecture ensures the database stays online
-- **RESTful API**: Easy-to-use API for querying and managing CVE data
-- **Local Caching**: Redundant local storage for additional reliability
+---
 
-## 🚀 Quick Start
+## 🎯 Purpose
 
-### Prerequisites
+- Provide a community-operated vulnerability registry under the `BLT` namespace.
+- Store all data as static JSON, served from GitHub Pages.
+- Enable automated validation and index generation via GitHub Actions.
+- Support federation so other organizations can mirror or aggregate entries.
+- Remain entirely forkable and server-free.
 
-- Python 3.7+
-- pip (Python package manager)
+---
 
-### Installation
+## 📋 Namespace Format
 
-1. Clone the repository:
-```bash
-git clone https://github.com/OWASP-BLT/BLT-CVE.git
-cd BLT-CVE
+Vulnerability IDs follow the format:
+
+```
+BLT-YYYY-NNNN
 ```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
+| Component | Description |
+|-----------|-------------|
+| `BLT`     | Fixed namespace prefix |
+| `YYYY`    | Four-digit year of publication |
+| `NNNN`    | Zero-padded sequential number |
+
+Example: `BLT-2026-0001`
+
+---
+
+## 📁 Repository Structure
+
+```
+/cves/
+  /2026/
+    BLT-2026-0001.json      ← individual vulnerability entries
+/schema/
+  blt-cve-schema.json       ← JSON schema for entries
+/index.json                 ← machine-readable master index
+/feed.json                  ← full metadata feed
+/federation.json            ← federation manifest
+/docs/
+  PROTOCOL.md               ← data format & ID rules
+  GOVERNANCE.md             ← maintainer & disclosure policy
+  FEDERATION.md             ← how to mirror/aggregate
+  SECURITY.md               ← trust model & key management
+/scripts/
+  validate_cves.py          ← local validation script
+  build_index.py            ← regenerates index.json & feed.json
+.github/workflows/
+  validate.yml              ← PR validation workflow
+  build-index.yml           ← auto-regenerate index on merge
 ```
 
-3. Configure environment (optional):
-```bash
-cp .env.example .env
-# Edit .env with your NVD API key (optional but recommended for higher rate limits)
-```
+---
 
-### Running the Server
+## 📤 How to Submit a Vulnerability
 
-Start the API server:
-```bash
-python app.py
-```
+1. **Fork** this repository.
+2. Create a new file: `cves/YYYY/BLT-YYYY-DRAFT.json` (use `DRAFT` as a placeholder ID).
+3. Fill in all required fields following the schema in `/schema/blt-cve-schema.json`.
+4. Run local validation:
+   ```bash
+   pip install jsonschema
+   python scripts/validate_cves.py
+   ```
+5. **Open a Pull Request**. The automated validator will check your entry.
+6. A maintainer will assign the final sequential ID, rename the file, and merge.
+7. The index is regenerated automatically after merge.
 
-The server will start on `http://localhost:5000`
+### Entry Format
 
-## 📖 API Documentation
-
-### Health Check
-```bash
-GET /health
-```
-Returns the health status of the system and blockchain validity.
-
-### Get All CVEs
-```bash
-GET /cves
-```
-Retrieves all CVEs from the blockchain. Supports filtering:
-- `?severity=HIGH` - Filter by severity
-- `?source=NVD` - Filter by source
-
-### Get Specific CVE
-```bash
-GET /cves/<cve_id>
-```
-Example: `GET /cves/CVE-2023-12345`
-
-### Report a New CVE
-```bash
-POST /report
-Content-Type: application/json
-
+```json
 {
-  "cve_id": "CVE-2024-12345",
-  "description": "Description of the vulnerability",
-  "severity": "HIGH",
-  "cvss_score": 7.5,
-  "references": [
-    {"url": "https://example.com/advisory", "source": "vendor"}
+  "id": "BLT-2026-0001",
+  "published": "2026-02-22T00:00:00Z",
+  "modified": "2026-02-22T00:00:00Z",
+  "title": "Short vulnerability summary",
+  "description": "Full technical description of the vulnerability",
+  "affected": [
+    {
+      "vendor": "ExampleCorp",
+      "product": "ExampleApp",
+      "versions": "1.0.0 through 1.2.3"
+    }
   ],
-  "reporter": "your_name"
+  "severity": {
+    "cvss_score": 9.8,
+    "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+  },
+  "references": [
+    "https://example.com/advisory/2026-001"
+  ],
+  "reporter": "your-github-username",
+  "signature": ""
 }
 ```
 
-### Sync from NVD
-```bash
-POST /sync?days=7
-```
-Fetches recent CVEs from NVD (last 7 days by default) and adds them to pending.
+---
 
-### Mine Pending CVEs
-```bash
-POST /mine
-```
-Mines all pending CVEs into a new block on the blockchain.
+## ✅ Validation Requirements
 
-### Search for CVE
-```bash
-GET /search?cve_id=CVE-2023-12345
-```
-Searches for a CVE in the blockchain and NVD.
+Every entry must:
 
-### Get Blockchain Status
-```bash
-GET /blockchain
-```
-Returns blockchain status and statistics.
+- Conform to `/schema/blt-cve-schema.json`.
+- Have an `id` that matches the filename (`BLT-YYYY-NNNN.json`).
+- Have a year in the `id` that matches its parent folder (`cves/YYYY/`).
+- Have a unique `id` across the entire registry.
+- Include all required fields: `id`, `published`, `modified`, `title`, `description`, `affected`, `severity`, `references`, `reporter`.
 
-## 🔄 Workflow Example
+The `validate.yml` GitHub Actions workflow enforces these rules on every PR.
 
-1. **Sync CVEs from NVD**:
-```bash
-curl -X POST http://localhost:5000/sync?days=7
-```
+---
 
-2. **Mine them into the blockchain**:
-```bash
-curl -X POST http://localhost:5000/mine
-```
+## 🌐 Machine-Readable Endpoints (GitHub Pages)
 
-3. **Query CVEs**:
-```bash
-curl http://localhost:5000/cves
-```
+| URL | Description |
+|-----|-------------|
+| `/index.json` | Lightweight master index with ID, path, and severity |
+| `/feed.json` | Full metadata feed with titles and dates |
+| `/federation.json` | Federation manifest for mirrors/aggregators |
+| `/schema/blt-cve-schema.json` | JSON schema for entries |
+| `/cves/YYYY/BLT-YYYY-NNNN.json` | Individual vulnerability entries |
 
-4. **Report a new CVE**:
-```bash
-curl -X POST http://localhost:5000/report \
-  -H "Content-Type: application/json" \
-  -d '{
-    "cve_id": "CVE-2024-99999",
-    "description": "Test vulnerability",
-    "severity": "MEDIUM",
-    "reporter": "community_user"
-  }'
-```
+---
 
-5. **Mine the reported CVE**:
-```bash
-curl -X POST http://localhost:5000/mine
-```
+## 🔗 Federation
 
-## 🏗️ Architecture
+Other organizations can mirror or aggregate this registry. See [docs/FEDERATION.md](docs/FEDERATION.md) for details, including:
 
-### Components
+- How to set up a mirror.
+- How to aggregate entries from multiple registries.
+- How to implement a compatible registry under your own namespace.
 
-1. **Blockchain (`blockchain.py`)**: 
-   - Simple proof-of-work blockchain implementation
-   - Stores CVE data in immutable blocks
-   - Validates chain integrity
+---
 
-2. **CVE Fetcher (`cve_fetcher.py`)**:
-   - Fetches CVE data from NVD API
-   - Supports multiple data sources for redundancy
-   - Local caching for backup
+## 🔐 Security & Governance
 
-3. **API Server (`app.py`)**:
-   - Flask-based REST API
-   - Endpoints for querying and managing CVEs
-   - User reporting interface
+- [docs/SECURITY.md](docs/SECURITY.md) — trust model, GPG signing, Sigstore plan, key rotation.
+- [docs/GOVERNANCE.md](docs/GOVERNANCE.md) — maintainer responsibilities, disclosure policy, abuse handling.
+- [docs/PROTOCOL.md](docs/PROTOCOL.md) — full protocol specification.
 
-### Data Flow
+---
 
-```
-NVD API → CVE Fetcher → Pending CVEs → Mining → Blockchain
-                                    ↑
-                              User Reports
-```
+## 🆚 Difference from Official CVE Program
 
-## 🔐 Security & Resilience
+| Aspect | MITRE CVE | BLT-CVE |
+|--------|-----------|---------|
+| Authority | MITRE / CNAs | OWASP BLT community |
+| ID format | CVE-YYYY-NNNNN | BLT-YYYY-NNNN |
+| Infrastructure | Centralized | GitHub Pages (static) |
+| Forkable | No | Yes |
+| Backend required | Yes | No |
 
-- **Immutability**: Once CVEs are mined into the blockchain, they cannot be altered
-- **Decentralization**: Blockchain can be distributed across multiple nodes
-- **Redundancy**: Multiple backup sources and local caching
-- **Validation**: Blockchain integrity is continuously verified
-- **Community Contribution**: Users can report CVEs even if official sources are unavailable
+BLT IDs complement, rather than replace, the official CVE system. When an official CVE is assigned, the BLT entry should reference it.
 
-## 📊 Blockchain Details
-
-- **Difficulty**: Configurable proof-of-work difficulty (default: 4)
-- **Block Structure**: Each block contains a batch of CVEs with metadata
-- **Hash Algorithm**: SHA-256
-- **Persistence**: Blockchain saved to JSON file for durability
-
-## 🔧 Configuration
-
-Environment variables (`.env` file):
-
-```bash
-# NVD API Configuration
-NVD_API_KEY=your_api_key_here  # Get from https://nvd.nist.gov/developers/request-an-api-key
-NVD_API_URL=https://services.nvd.nist.gov/rest/json/cves/2.0
-
-# Server Configuration
-FLASK_HOST=0.0.0.0
-FLASK_PORT=5000
-FLASK_DEBUG=False
-
-# Blockchain Configuration
-BLOCKCHAIN_DIFFICULTY=4  # Higher = more secure but slower
-```
+---
 
 ## 📝 License
 
-This project is licensed under the terms included in the LICENSE file.
-
-## 🤝 Contributing
-
-Contributions are welcome! This is an OWASP project aimed at ensuring CVE database resilience.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+This project is licensed under the terms included in the [LICENSE](LICENSE) file.
 
 ## 🌐 OWASP BLT
 
 This project is part of the OWASP BLT initiative. Visit [BLT Website](https://owasp.org/www-project-buglogging-tool/) for more information.
-
-## ⚠️ Important Notes
-
-- This is a backup/mirror system and should not replace official CVE sources
-- Always verify critical CVE information with official sources
-- NVD API key is recommended for production use to avoid rate limiting
-- The blockchain file can grow large over time; plan for storage accordingly

@@ -1,0 +1,15 @@
+{
+  "namespace": "BLT",
+  "updated": "2026-02-22T19:59:27Z",
+  "count": 1,
+  "items": [
+    {
+      "id": "BLT-2026-0001",
+      "title": "Example SQL Injection in ExampleApp Login Endpoint",
+      "published": "2026-02-22T00:00:00Z",
+      "modified": "2026-02-22T00:00:00Z",
+      "severity": 9.8,
+      "url": "https://owasp-blt.github.io/BLT-CVE/cves/2026/BLT-2026-0001.json"
+    }
+  ]
+}
