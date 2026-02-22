@@ -107,7 +107,9 @@ class PostHog:
         properties = {
             '$exception_type': type(exc).__name__,
             '$exception_message': str(exc),
-            '$exception_stack_trace_raw': traceback.format_exc(),
+            '$exception_stack_trace_raw': ''.join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            ),
         }
         if context:
             properties.update(context)
