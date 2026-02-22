@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Test Error Tracking — BLT-Leaf</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('phc_AsrbKREZs1Q8OiQJJfZgzA3OBYLHvScQc4t3OmP9cxF', {
+            api_host: 'https://us.i.posthog.com',
+            defaults: '2026-01-30'
+        })
+    </script>
+    <script>
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        };
+
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl0HPNietrzFChCCs44/bfI3e1qqNk2amX+JJFyJCkl/lG3WHkLolLRnOdcBJJVPaNhQ36oPAPNl+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+        <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img width="26" src="./static/logo.png" alt="OWASP BLT-Leaf" onerror="this.style.display='none'" />
+                    <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
+                </a>
+            </div>
+            <nav class="flex items-center gap-4 text-sm">
+                <a href="/"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
+                <a href="/how-it-works.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">How It Works</a>
+                <a href="/diagnostics.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Diagnostics</a>
+                <a href="/test-error.html" class="text-red-600 font-semibold dark:text-red-400">Test Error</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 mx-auto max-w-3xl w-full px-4 py-8 sm:px-6 lg:px-8">
+
+        <!-- Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                <i class="fas fa-bug text-red-600"></i> Test Error Tracking
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400">
+                Use these buttons to fire test exceptions and verify that they appear in your
+                <a href="https://us.posthog.com" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:text-red-700 dark:text-red-400 underline">PostHog</a> project.
+            </p>
+        </div>
+
+        <!-- Cards -->
+        <div class="space-y-6">
+
+            <!-- Server-side error card -->
+            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
+                <div class="flex items-start gap-4">
+                    <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
+                        <i class="fas fa-server text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">Server-side exception</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            POSTs to <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">/api/test-error</code>,
+                            which raises a <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">RuntimeError</code>
+                            on the Cloudflare Worker. The exception is captured by the PostHog Python client and forwarded to
+                            PostHog as a <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">$exception</code> event.
+                        </p>
+                        <button id="btnServerError"
+                            class="inline-flex items-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-bolt"></i> Fire server-side error
+                        </button>
+                    </div>
+                </div>
+                <div id="serverResult" class="mt-4 hidden"></div>
+            </div>
+
+            <!-- Frontend error card -->
+            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
+                <div class="flex items-start gap-4">
+                    <div class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/40">
+                        <i class="fas fa-window-maximize text-purple-600 dark:text-purple-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">Frontend JS exception</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            Calls <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">posthog.capture('$exception', …)</code>
+                            directly from the browser using the PostHog JS SDK already loaded on this page.
+                        </p>
+                        <button id="btnFrontendError"
+                            class="inline-flex items-center gap-2 rounded-lg bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-bolt"></i> Fire frontend error
+                        </button>
+                    </div>
+                </div>
+                <div id="frontendResult" class="mt-4 hidden"></div>
+            </div>
+
+        </div>
+
+        <!-- Info box -->
+        <div class="mt-8 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-5 py-4">
+            <p class="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                <i class="fas fa-info-circle mt-0.5 shrink-0"></i>
+                After firing a test error, check the
+                <a href="https://us.posthog.com" target="_blank" rel="noopener noreferrer"
+                    class="underline font-semibold">PostHog dashboard</a>
+                → <strong>Activity</strong> → <strong>$exception</strong> events.
+                Server-side events appear with
+                <code class="font-mono bg-blue-100 dark:bg-blue-900/40 rounded px-1">distinct_id: blt-leaf-server</code>;
+                frontend events use your session's distinct ID.
+            </p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 mt-auto">
+        <div class="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:px-8">
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">OWASP Bug Logging Tool (BLT)</a> project
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ── Helpers ──────────────────────────────────────────────────────────────
+
+        /**
+         * Display a result banner inside a container element.
+         * @param {string} containerId - ID of the container element.
+         * @param {boolean} ok - true for a success (green) banner, false for error (red).
+         * @param {string} message - HTML message to display inside the banner.
+         */
+        function showResult(containerId, ok, message) {
+            const el = document.getElementById(containerId);
+            el.className = 'mt-4 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 ' + (
+                ok
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+            );
+            el.innerHTML = '<i class="fas ' + (ok ? 'fa-check-circle' : 'fa-times-circle') + '"></i> ' + message;
+        }
+
+        // ── Server-side error ─────────────────────────────────────────────────────
+
+        document.getElementById('btnServerError').addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+            try {
+                const res = await fetch('/api/test-error', { method: 'POST' });
+                const json = await res.json().catch(() => ({}));
+                if (res.status === 500) {
+                    showResult('serverResult', true,
+                        'Server returned 500 — exception was raised and captured by PostHog. Check your PostHog dashboard for the <strong>$exception</strong> event.');
+                } else {
+                    showResult('serverResult', false,
+                        'Unexpected response: HTTP ' + res.status + ' — ' + JSON.stringify(json));
+                }
+            } catch (err) {
+                showResult('serverResult', false, 'Network error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt"></i> Fire server-side error';
+            }
+        });
+
+        // ── Frontend JS error ─────────────────────────────────────────────────────
+
+        document.getElementById('btnFrontendError').addEventListener('click', function () {
+            const btn = this;
+            btn.disabled = true;
+
+            try {
+                const err = new Error('PostHog test error — triggered from test-error.html frontend button');
+                posthog.capture('$exception', {
+                    '$exception_type': err.name,
+                    '$exception_message': err.message,
+                    '$exception_stack_trace_raw': err.stack || '',
+                    'source': 'test-error.html',
+                });
+                showResult('frontendResult', true,
+                    'Frontend <strong>$exception</strong> event sent to PostHog via the JS SDK. Check your PostHog dashboard.');
+            } catch (captureErr) {
+                showResult('frontendResult', false, 'Failed to capture via PostHog JS SDK: ' + captureErr.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt"></i> Fire frontend error';
+            }
+        });
+
+        // ── Theme toggle ──────────────────────────────────────────────────────────
+
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+        if (document.documentElement.classList.contains('dark')) {
+            themeIcon.className = 'fas fa-sun';
+        }
+    </script>
+</body>
+
+</html>

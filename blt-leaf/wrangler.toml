@@ -14,6 +14,8 @@ command = "bash scripts/migration.sh"
 
 [vars]
 ENVIRONMENT = "production"
+# Set POSTHOG_API_KEY as a Cloudflare secret (wrangler secret put POSTHOG_API_KEY)
+# See .env.example for details.
 
 # Configure assets (static files)
 [assets]
