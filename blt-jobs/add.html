@@ -66,6 +66,12 @@
             <a id="issue-link-job-url" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting-from-link.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-link mr-2"></i>Open issue: Post job from URL
             </a>
+            <div class="tutorial-embed mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center gap-2"><i class="fas fa-play-circle" aria-hidden="true"></i> Quick tutorial</p>
+              <div class="aspect-video">
+                <video class="w-full h-full" src="assets/videos/tutorial-job-from-url.mov" controls title="How to post a job from URL" preload="metadata">Your browser does not support the video tag.</video>
+              </div>
+            </div>
           </section>
 
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
@@ -85,6 +91,12 @@
             <a id="issue-link-seeker" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-seeker.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
               <i class="fas fa-user-plus mr-2"></i>Open issue: Create seeker profile
             </a>
+            <div class="tutorial-embed mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center gap-2"><i class="fas fa-play-circle" aria-hidden="true"></i> Quick tutorial</p>
+              <div class="aspect-video">
+                <video class="w-full h-full" src="assets/videos/tutorial-seeker.mov" controls title="How to create a seeker profile" preload="metadata">Your browser does not support the video tag.</video>
+              </div>
+            </div>
           </section>
 
   </main>
@@ -105,6 +117,11 @@
   <script src="assets/js/theme.js"></script>
   <script>
     (function () {
+      document.querySelectorAll(".tutorial-embed").forEach(function (el) {
+        var iframe = el.querySelector("iframe");
+        if (iframe && !iframe.src) el.style.display = "none";
+      });
+
       // Fork GitHub Pages (pritz395.github.io) → fork links for testing. Main repo / localhost → OWASP-BLT/BLT-Jobs. ?repo= overrides.
       var params = new URLSearchParams(window.location.search);
       var repo = params.get('repo') || (window.location.hostname.indexOf('pritz395.github.io') !== -1 ? 'Pritz395/BLT-Jobs' : 'OWASP-BLT/BLT-Jobs');
