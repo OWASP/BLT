@@ -2410,6 +2410,10 @@
 
                 // Merge readiness results into the PR data so updateSinglePrRow can render
                 // everything in one single glide — no two-step visual update.
+                // Use the current time for readiness_computed_at and updated_at since the
+                // backend sets both to CURRENT_TIMESTAMP during readiness analysis —
+                // refreshData.data has the pre-analysis timestamps (readiness_computed_at = null).
+                const nowIso = new Date().toISOString();
                 const mergedData = {
                     ...refreshData.data,
                     overall_score: readiness.overall_score,
@@ -2426,7 +2430,9 @@
                     total_feedback: reviewHealth.total_feedback,
                     responded_feedback: reviewHealth.responded_feedback,
                     stale_feedback_count: reviewHealth.stale_feedback_count,
-                    stale_feedback: JSON.stringify(reviewHealth.stale_feedback || [])
+                    stale_feedback: JSON.stringify(reviewHealth.stale_feedback || []),
+                    readiness_computed_at: nowIso,
+                    updated_at: nowIso
                 };
 
                 // Single row replacement: refresh data + readiness in one smooth glide
