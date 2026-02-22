@@ -1612,6 +1612,12 @@
                         title="Sort by Readiness Score (Ready column)">
                         <i class="fas fa-sort-amount-down"></i> Sort by Readiness
                     </button>
+                    <button 
+                        id="refreshPrsBtn" 
+                        class="rounded px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600"
+                        title="Refresh PR list (single API call)">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800" style="overflow-x: auto;">
                     <table class="w-full text-left text-sm" style="min-width: 1920px;">
@@ -2608,6 +2614,12 @@
                 localStorage.setItem('sortColumns', JSON.stringify(sortColumns));
                 currentPage = 1;
                 loadPrs();
+                return;
+            }
+
+            // Handle Refresh PRs button (single API call)
+            if (e.target.closest('#refreshPrsBtn')) {
+                loadPrs(true);
                 return;
             }
         });
