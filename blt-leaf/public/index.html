@@ -1822,7 +1822,7 @@
                                         <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
-                                <th class="px-2 py-3 text-center" style="min-width: 100px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
+                                <th class="px-2 py-3 text-center" style="min-width: 180px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="prTableBody">
@@ -1891,10 +1891,10 @@
                 // Display the readiness data if available
                 if (readiness && reviewHealth) {
                     updateInlineCells(pr.id, readiness, reviewHealth);
-                    // Update button to show it was updated
+                    // Update button to show it was analyzed
                     const updateBtn = row.querySelector('.update-btn');
                     if (updateBtn) {
-                        updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
+                        updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
                     }
                 }
             });
@@ -1903,6 +1903,13 @@
                 btn.addEventListener('click', async (e) => {
                     const prId = e.currentTarget.dataset.prId;
                     await updatePr(prId, e.currentTarget);
+                });
+            });
+            
+            document.querySelectorAll('.quick-refresh-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const prId = parseInt(e.currentTarget.dataset.prId, 10);
+                    await quickRefreshPr(prId, e.currentTarget);
                 });
             });
             
@@ -2126,9 +2133,12 @@
                 </td>
                 <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
                 <td class="px-2 py-3 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <button class="update-btn rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" data-pr-id="${pr.id}" title="Update PR data and analyze readiness">
-                            <i class="fas fa-sync mr-1"></i>Update
+                    <div class="flex items-center justify-center gap-1">
+                        <button class="quick-refresh-btn rounded-md border border-slate-400 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="Quick refresh: update essential PR data only (no readiness analysis)" aria-label="Quick refresh pull request">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                        <button class="update-btn inline-flex items-center justify-center rounded-md border border-[#E10000] bg-white px-3 py-2 text-xs font-semibold text-[#E10000] hover:bg-[#fff1f1] dark:border-red-700 dark:bg-slate-700 dark:text-red-400 dark:hover:bg-red-950/30" style="min-width:6.5rem;" data-pr-id="${pr.id}" title="Refresh PR data and analyze readiness">
+                            <i class="fas fa-chart-bar mr-1"></i>Analyze
                         </button>
                         <button class="view-raw-btn rounded-md border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="View raw PR data">
                             <i class="fas fa-database"></i>
@@ -2191,6 +2201,14 @@
                 });
             }
             
+            // Re-attach the click event listener to the quick refresh button
+            const quickRefreshBtn = newRow.querySelector('.quick-refresh-btn');
+            if (quickRefreshBtn) {
+                quickRefreshBtn.addEventListener('click', async (e) => {
+                    await quickRefreshPr(prId, e.currentTarget);
+                });
+            }
+            
             // Re-attach the click event listener to the view raw button
             const viewRawBtn = newRow.querySelector('.view-raw-btn');
             if (viewRawBtn) {
@@ -2204,7 +2222,7 @@
             const originalHtml = button.innerHTML;
 
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Updating...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Analyzing...';
             button.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
@@ -2295,12 +2313,71 @@
                 // Update all inline cells with readiness data
                 updateInlineCells(prId, readiness, reviewHealth);
 
-                updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Updated';
+                updatedButton.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
                 updatedButton.disabled = false;
                 updatedButton.classList.remove('opacity-70', 'cursor-not-allowed');
             } catch (error) {
                 console.error('Error updating PR:', error);
                 showInlineError(`pr-row-${prId}`, 'Failed to update PR');
+            }
+        }
+
+        async function quickRefreshPr(prId, button) {
+            const originalHtml = button.innerHTML;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                const refreshResponse = await fetch('/api/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pr_id: prId })
+                });
+
+                const refreshData = await refreshResponse.json();
+                if (refreshData.error) {
+                    showInlineError(`pr-row-${prId}`, refreshData.error);
+                    return;
+                }
+
+                if (refreshData.removed) {
+                    const prIndex = allPrs.findIndex(pr => pr.id === prId);
+                    if (prIndex !== -1) allPrs.splice(prIndex, 1);
+                    const row = document.getElementById(`pr-row-${prId}`);
+                    if (row) {
+                        row.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        setTimeout(async () => {
+                            row.remove();
+                            await loadRepos(true);
+                            if (allPrs.length === 0) { currentPage = 1; await loadPrs(true); }
+                        }, 300);
+                    }
+                    showError(refreshData.message || 'PR has been closed and removed from tracking');
+                    await loadRateLimit(true);
+                    return;
+                }
+
+                invalidateApiCache();
+                updateSinglePrRow(prId, refreshData.data);
+                await loadRateLimit(true);
+
+                const updatedRow = document.getElementById(`pr-row-${prId}`);
+                const updatedBtn = updatedRow ? updatedRow.querySelector('.quick-refresh-btn') : null;
+                if (updatedBtn) {
+                    updatedBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    updatedBtn.disabled = false;
+                    updatedBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            } catch (error) {
+                console.error('Error quick-refreshing PR:', error);
+                showInlineError(`pr-row-${prId}`, 'Failed to refresh PR');
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                button.classList.remove('opacity-70', 'cursor-not-allowed');
             }
         }
 
