@@ -18,7 +18,9 @@ classifiers = [
     "Topic :: Security",
 ]
 
-dependencies = []
+dependencies = [
+
+]
 
 [project.optional-dependencies]
 dev = [

@@ -17,6 +17,7 @@ from .contributors import handle_contributors
 from .repos import handle_repos
 from .health import handle_health
 from .homepage import handle_homepage
+from .auth import handle_signup, handle_signin, handle_verify_email
 
 __all__ = [
     "handle_bugs",
@@ -31,4 +32,7 @@ __all__ = [
     "handle_repos",
     "handle_health",
     "handle_homepage",
+    "handle_signup",
+    "handle_signin",
+    "handle_verify_email",
 ]

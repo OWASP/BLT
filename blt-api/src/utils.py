@@ -7,7 +7,6 @@ CORS headers, and HTTP client operations.
 
 from typing import Any, Dict, List, Optional
 import json
-
 # Try to import Cloudflare Workers JS bindings
 # Falls back to mock implementations for testing
 try:
@@ -273,3 +272,122 @@ def convert_d1_results(results) -> List[Dict]:
         return results
     
     return []
+
+async def check_required_fields(body, required_fields):
+    for field in required_fields:
+        if field not in body:
+            return False, field
+    return True, None
+
+async def convert_single_d1_result(data):
+    if hasattr(data, 'to_py'):
+        return data.to_py()
+    else:
+        return dict(data)
+
+def extract_id_from_result(result: Any, field:str) -> Optional[int]:
+    """
+    Extract ID from a database query result.
+    
+    Args:
+        result: Database query result (JsProxy, dict, or other)
+        field: Name of the ID field to extract
+    
+    Returns:
+        The extracted ID value or None if not found
+    """
+    if not result:
+        return None
+    
+    if hasattr(result, 'to_py'):
+        return result.to_py().get(field)
+    elif hasattr(result, field):
+        return getattr(result, field)
+    elif isinstance(result, dict):
+        return result.get(field)
+    
+    return None
+
+
+def debug_object(obj: Any, label: str = "DEBUG") -> None:
+    """
+    Debug utility to inspect any object and print its structure.
+    Useful for debugging database results and other complex objects.
+    
+    Args:
+        obj: Object to inspect
+        label: Label to identify the debug output
+    """
+    print(f"\n{'='*60}")
+    print(f"🔍 {label}")
+    print(f"{'='*60}")
+    print(f"Type: {type(obj)}")
+    print(f"Value: {obj}")
+    
+    # Check if it's None
+    if obj is None:
+        print("⚠️  Object is None")
+        print(f"{'='*60}\n")
+        return
+    
+    # Check for to_py() method (Cloudflare D1 result)
+    if hasattr(obj, 'to_py'):
+        print(f"✓ Has to_py() method")
+        try:
+            py_obj = obj.to_py()
+            print(f"to_py() result: {py_obj}")
+            print(f"to_py() type: {type(py_obj)}")
+        except Exception as e:
+            print(f"✗ Error calling to_py(): {e}")
+    
+    # List all attributes and methods
+    print(f"\nAttributes and methods:")
+    attrs = dir(obj)
+    for attr in attrs:
+        if not attr.startswith('_'):  # Skip private/magic methods
+            try:
+                value = getattr(obj, attr)
+                print(f"  - {attr}: {type(value).__name__}")
+                if not callable(value):
+                    print(f"      Value: {value}")
+            except Exception as e:
+                print(f"  - {attr}: Error accessing ({e})")
+    
+    # If it's dict-like
+    if isinstance(obj, dict):
+        print(f"\nDict keys: {list(obj.keys())}")
+        print(f"Dict values: {list(obj.values())}")
+    
+    # Try to access as dict
+    if hasattr(obj, '__getitem__'):
+        print(f"✓ Object supports indexing (dict-like)")
+    
+    print(f"{'='*60}\n")
+
+
+def debug_db_result(result: Any, label: str = "DB Result") -> Dict[str, Any]:
+    """
+    Debug database result and return it as a Python dict.
+    
+    Args:
+        result: Database query result
+        label: Label for debug output
+    
+    Returns:
+        Dictionary representation of the result
+    """
+    debug_object(result, label)
+    
+    if not result:
+        return {}
+    
+    if hasattr(result, 'to_py'):
+        return result.to_py()
+    elif isinstance(result, dict):
+        return result
+    else:
+        # Try to convert to dict
+        try:
+            return dict(result)
+        except:
+            return {"error": "Could not convert to dict", "type": str(type(result))}
