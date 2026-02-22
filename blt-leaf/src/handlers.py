@@ -513,14 +513,21 @@ async def handle_refresh_pr(request, env):
         await invalidate_readiness_cache(env, pr_id)
         await invalidate_timeline_cache(env, result['repo_owner'], result['repo_name'], result['pr_number'])
         
-        # Include repo_owner, repo_name, pr_number, and pr_url in the response for frontend display
-        response_data = {
-            **pr_data,
-            'repo_owner': result['repo_owner'],
-            'repo_name': result['repo_name'],
-            'pr_number': result['pr_number'],
-            'pr_url': result['pr_url']
-        }
+        # Fetch the full updated DB row so the frontend receives all fields
+        # (including updated_at, created_at, readiness_computed_at, etc.)
+        full_stmt = db.prepare('SELECT * FROM prs WHERE id = ?').bind(pr_id)
+        full_result = await full_stmt.first()
+        if full_result:
+            response_data = full_result.to_py() if hasattr(full_result, 'to_py') else dict(full_result)
+        else:
+            # Fallback: the row was just upserted so this shouldn't happen, but be safe
+            response_data = {
+                **pr_data,
+                'repo_owner': result['repo_owner'],
+                'repo_name': result['repo_name'],
+                'pr_number': result['pr_number'],
+                'pr_url': result['pr_url']
+            }
 
         return Response.new(json.dumps({
             'success': True,

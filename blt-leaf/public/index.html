@@ -1817,9 +1817,22 @@
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
-                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by Updated. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by PR last updated time. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
                                     <div class="flex items-center gap-1 truncate">
-                                        <span class="truncate">Updated</span> ${getSortIcon('last_updated_at')}
+                                        <i class="fas fa-clock text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">PR Updated</span> ${getSortIcon('last_updated_at')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="updated_at" style="min-width: 90px;" title="Click to sort by last data refresh time. Shift+Click to add to sort columns.&#10;Timestamp of last data refresh from GitHub">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <i class="fas fa-sync-alt text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">Refreshed</span> ${getSortIcon('updated_at')}
+                                    </div>
+                                </th>
+                                <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="readiness_computed_at" style="min-width: 90px;" title="Click to sort by last readiness analysis time. Shift+Click to add to sort columns.&#10;Timestamp of last readiness analysis">
+                                    <div class="flex items-center gap-1 truncate">
+                                        <i class="fas fa-chart-bar text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
+                                        <span class="truncate">Analyzed</span> ${getSortIcon('readiness_computed_at')}
                                     </div>
                                 </th>
                                 <th class="px-2 py-3 text-center" style="min-width: 180px;" title="UI actions: Refresh PR data, Check Readiness, Remove from tracking">Actions</th>
@@ -2131,7 +2144,15 @@
                 <td class="px-2 py-3" id="readiness-issues-${pr.id}">
                     <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
                 </td>
-                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">${escapeHtml(timeAgo(pr.last_updated_at))}</td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-clock text-slate-400 dark:text-slate-500"></i>${escapeHtml(timeAgo(pr.last_updated_at))}</span>
+                </td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-sync-alt text-slate-400 dark:text-slate-500"></i>${pr.updated_at ? escapeHtml(timeAgo(pr.updated_at)) : '<span class="text-slate-400">-</span>'}</span>
+                </td>
+                <td class="px-2 py-3 text-xs text-slate-600 dark:text-slate-400 truncate">
+                    <span class="inline-flex items-center gap-1"><i class="fas fa-chart-bar text-slate-400 dark:text-slate-500"></i>${pr.readiness_computed_at ? escapeHtml(timeAgo(pr.readiness_computed_at)) : '<span class="text-slate-400">-</span>'}</span>
+                </td>
                 <td class="px-2 py-3 text-center">
                     <div class="flex items-center justify-center gap-1">
                         <button class="quick-refresh-btn rounded-md border border-slate-400 bg-white px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600" data-pr-id="${pr.id}" title="Quick refresh: update essential PR data only (no readiness analysis)" aria-label="Quick refresh pull request">
@@ -2192,6 +2213,56 @@
 
             // Replace the old row with the new one
             existingRow.replaceWith(newRow);
+
+            // Restore readiness data so analysis cells are not lost after a quick refresh.
+            // Prefer fields already in prData (full DB row), fall back to localStorage.
+            let readiness = null;
+            let reviewHealth = null;
+            if (prData.overall_score != null) {
+                try {
+                    readiness = {
+                        overall_score: prData.overall_score,
+                        overall_score_display: `${prData.overall_score}%`,
+                        ci_score: prData.ci_score,
+                        ci_score_display: `${prData.ci_score}%`,
+                        review_score: prData.review_score,
+                        review_score_display: `${prData.review_score}%`,
+                        classification: prData.classification,
+                        merge_ready: prData.merge_ready === 1,
+                        blockers: prData.blockers ? JSON.parse(prData.blockers) : [],
+                        warnings: prData.warnings ? JSON.parse(prData.warnings) : [],
+                        recommendations: prData.recommendations ? JSON.parse(prData.recommendations) : []
+                    };
+                    reviewHealth = {
+                        classification: prData.review_health_classification,
+                        score: prData.review_health_score,
+                        score_display: `${prData.review_health_score || 0}%`,
+                        response_rate: prData.response_rate || 0,
+                        response_rate_display: `${Math.round((prData.response_rate || 0) * 100)}%`,
+                        total_feedback: prData.total_feedback || 0,
+                        responded_feedback: prData.responded_feedback || 0,
+                        stale_feedback_count: prData.stale_feedback_count || 0,
+                        stale_feedback: prData.stale_feedback ? JSON.parse(prData.stale_feedback) : []
+                    };
+                } catch (e) {
+                    readiness = null;
+                    reviewHealth = null;
+                }
+            }
+            if (!readiness || !reviewHealth) {
+                const stored = loadReadinessData(prId);
+                if (stored && stored.readiness && stored.reviewHealth) {
+                    readiness = stored.readiness;
+                    reviewHealth = stored.reviewHealth;
+                }
+            }
+            if (readiness && reviewHealth) {
+                updateInlineCells(prId, readiness, reviewHealth);
+                const updateBtn = newRow.querySelector('.update-btn');
+                if (updateBtn) {
+                    updateBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Analyzed';
+                }
+            }
 
             // Re-attach the click event listener to the new button
             const updateBtn = newRow.querySelector('.update-btn');
