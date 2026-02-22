@@ -191,22 +191,35 @@
           <h2 class="mb-6 text-center text-2xl font-bold">BLT by the Numbers</h2>
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div class="text-center">
-              <div class="mb-2 text-3xl font-bold text-red-600">5000+</div>
-              <div class="text-sm text-slate-600">Bugs Reported</div>
+              <div id="stat-stars" class="mb-2 text-3xl font-bold text-red-600">
+                <span class="inline-block h-8 w-16 animate-pulse rounded bg-slate-200"></span>
+              </div>
+              <div class="text-sm text-slate-600">GitHub Stars</div>
             </div>
             <div class="text-center">
-              <div class="mb-2 text-3xl font-bold text-red-600">1000+</div>
-              <div class="text-sm text-slate-600">Active Contributors</div>
+              <div id="stat-forks" class="mb-2 text-3xl font-bold text-red-600">
+                <span class="inline-block h-8 w-16 animate-pulse rounded bg-slate-200"></span>
+              </div>
+              <div class="text-sm text-slate-600">Forks</div>
             </div>
             <div class="text-center">
-              <div class="mb-2 text-3xl font-bold text-red-600">250+</div>
-              <div class="text-sm text-slate-600">Companies Protected</div>
+              <div id="stat-contributors" class="mb-2 text-3xl font-bold text-red-600">
+                <span class="inline-block h-8 w-16 animate-pulse rounded bg-slate-200"></span>
+              </div>
+              <div class="text-sm text-slate-600">Contributors</div>
             </div>
             <div class="text-center">
-              <div class="mb-2 text-3xl font-bold text-red-600">$50K+</div>
-              <div class="text-sm text-slate-600">Bounties Awarded</div>
+              <div id="stat-issues" class="mb-2 text-3xl font-bold text-red-600">
+                <span class="inline-block h-8 w-16 animate-pulse rounded bg-slate-200"></span>
+              </div>
+              <div class="text-sm text-slate-600">Open Issues</div>
             </div>
           </div>
+          <!-- Live data attribution -->
+          <p class="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+            <span class="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+            Live data from GitHub
+          </p>
         </div>
       </div>
     </main>
@@ -228,6 +241,18 @@
 
     <!-- JavaScript -->
     <script>
+      // Derive the newsletter repo dynamically so the page works correctly
+      const NEWSLETTER_REPO = (() => {
+        const { hostname, pathname } = window.location;
+        const ghPagesMatch = hostname.match(/^([^.]+)\.github\.io$/i);
+        if (ghPagesMatch) {
+          const org = ghPagesMatch[1];
+          const repo = pathname.split('/').filter(Boolean)[0] || 'BLT-Newsletter';
+          return `${org}/${repo}`;
+        }
+        return 'OWASP-BLT/BLT-Newsletter';
+      })();
+
       const form = document.getElementById('newsletter-form');
       const submitBtn = document.getElementById('submit-btn');
       const btnText = document.getElementById('btn-text');
@@ -269,7 +294,7 @@
           const issueTitle = `Newsletter Subscription: ${email}`;
           const issueBody = `New newsletter subscription request:\n\n- **Name:** ${name || 'Not provided'}\n- **Email:** ${email}\n- **Subscribed:** ${new Date().toISOString()}\n\n---\n*This issue was automatically created by the newsletter signup form.*`;
           
-          const response = await fetch('https://api.github.com/repos/OWASP-BLT/BLT-Newsletter/issues', {
+          const response = await fetch(`https://api.github.com/repos/${NEWSLETTER_REPO}/issues`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -325,6 +350,74 @@
           messageDiv.classList.remove('hidden');
         }
       });
+
+      //Live GitHub Stats
+      (async function fetchGitHubStats() {
+        const BLT_REPO = 'OWASP-BLT/BLT';
+        const API_BASE = 'https://api.github.com';
+
+        /**
+         * Set a stat card's value, or "—" on failure.
+         * @param {string} id   - Element id (e.g. 'stat-stars')
+         * @param {string|number} value
+         */
+        function setStat(id, value) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value !== null && value !== undefined ? String(value) : '—';
+        }
+
+        /**
+         * Parse the total page count from a GitHub Link header.
+         * Returns null if the header is absent or has no 'last' rel.
+         * @param {string|null} linkHeader
+         * @returns {number|null}
+         */
+        function parseTotalPages(linkHeader) {
+          if (!linkHeader) return null;
+          const match = linkHeader.match(/[?&]page=(\d+)>;\s*rel="last"/);
+          return match ? parseInt(match[1], 10) : null;
+        }
+
+        try {
+          // Fetch repo info and first page of contributors in parallel.
+          const [repoRes, contribRes] = await Promise.all([
+            fetch(`${API_BASE}/repos/${BLT_REPO}`, {
+              headers: { Accept: 'application/vnd.github.v3+json' }
+            }),
+            fetch(`${API_BASE}/repos/${BLT_REPO}/contributors?per_page=1&anon=true`, {
+              headers: { Accept: 'application/vnd.github.v3+json' }
+            })
+          ]);
+
+          // ── Repo stats ──
+          if (repoRes.ok) {
+            const repo = await repoRes.json();
+            setStat('stat-stars', repo.stargazers_count);
+            setStat('stat-forks', repo.forks_count);
+            setStat('stat-issues', repo.open_issues_count);
+          } else {
+            ['stat-stars', 'stat-forks', 'stat-issues'].forEach(id => setStat(id, '—'));
+          }
+
+          // ── Contributor count (total pages × 1 per page = total contributors) ──
+          if (contribRes.ok) {
+            const linkHeader = contribRes.headers.get('Link');
+            const totalPages = parseTotalPages(linkHeader);
+            if (totalPages !== null) {
+              setStat('stat-contributors', totalPages);
+            } else {
+              const contributors = await contribRes.json();
+              setStat('stat-contributors', contributors.length);
+            }
+          } else {
+            setStat('stat-contributors', '—');
+          }
+        } catch (_err) {
+          // Network failure — show em-dash fallback in all cards.
+          ['stat-stars', 'stat-forks', 'stat-contributors', 'stat-issues']
+            .forEach(id => setStat(id, '—'));
+        }
+      })();
     </script>
   </body>
 </html>
