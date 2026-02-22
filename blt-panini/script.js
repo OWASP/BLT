@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Initial render
         renderApps(allApps);
+        updateStats();
     } catch (error) {
         console.error('Error loading banned apps data:', error);
         appsGrid.innerHTML = '<p class="text-red-500">Error loading data. Please check console.</p>';
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const slackResponse = await fetch('slack_apps.json');
         allSlackApps = await slackResponse.json();
+        updateStats();
     } catch (error) {
         console.error('Error loading slack apps data:', error);
     }
@@ -164,6 +166,18 @@ function renderApps(apps) {
         `;
         appsGrid.appendChild(card);
     });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
+function updateStats() {
+    const totalBanned = allApps.length;
+    const totalCountries = new Set(allApps.map(app => app.country_name)).size;
+    const totalSlack = allSlackApps?.length ?? 0;
+
+    document.getElementById('statTotalBannedApps').textContent = totalBanned || '—';
+    document.getElementById('statTotalCountries').textContent = totalCountries || '—';
+    document.getElementById('statTotalSlackApps').textContent = totalSlack || '—';
 }
 
 // ── Slack Apps ────────────────────────────────────────────────────────────────
