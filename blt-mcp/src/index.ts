@@ -24,7 +24,20 @@ interface ApiResponse {
   [key: string]: unknown;
 }
 
-// Helper function to make authenticated API requests
+/**
+ * Makes an authenticated HTTP request to the BLT API.
+ * 
+ * Centralizes HTTP communication with the BLT backend to ensure consistent
+ * authentication, error handling, and request formatting across all API calls.
+ * This abstraction enables easy credential management and provides a single point
+ * for monitoring, logging, and retry logic in the future.
+ *
+ * @param endpoint - The API endpoint path (e.g., '/issues', '/repos/123')
+ * @param method - The HTTP method to use (GET, POST, PATCH, etc.). Defaults to GET.
+ * @param body - Optional request body for POST/PATCH requests
+ * @returns The parsed JSON response from the API
+ * @throws If the API request fails or returns a non-OK status
+ */
 async function makeApiRequest(
   endpoint: string,
   method: string = "GET",
@@ -57,7 +70,15 @@ async function makeApiRequest(
   return response.json();
 }
 
-// Create the MCP server
+/**
+ * Initialize the MCP (Model Context Protocol) server with BLT integration.
+ * 
+ * Establishes the foundational MCP server that bridges AI agents with BLT.
+ * By exposing Resources, Tools, and Prompts, this architecture enables:
+ * - **Resources**: AI agents can query BLT data without side effects
+ * - **Tools**: AI agents can perform actions while maintaining security controls
+ * - **Prompts**: Pre-built workflows guide AI through complex security tasks
+ */
 const server = new Server(
   {
     name: "blt-mcp",
@@ -76,6 +97,16 @@ const server = new Server(
 // RESOURCES - blt:// URIs for accessing BLT data
 // ============================================================================
 
+/**
+ * Handler for listing all available BLT resources.
+ * 
+ * Exposes resource metadata and URI patterns so MCP clients can discover
+ * and dynamically access BLT data. This enables clients to learn available data
+ * sources at runtime rather than hardcoding endpoints, improving flexibility
+ * and enabling graceful degradation if resources become unavailable.
+ *
+ * @returns The list of available BLT resource definitions with URIs and descriptions
+ */
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
     resources: [
@@ -143,6 +174,30 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
   };
 });
 
+/**
+ * Handler for reading specific BLT resources by URI.
+ * 
+ * Implements the resource resolution pattern, translating MCP URIs into
+ * targeted API calls. Uses regex-based routing for flexible URI parsing,
+ * enabling both collection queries (all issues) and specific lookups (issue #123).
+ * This allows the MCP layer to remain agnostic to underlying API structure
+ * while providing a consistent interface.
+ *
+ * Supported URI patterns:
+ * - blt://issues - All issues
+ * - blt://issues/{id} - Specific issue
+ * - blt://repos - All repositories
+ * - blt://repos/{id} - Specific repository
+ * - blt://contributors - All contributors
+ * - blt://contributors/{id} - Specific contributor
+ * - blt://workflows - All workflows
+ * - blt://workflows/{id} - Specific workflow
+ * - blt://leaderboards - Leaderboard data
+ * - blt://rewards - Rewards and bacon points
+ *
+ * @param request - MCP request containing the resource URI
+ * @throws If the URI is invalid or the API request fails
+ */
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const uri = request.params.uri;
   const match = uri.match(/^blt:\/\/([^\/]+)(?:\/(.+))?$/);
@@ -221,6 +276,22 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 // TOOLS - Actions that can be performed on BLT
 // ============================================================================
 
+/**
+ * Handler for listing all available BLT tools.
+ * 
+ * Exposes tool metadata with input schemas so MCP clients can dynamically
+ * discover supported actions and validate parameters before execution.
+ * This enables AI agents to understand what they can do with BLT and
+ * gracefully handle cases where specific tools are unavailable.
+ *
+ * Available tools:
+ * - submit_issue: Report new bugs or vulnerabilities
+ * - award_bacon: Award bacon points to contributors
+ * - update_issue_status: Change the status of an issue
+ * - add_comment: Add a comment to an issue
+ *
+ * @returns The list of available tool definitions with input schemas
+ */
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -326,6 +397,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
+/**
+ * Handler for executing BLT tools.
+ * 
+ * Routes tool invocations to their respective implementations and communicates
+ * results back to the MCP client. Early argument presence check prevents null
+ * reference errors downstream, while the switch statement provides a clear
+ * and explicit dispatch pattern for handling tool execution.
+ *
+ * Tool execution flow:
+ * 1. Ensures arguments are present
+ * 2. Routes based on tool name
+ * 3. Extracts parameters and applies defaults
+ * 4. Makes the authenticated API call
+ * 5. Returns formatted result or error response
+ *
+ * @param request - MCP request containing tool name and arguments
+ * @returns Result or error message wrapped in MCP content format
+ * @throws If the tool name is unknown
+ */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
@@ -438,6 +528,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 // PROMPTS - AI guidance for common workflows
 // ============================================================================
 
+/**
+ * Handler for listing all available prompts.
+ * 
+ * Exposes pre-built prompt workflows that guide AI agents through complex
+ * security procedures. By encoding best practices and domain expertise into
+ * prompts, we ensure consistent quality in security assessments regardless
+ * of which AI agent uses this server.
+ *
+ * Available prompts:
+ * - triage_vulnerability: Guide AI through vulnerability assessment
+ * - plan_remediation: Create remediation plans for security issues
+ * - review_contribution: Evaluate security contributions
+ *
+ * @returns The list of available prompt definitions with argument schemas
+ */
 server.setRequestHandler(ListPromptsRequestSchema, async () => {
   return {
     prompts: [
@@ -496,6 +601,17 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => {
   };
 });
 
+/**
+ * Handler for retrieving and executing specific prompts.
+ * 
+ * Renders prompt templates with client-provided context (vulnerability details,
+ * issue IDs, etc.), producing a customized message stream that guides the AI.
+ * This template-based approach separates domain logic from presentation,
+ * enabling prompt improvements without code changes.
+ *
+ * @param request - MCP request containing prompt name and template arguments
+ * @throws If the prompt name is unknown
+ */
 server.setRequestHandler(GetPromptRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
@@ -596,6 +712,16 @@ Be constructive and encouraging while maintaining high standards for security co
 // Start the server
 // ============================================================================
 
+/**
+ * Starts the BLT-MCP server.
+ * 
+ * Establishes stdio-based communication with the MCP client using a standard
+ * JSON-RPC 2.0 transport. Stdio was chosen over TCP/HTTP for simplicity—
+ * the server runs as a subprocess of the client with inherited stdin/stdout,
+ * eliminating network complexity while enabling secure environment variable
+ * based configuration. Diagnostics log to stderr to keep stdout clean for
+ * MCP protocol messages.
+ */
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
