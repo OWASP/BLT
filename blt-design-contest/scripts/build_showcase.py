@@ -188,9 +188,21 @@ def build_card(issue: dict, reactions: dict) -> str:
     description = extract_description(fields)
 
     # Reaction pills
-    reaction_html = ""
     thumbs_count = reactions.get("+1", 0)
+    # Always render a clickable thumbs-up button
+    reaction_html = (
+        f'<button type="button" '
+        f'class="inline-flex items-center gap-1 text-sm '
+        f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+        f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
+        f'hover:text-[#E10101] transition-colors cursor-pointer" '
+        f'data-thumbs-btn '
+        f'aria-label="Thumbs up this design on GitHub">'
+        f'👍 <span>{thumbs_count}</span></button>'
+    )
     for content, emoji in REACTION_LABELS.items():
+        if content == "+1":
+            continue
         count = reactions.get(content, 0)
         if count > 0:
             reaction_html += (
@@ -243,6 +255,7 @@ def build_card(issue: dict, reactions: dict) -> str:
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-thumbs="{thumbs_count}"
+             data-issue-url="{issue_url}"
              aria-label="Design submission: {title}">
       {preview_block}
       <div class="p-5 flex flex-col gap-3 flex-1">
@@ -272,8 +285,7 @@ def build_card(issue: dict, reactions: dict) -> str:
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
           <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
-            {reaction_html if reaction_html else
-             '<span class="text-xs text-gray-400 dark:text-gray-500">No reactions yet</span>'}
+            {reaction_html}
           </div>
           <div class="flex items-center gap-3">
             {design_link}
@@ -638,6 +650,28 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         cards.forEach(card => grid.appendChild(card));
       }});
     }}
+
+    // Thumbs-up click handler
+    document.querySelectorAll('[data-thumbs-btn]').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.classList.add('text-[#E10101]', 'bg-red-100', 'dark:bg-red-900/30');
+        btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+        const article = btn.closest('article');
+        const issueUrl = article ? article.dataset.issueUrl : null;
+        const countEl = btn.querySelector('span');
+        if (countEl) {{
+          countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
+        }}
+        if (article) {{
+          article.dataset.thumbs = parseInt(article.dataset.thumbs || '0', 10) + 1;
+        }}
+        if (issueUrl) {{
+          window.open(issueUrl, '_blank', 'noopener,noreferrer');
+        }}
+      }});
+    }});
   </script>
 </body>
 </html>"""
