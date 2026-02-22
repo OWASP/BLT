@@ -1457,13 +1457,29 @@ async def handle_pr_readiness(request, env, path):
     Calculate overall PR readiness combining CI and review health
     
     Features:
-    - Application-level rate limiting (10 requests/minute per IP)
-    - Response caching (10 minutes TTL)
+    - Response caching (10 minutes TTL) checked before rate limiting
+    - Application-level rate limiting (30 requests/minute per IP) for non-cached requests
     - Cache invalidation on PR refresh
     """
     try:
         # Extract PR ID from path: /api/prs/123/readiness
         pr_id = path.split('/')[3]
+        
+        # Check cache first — cached responses don't consume a rate-limit slot, which
+        # ensures "Analyze All" completes successfully when results are already cached.
+        cached_result = await get_readiness_cache(env, pr_id)
+        if cached_result:
+            # Return cached response with cache headers
+            return Response.new(
+                json.dumps(cached_result),
+                {
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'X-Cache': 'HIT',
+                        'Cache-Control': f'private, max-age={_READINESS_CACHE_TTL}'
+                    }
+                }
+            )
         
         # Get client IP for rate limiting
         # Try multiple headers to support different proxy configurations
@@ -1474,7 +1490,7 @@ async def handle_pr_readiness(request, env, path):
             'unknown'
         )
         
-        # Check rate limit
+        # Check rate limit (only for non-cached requests that require a GitHub API call)
         allowed, retry_after = check_rate_limit(client_ip)
         if not allowed:
             return Response.new(
@@ -1490,21 +1506,6 @@ async def handle_pr_readiness(request, env, path):
                         'Retry-After': str(retry_after),
                         'X-RateLimit-Limit': str(_READINESS_RATE_LIMIT),
                         'X-RateLimit-Window': str(_READINESS_RATE_WINDOW)
-                    }
-                }
-            )
-        
-        # Check cache first
-        cached_result = await get_readiness_cache(env, pr_id)
-        if cached_result:
-            # Return cached response with cache headers
-            return Response.new(
-                json.dumps(cached_result),
-                {
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'X-Cache': 'HIT',
-                        'Cache-Control': f'private, max-age={_READINESS_CACHE_TTL}'
                     }
                 }
             )

@@ -18,8 +18,9 @@ _RATE_LIMIT_CACHE_TTL = 300
 _readiness_rate_limit = {
     # Structure: {'ip_address': {'count': int, 'window_start': float}}
 }
-# Rate limit: 10 requests per minute per IP for readiness endpoints
-_READINESS_RATE_LIMIT = 10
+# Rate limit: 30 requests per minute per IP for readiness endpoints
+# This allows "Analyze All" to succeed for up to 30 PRs without hitting the limit.
+_READINESS_RATE_LIMIT = 30
 _READINESS_RATE_WINDOW = 60  # seconds
 
 # In-memory cache for readiness results
