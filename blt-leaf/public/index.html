@@ -2746,15 +2746,23 @@
             let prUrl = null;
             let repoKey = null;
 
-            if (ownerParam && repoParam && prParam && !prParam.startsWith('http')) {
+            // Basic validation for new format parameters
+            const ownerValid = typeof ownerParam === 'string' && /^[a-zA-Z0-9._-]+$/.test(ownerParam);
+            const repoValid = typeof repoParam === 'string' && /^[a-zA-Z0-9._-]+$/.test(repoParam);
+            const prValid = typeof prParam === 'string' && /^\d+$/.test(prParam);
+
+            if (ownerValid && repoValid && prValid) {
                 // New format: construct the full PR URL from parts
                 prUrl = `https://github.com/${ownerParam}/${repoParam}/pull/${prParam}`;
                 repoKey = `${ownerParam}/${repoParam}`;
             } else if (prParam) {
-                // Old format: prParam is the full URL
-                prUrl = prParam;
-                const match = prUrl.match(/github\.com\/([^/]+)\/([^/]+)\/pull\//);
-                if (match) repoKey = `${match[1]}/${match[2]}`;
+                // Old format: only accept prParam if it looks like a GitHub PR URL
+                const legacyPrUrlPattern = /^https?:\/\/github\.com\/([a-zA-Z0-9._-]+)\/([a-zA-Z0-9._-]+)\/pull\/\d+$/;
+                const match = prParam.match(legacyPrUrlPattern);
+                if (match) {
+                    prUrl = prParam;
+                    repoKey = `${match[1]}/${match[2]}`;
+                }
             }
 
             if (!prUrl) return;

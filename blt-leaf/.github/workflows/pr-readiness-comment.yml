@@ -29,7 +29,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pull_number = pr.number;
-            const leafUrl = `https://leaf.owaspblt.org/?owner=${owner}&repo=${repo}&pr=${pull_number}`;
+            const leafUrl = `https://leaf.owaspblt.org/?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&pr=${encodeURIComponent(pull_number)}`;
 
             // Check if a readiness comment already exists to avoid duplicates
             const comments = await github.paginate(github.rest.issues.listComments, {
