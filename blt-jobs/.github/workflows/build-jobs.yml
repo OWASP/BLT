@@ -7,9 +7,11 @@ on:
     branches: [main]
     paths:
       - "jobs/**"
+      - "seekers/**"
       - "scripts/build-jobs.js"
       - "package.json"
       - "package-lock.json"
+  workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
@@ -44,6 +46,6 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add data/jobs.json data/seekers.json
-            git commit -m "chore: regenerate data JSON from markdown [skip ci]"
+            git commit -m "chore: regenerate data JSON from markdown"
             git push
           fi

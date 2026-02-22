@@ -368,6 +368,10 @@ def scrape_url(url: str) -> tuple[dict, str]:
     if result is None:
         result = scrape_jina(url)
 
+    if result is None:
+        print("Could not extract job data from URL (all strategies failed).", file=sys.stderr)
+        sys.exit(1)
+
     fm_partial, description = result
     created = datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if hasattr(datetime, "UTC") else datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     fm = {

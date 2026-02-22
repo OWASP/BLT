@@ -1,16 +1,15 @@
 # BLT Jobs
 
-A community-driven job board for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem, deployed on GitHub Pages. The UI exactly matches [jobs.owaspblt.org](https://jobs.owaspblt.org) (Inter font, slate/red palette, dark mode) and uses a fully automated **PR-based contribution workflow** — no backend required.
+A community-driven job board for the [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/) ecosystem, deployed on GitHub Pages. The UI exactly matches [jobs.owaspblt.org](https://jobs.owaspblt.org) (Inter font, slate/red palette, dark mode). **Issue-based workflow** — open an issue with a job URL or form, we add the listing and close the issue; no fork or PR required.
 
-**Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org) · [pritz395.github.io/BLT-Jobs](https://pritz395.github.io/BLT-Jobs/) *(fork preview)*
+**Live site:** [jobs.owaspblt.org](https://jobs.owaspblt.org)
 
 ---
 
 ## Features
 
-- **Quick Add from URL** — paste any job posting link; a bot scrapes it and creates the structured Markdown file automatically
-- **Manual Job Posting** — create a Markdown file directly via GitHub's editor and open a PR
-- **Job Seeker Profiles** — professionals can list themselves on the Find Talent page
+- **Add job via issue** — paste a job URL or fill a form; a bot scrapes or parses it, adds the listing, and closes the issue
+- **Add seeker profile via issue** — fill a template; we publish your profile and close the issue
 - **Dark Mode** — persistent dark/light toggle, respects system preference by default
 - **Full-text Search** — client-side search across all job listings and seeker profiles
 - **Automated Data Pipeline** — GitHub Actions rebuild `data/jobs.json` and `data/seekers.json` on every merge, GitHub Pages redeploys instantly
@@ -39,73 +38,20 @@ For other sites, the scraper first looks for a [JSON-LD `JobPosting` schema](htt
 
 ## How It Works
 
-### Posting a Job
-
-#### Option 1 — Quick Add (Recommended)
+### Posting a Job (issue-based — easiest)
 
 1. Go to the [Contribute page](https://jobs.owaspblt.org/add.html)
-2. Click **"Open a new pull request (quick add)"**
-3. GitHub opens a `job-url.txt` file editor — if you don't have write access to the repo, GitHub automatically forks it for you
-4. Paste the job posting URL as the file content (one URL, one line)
-5. Commit to a **new branch** (not directly to `main`)
-6. Click **"Propose new file"** → **"Create pull request"**
-7. The `quick-add-job.yml` GitHub Action triggers automatically, scrapes the URL, and commits a structured `jobs/<company>-<title>.md` file to your PR branch
-8. Review the generated file, then merge
+2. Click **"Open issue: Post job from URL"** or **"Open issue: Post job (form)"**
+3. For URL: paste the job link and submit the issue. For form: fill company, title, location, description, how to apply, and submit.
+4. The `process-submissions.yml` workflow runs: it scrapes the URL (or parses the form), creates `jobs/<slug>.md`, pushes to `main`, comments on the issue, and **closes the issue**. The build workflow then updates `data/jobs.json` and the site.
 
-> **Tip:** You can also paste the job URL directly in the **PR description body** instead of creating `job-url.txt` — the bot reads both.
+No fork or PR needed.
 
-#### Option 2 — Manual Add
+### Creating a Seeker Profile (issue-based)
 
-1. Create a new file in `jobs/` named `company-slug-job-title-slug.md`
-2. Use this YAML frontmatter template:
-
-```yaml
----
-title: "Senior Engineer"
-organization_name: "Acme Corp"
-organization_logo: ""
-location: "Remote"
-job_type: "full-time"
-salary_range: "USD 120,000–160,000"
-expires_at: ""
-application_email: ""
-application_url: "https://acme.com/careers/senior-engineer"
-application_instructions: ""
-requirements: ""
-created_at: "2026-02-18T00:00:00Z"
-views_count: 0
----
-
-Write the full job description here in Markdown.
-```
-
-3. Open a pull request — the build action will validate and include it automatically on merge
-
-### Creating a Seeker Profile
-
-1. Go to the [Contribute page](https://pritz395.github.io/BLT-Jobs/add.html) and scroll to **"Create a job seeker profile"**
-2. Click **"Create new seeker profile file"** — opens GitHub editor pre-filled with `seekers/your-name.md`
-3. Rename the file to `seekers/your-actual-name.md` and use this template:
-
-```yaml
----
-name: "Jane Doe"
-headline: "Senior Security Engineer"
-location: "Remote (US/EU-friendly)"
-skills: "Application security, threat modeling, Python, AWS"
-experience_summary: "8+ years in AppSec, leading security reviews and secure SDLC programs."
-profile_url: "https://linkedin.com/in/your-profile"
-availability: "Open to full-time roles"
-created_at: "2026-02-18T00:00:00Z"
----
-
-## About Me
-
-Write a short bio here in Markdown. This appears on your full profile card.
-```
-
-4. Commit to a new branch → open PR → merge
-5. Your profile appears on the [Find Talent](https://pritz395.github.io/BLT-Jobs/seekers.html) page
+1. On the [Contribute page](https://jobs.owaspblt.org/add.html), click **"Open issue: Create seeker profile"**
+2. Fill in the issue template (name, location, title, skills, about, links) and submit
+3. The workflow creates `seekers/<name-slug>.md`, pushes to `main`, comments, and closes the issue. Your profile appears on [Find Talent](https://jobs.owaspblt.org/seekers.html).
 
 ---
 
@@ -147,10 +93,12 @@ BLT-Jobs/
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── build-jobs.yml      # Triggered on push to main (jobs/** or seekers/**)
-│   │   └── quick-add-job.yml   # Triggered on PR open/sync — scrapes job-url.txt
-│   └── PULL_REQUEST_TEMPLATE/
-│       └── job_submission.md
+│   │   ├── process-submissions.yml  # Issue-based: add job/seeker from issue, then close
+│   │   └── build-jobs.yml           # Push to main: rebuild data JSON, redeploy
+│   └── ISSUE_TEMPLATE/
+│       ├── job-posting-from-link.yml
+│       ├── job-posting.yml
+│       └── job-seeker.md
 │
 ├── package.json
 └── README.md
@@ -160,20 +108,19 @@ BLT-Jobs/
 
 ## GitHub Actions
 
+### `process-submissions.yml` (issue-based)
+Triggers when an issue is **opened** or **edited** with a relevant label.
+
+- **`job-posting-from-link`**: Extracts the first URL from the issue body, runs `scrape-job-url.py`, commits `jobs/<slug>.md` to `main`, comments on the issue, and **closes the issue**.
+- **`job-posting`** (form): Parses the issue body with `issue-form-to-job.js`, creates `jobs/<slug>.md` with YAML frontmatter, commits to `main`, comments, and closes the issue.
+- **`job-seeker`**: Parses the issue body with `issue-form-to-seeker.js`, creates `seekers/<slug>.md`, commits to `main`, comments, and closes the issue.
+
 ### `build-jobs.yml`
 Triggers on push to `main` when any file under `jobs/`, `seekers/`, or `scripts/build-jobs.js` changes.
 
 1. Runs `node scripts/build-jobs.js`
 2. If `data/jobs.json` or `data/seekers.json` changed, commits them back to `main` with `[skip ci]`
 3. GitHub Pages redeploys automatically
-
-### `quick-add-job.yml`
-Triggers on every PR `opened` or `synchronize` event.
-
-1. Looks for a URL in `job-url.txt` (first line) or falls back to the PR description body
-2. Runs `python3 scripts/scrape-job-url.py <url>`
-3. The scraper tries in order: Greenhouse API → Lever API → JSON-LD → static HTML → Jina Reader
-4. Commits the generated `jobs/<slug>.md` file to the PR branch
 
 ---
 

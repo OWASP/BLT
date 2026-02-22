@@ -54,39 +54,25 @@
 
   <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8 space-y-8">
     <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-gray-100 sm:text-4xl">Contribute to the job board</h1>
-    <p class="mt-2 text-slate-600 dark:text-gray-400">You can add a job or create a seeker profile. For jobs, we recommend <strong class="dark:text-gray-200">Quick add</strong> if the posting is on a supported site.</p>
+    <p class="mt-2 text-slate-600 dark:text-gray-400">Open an issue — no fork or PR needed. We add the listing and close the issue automatically.</p>
 
-          <!-- Quick add (recommended) -->
+          <!-- Add via issue (primary) -->
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs font-semibold uppercase tracking-wide text-[#e74c3c] dark:text-[#e74c3c]">Recommended</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-[#e74c3c] dark:text-[#e74c3c]">Easiest</span>
             </div>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Quick add (paste job link)</h2>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">Click the button below — it opens a <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">job-url.txt</code> file editor in your fork. Paste the job posting URL as the file contents, commit it to a new branch, then open the pull request. Our bot will scrape the page and add the Markdown file automatically.</p>
-            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supported sites</p>
-            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside mb-4 space-y-1">
-              <li>Greenhouse (e.g. jobs.greenhouse.io, boards.greenhouse.io)</li>
-              <li>Lever (e.g. jobs.lever.co)</li>
-              <li>Workable</li>
-              <li>Other common ATS and career pages (we’ll try to extract title, company, description)</li>
-            </ul>
-            <a id="quick-add-pr-link" href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=job-url.txt" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
-              <i class="fas fa-external-link-alt mr-2"></i>Open a new pull request (quick add)
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job from URL</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue, paste the job link, and submit. Our bot scrapes it and adds the listing; the issue is closed when done. Works with Greenhouse, Lever, Workable, LinkedIn, Indeed, and most career pages.</p>
+            <a id="issue-link-job-url" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting-from-link.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+              <i class="fas fa-link mr-2"></i>Open issue: Post job from URL
             </a>
           </section>
 
-          <!-- Manual add (job) -->
           <section class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Manual add</h2>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">Create a new Markdown file in the <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">jobs/</code> folder and open a pull request. Use the filename format: <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">company-slug-job-title-slug.md</code> (e.g. <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">acme-senior-engineer.md</code>).</p>
-            <ol class="list-decimal list-inside text-gray-600 dark:text-gray-400 space-y-2 mb-4">
-              <li>Fork the repository (if you haven’t already).</li>
-              <li>In your fork, create a new file under <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">jobs/</code> with the name <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">company-slug-job-title-slug.md</code>.</li>
-              <li>Use the YAML frontmatter and body format shown in <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/example-company-sample-job.md" target="_blank" rel="noopener noreferrer" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">the sample job</a>.</li>
-              <li>Commit, push, and open a pull request to the main repo.</li>
-            </ol>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=jobs/your-company-job-title.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
-              <i class="fas fa-file-alt mr-2"></i>Create new file in jobs/
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Post a job (fill the form)</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Open an issue and fill in company, title, location, description, and how to apply. We turn it into a listing and close the issue.</p>
+            <a id="issue-link-job-form" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-posting.yml" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+              <i class="fas fa-edit mr-2"></i>Open issue: Post job (form)
             </a>
           </section>
 
@@ -94,19 +80,13 @@
           <section id="seekers" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Create a job seeker profile</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">
-              If you're looking for opportunities, you can create a public profile that appears on the
-              <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Job seekers</a> page.
+              Open an issue and fill in your name, headline, skills, and links. Your profile appears on the <a href="seekers.html" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">Find Talent</a> page; we close the issue when done.
             </p>
-            <ol class="list-decimal list-inside text-gray-600 dark:text-gray-400 space-y-2 mb-4">
-              <li>Fork the repository (if you haven’t already).</li>
-              <li>Create a new file under <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">seekers/</code> named after you, e.g. <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-sm">jane-doe.md</code>.</li>
-              <li>Use the YAML frontmatter and body format shown in <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/seekers/example-seeker.md" target="_blank" rel="noopener noreferrer" class="text-[#e74c3c] dark:text-[#e74c3c] hover:underline">the sample seeker profile</a>.</li>
-              <li>Commit, push, and open a pull request to the main repo.</li>
-            </ol>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/new/main?filename=seekers/your-name.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
-              <i class="fas fa-user-plus mr-2"></i>Create new seeker profile file
+            <a id="issue-link-seeker" href="https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=job-seeker.md" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-5 py-2.5 border-2 border-[#e74c3c] text-[#e74c3c] dark:border-red-500 dark:text-red-400 rounded-lg font-semibold hover:bg-red-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-colors">
+              <i class="fas fa-user-plus mr-2"></i>Open issue: Create seeker profile
             </a>
           </section>
+
   </main>
   <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -123,5 +103,17 @@
     </div>
   </footer>
   <script src="assets/js/theme.js"></script>
+  <script>
+    (function () {
+      var repo = 'OWASP-BLT/BLT-Jobs';
+      var base = 'https://github.com/' + repo + '/issues/new';
+      var jobUrl = document.getElementById('issue-link-job-url');
+      var jobForm = document.getElementById('issue-link-job-form');
+      var seeker = document.getElementById('issue-link-seeker');
+      if (jobUrl) jobUrl.href = base + '?template=job-posting-from-link.yml';
+      if (jobForm) jobForm.href = base + '?template=job-posting.yml';
+      if (seeker) seeker.href = base + '?template=job-seeker.md';
+    })();
+  </script>
 </body>
 </html>

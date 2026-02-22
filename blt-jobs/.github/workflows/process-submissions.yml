@@ -1,150 +1,182 @@
-name: Process Job Submissions
+# When an issue is opened with a job or seeker label, create the .md file, push to main, then close the issue.
+name: Process issue submissions
 
 on:
   issues:
-    types: [opened, edited]
+    types: [labeled]
 
 permissions:
   contents: write
   issues: write
 
 jobs:
-  process-submission:
+  job-from-url:
     runs-on: ubuntu-latest
+    if: github.event.label.name == 'job-posting-from-link'
     steps:
-      - name: Checkout repository
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: Process Job Posting
-        if: contains(github.event.issue.labels.*.name, 'job-posting')
+      - name: Get job URL from issue body
+        id: url
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          # Extract issue details
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-          ISSUE_TITLE="${{ github.event.issue.title }}"
-          ISSUE_BODY="${{ github.event.issue.body }}"
-          ISSUE_USER="${{ github.event.issue.user.login }}"
-          
-          # Parse company name and job title from issue body
-          COMPANY=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Company Name:\*\* ).*' | head -1 | xargs)
-          JOB_TITLE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Job Title:\*\* ).*' | head -1 | xargs)
-          WEBSITE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Website:\*\* ).*' | head -1 | xargs)
-          LOCATION=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Location:\*\* ).*' | head -1 | xargs)
-          JOB_TYPE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Job Type:\*\* ).*' | head -1 | xargs)
-          
-          # Extract domain from website
-          if [ -n "$WEBSITE" ]; then
-            DOMAIN=$(echo "$WEBSITE" | sed -e 's|^https\?://||' -e 's|/.*$||' -e 's|^www\.||')
-          else
-            DOMAIN="unknown"
+          node -e "
+            const body = process.env.ISSUE_BODY || '';
+            require('fs').writeFileSync('issue_body.txt', body);
+            // Extract value of the '### Job URL' section
+            const match = body.match(/###\s*Job URL\s*\n+([^\n#]+)/);
+            const url = match ? match[1].trim() : '';
+            if (!url || !url.startsWith('http')) {
+              console.error('No valid URL found in issue body');
+              process.exit(1);
+            }
+            require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'url=' + url + '\n');
+            console.log('Found URL: ' + url);
+          "
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install scrape dependencies
+        run: pip install -r scripts/requirements-scrape.txt
+
+      - name: Scrape URL and create job file
+        id: scrape
+        run: |
+          OUTPUT=$(python3 scripts/scrape-job-url.py "${{ steps.url.outputs.url }}")
+          OUTPUT=$(echo "$OUTPUT" | tail -1)
+          if [ -z "$OUTPUT" ] || [ ! -f "$OUTPUT" ]; then
+            echo "Scraper did not produce a job file"
+            exit 1
           fi
-          
-          # Create filename: domain.com-job-title.md
-          if [ -n "$JOB_TITLE" ]; then
-            FILENAME=$(echo "${DOMAIN}-${JOB_TITLE}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
-          else
-            FILENAME=$(echo "${DOMAIN}-job-${ISSUE_NUMBER}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
-          fi
-          
-          # Create job posting file
-          cat > "jobs/${FILENAME}.md" << 'EOFMARKER'
-          # $JOB_TITLE
-          
-          **Company:** $COMPANY
-          **Website:** $WEBSITE
-          **Location:** $LOCATION
-          **Type:** $JOB_TYPE
-          **Posted:** $(date +%Y-%m-%d)
-          **Issue:** [#$ISSUE_NUMBER](https://github.com/${{ github.repository }}/issues/$ISSUE_NUMBER)
-          
-          ---
-          
-          $ISSUE_BODY
-          EOFMARKER
-          
-          # Replace variables
-          sed -i "s|\$JOB_TITLE|${JOB_TITLE}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$COMPANY|${COMPANY}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$WEBSITE|${WEBSITE}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$LOCATION|${LOCATION}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$JOB_TYPE|${JOB_TYPE}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$ISSUE_NUMBER|${ISSUE_NUMBER}|g" "jobs/${FILENAME}.md"
-          sed -i "s|\$ISSUE_BODY|${ISSUE_BODY}|g" "jobs/${FILENAME}.md"
-          
-          echo "Created job file: jobs/${FILENAME}.md"
-          
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # Commit and push
-          git add "jobs/${FILENAME}.md"
-          git commit -m "Add job posting: ${JOB_TITLE} at ${COMPANY} (Issue #${ISSUE_NUMBER})"
+          echo "path=$OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "Created $OUTPUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
+
+      - name: Commit and push job file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.scrape.outputs.path }}" data/jobs.json data/seekers.json
+          git commit -m "chore: add job from issue (quick add) #${{ github.event.issue.number }}"
           git push
-          
-          # Comment on issue
-          echo "Job posting has been published! View it at: https://${{ github.repository_owner }}.github.io/BLT-Jobs/jobs.html#${FILENAME}" > comment.txt
-          gh issue comment ${ISSUE_NUMBER} --body-file comment.txt
+
+      - name: Comment and close issue
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Process Job Seeker Profile
-        if: contains(github.event.issue.labels.*.name, 'job-seeker')
+  job-form:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'job-posting'
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Write issue body to file
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          # Extract issue details
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-          ISSUE_TITLE="${{ github.event.issue.title }}"
-          ISSUE_BODY="${{ github.event.issue.body }}"
-          ISSUE_USER="${{ github.event.issue.user.login }}"
-          
-          # Parse name from issue body
-          NAME=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Name:\*\* ).*' | head -1 | xargs)
-          TITLE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Current Title/Role:\*\* ).*' | head -1 | xargs)
-          LOCATION=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Location:\*\* ).*' | head -1 | xargs)
-          EXPERIENCE=$(echo "$ISSUE_BODY" | grep -oP '(?<=\*\*Years of Experience:\*\* ).*' | head -1 | xargs)
-          
-          # Create filename: seekers/name.md
-          if [ -n "$NAME" ]; then
-            FILENAME=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
-          else
-            FILENAME="seeker-${ISSUE_NUMBER}"
+          node -e "require('fs').writeFileSync('issue_body.txt', process.env.ISSUE_BODY || '')"
+
+      - name: Create job file from form
+        id: create
+        run: |
+          PATH_OUT=$(node scripts/issue-form-to-job.js < issue_body.txt)
+          PATH_OUT=$(echo "$PATH_OUT" | tail -1)
+          if [ -z "$PATH_OUT" ] || [ ! -f "$PATH_OUT" ]; then
+            echo "Form parser did not produce a job file"
+            exit 1
           fi
-          
-          # Create seeker profile file
-          cat > "seekers/${FILENAME}.md" << 'EOFMARKER'
-          # $NAME
-          
-          **Title:** $TITLE
-          **Location:** $LOCATION
-          **Experience:** $EXPERIENCE
-          **Profile Created:** $(date +%Y-%m-%d)
-          **Issue:** [#$ISSUE_NUMBER](https://github.com/${{ github.repository }}/issues/$ISSUE_NUMBER)
-          
-          ---
-          
-          $ISSUE_BODY
-          EOFMARKER
-          
-          # Replace variables
-          sed -i "s|\$NAME|${NAME}|g" "seekers/${FILENAME}.md"
-          sed -i "s|\$TITLE|${TITLE}|g" "seekers/${FILENAME}.md"
-          sed -i "s|\$LOCATION|${LOCATION}|g" "seekers/${FILENAME}.md"
-          sed -i "s|\$EXPERIENCE|${EXPERIENCE}|g" "seekers/${FILENAME}.md"
-          sed -i "s|\$ISSUE_NUMBER|${ISSUE_NUMBER}|g" "seekers/${FILENAME}.md"
-          sed -i "s|\$ISSUE_BODY|${ISSUE_BODY}|g" "seekers/${FILENAME}.md"
-          
-          echo "Created seeker profile: seekers/${FILENAME}.md"
-          
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # Commit and push
-          git add "seekers/${FILENAME}.md"
-          git commit -m "Add job seeker profile: ${NAME} (Issue #${ISSUE_NUMBER})"
+          echo "path=$PATH_OUT" >> "$GITHUB_OUTPUT"
+          echo "Created $PATH_OUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
+
+      - name: Commit and push job file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.create.outputs.path }}" data/jobs.json data/seekers.json
+          git commit -m "chore: add job from issue #${{ github.event.issue.number }}"
           git push
-          
-          # Comment on issue
-          echo "Your profile has been published! View it at: https://${{ github.repository_owner }}.github.io/BLT-Jobs/seekers.html#${FILENAME}" > comment.txt
-          gh issue comment ${ISSUE_NUMBER} --body-file comment.txt
+
+      - name: Comment and close issue
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "Job posting added. [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          gh issue close ${{ github.event.issue.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  seeker:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'job-seeker'
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Write issue body to file
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          node -e "require('fs').writeFileSync('issue_body.txt', process.env.ISSUE_BODY || '')"
+
+      - name: Create seeker file from form
+        id: create
+        run: |
+          PATH_OUT=$(node scripts/issue-form-to-seeker.js < issue_body.txt)
+          PATH_OUT=$(echo "$PATH_OUT" | tail -1)
+          if [ -z "$PATH_OUT" ] || [ ! -f "$PATH_OUT" ]; then
+            echo "Form parser did not produce a seeker file"
+            exit 1
+          fi
+          echo "path=$PATH_OUT" >> "$GITHUB_OUTPUT"
+          echo "Created $PATH_OUT"
+
+      - name: Regenerate data JSON
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Build jobs and seekers JSON
+        run: npm ci && npm run build:jobs
+
+      - name: Commit and push seeker file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.create.outputs.path }}" data/jobs.json data/seekers.json
+          git commit -m "chore: add seeker profile from issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Comment and close issue
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "Profile added. [View on site](https://jobs.owaspblt.org/seekers.html). This issue will be closed."
+          gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

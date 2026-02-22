@@ -1,40 +1,5 @@
 {
-  "jobs": [
-    {
-      "id": "example-company-sample-job",
-      "organization_name": "Example Company",
-      "organization_logo": null,
-      "title": "Sample Job Title",
-      "description": "## Description\n\nThis is a sample job listing. The body (below the frontmatter) is the job **description** in Markdown. You can use headings, lists, and links.\n\n## Requirements\n\n- Requirement one\n- Requirement two",
-      "requirements": null,
-      "location": "Remote",
-      "job_type": "full-time",
-      "salary_range": null,
-      "expires_at": null,
-      "application_email": null,
-      "application_url": "https://example.com/apply",
-      "application_instructions": "Apply via the link below.",
-      "created_at": "2025-01-15T00:00:00Z",
-      "views_count": 0
-    },
-    {
-      "id": "owasp.org-senior-security-engineer",
-      "organization_name": "OWASP Foundation",
-      "organization_logo": null,
-      "title": "Senior Security Engineer",
-      "description": "## Description\n\nWe're looking for a Senior Security Engineer to join our team and help improve the security posture of OWASP projects.\n\n## Requirements\n\n- 5+ years of experience in application security\n- Strong knowledge of OWASP Top 10\n- Experience with security testing tools\n- Python and JavaScript expertise\n- Open source contribution experience preferred\n\n## Responsibilities\n\n- Conduct security audits of OWASP projects\n- Develop security tools and automation\n- Mentor junior security engineers\n- Contribute to OWASP documentation\n\n## How to Apply\n\nSend your resume and GitHub profile to careers@owasp.org\n\n## Additional Information\n\nThis is a fully remote position with flexible working hours. We offer competitive compensation and the opportunity to work on meaningful open source security projects.",
-      "requirements": null,
-      "location": "Remote",
-      "job_type": "full-time",
-      "salary_range": null,
-      "expires_at": null,
-      "application_email": "careers@owasp.org",
-      "application_url": null,
-      "application_instructions": null,
-      "created_at": "2026-02-16T00:00:00Z",
-      "views_count": 0
-    }
-  ],
-  "count": 2,
-  "generated_at": "2026-02-18T14:40:03.190Z"
+  "jobs": [],
+  "count": 0,
+  "generated_at": "2026-02-19T17:49:21.788Z"
 }
