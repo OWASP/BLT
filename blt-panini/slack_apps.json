@@ -8,7 +8,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "Minimal data access; sends repository notifications only. SOC 2 Type II certified. Strong privacy policy with no third-party data selling.",
-        "source_url": "https://slack.com/apps/A8GBNUWU8-github"
+        "source_url": "https://slack.com/apps/A8GBNUWU8-github",
+        "privacy_policy_url": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
     },
     {
         "app_name": "Google Drive",
@@ -19,7 +20,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "Accesses file metadata to generate previews. Google is SOC 2 / ISO 27001 certified. Privacy policy is comprehensive but data may be used for ad targeting.",
-        "source_url": "https://slack.com/apps/A6NL8MJ6Q-google-drive"
+        "source_url": "https://slack.com/apps/A6NL8MJ6Q-google-drive",
+        "privacy_policy_url": "https://policies.google.com/privacy"
     },
     {
         "app_name": "Zoom",
@@ -30,7 +32,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "Collects meeting metadata. Has had past security vulnerabilities (resolved). SOC 2 Type II certified. Data encryption in transit and at rest.",
-        "source_url": "https://slack.com/apps/A5GE9BMQC-zoom"
+        "source_url": "https://slack.com/apps/A5GE9BMQC-zoom",
+        "privacy_policy_url": "https://explore.zoom.us/en/privacy/"
     },
     {
         "app_name": "Jira",
@@ -41,7 +44,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "Atlassian is ISO 27001 and SOC 2 Type II certified. Secure OAuth 2.0 integration. Limited data scope aligned to Jira issue notifications.",
-        "source_url": "https://slack.com/apps/AC8NFKCS6-jira-cloud"
+        "source_url": "https://slack.com/apps/AC8NFKCS6-jira-cloud",
+        "privacy_policy_url": "https://www.atlassian.com/legal/privacy-policy"
     },
     {
         "app_name": "Trello",
@@ -52,7 +56,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "Minimal permissions; sends card/board activity notifications. Backed by Atlassian security infrastructure (SOC 2, ISO 27001).",
-        "source_url": "https://slack.com/apps/A074YH40Z-trello"
+        "source_url": "https://slack.com/apps/A074YH40Z-trello",
+        "privacy_policy_url": "https://www.atlassian.com/legal/privacy-policy"
     },
     {
         "app_name": "PagerDuty",
@@ -63,7 +68,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "SOC 2 Type II certified. Focused on incident alerting; does not collect personal data beyond authentication. Strong encryption practices.",
-        "source_url": "https://slack.com/apps/A3TD3MHOU-pagerduty"
+        "source_url": "https://slack.com/apps/A3TD3MHOU-pagerduty",
+        "privacy_policy_url": "https://www.pagerduty.com/privacy-policy/"
     },
     {
         "app_name": "Salesforce",
@@ -74,7 +80,8 @@
         "data_access": "High",
         "verified": true,
         "security_notes": "Accesses CRM data which may contain sensitive customer information. Salesforce is ISO 27001 and SOC 2 certified. Strong enterprise security controls.",
-        "source_url": "https://slack.com/apps/A7SK0PSWU-salesforce"
+        "source_url": "https://slack.com/apps/A7SK0PSWU-salesforce",
+        "privacy_policy_url": "https://www.salesforce.com/company/privacy/"
     },
     {
         "app_name": "Asana",
@@ -85,7 +92,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "SOC 2 Type II certified. Notifications-focused integration with minimal data footprint. Supports SSO and strong access controls.",
-        "source_url": "https://slack.com/apps/A01734836JY-asana"
+        "source_url": "https://slack.com/apps/A01734836JY-asana",
+        "privacy_policy_url": "https://asana.com/terms#privacy-policy"
     },
     {
         "app_name": "Notion",
@@ -96,7 +104,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "SOC 2 Type II certified. Reads page content to generate link previews. Data retention policies are reasonable and opt-out available.",
-        "source_url": "https://slack.com/apps/A02RDNCTCTX-notion"
+        "source_url": "https://slack.com/apps/A02RDNCTCTX-notion",
+        "privacy_policy_url": "https://www.notion.so/Privacy-Policy-3468d120cf614d4c9014c09f6adc9091"
     },
     {
         "app_name": "Datadog",
@@ -107,7 +116,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "SOC 2 Type II certified. Alert-only integration; does not read channel messages. ISO 27001 compliant with strong encryption.",
-        "source_url": "https://slack.com/apps/A0YH26ASM-datadog"
+        "source_url": "https://slack.com/apps/A0YH26ASM-datadog",
+        "privacy_policy_url": "https://www.datadoghq.com/legal/privacy/"
     },
     {
         "app_name": "Zapier",
@@ -118,7 +128,8 @@
         "data_access": "High",
         "verified": true,
         "security_notes": "Broad permissions due to automation capabilities. SOC 2 Type II certified, but extensive data access requires careful configuration. Review each Zap's data flow.",
-        "source_url": "https://slack.com/apps/A024R9PQM-zapier"
+        "source_url": "https://slack.com/apps/A024R9PQM-zapier",
+        "privacy_policy_url": "https://zapier.com/privacy"
     },
     {
         "app_name": "Figma",
@@ -129,7 +140,8 @@
         "data_access": "Low",
         "verified": true,
         "security_notes": "Minimal data scope; sends design file notifications and previews only. SOC 2 Type II certified. Strong privacy policy.",
-        "source_url": "https://slack.com/apps/A7YN2HE3Q-figma"
+        "source_url": "https://slack.com/apps/A7YN2HE3Q-figma",
+        "privacy_policy_url": "https://www.figma.com/privacy/"
     },
     {
         "app_name": "Dropbox",
@@ -140,7 +152,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "Accesses file metadata for previews. SOC 2 Type II certified with ISO 27001 compliance. Data encrypted at rest with AES-256.",
-        "source_url": "https://slack.com/apps/A0F7YS2SX-dropbox"
+        "source_url": "https://slack.com/apps/A0F7YS2SX-dropbox",
+        "privacy_policy_url": "https://www.dropbox.com/privacy"
     },
     {
         "app_name": "HubSpot",
@@ -151,7 +164,8 @@
         "data_access": "High",
         "verified": true,
         "security_notes": "Accesses CRM and marketing data. SOC 2 Type II certified. GDPR compliant. High data access scope should be reviewed against least-privilege principles.",
-        "source_url": "https://slack.com/apps/A3M7PBT3F-hubspot"
+        "source_url": "https://slack.com/apps/A3M7PBT3F-hubspot",
+        "privacy_policy_url": "https://legal.hubspot.com/privacy-policy"
     },
     {
         "app_name": "Polly",
@@ -162,7 +176,8 @@
         "data_access": "Medium",
         "verified": false,
         "security_notes": "Collects survey response data and user identities. SOC 2 compliant. Data used for analytics; review data retention settings. Not independently verified.",
-        "source_url": "https://slack.com/apps/A04E6JX41-polly"
+        "source_url": "https://slack.com/apps/A04E6JX41-polly",
+        "privacy_policy_url": "https://www.polly.ai/privacy"
     },
     {
         "app_name": "Giphy",
@@ -173,7 +188,8 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "Tracks GIF search queries and usage patterns. Privacy policy allows sharing data with third parties including advertisers. Limited security certifications disclosed.",
-        "source_url": "https://slack.com/apps/A0CEFA0RX-giphy"
+        "source_url": "https://slack.com/apps/A0CEFA0RX-giphy",
+        "privacy_policy_url": "https://support.giphy.com/hc/en-us/articles/360032872931"
     },
     {
         "app_name": "Workato",
@@ -184,7 +200,8 @@
         "data_access": "High",
         "verified": true,
         "security_notes": "Enterprise automation platform with broad permissions. SOC 2 Type II and ISO 27001 certified. Data isolation per tenant. High access scope requires governance.",
-        "source_url": "https://slack.com/apps/A0QKQRQQ2-workato"
+        "source_url": "https://slack.com/apps/A0QKQRQQ2-workato",
+        "privacy_policy_url": "https://www.workato.com/legal/privacy-policy"
     },
     {
         "app_name": "Donut",
@@ -195,7 +212,8 @@
         "data_access": "Medium",
         "verified": false,
         "security_notes": "Accesses user profiles and channel membership to facilitate introductions. No major security incidents reported. Privacy policy lacks detail on data retention timelines.",
-        "source_url": "https://slack.com/apps/A11MJ51SR-donut"
+        "source_url": "https://slack.com/apps/A11MJ51SR-donut",
+        "privacy_policy_url": "https://www.donut.com/privacy"
     },
     {
         "app_name": "Simple Poll",
@@ -206,7 +224,8 @@
         "data_access": "Low",
         "verified": false,
         "security_notes": "Collects poll questions and responses. Minimal data scope beyond poll content. No known security incidents. Privacy policy is basic.",
-        "source_url": "https://slack.com/apps/A0HFW7MR6-simple-poll"
+        "source_url": "https://slack.com/apps/A0HFW7MR6-simple-poll",
+        "privacy_policy_url": "https://simplepoll.rocks/privacy"
     },
     {
         "app_name": "Clockwise",
@@ -217,6 +236,811 @@
         "data_access": "Medium",
         "verified": true,
         "security_notes": "SOC 2 Type II certified. Reads calendar data to optimize scheduling. Clear data use policy. Does not sell personal data.",
-        "source_url": "https://slack.com/apps/AKJKXLMAH-clockwise"
+        "source_url": "https://slack.com/apps/AKJKXLMAH-clockwise",
+        "privacy_policy_url": "https://www.getclockwise.com/legal/privacy"
+    },
+    {
+        "app_name": "Google Hangouts",
+        "category": "Video Conferencing",
+        "developer": "Google LLC",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Google Meet (successor to Hangouts) is SOC 2 / ISO 27001 certified. Data handled under Google's comprehensive privacy policy. May be used for targeted advertising.",
+        "source_url": "https://slack.com/apps/A0F7YS25R-google-hangouts",
+        "privacy_policy_url": "https://policies.google.com/privacy"
+    },
+    {
+        "app_name": "Mailchimp",
+        "category": "Marketing",
+        "developer": "Intuit Mailchimp",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Send notifications", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Sends campaign and audience notifications into Slack. SOC 2 Type II certified. GDPR and CCPA compliant. Data not sold to third parties.",
+        "source_url": "https://slack.com/apps/A0F82E726-mailchimp",
+        "privacy_policy_url": "https://mailchimp.com/legal/privacy/"
+    },
+    {
+        "app_name": "Google Calendar",
+        "category": "Productivity",
+        "developer": "Google LLC",
+        "security_rating": "B",
+        "permissions": ["Read calendar data", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Reads calendar events to provide reminders and scheduling info in Slack. Google is SOC 2 / ISO 27001 certified. Data may be used per Google's broad privacy policy.",
+        "source_url": "https://slack.com/apps/ADZ494LHY-google-calendar",
+        "privacy_policy_url": "https://policies.google.com/privacy"
+    },
+    {
+        "app_name": "Slack for Gmail",
+        "category": "Productivity",
+        "developer": "Slack Technologies, LLC",
+        "security_rating": "B",
+        "permissions": ["Read Gmail messages", "Post messages to Slack"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Allows forwarding emails directly to Slack channels. Covered under Slack and Google's respective privacy policies. Data in transit is encrypted.",
+        "source_url": "https://slack.com/apps/A0F81R7U7-gmail",
+        "privacy_policy_url": "https://slack.com/trust/privacy/privacy-policy"
+    },
+    {
+        "app_name": "Google Analytics Insights",
+        "category": "Analytics",
+        "developer": "Google LLC",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access analytics data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Delivers analytics reports to Slack. Data governed by Google's privacy policy. SOC 2 / ISO 27001 certified. Aggregated data only; no personal end-user data shared.",
+        "source_url": "https://slack.com/apps/A0H3SSGQV-google-analytics",
+        "privacy_policy_url": "https://policies.google.com/privacy"
+    },
+    {
+        "app_name": "Canva",
+        "category": "Design",
+        "developer": "Canva Pty Ltd",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access file metadata", "Send notifications"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Shares design previews and notifications in Slack. SOC 2 Type II certified. GDPR compliant. Does not sell personal data.",
+        "source_url": "https://slack.com/apps/A9MLQBA0W-canva",
+        "privacy_policy_url": "https://www.canva.com/policies/privacy-policy/"
+    },
+    {
+        "app_name": "EngageWith",
+        "category": "Team Culture",
+        "developer": "Springworks",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Peer recognition platform for Slack. Collects user profile data to facilitate kudos and rewards. Privacy policy published by Springworks.",
+        "source_url": "https://slack.com/apps/A01JNEXAMPV-engagewith",
+        "privacy_policy_url": "https://www.springworks.in/privacy-policy"
+    },
+    {
+        "app_name": "Trivia",
+        "category": "Team Culture",
+        "developer": "Springworks",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Team trivia game for Slack. Minimal data access limited to running quiz games. Privacy policy published by Springworks.",
+        "source_url": "https://slack.com/apps/A012PBYQTH4-trivia",
+        "privacy_policy_url": "https://www.springworks.in/privacy-policy"
+    },
+    {
+        "app_name": "Billy Birthday",
+        "category": "Team Culture",
+        "developer": "Billy Birthday",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Collects and stores birthday and work anniversary dates for team members. Minimal data scope; no sensitive information accessed.",
+        "source_url": "https://slack.com/apps/A01HK9FM1KM-billy-birthday",
+        "privacy_policy_url": "https://www.billybirthday.com/privacy-policy"
+    },
+    {
+        "app_name": "Moodbit",
+        "category": "Team Culture",
+        "developer": "Moodbit",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Employee mood and engagement tracking. Collects mood data tied to user identities. Privacy policy published on mymoodbit.com. Review data retention practices.",
+        "source_url": "https://slack.com/apps/ADQBBBR3F-moodbit",
+        "privacy_policy_url": "https://mymoodbit.com/privacy/"
+    },
+    {
+        "app_name": "Neko by Culture Amp",
+        "category": "Team Culture",
+        "developer": "Culture Amp",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Employee engagement tool backed by Culture Amp. SOC 2 certified. Data handled under Culture Amp's comprehensive privacy policy.",
+        "source_url": "https://slack.com/apps/A01NEKO0001-neko",
+        "privacy_policy_url": "https://www.cultureamp.com/legal/privacy"
+    },
+    {
+        "app_name": "Niles",
+        "category": "Team Culture",
+        "developer": "Niles",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels", "Access workspace knowledge"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Team knowledge base assistant for Slack. Accesses channel content to answer questions. Review data storage and retention practices.",
+        "source_url": "https://slack.com/apps/A0F82KQSG-niles",
+        "privacy_policy_url": "https://useniles.com/privacy"
+    },
+    {
+        "app_name": "Lunch Train",
+        "category": "Team Culture",
+        "developer": "Lunch Train (Built by Slack)",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Official Slack-built app for coordinating group lunches. Minimal data collection; built and maintained by Slack with strong security standards.",
+        "source_url": "https://slack.com/apps/A0MQ8SRMV-lunch-train",
+        "privacy_policy_url": "https://lunchtrain.builtbyslack.com/privacy"
+    },
+    {
+        "app_name": "GreetBot",
+        "category": "Team Culture",
+        "developer": "GreetBot",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Sends automated welcome messages to new team members. Minimal data scope; primarily accesses user names and channel info.",
+        "source_url": "https://slack.com/apps/A025YCHCP9R-greetbot",
+        "privacy_policy_url": "https://greet.bot/privacy"
+    },
+    {
+        "app_name": "Slido",
+        "category": "Surveys & Polls",
+        "developer": "Cisco Webex",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Interactive polling and Q&A platform. Backed by Cisco's enterprise security infrastructure. SOC 2 certified. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01GU4M5YSV-slido",
+        "privacy_policy_url": "https://www.slido.com/privacy-policy"
+    },
+    {
+        "app_name": "IdeaKeep",
+        "category": "Team Culture",
+        "developer": "IdeaKeep",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Idea collection and management for Slack teams. Collects message content for idea capture. Privacy policy details limited.",
+        "source_url": "https://slack.com/apps/A01IDEAKEEP-ideakeep",
+        "privacy_policy_url": "https://ideakeep.com/privacy"
+    },
+    {
+        "app_name": "Range",
+        "category": "Team Culture",
+        "developer": "Range Labs, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Team check-in and status update tool. SOC 2 certified. Collects check-in and mood data linked to user identity. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A0180RB98T3-range",
+        "privacy_policy_url": "https://www.range.co/privacy"
+    },
+    {
+        "app_name": "Slab",
+        "category": "Team Culture",
+        "developer": "Slab, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Team wiki and knowledge management. SOC 2 Type II certified. Indexes workspace content for search. Data retention and deletion policies are clear.",
+        "source_url": "https://slack.com/apps/A8CGPFMSH-slab",
+        "privacy_policy_url": "https://slab.com/privacy"
+    },
+    {
+        "app_name": "Timetastic",
+        "category": "Team Culture",
+        "developer": "Timetastic Ltd",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Leave management and time-off tracking tool. Sends absence and vacation notifications to Slack. GDPR compliant with clear privacy policy.",
+        "source_url": "https://slack.com/apps/ACQQRL1TU-timetastic",
+        "privacy_policy_url": "https://timetastic.co.uk/legal/privacy-policy/"
+    },
+    {
+        "app_name": "Leapsome",
+        "category": "Team Culture",
+        "developer": "Leapsome GmbH",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Performance management and employee engagement platform. SOC 2 Type II certified. GDPR compliant. Data handled with strong security controls.",
+        "source_url": "https://slack.com/apps/A01LEAPSOME1-leapsome",
+        "privacy_policy_url": "https://www.leapsome.com/legal/privacy"
+    },
+    {
+        "app_name": "Gif Keyboard",
+        "category": "Entertainment",
+        "developer": "Tenor (Google LLC)",
+        "security_rating": "C",
+        "permissions": ["Post messages", "Track usage"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "GIF search powered by Tenor (acquired by Google). Tracks search queries and usage patterns. Data handled under Google's broad privacy policy.",
+        "source_url": "https://slack.com/apps/A0F82E5X4-gif-keyboard",
+        "privacy_policy_url": "https://policies.google.com/privacy"
+    },
+    {
+        "app_name": "Empuls Bot",
+        "category": "Team Culture",
+        "developer": "Xoxoday",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile", "Read channels"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Employee engagement and recognition platform. Collects user profile data for rewards. Privacy policy published by Xoxoday/Empuls.",
+        "source_url": "https://slack.com/apps/A02EMPULSBOT-empuls",
+        "privacy_policy_url": "https://help.empuls.xoxoday.com/en/articles/9058510-empuls-privacy-policy"
+    },
+    {
+        "app_name": "Gyroscope",
+        "category": "Health & Wellness",
+        "developer": "Gyroscope Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Health and productivity tracking app. Collects health and activity data tied to user identity. Review data sharing settings carefully.",
+        "source_url": "https://slack.com/apps/A01GYROSCOPE-gyroscope",
+        "privacy_policy_url": "https://gyrosco.pe/privacy/"
+    },
+    {
+        "app_name": "Platterz",
+        "category": "Health & Wellness",
+        "developer": "Thriver (formerly Platterz)",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Corporate food ordering and team lunch coordination. Minimal sensitive data; primarily order and preference information.",
+        "source_url": "https://slack.com/apps/A01PLATTERZ1-platterz",
+        "privacy_policy_url": "https://www.thriver.com/privacy-policy"
+    },
+    {
+        "app_name": "Gratitudely",
+        "category": "Health & Wellness",
+        "developer": "Gratitudely",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Gratitude and positive culture tool for teams. Minimal data collection. Privacy practices are basic; terms of use available on website.",
+        "source_url": "https://slack.com/apps/A01GRATITUDE-gratitudely",
+        "privacy_policy_url": "https://www.gratitudely.com/terms/"
+    },
+    {
+        "app_name": "Typeform",
+        "category": "Customer Support",
+        "developer": "Typeform SL",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access form responses"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Sends form submission notifications to Slack. SOC 2 Type II certified. GDPR compliant. Form responses may contain sensitive personal data.",
+        "source_url": "https://slack.com/apps/A01D39DBBRU-typeform",
+        "privacy_policy_url": "https://admin.typeform.com/to/dwk6gt"
+    },
+    {
+        "app_name": "Freshdesk",
+        "category": "Customer Support",
+        "developer": "Freshworks, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access ticket data", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Sends support ticket notifications and updates to Slack. SOC 2 Type II certified. GDPR compliant. Customer support data may include PII.",
+        "source_url": "https://slack.com/apps/AV2AU01M2-freshdesk",
+        "privacy_policy_url": "https://www.freshworks.com/privacy/"
+    },
+    {
+        "app_name": "Smallchat",
+        "category": "Customer Support",
+        "developer": "Smallchat",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Live chat with website visitors via Slack. Handles customer conversation data. Review data retention settings for visitor conversations.",
+        "source_url": "https://slack.com/apps/A1GU5TDKM-smallchat",
+        "privacy_policy_url": "https://small.chat/terms/"
+    },
+    {
+        "app_name": "Front",
+        "category": "Customer Support",
+        "developer": "Front Technologies, Inc.",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Shared inbox and customer communication platform. SOC 2 Type II certified. GDPR compliant. Handles customer email and message data.",
+        "source_url": "https://slack.com/apps/A0H4MTN4T-front",
+        "privacy_policy_url": "https://front.com/privacy-policy"
+    },
+    {
+        "app_name": "Guru",
+        "category": "Customer Support",
+        "developer": "Guru Technologies, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "AI-powered knowledge management platform. SOC 2 Type II certified. Indexes workspace content. GDPR and CCPA compliant.",
+        "source_url": "https://slack.com/apps/A01GURUAPP1-guru",
+        "privacy_policy_url": "https://www.getguru.com/privacy"
+    },
+    {
+        "app_name": "Crisp",
+        "category": "Customer Support",
+        "developer": "Crisp IM SAS",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Customer messaging and support platform. Sends customer conversation alerts to Slack. GDPR compliant. Handles customer PII.",
+        "source_url": "https://slack.com/apps/A01CRISPAPP1-crisp",
+        "privacy_policy_url": "https://crisp.chat/en/privacy/"
+    },
+    {
+        "app_name": "Groove",
+        "category": "Customer Support",
+        "developer": "Groove Networks, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access ticket data", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Customer support helpdesk with Slack integration. Sends ticket notifications. Customer support data may contain sensitive PII.",
+        "source_url": "https://slack.com/apps/A01GROOVEAPP-groove",
+        "privacy_policy_url": "https://www.groove.co/privacy"
+    },
+    {
+        "app_name": "CloudApp",
+        "category": "Customer Support",
+        "developer": "CloudApp",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access file metadata"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Screen recording and visual communication tool. Shares media links in Slack. Minimal sensitive data beyond recorded content.",
+        "source_url": "https://slack.com/apps/A04D3RU01-cloudapp",
+        "privacy_policy_url": "https://www.getcloudapp.com/privacy"
+    },
+    {
+        "app_name": "Delighted",
+        "category": "Customer Support",
+        "developer": "Delighted, LLC",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access survey responses"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Customer feedback and NPS survey platform. Sends survey results to Slack. SOC 2 certified. Handles customer feedback data including PII.",
+        "source_url": "https://slack.com/apps/A0LHMQTM8-delighted",
+        "privacy_policy_url": "https://delighted.com/privacy"
+    },
+    {
+        "app_name": "Clearbit",
+        "category": "Customer Support",
+        "developer": "HubSpot (Clearbit)",
+        "security_rating": "C",
+        "permissions": ["Post messages", "Access contact data", "Access user profile"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "B2B data enrichment platform. Accesses and enriches contact and company data. Now part of HubSpot. High data access scope requires careful review.",
+        "source_url": "https://slack.com/apps/A01CLEARBIT1-clearbit",
+        "privacy_policy_url": "https://clearbit.com/privacy"
+    },
+    {
+        "app_name": "Zoho CRM",
+        "category": "CRM",
+        "developer": "Zoho Corporation",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access CRM records", "Access user profile"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "CRM integration sends deal and contact updates to Slack. ISO 27001 certified. GDPR compliant. High data access due to CRM record access.",
+        "source_url": "https://slack.com/apps/A01ZOHOCRMM-zoho-crm",
+        "privacy_policy_url": "https://www.zoho.com/privacy.html"
+    },
+    {
+        "app_name": "Sentry",
+        "category": "Development",
+        "developer": "Functional Software, Inc.",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Error tracking and monitoring. Sends error alerts and stack traces to Slack. SOC 2 Type II certified. Minimal data scope beyond error reports.",
+        "source_url": "https://slack.com/apps/A011MFBJEUU-sentry",
+        "privacy_policy_url": "https://sentry.io/privacy/"
+    },
+    {
+        "app_name": "Stack Overflow for Teams",
+        "category": "Development",
+        "developer": "Stack Exchange, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Read channels", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Private Q&A for development teams. SOC 2 Type II certified. GDPR compliant. Indexes team knowledge; review data retention policies.",
+        "source_url": "https://slack.com/apps/A01SOFTEAMS-stackoverflow-teams",
+        "privacy_policy_url": "https://stackoverflow.com/legal/privacy-policy"
+    },
+    {
+        "app_name": "Bitbucket Cloud",
+        "category": "Development",
+        "developer": "Atlassian",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Code repository notifications for pull requests, commits, and pipelines. SOC 2 Type II and ISO 27001 certified by Atlassian.",
+        "source_url": "https://slack.com/apps/A3C0F6L2C-bitbucket-cloud",
+        "privacy_policy_url": "https://www.atlassian.com/legal/privacy-policy"
+    },
+    {
+        "app_name": "Zeplin",
+        "category": "Development",
+        "developer": "Zeplin, Inc.",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Design handoff tool. Sends design update notifications to Slack. SOC 2 certified. Minimal data access beyond design file metadata.",
+        "source_url": "https://slack.com/apps/A01ZEPLINAPP-zeplin",
+        "privacy_policy_url": "https://zeplin.io/privacy/"
+    },
+    {
+        "app_name": "ClickUp",
+        "category": "Project Management",
+        "developer": "ClickUp",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access task data", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Project management platform. Sends task notifications and updates to Slack. SOC 2 Type II certified. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01CLICKUPPP-clickup",
+        "privacy_policy_url": "https://clickup.com/privacy"
+    },
+    {
+        "app_name": "Make (Integromat)",
+        "category": "Automation",
+        "developer": "Celonis SE (Make)",
+        "security_rating": "C",
+        "permissions": ["Read messages", "Post messages", "Read channels", "Access files", "Access user profile"],
+        "data_access": "High",
+        "verified": true,
+        "security_notes": "Formerly Integromat. Broad automation platform with extensive permissions. SOC 2 certified. High data access scope requires careful workflow review.",
+        "source_url": "https://slack.com/apps/A01INTEGROMAT-make",
+        "privacy_policy_url": "https://www.make.com/en/privacy-notice"
+    },
+    {
+        "app_name": "Bugsnag",
+        "category": "Development",
+        "developer": "SmartBear Software",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Error monitoring and crash reporting. Sends error alerts to Slack. Now part of SmartBear. SOC 2 certified. Minimal data scope.",
+        "source_url": "https://slack.com/apps/A01BUGSNAGPP-bugsnag",
+        "privacy_policy_url": "https://smartbear.com/privacy/"
+    },
+    {
+        "app_name": "Moqups",
+        "category": "Design",
+        "developer": "Moqups Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access file metadata"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Online wireframing and mockup tool. Shares design links in Slack. SOC 2 compliant. Minimal data access beyond design metadata.",
+        "source_url": "https://slack.com/apps/A01MOQUPSAPP-moqups",
+        "privacy_policy_url": "https://moqups.com/privacy/"
+    },
+    {
+        "app_name": "OpsGenie",
+        "category": "Incident Management",
+        "developer": "Atlassian",
+        "security_rating": "A",
+        "permissions": ["Post messages", "Send notifications", "Manage alerts"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "On-call and incident management tool. Sends alert notifications to Slack. SOC 2 Type II and ISO 27001 certified by Atlassian.",
+        "source_url": "https://slack.com/apps/A01OPSGENIEPP-opsgenie",
+        "privacy_policy_url": "https://www.atlassian.com/legal/privacy-policy"
+    },
+    {
+        "app_name": "Backlog",
+        "category": "Project Management",
+        "developer": "Nulab, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access project data"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Project management and issue tracking. Sends issue and commit notifications to Slack. Privacy policy published by Nulab.",
+        "source_url": "https://slack.com/apps/A01BACKLOGAPP-backlog",
+        "privacy_policy_url": "https://nulab.com/privacy/"
+    },
+    {
+        "app_name": "Heroku ChatOps",
+        "category": "Development",
+        "developer": "Salesforce (Heroku)",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access deployment data", "Trigger deployments"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Deploy and manage Heroku apps from Slack. SOC 2 certified under Salesforce. Requires access to deployment credentials and pipelines.",
+        "source_url": "https://slack.com/apps/A01HEROKUCHOP-heroku",
+        "privacy_policy_url": "https://www.salesforce.com/company/privacy/"
+    },
+    {
+        "app_name": "Statsbot",
+        "category": "Analytics",
+        "developer": "Statsbot",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access analytics data"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Analytics reporting bot for Slack. Connects to various analytics platforms. Data access depends on connected sources. Review connected integrations.",
+        "source_url": "https://slack.com/apps/A01STATSBOT1-statsbot",
+        "privacy_policy_url": "https://statsbot.co/privacy"
+    },
+    {
+        "app_name": "Chatlio",
+        "category": "Customer Support",
+        "developer": "Chatlio",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Live chat with website visitors via Slack. Handles customer conversations and PII. GDPR compliant. Review data retention for chat logs.",
+        "source_url": "https://slack.com/apps/A01CHATLIO01-chatlio",
+        "privacy_policy_url": "https://chatlio.com/legal/privacy-policy/"
+    },
+    {
+        "app_name": "Brand24",
+        "category": "Marketing",
+        "developer": "Brand24 Global, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access monitoring data"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Brand monitoring and social listening tool. Sends mention alerts to Slack. Processes public social media data. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01BRAND24PP-brand24",
+        "privacy_policy_url": "https://brand24.com/privacy-policy/"
+    },
+    {
+        "app_name": "Databox",
+        "category": "Analytics",
+        "developer": "Databox, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access analytics data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Business analytics and KPI dashboard. Sends metric alerts to Slack. SOC 2 certified. Data access limited to configured metrics.",
+        "source_url": "https://slack.com/apps/A01DATABOXAPP-databox",
+        "privacy_policy_url": "https://databox.com/privacy-policy"
+    },
+    {
+        "app_name": "Leadfeeder",
+        "category": "Marketing",
+        "developer": "Dealfront (formerly Leadfeeder)",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access lead data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "B2B website visitor tracking. Sends lead alerts to Slack. GDPR compliant. Processes website visitor and company data.",
+        "source_url": "https://slack.com/apps/A01LEADFEEDP-leadfeeder",
+        "privacy_policy_url": "https://www.leadfeeder.com/privacy/"
+    },
+    {
+        "app_name": "CallRail",
+        "category": "Marketing",
+        "developer": "CallRail, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access call data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Call tracking and analytics platform. Sends call notifications to Slack. SOC 2 certified. Processes call recordings and customer data.",
+        "source_url": "https://slack.com/apps/A01CALLRAILP-callrail",
+        "privacy_policy_url": "https://www.callrail.com/privacy-policy"
+    },
+    {
+        "app_name": "Buzzsumo",
+        "category": "Marketing",
+        "developer": "Buzzsumo Ltd",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access content data"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Content research and social media analysis. Sends content alerts to Slack. Primarily processes public content data.",
+        "source_url": "https://slack.com/apps/A01BUZZSUMO1-buzzsumo",
+        "privacy_policy_url": "https://buzzsumo.com/legal/privacy"
+    },
+    {
+        "app_name": "Rebrandly",
+        "category": "Marketing",
+        "developer": "Rebrandly",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access link data"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Link management and URL shortening platform. Sends link analytics to Slack. Minimal sensitive data beyond link tracking information.",
+        "source_url": "https://slack.com/apps/A01REBRANDLY-rebrandly",
+        "privacy_policy_url": "https://www.rebrandly.com/privacy-policy"
+    },
+    {
+        "app_name": "Markup Hero",
+        "category": "Productivity",
+        "developer": "Markup Hero",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access file metadata"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Screenshot annotation and markup tool. Shares annotated images in Slack. Minimal data collection beyond annotation content.",
+        "source_url": "https://slack.com/apps/A01MARKUPHERO-markup-hero",
+        "privacy_policy_url": "https://markuphero.com/privacy"
+    },
+    {
+        "app_name": "Pocket",
+        "category": "News & Trends",
+        "developer": "Mozilla Corporation",
+        "security_rating": "A",
+        "permissions": ["Post messages"],
+        "data_access": "Low",
+        "verified": true,
+        "security_notes": "Read-it-later service for saving and sharing articles. Backed by Mozilla's strong privacy principles. Minimal data access. Does not sell personal data.",
+        "source_url": "https://slack.com/apps/A01POCKETAPP1-pocket",
+        "privacy_policy_url": "https://getpocket.com/privacy"
+    },
+    {
+        "app_name": "Dataminr",
+        "category": "News & Trends",
+        "developer": "Dataminr, Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access alert data"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Real-time event and news monitoring. Sends news and event alerts to Slack. Enterprise-grade security. Processes public social media and news data.",
+        "source_url": "https://slack.com/apps/A01DATAMINR01-dataminr",
+        "privacy_policy_url": "https://www.dataminr.com/privacy-policy/"
+    },
+    {
+        "app_name": "Curated",
+        "category": "News & Trends",
+        "developer": "Curated",
+        "security_rating": "B",
+        "permissions": ["Post messages"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Newsletter and content curation tool. Sends curated content digests to Slack. Minimal data collection beyond subscription preferences.",
+        "source_url": "https://slack.com/apps/A01CURATEDAPP-curated",
+        "privacy_policy_url": "https://curated.co/privacy"
+    },
+    {
+        "app_name": "Syften",
+        "category": "News & Trends",
+        "developer": "Syften",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access monitoring data"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Social media and web monitoring for brand mentions. Sends mention alerts to Slack. Processes public web data. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01SYFTENAPP-syften",
+        "privacy_policy_url": "https://syften.com/privacy-policy"
+    },
+    {
+        "app_name": "Albus",
+        "category": "Productivity",
+        "developer": "Springworks",
+        "security_rating": "B",
+        "permissions": ["Read messages", "Post messages", "Access workspace knowledge"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "AI-powered knowledge assistant for Slack workspaces. Indexes workspace content to answer questions. Privacy policy published by Springworks.",
+        "source_url": "https://slack.com/apps/A01ALBUSAPP01-albus",
+        "privacy_policy_url": "https://www.albus.org/privacy-policy"
+    },
+    {
+        "app_name": "Zonka Feedback",
+        "category": "Surveys & Polls",
+        "developer": "Zonka Feedback",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access survey responses", "Access user profile"],
+        "data_access": "Medium",
+        "verified": false,
+        "security_notes": "Customer and employee feedback platform. Sends survey responses to Slack. Handles survey data including PII. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01ZONKAFDBK-zonka-feedback",
+        "privacy_policy_url": "https://www.zonkafeedback.com/privacy-policy"
+    },
+    {
+        "app_name": "Evernote",
+        "category": "Productivity",
+        "developer": "Evernote Corporation",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access notes", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Note-taking and knowledge management. Shares Evernote content in Slack. SOC 2 certified. Handles personal notes which may contain sensitive data.",
+        "source_url": "https://slack.com/apps/A0F82CSBB-evernote",
+        "privacy_policy_url": "https://evernote.com/privacy/policy"
+    },
+    {
+        "app_name": "Any.do",
+        "category": "Productivity",
+        "developer": "Any.do",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access task data", "Access user profile"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Personal task manager and to-do list. Sends task reminders and updates to Slack. Minimal sensitive data beyond task content.",
+        "source_url": "https://slack.com/apps/A01ANYDOAPP1-any-do",
+        "privacy_policy_url": "https://www.any.do/privacy-policy/"
+    },
+    {
+        "app_name": "Quip",
+        "category": "Productivity",
+        "developer": "Salesforce (Quip)",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access documents", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Collaborative document editor by Salesforce. Shares document links and notifications in Slack. SOC 2 and ISO 27001 certified under Salesforce.",
+        "source_url": "https://slack.com/apps/A01QUIPAPP001-quip",
+        "privacy_policy_url": "https://quip.com/about/privacy"
+    },
+    {
+        "app_name": "Smartsheet",
+        "category": "Project Management",
+        "developer": "Smartsheet Inc.",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access sheet data", "Access user profile"],
+        "data_access": "Medium",
+        "verified": true,
+        "security_notes": "Work management and collaboration platform. Sends sheet updates to Slack. SOC 2 Type II and ISO 27001 certified. GDPR compliant.",
+        "source_url": "https://slack.com/apps/A01SMARSHEETAPP-smartsheet",
+        "privacy_policy_url": "https://www.smartsheet.com/legal/privacy-policy"
+    },
+    {
+        "app_name": "Reviewflowz",
+        "category": "Marketing",
+        "developer": "Reviewflowz",
+        "security_rating": "B",
+        "permissions": ["Post messages", "Access review data"],
+        "data_access": "Low",
+        "verified": false,
+        "security_notes": "Customer review aggregation and alerting. Sends review notifications to Slack. Processes public customer review data.",
+        "source_url": "https://slack.com/apps/A01REVIEWFLOWZ-reviewflowz",
+        "privacy_policy_url": "https://www.reviewflowz.com/privacy"
     }
 ]
