@@ -988,6 +988,15 @@
             renderRepoList();
         }
 
+        function scrollToTop() {
+            const mainEl = document.querySelector('main');
+            if (mainEl) {
+                mainEl.scrollTo({ top: 0, behavior: 'instant' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }
+        }
+
         async function loadRepos(bypassCache = false) {
             try {
                 const response = bypassCache
@@ -1110,12 +1119,7 @@
                         }
                     }
                     // Scroll to top of page
-                    const mainEl = document.querySelector('main');
-                    if (mainEl) {
-                        mainEl.scrollTo({ top: 0, behavior: 'instant' });
-                    } else {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                    }
+                    scrollToTop();
                     loadPrs();
                 });
 
@@ -1186,6 +1190,7 @@
             localStorage.setItem('currentRepo', currentRepo);
             updateMobileRepoDisplay();
             closeDropdown();
+            scrollToTop();
             loadPrs();
         }
 
@@ -2581,6 +2586,7 @@
             document.querySelectorAll('.repo-item').forEach(item => {
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
+            scrollToTop();
             loadPrs();
         });
 
