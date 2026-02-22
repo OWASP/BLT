@@ -357,36 +357,34 @@ class GitHubAPI {
     }
 
     /**
-     * Fetch all reviews for multiple repositories within timeframe
+     * Fetch all reviews for a list of pre-fetched pull requests within timeframe
      */
-    async getAllReviews(repositories, startDate, endDate) {
+    async getAllReviews(prs, startDate, endDate) {
         const allReviews = [];
 
-        for (const repoPath of repositories) {
-            const [owner, repo] = repoPath.split('/');
-            const prs = await this.fetchPullRequests(owner, repo, startDate, endDate);
+        // Fetch reviews for all PRs in parallel (reuses already-fetched PR list)
+        const reviewPromises = prs.map(pr => {
+            const [owner, repo] = pr.repository.split('/');
+            return this.fetchReviews(owner, repo, pr.number);
+        });
+        const reviewResults = await Promise.allSettled(reviewPromises);
 
-            // Parallelize review fetching for all PRs
-            const reviewPromises = prs.map(pr => this.fetchReviews(owner, repo, pr.number));
-            const reviewResults = await Promise.allSettled(reviewPromises);
-
-            reviewResults.forEach((result, index) => {
-                if (result.status === 'fulfilled') {
-                    const pr = prs[index];
-                    result.value.forEach(review => {
-                        const submittedAt = new Date(review.submitted_at);
-                        if (submittedAt >= startDate && submittedAt <= endDate) {
-                            allReviews.push({
-                                ...review,
-                                repository: repoPath,
-                                pull_request_title: pr.title,
-                                pull_request_url: pr.html_url
-                            });
-                        }
-                    });
-                }
-            });
-        }
+        reviewResults.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                const pr = prs[index];
+                result.value.forEach(review => {
+                    const submittedAt = new Date(review.submitted_at);
+                    if (submittedAt >= startDate && submittedAt <= endDate) {
+                        allReviews.push({
+                            ...review,
+                            repository: pr.repository,
+                            pull_request_title: pr.title,
+                            pull_request_url: pr.html_url
+                        });
+                    }
+                });
+            }
+        });
 
         return allReviews;
     }

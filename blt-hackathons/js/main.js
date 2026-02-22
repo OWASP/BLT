@@ -42,8 +42,8 @@ class HackathonDashboard {
                 return;
             }
 
-            // Fetch all PRs, issues, and reviews
-            const [prs, issues, reviews] = await Promise.all([
+            // Fetch all PRs and issues in parallel
+            const [prs, issues] = await Promise.all([
                 this.api.getAllPullRequests(
                     this.repositories,
                     startDate,
@@ -53,13 +53,11 @@ class HackathonDashboard {
                     this.repositories,
                     startDate,
                     endDate
-                ),
-                this.api.getAllReviews(
-                    this.repositories,
-                    startDate,
-                    endDate
                 )
             ]);
+
+            // Fetch reviews using the already-fetched PR list (avoids duplicate API calls)
+            const reviews = await this.api.getAllReviews(prs, startDate, endDate);
 
             // Process PR data
             const stats = this.api.processPRData(prs, startDate, endDate);
