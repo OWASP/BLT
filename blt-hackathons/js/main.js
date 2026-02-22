@@ -133,6 +133,12 @@ class HackathonDashboard {
         const dateStr = `${startDate.toLocaleDateString('en-US', dateFormat)} - ${endDate.toLocaleDateString('en-US', dateFormat)}`;
         document.getElementById('hackathon-dates').textContent = dateStr;
 
+        // Also update the standalone time-range bar at the top of the detail page
+        const timeRangeDisplay = document.getElementById('time-range-display');
+        if (timeRangeDisplay) {
+            timeRangeDisplay.textContent = dateStr;
+        }
+
         // Determine status
         let status, statusClass, timeRemaining;
         if (now < startDate) {

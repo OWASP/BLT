@@ -90,7 +90,6 @@ class GitHubAPI {
                     break;
                 }
 
-                let foundOldIssue = false;
                 for (const issue of issues) {
                     // Skip pull requests (GitHub API returns PRs as issues)
                     if (issue.pull_request) {
@@ -110,18 +109,11 @@ class GitHubAPI {
                             repository: `${owner}/${repo}`
                         });
                     }
-
-                    // Early exit: If issue was created before startDate, we've gone too far back
-                    // (since we're sorting by created date descending)
-                    if (createdAt < startDate) {
-                        foundOldIssue = true;
-                        break;
-                    }
                 }
 
-                if (foundOldIssue) {
-                    break; // Exit while loop
-                }
+                // Continue paginating until there are no more results or maxPages is reached.
+                // We cannot stop early based solely on creation date because an issue created before
+                // startDate may still have been closed within the hackathon time range.
 
                 page++;
             } catch (error) {
@@ -154,8 +146,6 @@ class GitHubAPI {
                     break;
                 }
 
-                let foundOldPR = false;
-
                 for (const pr of prs) {
                     const createdAt = new Date(pr.created_at);
                     const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
@@ -170,18 +160,11 @@ class GitHubAPI {
                             repository: `${owner}/${repo}`
                         });
                     }
-
-                    // Early exit: If PR was created before startDate, we've gone too far back
-                    // (since we're sorting by created date descending)
-                    if (createdAt < startDate) {
-                        foundOldPR = true;
-                        break;
-                    }
                 }
 
-                if (foundOldPR) {
-                    break; // Exit while loop
-                }
+                // Continue paginating until there are no more results or maxPages is reached.
+                // We cannot stop early based solely on creation date because a PR created before
+                // startDate may still have been merged within the hackathon time range.
 
                 page++;
             } catch (error) {
