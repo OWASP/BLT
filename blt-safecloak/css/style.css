@@ -780,7 +780,7 @@ body {
   .consent-layout { grid-template-columns: 1fr; }
 }
 
-.consent-form { }
+/* .consent-form { } */
 
 .consent-log {
   overflow-y: auto;
