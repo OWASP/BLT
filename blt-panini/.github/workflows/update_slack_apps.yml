@@ -1,0 +1,41 @@
+name: Update Slack Apps List
+
+on:
+  schedule:
+    # Runs every Sunday at 00:00 UTC
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  update-slack-apps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run Slack apps scraper
+        run: python scripts/update_slack_apps.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add slack_apps.json
+          if git diff --cached --quiet; then
+            echo "No changes to slack_apps.json — skipping commit."
+          else
+            git commit -m "chore: update slack_apps.json [automated]"
+            git push
+          fi
