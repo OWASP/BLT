@@ -1,6 +1,6 @@
 // Service Worker - caches static assets, API responses, and HTML pages for faster loads.
 
-const CACHE_VERSION = 'blt-leaf-v1';
+const CACHE_VERSION = 'blt-leaf-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 const CDN_CACHE = `${CACHE_VERSION}-cdn`;

@@ -1331,8 +1331,11 @@
                 const updates = data.updates || [];
                 const changedPrIds = [];
                 const removedPrIds = [];
+                // On the very first check, prUpdateTimestamps is empty.
+                // We track this to avoid triggering a reload on the initial population.
+                const isFirstCheck = Object.keys(prUpdateTimestamps).length === 0;
 
-                // Detect changes
+                // Detect changes and new PRs
                 updates.forEach(update => {
                     const oldTimestamp = prUpdateTimestamps[update.id];
                     if (oldTimestamp && oldTimestamp !== update.updated_at) {
@@ -1358,16 +1361,29 @@
                         await removePrWithAnimation(prId);
                     }
 
-                    // Check if all PRs were removed and render empty state if needed
-                    // Note: allPrs array is updated synchronously in removePrWithAnimation()
+                    // If all visible PRs were removed, reload from page 1 to show
+                    // any remaining PRs (e.g. from other pages or repositories)
+                    // rather than incorrectly showing "No PRs Added Yet"
                     if (allPrs.length === 0) {
-                        renderPrList(allPrs);
+                        currentPage = 1;
+                        await loadPrs(true);
+                        await loadRepos(true);
+                        return;
                     }
                 }
 
                 // Reload if there are changes (not removals, as those are already handled)
                 if (changedPrIds.length > 0) {
                     console.log('PR updates detected, refreshing...');
+                    await loadPrs(true);
+                }
+
+                // Safety net: if the view is empty but the DB has PRs and no changes/removals
+                // were detected, the view may be stuck in an empty state due to a prior bug.
+                // Trigger a reload (skipped on the first check to avoid conflicting with
+                // the initial loadPrs() call that runs concurrently at page startup).
+                if (!isFirstCheck && allPrs.length === 0 && updates.length > 0 &&
+                        changedPrIds.length === 0 && removedPrIds.length === 0) {
                     await loadPrs(true);
                 }
 
@@ -2146,12 +2162,11 @@
                             // Update repos list (counts might have changed)
                             await loadRepos(true);
 
-                            // Check if there are no PRs left
+                            // If no visible PRs remain, reload to show remaining PRs
+                            // from other pages rather than incorrectly showing empty state
                             if (allPrs.length === 0) {
-                                const container = document.getElementById('prListContainer');
-                                if (container) {
-                                    container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800"><h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">No PRs Added Yet</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Add a GitHub PR URL above to start tracking</p></div>';
-                                }
+                                currentPage = 1;
+                                await loadPrs(true);
                             }
                         }, 300);
                     }
