@@ -1097,6 +1097,25 @@
                     document.querySelectorAll('.repo-item').forEach(item => {
                         setRepoItemActiveState(item, item.dataset.repo === currentRepo);
                     });
+                    // Move clicked repo to top of list (after "All Repositories")
+                    const allItem = repoList.querySelector('[data-repo="all"]');
+                    if (allItem) {
+                        const nextElement = allItem.nextElementSibling;
+                        if (nextElement !== li) {
+                            if (nextElement) {
+                                repoList.insertBefore(li, nextElement);
+                            } else {
+                                repoList.appendChild(li);
+                            }
+                        }
+                    }
+                    // Scroll to top of page
+                    const mainEl = document.querySelector('main');
+                    if (mainEl) {
+                        mainEl.scrollTo({ top: 0, behavior: 'instant' });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                    }
                     loadPrs();
                 });
 
