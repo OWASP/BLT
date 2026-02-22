@@ -397,11 +397,12 @@ async def handle_list_repos(env):
         db = get_db(env)
         stmt = db.prepare('''
             SELECT DISTINCT repo_owner, repo_name, 
-                   COUNT(*) as pr_count
+                   COUNT(*) as pr_count,
+                   MAX(repo_owner_avatar) as repo_owner_avatar
             FROM prs 
             WHERE is_merged = 0 AND state = 'open'
             GROUP BY repo_owner, repo_name
-            ORDER BY repo_owner, repo_name
+            ORDER BY pr_count DESC, repo_owner, repo_name
         ''')
         
         result = await stmt.all()

@@ -647,6 +647,15 @@
             return div.innerHTML;
         }
 
+        function getRepoAvatarUrl(repo) {
+            if (repo.repo_owner_avatar &&
+                (repo.repo_owner_avatar.startsWith('https://avatars.githubusercontent.com/') ||
+                 repo.repo_owner_avatar.startsWith('https://github.com/'))) {
+                return escapeHtml(repo.repo_owner_avatar);
+            }
+            return `https://github.com/${escapeHtml(repo.repo_owner)}.png`;
+        }
+
         function renderReviewerAvatars(reviewersJson) {
             let reviewers = [];
             try {
@@ -1038,16 +1047,20 @@
                 li.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
                 setRepoItemActiveState(li, currentRepo === li.dataset.repo);
 
+                const safeAvatarUrl = getRepoAvatarUrl(repo);
                 li.innerHTML = `
                     <div class="flex items-center justify-between">
                         
-                        <div>
-                            <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                ${repo.repo_owner}/${repo.repo_name}
-                            </div>
+                        <div class="flex items-center gap-2 min-w-0">
+                            <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" class="h-7 w-7 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2228%22 height=%2228%22%3E%3Crect width=%2228%22 height=%2228%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                            <div class="min-w-0">
+                                <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                    ${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}
+                                </div>
 
-                            <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}
+                                <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                    ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}
+                                </div>
                             </div>
                         </div>
 
@@ -1133,9 +1146,15 @@
                 if (currentRepo === div.dataset.repo) {
                     div.classList.add('bg-red-50', 'dark:bg-red-950/30', 'font-semibold');
                 }
+                const safeAvatarUrl = getRepoAvatarUrl(repo);
                 div.innerHTML = `
-                    <div class="font-medium text-slate-900 dark:text-slate-100">${repo.repo_owner}/${repo.repo_name}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                    <div class="flex items-center gap-2">
+                        <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        <div>
+                            <div class="font-medium text-slate-900 dark:text-slate-100">${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                        </div>
+                    </div>
                 `;
                 div.addEventListener('click', () => selectRepo(div.dataset.repo));
                 dropdownList.appendChild(div);
