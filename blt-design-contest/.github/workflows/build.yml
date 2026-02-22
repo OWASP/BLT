@@ -3,7 +3,7 @@ name: Build & Deploy Design Showcase
 on:
   # Rebuild whenever a design-submission issue is opened, edited, or labelled
   issues:
-    types: [opened, edited, labeled, unlabeled, closed, reopened]
+    types: [opened, edited, labeled, unlabeled, closed, reopened, deleted]
 
   # Rebuild when a comment is added to an issue (reactions often accompany comments)
   issue_comment:
