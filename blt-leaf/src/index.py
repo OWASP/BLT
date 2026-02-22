@@ -120,6 +120,9 @@ async def on_fetch(request, env):
             for key, value in cors_headers.items():
                 response.headers.set(key, value)
             return response
+        # Test error endpoint — deliberately raises to verify PostHog error tracking
+        elif path == '/api/test-error' and request.method == 'POST':
+            raise RuntimeError('PostHog test error — this exception was triggered intentionally from /api/test-error')
         # Timeline endpoint - GET /api/prs/{id}/timeline
         elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
             response = await handle_pr_timeline(request, env, path)
