@@ -1049,44 +1049,36 @@
 
                 const safeAvatarUrl = getRepoAvatarUrl(repo);
                 li.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        
-                        <div class="flex items-center gap-2 min-w-0">
-                            <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" class="h-7 w-7 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2228%22 height=%2228%22%3E%3Crect width=%2228%22 height=%2228%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
-                            <div class="min-w-0">
-                                <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-                                    ${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}
-                                </div>
-
-                                <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-col gap-1">
+                        <div class="repo-name text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                            ${escapeHtml(repo.repo_name)}
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" title="${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}" class="h-5 w-5 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                                <div class="repo-count text-xs text-slate-500 dark:text-slate-400">
                                     ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}
                                 </div>
                             </div>
+                            <div class="flex items-center gap-1">
+                                <button
+                                    class="add-all-prs-btn text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                    title="Import all PRs from this repository"
+                                    aria-label="Import all pull requests from this repository"
+                                    data-repo-owner="${repo.repo_owner}"
+                                    data-repo-name="${repo.repo_name}">
+                                    <i class="fas fa-plus text-base text-red-600 hover:text-red-700 transition-colors"></i>
+                                </button>
+                                <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 github-pr-link p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                title="View Pull Requests on GitHub"
+                                onclick="event.stopPropagation();">
+                                    <i class="fab fa-github text-base text-red-600 hover:text-red-700 transition-colors"></i>
+                                </a>
+                            </div>
                         </div>
-
-                        <div class="flex items-center gap-2">
-                            <button
-                                class="add-all-prs-btn text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                                title="Import all PRs from this repository"
-                                aria-label="Import all pull requests from this repository"
-                                data-repo-owner="${repo.repo_owner}"
-                                data-repo-name="${repo.repo_name}">
-                                <i class="fas fa-plus text-xl text-red-600 hover:text-red-700 transition-colors"></i>
-                            </button>
-
-                            <a href="https://github.com/${repo.repo_owner}/${repo.repo_name}/pulls"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-slate-500 hover:text-[#BC0000] dark:hover:text-red-400 github-pr-link"
-                            title="View Pull Requests on GitHub"
-                            onclick="event.stopPropagation();">
-
-                                <i class="fab fa-github text-lg text-red-600 hover:text-red-700 transition-colors"></i>
-
-
-                            </a>
-                        </div>
-
                     </div>
                 `;
 
@@ -1105,6 +1097,25 @@
                     document.querySelectorAll('.repo-item').forEach(item => {
                         setRepoItemActiveState(item, item.dataset.repo === currentRepo);
                     });
+                    // Move clicked repo to top of list (after "All Repositories")
+                    const allItem = repoList.querySelector('[data-repo="all"]');
+                    if (allItem) {
+                        const nextElement = allItem.nextElementSibling;
+                        if (nextElement !== li) {
+                            if (nextElement) {
+                                repoList.insertBefore(li, nextElement);
+                            } else {
+                                repoList.appendChild(li);
+                            }
+                        }
+                    }
+                    // Scroll to top of page
+                    const mainEl = document.querySelector('main');
+                    if (mainEl) {
+                        mainEl.scrollTo({ top: 0, behavior: 'instant' });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                    }
                     loadPrs();
                 });
 
