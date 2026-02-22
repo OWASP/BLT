@@ -26,6 +26,7 @@ async def on_fetch(request, env):
     posthog = PostHog(
         project_api_key=getattr(env, 'POSTHOG_API_KEY', ''),
         host='https://us.i.posthog.com',
+        enable_exception_autocapture=True,
     )
 
     url = URL.new(request.url)
