@@ -729,6 +729,37 @@ async def handle_pr_updates_check(env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
+async def handle_get_pr(env, pr_id):
+    """
+    GET /api/prs/{id}
+    Fetch a single PR's stored data from the database.
+    Used by the frontend periodic checker to update individual rows
+    without reloading the entire PR list.
+    """
+    try:
+        db = get_db(env)
+        stmt = db.prepare('SELECT * FROM prs WHERE id = ? AND is_merged = 0 AND state = \'open\'').bind(pr_id)
+        result = await stmt.first()
+
+        if not result:
+            return Response.new(
+                json.dumps({'error': 'PR not found'}),
+                {'status': 404, 'headers': {'Content-Type': 'application/json'}}
+            )
+
+        pr = result.to_py() if hasattr(result, 'to_py') else dict(result)
+
+        return Response.new(
+            json.dumps({'pr': pr}),
+            {'headers': {'Content-Type': 'application/json'}}
+        )
+    except Exception as e:
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
+
+
 async def verify_github_signature(request, payload_body, secret):
     """
     Verify GitHub webhook signature.

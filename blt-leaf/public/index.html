@@ -1340,6 +1340,7 @@
 
                 const updates = data.updates || [];
                 const changedPrIds = [];
+                const newPrIds = [];
                 const removedPrIds = [];
                 // On the very first check, prUpdateTimestamps is empty.
                 // We track this to avoid triggering a reload on the initial population.
@@ -1348,7 +1349,10 @@
                 // Detect changes and new PRs
                 updates.forEach(update => {
                     const oldTimestamp = prUpdateTimestamps[update.id];
-                    if (oldTimestamp && oldTimestamp !== update.updated_at) {
+                    if (oldTimestamp === undefined) {
+                        // PR not seen before - it's newly added
+                        newPrIds.push(update.id);
+                    } else if (oldTimestamp !== update.updated_at) {
                         changedPrIds.push(update.id);
                     }
                     prUpdateTimestamps[update.id] = update.updated_at;
@@ -1382,10 +1386,20 @@
                     }
                 }
 
-                // Reload if there are changes (not removals, as those are already handled)
+                // Update only the changed rows in-place rather than reloading the full list
                 if (changedPrIds.length > 0) {
-                    console.log('PR updates detected, refreshing...');
+                    console.log('PR updates detected, updating rows:', changedPrIds);
+                    for (const prId of changedPrIds) {
+                        await fetchAndUpdatePrRow(prId);
+                    }
+                }
+
+                // New PRs require a full reload so they appear in the correct sorted position
+                if (!isFirstCheck && newPrIds.length > 0) {
+                    console.log('New PRs detected, reloading list:', newPrIds);
                     await loadPrs(true);
+                    await loadRepos(true);
+                    return;
                 }
 
                 // Safety net: if the view is empty but the DB has PRs and no changes/removals
@@ -1403,6 +1417,25 @@
                 }
             } catch (error) {
                 console.error('Error checking for PR updates:', error);
+            }
+        }
+
+        /**
+         * Fetch a single PR's stored data and update its row in-place.
+         * Used by checkForPrUpdates to avoid full list reloads.
+         */
+        async function fetchAndUpdatePrRow(prId) {
+            try {
+                const response = await fetch(`/api/prs/${prId}`);
+                if (!response.ok) {
+                    console.warn(`Failed to fetch PR ${prId}: HTTP ${response.status}`);
+                    return;
+                }
+                const data = await response.json();
+                if (data.error || !data.pr) return;
+                updateSinglePrRow(prId, data.pr);
+            } catch (error) {
+                console.error(`Error fetching PR ${prId}:`, error);
             }
         }
 
