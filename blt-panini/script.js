@@ -267,6 +267,9 @@ function renderSlackApps() {
         const link = app.source_url
             ? `<a href="${app.source_url}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">View<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
             : '';
+        const privacyLink = app.privacy_policy_url
+            ? `<a href="${app.privacy_policy_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium text-xs inline-flex items-center gap-0.5">Privacy<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`
+            : '<span class="text-gray-400 dark:text-gray-500 text-xs">—</span>';
         return `<tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">${app.app_name}<div class="text-xs font-normal text-gray-400 dark:text-gray-500">${app.developer}</div></td>
             <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">${app.category}</td>
@@ -276,6 +279,7 @@ function renderSlackApps() {
             <td class="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 max-w-xs">${app.security_notes}</td>
             <td class="px-4 py-3 text-center">${verifiedBadge}</td>
             <td class="px-4 py-3">${link}</td>
+            <td class="px-4 py-3">${privacyLink}</td>
         </tr>`;
     }).join('');
 }
