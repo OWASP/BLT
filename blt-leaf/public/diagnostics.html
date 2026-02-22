@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>API Diagnostics — BLT-Leaf</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Initialize theme early to prevent flash -->
+    <script>
+        window.tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        };
+
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl0HPNietrzFChCCs44/bfI3e1qqNk2amX+JJFyJCkl/lG3WHkLolLRnOdcBJJVPaNhQ36oPAPNl+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/95">
+        <div class="mx-auto flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img width="26" src="./static/logo.png" alt="OWASP BLT-Leaf" onerror="this.style.display='none'" />
+                    <span class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">BLT-LEAF</span>
+                </a>
+            </div>
+            <nav class="flex items-center gap-4 text-sm">
+                <a href="/"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
+                <a href="/how-it-works.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">How It Works</a>
+                <a href="/diagnostics.html" class="text-red-600 font-semibold dark:text-red-400">Diagnostics</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <button id="themeToggle"
+                    class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors"
+                    title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 mx-auto max-w-3xl w-full px-4 py-8 sm:px-6 lg:px-8">
+
+        <!-- Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                <i class="fas fa-stethoscope text-red-600"></i> API Diagnostics
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400">
+                Click any <span class="font-semibold text-green-600 dark:text-green-400">GET</span> endpoint to view its live JSON response in a new tab.
+            </p>
+        </div>
+
+        <!-- Endpoint list -->
+        <section>
+            <ul id="endpointList" class="space-y-3"></ul>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 mt-auto">
+        <div class="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:px-8">
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">OWASP Bug Logging Tool (BLT)</a> project
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const ENDPOINTS = [
+            { method: 'GET',  path: '/api/prs',                        description: 'List all tracked PRs' },
+            { method: 'POST', path: '/api/prs',                        description: 'Add a new PR (requires JSON body)' },
+            { method: 'GET',  path: '/api/repos',                      description: 'List all tracked repositories' },
+            { method: 'GET',  path: '/api/rate-limit',                 description: 'GitHub API rate-limit status' },
+            { method: 'GET',  path: '/api/status',                     description: 'System / database status' },
+            { method: 'GET',  path: '/api/prs/updates',                description: 'Check for pending PR updates' },
+            { method: 'POST', path: '/api/refresh',                    description: 'Refresh a single PR (requires JSON body)' },
+            { method: 'POST', path: '/api/refresh-batch',              description: 'Batch-refresh multiple PRs (requires JSON body)' },
+            { method: 'GET',  path: '/api/prs/{id}/timeline',          description: 'PR timeline — replace {id} with a numeric PR id' },
+            { method: 'GET',  path: '/api/prs/{id}/review-analysis',   description: 'PR review analysis — replace {id} with a numeric PR id' },
+            { method: 'GET',  path: '/api/prs/{id}/readiness',         description: 'PR readiness score — replace {id} with a numeric PR id' },
+        ];
+
+        function buildList() {
+            const ul = document.getElementById('endpointList');
+            ENDPOINTS.forEach(ep => {
+                const isGet = ep.method === 'GET';
+                const hasPlaceholder = ep.path.includes('{id}');
+                const isClickable = isGet && !hasPlaceholder;
+
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-4 shadow-sm';
+
+                // Method badge
+                const badge = document.createElement('span');
+                badge.className = 'mt-0.5 shrink-0 rounded px-2 py-0.5 text-xs font-bold ' + (
+                    isGet
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400'
+                );
+                badge.textContent = ep.method;
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0';
+
+                if (isClickable) {
+                    const link = document.createElement('a');
+                    link.href = ep.path;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'font-mono text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 underline break-all';
+                    link.textContent = ep.path;
+                    info.appendChild(link);
+                } else {
+                    const code = document.createElement('span');
+                    code.className = 'font-mono text-sm font-semibold text-slate-700 dark:text-slate-300 break-all';
+                    code.textContent = ep.path;
+                    info.appendChild(code);
+                }
+
+                const desc = document.createElement('p');
+                desc.className = 'mt-1 text-xs text-slate-500 dark:text-slate-400';
+                desc.textContent = ep.description;
+                info.appendChild(desc);
+
+                li.appendChild(badge);
+                li.appendChild(info);
+
+                if (isClickable) {
+                    const icon = document.createElement('span');
+                    icon.className = 'mt-0.5 shrink-0 text-slate-400 dark:text-slate-500 text-xs';
+                    icon.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+                    li.appendChild(icon);
+                }
+
+                ul.appendChild(li);
+            });
+        }
+
+        buildList();
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+        // Set initial icon
+        if (document.documentElement.classList.contains('dark')) {
+            themeIcon.className = 'fas fa-sun';
+        }
+    </script>
+</body>
+
+</html>
