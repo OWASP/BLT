@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure AI Notes — BLT-SafeCloak</title>
+  <meta name="description" content="AES-256-GCM encrypted meeting notes with AI-powered summarization, key-point extraction, and action-item detection." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <a class="navbar-brand" href="index.html">
+    <div class="shield-icon" aria-hidden="true">🛡️</div>
+    BLT-SafeCloak
+  </a>
+  <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle menu">☰</button>
+  <ul class="navbar-nav" id="navbar-nav" role="list">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="video-chat.html">Video Chat</a></li>
+    <li><a href="notes.html" class="active">Secure Notes</a></li>
+    <li><a href="consent.html">Consent</a></li>
+    <li><a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a></li>
+  </ul>
+</nav>
+
+<div class="page-container">
+  <!-- ── Page Header ── -->
+  <header class="page-header">
+    <h1 class="page-title">📝 Secure AI Notes</h1>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+      <span class="badge badge-success">🔐 AES-256-GCM Encrypted</span>
+      <span class="badge badge-primary">💾 Stored Locally</span>
+      <button class="btn btn-primary btn-sm" id="btn-new-note" aria-label="Create new note">+ New Note</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="alert alert-success" style="margin-bottom:1rem">
+      <span aria-hidden="true">🔒</span>
+      <span>All notes are encrypted with AES-256-GCM and stored only in your browser's localStorage. They never leave your device.</span>
+    </div>
+
+    <div class="notes-layout" role="main" aria-label="Notes application">
+      <!-- ── Sidebar ── -->
+      <aside class="notes-sidebar" aria-label="Notes list">
+        <div class="card-header" style="background:var(--bg-medium)">
+          <h2 class="card-title" style="font-size:0.85rem">YOUR NOTES</h2>
+          <div style="display:flex;gap:0.35rem">
+            <button class="btn btn-sm btn-primary" id="btn-new-note-2" onclick="NotesApp.createNote()" aria-label="Create new note">+</button>
+            <button class="btn btn-sm btn-secondary" id="btn-export-all" aria-label="Export all notes" title="Export all notes as JSON">⬇</button>
+          </div>
+        </div>
+        <div class="notes-list" id="notes-list" role="list" aria-label="Notes list"></div>
+      </aside>
+
+      <!-- ── Editor ── -->
+      <div class="note-editor" aria-label="Note editor">
+        <!-- Empty state -->
+        <div id="editor-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text-muted);gap:1rem;padding:2rem">
+          <div style="font-size:3rem" aria-hidden="true">📝</div>
+          <p style="text-align:center;max-width:300px">Select a note from the sidebar or create a new one to get started.</p>
+          <button class="btn btn-primary" onclick="NotesApp.createNote()">+ Create Your First Note</button>
+        </div>
+
+        <!-- Editor wrapper -->
+        <div id="editor-wrapper" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+          <!-- Toolbar -->
+          <div class="editor-toolbar" role="toolbar" aria-label="Note toolbar">
+            <button class="btn btn-sm btn-secondary" id="btn-delete-note" title="Delete note" aria-label="Delete note">🗑️</button>
+            <div style="height:16px;width:1px;background:var(--stroke-dark)" aria-hidden="true"></div>
+            <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Export:</span>
+            <button class="btn btn-sm btn-secondary" id="btn-export-txt" title="Export as .txt" aria-label="Export as text">.txt</button>
+            <button class="btn btn-sm btn-secondary" id="btn-export-md" title="Export as .md" aria-label="Export as Markdown">.md</button>
+            <button class="btn btn-sm btn-secondary" id="btn-export-json" title="Export as .json" aria-label="Export as JSON">.json</button>
+            <div style="margin-left:auto;font-size:0.75rem;color:var(--text-muted)" id="word-count" aria-live="polite">0 words · 0 chars</div>
+          </div>
+
+          <!-- Title -->
+          <input type="text" class="editor-title" id="note-title" placeholder="Note title…" aria-label="Note title" />
+
+          <!-- Body -->
+          <textarea class="editor-body" id="note-body" placeholder="Start typing your secure note here…&#10;&#10;Try the AI features below to summarize, extract key points, find action items, or analyze keywords." aria-label="Note content"></textarea>
+
+          <!-- AI Panel -->
+          <div class="ai-panel">
+            <div class="ai-panel-title" aria-label="AI features">
+              ✨ AI Features
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem" role="toolbar" aria-label="AI analysis tools">
+              <button class="btn btn-sm" id="btn-summarize" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Summarize note">📝 Summarize</button>
+              <button class="btn btn-sm" id="btn-keypoints" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Extract key points">🔑 Key Points</button>
+              <button class="btn btn-sm" id="btn-actions" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Find action items">✅ Action Items</button>
+              <button class="btn btn-sm" id="btn-keywords" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Analyze keywords">📊 Keywords</button>
+            </div>
+            <div class="ai-output" id="ai-output" aria-live="polite" aria-label="AI analysis output">AI output will appear here…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Encryption info -->
+    <div style="margin-top:1.5rem">
+      <div class="card">
+        <div class="card-body" style="display:flex;gap:2rem;flex-wrap:wrap">
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Encryption</div>
+            <div style="font-size:0.9rem;color:#fff">AES-256-GCM</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Key Derivation</div>
+            <div style="font-size:0.9rem;color:#fff">PBKDF2 / SHA-256 / 100k iterations</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Storage</div>
+            <div style="font-size:0.9rem;color:#fff">Browser localStorage (encrypted)</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">AI Processing</div>
+            <div style="font-size:0.9rem;color:#fff">100% client-side (offline capable)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer" role="contentinfo">
+  <p>BLT-SafeCloak — <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">OWASP BLT Project</a></p>
+</footer>
+
+<div id="toast-container" role="status" aria-live="polite"></div>
+
+<script src="js/crypto.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/notes.js"></script>
+</body>
+</html>
