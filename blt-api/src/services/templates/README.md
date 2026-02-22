@@ -62,7 +62,6 @@ html = get_verification_email(
 ## Adding New Templates
 
 1. Create new `.html` file in this directory
-2. Add placeholders using `{variable_name}` syntax
 2. Add placeholders using `[[variable_name]]` syntax (double square brackets)
 
 ```python
