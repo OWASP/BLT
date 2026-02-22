@@ -94,7 +94,7 @@
             <div class="tutorial-embed mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50">
               <p class="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center gap-2"><i class="fas fa-play-circle" aria-hidden="true"></i> Quick tutorial</p>
               <div class="aspect-video">
-                <iframe id="tutorial-seeker" class="w-full h-full" src="" title="How to create a seeker profile" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <video class="w-full h-full" src="assets/videos/tutorial-seeker.mov" controls title="How to create a seeker profile" preload="metadata">Your browser does not support the video tag.</video>
               </div>
             </div>
           </section>
@@ -117,12 +117,6 @@
   <script src="assets/js/theme.js"></script>
   <script>
     (function () {
-      // Tutorial clips we record: set embed URL when ready (seeker). job-from-URL uses local video; job form has no tutorial.
-      var TUTORIAL_VIDEOS = {
-        seeker: ""
-      };
-      var t;
-      if ((t = document.getElementById("tutorial-seeker")) && TUTORIAL_VIDEOS.seeker) t.src = TUTORIAL_VIDEOS.seeker;
       document.querySelectorAll(".tutorial-embed").forEach(function (el) {
         var iframe = el.querySelector("iframe");
         if (iframe && !iframe.src) el.style.display = "none";
