@@ -321,6 +321,11 @@
                             title="How It Works">
                             <i class="fas fa-question-circle text-xs"></i>
                         </a>
+                        <button id="diagnosticBtnMobile"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+                            title="API Diagnostics">
+                            <i class="fas fa-stethoscope text-xs"></i>
+                        </button>
                         <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
                             class="rounded-lg bg-red-600 p-1.5 text-white hover:bg-red-700"
                             title="Contribute">
@@ -409,6 +414,11 @@
                         <i class="fas fa-question-circle"></i>
                         <span class="hidden sm:inline">How It Works</span>
                     </a>
+                    <button id="diagnosticBtn"
+                        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
+                        title="API Diagnostics">
+                        <i class="fas fa-stethoscope"></i>
+                    </button>
                     <span id="releaseVersion"
                         class="text-xs text-slate-500 dark:text-slate-400 inline-block"></span>
                     <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
@@ -525,6 +535,33 @@
                     <i class="fas fa-copy mr-1"></i>Copy to Clipboard
                 </button>
                 <button id="closeRawDataModalBtn" class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostic Modal -->
+    <div id="diagnosticModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="relative w-full max-w-2xl max-h-[90vh] m-4 bg-white dark:bg-slate-800 rounded-lg shadow-2xl flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <i class="fas fa-stethoscope text-red-600"></i> API Diagnostics
+                </h2>
+                <button id="closeDiagnosticModal" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-auto px-6 py-4">
+                <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">Click any <span class="font-semibold text-green-600 dark:text-green-400">GET</span> endpoint to view its response in a new tab.</p>
+                <ul id="diagnosticEndpointList" class="space-y-2">
+                </ul>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                <button id="closeDiagnosticModalBtn" class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm">
                     Close
                 </button>
             </div>
@@ -2595,6 +2632,91 @@
                 if (!modal.classList.contains('hidden')) {
                     hideRawDataModal();
                 }
+            }
+        });
+
+        // Diagnostic modal
+        const DIAGNOSTIC_ENDPOINTS = [
+            { method: 'GET',  path: '/api/prs',           description: 'List all tracked PRs' },
+            { method: 'POST', path: '/api/prs',           description: 'Add a new PR (requires body)' },
+            { method: 'GET',  path: '/api/repos',         description: 'List all tracked repositories' },
+            { method: 'GET',  path: '/api/rate-limit',    description: 'GitHub API rate-limit status' },
+            { method: 'GET',  path: '/api/status',        description: 'System / database status' },
+            { method: 'GET',  path: '/api/prs/updates',   description: 'Check for pending PR updates' },
+            { method: 'POST', path: '/api/refresh',       description: 'Refresh a single PR (requires body)' },
+            { method: 'POST', path: '/api/refresh-batch', description: 'Batch-refresh multiple PRs (requires body)' },
+            { method: 'GET',  path: '/api/prs/{id}/timeline',        description: 'PR timeline (replace {id} with a PR id)' },
+            { method: 'GET',  path: '/api/prs/{id}/review-analysis', description: 'PR review analysis (replace {id} with a PR id)' },
+            { method: 'GET',  path: '/api/prs/{id}/readiness',       description: 'PR readiness score (replace {id} with a PR id)' },
+        ];
+
+        function buildDiagnosticList() {
+            const list = document.getElementById('diagnosticEndpointList');
+            list.innerHTML = '';
+            DIAGNOSTIC_ENDPOINTS.forEach(ep => {
+                const isGet = ep.method === 'GET';
+                const hasPlaceholder = ep.path.includes('{id}');
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 py-3';
+
+                const badge = document.createElement('span');
+                badge.className = 'mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-bold ' +
+                    (isGet
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400');
+                badge.textContent = ep.method;
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0';
+
+                if (isGet && !hasPlaceholder) {
+                    const link = document.createElement('a');
+                    link.href = ep.path;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'font-mono text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 underline break-all';
+                    link.textContent = ep.path;
+                    info.appendChild(link);
+                } else {
+                    const code = document.createElement('span');
+                    code.className = 'font-mono text-sm text-slate-700 dark:text-slate-300 break-all';
+                    code.textContent = ep.path;
+                    info.appendChild(code);
+                }
+
+                const desc = document.createElement('p');
+                desc.className = 'mt-0.5 text-xs text-slate-500 dark:text-slate-400';
+                desc.textContent = ep.description;
+                info.appendChild(desc);
+
+                li.appendChild(badge);
+                li.appendChild(info);
+                list.appendChild(li);
+            });
+        }
+
+        function showDiagnosticModal() {
+            document.getElementById('diagnosticModal').classList.remove('hidden');
+        }
+
+        function hideDiagnosticModal() {
+            document.getElementById('diagnosticModal').classList.add('hidden');
+        }
+
+        // Build the static endpoint list once at init
+        buildDiagnosticList();
+
+        document.getElementById('diagnosticBtn').addEventListener('click', showDiagnosticModal);
+        document.getElementById('diagnosticBtnMobile').addEventListener('click', showDiagnosticModal);
+        document.getElementById('closeDiagnosticModal').addEventListener('click', hideDiagnosticModal);
+        document.getElementById('closeDiagnosticModalBtn').addEventListener('click', hideDiagnosticModal);
+        document.getElementById('diagnosticModal').addEventListener('click', (e) => {
+            if (e.target.id === 'diagnosticModal') hideDiagnosticModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('diagnosticModal');
+                if (!modal.classList.contains('hidden')) hideDiagnosticModal();
             }
         });
 
