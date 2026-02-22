@@ -535,7 +535,7 @@
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let allPrs = [];
         let repos = [];
-        let repoSortByPrs = localStorage.getItem('repoSortByPrs') === 'true';
+        let repoSortByPrs = localStorage.getItem('repoSortByPrs') !== 'false';
         // Support unlimited sort columns
         // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
         let sortColumns = [];
