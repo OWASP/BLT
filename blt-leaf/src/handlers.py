@@ -1368,6 +1368,10 @@ async def _run_readiness_analysis(env, pr, pr_id, github_token):
         Dict containing readiness analysis data, or None if analysis fails
     """
     try:
+        # Normalize pr_id to str so cache keys are consistent regardless of
+        # whether the caller passes an int (handle_add_pr) or str (handle_pr_readiness)
+        pr_id = str(pr_id)
+        
         # Fetch timeline data from GitHub
         timeline_data = await fetch_pr_timeline_data(
             env,
