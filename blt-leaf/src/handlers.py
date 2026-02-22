@@ -441,7 +441,13 @@ async def handle_refresh_pr(request, env):
     try:
         data = (await request.json()).to_py()
         pr_id = data.get('pr_id')
-        quick_refresh = bool(data.get('quick_refresh', False))
+        raw_quick_refresh = data.get('quick_refresh', False)
+        if isinstance(raw_quick_refresh, bool):
+            quick_refresh = raw_quick_refresh
+        elif isinstance(raw_quick_refresh, str):
+            quick_refresh = raw_quick_refresh.strip().lower() in ('true', '1', 'yes', 'on')
+        else:
+            quick_refresh = bool(raw_quick_refresh)
         user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
         
         if not pr_id:
