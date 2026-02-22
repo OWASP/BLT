@@ -2614,7 +2614,7 @@
         // Set up event delegation for sorting (one-time setup)
         // This persists across table re-renders since prListContainer is stable
         const prListContainer = document.getElementById('prListContainer');
-        prListContainer.addEventListener('click', (e) => {
+        prListContainer.addEventListener('click', async (e) => {
             // Handle sortable table header clicks
             const th = e.target.closest('th[data-sort-column]');
             if (th) {
