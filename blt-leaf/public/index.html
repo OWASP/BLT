@@ -1107,11 +1107,23 @@
                     });
                     // Move clicked repo to top of list (after "All Repositories")
                     const allItem = repoList.querySelector('[data-repo="all"]');
-                    if (allItem && allItem.nextSibling !== li) {
-                        repoList.insertBefore(li, allItem.nextSibling);
+                    if (allItem) {
+                        const nextElement = allItem.nextElementSibling;
+                        if (nextElement !== li) {
+                            if (nextElement) {
+                                repoList.insertBefore(li, nextElement);
+                            } else {
+                                repoList.appendChild(li);
+                            }
+                        }
                     }
                     // Scroll to top of page
-                    window.scrollTo({ top: 0, behavior: 'instant' });
+                    const mainEl = document.querySelector('main');
+                    if (mainEl) {
+                        mainEl.scrollTo({ top: 0, behavior: 'instant' });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                    }
                     loadPrs();
                 });
 
