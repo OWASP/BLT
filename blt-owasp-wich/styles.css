@@ -459,6 +459,21 @@ main {
     font-style: italic;
 }
 
+.check-howtofix {
+    font-size: 0.9em;
+    color: #2c3e50;
+    margin-top: 8px;
+    padding: 10px;
+    background: #e8f4f8;
+    border-left: 3px solid #3498db;
+    border-radius: 4px;
+    line-height: 1.5;
+}
+
+.check-howtofix strong {
+    color: #2980b9;
+}
+
 .check-points {
     font-size: 0.9em;
     color: #7f8c8d;

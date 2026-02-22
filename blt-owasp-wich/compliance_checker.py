@@ -489,22 +489,35 @@ class OWASPComplianceChecker:
         
         # 56-65. Testing practices
         self._add_check(category, "Tests cover edge cases", has_tests, 1,
-                       "Requires test review")
-        self._add_check(category, "Unit, integration, and E2E tests", has_tests, 1)
+                       "Manual test review required",
+                       "Write tests for edge cases: empty inputs, null values, boundary conditions, error states. Review test coverage reports to identify gaps.")
+        self._add_check(category, "Unit, integration, and E2E tests", has_tests, 1,
+                       f"Checked for tests/ or test/ directories (found: {has_tests})",
+                       "Implement a comprehensive test strategy: unit tests for individual functions, integration tests for component interactions, E2E tests for full workflows.")
         self._add_check(category, "Uses mocks and stubs", has_tests, 1,
-                       "Check test files")
+                       "Manual test file review required",
+                       "Use mocking libraries to isolate tests from external dependencies (APIs, databases, file systems). Examples: unittest.mock (Python), Jest mocks (JavaScript).")
         self._add_check(category, "Achieves 80%+ test coverage", has_tests, 1,
-                       "Run coverage tools")
-        self._add_check(category, "Tests validate input sanitization", has_tests, 1)
+                       "Run coverage analysis tools to verify",
+                       "Measure and improve test coverage. Use coverage.py (Python), Istanbul (JavaScript), or JaCoCo (Java). Aim for 80%+ coverage. Add coverage reports to CI.")
+        self._add_check(category, "Tests validate input sanitization", has_tests, 1,
+                       "Manual test review for security test cases",
+                       "Add security tests that verify input validation: test with malicious inputs (SQL injection, XSS, path traversal). Ensure invalid input is rejected.")
         self._add_check(category, "Automated fuzz testing", False, 1,
-                       "Advanced feature")
+                       "Advanced testing feature - not commonly implemented",
+                       "Consider fuzz testing for security-critical code. Use tools like AFL, libFuzzer, or language-specific fuzzing frameworks to find edge cases.")
         self._add_check(category, "Fails gracefully with error logging", True, 1,
-                       "Manual verification")
+                       "Manual code review for error handling",
+                       "Implement proper error handling: use try-catch blocks, return meaningful error messages, log errors with context. Avoid exposing stack traces to users.")
         self._add_check(category, "No sensitive data in logs", True, 1,
-                       "Code review needed")
+                       "Manual code and log review required",
+                       "Review logging statements: never log passwords, tokens, PII, or secrets. Sanitize sensitive data before logging. Use log scrubbing tools.")
         self._add_check(category, "Uses dependency injection", True, 1,
-                       "Architecture review")
-        self._add_check(category, "Regression tests for compatibility", has_tests, 1)
+                       "Manual architecture review required",
+                       "Implement dependency injection for better testability and maintainability. Pass dependencies as parameters rather than creating them internally.")
+        self._add_check(category, "Regression tests for compatibility", has_tests, 1,
+                       f"Tests directory exists: {has_tests}",
+                       "Add regression tests for bug fixes. When fixing a bug, add a test that would have caught it. Prevent regressions by running tests in CI.")
     
     def _check_performance(self, repo) -> None:
         """Check performance and scalability (10 points)."""
@@ -512,25 +525,35 @@ class OWASPComplianceChecker:
         
         # 66-75. Performance practices (mostly manual review)
         self._add_check(category, "Code optimized for performance", True, 1,
-                       "Requires profiling")
+                       "Manual profiling and code review required",
+                       "Profile your application to identify bottlenecks. Use profiling tools (cProfile, Chrome DevTools). Optimize hot paths, reduce complexity, use efficient algorithms.")
         self._add_check(category, "Asynchronous processing where needed", True, 1,
-                       "Architecture review")
+                       "Manual architecture review required",
+                       "Use async/await for I/O operations. Implement background jobs for long-running tasks (Celery, Bull, etc.). Avoid blocking the main thread.")
         self._add_check(category, "Caching strategies implemented", True, 1,
-                       "Check for cache configuration")
+                       "Manual code review for cache usage",
+                       "Implement caching for frequently accessed data. Use Redis, Memcached, or in-memory caches. Set appropriate TTLs. Cache at multiple levels (client, server, database).")
         self._add_check(category, "Optimized database queries", True, 1,
-                       "Database review needed")
+                       "Database query analysis required",
+                       "Optimize database queries: add indexes, avoid N+1 queries, use database query analyzers (EXPLAIN). Use ORMs efficiently. Consider connection pooling.")
         self._add_check(category, "Rate limiting to prevent abuse", True, 1,
-                       "For web services")
+                       "Required for web services and APIs",
+                       "Implement rate limiting to prevent abuse. Use middleware (express-rate-limit, Flask-Limiter) or API gateways. Set appropriate limits per user/IP.")
         self._add_check(category, "No memory leaks", True, 1,
-                       "Profiling required")
+                       "Memory profiling and analysis required",
+                       "Profile memory usage regularly. Use tools like heapdump, Chrome Memory Profiler, or Valgrind. Fix memory leaks: clear event listeners, close connections, clear caches.")
         self._add_check(category, "Load testing performed", False, 1,
-                       "Check for load test scripts")
+                       "Load testing not commonly configured in repositories",
+                       "Perform load testing before production. Use tools like Apache JMeter, k6, Gatling, or Locust. Test under expected and peak loads. Document results.")
         self._add_check(category, "Supports horizontal scaling", True, 1,
-                       "Architecture review")
+                       "Manual architecture review required",
+                       "Design for horizontal scaling: use stateless services, externalize sessions, use load balancers. Avoid server-specific state. Support distributed deployments.")
         self._add_check(category, "Uses lazy loading", True, 1,
-                       "Manual code review")
+                       "Manual code review for loading strategies",
+                       "Implement lazy loading for resources: load on demand, use code splitting, defer non-critical resources. Improves initial load time.")
         self._add_check(category, "Pagination for large datasets", True, 1,
-                       "API/UI review")
+                       "Manual API and UI review required",
+                       "Implement pagination for APIs and lists. Use cursor-based or offset-based pagination. Limit page size. Don't return entire datasets at once.")
     
     def _check_logging(self, repo) -> None:
         """Check logging and monitoring (10 points)."""
@@ -538,25 +561,35 @@ class OWASPComplianceChecker:
         
         # 76-85. Logging practices
         self._add_check(category, "Logging implemented", True, 1,
-                       "Check for logging framework")
+                       "Manual code review for logging framework usage",
+                       "Implement a logging framework: Python logging, Winston (Node.js), Log4j (Java), Serilog (.NET). Add logging to critical code paths.")
         self._add_check(category, "Configurable log levels", True, 1,
-                       "Check configuration files")
+                       "Check for log level configuration in settings",
+                       "Make log levels configurable (DEBUG, INFO, WARN, ERROR). Use environment variables or config files. Don't hardcode log levels in production.")
         self._add_check(category, "Logs don't contain sensitive data", True, 1,
-                       "Code review required")
+                       "Manual code review for logging statements required",
+                       "Review all logging statements: never log passwords, tokens, credit cards, PII. Sanitize sensitive data. Use log scrubbing tools or filters.")
         self._add_check(category, "Monitoring integration", False, 1,
-                       "Check for monitoring setup")
+                       "Monitoring setup typically not in repository",
+                       "Integrate monitoring tools: Prometheus, Grafana, DataDog, New Relic, CloudWatch. Export metrics. Set up dashboards for key metrics.")
         self._add_check(category, "Structured logging format", True, 1,
-                       "Check logging implementation")
+                       "Manual logging implementation review",
+                       "Use structured logging (JSON format). Include timestamp, level, message, context. Makes logs easier to parse and analyze. Use logging formatters.")
         self._add_check(category, "Audit logs for security actions", True, 1,
-                       "Security review needed")
+                       "Manual security logging review required",
+                       "Log security events: login/logout, permission changes, data access, failed auth attempts. Include who, what, when, where. Store audit logs securely.")
         self._add_check(category, "Alerts configured", False, 1,
-                       "Manual infrastructure check")
+                       "Manual infrastructure and alerting review",
+                       "Set up alerts for critical issues: error rate spikes, service downtime, security events. Use PagerDuty, Opsgenie, or cloud provider alerting.")
         self._add_check(category, "Log rotation and archival", True, 1,
-                       "Operations review")
+                       "Manual operations and log management review",
+                       "Implement log rotation to prevent disk space issues. Use logrotate (Linux), built-in rotation features. Archive old logs. Set retention policies.")
         self._add_check(category, "Incident response playbook", False, 1,
-                       "Check documentation")
+                       "Check for incident response documentation",
+                       "Create an incident response playbook. Document procedures for: detection, escalation, investigation, resolution, post-mortem. Store in docs/ or wiki.")
         self._add_check(category, "Logging config separate from code", True, 1,
-                       "Check for config files")
+                       "Check for separate configuration files",
+                       "Externalize logging configuration. Use config files (logging.conf, log4j.properties). Don't hardcode logging settings. Make them environment-specific.")
     
     def _check_community(self, repo) -> None:
         """Check community and support (10 points)."""
@@ -565,39 +598,52 @@ class OWASPComplianceChecker:
         # 86. Active maintainers
         has_recent_activity = repo.pushed_at is not None
         self._add_check(category, "Maintainers actively engage", 
-                       has_recent_activity, 1)
+                       has_recent_activity, 1,
+                       f"Last repository push: {repo.pushed_at.strftime('%Y-%m-%d') if repo.pushed_at else 'Unknown'}",
+                       "Maintain regular activity: respond to issues, review PRs, push updates. If inactive, add a notice about project status.")
         
         # 87-88. Security reporting
         has_security_md = self._check_file_exists(repo, "SECURITY.md")
         self._add_check(category, "Security vulnerability reporting process", 
-                       has_security_md, 1)
+                       has_security_md, 1,
+                       "Checked for SECURITY.md file",
+                       "Create a SECURITY.md file documenting how to report security vulnerabilities. Include contact information and expected response time.")
         self._add_check(category, "Security policy file (SECURITY.md)", 
-                       has_security_md, 1)
+                       has_security_md, 1,
+                       "Checked for SECURITY.md in repository root",
+                       "Add a SECURITY.md file with: supported versions, how to report vulnerabilities, security update policy. Use GitHub's template.")
         
         # 89-95. Community practices
         self._add_check(category, "Community guidelines present", True, 1,
-                       "Check CODE_OF_CONDUCT.md")
+                       "Manual review of CODE_OF_CONDUCT.md and CONTRIBUTING.md",
+                       "Ensure both CODE_OF_CONDUCT.md and CONTRIBUTING.md are present and comprehensive. Set clear expectations for community behavior.")
         self._add_check(category, "Responsive to security issues", True, 1,
-                       "Check issue response time")
+                       "Manual review of issue response times required",
+                       "Respond to security issues promptly (within 24-48 hours). Triage and prioritize security reports. Communicate timelines to reporters.")
         
         # Check for recent updates
         import datetime
         one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
         recently_updated = repo.pushed_at > one_year_ago if repo.pushed_at else False
         self._add_check(category, "Regular project updates", recently_updated, 1,
-                       f"Last update: {repo.pushed_at}")
+                       f"Last update: {repo.pushed_at.strftime('%Y-%m-%d') if repo.pushed_at else 'Unknown'}",
+                       "Update the project at least yearly. If maintenance has stopped, add an 'archived' or 'unmaintained' notice to README.")
         
         # Support channels
         has_discussions = repo.has_discussions
         self._add_check(category, "Multiple support channels", has_discussions, 1,
-                       "GitHub Discussions enabled" if has_discussions else "Check for other channels")
+                       f"GitHub Discussions enabled: {has_discussions}",
+                       "Provide multiple support channels: GitHub Discussions, Issues, Discord/Slack, email. Document them in README. Enable GitHub Discussions in Settings.")
         
         self._add_check(category, "Clear escalation path", True, 1,
-                       "Check SECURITY.md")
+                       "Check SECURITY.md for escalation procedures",
+                       "Document escalation procedures in SECURITY.md. Explain how critical issues are handled and who to contact for urgent matters.")
         self._add_check(category, "PR reviews before merging", True, 1,
-                       "Check branch protection")
+                       "Manual branch protection review recommended",
+                       "Enable branch protection: require PR reviews before merging, require status checks, prevent force pushes. Configure in Settings > Branches.")
         self._add_check(category, "Good issue tracking hygiene", True, 1,
-                       f"Open issues: {repo.open_issues_count}")
+                       f"Open issues: {repo.open_issues_count}",
+                       "Maintain issue hygiene: triage new issues, label them, close resolved ones, respond to questions. Use issue templates and automation.")
     
     def _check_legal(self, repo) -> None:
         """Check legal and compliance (5 points)."""
@@ -605,26 +651,34 @@ class OWASPComplianceChecker:
         
         # 96. Data protection compliance
         self._add_check(category, "GDPR/CCPA compliance", True, 1,
-                       "Manual legal review needed")
+                       "Manual legal and privacy review required",
+                       "If handling personal data: comply with GDPR, CCPA, and other privacy laws. Document data handling in privacy policy. Implement data subject rights.")
         
         # 97. License compliance
         has_license = repo.get_license() is not None
         self._add_check(category, "Dependencies properly licensed", has_license, 1,
-                       "Check third-party licenses")
+                       "Check third-party dependency licenses for compatibility",
+                       "Review all dependency licenses for compatibility with your project license. Use tools like license-checker (npm) or pip-licenses. Document in NOTICE file if needed.")
         
         # 98. No proprietary code
         is_open_source = repo.get_license() is not None
         self._add_check(category, "No proprietary/restricted code", 
-                       is_open_source, 1)
+                       is_open_source, 1,
+                       f"Project has open source license: {has_license}",
+                       "Ensure all code is properly licensed for open source. Remove or get permission for any proprietary/restricted code. Document exceptions.")
         
         # 99. Privacy policy
         has_privacy = self._check_file_exists(repo, "PRIVACY.md")
         self._add_check(category, "Users informed of data collection", 
-                       has_privacy, 1)
+                       has_privacy, 1,
+                       "Checked for PRIVACY.md file",
+                       "If your project collects user data, create a PRIVACY.md file. Explain what data is collected, how it's used, stored, and shared.")
         
         # 100. Responsible disclosure
         has_security = self._check_file_exists(repo, "SECURITY.md")
-        self._add_check(category, "Responsible disclosure policy", has_security, 1)
+        self._add_check(category, "Responsible disclosure policy", has_security, 1,
+                       "Checked for SECURITY.md with responsible disclosure policy",
+                       "Document responsible disclosure policy in SECURITY.md. Provide secure contact methods, expected response times, and acknowledgment policy.")
     
     def _check_website_compliance(self, url: str) -> None:
         """Check compliance for a non-GitHub website.

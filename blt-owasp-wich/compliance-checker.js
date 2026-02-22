@@ -130,7 +130,7 @@ class ComplianceChecker {
         this.repoData = null;
     }
 
-    addCheck(category, name, passed, points = 1, details = '') {
+    addCheck(category, name, passed, points = 1, details = '', howToFix = '') {
         if (!this.results.categories[category]) {
             this.results.categories[category] = {
                 checks: [],
@@ -150,7 +150,8 @@ class ComplianceChecker {
             passed,
             points: passed ? points : 0,
             maxPoints: points,
-            details
+            details,
+            howToFix: passed ? '' : howToFix
         });
     }
 
@@ -164,52 +165,74 @@ class ComplianceChecker {
         // 1. Project goal and scope
         const readme = await getReadmeContent(this.owner, this.repo, this.token);
         const hasGoal = readme && ['goal', 'purpose', 'about', 'overview', 'description'].some(kw => readme.includes(kw));
-        this.addCheck(category, 'Clearly defined project goal and scope', hasGoal, 1, 'Checked README for project description');
+        this.addCheck(category, 'Clearly defined project goal and scope', hasGoal, 1, 
+            'Checked README for keywords: goal, purpose, about, overview, description',
+            'Add a clear project description in your README.md file. Include sections like "## About", "## Purpose", or "## Project Goal" to explain what your project does.');
 
         // 2. Open-source license
         const hasLicense = this.repoData.license !== null;
         this.addCheck(category, 'Open-source license file present', hasLicense, 1, 
-            hasLicense ? `License: ${this.repoData.license.name}` : 'No license found');
+            hasLicense ? `License: ${this.repoData.license.name}` : 'Not found',
+            'Add a LICENSE file to your repository. Popular choices include MIT, Apache 2.0, or GPL. Use GitHub\'s "Add file > Create new file > LICENSE" wizard to add one.');
 
         // 3. README file
-        this.addCheck(category, 'README file provides project overview', readme !== null, 1);
+        this.addCheck(category, 'README file provides project overview', readme !== null, 1,
+            'Checked for README.md, README.rst, or README.txt in repository root',
+            'Create a README.md file in the root directory with project overview, installation instructions, and usage examples.');
 
         // 4. OWASP organization
         const isOwasp = this.owner.toLowerCase() === 'owasp';
-        this.addCheck(category, 'Under OWASP organization', isOwasp, 1, `Repository owner: ${this.owner}`);
+        this.addCheck(category, 'Under OWASP organization', isOwasp, 1, 
+            `Repository owner: ${this.owner}`,
+            'This check verifies if the repository is under the OWASP GitHub organization. Consider contributing to OWASP or following OWASP guidelines even if not under OWASP org.');
 
         // 5. Contributing guidelines
         const hasContributing = await checkFileExists(this.owner, this.repo, 'CONTRIBUTING.md', this.token);
-        this.addCheck(category, 'Contribution guidelines (CONTRIBUTING.md)', hasContributing, 1);
+        this.addCheck(category, 'Contribution guidelines (CONTRIBUTING.md)', hasContributing, 1,
+            'Checked for CONTRIBUTING.md file in repository root',
+            'Create a CONTRIBUTING.md file that explains how others can contribute to your project. Include guidelines for submitting issues, pull requests, and code style standards.');
 
         // 6. Issue tracker activity
         this.addCheck(category, 'Issue tracker is active', this.repoData.has_issues, 1, 
-            `Open issues: ${this.repoData.open_issues_count}`);
+            `Open issues: ${this.repoData.open_issues_count}`,
+            'Enable the Issues feature in your repository settings and actively respond to and manage issues.');
 
         // 7. Active maintainers (recent commits)
         try {
             const commits = await githubRequest(`/repos/${this.owner}/${this.repo}/commits?per_page=1`, this.token);
             const hasRecentCommits = commits.length > 0;
-            this.addCheck(category, 'Active maintainers with recent commits', hasRecentCommits, 1);
+            this.addCheck(category, 'Active maintainers with recent commits', hasRecentCommits, 1,
+                'Checked for recent commits',
+                'Ensure regular commits to show active maintenance. If the project is complete, add a note about its maintenance status in the README.');
         } catch {
-            this.addCheck(category, 'Active maintainers with recent commits', false, 1);
+            this.addCheck(category, 'Active maintainers with recent commits', false, 1,
+                'Could not fetch commit history',
+                'Make sure the repository has commits and is accessible. Regular commits demonstrate active maintenance.');
         }
 
         // 8. Code of Conduct
         const hasCoc = await checkFileExists(this.owner, this.repo, 'CODE_OF_CONDUCT.md', this.token);
-        this.addCheck(category, 'Code of Conduct present', hasCoc, 1);
+        this.addCheck(category, 'Code of Conduct present', hasCoc, 1,
+            'Checked for CODE_OF_CONDUCT.md file in repository root',
+            'Add a CODE_OF_CONDUCT.md file to set expectations for community behavior. GitHub provides a template under "Insights > Community > Code of conduct".');
 
         // 9. Project roadmap or milestones
         const hasRoadmap = await checkFileExists(this.owner, this.repo, 'ROADMAP.md', this.token);
-        this.addCheck(category, 'Project roadmap or milestones documented', hasRoadmap, 1);
+        this.addCheck(category, 'Project roadmap or milestones documented', hasRoadmap, 1,
+            'Checked for ROADMAP.md file',
+            'Create a ROADMAP.md file or use GitHub Milestones (under "Issues" tab) to document planned features and project direction.');
 
         // 10. Collaborators
         try {
             const collaborators = await githubRequest(`/repos/${this.owner}/${this.repo}/collaborators?per_page=1`, this.token);
             const hasCollaborators = collaborators.length > 0;
-            this.addCheck(category, 'Well-governed with active maintainers', hasCollaborators, 1);
+            this.addCheck(category, 'Well-governed with active maintainers', hasCollaborators, 1,
+                `Found ${collaborators.length} collaborators`,
+                'Add collaborators to your repository through Settings > Collaborators. Having multiple maintainers ensures better project governance.');
         } catch {
-            this.addCheck(category, 'Well-governed with active maintainers', false, 1);
+            this.addCheck(category, 'Well-governed with active maintainers', false, 1,
+                'Could not fetch collaborators',
+                'Add collaborators to your repository through Settings > Collaborators. Having multiple maintainers ensures better project governance.');
         }
     }
 
@@ -578,6 +601,7 @@ function displayResults(results) {
                             <div class="check-content">
                                 <div class="check-name">${check.name}</div>
                                 ${check.details ? `<div class="check-details">${check.details}</div>` : ''}
+                                ${!check.passed && check.howToFix ? `<div class="check-howtofix">ℹ️ <strong>How to fix:</strong> ${check.howToFix}</div>` : ''}
                             </div>
                             <div class="check-points">${check.points}/${check.maxPoints} pts</div>
                         </div>
