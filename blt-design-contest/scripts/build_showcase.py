@@ -241,6 +241,7 @@ def build_card(issue: dict, reactions: dict) -> str:
     <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
+             data-thumbs="{thumbs_count}"
              aria-label="Design submission: {title}">
       {preview_block}
       <div class="p-5 flex flex-col gap-3 flex-1">
@@ -535,18 +536,29 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
             {total} submission{'' if total == 1 else 's'} · last updated {last_updated}
           </p>
         </div>
-        <a href="{html.escape(submit_url)}"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101]
-                  hover:bg-[#E10101] hover:text-white text-sm font-semibold
-                  px-4 py-2 rounded-md transition-colors">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          Add Entry
-        </a>
+        <div class="flex items-center gap-3 flex-wrap">
+          <button id="sort-thumbs" type="button"
+                  class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                         text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                         text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                  aria-pressed="false"
+                  title="Sort by thumbs up">
+            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+            Sort by 👍
+          </button>
+          <a href="{html.escape(submit_url)}"
+             target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101]
+                    hover:bg-[#E10101] hover:text-white text-sm font-semibold
+                    px-4 py-2 rounded-md transition-colors">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Add Entry
+          </a>
+        </div>
       </div>
 
       <!-- Cards grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards_html}
       </div>
 
@@ -598,6 +610,33 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       html.classList.toggle('dark');
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     }});
+
+    // Sort by thumbs-up toggle
+    const sortBtn = document.getElementById('sort-thumbs');
+    const grid = document.getElementById('cards-grid');
+    let sortedByThumbs = false;
+    let originalOrder = [];
+
+    if (sortBtn && grid) {{
+      originalOrder = Array.from(grid.children);
+      sortBtn.addEventListener('click', () => {{
+        sortedByThumbs = !sortedByThumbs;
+        sortBtn.setAttribute('aria-pressed', String(sortedByThumbs));
+        sortBtn.classList.toggle('border-[#E10101]', sortedByThumbs);
+        sortBtn.classList.toggle('text-[#E10101]', sortedByThumbs);
+        sortBtn.classList.toggle('border-gray-300', !sortedByThumbs);
+        sortBtn.classList.toggle('dark:border-gray-600', !sortedByThumbs);
+        sortBtn.classList.toggle('text-gray-700', !sortedByThumbs);
+        sortBtn.classList.toggle('dark:text-gray-200', !sortedByThumbs);
+
+        const cards = sortedByThumbs
+          ? [...originalOrder].sort((a, b) =>
+              parseInt(b.dataset.thumbs || '0', 10) - parseInt(a.dataset.thumbs || '0', 10))
+          : [...originalOrder];
+
+        cards.forEach(card => grid.appendChild(card));
+      }});
+    }}
   </script>
 </body>
 </html>"""
