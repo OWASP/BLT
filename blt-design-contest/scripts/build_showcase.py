@@ -419,10 +419,25 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
         BLT Design Showcase
       </h1>
-      <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-8">
+      <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-4">
         Community-driven design submissions for OWASP BLT.
         Browse entries, react with 👍 on GitHub, and submit your own work.
       </p>
+
+      <!-- Prize & deadline banner -->
+      <div class="inline-flex flex-wrap items-center justify-center gap-4 mb-8
+                  bg-[#feeae9] dark:bg-red-900/30 border border-[#E10101]/20
+                  rounded-xl px-6 py-3 text-sm font-medium text-[#E10101]">
+        <span class="inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+          <strong>$25 prize</strong> for the best design
+        </span>
+        <span class="hidden sm:block text-[#E10101]/40">|</span>
+        <span class="inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+          Contest ends <strong>March 1, 2026</strong>
+        </span>
+      </div>
 
       <div class="flex items-center justify-center gap-4 flex-wrap">
         <a href="{html.escape(submit_url)}"
@@ -442,15 +457,19 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       </div>
 
       <!-- Stats bar -->
-      <div class="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-lg mx-auto
+      <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto
                   text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
           <p class="text-3xl font-black text-[#E10101]">{total}</p>
           <p>Submission{'' if total == 1 else 's'}</p>
         </div>
         <div>
-          <p class="text-3xl font-black text-[#E10101]">👍</p>
-          <p>React on GitHub</p>
+          <p class="text-3xl font-black text-[#E10101]">$25</p>
+          <p>Top Prize</p>
+        </div>
+        <div>
+          <p class="text-3xl font-black text-[#E10101]">Mar 1</p>
+          <p>Deadline</p>
         </div>
         <div class="col-span-2 sm:col-span-1">
           <p class="text-3xl font-black text-[#E10101]">∞</p>
