@@ -16,8 +16,25 @@
       "application_instructions": null,
       "created_at": "2026-02-22T05:34:44Z",
       "views_count": 0
+    },
+    {
+      "id": "sonicwall-senior-manager-software-engineering",
+      "organization_name": "SonicWall",
+      "organization_logo": null,
+      "title": "Senior Manager, Software Engineering",
+      "description": "SonicWall\nis a cybersecurity forerunner with more than 30 years of expertise and is recognized as a leading partner-first company, ensuring our partners and their customers are never alone in the fight against cybercrime. With the ability to build, scale and manage security across the cloud, hybrid and traditional environments in real-time, SonicWall provides relentless security against the most evasive cyberattacks across endless exposure points for increasingly remote, mobile and cloud-enabled users. With its own threat research center, SonicWall can quickly and economically provide purpose-built security solutions to enable any organization—enterprise, government agencies and SMBs—around the world. For more information, visit\nwww.sonicwall.com\nor follow us on\nTwitter\n,\nLinkedIn\n,\nFacebook\nand\nInstagram\n.\nProgramming Language:\nC OR C++\nDomain:\nNetworking OR Cyber Security\nWe are looking for candidates with technical hands on and people/team management (direct reports) experience.\nRole Overview\nWe are seeking a hands-on Engineering Manager to lead a team of developers building key components of our next-generation Firewall and Network Security platform. You will be responsible for technical leadership, people management, and delivery execution, ensuring that your team produces high-quality, high-performance code for enterprise-grade networking systems.\nNote: Cyber/Network security domain experience is a must.\nKey Responsibilities\nManage a team of engineers (mix of senior, mid-level, and junior developers).\nDrive sprint planning, estimations, and execution tracking; ensure timely delivery of high-quality code.\nBalance short-term goals with long-term technical sustainability.\nBuild a culture of accountability, technical rigor, and collaboration within the team.\nSupport hiring, onboarding, and performance reviews for team members.\nParticipate in architecture and design reviews\nCollaborate with architects and senior engineers to translate product requirements into robust, maintainable implementations.\nTroubleshoot and guide resolution of production and integration issues when required.\nPartner with the Director of Engineering and other managers to align on delivery priorities and architecture decisions.\nCoordinate with QA, DevOps, and Product Management to ensure seamless integration and release readiness.\nRequired Skills & Experience\n12+ years total experience in software development using C OR C++ programming language.\n2-3 years of managing or leading teams in a Cyber security product environment.\nStrong understanding of network security concepts (TCP/IP, IPsec, VPN, routing, NAT, DPI, etc.).\nExperience building multi-threaded, performance-sensitive systems.\nFamiliarity with DPDK, Netfilter or similar packet processing frameworks is a plus.\nDemonstrated ability to mentor engineers, conduct technical reviews, and lead delivery execution.\nStrong communication skills and a collaborative, growth-oriented mindset.\n#LI-Hybrid\n#LI-Pune\n#LI-NR5\nSonicWall is an equal opportunity employer.\nWe are committed to creating a diverse environment and are an equal opportunity employer. All qualified applicants receive consideration for employment without regard to race, color, ethnicity, religion, sex, gender, gender identity and expression, sexual orientation, national origin, disability, age, marital status, veteran status, pregnancy, or any other basis prohibited by applicable law.\nAt SonicWall, we pride ourselves on recruiting a diverse mix of talented people and providing active security solutions in 100+ countries.\nApplicant Privacy Notice",
+      "requirements": null,
+      "location": "Pune, Maharashtra, India",
+      "job_type": "full-time",
+      "salary_range": null,
+      "expires_at": null,
+      "application_email": null,
+      "application_url": "https://job-boards.greenhouse.io/sonicwall/jobs/7408072",
+      "application_instructions": null,
+      "created_at": "2026-02-22T05:38:43Z",
+      "views_count": 0
     }
   ],
-  "count": 1,
-  "generated_at": "2026-02-22T05:34:46.156Z"
+  "count": 2,
+  "generated_at": "2026-02-22T05:38:45.227Z"
 }
