@@ -2,9 +2,6 @@
 
 from js import Response, URL
 
-# Import database initialization
-from database import init_database_schema
-
 # Import all handlers
 from handlers import (
     handle_add_pr,
@@ -54,9 +51,6 @@ async def on_fetch(request, env):
         # Fallback: return simple message
         return Response.new('Please configure assets in wrangler.toml', 
                           {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
-    
-    # Initialize database schema on first API request (idempotent, safe to call multiple times)
-    if path.startswith('/api/'): await init_database_schema(env)
     
     # API endpoints
     response = None

@@ -18,11 +18,11 @@ wrangler whoami 2>/dev/null || wrangler login
 # Create or get existing D1 database
 echo ""
 echo "📋 Step 2: Setting up D1 database..."
-DB_OUTPUT=$(wrangler d1 create pr-tracker 2>&1)
+DB_OUTPUT=$(wrangler d1 create pr_tracker 2>&1)
 
 if echo "$DB_OUTPUT" | grep -q "already exists"; then
     echo "ℹ️  Database already exists, fetching ID..."
-    DB_ID=$(wrangler d1 list 2>/dev/null | grep "pr-tracker" | awk -F'│' '{gsub(/ /,"",$2); print $2}')
+    DB_ID=$(wrangler d1 list 2>/dev/null | grep "pr_tracker" | awk -F'│' '{gsub(/ /,"",$2); print $2}')
 else
     DB_ID=$(echo "$DB_OUTPUT" | grep "database_id" | awk -F'"' '{print $2}')
 fi
@@ -38,11 +38,11 @@ else
     exit 1
 fi
 
-# Apply schema locally
+# Apply migrations locally
 echo ""
-echo "📋 Step 4: Applying database schema locally..."
-wrangler d1 execute DB --local --file=./schema.sql  # <-- Changed this line
-echo "✅ Schema applied successfully"
+echo "📋 Step 4: Applying database migrations locally..."
+wrangler d1 migrations apply pr_tracker --local
+echo "✅ Migrations applied successfully"
 
 # Setup .env file
 echo ""
