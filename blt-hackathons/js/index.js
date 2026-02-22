@@ -190,6 +190,14 @@ class HackathonIndex {
                     <div class="p-6">
                         ${hackathon.bannerImage ? `
                         <h3 class="text-xl font-bold mb-2 text-gray-900">${this.escapeHtml(hackathon.name)}</h3>
+                        ` : ''}
+                        ${hackathon.organizer ? `
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>Organized by ${this.escapeHtml(hackathon.organizer)}</span>
+                        </div>
+                        ` : ''}
+                        ${hackathon.bannerImage ? `
                         <div class="flex items-center text-sm text-gray-600 mb-2">
                             <i class="far fa-calendar mr-2"></i>
                             <span>${dateRange}</span>
@@ -210,7 +218,7 @@ class HackathonIndex {
                         
                         <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 
                            class="block w-full text-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
-                            View Dashboard
+                            View Details
                             <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
