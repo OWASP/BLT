@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
 from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result, extract_id_from_result
-from libs.constant import __HASHING_ITERATIONS, __HASHING_ALGORITHM
+from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
 
@@ -63,7 +63,7 @@ async def handle_signup(
 
         # Hash the password using PBKDF2
         salt = secrets.token_hex(16)
-        password_hash = hashlib.pbkdf2_hmac(__HASHING_ALGORITHM, body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS)
+        password_hash = hashlib.pbkdf2_hmac('sha256', body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS)
         hashed_password = f"{salt}${password_hash.hex()}"
 
         # Insert the new user into the database
