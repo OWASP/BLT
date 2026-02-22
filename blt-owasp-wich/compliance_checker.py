@@ -5,6 +5,7 @@ Checks GitHub repositories against OWASP project standards and best practices.
 
 import re
 import json
+import datetime
 from typing import Dict, List, Tuple, Optional
 from urllib.parse import urlparse
 import requests
@@ -622,8 +623,7 @@ class OWASPComplianceChecker:
                        "Respond to security issues promptly (within 24-48 hours). Triage and prioritize security reports. Communicate timelines to reporters.")
         
         # Check for recent updates
-        import datetime
-        one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+        one_year_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=365)
         recently_updated = repo.pushed_at > one_year_ago if repo.pushed_at else False
         self._add_check(category, "Regular project updates", recently_updated, 1,
                        f"Last update: {repo.pushed_at.strftime('%Y-%m-%d') if repo.pushed_at else 'Unknown'}",
