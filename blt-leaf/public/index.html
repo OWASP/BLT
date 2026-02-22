@@ -988,6 +988,14 @@
             renderRepoList();
         }
 
+        function scrollToTop() {
+            const mainEl = document.querySelector('main');
+            if (mainEl) {
+                mainEl.scrollTo({ top: 0, behavior: 'instant' });
+            }
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
         async function loadRepos(bypassCache = false) {
             try {
                 const response = bypassCache
@@ -1057,7 +1065,7 @@
                             <div class="flex items-center gap-2">
                                 <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" title="${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}" class="h-5 w-5 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                                 <div class="repo-count text-xs text-slate-500 dark:text-slate-400">
-                                    ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}
+                                    ${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'} · ${repo.analyzed_count || 0} analyzed
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">
@@ -1110,12 +1118,7 @@
                         }
                     }
                     // Scroll to top of page
-                    const mainEl = document.querySelector('main');
-                    if (mainEl) {
-                        mainEl.scrollTo({ top: 0, behavior: 'instant' });
-                    } else {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                    }
+                    scrollToTop();
                     loadPrs();
                 });
 
@@ -1163,7 +1166,7 @@
                         <img src="${safeAvatarUrl}" alt="${escapeHtml(repo.repo_owner)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                         <div>
                             <div class="font-medium text-slate-900 dark:text-slate-100">${escapeHtml(repo.repo_owner)}/${escapeHtml(repo.repo_name)}</div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">${repo.pr_count} PR${repo.pr_count === 1 ? '' : 's'} · ${repo.analyzed_count || 0} analyzed</div>
                         </div>
                     </div>
                 `;
@@ -1186,6 +1189,7 @@
             localStorage.setItem('currentRepo', currentRepo);
             updateMobileRepoDisplay();
             closeDropdown();
+            scrollToTop();
             loadPrs();
         }
 
@@ -2581,6 +2585,7 @@
             document.querySelectorAll('.repo-item').forEach(item => {
                 setRepoItemActiveState(item, item.dataset.repo === currentRepo);
             });
+            scrollToTop();
             loadPrs();
         });
 
