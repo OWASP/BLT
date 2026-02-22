@@ -104,18 +104,25 @@ class PostHog:
             exc: The exception instance to report.
             context: Optional dict with additional context (e.g. path, method).
         """
-        properties = {
-            '$exception_type': type(exc).__name__,
-            '$exception_message': str(exc),
-            '$exception_stack_trace_raw': ''.join(
-                traceback.format_exception(type(exc), exc, exc.__traceback__)
-            ),
-        }
-        if context:
-            properties.update(context)
+        try:
+            properties = {
+                '$exception_type': type(exc).__name__,
+                '$exception_message': str(exc),
+                '$exception_stack_trace_raw': ''.join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__)
+                ),
+            }
+            if context:
+                # Ensure all context values are plain Python strings so that
+                # json.dumps succeeds even when values are JavaScript proxy
+                # objects (e.g. request.method from Cloudflare Workers FFI).
+                properties.update({k: str(v) for k, v in context.items()})
 
-        await self.capture(
-            distinct_id='blt-leaf-server',
-            event='$exception',
-            properties=properties,
-        )
+            await self.capture(
+                distinct_id='blt-leaf-server',
+                event='$exception',
+                properties=properties,
+            )
+        except Exception as capture_exc:
+            # Never let PostHog errors bubble up and mask the original error
+            print(f'PostHog: capture_exception failed: {capture_exc}')

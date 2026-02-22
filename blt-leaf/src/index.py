@@ -154,10 +154,13 @@ async def on_fetch(request, env):
         return response
 
     except Exception as exc:
-        await posthog.capture_exception(exc, context={
-            'path': path,
-            'method': request.method,
-        })
+        try:
+            await posthog.capture_exception(exc, context={
+                'path': path,
+                'method': str(request.method),
+            })
+        except Exception as posthog_err:
+            print(f'PostHog: failed to report exception: {posthog_err}')
         return Response.new(
             '{"error": "Internal server error"}',
             {'status': 500, 'headers': {**cors_headers, 'Content-Type': 'application/json'}},
