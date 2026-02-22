@@ -81,7 +81,7 @@ async def handle_signup(
             from_name="OWASP BLT"
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
-        base_url = env.BLT_WEBSITE_URL
+        base_url = env.BLT_API_BASE_URL
         
         status, response = await email_service.send_verification_email(
             to_email=body["email"],
