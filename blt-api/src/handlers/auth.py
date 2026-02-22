@@ -10,7 +10,7 @@ from libs.constant import __HASHING_ITERATIONS, __HASHING_ALGORITHM
 from libs.jwt_utils import create_access_token
 from services.email_service import EmailService
 
-
+import logging
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
     """Generate a JWT token for the given user ID."""
     payload = {
@@ -30,6 +30,7 @@ async def handle_signup(
     """Handle user signup/registration."""
     base_url = env.BLT_API_BASE_URL if hasattr(env, 'BLT_API_BASE_URL') else "http://localhost:8787"
     method = str(request.method).upper()
+    logger = logging.getLogger(__name__)
     if method != "POST":
         return error_response( "Method Not Allowed", 404)
     try: 
@@ -75,7 +76,7 @@ async def handle_signup(
         # send verification email here using sendgrid
         email_service = EmailService(
             api_key=env.SENDGRID_API_KEY,
-            from_email="noreply@blt.owasp.org",
+            from_email="kaif@post0.live",
             from_name="OWASP BLT"
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
@@ -89,17 +90,18 @@ async def handle_signup(
         )
         
         if status >= 400:
-            print(f"Failed to send verification email: {response}")
+            logger.error(f"Failed to send verification email: {response}")
         
         return json_response({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
 
     except Exception as e:
-        print("Error during signup:", str(e))
+        logger.error("Error during signup: %s", str(e))
         return error_response("Internal Server Error", 500)
     
 
 async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], query_params: Dict[str, str], path: str) -> Any:
     """Handle user login/authentication."""
+    logger = logging.getLogger(__name__)
     try:
         jwt_secret = env.JWT_SECRET
         if not jwt_secret:
@@ -149,12 +151,13 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
         return json_response(json_response_data, status=200, headers=cors_headers())
 
     except Exception as e:
-        print("Error during login:", str(e))
+        logger.error("Error during login: %s", str(e))
         return error_response("Internal Server Error", 500)
 
 
 async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str], query_params: Dict[str, str], path: str) -> Any: 
     """Handle email verification."""
+    logger = logging.getLogger(__name__)   
     try:
         db= await  get_db_safe(env)
         jwt_secret = env.JWT_SECRET
@@ -183,5 +186,6 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
         return json_response({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
 
     except Exception as e:
-        print("Error during email verification:", str(e))
+        
+        logger.error("Error during email verification: %s", str(e))
         return error_response("Internal Server Error", 500)
