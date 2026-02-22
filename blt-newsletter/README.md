@@ -148,7 +148,7 @@ Use the GitHub API or run the "Get subscribers" step from the Actions workflow m
 ## Customization
 
 ### Update Newsletter Template
-Edit `.github/scripts/send-newsletter.js` to modify the email template HTML.
+Edit `.github/scripts/send-newsletter.py` to modify the email template HTML.
 
 ### Change Signup Form
 Edit `index.html` to modify the signup form appearance or behavior.
