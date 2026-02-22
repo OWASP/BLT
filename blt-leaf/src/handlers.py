@@ -656,20 +656,37 @@ async def handle_rate_limit(env):
         )
 
 async def handle_status(env):
-    """Check database status"""
+    """Check database status and return row counts"""
     try:
         db = get_db(env)
-        # If we got here, database is configured (would have thrown exception otherwise)
+        # Query row counts for each table
+        prs_result = await db.prepare('SELECT COUNT(*) as count FROM prs').first()
+        timeline_result = await db.prepare('SELECT COUNT(*) as count FROM timeline_cache').first()
+
+        def _row_to_dict(r):
+            return r.to_py() if hasattr(r, 'to_py') else dict(r)
+
+        prs_count = _row_to_dict(prs_result).get('count', 0) if prs_result else 0
+        timeline_count = _row_to_dict(timeline_result).get('count', 0) if timeline_result else 0
+
         return Response.new(json.dumps({
             'database_configured': True,
-            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown'),
+            'row_counts': {
+                'prs': prs_count,
+                'timeline_cache': timeline_count
+            }
         }), {'headers': {'Content-Type': 'application/json'}})
     except Exception as e:
         # Database not configured
         return Response.new(json.dumps({
             'database_configured': False,
             'error': str(e),
-            'environment': getattr(env, 'ENVIRONMENT', 'unknown')
+            'environment': getattr(env, 'ENVIRONMENT', 'unknown'),
+            'row_counts': {
+                'prs': 0,
+                'timeline_cache': 0
+            }
         }), {'headers': {'Content-Type': 'application/json'}})
 
 async def handle_pr_updates_check(env):
