@@ -1661,7 +1661,6 @@
             // Each readiness check fetches at least 4 GitHub endpoints in parallel:
             // commits, reviews, review_comments, issue_comments
             // NOTE: This is a lower-bound estimate; pagination can require additional API calls per PR.
-            const analyzeApiCalls = allPrs.length * 4;
 
             container.innerHTML = `
                 <div class="mb-2 flex gap-2">
@@ -2722,13 +2721,16 @@
                 const ANALYZE_MAX_RETRIES = 3;
                 // Default wait when the server doesn't tell us how long: full rate-limit window + 1s buffer
                 const ANALYZE_DEFAULT_WAIT_SECS = 61;
+                // Short delay before retrying on transient server errors (5xx)
+                const ANALYZE_5XX_RETRY_DELAY_SECS = 5;
                 const btn = e.target.closest('#analyzeAllBtn');
                 const originalHtml = btn.innerHTML;
                 btn.disabled = true;
                 btn.classList.add('opacity-70', 'cursor-not-allowed');
                 const total = allPrs.length;
                 let done = 0;
-                const failedPrIds = [];
+                // Track failures as {id, reason} objects so the user can diagnose errors
+                const failures = [];
                 btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing 0/${total}...`;
                 try {
                     for (const pr of allPrs) {
@@ -2738,7 +2740,7 @@
                             try {
                                 const resp = await fetch(`/api/prs/${pr.id}/readiness`);
                                 if (resp.status === 429) {
-                                    // Rate limited — wait for server-provided retry_after then retry
+                                    // App rate-limit — wait for server-provided retry_after then retry
                                     let waitSecs = ANALYZE_DEFAULT_WAIT_SECS;
                                     try {
                                         const errData = await resp.json();
@@ -2754,6 +2756,19 @@
                                     retries++;
                                     continue;
                                 }
+                                if (resp.status >= 500) {
+                                    // Server/GitHub API error — retry with short delay for transient failures
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    retries++;
+                                    if (retries < ANALYZE_MAX_RETRIES) {
+                                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Retrying PR ${pr.id} (${reason})...`;
+                                        await new Promise(r => setTimeout(r, ANALYZE_5XX_RETRY_DELAY_SECS * 1000));
+                                        continue;
+                                    }
+                                    failures.push({ id: pr.id, reason });
+                                    break;
+                                }
                                 if (resp.ok) {
                                     const data = await resp.json();
                                     if (!data.error) {
@@ -2761,27 +2776,38 @@
                                         updateInlineCells(pr.id, data.readiness, data.review_health);
                                         succeeded = true;
                                     } else {
-                                        failedPrIds.push(pr.id);
+                                        failures.push({ id: pr.id, reason: data.error });
                                     }
                                 } else {
-                                    // Non-429 non-2xx (e.g. 500, 404) — record failure and move on
-                                    failedPrIds.push(pr.id);
+                                    // Non-429 non-5xx non-2xx (e.g. 404)
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    failures.push({ id: pr.id, reason });
                                 }
                                 break;
-                            } catch (_) {
-                                failedPrIds.push(pr.id);
-                                break; /* skip network errors */
+                            } catch (networkErr) {
+                                failures.push({ id: pr.id, reason: networkErr.message || 'Network error' });
+                                break;
                             }
                         }
-                        // Max retries exhausted on rate-limited request
-                        if (!succeeded && retries >= ANALYZE_MAX_RETRIES) {
-                            failedPrIds.push(pr.id);
+                        // 429 retries exhausted
+                        if (!succeeded && retries >= ANALYZE_MAX_RETRIES && !failures.find(f => f.id === pr.id)) {
+                            failures.push({ id: pr.id, reason: 'Rate limit retries exhausted' });
                         }
                         done++;
                         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing ${done}/${total}...`;
                     }
-                    if (failedPrIds.length > 0) {
-                        showError(`Analyze All: ${failedPrIds.length} PR${failedPrIds.length !== 1 ? 's' : ''} could not be analyzed (IDs: ${failedPrIds.join(', ')})`);
+                    if (failures.length > 0) {
+                        // Group by reason to give a concise diagnostic summary
+                        const reasonCounts = failures.reduce((acc, f) => {
+                            const key = f.reason.substring(0, 80);
+                            acc[key] = (acc[key] || 0) + 1;
+                            return acc;
+                        }, {});
+                        const reasonSummary = Object.entries(reasonCounts)
+                            .map(([r, c]) => `${c}× ${r}`)
+                            .join('; ');
+                        showError(`Analyze All: ${failures.length} PR${failures.length !== 1 ? 's' : ''} could not be analyzed — ${reasonSummary}`);
                     }
                 } catch (err) {
                     showError(`Failed to analyze PRs: ${err.message}`);
