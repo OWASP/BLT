@@ -235,6 +235,7 @@ def build_card(issue: dict, reactions: dict) -> str:
         "Banner / Marketing": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200",
         "Icon Set": "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200",
         "Mobile App": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200",
+        "T-Shirt / Apparel Design": "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200",
     }.get(category, "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200")
 
     return f"""
