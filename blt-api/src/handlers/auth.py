@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 from libs.db import get_db_safe
 from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result, extract_id_from_result
 from libs.constant import __HASHING_ITERATIONS, __HASHING_ALGORITHM
-from libs.jwt_utils import create_access_token
+from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
 
 import logging
@@ -170,12 +170,13 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
         if method != "GET":
             return error_response("Method Not Allowed", 404)
         
-        token = path_params.get("token")
+        # Get token from query parameters (e.g., ?token=xxx)
+        token = query_params.get("token")
         if not token:
             return error_response("Missing token", 400)
         
         # Verify the token and extract user ID
-        payload = create_access_token.verify_token(token, jwt_secret)
+        payload = decode_jwt(token, jwt_secret)
         if not payload or "user_id" not in payload:
             return error_response("Invalid or expired token", 400)
         
