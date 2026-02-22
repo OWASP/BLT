@@ -2673,11 +2673,42 @@
             }
         });
 
+        // Handle ?pr= URL parameter: auto-add and highlight the specified PR
+        function highlightPrRow(prId) {
+            const row = document.getElementById(`pr-row-${prId}`);
+            if (row) {
+                activePrId = prId;
+                row.classList.add('pr-row-active');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        async function handlePrUrlParam() {
+            const params = new URLSearchParams(window.location.search);
+            const prParam = params.get('pr');
+            if (!prParam) return;
+
+            // Pre-fill the input with the PR URL
+            const input = document.getElementById('prUrlInput');
+            if (input) input.value = prParam;
+
+            // Check if the PR is already tracked
+            const existing = allPrs.find(pr => pr.pr_url === prParam);
+            if (existing) {
+                highlightPrRow(existing.id);
+            } else {
+                // Auto-add the PR, then highlight it
+                await addPr();
+                const added = allPrs.find(pr => pr.pr_url === prParam);
+                if (added) highlightPrRow(added.id);
+            }
+        }
+
         initTheme();
         loadRateLimit();
         loadLatestRelease();
         loadRepos();
-        loadPrs();
+        loadPrs().then(handlePrUrlParam);
         setInterval(loadRateLimit, 600000);
 
         // Initialize auto-refresh
