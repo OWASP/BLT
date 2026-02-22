@@ -517,6 +517,52 @@ Configure these in `wrangler.toml`:
 |----------|-------------|---------|
 | `BLT_API_BASE_URL` | BLT backend API URL | `https://blt.owasp.org/api/v1` |
 | `BLT_WEBSITE_URL` | BLT website URL | `https://blt.owasp.org` |
+| `JWT_SECRET` | Secret key for JWT tokens | Required |
+| `MAILGUN_API_KEY` | Mailgun API key (Private or Sending API key) | Required for email |
+| `MAILGUN_DOMAIN` | Mailgun domain (sandbox or custom domain) | Required for email |
+
+#### Email Service Setup (Mailgun)
+
+The API uses Mailgun for sending emails (verification, password reset, etc.). You have two options:
+
+**Option 1: Sandbox Domain (Testing Only)**
+- ✅ Free for testing
+- ❌ Can only send to authorized recipients (max 5)
+- ❌ Cannot send to real users
+- Domain format: `sandbox123...mailgun.org`
+
+```toml
+MAILGUN_DOMAIN = "sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org"
+```
+
+**To authorize test recipients:**
+1. Log in to Mailgun dashboard
+2. Go to **Sending → Authorized Recipients**
+3. Add your test email addresses
+4. Confirm via the email Mailgun sends
+
+**Option 2: Custom Domain (Production)**
+- ✅ Can send to anyone
+- ✅ Professional sender address (e.g., `noreply@yourdomain.com`)
+- Requires domain verification (DNS setup)
+- Domain format: `yourdomain.com` or `mg.yourdomain.com`
+
+```toml
+MAILGUN_DOMAIN = "post0.live"  # or "mg.yourdomain.com"
+```
+
+**To set up a custom domain:**
+1. Log in to Mailgun dashboard
+2. Go to **Sending → Domains → Add New Domain**
+3. Enter your domain (e.g., `post0.live`)
+4. Add the DNS records (TXT, MX, CNAME) to your domain registrar
+5. Wait for verification (usually 15-30 minutes)
+
+**API Keys:**
+- **Private API Key**: Full access to all Mailgun operations (use for development)
+- **Sending API Key**: Restricted to only sending messages (recommended for production)
+
+Both keys work the same way. Generate **Sending API Key** in Mailgun dashboard → Settings → API Keys → Create New Sending Key
 
 ## Deployment
 

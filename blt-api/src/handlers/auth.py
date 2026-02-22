@@ -73,10 +73,11 @@ async def handle_signup(
         last_id_result = await db.prepare('SELECT last_insert_rowid() as id').first()
         user_id = extract_id_from_result(last_id_result, 'id')
 
-        # send verification email here using sendgrid
+        # send verification email here using Mailgun
         email_service = EmailService(
-            api_key=env.SENDGRID_API_KEY,
-            from_email="kaif@post0.live",
+            api_key=env.MAILGUN_API_KEY,
+            domain=env.MAILGUN_DOMAIN,
+            from_email=f"postmaster@{env.MAILGUN_DOMAIN}",
             from_name="OWASP BLT"
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
