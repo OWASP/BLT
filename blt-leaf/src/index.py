@@ -12,6 +12,7 @@ from handlers import (
     handle_rate_limit,
     handle_status,
     handle_pr_updates_check,
+    handle_get_pr,
     handle_github_webhook,
     handle_pr_timeline,
     handle_pr_review_analysis,
@@ -88,6 +89,12 @@ async def on_fetch(request, env):
             )
         elif request.method == 'POST':
             response = await handle_add_pr(request, env)
+    # Single PR endpoint - GET /api/prs/{id}
+    # The '/' check ensures sub-paths like /api/prs/{id}/timeline are not intercepted here
+    elif path.startswith('/api/prs/') and '/' not in path[len('/api/prs/'):] and request.method == 'GET':
+        pr_id_str = path[len('/api/prs/'):]
+        if pr_id_str.isdigit():
+            response = await handle_get_pr(env, int(pr_id_str))
     elif path == '/api/repos' and request.method == 'GET':
         response = await handle_list_repos(env)
     elif path == '/api/refresh' and request.method == 'POST':
