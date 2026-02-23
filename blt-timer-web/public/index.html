@@ -1,0 +1,1042 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Time Log Manager — BLT</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#ef4444;--red-dark:#dc2626;--red-light:#fee2e2;
+  --green:#22c55e;--orange:#f97316;--yellow:#eab308;--blue:#3b82f6;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;--g300:#d1d5db;
+  --g400:#9ca3af;--g500:#6b7280;--g600:#4b5563;--g700:#374151;
+  --g800:#1f2937;--g900:#111827;--w:#fff;
+  --sw:210px;--nh:56px;
+  --f:'Ubuntu',sans-serif;--fd:'Barlow Semi Condensed',sans-serif;
+  --sh:0 1px 2px rgba(0,0,0,.05);
+  --sm:0 4px 6px rgba(0,0,0,.07);
+  --sl:0 10px 25px rgba(0,0,0,.12);
+  --r:8px;--rs:5px;
+}
+html,body{width:100%}body{font-family:var(--f);background:var(--g50);color:var(--g800);min-height:100vh;font-size:14px;line-height:1.5;overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nh);background:var(--w);border-bottom:1px solid var(--g200);display:flex;align-items:center;padding:0 20px;gap:10px;box-shadow:var(--sh);width:100%}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.nav-logo-icon{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-logo-text{font-family:var(--fd);font-weight:700;font-size:20px;color:var(--g900)}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nl{padding:6px 12px;border-radius:var(--rs);font-size:13px;font-weight:500;color:var(--g600);text-decoration:none;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.nl:hover{background:var(--g100);color:var(--g900)}
+.nl.a{color:var(--red);font-weight:700}
+.nav-r{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+.bacon{display:flex;align-items:center;gap:5px;background:#fffbeb;border:1px solid #fde68a;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#92400e;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rs);font-size:13px;font-weight:600;font-family:var(--f);cursor:pointer;border:none;transition:all .15s;text-decoration:none;white-space:nowrap}
+.btn-o{background:var(--w);border:1px solid var(--g300);color:var(--g700)}
+.btn-o:hover{background:var(--g50);border-color:var(--g400)}
+.btn-r{background:var(--red);color:var(--w)}
+.btn-r:hover{background:var(--red-dark)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--red);color:var(--w);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+.hbg{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--g700);align-items:center;justify-content:center}
+
+/* LAYOUT */
+.layout{display:flex;padding-top:var(--nh);min-height:100vh;width:100%}
+
+/* SIDEBAR */
+.sidebar{width:var(--sw);flex-shrink:0;background:var(--w);border-right:1px solid var(--g200);position:fixed;top:var(--nh);left:0;bottom:0;overflow-y:auto;padding:14px 0;transition:transform .25s ease;z-index:150}
+.sb-sec{padding:0 10px;margin-bottom:16px}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);padding:0 8px;margin-bottom:4px}
+.si{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rs);font-size:13px;font-weight:500;color:var(--g600);text-decoration:none;cursor:pointer;transition:all .15s}
+.si:hover{background:var(--g100);color:var(--g900)}
+.si.a{background:var(--red-light);color:var(--red);font-weight:700}
+.si-ic{font-size:16px;flex-shrink:0}
+.sb-bdg{margin-left:auto;background:var(--red);color:var(--w);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sb-bdg.g{background:var(--green)}.sb-bdg.o{background:var(--orange)}
+.sb-hr{height:1px;background:var(--g200);margin:5px 10px}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:140;backdrop-filter:blur(2px)}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sw);padding:20px 24px;min-width:0;max-width:100%;overflow-x:hidden}
+
+/* BREADCRUMB */
+.bc{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--g400);margin-bottom:8px}
+.bc a{color:var(--g500);text-decoration:none}
+.bc a:hover{color:var(--red)}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.ph-trow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.ph-title{font-family:var(--fd);font-size:26px;font-weight:700;color:var(--g900);line-height:1.2}
+.sync-bdg{display:flex;align-items:center;gap:5px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;cursor:pointer;user-select:none;transition:all .2s}
+.sync-bdg.syncing{background:#eff6ff;border-color:#93c5fd;color:#2563eb}
+.sync-bdg.error{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pg 2s infinite}
+@keyframes pg{0%,100%{opacity:1}50%{opacity:.3}}
+.ph-sub{color:var(--g500);font-size:13px}
+.ph-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* API BAR */
+.api-bar{background:var(--w);border:1px solid var(--g200);border-radius:var(--r);padding:9px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.api-ind{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
+.api-ind.err{color:var(--red)}
+.api-d{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pg 2s infinite}
+.api-d.err{background:var(--red)}
+.api-inf{font-size:11px;color:var(--g400);margin-left:auto}
+.api-ep{font-size:11px;color:var(--g500)}
+.api-err-msg{font-size:11px;color:var(--red);font-weight:600}
+
+/* STATS STRIP */
+.ss{background:linear-gradient(135deg,#fffbeb 0%,#fff7ed 60%,#fef9c3 100%);border:1px solid #fde68a;border-radius:var(--r);padding:14px 20px;display:flex;align-items:center;margin-bottom:16px;position:relative;overflow:hidden;flex-wrap:wrap;gap:10px;width:100%}
+.ss::after{content:'🏆';position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:44px;opacity:.12;pointer-events:none}
+.stat{display:flex;align-items:center;gap:9px;flex:1;min-width:90px}
+.stat-ic{font-size:20px;flex-shrink:0}
+.stat-v{font-family:var(--fd);font-size:20px;font-weight:700;color:var(--g900);line-height:1}
+.stat-l{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--g500);margin-top:2px}
+
+/* METRIC CARDS */
+.mc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;width:100%}
+.mc{background:var(--w);border:1px solid var(--g200);border-radius:var(--r);padding:15px;box-shadow:var(--sh);transition:box-shadow .15s,transform .15s;position:relative;overflow:hidden}
+.mc:hover{box-shadow:var(--sm);transform:translateY(-1px)}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mc-red::before{background:var(--red)}.mc-grn::before{background:var(--green)}.mc-org::before{background:var(--orange)}.mc-yel::before{background:var(--yellow)}
+.mc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mc-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--g400)}
+.mc-ic{width:30px;height:30px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:15px}
+.mi-r{background:#fee2e2}.mi-g{background:#dcfce7}.mi-o{background:#ffedd5}.mi-y{background:#fef9c3}
+.mc-val{font-family:var(--fd);font-size:27px;font-weight:700;color:var(--g900);line-height:1;margin-bottom:5px}
+.mc-chg{font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* TIMER BANNER */
+.tbanner{background:var(--red);border-radius:var(--r);padding:13px 18px;display:flex;align-items:center;gap:13px;margin-bottom:16px;box-shadow:0 4px 14px rgba(239,68,68,.3);flex-wrap:wrap;transition:opacity .3s,transform .3s}
+.tbanner.hiding{opacity:0;transform:translateY(-8px)}
+.t-pulse{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;position:relative}
+.t-pulse::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.3);animation:ring 1.5s infinite}
+@keyframes ring{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.4);opacity:0}}
+.t-info{flex:1;min-width:120px}
+.t-task{font-size:14px;font-weight:700;color:var(--w);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-meta{font-size:11px;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+.t-tag{background:rgba(255,255,255,.15);padding:1px 7px;border-radius:10px;font-weight:600;white-space:nowrap}
+.t-disp{font-family:var(--fd);font-size:32px;font-weight:700;color:var(--w);letter-spacing:.02em;font-variant-numeric:tabular-nums;flex-shrink:0}
+.t-acts{display:flex;gap:7px;flex-shrink:0}
+.tb{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:var(--f);transition:all .15s;white-space:nowrap}
+.tb-p{background:rgba(255,255,255,.2);color:var(--w);border:1px solid rgba(255,255,255,.3)}.tb-p:hover{background:rgba(255,255,255,.3)}
+.tb-s{background:var(--w);color:var(--red)}.tb-s:hover{background:#fef2f2}
+
+/* EXPORT BAR */
+.exp-bar{background:var(--w);border:1px solid var(--g200);border-bottom:none;border-radius:var(--r) var(--r) 0 0;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.exp-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--g400)}
+.exp-btns{display:flex;gap:5px;flex-wrap:wrap}
+.eb{display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--f);transition:all .15s;border:1px solid transparent}
+.eb-csv{background:var(--red);color:var(--w);border-color:var(--red)}.eb-csv:hover{background:var(--red-dark)}
+.eb-j,.eb-p,.eb-t{background:var(--w);color:var(--g700);border-color:var(--g300)}.eb-j:hover,.eb-p:hover,.eb-t:hover{background:var(--g50)}
+.rng-w{display:flex;align-items:center;gap:7px;margin-left:auto;font-size:12px;color:var(--g600)}
+.sel{padding:5px 26px 5px 9px;border:1px solid var(--g300);border-radius:var(--rs);font-size:12px;font-family:var(--f);background:var(--w);color:var(--g700);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:14px;outline:none}
+.sel:focus{border-color:var(--red)}
+
+/* TABLE */
+.tbl-sec{background:var(--w);border:1px solid var(--g200);border-radius:0 0 var(--r) var(--r);overflow:hidden;box-shadow:var(--sh);width:100%}
+.fb{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--g200)}
+.sw{position:relative;flex:1;min-width:150px;max-width:290px}
+.s-ic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:13px;pointer-events:none}
+.si2{width:100%;padding:6px 9px 6px 30px;border:1px solid var(--g300);border-radius:var(--rs);font-size:13px;font-family:var(--f);color:var(--g800);outline:none;transition:border-color .15s}
+.si2:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+.si2::placeholder{color:var(--g400)}
+.fs{padding:6px 26px 6px 9px;border:1px solid var(--g300);border-radius:var(--rs);font-size:12px;font-family:var(--f);background:var(--w);color:var(--g700);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:13px;outline:none}
+.fs:focus{border-color:var(--red)}
+.exp-sel{margin-left:auto;display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--g300);border-radius:var(--rs);font-size:12px;font-weight:600;background:var(--w);color:var(--g700);cursor:pointer;font-family:var(--f);transition:all .15s;white-space:nowrap}
+.exp-sel:hover{background:var(--g50)}
+.lt{width:100%;border-collapse:collapse;table-layout:auto}
+.lt th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--g500);background:var(--g50);border-bottom:1px solid var(--g200);white-space:nowrap;cursor:pointer;user-select:none}
+.lt th:hover{color:var(--g800)}.th-d{color:var(--red)!important}
+.th-i{display:flex;align-items:center;gap:3px}
+.lt td{padding:11px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.lt tbody tr:last-child td{border-bottom:none}
+.lt tbody tr:hover{background:var(--g50)}
+.lt tbody tr.sel-r{background:#fef2f2}
+.cc{width:36px}
+.cb{width:14px;height:14px;accent-color:var(--red);cursor:pointer}
+.tn{font-size:13px;font-weight:600;color:var(--g900);margin-bottom:2px}
+.ts2{font-size:11px;color:var(--g400)}
+.tbdg{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.tb-bug{background:#fee2e2;color:#dc2626}.tb-ft{background:#dbeafe;color:#2563eb}.tb-sec{background:#fef9c3;color:#854d0e}.tb-ui{background:#f3e8ff;color:#7c3aed}.tb-doc{background:#dcfce7;color:#15803d}
+.tv{font-size:12px;color:var(--g700);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dw{display:flex;align-items:center;gap:7px}
+.dt{font-size:12px;font-weight:700;color:var(--g800);min-width:44px}
+.db{flex:1;height:5px;background:var(--g200);border-radius:3px;overflow:hidden;min-width:36px}
+.dbf{height:100%;border-radius:3px}
+.sbdg{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sc .dot{background:var(--green)}.sc{color:var(--green)}
+.sa .dot{background:var(--red);animation:pr 1.5s infinite}.sa{color:var(--red)}
+.sp .dot{background:var(--yellow)}.sp{color:var(--yellow)}
+@keyframes pr{0%,100%{opacity:1}50%{opacity:.3}}
+.ac{display:flex;align-items:center;gap:5px}
+.ab{width:27px;height:27px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--g200);background:var(--w);font-size:13px;transition:all .15s}
+.ab:hover{background:var(--g100)}.ab.d:hover{background:#fee2e2;border-color:#fca5a5}
+
+/* LOADING SKELETON */
+.skeleton{background:linear-gradient(90deg,var(--g100) 25%,var(--g200) 50%,var(--g100) 75%);background-size:200% 100%;animation:skel 1.5s infinite;border-radius:4px;height:16px}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-row td{padding:12px}
+
+/* MOBILE CARDS */
+.mob-cards{display:none;flex-direction:column;gap:0}
+.mob-card{padding:12px 14px;border-bottom:1px solid var(--g100);transition:background .15s}
+.mob-card:last-child{border-bottom:none}.mob-card:hover{background:var(--g50)}.mob-card.sel-r{background:#fef2f2}
+.mch{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.mct{flex:1;min-width:0}
+.mctitle{font-size:13px;font-weight:600;color:var(--g900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcsub{font-size:11px;color:var(--g400);margin-top:1px}
+.mc-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mc-t{font-size:11px;color:var(--g600);font-variant-numeric:tabular-nums}
+.mc-ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px}
+
+/* PAGINATION */
+.pgn{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--g200);background:var(--w);flex-wrap:wrap;gap:8px}
+.pgi{font-size:12px;color:var(--g500)}
+.pgns{display:flex;align-items:center;gap:3px}
+.pb{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--g200);background:var(--w);color:var(--g600);transition:all .15s}
+.pb:hover{background:var(--g50)}.pb.a{background:var(--red);color:var(--w);border-color:var(--red)}.pb.ar{color:var(--g400)}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 20px;color:var(--g400)}
+.empty-ic{font-size:38px;margin-bottom:10px}
+.empty p{font-size:13px}
+
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.mo.open{opacity:1;pointer-events:all}
+.md{background:var(--w);border-radius:12px;width:100%;max-width:480px;box-shadow:var(--sl);transform:scale(.95) translateY(8px);transition:transform .2s;max-height:90vh;overflow-y:auto}
+.mo.open .md{transform:scale(1) translateY(0)}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--g200);position:sticky;top:0;background:var(--w);z-index:1}
+.mt{font-family:var(--fd);font-size:20px;font-weight:700;color:var(--g900)}
+.mx{width:28px;height:28px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--g200);background:var(--w);font-size:16px;color:var(--g500);transition:all .15s}
+.mx:hover{background:var(--g100)}
+.mb{padding:18px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g600);margin-bottom:5px}
+.fi,.fsel,.fta{width:100%;padding:8px 11px;border:1px solid var(--g300);border-radius:var(--rs);font-size:13px;font-family:var(--f);color:var(--g800);outline:none;transition:border-color .15s}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fta{resize:vertical;min-height:75px}
+.mf{padding:12px 18px;border-top:1px solid var(--g200);display:flex;justify-content:flex-end;gap:8px}
+
+/* TOAST */
+.tc{position:fixed;bottom:20px;right:20px;z-index:400;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--g900);color:var(--w);padding:11px 16px;border-radius:var(--r);font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);display:flex;align-items:center;gap:9px;transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:all;max-width:300px}
+.toast.show{transform:translateX(0)}
+.ts-s{border-left:3px solid var(--green)}.ts-e{border-left:3px solid var(--red)}.ts-i{border-left:3px solid var(--blue)}
+.t-ic{font-size:15px;flex-shrink:0}
+
+/* FAB */
+.fab{display:none;position:fixed;bottom:24px;right:20px;z-index:100;width:52px;height:52px;background:var(--red);color:var(--w);border-radius:50%;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(239,68,68,.4);align-items:center;justify-content:center;transition:all .15s}
+.fab:hover{background:var(--red-dark);transform:scale(1.05)}
+
+/* LARGE SCREEN */
+@media(min-width:1280px){
+  :root{--sw:220px}
+  .main{padding:24px 32px}
+  .nav{padding:0 32px;gap:16px}
+  .mc-grid{grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{flex:1}
+}
+@media(min-width:1600px){
+  :root{--sw:240px}
+  .main{padding:28px 40px}
+  .nav{padding:0 40px}
+  .ph-title{font-size:32px}
+  .mc-val{font-size:32px}
+  .stat-v{font-size:24px}
+  .lt th{font-size:11px;padding:11px 16px}
+  .lt td{padding:13px 16px}
+}
+/* RESPONSIVE */
+@media(max-width:1024px){
+  :root{--sw:190px}
+  .mc-grid{grid-template-columns:repeat(2,1fr)}
+  .bacon{display:none}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sb-overlay.open{display:block}
+  .hbg{display:flex}
+  .main{margin-left:0;padding:14px}
+  .mc-grid{grid-template-columns:repeat(2,1fr)}
+  .ph-acts .btn-o:not(.keep){display:none}
+  .fab{display:flex}
+  .lt,.lt-wrap{display:none}
+  .mob-cards{display:flex}
+  .exp-sel{display:none}
+}
+@media(max-width:480px){
+  .nav{padding:0 12px;gap:6px}
+  .nav-links{display:none}
+  .nav-r .btn{display:none}
+  .ph-title{font-size:20px}
+  .ph-sub{font-size:11px}
+  .mc-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .mc-val{font-size:22px}
+  .stat{min-width:80px}
+  .stat-v{font-size:17px}
+  .t-disp{font-size:22px}
+  .tbanner{padding:10px 13px;gap:9px}
+  .eb-p,.eb-t{display:none}
+  .fr{grid-template-columns:1fr}
+  .main{padding:12px}
+  .ph{flex-direction:column;gap:8px}
+  .ph-acts{width:100%;justify-content:flex-end}
+  .tc{right:12px;left:12px;bottom:80px}
+  .toast{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="hbg" onclick="toggleSb()" aria-label="Menu">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+  </button>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-icon">🐛</div>
+    <span class="nav-logo-text">BLT</span>
+  </a>
+  <div class="nav-links">
+    <a class="nl" href="#">Issues</a>
+    <a class="nl" href="#">Hunt</a>
+    <a class="nl a" href="#">Time Logs</a>
+    <a class="nl" href="#">Leaderboard</a>
+    <a class="nl" href="#">Companies</a>
+    <a class="nl" href="#">Repos</a>
+  </div>
+  <div class="nav-r">
+    <div class="bacon">🥓 <span id="baconPts">4,820</span> pts</div>
+    <button class="btn btn-o keep" onclick="exportCSV()">↓ Export</button>
+    <button class="btn btn-r" onclick="openModal()">+ Log Time</button>
+    <div class="av">AJ</div>
+  </div>
+</nav>
+
+<!-- Sidebar overlay -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSb()"></div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-sec">
+      <div class="sb-lbl">Main</div>
+      <a class="si" href="#">⏱️ Time Logs<span class="sb-bdg" id="sbBdg">0</span></a>
+      <a class="si" href="#">🐛 My Issues<span class="sb-bdg g">5</span></a>
+      <a class="si" href="#">🎯 Bug Hunt</a>
+    </div>
+    <div class="sb-hr"></div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Analytics</div>
+      <a class="si" href="#">📈 Reports</a>
+      <a class="si" href="#">💡 Insights</a>
+      <a class="si" href="#">🏆 Leaderboard</a>
+    </div>
+    <div class="sb-hr"></div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Rewards</div>
+      <a class="si" href="#">🥓 BACON Tokens<span class="sb-bdg o">NEW</span></a>
+      <a class="si" href="#">💰 Bounties</a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Breadcrumb -->
+    <div class="bc"><a href="#">Home</a><span>›</span><span>Time Logs</span></div>
+
+    <!-- Page Header -->
+    <div class="ph">
+      <div>
+        <div class="ph-trow">
+          <h1 class="ph-title">Time Log Manager</h1>
+          <div class="sync-bdg" id="syncBdg" onclick="refreshData()" title="Click to sync">
+            <div class="sdot" id="sdot"></div>
+            <span id="syncTxt">SYNCED</span>
+          </div>
+        </div>
+        <div class="ph-sub">Track, manage and export your bug-hunting time — February 2026</div>
+      </div>
+      <div class="ph-acts">
+        <button class="btn btn-o" onclick="refreshData()">↺ Refresh</button>
+        <button class="btn btn-o" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="btn btn-r" onclick="openModal()">+ Log Time</button>
+      </div>
+    </div>
+
+    <!-- API Status -->
+    <div class="api-bar">
+      <div class="api-ind" id="apiInd"><div class="api-d" id="apiDot"></div><span id="apiStatus">Connecting…</span></div>
+      <span class="api-ep">Endpoint: /api/v1/time-logs/</span>
+      <span class="api-err-msg" id="apiErrMsg"></span>
+      <div class="api-inf">Last sync: <span id="lastSync">—</span></div>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="ss">
+      <div class="stat"><div class="stat-ic">🔥</div><div><div class="stat-v" id="statStreak">—</div><div class="stat-l">Day Streak</div></div></div>
+      <div class="stat"><div class="stat-ic">🐛</div><div><div class="stat-v" id="statTotal">—</div><div class="stat-l">Total Logs</div></div></div>
+      <div class="stat"><div class="stat-ic">⏱️</div><div><div class="stat-v" id="statHours">—</div><div class="stat-l">Total Hours</div></div></div>
+      <div class="stat"><div class="stat-ic">✅</div><div><div class="stat-v" id="statDone">—</div><div class="stat-l">Completed</div></div></div>
+      <div class="stat"><div class="stat-ic">🥓</div><div><div class="stat-v">4,820</div><div class="stat-l">Bacon Pts</div></div></div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="mc-grid">
+      <div class="mc mc-red">
+        <div class="mc-hd"><div class="mc-lbl">This Week</div><div class="mc-ic mi-r">⏱️</div></div>
+        <div class="mc-val" id="mcWeek">—</div>
+        <div class="mc-chg up" id="mcWeekChg">Loading…</div>
+      </div>
+      <div class="mc mc-grn">
+        <div class="mc-hd"><div class="mc-lbl">Completed</div><div class="mc-ic mi-g">✅</div></div>
+        <div class="mc-val" id="cmpCount">—</div>
+        <div class="mc-chg up" id="mcCmpChg">Loading…</div>
+      </div>
+      <div class="mc mc-org">
+        <div class="mc-hd"><div class="mc-lbl">Active Issues</div><div class="mc-ic mi-o">🔧</div></div>
+        <div class="mc-val" id="mcActive">—</div>
+        <div class="mc-chg" id="mcActiveChg">Loading…</div>
+      </div>
+      <div class="mc mc-yel">
+        <div class="mc-hd"><div class="mc-lbl">Avg Session</div><div class="mc-ic mi-y">⚡</div></div>
+        <div class="mc-val" id="mcAvg">—</div>
+        <div class="mc-chg up" id="mcAvgChg">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Active Timer -->
+    <div class="tbanner" id="tbanner">
+      <div class="t-pulse">⏱</div>
+      <div class="t-info">
+        <div class="t-task" id="tTask">Fix login redirect on OAuth flow</div>
+        <div class="t-meta">
+          <span class="t-tag">🐛 Bug · Auth Module</span>
+          <span>Issue #342</span>
+          <span>Started 09:00 AM</span>
+        </div>
+      </div>
+      <div class="t-disp" id="tDisp">00:00:00</div>
+      <div class="t-acts">
+        <button class="tb tb-p" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="tb tb-s" onclick="stopTimer()">■ Stop &amp; Save</button>
+      </div>
+    </div>
+
+    <!-- Export Bar -->
+    <div class="exp-bar">
+      <span class="exp-lbl">EXPORT</span>
+      <div class="exp-btns">
+        <button class="eb eb-csv" onclick="exportCSV()">↓ CSV</button>
+        <button class="eb eb-j" onclick="exportJSON()">↓ JSON</button>
+        <button class="eb eb-p" onclick="showToast('PDF generating…','i','📄')">↓ PDF</button>
+        <button class="eb eb-t" onclick="exportTSV()">↓ TSV</button>
+      </div>
+      <div class="rng-w">
+        <span>Range:</span>
+        <select class="sel" id="rngSel" onchange="filterRange(this.value)">
+          <option>This Month</option><option>This Week</option><option>Last Month</option><option>Last 3 Months</option><option>All Time</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="tbl-sec">
+      <!-- Filter Bar -->
+      <div class="fb">
+        <div class="sw">
+          <span class="s-ic">🔍</span>
+          <input class="si2" type="search" id="qInput" placeholder="Search logs, issues, projects…" oninput="applyF()"/>
+        </div>
+        <select class="fs" id="stFilter" onchange="applyF()">
+          <option value="">All Status</option><option>Complete</option><option>Active</option><option>Paused</option>
+        </select>
+        <select class="fs" id="tyFilter" onchange="applyF()">
+          <option value="">All Types</option><option>Bug</option><option>Feature</option><option>Security</option><option>UI</option><option>Docs</option>
+        </select>
+        <select class="fs" id="prFilter" onchange="applyF()">
+          <option value="">All Projects</option><option>Auth Module</option><option>BLT Core</option><option>Frontend</option><option>API</option>
+        </select>
+        <button class="exp-sel" onclick="exportSel()">↓ Export Selected</button>
+      </div>
+
+      <!-- Desktop Table -->
+      <div class="lt-wrap">
+        <table class="lt">
+          <thead>
+            <tr>
+              <th class="cc"><input type="checkbox" class="cb" id="chkAll" onchange="togAll(this)"/></th>
+              <th onclick="sortBy('task')"><div class="th-i">TASK <span id="s-task">↕</span></div></th>
+              <th onclick="sortBy('type')"><div class="th-i">TYPE <span id="s-type">↕</span></div></th>
+              <th>START</th><th>END</th>
+              <th class="th-d" onclick="sortBy('duration')"><div class="th-i">DURATION <span id="s-duration">↕</span></div></th>
+              <th onclick="sortBy('status')"><div class="th-i">STATUS <span id="s-status">↕</span></div></th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="mob-cards" id="mobCards"></div>
+
+      <!-- Pagination -->
+      <div class="pgn">
+        <div class="pgi" id="pgi"></div>
+        <div class="pgns" id="pgns"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile FAB -->
+<button class="fab" onclick="openModal()" aria-label="Log Time">+</button>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="closeBg(event)">
+  <div class="md" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="mh">
+      <div class="mt" id="mTitle">+ Log Time</div>
+      <button class="mx" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="mb">
+      <div class="fg">
+        <label class="fl" for="fTask">Task / Issue *</label>
+        <input class="fi" type="text" id="fTask" placeholder="e.g. Fix login redirect on OAuth flow" autocomplete="off"/>
+      </div>
+      <div class="fr">
+        <div class="fg">
+          <label class="fl" for="fType">Type</label>
+          <select class="fsel" id="fType"><option>Bug</option><option>Feature</option><option>Security</option><option>UI</option><option>Docs</option></select>
+        </div>
+        <div class="fg">
+          <label class="fl" for="fProj">Project</label>
+          <select class="fsel" id="fProj"><option>Auth Module</option><option>BLT Core</option><option>Frontend</option><option>API</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg">
+          <label class="fl" for="fStart">Start Time</label>
+          <input class="fi" type="time" id="fStart" value="09:00"/>
+        </div>
+        <div class="fg">
+          <label class="fl" for="fEnd">End Time</label>
+          <input class="fi" type="time" id="fEnd" value="10:47"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl" for="fIssue">Issue # (optional)</label>
+        <input class="fi" type="text" id="fIssue" placeholder="e.g. 342"/>
+      </div>
+      <div class="fg">
+        <label class="fl" for="fNotes">Notes</label>
+        <textarea class="fta" id="fNotes" placeholder="What did you work on?"></textarea>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-r" id="saveBtn" onclick="saveLog()">Save Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="tc" id="tc"></div>
+
+<script>
+/* ── CONFIG ────────────────────────────────────────────── */
+// Get CSRF token from cookie (Django)
+function getCsrf(){
+  const m=document.cookie.match(/csrftoken=([^;]+)/);
+  return m?m[1]:'';
+}
+
+// Get auth token from meta tag or localStorage
+function getAuthToken(){
+  const meta=document.querySelector('meta[name="api-token"]');
+  if(meta)return meta.getAttribute('content');
+  return localStorage.getItem('blt_auth_token')||'';
+}
+
+function apiHeaders(extra={}){
+  const h={'Content-Type':'application/json','X-CSRFToken':getCsrf(),...extra};
+  const tok=getAuthToken();
+  if(tok)h['Authorization']=`Token ${tok}`;
+  return h;
+}
+
+/* ── REAL API ──────────────────────────────────────────── */
+const API={
+  BASE:'/api/v1/time-logs',
+
+  async getAll(params={}){
+    const qs=new URLSearchParams(params).toString();
+    const url=qs?`${this.BASE}/?${qs}`:`${this.BASE}/`;
+    const res=await fetch(url,{headers:apiHeaders()});
+    if(!res.ok)throw new Error(`GET failed: ${res.status} ${res.statusText}`);
+    return res.json(); // expects {results:[...], count:N}
+  },
+
+  async create(data){
+    const res=await fetch(`${this.BASE}/`,{
+      method:'POST',
+      headers:apiHeaders(),
+      body:JSON.stringify(data)
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.detail||`Create failed: ${res.status}`);
+    }
+    return res.json();
+  },
+
+  async update(id,data){
+    const res=await fetch(`${this.BASE}/${id}/`,{
+      method:'PATCH',
+      headers:apiHeaders(),
+      body:JSON.stringify(data)
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.detail||`Update failed: ${res.status}`);
+    }
+    return res.json();
+  },
+
+  async delete(id){
+    const res=await fetch(`${this.BASE}/${id}/`,{
+      method:'DELETE',
+      headers:apiHeaders()
+    });
+    if(!res.ok)throw new Error(`Delete failed: ${res.status}`);
+    return true;
+  },
+
+  async getStats(){
+    try{
+      const res=await fetch(`${this.BASE}/stats/`,{headers:apiHeaders()});
+      if(!res.ok)return null;
+      return res.json();
+    }catch{return null}
+  }
+};
+
+/* ── FALLBACK DATA (shown if API unavailable) ──────────── */
+const FALLBACK=[
+  {id:1,task:'Fix login redirect on OAuth flow',      proj:'Auth Module',type:'Bug',     start:'09:00',end:'10:47',dur:107,status:'Complete'},
+  {id:2,task:'Implement time tracking API endpoints', proj:'BLT Core',   type:'Feature', start:'11:00',end:'13:15',dur:135,status:'Complete'},
+  {id:3,task:'XSS vulnerability in comment field',    proj:'Frontend',   type:'Security',start:'13:45',end:'15:30',dur:105,status:'Complete'},
+  {id:4,task:'Redesign issue card component',         proj:'Frontend',   type:'UI',      start:'08:00',end:'09:45',dur:105,status:'Complete'},
+  {id:5,task:'Rate limiting middleware',              proj:'API',        type:'Feature', start:'10:00',end:'12:30',dur:150,status:'Complete'},
+  {id:6,task:'CSRF token validation fix',             proj:'Auth Module',type:'Security',start:'14:00',end:'15:15',dur:75, status:'Paused'},
+  {id:7,task:'Leaderboard caching optimization',      proj:'BLT Core',   type:'Feature', start:'09:30',end:'11:00',dur:90, status:'Complete'},
+  {id:8,task:'Update API documentation',              proj:'API',        type:'Docs',    start:'11:30',end:'12:45',dur:75, status:'Active'},
+  {id:9,task:'SQL injection in search endpoint',      proj:'BLT Core',   type:'Security',start:'08:15',end:'10:00',dur:105,status:'Complete'},
+  {id:10,task:'Mobile responsive nav bar',            proj:'Frontend',   type:'UI',      start:'13:00',end:'15:30',dur:150,status:'Complete'},
+  {id:11,task:'BACON token distribution bug',         proj:'BLT Core',   type:'Bug',     start:'09:00',end:'10:20',dur:80, status:'Complete'},
+  {id:12,task:'Webhook handler for GitHub events',    proj:'API',        type:'Feature', start:'11:00',end:'14:00',dur:180,status:'Complete'},
+];
+
+/* ── STATE ─────────────────────────────────────────────── */
+let ALL=[],logs=[],filtered=[],selIds=new Set(),page=1,PP=8,sKey='duration',sAsc=false,editId=null;
+let apiOnline=false;
+
+/* ── API STATUS UI ─────────────────────────────────────── */
+function setApiStatus(online,errMsg=''){
+  apiOnline=online;
+  const ind=document.getElementById('apiInd');
+  const dot=document.getElementById('apiDot');
+  const status=document.getElementById('apiStatus');
+  const errEl=document.getElementById('apiErrMsg');
+  const syncBdg=document.getElementById('syncBdg');
+  if(online){
+    ind.className='api-ind';
+    dot.className='api-d';
+    dot.style.background='var(--green)';
+    status.textContent='API Connected';
+    syncBdg.className='sync-bdg';
+    errEl.textContent='';
+  }else{
+    ind.className='api-ind err';
+    dot.className='api-d err';
+    dot.style.background='var(--red)';
+    status.textContent='API Offline — showing cached data';
+    syncBdg.className='sync-bdg error';
+    errEl.textContent=errMsg?`⚠ ${errMsg}`:'';
+  }
+}
+
+/* ── COMPUTE STATS FROM DATA ───────────────────────────── */
+function computeStats(data){
+  const total=data.length;
+  const totalMins=data.reduce((s,l)=>s+(l.dur||0),0);
+  const totalHours=Math.floor(totalMins/60);
+  const done=data.filter(l=>l.status==='Complete').length;
+  const active=data.filter(l=>l.status==='Active').length;
+  const avgMins=total?Math.round(totalMins/total):0;
+
+  document.getElementById('statStreak').textContent='12';
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statHours').textContent=totalHours+'h';
+  document.getElementById('statDone').textContent=done;
+  document.getElementById('cmpCount').textContent=done;
+  document.getElementById('sbBdg').textContent=total;
+
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('mcWeek').textContent=fmtD(totalMins);
+  document.getElementById('mcWeekChg').textContent=`↑ ${total} total sessions`;
+  document.getElementById('mcCmpChg').textContent=`↑ ${pct}% completion rate`;
+  document.getElementById('mcActive').textContent=active;
+  document.getElementById('mcActiveChg').textContent=active?`${active} currently running`:'None running';
+  document.getElementById('mcAvg').textContent=fmtD(avgMins);
+  document.getElementById('mcAvgChg').textContent=`Per session average`;
+}
+
+/* ── TIMER ─────────────────────────────────────────────── */
+let tSec=0,tRun=false,tInt=null;
+document.getElementById('tbanner').style.display='none';
+
+function startTimerUI(taskName){
+  tSec=0;tRun=true;
+  const b=document.getElementById('tbanner');
+  b.style.display='flex';b.classList.remove('hiding');
+  document.getElementById('tTask').textContent=taskName;
+  if(tInt)clearInterval(tInt);
+  tInt=setInterval(tick,1000);
+}
+function tick(){if(tRun){tSec++;document.getElementById('tDisp').textContent=fmtT(tSec)}}
+function fmtT(s){return[Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(n=>String(n).padStart(2,'0')).join(':')}
+function togglePause(){
+  tRun=!tRun;
+  document.getElementById('pauseBtn').textContent=tRun?'⏸ Pause':'▶ Resume';
+  toast(tRun?'Timer resumed':'Timer paused','i',tRun?'▶️':'⏸️');
+}
+function stopTimer(){
+  tRun=false;if(tInt)clearInterval(tInt);
+  const b=document.getElementById('tbanner');
+  b.classList.add('hiding');setTimeout(()=>b.style.display='none',300);
+  toast('+120 XP earned! Session saved.','s','🎉');
+}
+
+/* ── FILTER + SORT ─────────────────────────────────────── */
+function applyF(){
+  const q=document.getElementById('qInput').value.toLowerCase();
+  const st=document.getElementById('stFilter').value;
+  const ty=document.getElementById('tyFilter').value;
+  const pr=document.getElementById('prFilter').value;
+  filtered=logs.filter(l=>{
+    const mq=!q||l.task.toLowerCase().includes(q)||l.proj.toLowerCase().includes(q)||l.type.toLowerCase().includes(q);
+    return mq&&(!st||l.status===st)&&(!ty||l.type===ty)&&(!pr||l.proj===pr);
+  });
+  applySort();
+}
+function applySort(){
+  filtered.sort((a,b)=>{
+    let va=a[sKey],vb=b[sKey];
+    if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}
+    return va<vb?(sAsc?-1:1):va>vb?(sAsc?1:-1):0;
+  });
+  page=1;render();
+}
+function sortBy(k){
+  if(sKey===k)sAsc=!sAsc;else{sKey=k;sAsc=true;}
+  ['task','type','duration','status'].forEach(x=>{const e=document.getElementById('s-'+x);if(e)e.textContent=x===k?(sAsc?'↑':'↓'):'↕'});
+  applySort();
+}
+function filterRange(v){toast(`Filtered: ${v}`,'i','📅')}
+
+/* ── RENDER ────────────────────────────────────────────── */
+function showSkeleton(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=Array(4).fill('').map(()=>`<tr class="skel-row"><td colspan="8"><div class="skeleton"></div></td></tr>`).join('');
+  document.getElementById('mobCards').innerHTML='';
+}
+
+function render(){
+  const tot=filtered.length,st=(page-1)*PP,pg=filtered.slice(st,st+PP);
+  const mx=Math.max(...logs.map(l=>l.dur),1);
+  document.getElementById('pgi').textContent=tot?`Showing ${st+1}–${Math.min(st+PP,tot)} of ${tot} entries`:'No entries found';
+
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=pg.length?pg.map(l=>rowH(l,mx)).join(''):`<tr><td colspan="8"><div class="empty"><div class="empty-ic">🔍</div><p>No time logs match your filters.</p></div></td></tr>`;
+
+  const mc=document.getElementById('mobCards');
+  mc.innerHTML=pg.length?pg.map(l=>cardH(l)).join(''):`<div class="empty"><div class="empty-ic">🔍</div><p>No time logs match your filters.</p></div>`;
+
+  renderPgn(tot);
+  const allSel=pg.length>0&&pg.every(l=>selIds.has(l.id));
+  const sa=document.getElementById('chkAll');if(sa)sa.checked=allSel;
+}
+
+function rowH(l,mx){
+  const pct=Math.round((l.dur/mx)*100);
+  const bc=l.dur>120?'#ef4444':l.dur>80?'#f97316':'#22c55e';
+  const tc2={Bug:'tb-bug',Feature:'tb-ft',Security:'tb-sec',UI:'tb-ui',Docs:'tb-doc'}[l.type]||'tb-bug';
+  const em={Bug:'🐛',Feature:'✨',Security:'🛡️',UI:'🎨',Docs:'📄'}[l.type]||'🐛';
+  const sc2={Complete:'sc',Active:'sa',Paused:'sp'}[l.status]||'sc';
+  const sel=selIds.has(l.id);
+  return `<tr class="${sel?'sel-r':''}" id="r${l.id}">
+    <td class="cc"><input type="checkbox" class="cb" ${sel?'checked':''} onchange="togRow(${l.id},this)"/></td>
+    <td><div class="tn">${eh(l.task)}</div><div class="ts2">📁 ${eh(l.proj)}</div></td>
+    <td><span class="tbdg ${tc2}">${em} ${l.type.toUpperCase()}</span></td>
+    <td class="tv">${l.start}</td><td class="tv">${l.end}</td>
+    <td><div class="dw"><span class="dt">${fmtD(l.dur)}</span><div class="db"><div class="dbf" style="width:${pct}%;background:${bc}"></div></div></div></td>
+    <td><span class="sbdg ${sc2}"><span class="dot"></span>${l.status}</span></td>
+    <td><div class="ac">
+      <button class="ab" onclick="editLog(${l.id})" title="Edit">✏️</button>
+      <button class="ab" onclick="resumeLog(${l.id})" title="Resume">▶️</button>
+      <button class="ab d" onclick="delLog(${l.id})" title="Delete">🗑️</button>
+    </div></td>
+  </tr>`;
+}
+
+function cardH(l){
+  const tc2={Bug:'tb-bug',Feature:'tb-ft',Security:'tb-sec',UI:'tb-ui',Docs:'tb-doc'}[l.type]||'tb-bug';
+  const em={Bug:'🐛',Feature:'✨',Security:'🛡️',UI:'🎨',Docs:'📄'}[l.type]||'🐛';
+  const sc2={Complete:'sc',Active:'sa',Paused:'sp'}[l.status]||'sc';
+  const sel=selIds.has(l.id);
+  return `<div class="mob-card ${sel?'sel-r':''}" id="mc${l.id}">
+    <div class="mch">
+      <input type="checkbox" class="cb" ${sel?'checked':''} onchange="togRow(${l.id},this)" style="margin-top:2px;flex-shrink:0"/>
+      <div class="mct">
+        <div class="mctitle">${eh(l.task)}</div>
+        <div class="mcsub">📁 ${eh(l.proj)}</div>
+      </div>
+      <span class="tbdg ${tc2}">${em} ${l.type.toUpperCase()}</span>
+    </div>
+    <div class="mc-row">
+      <span class="mc-t">🕐 ${l.start} – ${l.end}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--g800);margin-left:auto">${fmtD(l.dur)}</span>
+    </div>
+    <div class="mc-ft">
+      <span class="sbdg ${sc2}"><span class="dot"></span>${l.status}</span>
+      <div class="ac">
+        <button class="ab" onclick="editLog(${l.id})">✏️</button>
+        <button class="ab" onclick="resumeLog(${l.id})">▶️</button>
+        <button class="ab d" onclick="delLog(${l.id})">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderPgn(tot){
+  const pages=Math.max(1,Math.ceil(tot/PP));
+  let h=`<button class="pb ar" onclick="changePg(-1)" ${page===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=pages;i++) h+=`<button class="pb ${i===page?'a':''}" onclick="setPg(${i})">${i}</button>`;
+  h+=`<button class="pb ar" onclick="changePg(1)" ${page===pages?'disabled':''}>›</button>`;
+  document.getElementById('pgns').innerHTML=h;
+}
+function setPg(n){page=n;render();window.scrollTo({top:0,behavior:'smooth'})}
+function changePg(d){const p=Math.ceil(filtered.length/PP);setPg(Math.max(1,Math.min(p,page+d)))}
+
+/* ── SELECTION ─────────────────────────────────────────── */
+function togAll(cb){const s=(page-1)*PP,pg=filtered.slice(s,s+PP);pg.forEach(l=>{cb.checked?selIds.add(l.id):selIds.delete(l.id)});render()}
+function togRow(id,cb){
+  cb.checked?selIds.add(id):selIds.delete(id);
+  const r=document.getElementById('r'+id);if(r)r.classList.toggle('sel-r',cb.checked);
+  const m=document.getElementById('mc'+id);if(m)m.classList.toggle('sel-r',cb.checked);
+}
+
+/* ── CRUD ──────────────────────────────────────────────── */
+async function delLog(id){
+  if(!confirm('Delete this time log?'))return;
+  try{
+    await API.delete(id);
+    ALL=ALL.filter(l=>l.id!==id);
+    logs=[...ALL];selIds.delete(id);
+    applyF();computeStats(logs);
+    toast('Entry deleted','e','🗑️');
+  }catch(e){
+    // Fallback: delete locally if API offline
+    if(!apiOnline){
+      ALL=ALL.filter(l=>l.id!==id);
+      logs=[...ALL];selIds.delete(id);
+      applyF();computeStats(logs);
+      toast('Deleted locally (offline)','i','🗑️');
+    }else{
+      toast(`Delete failed: ${e.message}`,'e','⚠️');
+    }
+  }
+}
+
+function editLog(id){
+  const l=logs.find(x=>x.id===id);if(!l)return;
+  editId=id;
+  document.getElementById('mTitle').textContent='✏️ Edit Log';
+  document.getElementById('fTask').value=l.task;
+  document.getElementById('fType').value=l.type;
+  document.getElementById('fProj').value=l.proj;
+  document.getElementById('fStart').value=l.start;
+  document.getElementById('fEnd').value=l.end;
+  openModal();
+}
+
+function resumeLog(id){
+  const l=logs.find(x=>x.id===id);if(!l)return;
+  startTimerUI(l.task);
+  toast(`Timer started: ${l.task.substring(0,28)}…`,'i','▶️');
+}
+
+async function saveLog(){
+  const task=document.getElementById('fTask').value.trim();
+  if(!task){toast('Enter a task name','e','⚠️');return}
+  const type=document.getElementById('fType').value;
+  const proj=document.getElementById('fProj').value;
+  const start=document.getElementById('fStart').value;
+  const end=document.getElementById('fEnd').value;
+  const [sh,sm]=start.split(':').map(Number),[eh2,em]=end.split(':').map(Number);
+  const dur=Math.max(1,(eh2*60+em)-(sh*60+sm));
+  const btn=document.getElementById('saveBtn');
+  btn.textContent='Saving…';btn.disabled=true;
+  const payload={task,type,project:proj,start_time:start,end_time:end,duration:dur};
+  try{
+    if(editId){
+      const updated=await API.update(editId,payload);
+      // Normalize response field names
+      const norm=normalizeLog(updated,editId,{task,type,proj,start,end,dur});
+      const idx=ALL.findIndex(l=>l.id===editId);
+      if(idx>=0)ALL[idx]=norm;
+      toast('Log updated!','s','✅');editId=null;
+    }else{
+      const created=await API.create(payload);
+      const norm=normalizeLog(created,null,{task,type,proj,start,end,dur,status:'Complete'});
+      ALL.unshift(norm);
+      toast(`+50 XP! "${task.substring(0,22)}" logged`,'s','🎉');
+    }
+    logs=[...ALL];applyF();computeStats(logs);closeModal();
+  }catch(e){
+    // Offline fallback — save locally with temp id
+    if(!apiOnline){
+      const tempId=Date.now();
+      const norm={id:tempId,task,type,proj,start,end,dur,status:'Complete',_offline:true};
+      if(editId){const idx=ALL.findIndex(l=>l.id===editId);if(idx>=0)ALL[idx]=norm;editId=null;}
+      else ALL.unshift(norm);
+      logs=[...ALL];applyF();computeStats(logs);closeModal();
+      toast('Saved locally (offline — will sync later)','i','💾');
+    }else{
+      toast(`Save failed: ${e.message}`,'e','⚠️');
+    }
+  }finally{
+    btn.textContent='Save Log';btn.disabled=false;
+  }
+}
+
+// Normalize API response to local shape
+function normalizeLog(apiResp,fallbackId,fallback){
+  if(!apiResp)return{...fallback,id:fallbackId||Date.now()};
+  return{
+    id:apiResp.id||fallbackId||Date.now(),
+    task:apiResp.task||apiResp.title||apiResp.description||apiResp.name||fallback.task||'',
+    type:apiResp.type||apiResp.log_type||apiResp.issue_type||apiResp.category||fallback.type||'Bug',
+    proj:apiResp.proj||apiResp.project||apiResp.project_name||apiResp.domain||fallback.proj||'',
+    start:apiResp.start||apiResp.start_time||apiResp.started_at||fallback.start||'00:00',
+    end:apiResp.end||apiResp.end_time||apiResp.ended_at||apiResp.stopped_at||fallback.end||'00:00',
+    dur:apiResp.dur||apiResp.duration||apiResp.duration_minutes||apiResp.minutes||fallback.dur||0,
+    status:apiResp.status||apiResp.state||fallback.status||'Complete',
+  };
+}
+
+/* ── EXPORT ────────────────────────────────────────────── */
+function getRows(){return selIds.size?logs.filter(l=>selIds.has(l.id)):filtered}
+async function exportCSV(){
+  const rows=getRows();if(!rows.length){toast('No data to export','e','⚠️');return}
+  dl2('blt-timelogs.csv','text/csv',['ID,Task,Project,Type,Start,End,Duration (min),Status',...rows.map(l=>`${l.id},"${l.task}","${l.proj}",${l.type},${l.start},${l.end},${l.dur},${l.status}`)].join('\n'));
+  toast(`CSV exported (${rows.length} rows)`,'s','✅');
+}
+async function exportJSON(){
+  const rows=getRows();if(!rows.length){toast('No data to export','e','⚠️');return}
+  dl2('blt-timelogs.json','application/json',JSON.stringify(rows,null,2));
+  toast(`JSON exported (${rows.length} entries)`,'s','✅');
+}
+async function exportTSV(){
+  const rows=getRows();
+  dl2('blt-timelogs.tsv','text/tab-separated-values',['ID\tTask\tProject\tType\tStart\tEnd\tDuration\tStatus',...rows.map(l=>`${l.id}\t${l.task}\t${l.proj}\t${l.type}\t${l.start}\t${l.end}\t${l.dur}\t${l.status}`)].join('\n'));
+  toast('TSV exported!','s','✅');
+}
+function exportSel(){if(!selIds.size){toast('Select entries first','e','⚠️');return}exportCSV()}
+function dl2(n,m,c){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:m}));a.download=n;document.body.appendChild(a);a.click();a.remove()}
+
+/* ── REFRESH / SYNC ────────────────────────────────────── */
+async function refreshData(){
+  const b=document.getElementById('syncBdg'),d=document.getElementById('sdot'),t=document.getElementById('syncTxt');
+  b.classList.add('syncing');d.style.background='var(--blue)';t.textContent='SYNCING…';
+  showSkeleton();
+  try{
+    const data=await API.getAll();
+    // Support both paginated {results:[]} and plain array responses
+    const items=Array.isArray(data)?data:(data.results||[]);
+    ALL=items.map(l=>normalizeLog(l,l.id,l));
+    logs=[...ALL];applyF();computeStats(logs);
+    setApiStatus(true);
+    document.getElementById('lastSync').textContent=new Date().toLocaleTimeString();
+    document.getElementById('syncTxt').textContent='SYNCED';
+    toast('Synced with server ✓','s','🔄');
+  }catch(e){
+    // Fall back to local data
+    if(!ALL.length){ALL=[...FALLBACK];logs=[...ALL];applyF();computeStats(logs);}
+    else{applyF();}
+    setApiStatus(false,e.message);
+    document.getElementById('syncTxt').textContent='OFFLINE';
+    toast('Using cached data (API unreachable)','i','📦');
+  }finally{
+    b.classList.remove('syncing');
+  }
+}
+
+/* ── AUTO-POLL every 60s ───────────────────────────────── */
+setInterval(()=>{if(document.visibilityState==='visible')refreshData()},60000);
+
+/* ── MODAL ─────────────────────────────────────────────── */
+function openModal(){document.getElementById('mo').classList.add('open');setTimeout(()=>document.getElementById('fTask').focus(),100)}
+function closeModal(){document.getElementById('mo').classList.remove('open');resetModal();editId=null;document.getElementById('mTitle').textContent='+ Log Time'}
+function resetModal(){document.getElementById('fTask').value='';document.getElementById('fNotes').value='';document.getElementById('fIssue').value='';document.getElementById('fStart').value='09:00';document.getElementById('fEnd').value='10:47'}
+function closeBg(e){if(e.target.id==='mo')closeModal()}
+
+/* ── SIDEBAR ───────────────────────────────────────────── */
+function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open')}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open')}
+
+/* ── TOAST ─────────────────────────────────────────────── */
+function toast(msg,type='i',icon='ℹ️'){
+  const c=document.getElementById('tc');
+  const t=document.createElement('div');
+  const cls={s:'ts-s',e:'ts-e',i:'ts-i'}[type]||'ts-i';
+  t.className=`toast ${cls}`;
+  t.innerHTML=`<span class="t-ic">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),350)},3500);
+}
+
+/* ── HELPERS ───────────────────────────────────────────── */
+function fmtD(m){const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`}
+function eh(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* ── KEYBOARD ──────────────────────────────────────────── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openModal()}
+});
+
+/* ── INIT ──────────────────────────────────────────────── */
+// Show fallback immediately so UI isn't blank, then fetch real data
+ALL=[...FALLBACK];logs=[...ALL];applyF();computeStats(logs);
+refreshData();
+</script>
+</body>
+</html>
