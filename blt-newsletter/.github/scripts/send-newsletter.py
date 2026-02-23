@@ -7,19 +7,27 @@ Sends newsletters to subscribers via SendGrid
 import os
 import sys
 import json
+import logging
 import markdown2
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger(__name__)
 
 # Configuration
 API_KEY = os.environ.get('SENDGRID_API_KEY')
 FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'newsletter@blt.owasp.org')
 if not os.environ.get('SENDGRID_FROM_EMAIL'):
-    print(
-        "⚠️  Warning: SENDGRID_FROM_EMAIL is not set. Using default "
-        f"'{FROM_EMAIL}'. Make sure this address is verified in SendGrid "
-        "or emails will be rejected.",
-        file=sys.stderr
+    logger.warning(
+        "SENDGRID_FROM_EMAIL is not set. Using default "
+        "'{FROM_EMAIL}'. Make sure this address is verified in SendGrid "
+        "or emails will be rejected."
     )
 SUBJECT = os.environ.get('NEWSLETTER_SUBJECT', 'BLT Newsletter')
 CONTENT_FILE = os.environ.get('NEWSLETTER_CONTENT_FILE', 'newsletters/latest.md')
@@ -119,7 +127,7 @@ def send_newsletter():
     """
     # Validate API key
     if not API_KEY:
-        print('❌ Error: SENDGRID_API_KEY is not set', file=sys.stderr)
+        logger.error('SENDGRID_API_KEY is not set')
         sys.exit(1)
     
     # Initialize SendGrid client
@@ -132,20 +140,20 @@ def send_newsletter():
 
     if single_recipient:
         subscribers = [{'email': single_recipient, 'name': single_name}]
-        print(f'📧 Sending single email to {single_recipient}...')
+        logger.info(f'Sending single email to {single_recipient}...')
     else:
         try:
             with open('subscribers.json', 'r') as f:
                 subscribers = json.load(f)
         except FileNotFoundError:
-            print('Error: subscribers.json not found', file=sys.stderr)
+            logger.error('subscribers.json not found')
             sys.exit(1)
         
         if not subscribers:
-            print('No subscribers found')
+            logger.info('No subscribers found')
             return
         
-        print(f'Sending newsletter to {len(subscribers)} subscribers...')
+        logger.info(f'Sending newsletter to {len(subscribers)} subscribers...')
     
     # Read newsletter content
     text_content = ''
@@ -186,20 +194,20 @@ def send_newsletter():
             response = sg.send(message)
             
             if response.status_code in [200, 201, 202]:
-                print(f'✓ Sent to {email}')
+                logger.info(f'Sent to {email}')
                 successful += 1
             else:
-                print(f'✗ Failed to send to {email}: Status {response.status_code}')
+                logger.error(f'Failed to send to {email}: Status {response.status_code}')
                 failed += 1
                 
         except Exception as e:
-            print(f'✗ Failed to send to {email}: {str(e)}', file=sys.stderr)
+            logger.error(f'Failed to send to {email}: {str(e)}')
             failed += 1
     
     # Print summary
-    print(f'\n✅ Newsletter sent successfully to {successful} subscribers')
+    logger.info(f'Newsletter sent successfully to {successful} subscribers')
     if failed > 0:
-        print(f'❌ Failed to send to {failed} subscribers')
+        logger.error(f'Failed to send to {failed} subscribers')
         sys.exit(1)
 
 if __name__ == '__main__':

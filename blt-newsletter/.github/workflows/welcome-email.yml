@@ -29,18 +29,30 @@ jobs:
       
       - name: Extract subscriber info
         id: info
+        shell: python
         run: |
-          # Extract email and name from issue body
-          email=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=\*\*Email:\*\* ).+')
-          name=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=\*\*Name:\*\* ).+' || echo "Subscriber")
+          import os
+          body = """${{ github.event.issue.body }}"""
+          lines = body.split('\n')
+          email = ""
+          name = "Subscriber"
           
-          if [ -z "$email" ]; then
-            echo "Email not found in issue body"
-            exit 1
-          fi
+          for line in lines:
+              clean = line.replace('*', '').strip()
+              if clean.lower().startswith('email:'):
+                  email = clean.split(':', 1)[1].strip()
+              elif clean.lower().startswith('name:'):
+                  extracted_name = clean.split(':', 1)[1].strip()
+                  if extracted_name and extracted_name.lower() != 'not provided':
+                      name = extracted_name
           
-          echo "email=$email" >> $GITHUB_OUTPUT
-          echo "name=$name" >> $GITHUB_OUTPUT
+          if not email:
+              print(f"::error::Email not found in issue body")
+              exit(1)
+              
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"email={email}\n")
+              f.write(f"name={name}\n")
       
       - name: Send welcome email
         env:
