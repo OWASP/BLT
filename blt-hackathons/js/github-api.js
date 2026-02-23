@@ -8,6 +8,7 @@ class GitHubAPI {
         this.token = token;
         this.baseURL = 'https://api.github.com';
         this.cache = new Map();
+        this.rateLimit = { limit: null, remaining: null, reset: null, used: null };
 
         // Validate token format if provided
         if (this.token && !this.isValidToken(this.token)) {
@@ -48,6 +49,17 @@ class GitHubAPI {
 
         try {
             const response = await fetch(url, { headers });
+
+            // Capture rate limit headers from every response
+            const rlLimit = response.headers.get('x-ratelimit-limit');
+            if (rlLimit !== null) {
+                this.rateLimit = {
+                    limit: parseInt(rlLimit, 10),
+                    remaining: parseInt(response.headers.get('x-ratelimit-remaining'), 10),
+                    reset: parseInt(response.headers.get('x-ratelimit-reset'), 10),
+                    used: parseInt(response.headers.get('x-ratelimit-used') || '0', 10)
+                };
+            }
 
             if (!response.ok) {
                 if (response.status === 403) {
@@ -654,5 +666,31 @@ class GitHubAPI {
                 url: p.url,
                 reviewCount: p.reviewCount
             }));
+    }
+
+    /**
+     * Fetch current GitHub API rate limit status
+     */
+    async fetchRateLimit() {
+        const url = `${this.baseURL}/rate_limit`;
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+        try {
+            const response = await fetch(url, { headers });
+            if (response.ok) {
+                const data = await response.json();
+                this.rateLimit = {
+                    limit: data.rate.limit,
+                    remaining: data.rate.remaining,
+                    reset: data.rate.reset,
+                    used: data.rate.used
+                };
+            }
+        } catch (e) {
+            console.warn('Failed to fetch rate limit:', e);
+        }
+        return this.rateLimit;
     }
 }
