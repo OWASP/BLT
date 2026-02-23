@@ -11,7 +11,7 @@ import hmac
 import json
 from datetime import datetime, timezone
 
-from js import Response, fetch
+from js import Headers, Response, fetch
 
 # Channel IDs - these can be configured via environment variables
 # NOTE: These are OWASP-specific defaults. For other organizations:
@@ -677,29 +677,19 @@ async def on_fetch(request, env):
 
     # Handle CORS preflight
     if method == "OPTIONS":
-        return Response.new(
-            "",
-            {
-                "headers": {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type",
-                },
-            },
-        )
+        cors_headers = Headers.new()
+        cors_headers.set("Access-Control-Allow-Origin", "*")
+        cors_headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        cors_headers.set("Access-Control-Allow-Headers", "Content-Type")
+        return Response.new("", headers=cors_headers)
 
     # Homepage - serve HTML
     if is_homepage_request(url, method):
         html_content = get_homepage_html()
-        return Response.new(
-            html_content,
-            {
-                "headers": {
-                    "Content-Type": "text/html",
-                    "Cache-Control": "public, max-age=300",
-                },
-            },
-        )
+        html_headers = Headers.new()
+        html_headers.set("Content-Type", "text/html; charset=utf-8")
+        html_headers.set("Cache-Control", "public, max-age=300")
+        return Response.new(html_content, headers=html_headers)
 
     # Stats endpoint - returns current stats as JSON
     if "/stats" in url and method == "GET":
