@@ -12,6 +12,8 @@ class JobStateStore:
     
     async def save_job(self, job_id: str, job_state: Dict[str, Any]):
         """Save job state to KV store."""
+        if self.kv is None:
+            return
         await self.kv.put(
             f"job:{job_id}",
             json.dumps(job_state)
@@ -19,6 +21,8 @@ class JobStateStore:
     
     async def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get job state from KV store."""
+        if self.kv is None:
+            return None
         result = await self.kv.get(f"job:{job_id}")
         if result:
             return json.loads(result.value if hasattr(result, 'value') else result)
@@ -26,6 +30,8 @@ class JobStateStore:
     
     async def update_job_progress(self, job_id: str):
         """Update job progress after a task completes."""
+        if self.kv is None:
+            return
         job_state = await self.get_job(job_id)
         if job_state:
             job_state['completed_tasks'] = job_state.get('completed_tasks', 0) + 1
@@ -54,6 +60,8 @@ class VulnerabilityDatabase:
     
     async def store_vulnerability(self, vuln_id: str, vulnerability: Dict[str, Any]):
         """Store a vulnerability in the database."""
+        if self.kv is None:
+            return
         await self.kv.put(
             f"vuln:{vuln_id}",
             json.dumps(vulnerability),
@@ -62,6 +70,8 @@ class VulnerabilityDatabase:
     
     async def get_vulnerability(self, vuln_id: str) -> Optional[Dict[str, Any]]:
         """Get a vulnerability from the database."""
+        if self.kv is None:
+            return None
         result = await self.kv.get(f"vuln:{vuln_id}")
         if result:
             return json.loads(result.value if hasattr(result, 'value') else result)
