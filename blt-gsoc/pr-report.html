@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="GSoC PR Analytics Dashboard - Track pull request contributions across OWASP projects">
+    <meta name="description"
+        content="GSoC PR Analytics Dashboard - Track pull request contributions across OWASP projects">
     <meta name="keywords" content="GSoC, Pull Requests, Analytics, OWASP, Open Source">
-    
+
     <title>GSoC PR Analytics - OWASP BLT</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
-    
+
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="css/main.css">
 </head>
+
 <body class="bg-white dark:bg-gray-900">
     <!-- Navigation -->
     <nav class="bg-white dark:bg-gray-800 shadow-md">
@@ -29,9 +32,10 @@
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">OWASP BLT GSoC</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="../index.html" class="text-gray-700 dark:text-gray-300 hover:text-red-500">Home</a>
+                    <a href="./" class="text-gray-700 dark:text-gray-300 hover:text-red-500">Home</a>
                     <a href="pr-report.html" class="text-red-500 font-medium">PR Analytics</a>
-                    <a href="https://github.com/OWASP-BLT/BLT-GSOC" class="text-gray-700 dark:text-gray-300 hover:text-red-500">
+                    <a href="https://github.com/OWASP-BLT/BLT-GSOC"
+                        class="text-gray-700 dark:text-gray-300 hover:text-red-500">
                         <i class="fab fa-github"></i> GitHub
                     </a>
                 </div>
@@ -49,7 +53,8 @@
         </p>
 
         <!-- Info Notice -->
-        <div class="max-w-4xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8 mb-12">
+        <div
+            class="max-w-4xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8 mb-12">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
                     <i class="fas fa-info-circle text-3xl text-blue-600 dark:text-blue-400"></i>
@@ -59,15 +64,15 @@
                         Live Analytics Dashboard
                     </h2>
                     <p class="text-blue-800 dark:text-blue-200 mb-4">
-                        The PR Analytics dashboard requires a live backend connection to the OWASP BLT application 
+                        The PR Analytics dashboard requires a live backend connection to the OWASP BLT application
                         to fetch and display real-time pull request data from GitHub.
                     </p>
                     <p class="text-blue-800 dark:text-blue-200 mb-6">
-                        This static GitHub Pages site cannot display live PR data, but you can access the full 
+                        This static GitHub Pages site cannot display live PR data, but you can access the full
                         interactive dashboard on the main BLT application.
                     </p>
-                    <a href="https://owasp.org/www-community/initiatives/gsoc/" 
-                       class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    <a href="https://owaspblt.org/gsoc/pr-report/"
+                        class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
                         <i class="fas fa-external-link-alt mr-2"></i>
                         View Live Dashboard on BLT
                     </a>
@@ -80,67 +85,76 @@
             <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
                 Dashboard Features
             </h2>
-            
+
             <div class="grid md:grid-cols-2 gap-8 mb-12">
                 <!-- Feature 1 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-chart-line text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Yearly Trends</h3>
                     </div>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Track PR contributions year-over-year across all OWASP GSoC projects with interactive charts 
+                        Track PR contributions year-over-year across all OWASP GSoC projects with interactive charts
                         showing growth and participation trends.
                     </p>
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-code-branch text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Repository Stats</h3>
                     </div>
                     <p class="text-gray-600 dark:text-gray-400">
-                        View detailed statistics for each repository including total PRs, unique contributors, 
+                        View detailed statistics for each repository including total PRs, unique contributors,
                         and contribution patterns.
                     </p>
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-users text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Contributor Metrics</h3>
                     </div>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Analyze contributor activity with metrics on PR counts, merge rates, and participation 
+                        Analyze contributor activity with metrics on PR counts, merge rates, and participation
                         across different GSoC periods.
                     </p>
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
                             <i class="fas fa-filter text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Year Filtering</h3>
                     </div>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Filter data by specific GSoC years to compare performance and track improvements 
+                        Filter data by specific GSoC years to compare performance and track improvements
                         across different program cycles.
                     </p>
                 </div>
             </div>
 
             <!-- Projects Overview -->
-            <div class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-8 mb-12">
+            <div
+                class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-8 mb-12">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                     Tracked OWASP Projects
                 </h2>
@@ -182,17 +196,17 @@
                     Want to Contribute?
                 </h2>
                 <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-                    Join us in the next Google Summer of Code program and contribute to OWASP security projects. 
+                    Join us in the next Google Summer of Code program and contribute to OWASP security projects.
                     Learn more about available projects and how to apply.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4">
-                    <a href="../index.html" 
-                       class="inline-flex items-center px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors">
+                    <a href="./"
+                        class="inline-flex items-center px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors">
                         <i class="fas fa-home mr-2"></i>
                         Back to Home
                     </a>
-                    <a href="https://owasp.org/www-community/initiatives/gsoc/" 
-                       class="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-lg transition-colors">
+                    <a href="https://owasp.org/www-community/initiatives/gsoc/"
+                        class="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-lg transition-colors">
                         <i class="fas fa-book mr-2"></i>
                         GSoC Guidelines
                     </a>
@@ -206,14 +220,17 @@
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <p class="text-gray-600 dark:text-gray-400">
-                    © 2024-2026 OWASP Foundation. Part of the 
-                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-500 hover:text-red-600">OWASP BLT Project</a>
+                    © 2024-2026 OWASP Foundation. Part of the
+                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-500 hover:text-red-600">OWASP BLT
+                        Project</a>
                 </p>
                 <p class="text-gray-500 dark:text-gray-500 mt-2 text-sm">
-                    Hosted on <a href="https://pages.github.com/" class="text-red-500 hover:text-red-600">GitHub Pages</a>
+                    Hosted on <a href="https://pages.github.com/" class="text-red-500 hover:text-red-600">GitHub
+                        Pages</a>
                 </p>
             </div>
         </div>
     </footer>
 </body>
+
 </html>
