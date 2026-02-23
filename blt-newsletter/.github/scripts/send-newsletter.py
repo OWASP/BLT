@@ -99,7 +99,14 @@ def create_email_template(content_html):
   </div>
   <div class="footer">
     <p>You're receiving this because you subscribed to the BLT Newsletter.</p>
-    <p><a href="https://owasp-blt.github.io/BLT-Newsletter/">Visit our website</a> | <a href="https://github.com/OWASP-BLT">GitHub</a></p>
+    <p>
+      <a href="https://owasp-blt.github.io/BLT-Newsletter/">Visit our website</a> | 
+      <a href="https://github.com/OWASP-BLT">GitHub</a>
+    </p>
+    <p style="margin-top: 20px; font-size: 12px;">
+      To unsubscribe, please <a href="https://github.com/OWASP-BLT/BLT-Newsletter/issues?q=is%3Aissue+is%3Aopen+label%3Anewsletter-subscription">close your subscription issue</a> 
+      on GitHub or reply to this email with "Unsubscribe".
+    </p>
   </div>
 </body>
 </html>
@@ -119,18 +126,26 @@ def send_newsletter():
     sg = SendGridAPIClient(API_KEY)
     
     # Read subscribers
-    try:
-        with open('subscribers.json', 'r') as f:
-            subscribers = json.load(f)
-    except FileNotFoundError:
-        print('❌ Error: subscribers.json not found', file=sys.stderr)
-        sys.exit(1)
-    
-    if not subscribers:
-        print('ℹ️  No subscribers found')
-        return
-    
-    print(f'📧 Sending newsletter to {len(subscribers)} subscribers...')
+    subscribers = []
+    single_recipient = os.environ.get('SINGLE_RECIPIENT')
+    single_name = os.environ.get('SINGLE_NAME', 'Subscriber')
+
+    if single_recipient:
+        subscribers = [{'email': single_recipient, 'name': single_name}]
+        print(f'📧 Sending single email to {single_recipient}...')
+    else:
+        try:
+            with open('subscribers.json', 'r') as f:
+                subscribers = json.load(f)
+        except FileNotFoundError:
+            print('Error: subscribers.json not found', file=sys.stderr)
+            sys.exit(1)
+        
+        if not subscribers:
+            print('No subscribers found')
+            return
+        
+        print(f'Sending newsletter to {len(subscribers)} subscribers...')
     
     # Read newsletter content
     text_content = ''
