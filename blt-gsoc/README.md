@@ -2,6 +2,34 @@
 
 This repository contains all Google Summer of Code (GSoC) related pages and functionality extracted from the main OWASP BLT application.
 
+## 🌐 GitHub Pages
+
+**Live Site**: https://owasp-blt.github.io/BLT-GSOC/
+
+The GSoC pages are now hosted as static GitHub Pages in the `docs/` directory:
+- **Home Page**: [index.html](https://owasp-blt.github.io/BLT-GSOC/) - Main GSoC landing page
+- **PR Analytics**: [pr-report.html](https://owasp-blt.github.io/BLT-GSOC/pr-report.html) - Information about PR analytics dashboard
+
+### GitHub Pages Structure
+
+```
+docs/
+├── index.html          # Main GSoC page (converted from Django template)
+├── pr-report.html      # PR analytics info page
+├── .nojekyll          # Bypass Jekyll processing
+├── css/
+│   └── main.css       # Custom styles
+├── images/
+│   └── gsoc.png       # GSoC logo
+└── js/
+    └── gsoc_pr_report.js  # Analytics scripts (for reference)
+```
+
+The pages have been converted from Django templates to static HTML and use:
+- **Tailwind CSS** (CDN) for styling
+- **Font Awesome** (CDN) for icons
+- Responsive design with dark mode support
+
 ## Contents
 
 This repository includes all GSoC-related components from the BLT application:
@@ -173,3 +201,45 @@ BLT-GSOC/
 ## License
 
 This project inherits the license from the main OWASP BLT project.
+
+## Deployment
+
+### Enabling GitHub Pages
+
+To enable GitHub Pages for this repository:
+
+1. Go to repository **Settings** > **Pages**
+2. Under "Source", select **Deploy from a branch**
+3. Select branch: `copilot/move-gsoc-pages-to-repo` (or `main`)
+4. Select folder: `/docs`
+5. Click **Save**
+
+The site will be published at: `https://owasp-blt.github.io/BLT-GSOC/`
+
+### Local Development
+
+To test the static pages locally:
+
+```bash
+# Using Python's built-in HTTP server
+cd docs
+python3 -m http.server 8000
+
+# Then open http://localhost:8000 in your browser
+```
+
+Or use any other static file server like `npx serve docs` or VS Code Live Server.
+
+### Converting Templates
+
+The `convert_to_static.py` script was used to convert Django templates to static HTML:
+
+```bash
+python3 convert_to_static.py
+```
+
+This script:
+- Removes Django template tags (`{% %}` and `{{ }}`)
+- Replaces `{% static %}` tags with relative paths
+- Adds complete HTML structure with CDN dependencies
+- Adds navigation and footer
