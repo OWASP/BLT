@@ -937,6 +937,13 @@
             // Replace all cells with the error cell
             row.innerHTML = '';
             row.appendChild(errorCell);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (row && row.parentNode) {
+                    errorCell.remove();
+                }
+            }, 5000);
         }
 
         function showContainerError(containerId, message) {
@@ -955,6 +962,14 @@
                     </div>
                 </div>
             `;
+
+            // Auto-dismiss after 5 seconds
+            const errorDiv = container.querySelector('.rounded-xl');
+            setTimeout(() => {
+                if (errorDiv && errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
         }
 
         function showInputError(inputId, message) {
