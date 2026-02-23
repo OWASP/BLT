@@ -3,10 +3,10 @@ Bugs handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params, parse_json_body
+from utils import error_response, paginated_response, parse_pagination_params, parse_json_body
 from libs.db import get_db_safe
 from utils import convert_d1_results
-
+from worker import Response
 async def handle_bugs(
     request: Any,
     env: Any,
@@ -66,7 +66,7 @@ async def handle_bugs(
         ''').bind(f"%{query}%", f"%{query}%", limit_int).all()
         
         response_data = convert_d1_results(search_result.results if hasattr(search_result, 'results') else [])
-        return json_response({
+        return Response.json({
             "success": True,
             "query": query,
             "data": response_data
@@ -151,7 +151,7 @@ async def handle_bugs(
         bug_data['screenshots'] = screenshots_data
         bug_data['tags'] = tags_data
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": bug_data
         })
@@ -241,13 +241,13 @@ async def handle_bugs(
                 else:
                     bug_data = {"id": last_id}
                 
-                return json_response({
+                return Response.json({
                     "success": True,
                     "message": "Bug created successfully",
                     "data": bug_data
                 }, status=201)
             else:
-                return json_response({
+                return Response.json({
                     "success": True,
                     "message": "Bug created successfully"
                 }, status=201)
@@ -334,7 +334,7 @@ async def handle_bugs(
         # Convert D1 proxy results to Python list
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": data,
             "pagination": {
