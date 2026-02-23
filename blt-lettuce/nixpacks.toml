@@ -1,2 +1,0 @@
-[phases.setup]
-aptPkgs = ["sqlite3", "libsqlite3-dev"]
