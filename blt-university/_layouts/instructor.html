@@ -1,46 +1,80 @@
 ---
 layout: default
 ---
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <article class="instructor-profile">
-    <div class="instructor-header">
-        {% if page.avatar %}
-        <img src="{{ page.avatar }}" alt="{{ page.title }}" class="instructor-avatar">
-        {% endif %}
-        <div class="instructor-info">
-            <h1>{{ page.title }}</h1>
-            {% if page.expertise %}
-            <p class="instructor-expertise">{{ page.expertise }}</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="instructor-bio">
-        {{ content }}
-    </div>
-
-    {% if page.github or page.linkedin or page.twitter or page.website %}
-    <div class="instructor-social">
-        <h3>Connect</h3>
-        <ul>
-            {% if page.github %}<li><a href="https://github.com/{{ page.github }}" target="_blank">GitHub</a></li>{% endif %}
-            {% if page.linkedin %}<li><a href="https://linkedin.com/in/{{ page.linkedin }}" target="_blank">LinkedIn</a></li>{% endif %}
-            {% if page.twitter %}<li><a href="https://twitter.com/{{ page.twitter }}" target="_blank">Twitter</a></li>{% endif %}
-            {% if page.website %}<li><a href="{{ page.website }}" target="_blank">Website</a></li>{% endif %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <div class="instructor-courses">
-        <h2>Courses Taught</h2>
-        <div class="course-grid">
-        {% assign instructor_courses = site.courses | where: "instructor", page.title %}
-        {% for course in instructor_courses %}
-            <div class="course-card">
-                <h3><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h3>
-                <p>{{ course.category }} • {{ course.level }}</p>
+    <section class="bg-bltDark text-white pt-16 pb-28 border-b border-gray-800 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-red-500/10 rounded-full filter blur-[100px]"></div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-10 text-center md:text-left">
+            <div class="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gray-800 shadow-2xl overflow-hidden shrink-0 bg-gray-800 flex items-center justify-center p-1">
+                {% if page.avatar %}
+                <img src="{{ page.avatar | relative_url }}" alt="{{ page.title }}" class="w-full h-full object-cover rounded-full">
+                {% else %}
+                <i class="ph-bold ph-user text-5xl text-gray-600"></i>
+                {% endif %}
             </div>
-        {% endfor %}
+            <div>
+                <h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2">{{ page.title }}</h1>
+                {% if page.expertise %}
+                <div class="inline-block px-3 py-1 bg-white/5 text-bltRed rounded-lg text-[10px] font-bold uppercase tracking-widest border border-white/10">
+                    {{ page.expertise }}
+                </div>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-6 w-full flex flex-col lg:flex-row gap-8 -mt-10 relative z-20 mb-24">
+        
+        <div class="lg:w-2/3 bg-white p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <i class="ph-bold ph-identification-card text-bltRed"></i> Biography
+            </h2>
+            <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-a:text-bltRed hover:prose-a:text-bltRedHover prose-p:text-gray-600">
+                {{ content }}
+            </div>
+        </div>
+
+        <aside class="lg:w-1/3 space-y-6">
+            {% if page.github or page.linkedin or page.twitter or page.website %}
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-share-network text-bltRed"></i> Connect
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    {% if page.github %}
+                    <a href="https://github.com/{{ page.github }}" target="_blank" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-red-100 transition-all group">
+                        <i class="ph-bold ph-github-logo text-2xl text-gray-400 group-hover:text-bltRed"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600">GitHub</span>
+                    </a>
+                    {% endif %}
+                    {% if page.linkedin %}
+                    <a href="https://linkedin.com/in/{{ page.linkedin }}" target="_blank" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-red-100 transition-all group">
+                        <i class="ph-bold ph-linkedin-logo text-2xl text-gray-400 group-hover:text-bltRed"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-600">LinkedIn</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% assign instructor_courses = site.courses | where: "instructor", page.title %}
+            {% if instructor_courses.size > 0 %}
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-graduation-cap text-bltRed"></i> Courses
+                </h3>
+                <div class="space-y-3">
+                    {% for course in instructor_courses %}
+                    <a href="{{ course.url | relative_url }}" class="block p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-red-200 hover:-translate-y-1 transition-all group">
+                        <h4 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-bltRed transition-colors">{{ course.title }}</h4>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ course.category }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+    </main>
 </article>

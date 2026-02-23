@@ -1,20 +1,29 @@
-<header class="site-header">
-    <div class="container">
-        <div class="header-content">
-            <div class="site-branding">
-                <a href="{{ '/' | relative_url }}" class="site-title">
-                    🎓 {{ site.university.name }}
-                </a>
-                <p class="site-tagline">{{ site.university.tagline }}</p>
+<header class="sticky top-0 w-full z-50 bg-white border-b border-gray-200">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        
+        <!-- Logo -->
+        <a href="{{ '/' | relative_url }}" class="flex items-center gap-3 font-semibold text-lg text-gray-900">
+            <div class="w-9 h-9 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden">
+                <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
+                     alt="BLT Logo"
+                     class="w-full h-full object-contain p-1">
             </div>
-            
-            <nav class="site-navigation">
-                <ul>
-                {% for item in site.navigation %}
-                    <li><a href="{{ item.url | relative_url }}" {% if page.url == item.url %}class="active"{% endif %}>{{ item.title }}</a></li>
-                {% endfor %}
-                </ul>
-            </nav>
-        </div>
+            <span>{{ site.university.name | default: "BLT University" }}</span>
+        </a>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex gap-8 text-sm font-medium text-gray-600">
+            {% for item in site.navigation %}
+                <a href="{{ item.url | relative_url }}"
+                   class="{% if page.url == item.url %}
+                          text-bltRed border-b-2 border-bltRed pb-1
+                          {% else %}
+                          hover:text-gray-900 transition-colors
+                          {% endif %}">
+                    {{ item.title }}
+                </a>
+            {% endfor %}
+        </nav>
+
     </div>
 </header>

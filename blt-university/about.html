@@ -3,135 +3,95 @@ layout: default
 title: About
 permalink: /about/
 ---
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<div class="page-header">
-    <div class="container">
-        <h1>About BLT University</h1>
-        <p>Open-Source Cybersecurity Education for Everyone</p>
+<section class="relative pt-16 pb-24 overflow-hidden bg-white border-b border-gray-50 text-center">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.04),transparent_50%)] -z-10"></div>
+    <div class="max-w-4xl mx-auto px-6 relative z-10">
+        <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+            About <span class="text-transparent bg-clip-text bg-gradient-to-r from-bltRed to-red-600">BLT University</span>
+        </h1>
+        <p class="text-sm md:text-base text-gray-500 max-w-xl mx-auto font-medium leading-relaxed">
+            Empowering the next generation of security professionals through community-driven, open-source education.
+        </p>
     </div>
-</div>
+</section>
 
-<div class="about-page">
-    <div class="container">
-        <section class="about-section">
-            <h2>Our Mission</h2>
-            <p>
-                BLT University is a revolutionary open-source educational platform dedicated to making 
-                cybersecurity education accessible to everyone. We believe that security knowledge should 
-                be free, collaborative, and community-driven.
-            </p>
-            <p>
-                By leveraging GitHub's powerful collaboration features, we've created a unique learning 
-                environment where students learn through doing, instructors teach through pull requests, 
-                and the entire community contributes to the growth of knowledge.
-            </p>
-        </section>
+<main class="max-w-4xl mx-auto px-6 py-16 space-y-20">
+    
+    <section class="prose prose-sm md:prose-base max-w-none text-gray-600">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-bltRedLight text-bltRed flex items-center justify-center shadow-sm">
+                <i class="ph-fill ph-target text-xl"></i>
+            </div> 
+            Our Mission
+        </h2>
+        <p class="mb-4 leading-relaxed">BLT University is a revolutionary open-source educational platform dedicated to making cybersecurity education accessible to everyone. We believe that knowledge should be free, collaborative, and community-driven.</p>
+        <p class="leading-relaxed font-medium text-gray-700">By leveraging GitHub's powerful collaboration features, we've created a unique learning environment where students learn through doing and instructors teach through transparent pull requests.</p>
+    </section>
 
-        <section class="about-section">
-            <h2>How It Works</h2>
-            <div class="how-it-works">
-                <div class="work-item">
-                    <h3>📚 GitHub-Powered Learning</h3>
-                    <p>
-                        All courses are hosted on GitHub Pages, making them version-controlled, 
-                        transparent, and easily accessible. Students can view course history, 
-                        contribute improvements, and track their progress through GitHub.
-                    </p>
+    <section>
+        <h2 class="text-2xl font-bold text-gray-900 mb-10 text-center">How It Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-8 rounded-[2rem] shadow-soft border border-gray-100 group hover:border-bltRed/20 transition-all duration-300">
+                <div class="w-12 h-12 bg-red-50 text-bltRed rounded-xl flex items-center justify-center mb-6 group-hover:bg-bltRed group-hover:text-white transition-colors">
+                    <i class="ph-bold ph-git-branch text-xl"></i>
                 </div>
-                
-                <div class="work-item">
-                    <h3>🎓 Collaborative Teaching</h3>
-                    <p>
-                        Instructors create and update courses through pull requests. The community 
-                        can review, suggest improvements, and help maintain course quality. Teaching 
-                        becomes a collaborative effort.
-                    </p>
-                </div>
-                
-                <div class="work-item">
-                    <h3>🤖 Automated Workflows</h3>
-                    <p>
-                        GitHub Actions automate enrollment, certificate generation, and course 
-                        management. Students interact with courses through issues and pull requests, 
-                        learning real-world development practices.
-                    </p>
-                </div>
-                
-                <div class="work-item">
-                    <h3>🌐 Community-Driven</h3>
-                    <p>
-                        Every student, instructor, and contributor is part of our community. 
-                        Through discussions, issues, and contributions, we collectively build 
-                        the best cybersecurity curriculum possible.
-                    </p>
-                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">GitHub-Powered</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">All courses are hosted on GitHub Pages, making them version-controlled and transparent.</p>
             </div>
-        </section>
 
-        <section class="about-section">
-            <h2>Course Content Types</h2>
-            <div class="content-types">
-                <div class="content-type">
-                    <div class="content-icon">📹</div>
-                    <h3>Video Lectures</h3>
-                    <p>Recorded tutorials and live session recordings</p>
+            <div class="bg-white p-8 rounded-[2rem] shadow-soft border border-gray-100 group hover:border-bltRed/20 transition-all duration-300">
+                <div class="w-12 h-12 bg-red-50 text-bltRed rounded-xl flex items-center justify-center mb-6 group-hover:bg-bltRed group-hover:text-white transition-colors">
+                    <i class="ph-bold ph-users-three text-xl"></i>
                 </div>
-                
-                <div class="content-type">
-                    <div class="content-icon">📄</div>
-                    <h3>PDF Materials</h3>
-                    <p>Comprehensive guides, slides, and reference materials</p>
-                </div>
-                
-                <div class="content-type">
-                    <div class="content-icon">💻</div>
-                    <h3>Interactive Labs</h3>
-                    <p>Hands-on exercises and coding challenges</p>
-                </div>
-                
-                <div class="content-type">
-                    <div class="content-icon">📅</div>
-                    <h3>Live Meetups</h3>
-                    <p>Virtual sessions and community events</p>
-                </div>
-                
-                <div class="content-type">
-                    <div class="content-icon">🔬</div>
-                    <h3>Projects</h3>
-                    <p>Real-world security projects and assessments</p>
-                </div>
-                
-                <div class="content-type">
-                    <div class="content-icon">📝</div>
-                    <h3>Assignments</h3>
-                    <p>Practice exercises and homework via GitHub</p>
-                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Collaborative Teaching</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Instructors update curriculum via Pull Requests, enabling community peer review.</p>
             </div>
-        </section>
 
-        <section class="about-section">
-            <h2>Our Values</h2>
-            <ul class="values-list">
-                <li><strong>Open Source:</strong> All content is freely available and open for contribution</li>
-                <li><strong>Community-First:</strong> Built by the community, for the community</li>
-                <li><strong>Quality Education:</strong> High-quality courses taught by industry experts</li>
-                <li><strong>Practical Learning:</strong> Focus on real-world, hands-on skills</li>
-                <li><strong>Inclusive:</strong> Welcoming to learners of all backgrounds and skill levels</li>
-                <li><strong>Transparent:</strong> Open processes and clear progression paths</li>
-            </ul>
-        </section>
-
-        <section class="about-section">
-            <h2>Get Involved</h2>
-            <p>
-                BLT University thrives because of contributors like you. Whether you're a student, 
-                instructor, or security professional, there are many ways to get involved:
-            </p>
-            <div class="involvement-options">
-                <a href="{{ '/courses/' | relative_url }}" class="btn btn-primary">Take a Course</a>
-                <a href="{{ '/contributing/' | relative_url }}" class="btn btn-primary">Become an Instructor</a>
-                <a href="https://github.com/OWASP-BLT/BLT-University" class="btn btn-secondary" target="_blank">Contribute on GitHub</a>
+            <div class="bg-white p-8 rounded-[2rem] shadow-soft border border-gray-100 group hover:border-bltRed/20 transition-all duration-300">
+                <div class="w-12 h-12 bg-red-50 text-bltRed rounded-xl flex items-center justify-center mb-6 group-hover:bg-bltRed group-hover:text-white transition-colors">
+                    <i class="ph-bold ph-cpu text-xl"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Automated Workflows</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">GitHub Actions handle enrollment and certificate generation automatically.</p>
             </div>
-        </section>
-    </div>
-</div>
+
+            <div class="bg-white p-8 rounded-[2rem] shadow-soft border border-gray-100 group hover:border-bltRed/20 transition-all duration-300">
+                <div class="w-12 h-12 bg-red-50 text-bltRed rounded-xl flex items-center justify-center mb-6 group-hover:bg-bltRed group-hover:text-white transition-colors">
+                    <i class="ph-bold ph-globe text-xl"></i>
+                </div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Community-Driven</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Practitioners and students collectively build and maintain the best curriculum possible.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-gray-900 p-10 md:p-14 rounded-[3rem] text-white relative overflow-hidden group">
+        <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
+            <i class="ph-fill ph-seal-check text-[15rem]"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold mb-10 relative z-10">Our Core Values</h2>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            <li class="flex items-start gap-4">
+                <i class="ph-bold ph-check-circle text-bltRed text-xl mt-1"></i>
+                <div><strong class="text-white block text-base">Open Source</strong> Content is open and free to modify under AGPL-3.0.</div>
+            </li>
+            <li class="flex items-start gap-4">
+                <i class="ph-bold ph-check-circle text-bltRed text-xl mt-1"></i>
+                <div><strong class="text-white block text-base">Practical Learning</strong> Focused on real-world, hands-on security skills.</div>
+            </li>
+        </ul>
+    </section>
+
+    <section class="text-center pt-10">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to contribute?</h2>
+        <p class="text-sm text-gray-500 mb-10">BLT University thrives because of contributors like you.</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{{ '/courses/' | relative_url }}" class="px-8 py-3.5 bg-bltRed text-white font-bold rounded-2xl hover:bg-bltRedHover hover:-translate-y-0.5 transition-all shadow-lg shadow-red-100">Take a Course</a>
+            <a href="{{ '/contributing/' | relative_url }}" class="px-8 py-3.5 bg-white text-gray-700 font-bold border border-gray-200 rounded-2xl hover:bg-gray-50 hover:-translate-y-0.5 transition-all">Become an Instructor</a>
+        </div>
+    </section>
+
+</main>
