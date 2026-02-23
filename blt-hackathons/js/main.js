@@ -90,6 +90,7 @@ class HackathonDashboard {
             this.renderRepositories(stats.repoStats);
             this.renderSponsors();
             this.hideLoading();
+            this.updateApiInfo();
         } catch (error) {
             console.error('Error initializing dashboard:', error);
             this.showError('Failed to load hackathon data. Please check your configuration and try again.');
@@ -595,6 +596,44 @@ class HackathonDashboard {
         }).join('');
 
         container.innerHTML = html || '<p class="text-gray-500 italic">No sponsors yet.</p>';
+    }
+
+    /**
+     * Update API info section in footer with token status and rate limit details
+     */
+    async updateApiInfo() {
+        const infoEl = document.getElementById('github-api-info');
+        if (!infoEl) return;
+
+        const hasToken = typeof this.config.github.token === 'string' && this.config.github.token.length > 0;
+
+        // Use rate limit already captured from prior API calls; fetch if not yet available
+        let rl = this.api.rateLimit;
+        if (rl.remaining === null) {
+            rl = await this.api.fetchRateLimit();
+        }
+
+        const tokenHtml = hasToken
+            ? '<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-key"></i> GitHub Token: Active</span>'
+            : '<span class="inline-flex items-center gap-1 text-yellow-600"><i class="fas fa-exclamation-triangle"></i> No GitHub Token (unauthenticated – 60 req/hr limit)</span>';
+
+        let rateLimitHtml = '';
+        if (rl.remaining !== null) {
+            const resetDate = new Date(rl.reset * 1000);
+            const resetTime = resetDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+            const pct = Math.round((rl.remaining / rl.limit) * 100);
+            const barColor = pct > 50 ? 'bg-green-500' : pct > 20 ? 'bg-yellow-500' : 'bg-red-500';
+            rateLimitHtml = `
+                <span class="text-gray-400">|</span>
+                <span>API calls: <strong>${rl.remaining}</strong> / ${rl.limit} remaining</span>
+                <span class="inline-block w-16 h-2 rounded-full bg-gray-200 align-middle">
+                    <span class="block h-2 rounded-full ${barColor}" style="width:${pct}%"></span>
+                </span>
+                <span class="text-gray-400">|</span>
+                <span>Resets at <strong>${resetTime}</strong></span>`;
+        }
+
+        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}</div>`;
     }
 
     /**

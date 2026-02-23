@@ -235,6 +235,55 @@ class HackathonIndex {
     }
 
     /**
+     * Update API info section in footer with token status and rate limit details
+     */
+    async updateApiInfo() {
+        const infoEl = document.getElementById('github-api-info');
+        if (!infoEl) return;
+
+        // Check if any hackathon has a token configured
+        const hackathons = (this.config.hackathons || []);
+        const hasToken = hackathons.some(h => h.github && typeof h.github.token === 'string' && h.github.token.length > 0);
+
+        const tokenHtml = hasToken
+            ? '<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-key"></i> GitHub Token: Active</span>'
+            : '<span class="inline-flex items-center gap-1 text-yellow-600"><i class="fas fa-exclamation-triangle"></i> No GitHub Token (unauthenticated – 60 req/hr limit)</span>';
+
+        // Fetch rate limit using the first hackathon's token if available.
+        // All hackathons sharing the same token will have the same rate limit bucket.
+        const baseURL = 'https://api.github.com';
+        const firstToken = hackathons.find(h => h.github && typeof h.github.token === 'string' && h.github.token.length > 0);
+        const token = firstToken ? firstToken.github.token : null;
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        let rateLimitHtml = '';
+        try {
+            const response = await fetch(`${baseURL}/rate_limit`, { headers });
+            if (response.ok) {
+                const data = await response.json();
+                const rl = data.rate;
+                const resetDate = new Date(rl.reset * 1000);
+                const resetTime = resetDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                const pct = Math.round((rl.remaining / rl.limit) * 100);
+                const barColor = pct > 50 ? 'bg-green-500' : pct > 20 ? 'bg-yellow-500' : 'bg-red-500';
+                rateLimitHtml = `
+                    <span class="text-gray-400">|</span>
+                    <span>API calls: <strong>${rl.remaining}</strong> / ${rl.limit} remaining</span>
+                    <span class="inline-block w-16 h-2 rounded-full bg-gray-200 align-middle">
+                        <span class="block h-2 rounded-full ${barColor}" style="width:${pct}%"></span>
+                    </span>
+                    <span class="text-gray-400">|</span>
+                    <span>Resets at <strong>${resetTime}</strong></span>`;
+            }
+        } catch (e) {
+            console.warn('Failed to fetch rate limit:', e);
+        }
+
+        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}</div>`;
+    }
+
+    /**
      * Escape HTML to prevent XSS
      */
     escapeHtml(text) {
@@ -265,4 +314,5 @@ function filterHackathons(status) {
 document.addEventListener('DOMContentLoaded', () => {
     window.hackathonIndex = new HackathonIndex(HACKATHONS_CONFIG);
     window.hackathonIndex.init();
+    window.hackathonIndex.updateApiInfo();
 });
