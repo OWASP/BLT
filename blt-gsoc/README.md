@@ -90,6 +90,86 @@ All files in this repository were moved from:
   - `website/static/images/gsoc.png`
   - `blt/urls.py` (GSoC URL patterns)
 
+## Dependencies
+
+These GSoC components have dependencies on the main BLT application:
+
+### Django Models
+- `User` - Django user model for authentication
+- `Repo` - Repository information and metadata
+- `Contributor` - GitHub contributor data
+- `GitHubIssue` - Pull request and issue tracking
+- `DailyStats` - Statistics and rate limiting
+
+### Templates
+- `base.html` - Base template layout
+- `includes/sidenav.html` - Navigation sidebar component
+- Django template tags: `static`, `custom_tags`
+
+### Python Packages
+- Django framework
+- django-allauth - Social authentication
+- requests - HTTP library
+- markdown - Markdown processing
+- bleach - HTML sanitization
+- better-profanity - Content filtering
+
+### External Services
+- GitHub API - For fetching PR and repository data
+- ApexCharts CDN - For data visualization
+
+## Integration Notes
+
+To use these components in the main BLT application:
+
+1. **Templates**: Place in `website/templates/` directory
+2. **Views**: Import from `website/views/`
+3. **Static Assets**: Place in `website/static/`
+4. **Management Commands**: Place in `website/management/commands/`
+5. **URL Patterns**: Include in main `urls.py`
+
+Example URL configuration:
+```python
+from website.views.issue import GsocView, refresh_gsoc_project
+from website.views.project import gsoc_pr_report
+
+urlpatterns = [
+    path("gsoc/", GsocView.as_view(), name="gsoc"),
+    path("gsoc/refresh/", refresh_gsoc_project, name="refresh_gsoc_project"),
+    path("gsoc/pr-report/", gsoc_pr_report, name="gsoc_pr_report"),
+]
+```
+
+## File Structure
+
+```
+BLT-GSOC/
+├── README.md                              # This file
+├── CHANGELOG.md                           # Version history
+├── .gitignore                             # Git ignore patterns
+├── urls.py                                # URL routing configuration
+├── templates/                             # Django HTML templates
+│   ├── gsoc.html                         # Main GSoC page
+│   └── projects/
+│       └── gsoc_pr_report.html           # PR analytics dashboard
+├── views/                                 # Django views
+│   ├── __init__.py                       # Package initialization
+│   ├── issue.py                          # GsocView and refresh function
+│   ├── project.py                        # PR report generation
+│   └── constants.py                      # Project constants
+├── management/                            # Django management commands
+│   ├── __init__.py
+│   └── commands/
+│       ├── __init__.py
+│       ├── fetch_gsoc_prs.py            # Fetch PR data
+│       └── fetch_gsoc_orgs.py           # Fetch org data
+└── static/                                # Static assets
+    ├── js/
+    │   └── gsoc_pr_report.js            # Interactive charts
+    └── images/
+        └── gsoc.png                      # GSoC logo
+```
+
 ## License
 
 This project inherits the license from the main OWASP BLT project.
