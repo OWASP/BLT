@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT-MCP — AI-Powered Bug Logging Tool Integration</title>
+  <meta name="description" content="BLT-MCP is an MCP server giving AI agents structured access to the OWASP BLT ecosystem for bug logging, vulnerability management, and security workflows." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#E10101',
+            'primary-hover': '#b91c1c',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937',
+            'neutral-border': '#E5E5E5',
+            'sidebar-active-bg': '#feeae9',
+            'sidebar-active-text': '#E10101',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-jQGQ42aiQnDFEB9F7lNyv5QnqTWQJ4nk4iulBVcDiwRxH/cO0CW6svMuPa7F4xpYwANBNcTjQtKn6cA9h7MFNw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #E10101; border-radius: 3px; }
+
+    /* Code block highlight */
+    .code-block {
+      background: #1F2937;
+      color: #f3f4f6;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+    }
+    .code-block .kw  { color: #f87171; }
+    .code-block .str { color: #86efac; }
+    .code-block .key { color: #93c5fd; }
+    .code-block .cmt { color: #6b7280; }
+
+    /* Gradient hero text */
+    .hero-gradient {
+      background: linear-gradient(135deg, #E10101 0%, #ff6b6b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Animated underline for nav links */
+    .nav-link::after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: #E10101;
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+    }
+    .nav-link:hover::after { transform: scaleX(1); }
+  </style>
+</head>
+<body class="font-sans bg-white text-gray-900 antialiased">
+
+  <!-- ═══════════════════════════════════════ NAVBAR ═══════════════════════════════════════ -->
+  <header class="sticky top-0 z-50 bg-white border-b border-neutral-border shadow-sm">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2 group" aria-label="BLT-MCP home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-white font-bold text-sm" aria-hidden="true">
+            BLT
+          </span>
+          <span class="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">
+            BLT<span class="text-primary">-MCP</span>
+          </span>
+        </a>
+
+        <!-- Desktop nav -->
+        <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700" role="list">
+          <li><a href="#features"      class="nav-link hover:text-primary transition-colors pb-0.5">Features</a></li>
+          <li><a href="#how-it-works"  class="nav-link hover:text-primary transition-colors pb-0.5">How It Works</a></li>
+          <li><a href="#quick-start"   class="nav-link hover:text-primary transition-colors pb-0.5">Quick Start</a></li>
+          <li><a href="#api-reference" class="nav-link hover:text-primary transition-colors pb-0.5">API</a></li>
+        </ul>
+
+        <!-- CTA buttons -->
+        <div class="hidden md:flex items-center gap-3">
+          <a
+            href="https://github.com/OWASP-BLT/BLT-MCP"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-primary text-primary rounded-md hover:bg-primary hover:text-white transition-colors duration-150"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            GitHub
+          </a>
+          <a
+            href="#quick-start"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary-hover transition-colors duration-150"
+          >
+            Get Started
+          </a>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button
+          id="mobile-menu-btn"
+          type="button"
+          class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-primary hover:bg-gray-100 transition-colors"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+          aria-label="Toggle menu"
+        >
+          <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Mobile menu -->
+      <div id="mobile-menu" class="hidden md:hidden pb-4" role="menu">
+        <ul class="flex flex-col gap-1 text-sm font-medium text-gray-700" role="list">
+          <li><a href="#features"      class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors" role="menuitem">Features</a></li>
+          <li><a href="#how-it-works"  class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors" role="menuitem">How It Works</a></li>
+          <li><a href="#quick-start"   class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors" role="menuitem">Quick Start</a></li>
+          <li><a href="#api-reference" class="block px-3 py-2 rounded-md hover:bg-gray-50 hover:text-primary transition-colors" role="menuitem">API</a></li>
+          <li class="pt-2 flex gap-2">
+            <a href="https://github.com/OWASP-BLT/BLT-MCP" target="_blank" rel="noopener noreferrer"
+               class="flex-1 text-center px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-white transition-colors text-sm font-medium">
+              <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>GitHub
+            </a>
+            <a href="#quick-start"
+               class="flex-1 text-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors text-sm font-medium">
+              Get Started
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
+    <section class="relative overflow-hidden bg-gradient-to-b from-gray-50 to-white pt-20 pb-24 px-4 sm:px-6 lg:px-8" aria-labelledby="hero-heading">
+
+      <!-- Background decoration -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-red-50 opacity-60 blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-red-50 opacity-40 blur-3xl"></div>
+      </div>
+
+      <div class="relative max-w-4xl mx-auto text-center">
+
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-100 text-primary text-xs font-semibold mb-6">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          OWASP BLT Project
+        </div>
+
+        <!-- Heading -->
+        <h1 id="hero-heading" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-6 leading-tight">
+          AI-Powered<br />
+          <span class="hero-gradient">Bug Logging</span> at Scale
+        </h1>
+
+        <!-- Subheading -->
+        <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+          BLT-MCP is a Model Context Protocol server that gives AI agents and developers
+          structured access to the <strong class="text-gray-800">OWASP BLT</strong> ecosystem —
+          log bugs, triage vulnerabilities, and manage security workflows, all from your IDE or chat interface.
+        </p>
+
+        <!-- CTA buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="#quick-start"
+            class="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold bg-primary text-white rounded-md hover:bg-primary-hover transition-colors shadow-sm"
+          >
+            <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+            Get Started
+          </a>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-MCP"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold border border-primary text-primary bg-white rounded-md hover:bg-primary hover:text-white transition-colors"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Stats row -->
+        <div class="mt-16 grid grid-cols-3 gap-8 max-w-xl mx-auto">
+          <div class="text-center">
+            <p class="text-3xl font-extrabold text-primary">10+</p>
+            <p class="text-sm text-gray-500 mt-1">BLT Resources</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-extrabold text-primary">4</p>
+            <p class="text-sm text-gray-500 mt-1">Action Tools</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-extrabold text-primary">3</p>
+            <p class="text-sm text-gray-500 mt-1">AI Workflows</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ FEATURES ══════════════════════════════════ -->
+    <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="features-heading">
+      <div class="max-w-7xl mx-auto">
+
+        <div class="text-center mb-14">
+          <h2 id="features-heading" class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Three Powerful Layers
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            BLT-MCP exposes the full BLT ecosystem through three clean abstractions that any MCP-compatible client can use.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          <!-- Resources -->
+          <div class="group rounded-xl border border-neutral-border p-8 hover:border-primary hover:shadow-md transition-all duration-200">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-red-50 text-primary mb-5">
+              <i class="fa-solid fa-link text-xl" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">
+              Resources <code class="ml-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">blt://</code>
+            </h3>
+            <p class="text-gray-600 text-sm mb-5 leading-relaxed">
+              Access structured BLT data through standardised <code class="text-primary">blt://</code> URIs. Every entity in the system is a first-class resource.
+            </p>
+            <ul class="space-y-2 text-sm text-gray-700" role="list">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <code class="font-mono">blt://issues</code> &amp; <code class="font-mono">blt://issues/{id}</code>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <code class="font-mono">blt://repos</code> &amp; <code class="font-mono">blt://contributors</code>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <code class="font-mono">blt://leaderboards</code> &amp; <code class="font-mono">blt://rewards</code>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <code class="font-mono">blt://workflows</code>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Tools -->
+          <div class="group rounded-xl border border-neutral-border p-8 hover:border-primary hover:shadow-md transition-all duration-200">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-red-50 text-primary mb-5">
+              <i class="fa-solid fa-wrench text-xl" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Tools</h3>
+            <p class="text-gray-600 text-sm mb-5 leading-relaxed">
+              Let AI agents take action on BLT — submit bugs, update statuses, award contributors, and add context to issues.
+            </p>
+            <ul class="space-y-2 text-sm text-gray-700" role="list">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>submit_issue</strong> — report bugs &amp; vulnerabilities</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>award_bacon</strong> — gamification &amp; points</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>update_issue_status</strong> — manage lifecycle</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>add_comment</strong> — add context to issues</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Prompts -->
+          <div class="group rounded-xl border border-neutral-border p-8 hover:border-primary hover:shadow-md transition-all duration-200">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-red-50 text-primary mb-5">
+              <i class="fa-solid fa-lightbulb text-xl" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Prompts</h3>
+            <p class="text-gray-600 text-sm mb-5 leading-relaxed">
+              Guided AI workflows for common security tasks — from triage to remediation planning to contribution review.
+            </p>
+            <ul class="space-y-2 text-sm text-gray-700" role="list">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>triage_vulnerability</strong> — severity assessment</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>plan_remediation</strong> — fix planning</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-dot text-primary text-xs" aria-hidden="true"></i>
+                <span><strong>review_contribution</strong> — quality review</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ CAPABILITIES ══════════════════════════════ -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50" aria-labelledby="capabilities-heading">
+      <div class="max-w-7xl mx-auto">
+
+        <div class="text-center mb-14">
+          <h2 id="capabilities-heading" class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Built for Modern Security Workflows
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            Everything you need to integrate AI agents with your security pipeline.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <!-- Capability cards -->
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-code text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">JSON-RPC 2.0</h3>
+            <p class="text-sm text-gray-600">Standard protocol for reliable, predictable communication between clients and the MCP server.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-key text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">OAuth / API Key Auth</h3>
+            <p class="text-sm text-gray-600">Secure access to BLT endpoints with flexible authentication options for your environment.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-robot text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">Autonomous Workflows</h3>
+            <p class="text-sm text-gray-600">Enable AI agents to work independently — submit issues, triage vulns, and manage contributors without human intervention.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-trophy text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">Gamification Support</h3>
+            <p class="text-sm text-gray-600">Built-in support for BLT's bacon point system — reward contributors and build a thriving security community.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-shield-halved text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">Security-First Design</h3>
+            <p class="text-sm text-gray-600">Designed specifically for vulnerability management and security workflows. Input validation on every call.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-neutral-border">
+            <i class="fa-solid fa-plug text-primary text-2xl mb-4" aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2">IDE &amp; Chat Integration</h3>
+            <p class="text-sm text-gray-600">Works out of the box with Claude Desktop, Cline, and any MCP-compatible client or IDE plugin.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ HOW IT WORKS ══════════════════════════════ -->
+    <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="how-heading">
+      <div class="max-w-5xl mx-auto">
+
+        <div class="text-center mb-14">
+          <h2 id="how-heading" class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            How It Works
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            BLT-MCP sits between your AI agent and the BLT API, translating natural language into structured security actions.
+          </p>
+        </div>
+
+        <!-- Steps -->
+        <ol class="relative border-l-2 border-neutral-border ml-4 space-y-10" aria-label="How BLT-MCP works">
+
+          <li class="ml-8">
+            <span class="absolute -left-4 flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold" aria-hidden="true">1</span>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Configure your MCP client</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              Add BLT-MCP to your <code class="text-primary text-xs bg-gray-100 px-1.5 py-0.5 rounded">mcp-settings.json</code> with your BLT API key. Works with Claude Desktop, Cline, and any MCP-compatible client.
+            </p>
+          </li>
+
+          <li class="ml-8">
+            <span class="absolute -left-4 flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold" aria-hidden="true">2</span>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Talk to your AI agent naturally</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              Ask your AI to <em>"Submit a critical XSS vulnerability in the login form"</em> or <em>"Show me the leaderboard"</em>. No special syntax required.
+            </p>
+          </li>
+
+          <li class="ml-8">
+            <span class="absolute -left-4 flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold" aria-hidden="true">3</span>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">BLT-MCP translates and executes</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              The server maps your intent to the right BLT resource or tool call, validates inputs, authenticates with the BLT API, and returns structured results.
+            </p>
+          </li>
+
+          <li class="ml-8">
+            <span class="absolute -left-4 flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold" aria-hidden="true">4</span>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Your agent takes action</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              The AI agent receives clean, structured data and can chain multiple calls — triage a bug, assign severity, notify contributors, and award bacon points in one workflow.
+            </p>
+          </li>
+
+        </ol>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ QUICK START ════════════════════════════════ -->
+    <section id="quick-start" class="py-20 px-4 sm:px-6 lg:px-8 bg-dark-base text-gray-100" aria-labelledby="quickstart-heading">
+      <div class="max-w-5xl mx-auto">
+
+        <div class="text-center mb-14">
+          <h2 id="quickstart-heading" class="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Quick Start
+          </h2>
+          <p class="text-lg text-gray-400 max-w-2xl mx-auto">
+            Up and running in under two minutes.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          <!-- Step 1: Install -->
+          <div>
+            <h3 class="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-bold" aria-hidden="true">1</span>
+              Install &amp; Build
+            </h3>
+            <div class="code-block p-5">
+              <p><span class="cmt"># Clone the repository</span></p>
+              <p><span class="kw">git</span> clone https://github.com/OWASP-BLT/BLT-MCP.git</p>
+              <p><span class="kw">cd</span> BLT-MCP</p>
+              <br />
+              <p><span class="cmt"># Install dependencies</span></p>
+              <p><span class="kw">npm</span> install</p>
+              <br />
+              <p><span class="cmt"># Build the project</span></p>
+              <p><span class="kw">npm</span> run build</p>
+            </div>
+          </div>
+
+          <!-- Step 2: Configure -->
+          <div>
+            <h3 class="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-bold" aria-hidden="true">2</span>
+              Configure Environment
+            </h3>
+            <div class="code-block p-5">
+              <p><span class="cmt"># Copy the example env file</span></p>
+              <p><span class="kw">cp</span> .env.example .env</p>
+              <br />
+              <p><span class="cmt"># Edit .env with your BLT API key</span></p>
+              <p><span class="key">BLT_API_BASE</span>=<span class="str">https://blt.owasp.org/api</span></p>
+              <p><span class="key">BLT_API_KEY</span>=<span class="str">your_api_key_here</span></p>
+            </div>
+          </div>
+
+          <!-- Step 3: MCP config -->
+          <div>
+            <h3 class="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-bold" aria-hidden="true">3</span>
+              Add to MCP Client
+            </h3>
+            <div class="code-block p-5">
+              <p>{</p>
+              <p class="pl-4"><span class="key">"mcpServers"</span>: {</p>
+              <p class="pl-8"><span class="key">"blt"</span>: {</p>
+              <p class="pl-12"><span class="key">"command"</span>: <span class="str">"node"</span>,</p>
+              <p class="pl-12"><span class="key">"args"</span>: [<span class="str">"/path/to/BLT-MCP/dist/index.js"</span>],</p>
+              <p class="pl-12"><span class="key">"env"</span>: {</p>
+              <p class="pl-16"><span class="key">"BLT_API_KEY"</span>: <span class="str">"your_key"</span></p>
+              <p class="pl-12">}</p>
+              <p class="pl-8">}</p>
+              <p class="pl-4">}</p>
+              <p>}</p>
+            </div>
+          </div>
+
+          <!-- Step 4: Use it -->
+          <div>
+            <h3 class="flex items-center gap-2 text-lg font-semibold text-white mb-4">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-bold" aria-hidden="true">4</span>
+              Start Using It
+            </h3>
+            <div class="code-block p-5">
+              <p><span class="cmt"># Example AI prompts (in your IDE/chat):</span></p>
+              <br />
+              <p><span class="str">"Submit a critical XSS vulnerability</span></p>
+              <p><span class="str"> in the login form of repo 123"</span></p>
+              <br />
+              <p><span class="str">"Show me the BLT leaderboard"</span></p>
+              <br />
+              <p><span class="str">"Help me triage this SQL injection"</span></p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-10 text-center">
+          <a
+            href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 font-semibold rounded-md hover:bg-gray-100 transition-colors"
+          >
+            <i class="fa-solid fa-book" aria-hidden="true"></i>
+            Full Documentation
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ API REFERENCE ══════════════════════════════ -->
+    <section id="api-reference" class="py-20 px-4 sm:px-6 lg:px-8 bg-white" aria-labelledby="api-heading">
+      <div class="max-w-7xl mx-auto">
+
+        <div class="text-center mb-14">
+          <h2 id="api-heading" class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            API Reference
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            A quick reference for the most commonly used tools and resources.
+          </p>
+        </div>
+
+        <!-- Two-col layout with sidebar-style nav -->
+        <div class="flex flex-col lg:flex-row gap-10">
+
+          <!-- Sidebar nav -->
+          <nav class="lg:w-52 shrink-0" aria-label="API sections">
+            <ul class="space-y-1 text-sm" role="list">
+              <li>
+                <a href="#api-tools" class="flex items-center gap-2 px-3 py-2 rounded-md bg-sidebar-active-bg text-sidebar-active-text font-medium">
+                  <i class="fa-solid fa-wrench text-xs" aria-hidden="true"></i>
+                  Tools
+                </a>
+              </li>
+              <li>
+                <a href="#api-resources" class="flex items-center gap-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors font-medium">
+                  <i class="fa-solid fa-link text-xs" aria-hidden="true"></i>
+                  Resources
+                </a>
+              </li>
+              <li>
+                <a href="#api-prompts" class="flex items-center gap-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors font-medium">
+                  <i class="fa-solid fa-lightbulb text-xs" aria-hidden="true"></i>
+                  Prompts
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <!-- Content -->
+          <div class="flex-1 space-y-12">
+
+            <!-- Tools -->
+            <div id="api-tools">
+              <h3 class="text-2xl font-bold text-gray-900 mb-6 pb-2 border-b border-neutral-border">Tools</h3>
+              <div class="space-y-6">
+
+                <!-- submit_issue -->
+                <div class="rounded-lg border border-neutral-border overflow-hidden">
+                  <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-neutral-border">
+                    <code class="font-mono font-semibold text-primary">submit_issue</code>
+                    <span class="text-xs bg-red-50 text-primary border border-red-100 px-2 py-0.5 rounded-full font-medium">write</span>
+                  </div>
+                  <div class="p-5">
+                    <p class="text-sm text-gray-600 mb-4">Report new bugs and vulnerabilities to BLT.</p>
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
+                          <th class="pb-2 pr-4 font-medium">Parameter</th>
+                          <th class="pb-2 pr-4 font-medium">Type</th>
+                          <th class="pb-2 font-medium">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-100">
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">title</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Issue title</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">description</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Detailed description</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-gray-500">repo_id</code></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Repository ID</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-gray-500">severity</code></td>
+                          <td class="py-2 pr-4 text-gray-500">enum</td>
+                          <td class="py-2 text-gray-600">low · medium · high · critical</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-gray-500">type</code></td>
+                          <td class="py-2 pr-4 text-gray-500">enum</td>
+                          <td class="py-2 text-gray-600">bug · vulnerability · feature · other</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- award_bacon -->
+                <div class="rounded-lg border border-neutral-border overflow-hidden">
+                  <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-neutral-border">
+                    <code class="font-mono font-semibold text-primary">award_bacon</code>
+                    <span class="text-xs bg-red-50 text-primary border border-red-100 px-2 py-0.5 rounded-full font-medium">write</span>
+                  </div>
+                  <div class="p-5">
+                    <p class="text-sm text-gray-600 mb-4">Award bacon points to a contributor for their work.</p>
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
+                          <th class="pb-2 pr-4 font-medium">Parameter</th>
+                          <th class="pb-2 pr-4 font-medium">Type</th>
+                          <th class="pb-2 font-medium">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-100">
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">contributor_id</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Contributor ID</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">points</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">number</td>
+                          <td class="py-2 text-gray-600">Points to award</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">reason</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Reason for the award</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- update_issue_status -->
+                <div class="rounded-lg border border-neutral-border overflow-hidden">
+                  <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-neutral-border">
+                    <code class="font-mono font-semibold text-primary">update_issue_status</code>
+                    <span class="text-xs bg-red-50 text-primary border border-red-100 px-2 py-0.5 rounded-full font-medium">write</span>
+                  </div>
+                  <div class="p-5">
+                    <p class="text-sm text-gray-600 mb-4">Change the lifecycle status of a BLT issue.</p>
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider">
+                          <th class="pb-2 pr-4 font-medium">Parameter</th>
+                          <th class="pb-2 pr-4 font-medium">Type</th>
+                          <th class="pb-2 font-medium">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-100">
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">issue_id</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Issue ID</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-primary">status</code> <span class="text-red-500 text-xs">*</span></td>
+                          <td class="py-2 pr-4 text-gray-500">enum</td>
+                          <td class="py-2 text-gray-600">open · in_progress · resolved · closed · wont_fix</td>
+                        </tr>
+                        <tr>
+                          <td class="py-2 pr-4"><code class="font-mono text-gray-500">comment</code></td>
+                          <td class="py-2 pr-4 text-gray-500">string</td>
+                          <td class="py-2 text-gray-600">Optional explanation</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Resources -->
+            <div id="api-resources">
+              <h3 class="text-2xl font-bold text-gray-900 mb-6 pb-2 border-b border-neutral-border">Resources</h3>
+              <div class="rounded-lg border border-neutral-border overflow-hidden">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="text-left text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-neutral-border">
+                      <th class="px-5 py-3 font-medium">URI</th>
+                      <th class="px-5 py-3 font-medium">Returns</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100">
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://issues</code></td>
+                      <td class="px-5 py-3 text-gray-600">JSON array of all issues</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://issues/{id}</code></td>
+                      <td class="px-5 py-3 text-gray-600">JSON object — specific issue</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://repos</code></td>
+                      <td class="px-5 py-3 text-gray-600">Tracked repositories</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://contributors</code></td>
+                      <td class="px-5 py-3 text-gray-600">All contributors</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://leaderboards</code></td>
+                      <td class="px-5 py-3 text-gray-600">Rankings &amp; statistics</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://rewards</code></td>
+                      <td class="px-5 py-3 text-gray-600">Rewards &amp; bacon points</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-5 py-3"><code class="font-mono text-primary text-xs">blt://workflows</code></td>
+                      <td class="px-5 py-3 text-gray-600">All workflows</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Prompts -->
+            <div id="api-prompts">
+              <h3 class="text-2xl font-bold text-gray-900 mb-6 pb-2 border-b border-neutral-border">Prompts</h3>
+              <div class="space-y-4">
+                <div class="rounded-lg border border-neutral-border p-5">
+                  <div class="flex items-center gap-3 mb-2">
+                    <code class="font-mono font-semibold text-primary">triage_vulnerability</code>
+                    <span class="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full font-medium">guided</span>
+                  </div>
+                  <p class="text-sm text-gray-600">Guides AI through vulnerability triage and severity assessment. Args: <code class="text-primary text-xs">vulnerability_description</code>* · <code class="text-gray-500 text-xs">affected_component</code></p>
+                </div>
+                <div class="rounded-lg border border-neutral-border p-5">
+                  <div class="flex items-center gap-3 mb-2">
+                    <code class="font-mono font-semibold text-primary">plan_remediation</code>
+                    <span class="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full font-medium">guided</span>
+                  </div>
+                  <p class="text-sm text-gray-600">Creates comprehensive remediation plans for security issues. Args: <code class="text-primary text-xs">issue_id</code>* · <code class="text-gray-500 text-xs">context</code></p>
+                </div>
+                <div class="rounded-lg border border-neutral-border p-5">
+                  <div class="flex items-center gap-3 mb-2">
+                    <code class="font-mono font-semibold text-primary">review_contribution</code>
+                    <span class="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full font-medium">guided</span>
+                  </div>
+                  <p class="text-sm text-gray-600">Evaluates contributions with quality assessment and bacon point recommendations. Args: <code class="text-primary text-xs">contribution_id</code>* · <code class="text-gray-500 text-xs">contribution_type</code></p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════ CTA BAND ══════════════════════════════════ -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-primary" aria-labelledby="cta-heading">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 id="cta-heading" class="text-3xl font-extrabold text-white mb-4">
+          Start logging bugs with AI today
+        </h2>
+        <p class="text-lg text-red-100 mb-8">
+          Join the OWASP BLT community and make security workflows smarter.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="https://github.com/OWASP-BLT/BLT-MCP"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-primary font-semibold rounded-md hover:bg-red-50 transition-colors"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Star on GitHub
+          </a>
+          <a
+            href="https://blt.owasp.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-white text-white font-semibold rounded-md hover:bg-white hover:text-primary transition-colors"
+          >
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Visit BLT
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════ FOOTER ════════════════════════════════════════ -->
+  <footer class="bg-dark-base text-gray-400 py-12 px-4 sm:px-6 lg:px-8" role="contentinfo">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+
+        <!-- Brand -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-primary text-white font-bold text-sm" aria-hidden="true">BLT</span>
+            <span class="font-bold text-lg text-white">BLT<span class="text-primary">-MCP</span></span>
+          </div>
+          <p class="text-sm leading-relaxed max-w-xs">
+            An MCP server providing AI agents structured access to the OWASP BLT ecosystem for security and bug management.
+          </p>
+          <div class="flex items-center gap-4 mt-4">
+            <a href="https://github.com/OWASP-BLT/BLT-MCP" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors" aria-label="GitHub">
+              <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+            </a>
+            <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors" aria-label="OWASP Project page">
+              <i class="fa-solid fa-shield-halved text-xl" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Project links -->
+        <div>
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-3">Project</h3>
+          <ul class="space-y-2 text-sm" role="list">
+            <li><a href="https://github.com/OWASP-BLT/BLT-MCP" class="hover:text-white hover:underline transition-colors">GitHub</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/README.md" class="hover:text-white hover:underline transition-colors">Documentation</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/CONTRIBUTING.md" class="hover:text-white hover:underline transition-colors">Contributing</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/LICENSE" class="hover:text-white hover:underline transition-colors">MIT License</a></li>
+          </ul>
+        </div>
+
+        <!-- Community links -->
+        <div>
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-3">Community</h3>
+          <ul class="space-y-2 text-sm" role="list">
+            <li><a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline transition-colors">OWASP BLT</a></li>
+            <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline transition-colors">OWASP Foundation</a></li>
+            <li><a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline transition-colors">Model Context Protocol</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+        <p>© 2024 OWASP BLT. Released under the MIT License.</p>
+        <p>Built with ❤️ by the security community</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile menu toggle script -->
+  <script>
+    const btn  = document.getElementById('mobile-menu-btn');
+    const menu = document.getElementById('mobile-menu');
+
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('hidden');
+      // Toggle icon
+      const icon = btn.querySelector('i');
+      icon.classList.toggle('fa-bars');
+      icon.classList.toggle('fa-xmark');
+    });
+
+    // Close mobile menu on link click
+    menu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        menu.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        const icon = btn.querySelector('i');
+        icon.classList.add('fa-bars');
+        icon.classList.remove('fa-xmark');
+      });
+    });
+  </script>
+
+</body>
+</html>
