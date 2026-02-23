@@ -3,9 +3,10 @@ Domains handler for the BLT API.
 """
 
 from typing import Any, Dict, List
-from utils import json_response, error_response, paginated_response, parse_pagination_params
+from utils import  error_response, paginated_response, parse_pagination_params
 from libs.db import get_db_safe
 from utils import convert_d1_results
+from workers import Response
 
 async def handle_domains(
     request: Any,
@@ -52,7 +53,7 @@ async def handle_domains(
                 # Convert D1 proxy results to Python list
                 data = convert_d1_results(result.results if hasattr(result, 'results') else [])
                 
-                return json_response({
+                return Response.json({
                     "success": True,
                     "domain_id": int(domain_id),
                     "data": data,
@@ -90,7 +91,7 @@ async def handle_domains(
                         except:
                             pass
             
-            return json_response({
+            return Response.json({
                 "success": True,
                 "data": domain
             })
@@ -131,7 +132,7 @@ async def handle_domains(
         # Convert D1 proxy results to Python list
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": data,
             "pagination": {
