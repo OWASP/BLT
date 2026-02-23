@@ -1,7 +1,7 @@
 name = "blt-netguardian"
 main = "src/worker.py"
 compatibility_date = "2024-01-01"
-workers_dev = true
+compatibility_flags = ["python_workers"]
 
 
 # Environment variables
