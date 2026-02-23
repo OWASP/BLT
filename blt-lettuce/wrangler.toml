@@ -7,9 +7,7 @@ compatibility_flags = ["python_workers"]
 # To create this namespace, run:
 #   wrangler kv:namespace create "STATS_KV"
 # Then replace the placeholder ID below with the actual namespace ID from the output
-[[kv_namespaces]]
-binding = "STATS_KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"  # Required: Update this before deployment
+# we will be using D1
 
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
