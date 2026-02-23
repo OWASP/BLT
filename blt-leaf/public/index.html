@@ -354,11 +354,11 @@
                             title="Contribute">
                             <i class="fab fa-github text-xs"></i>
                         </a>
-                        <button id="feedbackBtnMobile"
+                        <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
                             class="rounded-lg bg-slate-600 p-1.5 text-white hover:bg-slate-700"
                             title="Send Feedback">
                             <i class="fas fa-comment-alt text-xs"></i>
-                        </button>
+                        </a>
                     </div>
                 </div>
                 
@@ -454,11 +454,11 @@
                         title="Contribute">
                         <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
                     </a>
-                    <button id="feedbackBtn"
+                    <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
                         class="rounded-lg bg-slate-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 inline-flex items-center gap-2 transition-colors shadow-sm"
                         title="Send Feedback">
                         <i class="fas fa-comment-alt"></i> <span class="hidden sm:inline">Feedback</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -546,35 +546,6 @@
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Feedback Modal -->
-    <div id="feedbackModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="relative w-full max-w-md m-4 bg-white dark:bg-slate-800 rounded-lg shadow-2xl flex flex-col">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Send Feedback</h2>
-                <button id="closeFeedbackModal" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <!-- Modal Body -->
-            <div class="px-6 py-4">
-                <label for="feedbackText" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Describe your feedback</label>
-                <textarea id="feedbackText" rows="5"
-                    class="block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
-                    placeholder="Share your thoughts, suggestions, or report an issue..."></textarea>
-            </div>
-            <!-- Modal Footer -->
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-                <button id="submitFeedbackBtn" class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors shadow-sm inline-flex items-center gap-2">
-                    <i class="fab fa-github"></i> Open GitHub Issue
-                </button>
-                <button id="closeFeedbackModalBtn" class="rounded-md bg-slate-500 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors shadow-sm">
-                    Cancel
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- Raw Data Modal -->
@@ -2953,49 +2924,6 @@
                 if (!modal.classList.contains('hidden')) {
                     hideRawDataModal();
                 }
-                const feedbackModal = document.getElementById('feedbackModal');
-                if (!feedbackModal.classList.contains('hidden')) {
-                    hideFeedbackModal();
-                }
-            }
-        });
-
-        // Feedback modal functions
-        function showFeedbackModal() {
-            document.getElementById('feedbackText').value = '';
-            document.getElementById('feedbackModal').classList.remove('hidden');
-            document.getElementById('feedbackText').focus();
-        }
-
-        function hideFeedbackModal() {
-            document.getElementById('feedbackModal').classList.add('hidden');
-        }
-
-        function submitFeedback() {
-            const text = document.getElementById('feedbackText').value.trim();
-            if (!text) {
-                document.getElementById('feedbackText').focus();
-                return;
-            }
-            const params = new URLSearchParams({ title: 'Feedback', body: text });
-            const url = 'https://github.com/OWASP-BLT/BLT-Leaf/issues/new?' + params.toString();
-            const opened = window.open(url, '_blank', 'noopener,noreferrer');
-            if (opened) {
-                hideFeedbackModal();
-            } else {
-                alert('Pop-up was blocked. Please allow pop-ups for this site and try again.');
-            }
-        }
-
-        // Feedback modal event listeners
-        document.getElementById('feedbackBtn').addEventListener('click', showFeedbackModal);
-        document.getElementById('feedbackBtnMobile').addEventListener('click', showFeedbackModal);
-        document.getElementById('closeFeedbackModal').addEventListener('click', hideFeedbackModal);
-        document.getElementById('closeFeedbackModalBtn').addEventListener('click', hideFeedbackModal);
-        document.getElementById('submitFeedbackBtn').addEventListener('click', submitFeedback);
-        document.getElementById('feedbackModal').addEventListener('click', (e) => {
-            if (e.target.id === 'feedbackModal') {
-                hideFeedbackModal();
             }
         });
 

@@ -1,0 +1,14 @@
+name: Feedback
+description: Share feedback about BLT-Leaf
+title: "Feedback: "
+labels:
+  - feedback
+body:
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback
+      description: Share your thoughts, suggestions, or issues.
+      placeholder: Tell us what you'd like to improve.
+    validations:
+      required: true
