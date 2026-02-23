@@ -24,10 +24,10 @@ class BLTWorker:
     def __init__(self, env):
         """Initialize the worker with Cloudflare environment bindings."""
         self.env = env
-        self.job_store = JobStateStore(env.JOB_STATE)
-        self.task_queue = env.TASK_QUEUE
-        self.vuln_db = VulnerabilityDatabase(env.VULN_DB)
-        self.target_registry = env.TARGET_REGISTRY
+        self.job_store = JobStateStore(getattr(env, 'JOB_STATE', None))
+        self.task_queue = getattr(env, 'TASK_QUEUE', None)
+        self.vuln_db = VulnerabilityDatabase(getattr(env, 'VULN_DB', None))
+        self.target_registry = getattr(env, 'TARGET_REGISTRY', None)
         self.deduplicator = TaskDeduplicator()
         self.coordinator = ScannerCoordinator(env)
         self.discovery = AutonomousDiscovery()
