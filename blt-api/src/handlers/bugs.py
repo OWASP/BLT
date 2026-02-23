@@ -7,6 +7,7 @@ from utils import error_response, paginated_response, parse_pagination_params, p
 from libs.db import get_db_safe
 from utils import convert_d1_results
 from workers import Response
+import logging
 
 async def handle_bugs(
     request: Any,
@@ -25,9 +26,11 @@ async def handle_bugs(
         GET /bugs/search - Search bugs
     """
     method = str(request.method).upper()
+    logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
     except Exception as e:
+        logger.error(f"Database connection error: {str(e)}")
         return error_response(f"Database connection error: {str(e)}", status=500)
     
     if path.endswith("/search"):
@@ -78,6 +81,7 @@ async def handle_bugs(
         try:
             bug_id = int(path_params["id"])
         except ValueError:
+            logger.warning(f"Invalid bug id format: {path_params['id']}")
             return error_response("Invalid bug id format", status=400)
 
         result = await db.prepare('''
@@ -254,6 +258,7 @@ async def handle_bugs(
                 }, status=201)
                 
         except Exception as e:
+            logger.error(f"Error creating bug: {str(e)}")
             return error_response(f"Failed to create bug: {str(e)}", status=500)
     
     # List bugs with pagination
@@ -347,4 +352,5 @@ async def handle_bugs(
             }
         })
     except Exception as e:
+        logger.error(f"Error fetching bugs: {str(e)}")
         return error_response(f"Failed to fetch bugs: {str(e)}", status=500)
