@@ -6,7 +6,7 @@ from typing import Any, Dict
 from utils import error_response, paginated_response, parse_pagination_params, parse_json_body
 from libs.db import get_db_safe
 from utils import convert_d1_results
-from worker import Response
+from workers import Response
 async def handle_bugs(
     request: Any,
     env: Any,
