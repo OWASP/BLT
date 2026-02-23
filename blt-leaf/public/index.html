@@ -964,9 +964,10 @@
             `;
 
             // Auto-dismiss after 5 seconds
+            const errorDiv = container.querySelector('.rounded-xl');
             setTimeout(() => {
-                if (container) {
-                    container.innerHTML = '';
+                if (errorDiv && errorDiv.parentNode) {
+                    errorDiv.remove();
                 }
             }, 5000);
         }
