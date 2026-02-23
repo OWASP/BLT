@@ -12,7 +12,7 @@ from models.task import Task, TaskStatus, TaskType
 from models.target import Target, TargetType
 from models.result import ScanResult, VulnerabilityLevel
 from utils.deduplication import TaskDeduplicator
-from utils.storage import JobStateStore, VulnerabilityDatabase
+from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, VulnerabilityDatabase
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
@@ -24,10 +24,11 @@ class BLTWorker:
     def __init__(self, env):
         """Initialize the worker with Cloudflare environment bindings."""
         self.env = env
-        self.job_store = JobStateStore(getattr(env, 'JOB_STATE', None))
-        self.task_queue = getattr(env, 'TASK_QUEUE', None)
-        self.vuln_db = VulnerabilityDatabase(getattr(env, 'VULN_DB', None))
-        self.target_registry = getattr(env, 'TARGET_REGISTRY', None)
+        db = getattr(env, 'DB', None)
+        self.job_store = JobStateStore(db)
+        self.task_queue = TaskQueueStore(db)
+        self.vuln_db = VulnerabilityDatabase(db)
+        self.target_registry = TargetRegistryStore(db)
         self.deduplicator = TaskDeduplicator()
         self.coordinator = ScannerCoordinator(env)
         self.discovery = AutonomousDiscovery()
@@ -140,10 +141,7 @@ class BLTWorker:
                 registered_at=datetime.utcnow().isoformat()
             )
             
-            await self.target_registry.put(
-                target_id,
-                json.dumps(target_obj.to_dict())
-            )
+            await self.target_registry.save_target(target_obj.to_dict())
             
             # Queue scan tasks
             job_id = self.generate_id(f"job-{target_id}-{datetime.utcnow().isoformat()}")
@@ -158,11 +156,7 @@ class BLTWorker:
                 created_at=datetime.utcnow().isoformat()
             )
             
-            await self.task_queue.put(
-                task.task_id,
-                json.dumps(task.to_dict()),
-                expiration_ttl=86400
-            )
+            await self.task_queue.save_task(task.to_dict())
             
             job_state = {
                 'job_id': job_id,
@@ -199,7 +193,7 @@ class BLTWorker:
             # Get current scanning target
             current_target = await self.discovery.get_current_scanning_target()
             
-            # TODO: Replace with actual data from KV store in production
+            # TODO: Replace with actual data from D1 database in production
             # For demo/development, using placeholder values
             scanned_today = 1247
             vulnerabilities_found = 23
@@ -223,7 +217,7 @@ class BLTWorker:
         limit = int(self.get_query_param(request, 'limit', '20'))
         
         try:
-            # Get recent discoveries (in production, query from KV store)
+            # Get recent discoveries (in production, query from D1 database)
             discoveries = await self.discovery.discover_targets(limit)
             
             return self.json_response({
@@ -276,11 +270,7 @@ class BLTWorker:
                 if not await self.deduplicator.is_duplicate(task, self.task_queue):
                     tasks.append(task)
                     # Store in task queue
-                    await self.task_queue.put(
-                        task.task_id,
-                        json.dumps(task.to_dict()),
-                        expiration_ttl=86400  # 24 hours
-                    )
+                    await self.task_queue.save_task(task.to_dict())
                 else:
                     deduplicated_count += 1
             
@@ -343,10 +333,7 @@ class BLTWorker:
             )
             
             # Store in target registry
-            await self.target_registry.put(
-                target_id,
-                json.dumps(target_obj.to_dict())
-            )
+            await self.target_registry.save_target(target_obj.to_dict())
             
             return self.json_response({
                 'success': True,
@@ -398,13 +385,13 @@ class BLTWorker:
                 })
             
             # Update task status
-            task_data = await self.task_queue.get(task_id)
-            if task_data:
-                task = json.loads(task_data.value)
-                task['status'] = TaskStatus.COMPLETED
-                task['completed_at'] = datetime.utcnow().isoformat()
-                task['result_id'] = result.result_id
-                await self.task_queue.put(task_id, json.dumps(task))
+            task = await self.task_queue.get_task(task_id)
+            if task:
+                await self.task_queue.update_task(task_id, {
+                    'status': TaskStatus.COMPLETED,
+                    'completed_at': datetime.utcnow().isoformat(),
+                    'result_id': result.result_id
+                })
                 
                 # Update job progress
                 job_id = task['job_id']
@@ -417,10 +404,10 @@ class BLTWorker:
             contact_result = None
             if result.vulnerabilities:
                 # Get target info
-                task_dict = json.loads(task_data.value) if task_data else {}
-                target_data = await self.target_registry.get(task_dict.get('target_id'))
-                if target_data:
-                    target_info = json.loads(target_data.value if hasattr(target_data, 'value') else target_data)
+                target_info = await self.target_registry.get_target(
+                    task.get('target_id') if task else None
+                )
+                if target_info:
                     target_url = target_info.get('target_url', 'unknown')
                     
                     # Attempt to notify
@@ -497,9 +484,9 @@ class BLTWorker:
             tasks = []
             
             for task_id in task_ids:
-                task_data = await self.task_queue.get(task_id)
-                if task_data:
-                    tasks.append(json.loads(task_data.value))
+                task = await self.task_queue.get_task(task_id)
+                if task:
+                    tasks.append(task)
             
             return self.json_response({
                 'job_id': job_id,
