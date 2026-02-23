@@ -21,9 +21,20 @@ async def handle_homepage(
     path: str
 ) -> Any:
     """
-    Handle homepage requests.
+    Handle API homepage endpoint (GET /).
     
-    Returns an HTML page listing all API endpoints and their descriptions.
+    Serves an interactive HTML documentation page with:
+    - Complete list of all API endpoints and descriptions
+    - Interactive "Try it" buttons for testing endpoints
+    - Response format examples
+    - Authentication information
+    
+    The HTML template uses [[API_BASE_URL]] placeholder syntax which is
+    replaced with the actual request URL base for dynamic API endpoint links.
+    
+    Returns:
+        HTML Response with Content-Type text/html and CORS headers enabled,
+        displaying the full API documentation interface with working endpoint testers
     """
     
     # Get request URL to construct API base URL

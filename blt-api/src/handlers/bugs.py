@@ -17,13 +17,28 @@ async def handle_bugs(
     path: str
 ) -> Any:
     """
-    Handle bugs-related requests.
+    Handle all bug-related API requests with full CRUD operations.
     
     Endpoints:
-        GET /bugs - List bugs with pagination and filters
-        GET /bugs/{id} - Get a specific bug
-        POST /bugs - Create a new bug
-        GET /bugs/search - Search bugs
+        GET /bugs - List bugs with pagination and optional filters (status, domain, verified)
+        GET /bugs/{id} - Get detailed bug info with screenshots and tags
+        POST /bugs - Create a new bug report (requires url and description)
+        GET /bugs/search - Search bugs by URL or description text (requires 'q' param)
+    
+    Query parameters for listing:
+        - page: Page number (default: 1)
+        - per_page: Items per page (default: 20, max: 100)
+        - status: Filter by bug status (e.g., 'open', 'closed')
+        - domain: Filter by domain ID
+        - verified: Filter by verification status ('true'/'false')
+    
+    Search parameters:
+        - q: Search query string (required for /bugs/search)
+        - limit: Max results (default: 10, max: 100)
+    
+    Returns:
+        JSON response with bug data, pagination info, or error on failure.
+        Single bug requests include nested screenshots and tags arrays.
     """
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)

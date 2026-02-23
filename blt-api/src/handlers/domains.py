@@ -16,12 +16,23 @@ async def handle_domains(
     path: str
 ) -> Any:
     """
-    Handle domain-related requests.
+    Handle all domain-related API requests using D1 database.
+    
+    This handler manages domain data stored in Cloudflare D1 (SQLite),
+    providing listing, detail views, and tag associations.
     
     Endpoints:
-        GET /domains - List domains with pagination
-        GET /domains/{id} - Get a specific domain
-        GET /domains/{id}/tags - Get tags for a domain
+        GET /domains - List all domains with pagination (ordered by creation date)
+        GET /domains/{id} - Get detailed information for a specific domain
+        GET /domains/{id}/tags - Get all tags associated with a domain (paginated)
+    
+    Query parameters for listing:
+        - page: Page number for pagination (default: 1)
+        - per_page: Items per page (default: 20, max: 100)
+    
+    Returns:
+        JSON response with domain data and pagination metadata,
+        or error response (400 for invalid ID, 404 for not found, 500 for DB errors)
     """
     try:
         db = await get_db_safe(env)  # Ensure database is available and initialized

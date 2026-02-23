@@ -3,7 +3,7 @@ Health check handler.
 """
 
 from typing import Any, Dict
-from utils import json_response
+from workers import Response
 
 
 async def handle_health(
@@ -18,7 +18,7 @@ async def handle_health(
     
     Returns API status and version information.
     """
-    return json_response({
+    return Response.json({
         "status": "healthy",
         "api": "BLT API",
         "version": "1.0.0",

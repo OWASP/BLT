@@ -96,9 +96,19 @@ async def handle_users(
 
 
 async def get_user(db: Any, user_id: str) -> Any:
+    """
+    Fetch basic user information by user ID.
+    
+    Args:
+        db: D1 database connection
+        user_id: User ID as string (will be converted to int)
+    
+    Returns:
+        JSON response with user data (excluding sensitive fields like password and email)
+        or error response if user not found
+    """
     logger = logging.getLogger(__name__)
-    try: 
-        """Get basic user information."""
+    try:
         result = await db.prepare('''
             SELECT id, username, user_avatar, total_score, winnings,
                 description, title, date_joined, is_active
@@ -125,9 +135,24 @@ async def get_user(db: Any, user_id: str) -> Any:
 
 
 async def get_user_profile(db: Any, user_id: str) -> Any:
+    """
+    Fetch detailed user profile with comprehensive statistics.
+    
+    Retrieves user information along with aggregated stats including:
+    - Bug counts (total, verified, closed)
+    - Domain submissions count
+    - Social metrics (followers, following)
+    
+    Args:
+        db: D1 database connection
+        user_id: User ID as string (will be converted to int)
+    
+    Returns:
+        JSON response with user data and nested 'stats' object containing metrics,
+        or error response if user not found
+    """
     logger = logging.getLogger(__name__)
     try:
-        """Get detailed user profile with statistics."""
         result = await db.prepare('''
             SELECT id, username, user_avatar, total_score, winnings,
                 description, title, date_joined, is_active
@@ -195,9 +220,20 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
 
 
 async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+    """
+    Retrieve paginated list of bugs reported by a specific user.
+    
+    Args:
+        db: D1 database connection
+        user_id: User ID as string (will be converted to int)
+        query_params: Query parameters dict containing 'page' and 'per_page' for pagination
+    
+    Returns:
+        Paginated JSON response with bugs data including metadata:
+        bug id, url, description, status, verified flag, score, created date, and domain
+    """
     logger = logging.getLogger(__name__)
-    try: 
-        """Get bugs reported by a specific user."""
+    try:
         page, per_page = parse_pagination_params(query_params)
         
         result = await db.prepare('''
@@ -231,9 +267,20 @@ async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> 
 
 
 async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+    """
+    Retrieve paginated list of domains submitted by a specific user.
+    
+    Args:
+        db: D1 database connection
+        user_id: User ID as string (will be converted to int)
+        query_params: Query parameters dict containing 'page' and 'per_page' for pagination
+    
+    Returns:
+        Paginated JSON response with domain data including:
+        id, name, url, logo, clicks, created timestamp, and active status
+    """
     logger = logging.getLogger(__name__)
     try:
-        """Get domains submitted by a specific user."""
         page, per_page = parse_pagination_params(query_params)
         
         result = await db.prepare('''
@@ -266,9 +313,23 @@ async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) 
 
 
 async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+    """
+    Retrieve paginated list of users who follow the specified user.
+    
+    Queries the user_follows table to find all follower relationships where
+    this user is being followed.
+    
+    Args:
+        db: D1 database connection
+        user_id: Target user ID as string (will be converted to int)
+        query_params: Query parameters dict containing 'page' and 'per_page' for pagination
+    
+    Returns:
+        Paginated JSON response with follower user data including:
+        id, username, avatar, and total_score, ordered by follow date (newest first)
+    """
     logger = logging.getLogger(__name__) 
-    try :
-        """Get users following this user."""
+    try:
         page, per_page = parse_pagination_params(query_params)
         
         result = await db.prepare('''
@@ -303,9 +364,22 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
         return error_response(f"Error fetching user followers: {str(e)}", status=500)   
 
 async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+    """
+    Retrieve paginated list of users that the specified user is following.
+    
+    Queries the user_follows table to find all users this user has chosen to follow.
+    
+    Args:
+        db: D1 database connection
+        user_id: The user ID as string (will be converted to int) whose following list to fetch
+        query_params: Query parameters dict containing 'page' and 'per_page' for pagination
+    
+    Returns:
+        Paginated JSON response with followed users data including:
+        id, username, avatar, and total_score, ordered by follow date (newest first)
+    """
     logger = logging.getLogger(__name__)
     try:
-        """Get users that this user follows."""
         page, per_page = parse_pagination_params(query_params)
         
         result = await db.prepare('''
