@@ -1,0 +1,15 @@
+name: BLT GitHub App
+description: Integrates BLT services into GitHub — issue assignment, bug reporting, and PR management.
+url: https://owaspblt.org
+hook_attributes:
+  url: https://example.com/api/github/webhooks
+redirect_url: https://example.com
+public: true
+default_permissions:
+  issues: write
+  pull_requests: write
+  metadata: read
+default_events:
+  - issue_comment
+  - issues
+  - pull_request
