@@ -5,10 +5,11 @@ import time
 from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result, extract_id_from_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, convert_single_d1_result, extract_id_from_result
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
+from workers import Response
 
 import logging
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
@@ -93,7 +94,7 @@ async def handle_signup(
         if status >= 400:
             logger.error(f"Failed to send verification email: {response}")
         
-        return json_response({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
+        return Response.json({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
 
     except Exception as e:
         logger.error("Error during signup: %s", str(e))
@@ -145,11 +146,11 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             expires_in=24 * 3600  # 24 hour expiration
         )
 
-        json_response_data = {
+        res = {
             "message": "Login successful",
             "token": token
         }
-        return json_response(json_response_data, status=200, headers=cors_headers())
+        return Response.json(res, status=200, headers=cors_headers())
 
     except Exception as e:
         logger.error("Error during login: %s", str(e))
@@ -185,7 +186,7 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
         # Activate the user's account
         await db.prepare("UPDATE users SET is_active = ? WHERE id = ?").bind(True, user_id).run()
 
-        return json_response({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
+        return Response.json({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
 
     except Exception as e:
         
