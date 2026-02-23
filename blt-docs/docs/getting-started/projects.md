@@ -147,17 +147,20 @@ GitHub activity monitoring bot that provides real-time updates on repository eve
 
 ## 🔧 Development Tools & Utilities
 
-### OWASP-BLT-API
-RESTful API built on Cloudflare Workers that interfaces with the PostgreSQL database.
+### BLT-API
+Full-featured REST API for OWASP BLT running on Cloudflare Workers with edge deployment.
 
-- **Repository**: [OWASP-BLT/OWASP-BLT-API](https://github.com/OWASP-BLT/OWASP-BLT-API)
-- **Topics**: API, Backend, REST, Security
+- **Repository**: [OWASP-BLT/BLT-API](https://github.com/OWASP-BLT/BLT-API)
+- **Language**: Python
+- **License**: AGPL-3.0
 
 **Key Features**:
 
-- Cloudflare Workers implementation
-- PostgreSQL database integration
-- RESTful API endpoints
+- Edge-deployed on Cloudflare's global network for low latency
+- Full API coverage: bugs, users, domains, organizations, projects, hunts, leaderboard, and more
+- Cloudflare D1 (SQLite) database for data persistence
+- Authentication support with JWT tokens
+- Automated D1 migrations on every deployment
 
 ### Fresh
 Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis.
@@ -187,29 +190,38 @@ Open-source, hybrid local+edge privacy toolkit for managing and deleting persona
 - Hybrid local and edge processing
 - Self-destruct capabilities
 
-### OWASP-Wich
-OWASP Project compliance checker that can be used on any repository to ensure project standards.
+### OWASP-Wich (BLT-OWASP-Wich)
+OWASP Project compliance checker that evaluates repositories against 100 compliance points across 10 categories.
 
-- **Repository**: [OWASP-BLT/OWASP-Wich](https://github.com/OWASP-BLT/OWASP-Wich)
-- **Topics**: OWASP, Security, Tool
-
-**Key Features**:
-
-- OWASP project compliance verification
-- Repository standards checking
-- Automated compliance reporting
-
-### OWASP-Bumper
-Automated version bumping tool for dependency management.
-
-- **Repository**: [OWASP-BLT/OWASP-Bumper](https://github.com/OWASP-BLT/OWASP-Bumper)
-- **Topics**: OWASP, Security, Tool
+- **Repository**: [OWASP-BLT/BLT-OWASP-Wich](https://github.com/OWASP-BLT/BLT-OWASP-Wich)
+- **Live App**: [owasp-blt.github.io/OWASP-Wich](https://owasp-blt.github.io/OWASP-Wich/)
+- **Language**: Python, JavaScript
+- **License**: Apache 2.0
 
 **Key Features**:
 
-- Automated version updates
-- Dependency management
-- Security-focused updates
+- 100-point compliance checklist across 10 categories
+- Browser-based web app (no installation required)
+- Python CLI tool for CI/CD automation
+- Checks OWASP Top 10, ASVS, and security best practices
+- Percentage-based scoring with category breakdown
+
+### OWASP-Bumper (BLT-OWASP-Bumper)
+Automated OWASP repository dashboard generator with smart insights and metrics.
+
+- **Repository**: [OWASP-BLT/BLT-OWASP-Bumper](https://github.com/OWASP-BLT/BLT-OWASP-Bumper)
+- **Live Demo**: [owasp-blt.github.io/OWASP-Bumper](https://owasp-blt.github.io/OWASP-Bumper/)
+- **Language**: Python, HTML, JavaScript
+- **License**: MIT
+
+**Key Features**:
+
+- 52-week activity sparklines for all repositories
+- Real-time search and filtering by name, description, tags
+- Category filters (Projects, Chapters, All)
+- Activity filters (active, inactive 1yr+, inactive 3yr+)
+- Daily automated updates via GitHub Actions
+- Zero external dependencies (pure Python standard library)
 
 ---
 
@@ -231,9 +243,41 @@ Bitcoin-based token system (BACON) designed to incentivize engagement and contri
 - Gamified contributor incentives
 - Blockchain-based security
 
+### BLT-OWASP-metadata
+Unified metadata aggregation system for OWASP projects and chapters with interactive visualizations.
+
+- **Repository**: [OWASP-BLT/BLT-OWASP-metadata](https://github.com/OWASP-BLT/BLT-OWASP-metadata)
+- **Live Dashboard**: [owasp-blt.github.io/OWASP-metadata](https://owasp-blt.github.io/OWASP-metadata/)
+- **Language**: Python, JavaScript
+- **License**: Apache 2.0
+
+**Key Features**:
+
+- Scrapes YAML front matter from OWASP repository `index.md` files
+- Metadata Explorer, Analytics Dashboard, Project Wayfinder, and SDLC Integration Chart
+- Powers the OWASP Slack bot to help contributors find matching projects
+- Weekly automated updates via GitHub Actions
+- Export to CSV and SVG
+
 ---
 
 ## 📊 Monitoring & Analytics
+
+### BLT-OWASP-Projects
+Comprehensive dashboard for tracking and visualizing OWASP repositories and their statistics.
+
+- **Repository**: [OWASP-BLT/BLT-OWASP-Projects](https://github.com/OWASP-BLT/BLT-OWASP-Projects)
+- **Live Dashboards**: [Full Matrix](https://owasp-blt.github.io/BLT-OWASP-Projects/index.html) | [Simplified View](https://owasp-blt.github.io/BLT-OWASP-Projects/projects.html)
+- **Language**: Python, HTML, JavaScript
+
+**Key Features**:
+
+- Tracks 1000+ OWASP `www-project-*` repositories automatically
+- Daily automated data collection via GitHub Actions
+- Two interactive dashboards (full matrix and simplified view)
+- Tracks stars, forks, issues, PRs, commit activity, license, and language
+- Slack notifications for newly detected OWASP projects
+
 
 ### OWASP-BLT-Website-Monitor
 Automated website monitoring system using GitHub Actions to track uptime and performance.
@@ -266,6 +310,23 @@ High-level OWASP project management scripts and utilities.
 ---
 
 ## 🎓 Community & Education
+
+### BLT-Jobs
+Community-driven job board for the OWASP BLT ecosystem with an issue-based workflow.
+
+- **Repository**: [OWASP-BLT/BLT-Jobs](https://github.com/OWASP-BLT/BLT-Jobs)
+- **Live Site**: [jobs.owaspblt.org](https://jobs.owaspblt.org)
+- **Language**: HTML, JavaScript, Python
+
+**Key Features**:
+
+- Issue-based job posting workflow (no fork or PR required)
+- Supports Greenhouse, Lever, Workable, LinkedIn, Indeed, and any URL via Jina Reader
+- Job seeker profile publishing via issue
+- Full-text search across listings and profiles
+- Automated data pipeline via GitHub Actions + GitHub Pages
+- Zero backend — static HTML + vanilla JS
+
 
 ### BLT-Hackathon
 Self-hosted GitHub project to conduct hackathons with charts, leaderboards, and prize management.
@@ -332,11 +393,11 @@ Web-based demonstration tool for testing and showcasing features.
 
 ## 📚 Documentation & Meta
 
-### documentation
+### BLT-docs
 This repository! Comprehensive documentation for all OWASP-BLT projects using MkDocs Material theme.
 
-- **Repository**: [OWASP-BLT/documentation](https://github.com/OWASP-BLT/documentation)
-- **Website**: [owasp-blt.github.io/documentation](https://owasp-blt.github.io/documentation/)
+- **Repository**: [OWASP-BLT/BLT-docs](https://github.com/OWASP-BLT/BLT-docs)
+- **Website**: [owasp-blt.github.io/BLT-docs](https://owasp-blt.github.io/BLT-docs/)
 - **Topics**: Docs, Documentation, Guides, OWASP
 
 **Key Features**:
@@ -393,12 +454,12 @@ Need help or have questions?
 
 ## 📊 Project Statistics
 
-- **Total Projects**: 23
-- **Total Stars**: 250+
-- **Total Forks**: 350+
+- **Total Projects**: 27+
+- **Total Stars**: 300+
+- **Total Forks**: 450+
 - **Active Contributors**: 100+
 - **Programming Languages**: Python, JavaScript, TypeScript, Dart, HTML, Shell
-- **Primary License**: AGPL-3.0, BSD-3-Clause, MIT, GPL-3.0, LGPL-2.1
+- **Primary License**: AGPL-3.0, BSD-3-Clause, MIT, GPL-3.0, LGPL-2.1, Apache 2.0
 
 ---
 

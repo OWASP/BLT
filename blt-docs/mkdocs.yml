@@ -155,3 +155,10 @@ nav:
   - Developer Guide:
       - Contributing: developer-guide/contributing.md
       - Bot Setup: developer-guide/bot-setup.md
+  - Repositories:
+      - BLT-API: repositories/blt-api.md
+      - BLT-OWASP-metadata: repositories/blt-owasp-metadata.md
+      - BLT-Jobs: repositories/blt-jobs.md
+      - BLT-OWASP-Bumper: repositories/blt-owasp-bumper.md
+      - BLT-OWASP-Wich: repositories/blt-owasp-wich.md
+      - BLT-OWASP-Projects: repositories/blt-owasp-projects.md
