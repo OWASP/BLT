@@ -71,6 +71,7 @@ async def on_fetch(request, env):
         elif path == '/api/prs':
             if request.method == 'GET':
                 repo = url.searchParams.get('repo')
+                org = url.searchParams.get('org')
                 page = url.searchParams.get('page')
                 per_page_param = url.searchParams.get('per_page')
                 sort_by = url.searchParams.get('sort_by')
@@ -95,7 +96,8 @@ async def on_fetch(request, env):
                     page if page else 1,
                     per_page,
                     sort_by,
-                    sort_dir
+                    sort_dir,
+                    org
                 )
             elif request.method == 'POST':
                 response = await handle_add_pr(request, env)

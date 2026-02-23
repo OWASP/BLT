@@ -261,7 +261,7 @@ async def handle_add_pr(request, env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
-async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None):
+async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None, org_filter=None):
     """List PRs with pagination and sorting (default 30 per page)."""
     try:
         db = get_db(env)
@@ -281,10 +281,14 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
         params = []
 
         if repo_filter:
+            # repo_filter (owner/name) takes precedence over org_filter when both are provided
             parts = repo_filter.split('/')
             if len(parts) == 2:
                 base_query += ' AND repo_owner = ? AND repo_name = ?'
                 params.extend([parts[0], parts[1]])
+        elif org_filter:
+            base_query += ' AND repo_owner = ?'
+            params.append(org_filter)
 
         # Map frontend column names to database column names or SQL expressions
         # This allows the UI to use friendly names that map to actual DB columns
