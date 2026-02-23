@@ -7,6 +7,7 @@ from utils import error_response, paginated_response, parse_pagination_params, p
 from libs.db import get_db_safe
 from utils import convert_d1_results
 from workers import Response
+
 async def handle_bugs(
     request: Any,
     env: Any,

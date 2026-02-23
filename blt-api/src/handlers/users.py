@@ -3,9 +3,10 @@ Users handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params
+from utils import error_response, paginated_response, parse_pagination_params
 from libs.db import get_db_safe 
 from utils import convert_d1_results
+from workers import Response
 
 async def handle_users(
     request: Any,
@@ -75,7 +76,7 @@ async def handle_users(
     count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
     total_count = count_result['count'] if count_result else len(users)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": users,
         "pagination": {
@@ -105,7 +106,7 @@ async def get_user(db: Any, user_id: str) -> Any:
     user.pop('password', None)
     user.pop('email', None)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": user
     })
@@ -170,7 +171,7 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
         'following': following_count['count'] if following_count else 0
     }
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": user
     })
@@ -195,7 +196,7 @@ async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> 
     count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
     total_count = count_result['count'] if count_result else len(bugs)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": bugs,
         "pagination": {
@@ -225,7 +226,7 @@ async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) 
     count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
     total_count = count_result['count'] if count_result else len(domains)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": domains,
         "pagination": {
@@ -258,7 +259,7 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
     count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
     total_count = count_result['count'] if count_result else len(followers)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": followers,
         "pagination": {
@@ -291,7 +292,7 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
     count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
     total_count = count_result['count'] if count_result else len(following)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": following,
         "pagination": {
