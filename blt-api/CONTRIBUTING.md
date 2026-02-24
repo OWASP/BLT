@@ -5,7 +5,8 @@ This guide covers setting up the development environment, working with the datab
 ## Prerequisites
 
 - Node.js 18+ (for Wrangler CLI)
-- Python 3.11+
+- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
 - Cloudflare account (for remote deployment)
 
 ## Initial Setup
@@ -27,8 +28,14 @@ This opens a browser for authentication. Required for remote database operations
 ### 3. Clone and Install
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/OWASP-BLT/BLT-API.git
 cd BLT-API
+
+# Install Python dependencies
+uv sync
+
+# Install workers-py
+uv tool install workers-py
 ```
 
 ## Local Development
@@ -37,7 +44,23 @@ cd BLT-API
 
 The project uses Cloudflare D1 (SQLite) for data persistence. See [docs/DATABASE.md](docs/DATABASE.md) for detailed database documentation.
 
-#### Quick Setup
+#### Quick Setup (Recommended)
+
+Use the automated setup script:
+
+```bash
+# Setup local database with migrations and test data
+bash scripts/setup_local_db.sh
+```
+
+This script will:
+- Apply all migrations to the local database
+- List all tables to verify setup
+- Provide next steps for loading test data
+
+#### Manual Setup
+
+If you prefer manual control:
 
 ```bash
 # Apply schema to local database
@@ -63,6 +86,12 @@ Hot reload is enabled - code changes trigger automatic restart.
 ### Test Endpoints
 
 ```bash
+# Visit the interactive API homepage
+open http://localhost:8787
+
+# Health check
+curl http://localhost:8787/health
+
 # List domains
 curl http://localhost:8787/domains
 
@@ -71,6 +100,12 @@ curl http://localhost:8787/domains/1
 
 # Get domain tags
 curl http://localhost:8787/domains/1/tags
+
+# List bugs
+curl http://localhost:8787/bugs
+
+# Get stats
+curl http://localhost:8787/stats
 
 # Or use the test script
 python3 tests/test_domain.py
@@ -112,7 +147,55 @@ wrangler d1 migrations apply blt-api --local
 wrangler d1 execute blt-api --local --file=test_data.sql
 ```
 
+## Environment Configuration
+
+Configure environment variables in `wrangler.toml`:
+
+```toml
+[vars]
+BLT_API_BASE_URL = "https://blt.owasp.org/api/v1"
+BLT_WEBSITE_URL = "https://blt.owasp.org"
+JWT_SECRET = "your-secret-key-here"  # Use a strong random string
+MAILGUN_API_KEY = "your-mailgun-api-key"  # For email service
+MAILGUN_DOMAIN = "your-mailgun-domain"    # e.g., sandbox.mailgun.org
+```
+
+### Email Service Setup
+
+The API uses Mailgun for sending emails (verification, password reset, welcome emails):
+
+1. **Create a Mailgun account** at https://www.mailgun.com
+2. **Get your API key** from Settings → API Keys
+3. **Choose a domain:**
+   - **Sandbox domain** (testing): Free, limited to 5 authorized recipients
+   - **Custom domain** (production): Requires DNS setup, can send to anyone
+4. **Add configuration** to `wrangler.toml` (see above)
+
+### JWT Authentication
+
+For authentication endpoints (`/auth/signup`, `/auth/signin`), configure:
+
+```toml
+[vars]
+JWT_SECRET = "your-very-secure-random-string-here"
+```
+
+Generate a secure secret:
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
 ## Code Structure
+
+### Project Organization
+
+- `src/handlers/` - HTTP request handlers (bugs, users, domains, auth, etc.)
+- `src/services/` - Service modules (email service, templates)
+- `src/libs/` - Shared libraries (database, JWT, constants)
+- `src/pages/` - Static HTML pages (API homepage)
+- `scripts/` - Utility scripts (database setup, migrations)
+- `migrations/` - D1 database migrations
+- `tests/` - Test files
 
 ### Database Code Patterns
 
@@ -171,8 +254,16 @@ return error_response("Not found", status=404)
 
 ### Manual Testing
 
-Use curl or the provided test script:
+Use the interactive API homepage:
+```bash
+# Start dev server
+wrangler dev --port 8787
 
+# Open in browser
+open http://localhost:8787
+```
+
+Or use curl:
 ```bash
 python3 tests/test_domain.py
 ```
@@ -193,7 +284,14 @@ async def test_list_domains():
 Run tests:
 
 ```bash
-pytest tests/
+# Install test dependencies first
+uv sync --extra dev
+
+# Run all tests
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_router.py -v
 ```
 
 ## Deployment
@@ -234,18 +332,31 @@ See the [README.md](README.md#cloudflare-git-integration-recommended) for setup 
 
 ### Add a New Endpoint
 
-1. Create handler in `src/handlers/`
-2. Register route in `src/main.py`
-3. Test locally
-4. Submit PR
+1. Create handler in `src/handlers/` (e.g., `new_feature.py`)
+2. Export handler in `src/handlers/__init__.py`
+3. Register route in `src/main.py`:
+   ```python
+   from handlers import handle_new_feature
+   router.add_route("GET", "/new-feature", handle_new_feature)
+   ```
+4. Test locally with `wrangler dev`
+5. Add tests in `tests/`
+6. Update API documentation in homepage template if needed
+7. Submit PR
 
 ### Add a New Table
 
 1. Create migration: `wrangler d1 migrations create blt-api add-<table-name>`
-2. Write SQL in generated migration file
-3. Apply locally: `wrangler d1 migrations apply blt-api --local`
+2. Write SQL in generated migration file (in `migrations/` folder)
+3. Apply locally:
+   ```bash
+   wrangler d1 migrations apply blt-api --local
+   # Or use the script
+   bash scripts/setup_local_db.sh
+   ```
 4. Test with sample data
-5. Commit migration file
+5. Update `test_data.sql` if needed
+6. Commit migration file
 
 ### Modify Existing Table
 
@@ -257,6 +368,29 @@ See the [README.md](README.md#cloudflare-git-integration-recommended) for setup 
 
 See [docs/DATABASE.md](docs/DATABASE.md) for migration examples and patterns.
 
+### Add Email Template
+
+1. Create HTML template in `src/services/templates/`
+2. Use `[[placeholder]]` syntax for dynamic values (consistent with base template)
+3. Extend base template or create standalone
+4. Add rendering function in `src/services/email_templates.py`:
+   ```python
+   def render_my_template(data: dict) -> str:
+       template = Path(__file__).parent / "templates/my_template.html"
+       content = template.read_text()
+       # Replace placeholders
+       content = content.replace("[[value]]", data["value"])
+       return content
+   ```
+5. Use with EmailService in handlers:
+   ```python
+   from services.email_service import EmailService
+   from services.email_templates import render_my_template
+   
+   email_html = render_my_template({"value": "data"})
+   await EmailService.send(env, to="user@example.com", subject="...", html=email_html)
+   ```
+
 ## Troubleshooting
 
 ### "Database not configured" Error
@@ -265,16 +399,24 @@ Ensure `wrangler.toml` has correct D1 binding:
 ```toml
 [[d1_databases]]
 binding = "blt_api"
+database_name = "blt-api"
+database_id = "your-database-id"
 ```
 
 And code uses correct binding name:
 ```python
-db = get_db(env)  # Looks for 'blt_api' binding
+from libs.db import get_db_safe
+db = await get_db_safe(env)  # Looks for 'blt_api' binding
 ```
 
 ### "Missing tables" Error
 
-Apply migrations:
+Apply migrations using the setup script:
+```bash
+bash scripts/setup_local_db.sh
+```
+
+Or manually:
 ```bash
 wrangler d1 migrations apply blt-api --local
 ```
@@ -302,12 +444,15 @@ wrangler dev --port 8787
 ## Code Standards
 
 - Use async/await for database operations
-- Validate input parameters
-- Handle errors with appropriate HTTP status codes
-- Convert D1 results to Python types
-- Use parameterized queries (never string interpolation)
-- Add pagination to list endpoints
-- Document new endpoints in PR
+- Validate input parameters with `check_required_fields()` utility
+- Handle errors with appropriate HTTP status codes using `error_response()`
+- Convert D1 results to Python types using `convert_d1_results()` or `.to_py()`
+- Use parameterized queries (never string interpolation) with `.bind()`
+- Add pagination to list endpoints with consistent parameters (`page`, `per_page`)
+- Use `[[placeholder]]` syntax in HTML templates (not `{{placeholder}}`)
+- Follow JWT authentication patterns from `libs/jwt_utils.py`
+- Use EmailService for sending emails, not direct API calls
+- Document new endpoints in PR and update homepage template if public-facing
 
 ## Resources
 

@@ -3,9 +3,9 @@ Organizations handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params
+from utils import error_response, paginated_response, parse_pagination_params
 from client import create_client
-
+from workers import Response
 
 async def handle_organizations(
     request: Any,
@@ -43,7 +43,7 @@ async def handle_organizations(
                     status=result.get("status", 500)
                 )
             
-            return json_response({
+            return Response.json({
                 "success": True,
                 "organization_id": int(org_id),
                 "data": result.get("data", [])
@@ -70,14 +70,14 @@ async def handle_organizations(
                     p for p in data.get("projects", [])
                     if str(p.get("organization")) == org_id
                 ]
-                return json_response({
+                return Response.json({
                     "success": True,
                     "organization_id": int(org_id),
                     "data": projects,
                     "count": len(projects)
                 })
             
-            return json_response({
+            return Response.json({
                 "success": True,
                 "organization_id": int(org_id),
                 "data": data
@@ -92,7 +92,7 @@ async def handle_organizations(
                 status=result.get("status", 404)
             )
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": result.get("data")
         })
@@ -113,7 +113,7 @@ async def handle_organizations(
     
     # Handle paginated response
     if isinstance(data, dict) and "results" in data:
-        return json_response({
+        return Response.json({
             "success": True,
             "data": data.get("results", []),
             "pagination": {
@@ -129,7 +129,7 @@ async def handle_organizations(
     if isinstance(data, list):
         return paginated_response(data, page=page, per_page=per_page)
     
-    return json_response({
+    return Response.json({
         "success": True,
         "data": data
     })

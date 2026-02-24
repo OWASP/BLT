@@ -5,14 +5,28 @@ import time
 from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, json_response, convert_single_d1_result, extract_id_from_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, convert_single_d1_result, extract_id_from_result
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
+from workers import Response
 
 import logging
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
-    """Generate a JWT token for the given user ID."""
+    """
+    Generate a JWT authentication token for a user.
+    
+    Creates a signed JWT token containing the user ID and expiration time,
+    used for authenticating API requests.
+    
+    Args:
+        user_id: The database ID of the user
+        secret: JWT secret key for signing the token (from env.JWT_SECRET)
+        expires_in: Token validity duration in seconds (default: 1 hour)
+    
+    Returns:
+        Signed JWT token string that can be used in Authorization headers
+    """
     payload = {
         "user_id": user_id,
         "exp": int(time.time()) + expires_in
@@ -27,7 +41,29 @@ async def handle_signup(
     query_params: Dict[str, str],
     path: str
 ) -> Any:
-    """Handle user signup/registration."""
+    """
+    Handle user registration/signup endpoint (POST /auth/signup).
+    
+    Creates a new user account with hashed password (PBKDF2-SHA256),
+    sends verification email via Mailgun, and returns success response.
+    
+    Required fields in request body:
+        - username: Unique username for the account
+        - email: User email address (must be unique)
+        - password: Plain text password (will be hashed with salt)
+    
+    Process:
+        1. Validates request method and required fields
+        2. Checks for existing username/email
+        3. Hashes password with random salt using PBKDF2
+        4. Inserts user into database with is_active=false
+        5. Generates verification JWT token (10 min expiry)
+        6. Sends verification email with token link
+    
+    Returns:
+        201 Created with message to check email for verification link,
+        or 400/500 error if validation fails or user exists
+    """
     base_url = env.BLT_API_BASE_URL if hasattr(env, 'BLT_API_BASE_URL') else "http://localhost:8787"
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)
@@ -93,7 +129,7 @@ async def handle_signup(
         if status >= 400:
             logger.error(f"Failed to send verification email: {response}")
         
-        return json_response({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
+        return Response.json({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
 
     except Exception as e:
         logger.error("Error during signup: %s", str(e))
@@ -101,7 +137,26 @@ async def handle_signup(
     
 
 async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], query_params: Dict[str, str], path: str) -> Any:
-    """Handle user login/authentication."""
+    """
+    Handle user authentication/login endpoint (POST /auth/signin).
+    
+    Validates user credentials and returns a JWT token for authenticated API access.
+    
+    Required fields in request body:
+        - username: User's username
+        - password: Plain text password to verify
+    
+    Process:
+        1. Validates request method and required fields
+        2. Fetches user record by username from database
+        3. Verifies password using PBKDF2-SHA256 with stored salt
+        4. Generates JWT access token (24 hour expiry)
+        5. Returns token for use in Authorization header
+    
+    Returns:
+        200 OK with JWT token on successful authentication,
+        or 401/400/500 error for invalid credentials or server issues
+    """
     logger = logging.getLogger(__name__)
     try:
         jwt_secret = env.JWT_SECRET
@@ -145,19 +200,38 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             expires_in=24 * 3600  # 24 hour expiration
         )
 
-        json_response_data = {
+        res = {
             "message": "Login successful",
             "token": token
         }
-        return json_response(json_response_data, status=200, headers=cors_headers())
+        return Response.json(res, status=200, headers=cors_headers())
 
     except Exception as e:
         logger.error("Error during login: %s", str(e))
         return error_response("Internal Server Error", 500)
 
 
-async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str], query_params: Dict[str, str], path: str) -> Any: 
-    """Handle email verification."""
+async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str], query_params: Dict[str, str], path: str) -> Any:
+    """
+    Handle email verification endpoint (GET /auth/verify-email).
+    
+    Validates the JWT token from the verification email link and activates the user account.
+    This endpoint is accessed via the link sent in the signup verification email.
+    
+    Required query parameter:
+        - token: JWT token containing user_id and expiration (10 min validity)
+    
+    Process:
+        1. Validates request method is GET
+        2. Extracts and decodes JWT token from query params
+        3. Verifies token signature and expiration
+        4. Activates user account by setting is_active=true
+        5. Returns success confirmation
+    
+    Returns:
+        200 OK with success message when email is verified,
+        or 400/500 error for invalid/expired tokens or server issues
+    """ 
     logger = logging.getLogger(__name__)   
     try:
         db= await  get_db_safe(env)
@@ -185,7 +259,7 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
         # Activate the user's account
         await db.prepare("UPDATE users SET is_active = ? WHERE id = ?").bind(True, user_id).run()
 
-        return json_response({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
+        return Response.json({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
 
     except Exception as e:
         

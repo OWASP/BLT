@@ -3,9 +3,10 @@ Domains handler for the BLT API.
 """
 
 from typing import Any, Dict, List
-from utils import json_response, error_response, paginated_response, parse_pagination_params
+from utils import  error_response, paginated_response, parse_pagination_params
 from libs.db import get_db_safe
 from utils import convert_d1_results
+from workers import Response
 
 async def handle_domains(
     request: Any,
@@ -15,12 +16,23 @@ async def handle_domains(
     path: str
 ) -> Any:
     """
-    Handle domain-related requests.
+    Handle all domain-related API requests using D1 database.
+    
+    This handler manages domain data stored in Cloudflare D1 (SQLite),
+    providing listing, detail views, and tag associations.
     
     Endpoints:
-        GET /domains - List domains with pagination
-        GET /domains/{id} - Get a specific domain
-        GET /domains/{id}/tags - Get tags for a domain
+        GET /domains - List all domains with pagination (ordered by creation date)
+        GET /domains/{id} - Get detailed information for a specific domain
+        GET /domains/{id}/tags - Get all tags associated with a domain (paginated)
+    
+    Query parameters for listing:
+        - page: Page number for pagination (default: 1)
+        - per_page: Items per page (default: 20, max: 100)
+    
+    Returns:
+        JSON response with domain data and pagination metadata,
+        or error response (400 for invalid ID, 404 for not found, 500 for DB errors)
     """
     try:
         db = await get_db_safe(env)  # Ensure database is available and initialized
@@ -52,7 +64,7 @@ async def handle_domains(
                 # Convert D1 proxy results to Python list
                 data = convert_d1_results(result.results if hasattr(result, 'results') else [])
                 
-                return json_response({
+                return Response.json({
                     "success": True,
                     "domain_id": int(domain_id),
                     "data": data,
@@ -90,7 +102,7 @@ async def handle_domains(
                         except:
                             pass
             
-            return json_response({
+            return Response.json({
                 "success": True,
                 "data": domain
             })
@@ -131,7 +143,7 @@ async def handle_domains(
         # Convert D1 proxy results to Python list
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": data,
             "pagination": {

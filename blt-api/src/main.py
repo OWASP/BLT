@@ -13,6 +13,7 @@ except ImportError:
     _WORKERS_RUNTIME = False
     from utils import Response, Headers
 
+from workers import WorkerEntrypoint # type: ignore [as worker instance is available at runtime]
 from os import path
 from router import Router
 from handlers import (
@@ -103,44 +104,44 @@ router.add_route("GET", "/contributors/{id}", handle_contributors)
 router.add_route("GET", "/repos", handle_repos)
 router.add_route("GET", "/repos/{id}", handle_repos)
 
+class Default(WorkerEntrypoint):
+    async def on_fetch(self, request):
+        """
+        Main entry point for Cloudflare Workers.
+        
+        This function handles all incoming HTTP requests and routes them
+        to the appropriate handler based on the URL path and method.
+    
+        Args:
+            request: The incoming Request object
+            env: Environment bindings (variables, secrets, KV namespaces, etc.)
+        
+        Returns:
+            Response: The HTTP response to return to the client
+        """
+        try:
+            # Handle CORS preflight requests
+            if request.method == "OPTIONS":
+                return Response.new(
+                    None,
+                    status=204,
+                    headers=Headers.new(cors_headers())
+                )
 
-async def on_fetch(request, env):
-    """
-    Main entry point for Cloudflare Workers.
-    
-    This function handles all incoming HTTP requests and routes them
-    to the appropriate handler based on the URL path and method.
-    
-    Args:
-        request: The incoming Request object
-        env: Environment bindings (variables, secrets, KV namespaces, etc.)
-    
-    Returns:
-        Response: The HTTP response to return to the client
-    """
-    try:
-        # Handle CORS preflight requests
-        if request.method == "OPTIONS":
-            return Response.new(
-                None,
-                status=204,
-                headers=Headers.new(cors_headers())
+            await get_db_safe(self.env)  # Ensure database is available and initialized
+        
+            # Get URL and method
+            url = request.url
+            method = request.method
+        
+
+            # Route the request
+            response = await router.handle(request, self.env)
+            
+            return response
+            
+        except Exception as e:
+            return error_response(
+                message=f"Internal Server Error: {str(e)}",
+                status=500
             )
-
-        await get_db_safe(env)  # Ensure database is available and initialized
-    
-        # Get URL and method
-        url = request.url
-        method = request.method
-    
-
-        # Route the request
-        response = await router.handle(request, env)
-        
-        return response
-        
-    except Exception as e:
-        return error_response(
-            message=f"Internal Server Error: {str(e)}",
-            status=500
-        )

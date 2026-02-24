@@ -3,9 +3,11 @@ Bugs handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import json_response, error_response, paginated_response, parse_pagination_params, parse_json_body
+from utils import error_response, paginated_response, parse_pagination_params, parse_json_body
 from libs.db import get_db_safe
 from utils import convert_d1_results
+from workers import Response
+import logging
 
 async def handle_bugs(
     request: Any,
@@ -15,18 +17,35 @@ async def handle_bugs(
     path: str
 ) -> Any:
     """
-    Handle bugs-related requests.
+    Handle all bug-related API requests with full CRUD operations.
     
     Endpoints:
-        GET /bugs - List bugs with pagination and filters
-        GET /bugs/{id} - Get a specific bug
-        POST /bugs - Create a new bug
-        GET /bugs/search - Search bugs
+        GET /bugs - List bugs with pagination and optional filters (status, domain, verified)
+        GET /bugs/{id} - Get detailed bug info with screenshots and tags
+        POST /bugs - Create a new bug report (requires url and description)
+        GET /bugs/search - Search bugs by URL or description text (requires 'q' param)
+    
+    Query parameters for listing:
+        - page: Page number (default: 1)
+        - per_page: Items per page (default: 20, max: 100)
+        - status: Filter by bug status (e.g., 'open', 'closed')
+        - domain: Filter by domain ID
+        - verified: Filter by verification status ('true'/'false')
+    
+    Search parameters:
+        - q: Search query string (required for /bugs/search)
+        - limit: Max results (default: 10, max: 100)
+    
+    Returns:
+        JSON response with bug data, pagination info, or error on failure.
+        Single bug requests include nested screenshots and tags arrays.
     """
     method = str(request.method).upper()
+    logger = logging.getLogger(__name__)
     try: 
         db = await get_db_safe(env)  
     except Exception as e:
+        logger.error(f"Database connection error: {str(e)}")
         return error_response(f"Database connection error: {str(e)}", status=500)
     
     if path.endswith("/search"):
@@ -66,7 +85,7 @@ async def handle_bugs(
         ''').bind(f"%{query}%", f"%{query}%", limit_int).all()
         
         response_data = convert_d1_results(search_result.results if hasattr(search_result, 'results') else [])
-        return json_response({
+        return Response.json({
             "success": True,
             "query": query,
             "data": response_data
@@ -77,6 +96,7 @@ async def handle_bugs(
         try:
             bug_id = int(path_params["id"])
         except ValueError:
+            logger.warning(f"Invalid bug id format: {path_params['id']}")
             return error_response("Invalid bug id format", status=400)
 
         result = await db.prepare('''
@@ -151,7 +171,7 @@ async def handle_bugs(
         bug_data['screenshots'] = screenshots_data
         bug_data['tags'] = tags_data
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": bug_data
         })
@@ -241,18 +261,19 @@ async def handle_bugs(
                 else:
                     bug_data = {"id": last_id}
                 
-                return json_response({
+                return Response.json({
                     "success": True,
                     "message": "Bug created successfully",
                     "data": bug_data
                 }, status=201)
             else:
-                return json_response({
+                return Response.json({
                     "success": True,
                     "message": "Bug created successfully"
                 }, status=201)
                 
         except Exception as e:
+            logger.error(f"Error creating bug: {str(e)}")
             return error_response(f"Failed to create bug: {str(e)}", status=500)
     
     # List bugs with pagination
@@ -334,7 +355,7 @@ async def handle_bugs(
         # Convert D1 proxy results to Python list
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
         
-        return json_response({
+        return Response.json({
             "success": True,
             "data": data,
             "pagination": {
@@ -346,4 +367,5 @@ async def handle_bugs(
             }
         })
     except Exception as e:
+        logger.error(f"Error fetching bugs: {str(e)}")
         return error_response(f"Failed to fetch bugs: {str(e)}", status=500)
