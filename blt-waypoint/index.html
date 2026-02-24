@@ -95,6 +95,11 @@
     #repo-table th[data-col] { cursor: pointer; user-select: none; }
     #repo-table th[data-col]:hover { color: #E10101; }
     .dark #repo-table th[data-col]:hover { color: #f87171; }
+
+    /* Table view: remove container width constraint */
+    #main-layout.table-view { max-width: none; }
+    /* Table view: force-hide the sidebar even at large breakpoints */
+    #main-sidebar.force-hidden { display: none !important; }
   </style>
 </head>
 
@@ -182,10 +187,10 @@
 </header>
 
 <!-- ===== MAIN LAYOUT ===== -->
-<div class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6">
+<div id="main-layout" class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6">
 
   <!-- ===== SIDEBAR ===== -->
-  <aside class="hidden lg:flex flex-col gap-2 w-52 shrink-0">
+  <aside id="main-sidebar" class="hidden lg:flex flex-col gap-2 w-52 shrink-0">
     <nav aria-label="Filter by type">
       <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Filter</p>
       <ul class="space-y-0.5">
@@ -316,6 +321,8 @@
         if (v === 'table') {
           document.getElementById('repo-grid').classList.add('hidden');
           document.getElementById('repo-table').classList.remove('hidden');
+          document.getElementById('main-sidebar').classList.add('force-hidden');
+          document.getElementById('main-layout').classList.add('table-view');
         }
       })();
     </script>
@@ -728,10 +735,14 @@ function renderRepos(repos) {
   if (currentView === 'table') {
     grid.classList.add('hidden');
     table.classList.remove('hidden');
+    document.getElementById('main-sidebar').classList.add('force-hidden');
+    document.getElementById('main-layout').classList.add('table-view');
     renderTableView(repos, table);
   } else {
     table.classList.add('hidden');
     grid.classList.remove('hidden');
+    document.getElementById('main-sidebar').classList.remove('force-hidden');
+    document.getElementById('main-layout').classList.remove('table-view');
     grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
   }
 }
