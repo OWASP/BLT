@@ -93,26 +93,32 @@ def fetch_languages(repo_full_name: str) -> dict:
         return {}
 
 
-def fetch_contributors(repo_full_name: str, top_n: int = 5) -> list:
-    """Return the top N contributors (login, avatar_url, contributions) for a repo."""
+def fetch_contributors(repo_full_name: str, top_n: int = 10) -> tuple[list[dict], int]:
+    """Return (top_n contributors, total_commits) for a repo.
+
+    All contributor pages are fetched so that total_commits reflects the full
+    commit history, while only the top_n entries are included in the returned list.
+    """
     try:
-        data = make_request(
-            f"{API_BASE}/repos/{repo_full_name}/contributors?per_page={top_n}&anon=false"
+        all_contributors = fetch_all_pages(
+            f"/repos/{repo_full_name}/contributors?anon=false"
         )
-        if not isinstance(data, list):
-            return []
-        return [
+        if not isinstance(all_contributors, list):
+            return [], 0
+        total_commits = sum(c.get("contributions", 0) for c in all_contributors)
+        top = [
             {
                 "login": c.get("login", ""),
                 "avatar_url": c.get("avatar_url", ""),
                 "contributions": c.get("contributions", 0),
                 "html_url": c.get("html_url", ""),
             }
-            for c in data[:top_n]
+            for c in all_contributors[:top_n]
         ]
+        return top, total_commits
     except (urllib.error.HTTPError, urllib.error.URLError) as exc:
         print(f"  Warning: could not fetch contributors for {repo_full_name}: {exc}", file=sys.stderr)
-        return []
+        return [], 0
 
 
 def fetch_file_count(repo_full_name: str, default_branch: str) -> int:
@@ -167,7 +173,6 @@ def main() -> None:
     total_stars    = sum(r.get("stargazers_count", 0) for r in repos)
     total_forks    = sum(r.get("forks_count", 0) for r in repos)
     total_issues   = sum(r.get("open_issues_count", 0) for r in repos)
-    total_watchers = sum(r.get("watchers_count", 0) for r in repos)
     total_size_kb  = sum(r.get("size", 0) for r in repos)
     active_repos   = sum(1 for r in repos if not r.get("archived") and not r.get("fork"))
     all_topics = set()
@@ -199,13 +204,17 @@ def main() -> None:
     # Fetch top contributors and weekly commit activity for each non-archived repo
     print("Fetching contributors and commit activity…", flush=True)
     contributors_map: dict[str, list] = {}
+    total_commits_map: dict[str, int] = {}
     weekly_commits_map: dict[str, list] = {}
     for i, repo in enumerate(repos):
         if repo.get("archived"):
             contributors_map[repo["full_name"]] = []
+            total_commits_map[repo["full_name"]] = 0
             weekly_commits_map[repo["full_name"]] = []
         else:
-            contributors_map[repo["full_name"]] = fetch_contributors(repo["full_name"])
+            top_contributors, total_commits = fetch_contributors(repo["full_name"])
+            contributors_map[repo["full_name"]] = top_contributors
+            total_commits_map[repo["full_name"]] = total_commits
             weekly_commits_map[repo["full_name"]] = fetch_weekly_commits(repo["full_name"])
             time.sleep(0.1)
         if (i + 1) % 10 == 0:
@@ -237,7 +246,7 @@ def main() -> None:
     KEEP_FIELDS = {
         "id", "name", "full_name", "description", "html_url", "homepage",
         "language", "stargazers_count", "forks_count", "open_issues_count",
-        "watchers_count", "fork", "archived", "private", "topics",
+        "fork", "archived", "private", "topics",
         "default_branch", "updated_at", "created_at", "pushed_at",
         "license", "visibility", "size",
     }
@@ -245,6 +254,7 @@ def main() -> None:
         {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
          "readme_chars": readme_chars_map.get(repo["full_name"], 0),
          "contributors": contributors_map.get(repo["full_name"], []),
+         "total_commits": total_commits_map.get(repo["full_name"], 0),
          "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
          "file_count": file_count_map.get(repo["full_name"], 0)}
         for repo in repos
@@ -261,7 +271,6 @@ def main() -> None:
             "total_stars":        total_stars,
             "total_forks":        total_forks,
             "total_open_issues":  total_issues,
-            "total_watchers":     total_watchers,
             "total_size_kb":      total_size_kb,
             "total_topics":       len(all_topics),
             "total_languages":    len(all_lang_bytes),
