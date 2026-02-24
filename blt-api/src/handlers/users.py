@@ -3,10 +3,10 @@ Users handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import error_response, paginated_response, parse_pagination_params
-from libs.db import get_db_safe 
-from utils import convert_d1_results
+from utils import error_response, parse_pagination_params, convert_d1_results
+from libs.db import get_db_safe
 from workers import Response
+from models import User, Bug, Domain, UserFollow
 import logging
 
 async def handle_users(
@@ -63,23 +63,20 @@ async def handle_users(
         
         # List users with pagination
         page, per_page = parse_pagination_params(query_params)
-        
-        result = await db.prepare('''
-            SELECT id, username, user_avatar, total_score, winnings, 
-                description, date_joined, is_active
-            FROM users
-            WHERE is_active = 1
-            ORDER BY total_score DESC
-            LIMIT ? OFFSET ?
-        ''').bind(per_page, (page - 1) * per_page).all()
-        
-        users = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
-        
-        # Get total count for pagination
-        count_result = await db.prepare('SELECT COUNT(*) as count FROM users WHERE is_active = 1').first()
-        count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
-        total_count = count_result['count'] if count_result else len(users)
-        
+
+        total_count = await User.objects(db).filter(is_active=1).count()
+        users = (
+            await User.objects(db)
+            .filter(is_active=1)
+            .values(
+                "id", "username", "user_avatar", "total_score",
+                "winnings", "description", "date_joined", "is_active"
+            )
+            .order_by("-total_score")
+            .paginate(page, per_page)
+            .all()
+        )
+
         return Response.json({
             "success": True,
             "data": users,
@@ -109,26 +106,16 @@ async def get_user(db: Any, user_id: str) -> Any:
     """
     logger = logging.getLogger(__name__)
     try:
-        result = await db.prepare('''
-            SELECT id, username, user_avatar, total_score, winnings,
-                description, title, date_joined, is_active
-            FROM users
-            WHERE id = ?
-        ''').bind(int(user_id)).first()
-        
-        if not result:
+        user = await User.objects(db).get(id=int(user_id))
+
+        if not user:
             return error_response("User not found", status=404)
-        
-        user = result.to_py() if hasattr(result, 'to_py') else dict(result)
-        
+
         # Remove sensitive fields
         user.pop('password', None)
         user.pop('email', None)
-        
-        return Response.json({
-            "success": True,
-            "data": user
-        })
+
+        return Response.json({"success": True, "data": user})
     except Exception as e:
         logger.error(f"Error fetching user: {str(e)}")
         return error_response(f"Error fetching user: {str(e)}", status=500)
@@ -153,22 +140,17 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
     """
     logger = logging.getLogger(__name__)
     try:
-        result = await db.prepare('''
-            SELECT id, username, user_avatar, total_score, winnings,
-                description, title, date_joined, is_active
-            FROM users
-            WHERE id = ?
-        ''').bind(int(user_id)).first()
-        
-        if not result:
+        user = await User.objects(db).get(id=int(user_id))
+
+        if not user:
             return error_response("User not found", status=404)
-        
-        user = result.to_py() if hasattr(result, 'to_py') else dict(result)
+
         user.pop('password', None)
         user.pop('email', None)
-        
-        # Get bug statistics
-        bug_stats = await db.prepare('''
+
+        # Aggregated statistics still use raw SQL (aggregate functions /
+        # CASE expressions are outside the ORM's current scope).
+        bug_stats_row = await db.prepare('''
             SELECT 
                 COUNT(*) as total_bugs,
                 SUM(CASE WHEN verified = 1 THEN 1 ELSE 0 END) as verified_bugs,
@@ -176,44 +158,22 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
             FROM bugs
             WHERE user = ?
         ''').bind(int(user_id)).first()
-        bug_stats = bug_stats.to_py() if hasattr(bug_stats, 'to_py') else dict(bug_stats)
-        
-        # Get domain count
-        domain_count = await db.prepare('''
-            SELECT COUNT(*) as count
-            FROM domains
-            WHERE user = ?
-        ''').bind(int(user_id)).first()
-        domain_count = domain_count.to_py() if hasattr(domain_count, 'to_py') else dict(domain_count)
-        
-        # Get follower/following counts
-        follower_count = await db.prepare('''
-            SELECT COUNT(*) as count
-            FROM user_follows
-            WHERE following_id = ?
-        ''').bind(int(user_id)).first()
-        follower_count = follower_count.to_py() if hasattr(follower_count, 'to_py') else dict(follower_count)
-        
-        following_count = await db.prepare('''
-            SELECT COUNT(*) as count
-            FROM user_follows
-            WHERE follower_id = ?
-        ''').bind(int(user_id)).first()
-        following_count = following_count.to_py() if hasattr(following_count, 'to_py') else dict(following_count)
-        
+        bug_stats = bug_stats_row.to_py() if hasattr(bug_stats_row, 'to_py') else dict(bug_stats_row)
+
+        domains_count = await Domain.objects(db).filter(user=int(user_id)).count()
+        followers_count = await UserFollow.objects(db).filter(following_id=int(user_id)).count()
+        following_count = await UserFollow.objects(db).filter(follower_id=int(user_id)).count()
+
         user['stats'] = {
             'total_bugs': bug_stats['total_bugs'] if bug_stats else 0,
             'verified_bugs': bug_stats['verified_bugs'] if bug_stats else 0,
             'closed_bugs': bug_stats['closed_bugs'] if bug_stats else 0,
-            'domains': domain_count['count'] if domain_count else 0,
-            'followers': follower_count['count'] if follower_count else 0,
-            'following': following_count['count'] if following_count else 0
+            'domains': domains_count,
+            'followers': followers_count,
+            'following': following_count,
         }
-        
-        return Response.json({
-            "success": True,
-            "data": user
-        })
+
+        return Response.json({"success": True, "data": user})
     except Exception as e:
         logger.error(f"Error fetching user profile: {str(e)}")
         return error_response(f"Error fetching user profile: {str(e)}", status=500)
@@ -235,22 +195,17 @@ async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> 
     logger = logging.getLogger(__name__)
     try:
         page, per_page = parse_pagination_params(query_params)
-        
-        result = await db.prepare('''
-            SELECT b.id, b.url, b.description, b.status, b.verified,
-                b.score, b.created, b.domain
-            FROM bugs b
-            WHERE b.user = ?
-            ORDER BY b.created DESC
-            LIMIT ? OFFSET ?
-        ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
-        
-        bugs = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
-        
-        count_result = await db.prepare('SELECT COUNT(*) as count FROM bugs WHERE user = ?').bind(int(user_id)).first()
-        count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
-        total_count = count_result['count'] if count_result else len(bugs)
-        
+
+        total_count = await Bug.objects(db).filter(user=int(user_id)).count()
+        bugs = (
+            await Bug.objects(db)
+            .filter(user=int(user_id))
+            .values("id", "url", "description", "status", "verified", "score", "created", "domain")
+            .order_by("-created")
+            .paginate(page, per_page)
+            .all()
+        )
+
         return Response.json({
             "success": True,
             "data": bugs,
@@ -263,7 +218,7 @@ async def get_user_bugs(db: Any, user_id: str, query_params: Dict[str, str]) -> 
         })
     except Exception as e:
         logger.error(f"Error fetching user bugs: {str(e)}")
-        return error_response(f"Error fetching user bugs: {str(e)}", status=500)  
+        return error_response(f"Error fetching user bugs: {str(e)}", status=500)
 
 
 async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
@@ -282,21 +237,17 @@ async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) 
     logger = logging.getLogger(__name__)
     try:
         page, per_page = parse_pagination_params(query_params)
-        
-        result = await db.prepare('''
-            SELECT id, name, url, logo, clicks, created, is_active
-            FROM domains
-            WHERE user = ?
-            ORDER BY created DESC
-            LIMIT ? OFFSET ?
-        ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
-        
-        domains = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
-        
-        count_result = await db.prepare('SELECT COUNT(*) as count FROM domains WHERE user = ?').bind(int(user_id)).first()
-        count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
-        total_count = count_result['count'] if count_result else len(domains)
-        
+
+        total_count = await Domain.objects(db).filter(user=int(user_id)).count()
+        domains = (
+            await Domain.objects(db)
+            .filter(user=int(user_id))
+            .values("id", "name", "url", "logo", "clicks", "created", "is_active")
+            .order_by("-created")
+            .paginate(page, per_page)
+            .all()
+        )
+
         return Response.json({
             "success": True,
             "data": domains,
@@ -328,10 +279,13 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
         Paginated JSON response with follower user data including:
         id, username, avatar, and total_score, ordered by follow date (newest first)
     """
-    logger = logging.getLogger(__name__) 
+    logger = logging.getLogger(__name__)
     try:
         page, per_page = parse_pagination_params(query_params)
-        
+
+        total_count = await UserFollow.objects(db).filter(following_id=int(user_id)).count()
+
+        # JOIN query – kept as raw parameterized SQL (ORM does not support JOINs).
         result = await db.prepare('''
             SELECT u.id, u.username, u.user_avatar, u.total_score
             FROM users u
@@ -340,15 +294,9 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
             ORDER BY uf.created DESC
             LIMIT ? OFFSET ?
         ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
-        
-        followers = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
-        
-        count_result = await db.prepare('''
-            SELECT COUNT(*) as count FROM user_follows WHERE following_id = ?
-        ''').bind(int(user_id)).first()
-        count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
-        total_count = count_result['count'] if count_result else len(followers)
-        
+
+        followers = convert_d1_results(result.results if hasattr(result, 'results') else [])
+
         return Response.json({
             "success": True,
             "data": followers,
@@ -361,7 +309,7 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
         })
     except Exception as e:
         logger.error(f"Error fetching user followers: {str(e)}")
-        return error_response(f"Error fetching user followers: {str(e)}", status=500)   
+        return error_response(f"Error fetching user followers: {str(e)}", status=500)
 
 async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
     """
@@ -381,7 +329,10 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
     logger = logging.getLogger(__name__)
     try:
         page, per_page = parse_pagination_params(query_params)
-        
+
+        total_count = await UserFollow.objects(db).filter(follower_id=int(user_id)).count()
+
+        # JOIN query – kept as raw parameterized SQL (ORM does not support JOINs).
         result = await db.prepare('''
             SELECT u.id, u.username, u.user_avatar, u.total_score
             FROM users u
@@ -390,15 +341,9 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
             ORDER BY uf.created DESC
             LIMIT ? OFFSET ?
         ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
-        
-        following = convert_d1_results(results=result.results if hasattr(result, 'results') else [])
-        
-        count_result = await db.prepare('''
-            SELECT COUNT(*) as count FROM user_follows WHERE follower_id = ?
-        ''').bind(int(user_id)).first()
-        count_result = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result)
-        total_count = count_result['count'] if count_result else len(following)
-        
+
+        following = convert_d1_results(result.results if hasattr(result, 'results') else [])
+
         return Response.json({
             "success": True,
             "data": following,
@@ -408,7 +353,7 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
                 "count": len(following),
                 "total": total_count
             }
-        })  
+        })
     except Exception as e:
         logger.error(f"Error fetching user following: {str(e)}")
         return error_response(f"Error fetching user following: {str(e)}", status=500)

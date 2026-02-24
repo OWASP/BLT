@@ -3,9 +3,9 @@ Bugs handler for the BLT API.
 """
 
 from typing import Any, Dict
-from utils import error_response, paginated_response, parse_pagination_params, parse_json_body
+from utils import error_response, parse_pagination_params, parse_json_body, convert_d1_results
 from libs.db import get_db_safe
-from utils import convert_d1_results
+from models import Bug
 from workers import Response
 import logging
 
@@ -278,53 +278,43 @@ async def handle_bugs(
     
     # List bugs with pagination
     page, per_page = parse_pagination_params(query_params)
-    
-    # Build WHERE conditions based on filters
-    where_conditions = []
-    params = []
-    
-    # Filter by status
-    status = query_params.get("status")
-    if status:
-        where_conditions.append("b.status = ?")
-        params.append(status)
-    
-    # Filter by domain
-    domain = query_params.get("domain")
-    if domain and domain.isdigit():
-        where_conditions.append("b.domain = ?")
-        params.append(int(domain))
-    
-    # Filter by verified
-    verified = query_params.get("verified")
-    if verified:
-        where_conditions.append("b.verified = ?")
-        params.append(1 if verified.lower() == "true" else 0)
-    
-    where_clause = " WHERE " + " AND ".join(where_conditions) if where_conditions else ""
-    
+
     try:
-        # Get total count
-        count_query = f'SELECT COUNT(*) as total FROM bugs b{where_clause}'
-        count_result = await db.prepare(count_query).bind(*params).first()
-        
-        # Handle count result
-        if count_result:
-            if hasattr(count_result, 'to_py'):
-                count_dict = count_result.to_py()
-                total = count_dict.get('total', 0)
-            elif hasattr(count_result, 'total'):
-                total = count_result.total
-            elif isinstance(count_result, dict):
-                total = count_result.get('total', 0)
-            else:
-                total = 0
-        else:
-            total = 0
-        
-        # Get paginated results with domain info
+        # Build ORM queryset for counting (safe parameterized filters)
+        count_qs = Bug.objects(db)
+
+        # Build WHERE conditions for the JOIN list query simultaneously.
+        # Field names here are hardcoded constants (not from user input), so
+        # they are safe to embed in SQL.  Values come from query_params and
+        # are always passed as bound parameters.
+        where_conditions = []
+        where_params = []
+
+        status = query_params.get("status")
+        if status:
+            count_qs = count_qs.filter(status=status)
+            where_conditions.append("b.status = ?")
+            where_params.append(status)
+
+        domain = query_params.get("domain")
+        if domain and domain.isdigit():
+            count_qs = count_qs.filter(domain=int(domain))
+            where_conditions.append("b.domain = ?")
+            where_params.append(int(domain))
+
+        verified = query_params.get("verified")
+        if verified:
+            verified_int = 1 if verified.lower() == "true" else 0
+            count_qs = count_qs.filter(verified=verified_int)
+            where_conditions.append("b.verified = ?")
+            where_params.append(verified_int)
+
+        total = await count_qs.count()
+
+        where_sql = (" WHERE " + " AND ".join(where_conditions)) if where_conditions else ""
+
         list_query = f'''
-            SELECT 
+            SELECT
                 b.id,
                 b.url,
                 b.description,
@@ -343,18 +333,17 @@ async def handle_bugs(
                 d.url as domain_url
             FROM bugs b
             LEFT JOIN domains d ON b.domain = d.id
-            {where_clause}
+            {where_sql}
             ORDER BY b.created DESC
             LIMIT ? OFFSET ?
         '''
-        
+
         result = await db.prepare(list_query).bind(
-            *params, per_page, (page - 1) * per_page
+            *where_params, per_page, (page - 1) * per_page
         ).all()
-        
-        # Convert D1 proxy results to Python list
+
         data = convert_d1_results(result.results if hasattr(result, 'results') else [])
-        
+
         return Response.json({
             "success": True,
             "data": data,
