@@ -83,6 +83,11 @@ def main() -> None:
     total_forks    = sum(r.get("forks_count", 0) for r in repos)
     total_issues   = sum(r.get("open_issues_count", 0) for r in repos)
     total_watchers = sum(r.get("watchers_count", 0) for r in repos)
+    total_size_kb  = sum(r.get("size", 0) for r in repos)
+    active_repos   = sum(1 for r in repos if not r.get("archived") and not r.get("fork"))
+    all_topics = set()    for repo in repos:
+        for t in repo.get("topics") or []:
+            all_topics.add(t)
 
     # Aggregate language bytes across all repos
     print("Fetching language breakdowns…", flush=True)
@@ -110,7 +115,7 @@ def main() -> None:
         "language", "stargazers_count", "forks_count", "open_issues_count",
         "watchers_count", "fork", "archived", "private", "topics",
         "default_branch", "updated_at", "created_at", "pushed_at",
-        "license", "visibility",
+        "license", "visibility", "size",
     }
     slim_repos = [
         {k: v for k, v in repo.items() if k in KEEP_FIELDS}
@@ -122,10 +127,14 @@ def main() -> None:
         "org": ORG,
         "cumulative": {
             "total_repos":      len(repos),
+            "active_repos":     active_repos,
             "total_stars":      total_stars,
             "total_forks":      total_forks,
             "total_open_issues": total_issues,
             "total_watchers":   total_watchers,
+            "total_size_kb":    total_size_kb,
+            "total_topics":     len(all_topics),
+            "total_languages":  len(all_lang_bytes),
             "lang_bytes":       dict(
                 sorted(all_lang_bytes.items(), key=lambda x: x[1], reverse=True)
             ),
