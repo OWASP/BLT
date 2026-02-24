@@ -93,6 +93,43 @@ def fetch_languages(repo_full_name: str) -> dict:
         return {}
 
 
+def fetch_contributors(repo_full_name: str, top_n: int = 5) -> list:
+    """Return the top N contributors (login, avatar_url, contributions) for a repo."""
+    try:
+        data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/contributors?per_page={top_n}&anon=false"
+        )
+        if not isinstance(data, list):
+            return []
+        return [
+            {
+                "login": c.get("login", ""),
+                "avatar_url": c.get("avatar_url", ""),
+                "contributions": c.get("contributions", 0),
+                "html_url": c.get("html_url", ""),
+            }
+            for c in data[:top_n]
+        ]
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch contributors for {repo_full_name}: {exc}", file=sys.stderr)
+        return []
+
+
+def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
+    """Return the last `weeks` weekly commit totals as a list of ints."""
+    try:
+        data = make_request(f"{API_BASE}/repos/{repo_full_name}/stats/commit_activity")
+        if not isinstance(data, list):
+            return []
+        return [w.get("total", 0) for w in data[-weeks:]]
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        if hasattr(exc, "code") and exc.code == 202:
+            # GitHub is still computing the stats; return empty for now
+            return []
+        print(f"  Warning: could not fetch commit activity for {repo_full_name}: {exc}", file=sys.stderr)
+        return []
+
+
 def main() -> None:
     print(f"Fetching repos for org: {ORG}", flush=True)
     repos = fetch_all_pages(f"/orgs/{ORG}/repos")
@@ -133,6 +170,21 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch top contributors and weekly commit activity for each non-archived repo
+    print("Fetching contributors and commit activity…", flush=True)
+    contributors_map: dict[str, list] = {}
+    weekly_commits_map: dict[str, list] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            contributors_map[repo["full_name"]] = []
+            weekly_commits_map[repo["full_name"]] = []
+        else:
+            contributors_map[repo["full_name"]] = fetch_contributors(repo["full_name"])
+            weekly_commits_map[repo["full_name"]] = fetch_weekly_commits(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -151,7 +203,9 @@ def main() -> None:
     }
     slim_repos = [
         {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
-         "readme_chars": readme_chars_map.get(repo["full_name"], 0)}
+         "readme_chars": readme_chars_map.get(repo["full_name"], 0),
+         "contributors": contributors_map.get(repo["full_name"], []),
+         "weekly_commits": weekly_commits_map.get(repo["full_name"], [])}
         for repo in repos
     ]
 
