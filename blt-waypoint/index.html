@@ -70,6 +70,21 @@
       border-color: #E10101;
       box-shadow: 0 0 0 1px #E10101;
     }
+
+    /* Sparkline colour inherits text colour */
+    .sparkline { display: block; }
+
+    /* Overlapping contributor avatars */
+    .avatar-stack { display: flex; }
+    .avatar-stack img {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      margin-left: -6px;
+      object-fit: cover;
+    }
+    .dark .avatar-stack img { border-color: #1f2937; }
+    .avatar-stack img:first-child { margin-left: 0; }
   </style>
 </head>
 
@@ -195,16 +210,17 @@
 
     <!-- Cumulative stats -->
     <section aria-label="Cumulative statistics" class="mb-6">
-      <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div id="stats-bar" class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2" style="grid-auto-rows: minmax(3rem, auto);">
         <!-- Skeleton placeholders -->
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
-        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
+        <div class="skeleton h-14 rounded-lg"></div>
       </div>
     </section>
 
@@ -360,6 +376,18 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+function sparklineSVG(data, width = 80, height = 20) {
+  if (!data || data.length < 2) return '';
+  const max = Math.max(...data, 1);
+  const step = width / (data.length - 1);
+  const pts = data.map((v, i) => {
+    const x = (i * step).toFixed(1);
+    const y = (height - (v / max) * (height - 2) - 1).toFixed(1);
+    return `${x},${y}`;
+  }).join(' ');
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline text-brand opacity-70" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/></svg>`;
+}
+
 /* ------------------------------------------------------------------ */
 /*  GITHUB API FETCH (paginated)                                        */
 /* ------------------------------------------------------------------ */
@@ -458,24 +486,29 @@ function buildStats(repos, cumulative) {
   const sizeMb = totalSizeKb > 0 ? `${(totalSizeKb / 1024).toFixed(1)} MB` : '—';
 
   const stats = [
-    { icon: 'fa-solid fa-box',         label: 'Repositories', value: formatNumber(totalRepos),        color: 'text-indigo-500' },
-    { icon: 'fa-solid fa-circle-check', label: 'Active Repos', value: formatNumber(activeRepos),       color: 'text-teal-500' },
-    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),        color: 'text-yellow-500' },
-    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),        color: 'text-green-500' },
-    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues),       color: 'text-brand' },
-    { icon: 'fa-solid fa-code',        label: 'Languages',     value: formatNumber(langCount),         color: 'text-purple-500' },
-    { icon: 'fa-solid fa-tags',        label: 'Topics',        value: formatNumber(totalTopics),       color: 'text-orange-500' },
-    { icon: 'fa-solid fa-database',    label: 'Total Size',    value: sizeMb,                          color: 'text-cyan-500' },
-    { icon: 'fa-solid fa-file-lines',  label: 'README Chars',  value: formatNumber(totalReadmeChars),  color: 'text-pink-500' },
+    { icon: 'fa-solid fa-box',         label: 'Repos',       value: formatNumber(totalRepos),        color: 'text-indigo-500', href: `https://github.com/orgs/${ORG}/repositories` },
+    { icon: 'fa-solid fa-circle-check', label: 'Active',      value: formatNumber(activeRepos),       color: 'text-teal-500',   href: `https://github.com/orgs/${ORG}/repositories?type=source` },
+    { icon: 'fa-solid fa-star',        label: 'Stars',        value: formatNumber(totalStars),        color: 'text-yellow-500', href: `https://github.com/orgs/${ORG}/repositories?sort=stargazers` },
+    { icon: 'fa-solid fa-code-fork',   label: 'Forks',        value: formatNumber(totalForks),        color: 'text-green-500',  href: `https://github.com/orgs/${ORG}/repositories?type=fork` },
+    { icon: 'fa-solid fa-circle-dot',  label: 'Issues',       value: formatNumber(totalIssues),       color: 'text-brand',      href: `https://github.com/search?q=org%3A${ORG}+is%3Aissue+is%3Aopen&type=issues` },
+    { icon: 'fa-solid fa-code',        label: 'Languages',    value: formatNumber(langCount),         color: 'text-purple-500', href: null },
+    { icon: 'fa-solid fa-tags',        label: 'Topics',       value: formatNumber(totalTopics),       color: 'text-orange-500', href: null },
+    { icon: 'fa-solid fa-database',    label: 'Size',         value: sizeMb,                          color: 'text-cyan-500',   href: null },
+    { icon: 'fa-solid fa-file-lines',  label: 'README',       value: formatNumber(totalReadmeChars),  color: 'text-pink-500',   href: null },
   ];
 
-  document.getElementById('stats-bar').innerHTML = stats.map(s => `
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
-      <i class="${s.icon} ${s.color} text-xl" aria-hidden="true"></i>
-      <p class="text-xl font-bold text-gray-900 dark:text-white mt-1">${s.value}</p>
-      <p class="text-xs text-gray-500 dark:text-gray-400">${s.label}</p>
-    </div>
-  `).join('');
+  document.getElementById('stats-bar').innerHTML = stats.map(s => {
+    const inner = `
+      <i class="${s.icon} ${s.color} text-base" aria-hidden="true"></i>
+      <div class="min-w-0">
+        <p class="text-sm font-bold text-gray-900 dark:text-white leading-tight">${s.value}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${s.label}</p>
+      </div>`;
+    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : ''}`;
+    return s.href
+      ? `<a href="${s.href}" target="_blank" rel="noopener noreferrer" class="${cls}" aria-label="${s.label}: ${s.value}">${inner}</a>`
+      : `<div class="${cls}">${inner}</div>`;
+  }).join('');
 }
 
 /* ------------------------------------------------------------------ */
@@ -590,6 +623,17 @@ function repoCardHTML(r) {
 
   const license = r.license ? `<span title="License" class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-scale-balanced mr-1" aria-hidden="true"></i>${escapeHtml(r.license.spdx_id)}</span>` : '';
 
+  // Contributor avatars (slightly overlapping)
+  const contributors = (r.contributors || []).slice(0, 5);
+  const avatarStack = contributors.length
+    ? `<div class="avatar-stack" title="Top contributors: ${contributors.map(c => escapeHtml(c.login)).join(', ')}">
+        ${contributors.map(c => `<a href="${escapeHtml(c.html_url || `https://github.com/${c.login}`)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(c.avatar_url)}&amp;s=44" alt="${escapeHtml(c.login)}" title="${escapeHtml(c.login)} (${c.contributions} commits)" loading="lazy" /></a>`).join('')}
+      </div>`
+    : '';
+
+  // Activity sparkline
+  const sparkline = sparklineSVG(r.weekly_commits);
+
   return `
   <article class="repo-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
 
@@ -621,12 +665,19 @@ function repoCardHTML(r) {
           <span class="lang-dot" style="background:${langColor}"></span>${escapeHtml(r.language)}
         </span>
       ` : ''}
-      <span title="Stars"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</span>
-      <span title="Forks"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</span>
-      <span title="Open issues"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</span>
-      ${r.watchers_count ? `<span title="Watchers"><i class="fa-solid fa-eye mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.watchers_count)}</span>` : ''}
+      <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" title="Stars" class="hover:text-yellow-500 transition-colors"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</a>
+      <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" title="Forks" class="hover:text-green-600 transition-colors"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</a>
+      <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" title="Open issues" class="hover:text-brand transition-colors"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</a>
+      ${r.watchers_count ? `<a href="${escapeHtml(r.html_url)}/watchers" target="_blank" rel="noopener noreferrer" title="Watchers" class="hover:text-blue-500 transition-colors"><i class="fa-solid fa-eye mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.watchers_count)}</a>` : ''}
       ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
     </div>
+
+    <!-- Sparkline + avatars row -->
+    ${(sparkline || avatarStack) ? `
+    <div class="flex items-center justify-between gap-2">
+      ${avatarStack || '<span></span>'}
+      ${sparkline ? `<span title="Commit activity (last 26 weeks)">${sparkline}</span>` : ''}
+    </div>` : ''}
 
     <!-- Footer -->
     <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
