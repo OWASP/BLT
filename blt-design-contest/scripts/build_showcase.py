@@ -670,14 +670,80 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
     }}
 
     // Thumbs-up click handler — opens the GitHub issue so the user can react there
-    document.querySelectorAll('[data-thumbs-btn]').forEach(btn => {{
-      btn.addEventListener('click', () => {{
-        const issueUrl = btn.closest('article')?.dataset.issueUrl;
-        if (issueUrl) {{
-          window.open(issueUrl, '_blank', 'noopener,noreferrer');
-        }}
-      }});
+    // Uses event delegation so it works for both static and live-updated buttons
+    document.addEventListener('click', (e) => {{
+      const btn = e.target.closest('[data-thumbs-btn]');
+      if (!btn) return;
+      const issueUrl = btn.closest('article')?.dataset.issueUrl;
+      if (issueUrl) {{
+        window.open(issueUrl, '_blank', 'noopener,noreferrer');
+      }}
     }});
+
+    // Live-update reaction counts from the GitHub API on page load
+    (async function () {{
+      const REACTION_LABELS = [
+        ['+1',    '\U0001F44D'],
+        ['heart', '\u2764\uFE0F'],
+        ['hooray','\U0001F389'],
+        ['rocket','\U0001F680'],
+      ];
+      const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
+                 + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
+      const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
+                        + 'hover:text-[#E10101] transition-colors cursor-pointer';
+
+      const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
+      if (!cards.length) return;
+
+      let issues;
+      try {{
+        const resp = await fetch(
+          'https://api.github.com/repos/{REPO}/issues?labels=design-submission&state=open&per_page=100',
+          {{ headers: {{ 'Accept': 'application/vnd.github+json' }} }}
+        );
+        if (!resp.ok) return;
+        issues = await resp.json();
+      }} catch (_) {{
+        return;
+      }}
+
+      const byUrl = {{}};
+      for (const issue of issues) byUrl[issue.html_url] = issue.reactions || {{}};
+
+      for (const card of cards) {{
+        const reactions = byUrl[card.dataset.issueUrl];
+        if (!reactions) continue;
+
+        const thumbsCount = reactions['+1'] || 0;
+        card.dataset.thumbs = thumbsCount;
+
+        const container = card.querySelector('[aria-label="Reactions"]');
+        if (!container) continue;
+
+        let html = '';
+        let total = 0;
+        for (const [content, emoji] of REACTION_LABELS) {{
+          const count = reactions[content] || 0;
+          if (!count) continue;
+          total++;
+          if (content === '+1') {{
+            html += `<button type="button" class="${{THUMBS_PILL}}" data-thumbs-btn `
+                  + `aria-label="Thumbs up this design on GitHub">${{emoji}} <span>${{count}}</span></button>`;
+          }} else {{
+            html += `<span class="${{PILL}}">${{emoji}} <span>${{count}}</span></span>`;
+          }}
+        }}
+        if (!total) {{
+          html = `<a href="${{card.dataset.issueUrl}}" target="_blank" rel="noopener" `
+               + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
+               + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
+               + `aria-label="Be the first to react on GitHub">`
+               + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
+        }}
+        container.innerHTML = html;
+      }}
+    }})();
   </script>
 </body>
 </html>"""
