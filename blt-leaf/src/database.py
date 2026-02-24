@@ -1,6 +1,7 @@
 """Database operations for PR tracking"""
 
 import json
+import time
 from datetime import datetime, timezone
 
 
@@ -325,8 +326,7 @@ async def save_timeline_to_db(env, owner, repo, pr_number, data):
     """
     try:
         db = get_db(env)
-        from js import Date
-        current_time = str(Date.now() / 1000)
+        current_time = str(time.time())
         
         stmt = db.prepare('''
             INSERT INTO timeline_cache (owner, repo, pr_number, data, timestamp)

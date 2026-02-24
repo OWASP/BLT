@@ -1,6 +1,6 @@
 """Caching and rate limiting functionality"""
 
-from js import Date
+import time
 
 # In-memory cache for rate limit data (per worker isolate)
 _rate_limit_cache = {
@@ -54,7 +54,7 @@ def check_rate_limit(ip_address):
     """
     global _readiness_rate_limit
     
-    current_time = Date.now() / 1000  # Convert milliseconds to seconds
+    current_time = time.time()
     
     if ip_address not in _readiness_rate_limit:
         _readiness_rate_limit[ip_address] = {
@@ -108,7 +108,7 @@ async def get_readiness_cache(env, pr_id):
     # Check in-memory cache first
     if pr_id in _readiness_cache:
         cache_entry = _readiness_cache[pr_id]
-        current_time = Date.now() / 1000
+        current_time = time.time()
         
         # Check if cache is still valid
         if (current_time - cache_entry['timestamp']) < _READINESS_CACHE_TTL:
@@ -126,7 +126,7 @@ async def get_readiness_cache(env, pr_id):
     db_data = await load_readiness_from_db(env, pr_id)
     if db_data:
         # Store in memory cache for faster subsequent access
-        current_time = Date.now() / 1000
+        current_time = time.time()
         _readiness_cache[pr_id] = {
             'data': db_data,
             'timestamp': current_time
@@ -152,7 +152,7 @@ async def set_readiness_cache(env, pr_id, data):
     from database import save_readiness_to_db
     
     # Store in memory cache
-    current_time = Date.now() / 1000
+    current_time = time.time()
     _readiness_cache[pr_id] = {
         'data': data,
         'timestamp': current_time
@@ -209,7 +209,7 @@ async def get_timeline_cache(env, owner, repo, pr_number):
     from database import load_timeline_from_db
     
     cache_key = get_timeline_cache_key(owner, repo, pr_number)
-    current_time = Date.now() / 1000
+    current_time = time.time()
     
     # 1. Check in-memory cache first
     if cache_key in _timeline_cache:
@@ -267,7 +267,7 @@ async def set_timeline_cache(env, owner, repo, pr_number, data):
     from database import save_timeline_to_db
     
     cache_key = get_timeline_cache_key(owner, repo, pr_number)
-    current_time = Date.now() / 1000
+    current_time = time.time()
     
     # Store in memory cache
     _timeline_cache[cache_key] = {
@@ -303,8 +303,6 @@ async def invalidate_timeline_cache(env, owner, repo, pr_number):
     
     # Also remove from database
     await delete_timeline_from_db(env, owner, repo, pr_number)
-
-import time
 
 def set_rate_limit_data(limit, remaining, reset):
     """
