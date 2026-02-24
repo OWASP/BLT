@@ -115,6 +115,32 @@ def fetch_contributors(repo_full_name: str, top_n: int = 5) -> list:
         return []
 
 
+def fetch_file_count(repo_full_name: str, default_branch: str) -> int:
+    """Return the total number of files (blobs) in the repo's default branch tree."""
+    try:
+        branch_data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/branches/{default_branch}"
+        )
+        tree_sha = (
+            branch_data.get("commit", {})
+            .get("commit", {})
+            .get("tree", {})
+            .get("sha", "")
+        )
+        if not tree_sha:
+            return 0
+        tree_data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/git/trees/{tree_sha}?recursive=1"
+        )
+        blobs = [
+            item for item in tree_data.get("tree", []) if item.get("type") == "blob"
+        ]
+        return len(blobs)
+    except (urllib.error.HTTPError, urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not fetch file count for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0
+
+
 def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
     """Return the last `weeks` weekly commit totals as a list of ints."""
     try:
@@ -185,6 +211,20 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch recursive file count for each non-archived repo
+    print("Fetching file counts…", flush=True)
+    file_count_map: dict[str, int] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            file_count_map[repo["full_name"]] = 0
+        else:
+            file_count_map[repo["full_name"]] = fetch_file_count(
+                repo["full_name"], repo.get("default_branch", "main")
+            )
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -205,7 +245,8 @@ def main() -> None:
         {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
          "readme_chars": readme_chars_map.get(repo["full_name"], 0),
          "contributors": contributors_map.get(repo["full_name"], []),
-         "weekly_commits": weekly_commits_map.get(repo["full_name"], [])}
+         "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
+         "file_count": file_count_map.get(repo["full_name"], 0)}
         for repo in repos
     ]
 
