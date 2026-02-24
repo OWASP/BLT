@@ -9,6 +9,7 @@ Environment variables:
   OUT_FILE  – output path (default: data.json)
 """
 
+import base64
 import json
 import os
 import sys
@@ -62,6 +63,27 @@ def fetch_all_pages(path: str) -> list:
     return results
 
 
+def fetch_readme_chars(repo_full_name: str) -> int:
+    """Return the character count of the README for a single repo (0 if none)."""
+    try:
+        data = make_request(f"{API_BASE}/repos/{repo_full_name}/readme")
+        content = data.get("content", "")
+        encoding = data.get("encoding", "base64")
+        if encoding == "base64":
+            decoded = base64.b64decode(content).decode("utf-8", errors="replace")
+        else:
+            decoded = content
+        return len(decoded)
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return 0
+        print(f"  Warning: could not fetch README for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0
+    except (urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not fetch README for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0
+
+
 def fetch_languages(repo_full_name: str) -> dict:
     """Return the language breakdown (bytes) for a single repo."""
     try:
@@ -85,7 +107,8 @@ def main() -> None:
     total_watchers = sum(r.get("watchers_count", 0) for r in repos)
     total_size_kb  = sum(r.get("size", 0) for r in repos)
     active_repos   = sum(1 for r in repos if not r.get("archived") and not r.get("fork"))
-    all_topics = set()    for repo in repos:
+    all_topics = set()
+    for repo in repos:
         for t in repo.get("topics") or []:
             all_topics.add(t)
 
@@ -98,6 +121,15 @@ def main() -> None:
         langs = fetch_languages(repo["full_name"])
         for lang, count in langs.items():
             all_lang_bytes[lang] = all_lang_bytes.get(lang, 0) + count
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
+    # Fetch README character counts for each repo
+    print("Fetching README character counts…", flush=True)
+    readme_chars_map: dict[str, int] = {}
+    for i, repo in enumerate(repos):
+        chars = fetch_readme_chars(repo["full_name"])
+        readme_chars_map[repo["full_name"]] = chars
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
@@ -118,27 +150,31 @@ def main() -> None:
         "license", "visibility", "size",
     }
     slim_repos = [
-        {k: v for k, v in repo.items() if k in KEEP_FIELDS}
+        {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
+         "readme_chars": readme_chars_map.get(repo["full_name"], 0)}
         for repo in repos
     ]
+
+    total_readme_chars = sum(readme_chars_map.values())
 
     output = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "org": ORG,
         "cumulative": {
-            "total_repos":      len(repos),
-            "active_repos":     active_repos,
-            "total_stars":      total_stars,
-            "total_forks":      total_forks,
-            "total_open_issues": total_issues,
-            "total_watchers":   total_watchers,
-            "total_size_kb":    total_size_kb,
-            "total_topics":     len(all_topics),
-            "total_languages":  len(all_lang_bytes),
-            "lang_bytes":       dict(
+            "total_repos":        len(repos),
+            "active_repos":       active_repos,
+            "total_stars":        total_stars,
+            "total_forks":        total_forks,
+            "total_open_issues":  total_issues,
+            "total_watchers":     total_watchers,
+            "total_size_kb":      total_size_kb,
+            "total_topics":       len(all_topics),
+            "total_languages":    len(all_lang_bytes),
+            "total_readme_chars": total_readme_chars,
+            "lang_bytes":         dict(
                 sorted(all_lang_bytes.items(), key=lambda x: x[1], reverse=True)
             ),
-            "lang_repo_count":  dict(
+            "lang_repo_count":    dict(
                 sorted(lang_repo_count.items(), key=lambda x: x[1], reverse=True)
             ),
         },
