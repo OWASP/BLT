@@ -159,8 +159,9 @@ def extract_category(fields: dict) -> str:
 
 def extract_description(fields: dict) -> str:
     desc = fields.get("description", "").strip()
-    # Strip markdown code fences (e.g. ```markdown ... ```)
+    # Strip matched markdown code fences (e.g. ```markdown ... ```)
     desc = re.sub(r"^```[^\n]*\n(.*?)^```\s*$", r"\1", desc, flags=re.DOTALL | re.MULTILINE)
+    # Strip any remaining lone opening/closing fence markers (unmatched fences)
     desc = re.sub(r"^```\w*\s*$", "", desc, flags=re.MULTILINE)
     # Strip markdown checkbox noise
     desc = re.sub(r"^[-*]\s+\[[ x]\].*$", "", desc, flags=re.MULTILINE)
