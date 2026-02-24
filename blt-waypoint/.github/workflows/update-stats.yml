@@ -1,0 +1,50 @@
+name: Update Org Stats
+
+on:
+  schedule:
+    # Run at the top of every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger from the GitHub Actions UI
+  push:
+    branches:
+      - main
+
+jobs:
+  update-stats:
+    name: Fetch and commit data.json
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push the updated data.json
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Use the default GITHUB_TOKEN – no extra secrets needed
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate data.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG: OWASP-BLT
+          OUT_FILE: data.json
+        run: python3 .github/scripts/generate_data.py
+
+      - name: Commit and push data.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          # Only commit if the file actually changed
+          if git diff --cached --quiet; then
+            echo "data.json is unchanged – nothing to commit."
+          else
+            git commit -m "chore: update org stats [skip ci]"
+            git push
+          fi
