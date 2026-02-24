@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP BLT – Organization Dashboard</title>
+  <meta name="description" content="Live dashboard for all OWASP-BLT GitHub repositories – stats, commits, issues, PRs and more." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover:   '#b91c1c',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /* Smooth card hover lift */
+    .repo-card { transition: box-shadow 0.18s ease, transform 0.18s ease; }
+    .repo-card:hover { box-shadow: 0 8px 32px 0 rgba(225,1,1,0.12); transform: translateY(-2px); }
+
+    /* Language colour dot */
+    .lang-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+
+    /* Skeleton animation */
+    @keyframes shimmer { 0%{background-position:-800px 0} 100%{background-position:800px 0} }
+    .skeleton {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    .dark .skeleton {
+      background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+      background-size: 800px 100%;
+    }
+
+    /* Active sidebar item */
+    .nav-active { background: #feeae9; color: #E10101; }
+    .dark .nav-active { background: rgba(225,1,1,0.15); color: #f87171; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+
+    /* Focus ring reuse */
+    .focus-brand:focus {
+      outline: none;
+      border-color: #E10101;
+      box-shadow: 0 0 0 1px #E10101;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
+
+<!-- ===== TOP NAV ===== -->
+<header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+  <div class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+
+    <!-- Logo -->
+    <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 shrink-0">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded bg-brand text-white text-sm font-bold">BLT</span>
+      <span class="font-bold text-gray-900 dark:text-white hidden sm:inline">OWASP BLT</span>
+    </a>
+
+    <!-- Search -->
+    <div class="relative flex-1 max-w-sm">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search repositories…"
+        aria-label="Search repositories"
+        class="w-full pl-9 pr-4 py-2 border border-gray-400 rounded-md text-sm bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 focus-brand"
+      />
+    </div>
+
+    <!-- Right controls -->
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- Sort -->
+      <select
+        id="sort-select"
+        aria-label="Sort repositories"
+        class="hidden sm:block text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand"
+      >
+        <option value="stars">★ Stars</option>
+        <option value="forks">⑂ Forks</option>
+        <option value="open_issues_count">Issues</option>
+        <option value="updated_at">Updated</option>
+        <option value="name">Name</option>
+        <option value="created_at">Created</option>
+      </select>
+
+      <!-- Dark mode toggle -->
+      <button
+        id="dark-toggle"
+        aria-label="Toggle dark mode"
+        class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      >
+        <i id="dark-icon" class="fa-solid fa-moon text-sm" aria-hidden="true"></i>
+      </button>
+
+      <!-- GitHub link -->
+      <a
+        href="https://github.com/OWASP-BLT"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="OWASP-BLT on GitHub"
+        class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      >
+        <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN LAYOUT ===== -->
+<div class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="hidden lg:flex flex-col gap-2 w-52 shrink-0">
+    <nav aria-label="Filter by type">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Filter</p>
+      <ul class="space-y-0.5">
+        <li>
+          <button data-filter="all" class="filter-btn nav-active w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+            <i class="fa-solid fa-layer-group w-4 mr-2" aria-hidden="true"></i>All repos
+          </button>
+        </li>
+        <li>
+          <button data-filter="source" class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+            <i class="fa-solid fa-code-branch w-4 mr-2" aria-hidden="true"></i>Source
+          </button>
+        </li>
+        <li>
+          <button data-filter="fork" class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+            <i class="fa-solid fa-code-fork w-4 mr-2" aria-hidden="true"></i>Forks
+          </button>
+        </li>
+        <li>
+          <button data-filter="archived" class="filter-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+            <i class="fa-solid fa-archive w-4 mr-2" aria-hidden="true"></i>Archived
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+    <nav aria-label="Sort options (mobile-friendly sidebar)">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Sort by</p>
+      <ul class="space-y-0.5" id="sort-sidebar">
+        <li><button data-sort="stars"            class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-star w-4 mr-2" aria-hidden="true"></i>Stars</button></li>
+        <li><button data-sort="forks"            class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-code-fork w-4 mr-2" aria-hidden="true"></i>Forks</button></li>
+        <li><button data-sort="open_issues_count" class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-circle-dot w-4 mr-2" aria-hidden="true"></i>Issues</button></li>
+        <li><button data-sort="updated_at"       class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-clock w-4 mr-2" aria-hidden="true"></i>Updated</button></li>
+        <li><button data-sort="name"             class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-a w-4 mr-2" aria-hidden="true"></i>Name</button></li>
+      </ul>
+    </nav>
+
+    <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+    <div id="lang-filter-sidebar">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Language</p>
+      <ul class="space-y-0.5" id="lang-list"></ul>
+    </div>
+  </aside>
+
+  <!-- ===== CONTENT ===== -->
+  <main class="flex-1 min-w-0">
+
+    <!-- Cumulative stats -->
+    <section aria-label="Cumulative statistics" class="mb-6">
+      <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Skeleton placeholders -->
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
+      </div>
+    </section>
+
+    <!-- Mobile sort/filter bar -->
+    <div class="flex lg:hidden items-center gap-2 mb-4 flex-wrap">
+      <select
+        id="sort-select-mobile"
+        aria-label="Sort repositories"
+        class="text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand flex-1"
+      >
+        <option value="stars">★ Stars</option>
+        <option value="forks">⑂ Forks</option>
+        <option value="open_issues_count">Issues</option>
+        <option value="updated_at">Updated</option>
+        <option value="name">Name</option>
+        <option value="created_at">Created</option>
+      </select>
+      <select
+        id="filter-select-mobile"
+        aria-label="Filter repositories"
+        class="text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand flex-1"
+      >
+        <option value="all">All repos</option>
+        <option value="source">Source</option>
+        <option value="fork">Forks</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+
+    <!-- Results count -->
+    <p id="results-count" class="text-sm text-gray-500 dark:text-gray-400 mb-3"></p>
+
+    <!-- Repo grid -->
+    <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <!-- Skeleton cards -->
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="hidden text-center py-16">
+      <i class="fa-solid fa-triangle-exclamation text-4xl text-brand mb-3" aria-hidden="true"></i>
+      <p class="font-semibold text-lg">Failed to load repositories</p>
+      <p id="error-msg" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
+      <button
+        id="retry-btn"
+        class="mt-4 px-5 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-md transition-colors"
+      >
+        <i class="fa-solid fa-rotate-right mr-2" aria-hidden="true"></i>Retry
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-16">
+      <i class="fa-solid fa-box-open text-4xl text-gray-300 dark:text-gray-600 mb-3" aria-hidden="true"></i>
+      <p class="font-semibold text-lg">No repositories match your search</p>
+      <button
+        id="clear-btn"
+        class="mt-3 px-4 py-2 border border-brand text-brand text-sm font-semibold rounded-md hover:bg-brand hover:text-white transition-colors"
+      >
+        Clear filters
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="mt-10 border-t border-gray-200 dark:border-gray-700 py-6 text-center text-xs text-gray-400 dark:text-gray-500">
+  <p>
+    Data sourced from the
+    <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="text-brand underline-offset-2 hover:underline">GitHub REST API</a>.
+    Built for <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="text-brand underline-offset-2 hover:underline">OWASP BLT</a>.
+  </p>
+  <p id="footer-ts" class="mt-1"></p>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+/* ------------------------------------------------------------------ */
+/*  CONSTANTS & STATE                                                   */
+/* ------------------------------------------------------------------ */
+const ORG  = 'OWASP-BLT';
+const API  = 'https://api.github.com';
+const PER_PAGE = 100;            // max allowed by GitHub API
+const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
+
+const LANG_COLORS = {
+  Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#2b7489', HTML:'#e34c26',
+  CSS:'#563d7c', Shell:'#89e051', Java:'#b07219', Go:'#00ADD8', Ruby:'#701516',
+  PHP:'#4F5D95', 'C++':'#f34b7d', C:'#555555', Rust:'#dea584', Kotlin:'#F18E33',
+  Swift:'#F05138', Dart:'#00B4AB', Vue:'#41b883', Dockerfile:'#384d54',
+};
+
+let allRepos   = [];
+let filtered   = [];
+let currentSort   = 'stars';
+let currentFilter = 'all';
+let currentLang   = '';
+let currentSearch = '';
+
+/* ------------------------------------------------------------------ */
+/*  DARK MODE                                                           */
+/* ------------------------------------------------------------------ */
+(function initDark() {
+  const saved = localStorage.getItem('blt-dark');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.documentElement.classList.add('dark');
+    document.getElementById('dark-icon').className = 'fa-solid fa-sun text-sm';
+  }
+})();
+
+document.getElementById('dark-toggle').addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('blt-dark', isDark ? 'dark' : 'light');
+  document.getElementById('dark-icon').className = isDark
+    ? 'fa-solid fa-sun text-sm'
+    : 'fa-solid fa-moon text-sm';
+});
+
+/* ------------------------------------------------------------------ */
+/*  UTILITY HELPERS                                                     */
+/* ------------------------------------------------------------------ */
+function formatNumber(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return n;
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60)   return 'just now';
+  if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+  if (secs < 86400)return Math.floor(secs / 3600) + 'h ago';
+  if (secs < 2592000) return Math.floor(secs / 86400) + 'd ago';
+  if (secs < 31536000) return Math.floor(secs / 2592000) + 'mo ago';
+  return Math.floor(secs / 31536000) + 'y ago';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* ------------------------------------------------------------------ */
+/*  GITHUB API FETCH (paginated)                                        */
+/* ------------------------------------------------------------------ */
+async function fetchAllPages(url) {
+  const results = [];
+  let page = 1;
+  while (true) {
+    const sep = url.includes('?') ? '&' : '?';
+    const resp = await fetch(`${url}${sep}per_page=${PER_PAGE}&page=${page}`, {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ message: 'Failed to parse error response' }));
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    if (!Array.isArray(data) || data.length === 0) break;
+    results.push(...data);
+    if (data.length < PER_PAGE) break;
+    page++;
+  }
+  return results;
+}
+
+/* ------------------------------------------------------------------ */
+/*  LOAD REPOS                                                          */
+/* ------------------------------------------------------------------ */
+async function loadRepos() {
+  document.getElementById('error-state').classList.add('hidden');
+  try {
+    const repos = await fetchAllPages(`${API}/orgs/${ORG}/repos`);
+    allRepos = repos;
+    buildLangFilter(repos);
+    buildStats(repos);
+    applyFilters();
+    document.getElementById('footer-ts').textContent =
+      'Last fetched: ' + new Date().toLocaleString();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  STATS BAR                                                           */
+/* ------------------------------------------------------------------ */
+function buildStats(repos) {
+  const totalStars  = repos.reduce((s, r) => s + r.stargazers_count, 0);
+  const totalForks  = repos.reduce((s, r) => s + r.forks_count, 0);
+  const totalIssues = repos.reduce((s, r) => s + r.open_issues_count, 0);
+  const languages   = new Set(repos.map(r => r.language).filter(Boolean));
+  const totalWatchers = repos.reduce((s, r) => s + (r.watchers_count || 0), 0);
+
+  const stats = [
+    { icon: 'fa-solid fa-box',        label: 'Repositories', value: repos.length,        color: 'text-indigo-500' },
+    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),  color: 'text-yellow-500' },
+    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),  color: 'text-green-500' },
+    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues), color: 'text-brand' },
+    { icon: 'fa-solid fa-code',        label: 'Languages',     value: languages.size,     color: 'text-purple-500' },
+    { icon: 'fa-solid fa-eye',         label: 'Watchers',      value: formatNumber(totalWatchers), color: 'text-blue-500' },
+  ];
+
+  document.getElementById('stats-bar').innerHTML = stats.map(s => `
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
+      <i class="${s.icon} ${s.color} text-xl" aria-hidden="true"></i>
+      <p class="text-xl font-bold text-gray-900 dark:text-white mt-1">${s.value}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400">${s.label}</p>
+    </div>
+  `).join('');
+}
+
+/* ------------------------------------------------------------------ */
+/*  LANGUAGE FILTER SIDEBAR                                             */
+/* ------------------------------------------------------------------ */
+function buildLangFilter(repos) {
+  const langCount = {};
+  repos.forEach(r => { if (r.language) langCount[r.language] = (langCount[r.language] || 0) + 1; });
+
+  const sorted = Object.entries(langCount).sort((a, b) => b[1] - a[1]).slice(0, MAX_LANGUAGES_DISPLAYED);
+
+  const list = document.getElementById('lang-list');
+  list.innerHTML = `
+    <li>
+      <button data-lang="" class="lang-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors nav-active">
+        All languages
+      </button>
+    </li>
+  ` + sorted.map(([lang, count]) => `
+    <li>
+      <button data-lang="${escapeHtml(lang)}" class="lang-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between">
+        <span>
+          <span class="lang-dot" style="background:${LANG_COLORS[lang] || '#8b949e'}"></span>${escapeHtml(lang)}
+        </span>
+        <span class="text-xs text-gray-400">${count}</span>
+      </button>
+    </li>
+  `).join('');
+
+  list.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLang = btn.dataset.lang;
+      list.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('nav-active', 'text-brand'));
+      btn.classList.add('nav-active');
+      applyFilters();
+    });
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/*  FILTER & SORT                                                       */
+/* ------------------------------------------------------------------ */
+function applyFilters() {
+  let repos = [...allRepos];
+
+  // Type filter
+  if (currentFilter === 'fork')     repos = repos.filter(r => r.fork);
+  else if (currentFilter === 'source')   repos = repos.filter(r => !r.fork && !r.archived);
+  else if (currentFilter === 'archived') repos = repos.filter(r => r.archived);
+
+  // Language filter
+  if (currentLang) repos = repos.filter(r => r.language === currentLang);
+
+  // Search
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    repos = repos.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      (r.description || '').toLowerCase().includes(q) ||
+      (r.topics || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort
+  repos.sort((a, b) => {
+    if (currentSort === 'name') return a.name.localeCompare(b.name);
+    if (currentSort === 'updated_at' || currentSort === 'created_at')
+      return new Date(b[currentSort]) - new Date(a[currentSort]);
+    return (b[currentSort] || 0) - (a[currentSort] || 0);
+  });
+
+  filtered = repos;
+  renderRepos(repos);
+}
+
+/* ------------------------------------------------------------------ */
+/*  RENDER REPO CARDS                                                   */
+/* ------------------------------------------------------------------ */
+function renderRepos(repos) {
+  const grid = document.getElementById('repo-grid');
+  const empty = document.getElementById('empty-state');
+  const count = document.getElementById('results-count');
+
+  if (repos.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    count.textContent = '';
+    return;
+  }
+
+  empty.classList.add('hidden');
+  count.textContent = `Showing ${repos.length} of ${allRepos.length} repositories`;
+
+  grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
+}
+
+function repoCardHTML(r) {
+  const langColor = LANG_COLORS[r.language] || '#8b949e';
+  const topics = (r.topics || []).slice(0, 3).map(t =>
+    `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`
+  ).join('');
+
+  const archiveBadge = r.archived
+    ? `<span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 text-xs px-2 py-0.5 rounded-full font-medium">Archived</span>`
+    : '';
+  const forkBadge = r.fork
+    ? `<span class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-medium">Fork</span>`
+    : '';
+  const privateBadge = r.private
+    ? `<span class="inline-block bg-red-50 dark:bg-red-900/30 text-brand text-xs px-2 py-0.5 rounded-full font-medium">Private</span>`
+    : '';
+
+  const license = r.license ? `<span title="License" class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-solid fa-scale-balanced mr-1" aria-hidden="true"></i>${escapeHtml(r.license.spdx_id)}</span>` : '';
+
+  return `
+  <article class="repo-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
+
+    <!-- Header -->
+    <div class="flex items-start gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          <a
+            href="${escapeHtml(r.html_url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-brand hover:underline underline-offset-2 truncate text-sm"
+          >${escapeHtml(r.name)}</a>
+          ${archiveBadge}${forkBadge}${privateBadge}
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+          ${escapeHtml(r.description) || '<span class="italic">No description</span>'}
+        </p>
+      </div>
+    </div>
+
+    <!-- Topics -->
+    ${topics ? `<div class="flex flex-wrap gap-1.5">${topics}</div>` : ''}
+
+    <!-- Stats row -->
+    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+      ${r.language ? `
+        <span title="Primary language">
+          <span class="lang-dot" style="background:${langColor}"></span>${escapeHtml(r.language)}
+        </span>
+      ` : ''}
+      <span title="Stars"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</span>
+      <span title="Forks"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</span>
+      <span title="Open issues"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</span>
+      ${r.watchers_count ? `<span title="Watchers"><i class="fa-solid fa-eye mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.watchers_count)}</span>` : ''}
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-gray-700">
+      <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 flex-wrap">
+        ${license}
+        <span title="Default branch"><i class="fa-solid fa-code-branch mr-1" aria-hidden="true"></i>${escapeHtml(r.default_branch)}</span>
+      </div>
+      <span class="text-xs text-gray-400 dark:text-gray-500" title="Last updated: ${escapeHtml(r.updated_at)}">
+        <i class="fa-solid fa-clock mr-1" aria-hidden="true"></i>${timeAgo(r.updated_at)}
+      </span>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex gap-2">
+      <a
+        href="${escapeHtml(r.html_url)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex-1 text-center text-xs font-semibold px-3 py-1.5 bg-brand text-white rounded-md hover:bg-red-700 transition-colors"
+      >
+        <i class="fa-brands fa-github mr-1.5" aria-hidden="true"></i>View Repo
+      </a>
+      ${r.homepage ? `
+        <a
+          href="${escapeHtml(r.homepage)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-brand text-brand rounded-md hover:bg-brand hover:text-white transition-colors"
+        >
+          <i class="fa-solid fa-arrow-up-right-from-square mr-1.5" aria-hidden="true"></i>Live Site
+        </a>
+      ` : ''}
+    </div>
+  </article>`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  ERROR STATE                                                         */
+/* ------------------------------------------------------------------ */
+function showError(msg) {
+  document.getElementById('repo-grid').innerHTML = '';
+  document.getElementById('error-state').classList.remove('hidden');
+  document.getElementById('error-msg').textContent = msg;
+}
+
+/* ------------------------------------------------------------------ */
+/*  EVENT LISTENERS                                                     */
+/* ------------------------------------------------------------------ */
+
+// Search (debounced)
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    currentSearch = e.target.value.trim();
+    applyFilters();
+  }, 250);
+});
+
+// Sort (header select)
+document.getElementById('sort-select').addEventListener('change', e => {
+  currentSort = e.target.value;
+  document.getElementById('sort-select-mobile').value = currentSort;
+  applyFilters();
+});
+
+// Sort (mobile select)
+document.getElementById('sort-select-mobile').addEventListener('change', e => {
+  currentSort = e.target.value;
+  document.getElementById('sort-select').value = currentSort;
+  applyFilters();
+});
+
+// Filter (mobile select)
+document.getElementById('filter-select-mobile').addEventListener('change', e => {
+  currentFilter = e.target.value;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('nav-active', b.dataset.filter === currentFilter);
+  });
+  applyFilters();
+});
+
+// Filter buttons (sidebar)
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('nav-active'));
+    btn.classList.add('nav-active');
+    document.getElementById('filter-select-mobile').value = currentFilter;
+    applyFilters();
+  });
+});
+
+// Sort buttons (sidebar)
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentSort = btn.dataset.sort;
+    document.getElementById('sort-select').value = currentSort;
+    document.getElementById('sort-select-mobile').value = currentSort;
+    applyFilters();
+  });
+});
+
+// Retry button
+document.getElementById('retry-btn').addEventListener('click', () => {
+  document.getElementById('error-state').classList.add('hidden');
+  document.getElementById('repo-grid').innerHTML = `
+    <div class="skeleton h-48 rounded-xl"></div>
+    <div class="skeleton h-48 rounded-xl"></div>
+    <div class="skeleton h-48 rounded-xl"></div>
+  `;
+  loadRepos();
+});
+
+// Clear filters
+document.getElementById('clear-btn').addEventListener('click', () => {
+  currentSearch = '';
+  currentFilter = 'all';
+  currentLang = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('sort-select').value = currentSort;
+  document.getElementById('filter-select-mobile').value = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
+  applyFilters();
+});
+
+/* ------------------------------------------------------------------ */
+/*  BOOT                                                                */
+/* ------------------------------------------------------------------ */
+loadRepos();
+</script>
+</body>
+</html>
