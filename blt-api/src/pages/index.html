@@ -154,6 +154,7 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-bug text-red-600 mr-2"></i>
                     Bugs
+                    <span id="count-bugs" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -235,6 +236,7 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-users text-red-600 mr-2"></i>
                     Users
+                    <span id="count-users" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -283,6 +285,7 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-globe text-red-600 mr-2"></i>
                     Domains
+                    <span id="count-domains" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -418,6 +421,7 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-crosshairs text-red-600 mr-2"></i>
                     Bug Hunts
+                    <span id="count-hunts" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -818,6 +822,36 @@
                 closeModal();
             }
         });
+
+        // Load section counts from /stats endpoint
+        async function loadSectionCounts() {
+            try {
+                const response = await fetch(baseUrl + '/stats');
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                if (data && data.data) {
+                    const counts = {
+                        'count-bugs': data.data.bugs,
+                        'count-users': data.data.users,
+                        'count-domains': data.data.domains,
+                        'count-hunts': data.data.hunts
+                    };
+                    for (const [id, count] of Object.entries(counts)) {
+                        const num = Number(count);
+                        if (!isNaN(num)) {
+                            const el = document.getElementById(id);
+                            if (el) {
+                                el.textContent = num.toLocaleString();
+                                el.classList.remove('hidden');
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // Silently fail - counts are optional enhancements
+            }
+        }
+        loadSectionCounts();
     </script>
 </body>
 </html>
