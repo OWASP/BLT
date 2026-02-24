@@ -75,16 +75,17 @@
     .sparkline { display: block; }
 
     /* Overlapping contributor avatars */
-    .avatar-stack { display: flex; }
+    .avatar-stack { display: flex; align-items: center; }
+    .avatar-stack a { margin-left: -6px; display: inline-flex; }
+    .avatar-stack a:first-child { margin-left: 0; }
     .avatar-stack img {
       width: 22px; height: 22px;
       border-radius: 50%;
       border: 2px solid #fff;
-      margin-left: -6px;
       object-fit: cover;
+      display: block;
     }
     .dark .avatar-stack img { border-color: #1f2937; }
-    .avatar-stack img:first-child { margin-left: 0; }
   </style>
 </head>
 
@@ -140,10 +141,10 @@
 
       <!-- GitHub link -->
       <a
-        href="https://github.com/OWASP-BLT"
+        href="https://github.com/OWASP-BLT/owasp-blt.github.io"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="OWASP-BLT on GitHub"
+        aria-label="OWASP-BLT dashboard repository on GitHub"
         class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
         <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
@@ -353,6 +354,13 @@ document.getElementById('dark-toggle').addEventListener('click', () => {
 function formatNumber(n) {
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
   return n;
+}
+
+function formatSize(kb) {
+  if (!kb) return '—';
+  if (kb < 1024) return kb + ' KB';
+  if (kb < 1024 * 1024) return (kb / 1024).toFixed(1) + ' MB';
+  return (kb / (1024 * 1024)).toFixed(1) + ' GB';
 }
 
 function timeAgo(dateStr) {
@@ -668,7 +676,8 @@ function repoCardHTML(r) {
       <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" title="Stars" class="hover:text-yellow-500 transition-colors"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</a>
       <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" title="Forks" class="hover:text-green-600 transition-colors"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</a>
       <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" title="Open issues" class="hover:text-brand transition-colors"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</a>
-      ${r.watchers_count ? `<a href="${escapeHtml(r.html_url)}/watchers" target="_blank" rel="noopener noreferrer" title="Watchers" class="hover:text-blue-500 transition-colors"><i class="fa-solid fa-eye mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.watchers_count)}</a>` : ''}
+      ${r.size ? `<span title="Repository size"><i class="fa-solid fa-database mr-1 text-cyan-400" aria-hidden="true"></i>${formatSize(r.size)}</span>` : ''}
+      ${r.file_count ? `<span title="Total files (recursive)"><i class="fa-solid fa-file mr-1 text-teal-400" aria-hidden="true"></i>${formatNumber(r.file_count)} files</span>` : ''}
       ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
     </div>
 
