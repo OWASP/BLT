@@ -189,28 +189,42 @@ def build_card(issue: dict, reactions: dict) -> str:
 
     # Reaction pills
     thumbs_count = reactions.get("+1", 0)
-    # Always render a clickable thumbs-up button
-    reaction_html = (
-        f'<button type="button" '
-        f'class="inline-flex items-center gap-1 text-sm '
-        f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
-        f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
-        f'hover:text-[#E10101] transition-colors cursor-pointer" '
-        f'data-thumbs-btn '
-        f'aria-label="Thumbs up this design on GitHub">'
-        f'👍 <span>{thumbs_count}</span></button>'
-    )
-    for content, emoji in REACTION_LABELS.items():
-        if content == "+1":
-            continue
-        count = reactions.get(content, 0)
-        if count > 0:
-            reaction_html += (
-                f'<span class="inline-flex items-center gap-1 text-sm '
-                f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
-                f'rounded-full px-2 py-0.5">'
-                f'{emoji} <span>{count}</span></span>'
-            )
+    total_reactions = sum(reactions.get(c, 0) for c in REACTION_LABELS)
+
+    if total_reactions > 0:
+        reaction_html = ""
+        for content, emoji in REACTION_LABELS.items():
+            count = reactions.get(content, 0)
+            if count == 0:
+                continue
+            if content == "+1":
+                reaction_html += (
+                    f'<button type="button" '
+                    f'class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
+                    f'hover:text-[#E10101] transition-colors cursor-pointer" '
+                    f'data-thumbs-btn '
+                    f'aria-label="Thumbs up this design on GitHub">'
+                    f'{emoji} <span>{count}</span></button>'
+                )
+            else:
+                reaction_html += (
+                    f'<span class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5">'
+                    f'{emoji} <span>{count}</span></span>'
+                )
+    else:
+        reaction_html = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1.5 text-xs '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
+            f'dark:hover:text-[#E10101] transition-colors" '
+            f'aria-label="Be the first to react on GitHub">'
+            f'<i class="fa-regular fa-face-smile" aria-hidden="true"></i>'
+            f'Be the first to react!</a>'
+        )
 
     # Preview image
     if preview_url:
