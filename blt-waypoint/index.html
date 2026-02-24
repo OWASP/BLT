@@ -111,6 +111,7 @@
         <option value="updated_at">Updated</option>
         <option value="name">Name</option>
         <option value="created_at">Created</option>
+        <option value="readme_chars">README Size</option>
       </select>
 
       <!-- Dark mode toggle -->
@@ -177,6 +178,7 @@
         <li><button data-sort="open_issues_count" class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-circle-dot w-4 mr-2" aria-hidden="true"></i>Issues</button></li>
         <li><button data-sort="updated_at"       class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-clock w-4 mr-2" aria-hidden="true"></i>Updated</button></li>
         <li><button data-sort="name"             class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-a w-4 mr-2" aria-hidden="true"></i>Name</button></li>
+        <li><button data-sort="readme_chars"     class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i class="fa-solid fa-file-lines w-4 mr-2" aria-hidden="true"></i>README Size</button></li>
       </ul>
     </nav>
 
@@ -219,6 +221,7 @@
         <option value="updated_at">Updated</option>
         <option value="name">Name</option>
         <option value="created_at">Created</option>
+        <option value="readme_chars">README Size</option>
       </select>
       <select
         id="filter-select-mobile"
@@ -446,6 +449,7 @@ function buildStats(repos, cumulative) {
   const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + r.open_issues_count, 0);
   const totalSizeKb   = cumulative ? cumulative.total_size_kb    : repos.reduce((s, r) => s + (r.size || 0), 0);
   const totalTopics   = cumulative ? cumulative.total_topics     : new Set(repos.flatMap(r => r.topics || [])).size;
+  const totalReadmeChars = cumulative ? cumulative.total_readme_chars : repos.reduce((s, r) => s + (r.readme_chars || 0), 0);
   // Use lang_bytes for an accurate count of all languages used (lang_repo_count only lists primary languages)
   const langCount     = cumulative
     ? Object.keys(cumulative.lang_bytes || cumulative.lang_repo_count || {}).length
@@ -454,14 +458,15 @@ function buildStats(repos, cumulative) {
   const sizeMb = totalSizeKb > 0 ? `${(totalSizeKb / 1024).toFixed(1)} MB` : '—';
 
   const stats = [
-    { icon: 'fa-solid fa-box',         label: 'Repositories', value: formatNumber(totalRepos),   color: 'text-indigo-500' },
-    { icon: 'fa-solid fa-circle-check', label: 'Active Repos', value: formatNumber(activeRepos),  color: 'text-teal-500' },
-    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),   color: 'text-yellow-500' },
-    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),   color: 'text-green-500' },
-    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues),  color: 'text-brand' },
-    { icon: 'fa-solid fa-code',        label: 'Languages',     value: formatNumber(langCount),    color: 'text-purple-500' },
-    { icon: 'fa-solid fa-tags',        label: 'Topics',        value: formatNumber(totalTopics),  color: 'text-orange-500' },
-    { icon: 'fa-solid fa-database',    label: 'Total Size',    value: sizeMb,                     color: 'text-cyan-500' },
+    { icon: 'fa-solid fa-box',         label: 'Repositories', value: formatNumber(totalRepos),        color: 'text-indigo-500' },
+    { icon: 'fa-solid fa-circle-check', label: 'Active Repos', value: formatNumber(activeRepos),       color: 'text-teal-500' },
+    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),        color: 'text-yellow-500' },
+    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),        color: 'text-green-500' },
+    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues),       color: 'text-brand' },
+    { icon: 'fa-solid fa-code',        label: 'Languages',     value: formatNumber(langCount),         color: 'text-purple-500' },
+    { icon: 'fa-solid fa-tags',        label: 'Topics',        value: formatNumber(totalTopics),       color: 'text-orange-500' },
+    { icon: 'fa-solid fa-database',    label: 'Total Size',    value: sizeMb,                          color: 'text-cyan-500' },
+    { icon: 'fa-solid fa-file-lines',  label: 'README Chars',  value: formatNumber(totalReadmeChars),  color: 'text-pink-500' },
   ];
 
   document.getElementById('stats-bar').innerHTML = stats.map(s => `
@@ -620,6 +625,7 @@ function repoCardHTML(r) {
       <span title="Forks"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</span>
       <span title="Open issues"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</span>
       ${r.watchers_count ? `<span title="Watchers"><i class="fa-solid fa-eye mr-1 text-blue-400" aria-hidden="true"></i>${formatNumber(r.watchers_count)}</span>` : ''}
+      ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
     </div>
 
     <!-- Footer -->
