@@ -692,22 +692,58 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
                  + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
       const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
                         + 'hover:text-[#E10101] transition-colors cursor-pointer';
+      const ETAG_KEY   = 'bltDesignIssuesEtag';
+      const CACHE_KEY  = 'bltDesignIssuesCache';
+      const BASE_URL   = 'https://api.github.com/repos/{REPO}/issues?state=open&per_page=100';
+      const API_HEADERS = {{ 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }};
 
       const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
       if (!cards.length) return;
 
-      let issues;
+      // Load cached data from localStorage
+      let cachedEtag = null;
+      let issues = null;
       try {{
-        const resp = await fetch(
-          'https://api.github.com/repos/{REPO}/issues?labels=design-submission&state=open&per_page=100',
-          {{ headers: {{ 'Accept': 'application/vnd.github+json' }} }}
-        );
-        if (!resp.ok) return;
-        issues = await resp.json();
+        cachedEtag = localStorage.getItem(ETAG_KEY);
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) issues = JSON.parse(raw);
+      }} catch (_) {{}}
+
+      // Fetch fresh data, using a conditional request when we have a cached ETag
+      try {{
+        const firstPageHeaders = cachedEtag
+          ? {{ ...API_HEADERS, 'If-None-Match': cachedEtag }}
+          : {{ ...API_HEADERS }};
+        const resp = await fetch(`${{BASE_URL}}&page=1`, {{ headers: firstPageHeaders }});
+
+        if (resp.status === 304) {{
+          // Not modified — reuse cached issues, no rate-limit hit
+        }} else if (resp.ok) {{
+          const allIssues = await resp.json();
+          const newEtag = resp.headers.get('ETag');
+          let page = 2;
+          while (true) {{
+            const next = await fetch(`${{BASE_URL}}&page=${{page}}`, {{ headers: API_HEADERS }});
+            if (!next.ok) break;
+            const batch = await next.json();
+            if (!Array.isArray(batch) || !batch.length) break;
+            allIssues.push(...batch);
+            if (batch.length < 100) break;
+            page++;
+          }}
+          issues = allIssues;
+          try {{
+            if (newEtag) localStorage.setItem(ETAG_KEY, newEtag);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(issues));
+          }} catch (_) {{}}
+        }} else {{
+          console.error('Failed to fetch live reaction counts:', resp.status, resp.statusText);
+        }}
       }} catch (err) {{
         console.error('Failed to fetch live reaction counts:', err);
-        return;
       }}
+
+      if (!issues) return;
 
       const byUrl = {{}};
       for (const issue of issues) byUrl[issue.html_url] = issue.reactions || {{}};
