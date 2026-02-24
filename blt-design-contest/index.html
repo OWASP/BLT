@@ -542,22 +542,10 @@ I log bugs for fun
       });
     }
 
-    // Thumbs-up click handler
+    // Thumbs-up click handler — opens the GitHub issue so the user can react there
     document.querySelectorAll('[data-thumbs-btn]').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (btn.disabled) return;
-        btn.disabled = true;
-        btn.classList.add('text-[#E10101]', 'bg-red-100', 'dark:bg-red-900/30');
-        btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
-        const article = btn.closest('article');
-        const issueUrl = article ? article.dataset.issueUrl : null;
-        const countEl = btn.querySelector('span');
-        if (countEl) {
-          countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
-        }
-        if (article) {
-          article.dataset.thumbs = parseInt(article.dataset.thumbs || '0', 10) + 1;
-        }
+        const issueUrl = btn.closest('article')?.dataset.issueUrl;
         if (issueUrl) {
           window.open(issueUrl, '_blank', 'noopener,noreferrer');
         }
