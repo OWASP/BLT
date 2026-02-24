@@ -2843,10 +2843,35 @@
                         }
                     }
                     invalidateApiCache();
-                    // Force bypass service worker cache after import
-                    await loadRepos(true);
-                    await loadPrs(true);
-                    await loadRateLimit(true);
+                    // For single PR additions, select the org/repo and highlight the added PR
+                    const prUrlPattern = /^https?:\/\/github\.com\/([a-zA-Z0-9._-]+)\/([a-zA-Z0-9._-]+)\/pull\/\d+/;
+                    const prMatch = !effectiveAddAll && prUrl.match(prUrlPattern);
+                    if (prMatch) {
+                        const prOwner = prMatch[1];
+                        const prRepoKey = `${prMatch[1]}/${prMatch[2]}`;
+                        // Update org filter to highlight the PR's owner/org
+                        currentOrg = prOwner;
+                        localStorage.setItem('currentOrg', currentOrg);
+                        const orgFilterInput = document.getElementById('orgFilterInput');
+                        const orgFilterClearBtn = document.getElementById('orgFilterClearBtn');
+                        if (orgFilterInput) orgFilterInput.value = prOwner;
+                        if (orgFilterClearBtn) orgFilterClearBtn.classList.remove('hidden');
+                        // Select the specific repo in the sidebar
+                        currentRepo = prRepoKey;
+                        localStorage.setItem('currentRepo', currentRepo);
+                        currentPage = 1;
+                        await loadRepos(true);
+                        await loadPrs(true);
+                        await loadRateLimit(true);
+                        // Highlight the newly added PR row
+                        const added = allPrs.find(pr => pr.pr_url === prUrl);
+                        if (added) highlightPrRow(added.id);
+                    } else {
+                        // Force bypass service worker cache after import
+                        await loadRepos(true);
+                        await loadPrs(true);
+                        await loadRateLimit(true);
+                    }
                 }
             } catch (error) {
                 console.error('Error adding PR:', error);
