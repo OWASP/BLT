@@ -86,6 +86,15 @@
       display: block;
     }
     .dark .avatar-stack img { border-color: #1f2937; }
+
+    /* View toggle active state */
+    .view-btn-active { background: #feeae9; color: #E10101; border-color: #E10101; }
+    .dark .view-btn-active { background: rgba(225,1,1,0.15); color: #f87171; border-color: #f87171; }
+
+    /* Table view sortable headers */
+    #repo-table th[data-col] { cursor: pointer; user-select: none; }
+    #repo-table th[data-col]:hover { color: #E10101; }
+    .dark #repo-table th[data-col]:hover { color: #f87171; }
   </style>
 </head>
 
@@ -130,6 +139,24 @@
         <option value="readme_chars">README Size</option>
         <option value="maturity">Maturity Score</option>
       </select>
+
+      <!-- View toggle -->
+      <button
+        id="view-table-btn"
+        aria-label="Table view"
+        class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        title="Table view (default)"
+      >
+        <i class="fa-solid fa-table-list text-sm" aria-hidden="true"></i>
+      </button>
+      <button
+        id="view-card-btn"
+        aria-label="Card view"
+        class="p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        title="Card view"
+      >
+        <i class="fa-solid fa-grip text-sm" aria-hidden="true"></i>
+      </button>
 
       <!-- Dark mode toggle -->
       <button
@@ -269,6 +296,30 @@
       <div class="skeleton h-48 rounded-xl"></div>
     </div>
 
+    <!-- Repo table (default view) -->
+    <div id="repo-table" class="overflow-x-auto hidden">
+      <table class="w-full border-collapse text-sm">
+        <tbody>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+          <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Set initial view immediately to avoid skeleton flash -->
+    <script>
+      (function () {
+        const v = localStorage.getItem('blt-view') || 'table';
+        if (v === 'table') {
+          document.getElementById('repo-grid').classList.add('hidden');
+          document.getElementById('repo-table').classList.remove('hidden');
+        }
+      })();
+    </script>
+
     <!-- Error state -->
     <div id="error-state" class="hidden text-center py-16">
       <i class="fa-solid fa-triangle-exclamation text-4xl text-brand mb-3" aria-hidden="true"></i>
@@ -350,6 +401,9 @@ let currentSort   = 'stars';
 let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
+let currentView   = localStorage.getItem('blt-view') || 'table';
+let tableSortCol  = 'stargazers_count';
+let tableSortDir  = 'desc';
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -636,29 +690,33 @@ function applyFilters() {
     );
   }
 
-  // Sort
-  repos.sort((a, b) => {
-    if (currentSort === 'name') return a.name.localeCompare(b.name);
-    if (currentSort === 'updated_at' || currentSort === 'created_at')
-      return new Date(b[currentSort]) - new Date(a[currentSort]);
-    if (currentSort === 'maturity') return maturityScore(b) - maturityScore(a);
-    return (b[currentSort] || 0) - (a[currentSort] || 0);
-  });
+  // Sort (card view only; table view sorts in renderTableView)
+  if (currentView === 'card') {
+    repos.sort((a, b) => {
+      if (currentSort === 'name') return a.name.localeCompare(b.name);
+      if (currentSort === 'updated_at' || currentSort === 'created_at')
+        return new Date(b[currentSort]) - new Date(a[currentSort]);
+      if (currentSort === 'maturity') return maturityScore(b) - maturityScore(a);
+      return (b[currentSort] || 0) - (a[currentSort] || 0);
+    });
+  }
 
   filtered = repos;
   renderRepos(repos);
 }
 
 /* ------------------------------------------------------------------ */
-/*  RENDER REPO CARDS                                                   */
+/*  RENDER REPOS (dispatches to table or card view)                    */
 /* ------------------------------------------------------------------ */
 function renderRepos(repos) {
-  const grid = document.getElementById('repo-grid');
+  const grid  = document.getElementById('repo-grid');
+  const table = document.getElementById('repo-table');
   const empty = document.getElementById('empty-state');
   const count = document.getElementById('results-count');
 
   if (repos.length === 0) {
-    grid.innerHTML = '';
+    grid.innerHTML  = '';
+    table.innerHTML = '';
     empty.classList.remove('hidden');
     count.textContent = '';
     return;
@@ -667,7 +725,15 @@ function renderRepos(repos) {
   empty.classList.add('hidden');
   count.textContent = `Showing ${repos.length} of ${allRepos.length} repositories`;
 
-  grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
+  if (currentView === 'table') {
+    grid.classList.add('hidden');
+    table.classList.remove('hidden');
+    renderTableView(repos, table);
+  } else {
+    table.classList.add('hidden');
+    grid.classList.remove('hidden');
+    grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
+  }
 }
 
 function repoCardHTML(r) {
@@ -803,10 +869,139 @@ function repoCardHTML(r) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  RENDER TABLE VIEW                                                   */
+/* ------------------------------------------------------------------ */
+const TABLE_COLS = [
+  { key: 'name',              label: 'Repository' },
+  { key: 'language',          label: 'Language'   },
+  { key: 'stargazers_count',  label: 'Stars'      },
+  { key: 'forks_count',       label: 'Forks'      },
+  { key: 'open_issues_count', label: 'Issues'     },
+  { key: 'total_commits',     label: 'Commits'    },
+  { key: 'branch_count',      label: 'Branches'   },
+  { key: 'size',              label: 'Size'       },
+  { key: 'maturity',          label: 'Maturity'   },
+  { key: 'updated_at',        label: 'Updated'    },
+];
+
+function renderTableView(repos, container) {
+  // Sort repos by current table sort state
+  const sorted = [...repos].sort((a, b) => {
+    let v;
+    if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
+    else if (tableSortCol === 'updated_at') v = new Date(a.updated_at) - new Date(b.updated_at);
+    else if (tableSortCol === 'maturity')   v = maturityScore(a) - maturityScore(b);
+    else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
+    return tableSortDir === 'asc' ? v : -v;
+  });
+
+  // Build header cells
+  const headerCells = TABLE_COLS.map(col => {
+    const isActive = tableSortCol === col.key;
+    const arrow = isActive ? (tableSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+    const activeCls = isActive ? ' text-brand dark:text-red-400 font-bold' : '';
+    return `<th data-col="${col.key}" class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap transition-colors${activeCls}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}<span class="ml-1">${arrow}</span></th>`;
+  }).join('');
+
+  // Build rows
+  const rows = sorted.map((r, i) => {
+    const langColor = LANG_COLORS[r.language] || '#8b949e';
+    const score = maturityScore(r);
+    const { label: matLabel, color: matColor, bg: matBg } = maturityMeta(score);
+    const rowBg = i % 2 === 0
+      ? 'bg-white dark:bg-gray-900'
+      : 'bg-gray-50/60 dark:bg-gray-800/60';
+    const archiveBadge = r.archived
+      ? `<span class="ml-1 text-xs bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 px-1.5 rounded-full">Arc</span>`
+      : '';
+    const forkBadge = r.fork
+      ? `<span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 rounded-full">Fork</span>`
+      : '';
+    const projectUrl = PROJECT_URLS[r.name];
+    return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
+      <td class="px-3 py-2 font-medium">
+        <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}
+        ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm">
+        ${r.language
+          ? `<span class="lang-dot" style="background:${langColor}"></span><span class="text-gray-600 dark:text-gray-300">${escapeHtml(r.language)}</span>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" class="hover:text-yellow-500 transition-colors" title="Stars">
+          <i class="fa-solid fa-star text-yellow-400 mr-1" aria-hidden="true"></i>${formatNumber(r.stargazers_count || 0)}
+        </a>
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors" title="Forks">
+          <i class="fa-solid fa-code-fork text-green-500 mr-1" aria-hidden="true"></i>${formatNumber(r.forks_count || 0)}
+        </a>
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" class="hover:text-brand transition-colors" title="Open issues">
+          <i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(r.open_issues_count || 0)}
+        </a>
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        ${r.total_commits
+          ? `<a href="${escapeHtml(r.html_url)}/commits" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 transition-colors" title="Total commits"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${formatNumber(r.total_commits)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        ${r.branch_count
+          ? `<a href="${escapeHtml(r.html_url)}/branches" target="_blank" rel="noopener noreferrer" class="hover:text-violet-500 transition-colors" title="Branches"><i class="fa-solid fa-code-branch text-violet-400 mr-1" aria-hidden="true"></i>${formatNumber(r.branch_count)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        <i class="fa-solid fa-database text-cyan-400 mr-1" aria-hidden="true"></i>${formatSize(r.size)}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap">
+        <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100">${matLabel} ${score}</span>
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
+      <td class="px-3 py-2 whitespace-nowrap">
+        <div class="flex gap-1.5">
+          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
+          ${r.homepage ? `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Live Site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : ''}
+          ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <table class="w-full border-collapse text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 sticky top-14">
+        <tr>
+          ${headerCells}
+          <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Links</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // Add sort click listeners to column headers
+  container.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (tableSortCol === col) {
+        tableSortDir = tableSortDir === 'desc' ? 'asc' : 'desc';
+      } else {
+        tableSortCol = col;
+        tableSortDir = 'desc';
+      }
+      renderTableView(filtered, container);
+    });
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  ERROR STATE                                                         */
 /* ------------------------------------------------------------------ */
 function showError(msg) {
   document.getElementById('repo-grid').innerHTML = '';
+  document.getElementById('repo-table').innerHTML = '';
   document.getElementById('error-state').classList.remove('hidden');
   document.getElementById('error-msg').textContent = msg;
 }
@@ -814,6 +1009,29 @@ function showError(msg) {
 /* ------------------------------------------------------------------ */
 /*  EVENT LISTENERS                                                     */
 /* ------------------------------------------------------------------ */
+
+// View toggle
+function updateViewButtons() {
+  document.getElementById('view-table-btn').classList.toggle('view-btn-active', currentView === 'table');
+  document.getElementById('view-card-btn').classList.toggle('view-btn-active', currentView === 'card');
+}
+
+document.getElementById('view-table-btn').addEventListener('click', () => {
+  currentView = 'table';
+  localStorage.setItem('blt-view', 'table');
+  updateViewButtons();
+  applyFilters();
+});
+
+document.getElementById('view-card-btn').addEventListener('click', () => {
+  currentView = 'card';
+  localStorage.setItem('blt-view', 'card');
+  updateViewButtons();
+  applyFilters();
+});
+
+// Initialize button states immediately
+updateViewButtons();
 
 // Search (debounced)
 let searchTimer;
