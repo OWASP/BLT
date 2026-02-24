@@ -193,8 +193,10 @@
 
     <!-- Cumulative stats -->
     <section aria-label="Cumulative statistics" class="mb-6">
-      <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <!-- Skeleton placeholders -->
+        <div class="skeleton h-20 rounded-xl"></div>
+        <div class="skeleton h-20 rounded-xl"></div>
         <div class="skeleton h-20 rounded-xl"></div>
         <div class="skeleton h-20 rounded-xl"></div>
         <div class="skeleton h-20 rounded-xl"></div>
@@ -437,21 +439,29 @@ async function loadRepos() {
  */
 function buildStats(repos, cumulative) {
   // Prefer richer pre-computed totals; fall back to summing repo fields.
+  const totalRepos    = cumulative ? cumulative.total_repos      : repos.length;
+  const activeRepos   = cumulative ? cumulative.active_repos     : repos.filter(r => !r.archived && !r.fork).length;
   const totalStars    = cumulative ? cumulative.total_stars      : repos.reduce((s, r) => s + r.stargazers_count, 0);
   const totalForks    = cumulative ? cumulative.total_forks      : repos.reduce((s, r) => s + r.forks_count, 0);
   const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + r.open_issues_count, 0);
-  const totalWatchers = cumulative ? cumulative.total_watchers   : repos.reduce((s, r) => s + (r.watchers_count || 0), 0);
+  const totalSizeKb   = cumulative ? cumulative.total_size_kb    : repos.reduce((s, r) => s + (r.size || 0), 0);
+  const totalTopics   = cumulative ? cumulative.total_topics     : new Set(repos.flatMap(r => r.topics || [])).size;
+  // Use lang_bytes for an accurate count of all languages used (lang_repo_count only lists primary languages)
   const langCount     = cumulative
-    ? Object.keys(cumulative.lang_repo_count || {}).length
+    ? Object.keys(cumulative.lang_bytes || cumulative.lang_repo_count || {}).length
     : new Set(repos.map(r => r.language).filter(Boolean)).size;
 
+  const sizeMb = totalSizeKb > 0 ? `${(totalSizeKb / 1024).toFixed(1)} MB` : '—';
+
   const stats = [
-    { icon: 'fa-solid fa-box',        label: 'Repositories', value: repos.length,              color: 'text-indigo-500' },
-    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),  color: 'text-yellow-500' },
-    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),  color: 'text-green-500' },
-    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues), color: 'text-brand' },
-    { icon: 'fa-solid fa-code',        label: 'Languages',     value: langCount,                 color: 'text-purple-500' },
-    { icon: 'fa-solid fa-eye',         label: 'Watchers',      value: formatNumber(totalWatchers), color: 'text-blue-500' },
+    { icon: 'fa-solid fa-box',         label: 'Repositories', value: formatNumber(totalRepos),   color: 'text-indigo-500' },
+    { icon: 'fa-solid fa-circle-check', label: 'Active Repos', value: formatNumber(activeRepos),  color: 'text-teal-500' },
+    { icon: 'fa-solid fa-star',        label: 'Total Stars',   value: formatNumber(totalStars),   color: 'text-yellow-500' },
+    { icon: 'fa-solid fa-code-fork',   label: 'Total Forks',   value: formatNumber(totalForks),   color: 'text-green-500' },
+    { icon: 'fa-solid fa-circle-dot',  label: 'Open Issues',   value: formatNumber(totalIssues),  color: 'text-brand' },
+    { icon: 'fa-solid fa-code',        label: 'Languages',     value: formatNumber(langCount),    color: 'text-purple-500' },
+    { icon: 'fa-solid fa-tags',        label: 'Topics',        value: formatNumber(totalTopics),  color: 'text-orange-500' },
+    { icon: 'fa-solid fa-database',    label: 'Total Size',    value: sizeMb,                     color: 'text-cyan-500' },
   ];
 
   document.getElementById('stats-bar').innerHTML = stats.map(s => `
