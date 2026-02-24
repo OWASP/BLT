@@ -42,8 +42,8 @@ class HackathonDashboard {
                 return;
             }
 
-            // Fetch all PRs and issues in parallel
-            const [prs, issues] = await Promise.all([
+            // Fetch all PRs, issues, and repository metadata in parallel
+            const [prs, issues, repoData] = await Promise.all([
                 this.api.getAllPullRequests(
                     this.repositories,
                     startDate,
@@ -53,7 +53,8 @@ class HackathonDashboard {
                     this.repositories,
                     startDate,
                     endDate
-                )
+                ),
+                this.api.getAllRepositories(this.repositories)
             ]);
 
             // Fetch reviews using the already-fetched PR list (avoids duplicate API calls)
@@ -87,7 +88,7 @@ class HackathonDashboard {
                 }
             }
             
-            this.renderRepositories(stats.repoStats);
+            this.renderRepositories(stats.repoStats, repoData);
             this.renderSponsors();
             this.hideLoading();
             this.updateApiInfo();
@@ -463,11 +464,19 @@ class HackathonDashboard {
     /**
      * Render repositories list
      */
-    renderRepositories(repoStats) {
+    renderRepositories(repoStats, repoData = []) {
         const container = document.getElementById('repositories-list');
         // Use resolved repositories if available, otherwise fall back to config
         const repositories = this.repositories || this.config.github.repositories || [];
         
+        // Build a lookup map from full_name -> repo metadata
+        const repoMetaMap = {};
+        repoData.forEach(repo => {
+            if (repo && repo.full_name) {
+                repoMetaMap[repo.full_name] = repo;
+            }
+        });
+
         // Update the repositories count
         const titleElement = document.getElementById('repositories-title');
         if (titleElement) {
@@ -475,8 +484,8 @@ class HackathonDashboard {
         }
         
         const reposHtml = repositories.map(repoPath => {
-            const [owner, repo] = repoPath.split('/');
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
+            const meta = repoMetaMap[repoPath] || {};
             return `
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex items-center justify-between mb-2">
@@ -487,7 +496,15 @@ class HackathonDashboard {
                                 ${repoPath}
                             </a>
                         </div>
+                        ${meta.stargazers_count !== undefined ? `
+                        <div class="flex items-center text-sm text-gray-500 gap-3">
+                            <span title="Stars"><i class="fas fa-star text-yellow-400 mr-1"></i>${meta.stargazers_count}</span>
+                            <span title="Forks"><i class="fas fa-code-branch text-blue-400 mr-1"></i>${meta.forks_count}</span>
+                            ${meta.language ? `<span title="Language"><i class="fas fa-circle mr-1 text-gray-400"></i>${this.escapeHtml(meta.language)}</span>` : ''}
+                        </div>
+                        ` : ''}
                     </div>
+                    ${meta.description ? `<p class="text-sm text-gray-600 mb-2">${this.escapeHtml(meta.description)}</p>` : ''}
                     ${this.config.display.showRepoStats ? `
                         <div class="flex gap-4 text-sm text-gray-600 mb-2">
                             <span class="flex items-center">
