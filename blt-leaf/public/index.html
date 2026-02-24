@@ -749,6 +749,50 @@
             return `<div class="flex items-center" style="min-width: fit-content;">${avatarHtml}</div>`;
         }
 
+        function renderAuthorWithChecks(avatarUrl, authorLogin, passed, failed, skipped) {
+            const safeAvatar = avatarUrl &&
+                (avatarUrl.startsWith('https://avatars.githubusercontent.com/') || avatarUrl.startsWith('https://github.com/'))
+                ? escapeHtml(avatarUrl)
+                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22%3E%3Crect width=%2244%22 height=%2244%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
+            const p = passed || 0;
+            const f = failed || 0;
+            const s = skipped || 0;
+            const total = p + f + s;
+            // SVG ring dimensions
+            const svgSize = 56;
+            const cx = svgSize / 2;
+            const cy = svgSize / 2;
+            const r = 26.5;
+            const circumference = 2 * Math.PI * r;
+            const avatarSize = 44;
+            const avatarOffset = (svgSize - avatarSize) / 2;
+            let arcs = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="3" class="dark:stroke-slate-700"/>`;
+            if (total > 0) {
+                const passedLen = (p / total) * circumference;
+                const failedLen = (f / total) * circumference;
+                const skippedLen = (s / total) * circumference;
+                if (p > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="${passedLen} ${circumference}" stroke-dashoffset="0" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+                if (f > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="${failedLen} ${circumference}" stroke-dashoffset="${-passedLen}" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+                if (s > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="${skippedLen} ${circumference}" stroke-dashoffset="${-(passedLen + failedLen)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+            }
+            const checksParts = [];
+            if (p > 0) checksParts.push(`${p} passed`);
+            if (f > 0) checksParts.push(`${f} failed`);
+            if (s > 0) checksParts.push(`${s} skipped`);
+            const checksTitle = checksParts.length > 0 ? checksParts.join(', ') : 'No checks';
+            const onerror = `this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22${avatarSize}%22 height=%22${avatarSize}%22%3E%3Crect width=%22${avatarSize}%22 height=%22${avatarSize}%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'`;
+            return `<div class="relative flex-shrink-0" style="width:${svgSize}px;height:${svgSize}px;" title="${escapeHtml(checksTitle)}">
+                <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" class="absolute inset-0">${arcs}</svg>
+                <img src="${safeAvatar}" alt="${escapeHtml(authorLogin)}" class="absolute rounded-full border border-slate-200 dark:border-slate-600" style="width:${avatarSize}px;height:${avatarSize}px;top:${avatarOffset}px;left:${avatarOffset}px;" onerror="${onerror}">
+            </div>`;
+        }
+
         function setRepoItemActiveState(item, isActive) {
             item.className = '';
             item.classList.add(...repoItemBaseClasses);
@@ -2272,7 +2316,7 @@
             row.innerHTML = `
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        ${renderAuthorWithChecks(avatarUrl, pr.author_login, pr.checks_passed, pr.checks_failed, pr.checks_skipped)}
                         <span class="text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</span>
                     </div>
                 </td>
