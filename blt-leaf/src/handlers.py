@@ -1537,3 +1537,75 @@ async def handle_pr_readiness(request, env, path):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
 
+
+
+async def handle_scheduled_refresh(env):
+    """
+    Hourly scheduled task: refresh all PRs in the database with minimal API calls.
+
+    Uses the GraphQL batch API to update up to 50 PRs per request, covering all
+    tracked PRs in the fewest possible round-trips.  Closed/merged PRs are
+    removed from the database automatically.
+    """
+    token = getattr(env, 'GITHUB_TOKEN', None)
+
+    try:
+        db = get_db(env)
+
+        # Fetch only the fields needed to build the batch request
+        stmt = db.prepare('SELECT id, pr_url, repo_owner, repo_name, pr_number FROM prs')
+        result = await stmt.all()
+
+        if not result or not result.results:
+            print("Scheduled refresh: no PRs in database, nothing to do")
+            return
+
+        rows = [row.to_py() if hasattr(row, 'to_py') else dict(row) for row in result.results]
+        print(f"Scheduled refresh: updating {len(rows)} PR(s)")
+
+        # Build lookup: (owner, repo, pr_number) -> (pr_id, pr_url)
+        prs_to_fetch = []
+        pr_lookup = {}
+        for row in rows:
+            key = (row['repo_owner'], row['repo_name'], row['pr_number'])
+            prs_to_fetch.append(key)
+            pr_lookup[key] = (row['id'], row['pr_url'])
+
+        # Batch-fetch all PRs via GraphQL (50 per request)
+        batch_results = await fetch_multiple_prs_batch(prs_to_fetch, token)
+
+        updated = 0
+        removed = 0
+        errors = 0
+
+        for (owner, repo, pr_number), pr_data in batch_results.items():
+            pr_id, pr_url = pr_lookup[(owner, repo, pr_number)]
+
+            if not pr_data:
+                print(f"Scheduled refresh: failed to fetch {owner}/{repo}#{pr_number}")
+                errors += 1
+                continue
+
+            # Remove PRs that are now closed or merged
+            if pr_data.get('is_merged') or pr_data.get('state') == 'closed':
+                await invalidate_readiness_cache(env, pr_id)
+                await invalidate_timeline_cache(env, owner, repo, pr_number)
+                await db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id).run()
+                status_msg = 'merged' if pr_data.get('is_merged') else 'closed'
+                print(f"Scheduled refresh: removed {status_msg} PR {owner}/{repo}#{pr_number}")
+                removed += 1
+                continue
+
+            try:
+                await upsert_pr(db, pr_url, owner, repo, pr_number, pr_data)
+                await invalidate_readiness_cache(env, pr_id)
+                await invalidate_timeline_cache(env, owner, repo, pr_number)
+                updated += 1
+            except Exception as update_err:
+                print(f"Scheduled refresh: error updating {owner}/{repo}#{pr_number}: {update_err}")
+                errors += 1
+
+        print(f"Scheduled refresh complete: updated={updated}, removed={removed}, errors={errors}")
+
+    except Exception as e:
+        print(f"Scheduled refresh failed: {type(e).__name__}: {e}")

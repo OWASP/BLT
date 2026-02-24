@@ -18,7 +18,8 @@ from handlers import (
     handle_github_webhook,
     handle_pr_timeline,
     handle_pr_review_analysis,
-    handle_pr_readiness
+    handle_pr_readiness,
+    handle_scheduled_refresh
 )
 
 
@@ -202,3 +203,13 @@ async def on_fetch(request, env):
             '{"error": "Internal server error"}',
             {'status': 500, 'headers': {**cors_headers, 'Content-Type': 'application/json'}},
         )
+
+
+async def on_scheduled(controller, env, ctx):
+    """Cloudflare Cron Trigger handler – runs every hour.
+
+    Refreshes all PR records in the database using the minimal-request
+    GraphQL batch API so that essential information stays current without
+    consuming unnecessary GitHub API quota.
+    """
+    await handle_scheduled_refresh(env)
