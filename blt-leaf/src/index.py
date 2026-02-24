@@ -2,6 +2,7 @@
 
 from js import Response, URL
 from posthog_client import PostHog
+from slack_notifier import notify_slack_exception, notify_slack_error
 
 # Import all handlers
 from handlers import (
@@ -28,6 +29,7 @@ async def on_fetch(request, env):
         host='https://us.i.posthog.com',
         enable_exception_autocapture=True,
     )
+    slack_webhook = getattr(env, 'SLACK_ERROR_WEBHOOK', '')
 
     url = URL.new(request.url)
     path = url.pathname
@@ -69,6 +71,7 @@ async def on_fetch(request, env):
         elif path == '/api/prs':
             if request.method == 'GET':
                 repo = url.searchParams.get('repo')
+                org = url.searchParams.get('org')
                 page = url.searchParams.get('page')
                 per_page_param = url.searchParams.get('per_page')
                 sort_by = url.searchParams.get('sort_by')
@@ -93,7 +96,8 @@ async def on_fetch(request, env):
                     page if page else 1,
                     per_page,
                     sort_by,
-                    sort_dir
+                    sort_dir,
+                    org
                 )
             elif request.method == 'POST':
                 response = await handle_add_pr(request, env)
@@ -124,6 +128,32 @@ async def on_fetch(request, env):
         # Test error endpoint — deliberately raises to verify PostHog error tracking
         elif path == '/api/test-error' and request.method == 'POST':
             raise RuntimeError('PostHog test error — this exception was triggered intentionally from /api/test-error')
+        # Frontend client-error reporting endpoint
+        elif path == '/api/client-error' and request.method == 'POST':
+            try:
+                body = (await request.json()).to_py()
+            except Exception:
+                body = {}
+            error_type = str(body.get('error_type', 'FrontendError'))
+            error_message = str(body.get('message', 'Unknown frontend error'))
+            stack_trace = str(body.get('stack', '')) or None
+            ctx = {k: str(v) for k, v in body.items()
+                   if k not in ('error_type', 'message', 'stack')}
+            ctx['source'] = 'frontend'
+            try:
+                await notify_slack_error(
+                    slack_webhook,
+                    error_type=error_type,
+                    error_message=error_message,
+                    context=ctx,
+                    stack_trace=stack_trace,
+                )
+            except Exception as slack_err:
+                print(f'Slack: failed to report frontend error: {slack_err}')
+            response = Response.new(
+                '{"ok": true}',
+                {'status': 200, 'headers': {'Content-Type': 'application/json'}},
+            )
         # Timeline endpoint - GET /api/prs/{id}/timeline
         elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
             response = await handle_pr_timeline(request, env, path)
@@ -161,6 +191,13 @@ async def on_fetch(request, env):
             })
         except Exception as posthog_err:
             print(f'PostHog: failed to report exception: {posthog_err}')
+        try:
+            await notify_slack_exception(slack_webhook, exc, context={
+                'path': path,
+                'method': str(request.method),
+            })
+        except Exception as slack_err:
+            print(f'Slack: failed to report exception: {slack_err}')
         return Response.new(
             '{"error": "Internal server error"}',
             {'status': 500, 'headers': {**cors_headers, 'Content-Type': 'application/json'}},

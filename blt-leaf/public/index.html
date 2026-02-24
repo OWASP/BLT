@@ -35,6 +35,7 @@
             }
         })();
     </script>
+    <script src="error-reporter.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -353,6 +354,11 @@
                             title="Contribute">
                             <i class="fab fa-github text-xs"></i>
                         </a>
+                        <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
+                            class="rounded-lg bg-slate-600 p-1.5 text-white hover:bg-slate-700"
+                            title="Send Feedback">
+                            <i class="fas fa-comment-alt text-xs"></i>
+                        </a>
                     </div>
                 </div>
                 
@@ -448,6 +454,11 @@
                         title="Contribute">
                         <i class="fab fa-github"></i> <span class="hidden sm:inline">Contribute</span>
                     </a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
+                        class="rounded-lg bg-slate-600 px-2 sm:px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 inline-flex items-center gap-2 transition-colors shadow-sm"
+                        title="Send Feedback">
+                        <i class="fas fa-comment-alt"></i> <span class="hidden sm:inline">Feedback</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -457,6 +468,26 @@
         <aside
             class="w-full border-b border-slate-200 bg-white md:w-72 md:border-b-0 md:border-r dark:border-slate-700 dark:bg-slate-800">
             <div class="p-4">
+                <!-- Org filter autocomplete -->
+                <div class="mb-3 relative" id="orgFilterContainer">
+                    <label for="orgFilterInput" class="block mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Filter by Org</label>
+                    <div class="relative">
+                        <input type="text" id="orgFilterInput"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-1 focus:ring-[#E10000] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                            placeholder="All orgs..."
+                            autocomplete="off"
+                            aria-label="Filter repositories by organization" />
+                        <button id="orgFilterClearBtn" type="button"
+                            class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            aria-label="Clear org filter">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="orgFilterDropdown" class="hidden absolute z-20 mt-1 w-full rounded-lg border border-slate-300 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-700 max-h-48 overflow-y-auto"></ul>
+                </div>
+
                 <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span>
                     <button id="repoSortBtn" title="Sort repositories by open PRs" onclick="toggleRepoSort()"
                         class="ml-1 inline-flex items-center rounded px-1 py-0.5 text-slate-400 hover:text-[#BC0000] dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors align-middle"
@@ -565,6 +596,7 @@
 
     <script>
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
+        let currentOrg = localStorage.getItem('currentOrg') || '';
         let allPrs = [];
         let repos = [];
         let repoSortByPrs = localStorage.getItem('repoSortByPrs') !== 'false';
@@ -936,6 +968,13 @@
             // Replace all cells with the error cell
             row.innerHTML = '';
             row.appendChild(errorCell);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (row && row.parentNode) {
+                    errorCell.remove();
+                }
+            }, 5000);
         }
 
         function showContainerError(containerId, message) {
@@ -954,6 +993,14 @@
                     </div>
                 </div>
             `;
+
+            // Auto-dismiss after 5 seconds
+            const errorDiv = container.querySelector('.rounded-xl');
+            setTimeout(() => {
+                if (errorDiv && errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
         }
 
         function showInputError(inputId, message) {
@@ -1010,6 +1057,95 @@
             renderRepoList();
         }
 
+        function getUniqueOrgs() {
+            const orgs = [...new Set(repos.map(r => r.repo_owner))].sort();
+            return orgs;
+        }
+
+        function initOrgFilter() {
+            const input = document.getElementById('orgFilterInput');
+            const dropdown = document.getElementById('orgFilterDropdown');
+            const clearBtn = document.getElementById('orgFilterClearBtn');
+            if (!input || !dropdown || !clearBtn) return;
+
+            // Set initial value from saved state
+            if (currentOrg) {
+                input.value = currentOrg;
+                clearBtn.classList.remove('hidden');
+            }
+
+            function renderOrgDropdown(filter) {
+                const orgs = getUniqueOrgs().filter(o =>
+                    !filter || o.toLowerCase().includes(filter.toLowerCase())
+                );
+                dropdown.innerHTML = '';
+                if (orgs.length === 0) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+                orgs.forEach(org => {
+                    const li = document.createElement('li');
+                    li.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100' +
+                        (org === currentOrg ? ' bg-red-50 dark:bg-red-950/30 font-semibold' : '');
+                    li.textContent = org;
+                    li.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        selectOrg(org);
+                    });
+                    dropdown.appendChild(li);
+                });
+                dropdown.classList.remove('hidden');
+            }
+
+            function selectOrg(org) {
+                currentOrg = org;
+                localStorage.setItem('currentOrg', currentOrg);
+                input.value = org;
+                clearBtn.classList.remove('hidden');
+                dropdown.classList.add('hidden');
+                // Reset to "all repos" within this org and reload
+                currentRepo = 'all';
+                localStorage.setItem('currentRepo', currentRepo);
+                currentPage = 1;
+                renderRepoList();
+                loadPrs();
+            }
+
+            input.addEventListener('focus', () => {
+                renderOrgDropdown(input.value);
+            });
+
+            input.addEventListener('input', () => {
+                const val = input.value.trim();
+                clearBtn.classList.toggle('hidden', !val);
+                renderOrgDropdown(val);
+                // If cleared entirely, reset org filter
+                if (!val && currentOrg) {
+                    currentOrg = '';
+                    localStorage.setItem('currentOrg', '');
+                    currentPage = 1;
+                    renderRepoList();
+                    loadPrs();
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                // Delay hiding to allow mousedown on items to fire
+                setTimeout(() => dropdown.classList.add('hidden'), 150);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                input.value = '';
+                clearBtn.classList.add('hidden');
+                dropdown.classList.add('hidden');
+                currentOrg = '';
+                localStorage.setItem('currentOrg', '');
+                currentPage = 1;
+                renderRepoList();
+                loadPrs();
+            });
+        }
+
         function scrollToTop() {
             const mainEl = document.querySelector('main');
             if (mainEl) {
@@ -1031,6 +1167,15 @@
                 }
 
                 repos = data.repos;
+                // Validate saved org filter against loaded repos
+                if (currentOrg && !repos.some(r => r.repo_owner === currentOrg)) {
+                    currentOrg = '';
+                    localStorage.setItem('currentOrg', '');
+                    const input = document.getElementById('orgFilterInput');
+                    const clearBtn = document.getElementById('orgFilterClearBtn');
+                    if (input) input.value = '';
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                }
                 renderRepoList();
             } catch (error) {
                 console.error('Error loading repos:', error);
@@ -1041,11 +1186,17 @@
             const repoList = document.getElementById('repoList');
             const allReposCount = document.getElementById('allReposCount');
             const repoCountDisplay = document.getElementById('repoCountDisplay');
-            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
+
+            // Filter repos by selected org
+            const filteredRepos = currentOrg
+                ? repos.filter(r => r.repo_owner === currentOrg)
+                : repos;
+
+            const totalPrs = filteredRepos.reduce((sum, repo) => sum + repo.pr_count, 0);
             allReposCount.textContent = `${totalPrs} PR${totalPrs === 1 ? '' : 's'}`;
 
             // Update the repository count display
-            const repoCount = repos.length;
+            const repoCount = filteredRepos.length;
             repoCountDisplay.textContent = repoCount > 0 ? `(${repoCount})` : '';
 
             // Update sort button appearance
@@ -1058,13 +1209,17 @@
 
             // Sort repos by pr_count descending when enabled
             const displayRepos = repoSortByPrs
-                ? [...repos].sort((a, b) => b.pr_count - a.pr_count)
-                : repos;
+                ? [...filteredRepos].sort((a, b) => b.pr_count - a.pr_count)
+                : filteredRepos;
 
             while (repoList.children.length > 1) repoList.removeChild(repoList.lastChild);
 
             const allItem = repoList.querySelector('[data-repo="all"]');
-            if (allItem) setRepoItemActiveState(allItem, currentRepo === 'all');
+            if (allItem) {
+                setRepoItemActiveState(allItem, currentRepo === 'all');
+                const nameEl = allItem.querySelector('.repo-name');
+                if (nameEl) nameEl.textContent = currentOrg ? `${currentOrg} — All Repos` : 'All Repositories';
+            }
 
             // Update mobile dropdown list
             updateMobileDropdown();
@@ -1171,6 +1326,11 @@
                 ? repos.filter(r => `${r.repo_owner}/${r.repo_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
                 : repos;
             
+            // Apply org filter on top of search
+            const orgFilteredRepos = currentOrg
+                ? filteredRepos.filter(r => r.repo_owner === currentOrg)
+                : filteredRepos;
+
             // Add "All Repositories" option
             const allDiv = document.createElement('div');
             allDiv.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600';
@@ -1178,16 +1338,16 @@
             if (currentRepo === 'all') {
                 allDiv.classList.add('bg-red-50', 'dark:bg-red-950/30', 'font-semibold');
             }
-            const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
+            const totalPrs = orgFilteredRepos.reduce((sum, repo) => sum + repo.pr_count, 0);
             allDiv.innerHTML = `
-                <div class="font-medium text-slate-900 dark:text-slate-100">All Repositories</div>
+                <div class="font-medium text-slate-900 dark:text-slate-100">${currentOrg ? escapeHtml(currentOrg) + ' — All Repos' : 'All Repositories'}</div>
                 <div class="text-xs text-slate-500 dark:text-slate-400">${totalPrs} PR${totalPrs === 1 ? '' : 's'}</div>
             `;
             allDiv.addEventListener('click', () => selectRepo('all'));
             dropdownList.appendChild(allDiv);
             
             // Add individual repositories
-            filteredRepos.forEach(repo => {
+            orgFilteredRepos.forEach(repo => {
                 const div = document.createElement('div');
                 div.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600';
                 div.dataset.repo = `${repo.repo_owner}/${repo.repo_name}`;
@@ -1209,7 +1369,7 @@
             });
             
             // Show "No results" if search returns nothing
-            if (searchTerm && filteredRepos.length === 0 && !searchTerm.toLowerCase().includes('all')) {
+            if (searchTerm && orgFilteredRepos.length === 0 && !searchTerm.toLowerCase().includes('all')) {
                 const noResults = document.createElement('div');
                 noResults.className = 'px-3 py-2 text-sm text-slate-500 dark:text-slate-400';
                 noResults.textContent = 'No repositories found';
@@ -1231,8 +1391,10 @@
             const dropdownText = document.getElementById('repoDropdownText');
             if (dropdownText) {
                 if (currentRepo === 'all') {
-                    const totalPrs = repos.reduce((sum, repo) => sum + repo.pr_count, 0);
-                    dropdownText.textContent = `All Repositories (${totalPrs} PR${totalPrs === 1 ? '' : 's'})`;
+                    const filteredRepos = currentOrg ? repos.filter(r => r.repo_owner === currentOrg) : repos;
+                    const totalPrs = filteredRepos.reduce((sum, repo) => sum + repo.pr_count, 0);
+                    const label = currentOrg ? `${currentOrg} — All Repos` : 'All Repositories';
+                    dropdownText.textContent = `${label} (${totalPrs} PR${totalPrs === 1 ? '' : 's'})`;
                 } else {
                     const repo = repos.find(r => `${r.repo_owner}/${r.repo_name}` === currentRepo);
                     if (repo) {
@@ -1276,6 +1438,7 @@
                 let url;
                 if (currentRepo === 'all') {
                     url = `/api/prs?page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
+                    if (currentOrg) url += `&org=${encodeURIComponent(currentOrg)}`;
                 } else {
                     url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
@@ -3141,6 +3304,9 @@
         initTheme();
         loadRateLimit();
         loadLatestRelease();
+        // initOrgFilter sets up event listeners only; dropdown items are populated from `repos`
+        // on user interaction, so calling this before loadRepos() is safe.
+        initOrgFilter();
         loadRepos();
         loadPrs().then(handlePrUrlParam);
         setInterval(loadRateLimit, 600000);
