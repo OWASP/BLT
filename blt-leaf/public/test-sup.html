@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+<p class="mb-4">Testing different approaches to fix the clipped superscript:</p>
+<table class="w-full text-left text-sm">
+  <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700">
+    <tr>
+      <!-- ORIGINAL: sup gets clipped -->
+      <th class="cursor-pointer px-2 py-3">
+        <div class="flex items-center gap-1 truncate">
+          <span class="truncate">Original (sup)</span>
+          <sup class="text-xs text-slate-500">2</sup>
+          <i>↑</i>
+        </div>
+      </th>
+      <!-- FIX 1: overflow-visible on div, remove truncate class from container -->
+      <th class="cursor-pointer px-2 py-3">
+        <div class="flex items-center gap-1 min-w-0">
+          <span class="truncate min-w-0">Fix1 (no truncate on div)</span>
+          <sup class="text-xs text-slate-500">2</sup>
+          <i>↑</i>
+        </div>
+      </th>
+      <!-- FIX 2: use span with vertical-align:baseline override -->
+      <th class="cursor-pointer px-2 py-3">
+        <div class="flex items-center gap-1 truncate">
+          <span class="truncate">Fix2 (align-baseline)</span>
+          <sup class="text-xs text-slate-500 align-baseline">2</sup>
+          <i>↑</i>
+        </div>
+      </th>
+      <!-- FIX 3: use span instead of sup with leading-none and -top -->
+      <th class="cursor-pointer px-2 py-3">
+        <div class="flex items-center gap-1 truncate">
+          <span class="truncate">Fix3 (span rel top)</span>
+          <span class="text-[9px] font-bold text-slate-500 relative -top-1 leading-none">2</span>
+          <i>↑</i>
+        </div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="px-2 py-3">test</td><td>test</td><td>test</td><td>test</td></tr>
+  </tbody>
+</table>
+</body>
+</html>
