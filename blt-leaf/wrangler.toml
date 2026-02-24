@@ -14,10 +14,12 @@ command = "bash scripts/migration.sh"
 
 [vars]
 ENVIRONMENT = "production"
-# Set POSTHOG_API_KEY as a Cloudflare secret (wrangler secret put POSTHOG_API_KEY)
-# See .env.example for details.
 # Set SLACK_ERROR_WEBHOOK as a Cloudflare secret (wrangler secret put SLACK_ERROR_WEBHOOK)
 # See .env.example for details.
+
+# Cron Trigger: refresh all tracked PRs every hour
+[triggers]
+crons = ["0 * * * *"]
 
 # Configure assets (static files)
 [assets]

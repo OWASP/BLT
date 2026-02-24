@@ -11,13 +11,6 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-        posthog.init('phc_AsrbKREZs1Q8OiQJJfZgzA3OBYLHvScQc4t3OmP9cxF', {
-            api_host: 'https://us.i.posthog.com',
-            defaults: '2026-01-30'
-        })
-    </script>
-    <script>
         window.tailwind = {
             config: {
                 darkMode: 'class'
@@ -748,6 +741,62 @@
             }).join('');
 
             return `<div class="flex items-center" style="min-width: fit-content;">${avatarHtml}</div>`;
+        }
+
+        function renderAuthorWithChecks(avatarUrl, authorLogin, passed, failed, skipped, orgAvatarUrl, orgName) {
+            const safeAvatar = avatarUrl &&
+                (avatarUrl.startsWith('https://avatars.githubusercontent.com/') || avatarUrl.startsWith('https://github.com/'))
+                ? escapeHtml(avatarUrl)
+                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22%3E%3Crect width=%2244%22 height=%2244%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
+            const p = passed || 0;
+            const f = failed || 0;
+            const s = skipped || 0;
+            const total = p + f + s;
+            // SVG ring dimensions
+            const svgSize = 56;
+            const cx = svgSize / 2;
+            const cy = svgSize / 2;
+            const r = 26.5;
+            const circumference = 2 * Math.PI * r;
+            const avatarSize = 44;
+            const avatarOffset = (svgSize - avatarSize) / 2;
+            let arcs = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="3" class="dark:stroke-slate-700"/>`;
+            if (total > 0) {
+                const passedLen = (p / total) * circumference;
+                const failedLen = (f / total) * circumference;
+                const skippedLen = (s / total) * circumference;
+                if (p > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="${passedLen} ${circumference}" stroke-dashoffset="0" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+                if (f > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="${failedLen} ${circumference}" stroke-dashoffset="${-passedLen}" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+                if (s > 0) {
+                    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="${skippedLen} ${circumference}" stroke-dashoffset="${-(passedLen + failedLen)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+                }
+            }
+            const checksParts = [];
+            if (p > 0) checksParts.push(`${p} passed`);
+            if (f > 0) checksParts.push(`${f} failed`);
+            if (s > 0) checksParts.push(`${s} skipped`);
+            const checksTitle = checksParts.length > 0 ? checksParts.join(', ') : 'No checks';
+            const onerror = `this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22${avatarSize}%22 height=%22${avatarSize}%22%3E%3Crect width=%22${avatarSize}%22 height=%22${avatarSize}%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'`;
+            const orgIconSize = 18;
+            const orgIconLeft = svgSize - orgIconSize;
+            const orgIconTop = svgSize - orgIconSize;
+            const orgOnerror = `this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22${orgIconSize}%22 height=%22${orgIconSize}%22%3E%3Crect width=%22${orgIconSize}%22 height=%22${orgIconSize}%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'`;
+            const safeOrgAvatar = orgAvatarUrl &&
+                (orgAvatarUrl.startsWith('https://avatars.githubusercontent.com/') || orgAvatarUrl.startsWith('https://github.com/'))
+                ? escapeHtml(orgAvatarUrl)
+                : null;
+            const orgOverlay = safeOrgAvatar
+                ? `<img src="${safeOrgAvatar}" alt="${escapeHtml(orgName || '')}" title="${escapeHtml(orgName || '')}" class="absolute rounded-full border-2 border-white dark:border-slate-800" style="width:${orgIconSize}px;height:${orgIconSize}px;top:${orgIconTop}px;left:${orgIconLeft}px;" onerror="${orgOnerror}">`
+                : '';
+            return `<div class="relative flex-shrink-0" style="width:${svgSize}px;height:${svgSize}px;" title="${escapeHtml(checksTitle)}">
+                <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" class="absolute inset-0">${arcs}</svg>
+                <img src="${safeAvatar}" alt="${escapeHtml(authorLogin)}" class="absolute rounded-full border border-slate-200 dark:border-slate-600" style="width:${avatarSize}px;height:${avatarSize}px;top:${avatarOffset}px;left:${avatarOffset}px;" onerror="${onerror}">
+                ${orgOverlay}
+            </div>`;
         }
 
         function setRepoItemActiveState(item, isActive) {
@@ -1911,7 +1960,7 @@
                         const icon = direction === 'asc'
                             ? '<i class="fas fa-sort-up text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>'
                             : '<i class="fas fa-sort-down text-slate-500 dark:text-slate-400 ml-1" style="font-size: 0.75em;"></i>';
-                        return `<sup class="text-xs text-slate-500 dark:text-slate-400">${number}</sup>${icon}`;
+                        return `<sup class="text-xs text-slate-500 dark:text-slate-400 align-baseline leading-none">${number}</sup>${icon}`;
                     }
                 }
 
@@ -1956,109 +2005,109 @@
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
                             <tr>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="author_login" style="min-width: 100px;" title="Click to sort by Author. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (user.login field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Author</span> ${getSortIcon('author_login')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="title" style="min-width: 200px;" title="Click to sort by PR Title. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (title field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">PR Title</span> ${getSortIcon('title')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="repo_owner" style="min-width: 140px;" title="Click to sort by Repository. Shift+Click to add to sort columns.&#10;Stored in database (extracted from PR URL when added)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Repository</span> ${getSortIcon('repo_owner')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_status" style="min-width: 90px;" title="Click to sort by Review. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/reviews (latest state per reviewer)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Review</span> ${getSortIcon('review_status')}
                                     </div>
                                 </th>
                                 <th class="px-2 py-3" style="min-width: 90px;" title="Reviewer avatars grouped by review state (Approved, Changes Requested, Commented, Pending)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Approvals</span>
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="mergeable_state" style="min-width: 90px;" title="Click to sort by Mergeable. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (mergeable_state field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Mergeable</span> ${getSortIcon('mergeable_state')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="files_changed" style="min-width: 60px;" title="Click to sort by Files. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number}/files (count of files)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Files</span> ${getSortIcon('files_changed')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="commits_count" style="min-width: 70px;" title="Click to sort by Commits. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (commits field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Commits</span> ${getSortIcon('commits_count')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="behind_by" style="min-width: 70px;" title="Click to sort by Behind. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/compare/{base}...{head} (behind_by field) - Shows commits behind base branch">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Behind</span> ${getSortIcon('behind_by')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="checks_passed" style="min-width: 90px;" title="Click to sort by Checks. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/commits/{sha}/check-runs (conclusion field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Checks</span> ${getSortIcon('checks_passed')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="open_conversations_count" style="min-width: 70px;" title="Click to sort by Conversations. Shift+Click to set as secondary sort.&#10;Open (unresolved) review conversations - Fetched via GraphQL API reviewThreads">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Convos</span> ${getSortIcon('open_conversations_count')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready" style="min-width: 60px;" title="Click to sort by Merge Ready Status (✅/❌). Shift+Click to add to sort columns.&#10;Merge Ready Flag - Indicates if PR is ready to merge (no blockers, CI passing, reviews approved)">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Status</span> ${getSortIcon('ready')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ready_score" style="min-width: 60px;" title="Click to sort by Ready Score (0-100%). Shift+Click to add to sort columns.&#10;Overall Readiness Score - Calculated: (CI Score * 45%) + (Review Score * 55%)">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Score</span> ${getSortIcon('ready_score')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="ci_score" style="min-width: 50px;" title="Click to sort by CI. Shift+Click to add to sort columns.&#10;CI Score - Calculated from check-runs API based on pass/fail/skip counts">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">CI</span> ${getSortIcon('ci_score')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="review_score" style="min-width: 60px;" title="Click to sort by Review. Shift+Click to add to sort columns.&#10;Review Score - Calculated from timeline analysis (commits, reviews, comments)">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Review</span> ${getSortIcon('review_score')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="response_score" style="min-width: 70px;" title="Click to sort by Response. Shift+Click to add to sort columns.&#10;Response Rate - Calculated from timeline analysis using GET /repos/{owner}/{repo}/pulls/{pr_number}/commits and GET /repos/{owner}/{repo}/issues/{pr_number}/comments">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Response</span> ${getSortIcon('response_score')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 text-center hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="feedback_score" style="min-width: 80px;" title="Click to sort by Feedback. Shift+Click to add to sort columns.&#10;Feedback Responded/Total - Calculated from GET /repos/{owner}/{repo}/pulls/{pr_number}/comments (review comments on diff)">
-                                    <div class="flex items-center justify-center gap-1 truncate">
+                                    <div class="flex items-center justify-center gap-1 min-w-0">
                                         <span class="truncate">Feedback</span> ${getSortIcon('feedback_score')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="issues_count" style="min-width: 200px;" title="Click to sort by Issues. Shift+Click to add to sort columns.&#10;Blockers, Warnings, and Recommendations - Calculated from readiness analysis combining all API data">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <span class="truncate">Issues</span> ${getSortIcon('issues_count')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_updated_at" style="min-width: 90px;" title="Click to sort by PR last updated time. Shift+Click to add to sort columns.&#10;API: GET /repos/{owner}/{repo}/pulls/{pr_number} (updated_at field)">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <i class="fas fa-clock text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
                                         <span class="truncate">PR Updated</span> ${getSortIcon('last_updated_at')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="last_refreshed_at" style="min-width: 90px;" title="Click to sort by last data refresh time. Shift+Click to add to sort columns.&#10;Timestamp of last data refresh from GitHub">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <i class="fas fa-sync-alt text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
                                         <span class="truncate">Refreshed</span> ${getSortIcon('last_refreshed_at')}
                                     </div>
                                 </th>
                                 <th class="cursor-pointer px-2 py-3 hover:bg-slate-100 dark:hover:bg-slate-900" data-sort-column="readiness_computed_at" style="min-width: 90px;" title="Click to sort by last readiness analysis time. Shift+Click to add to sort columns.&#10;Timestamp of last readiness analysis">
-                                    <div class="flex items-center gap-1 truncate">
+                                    <div class="flex items-center gap-1 min-w-0">
                                         <i class="fas fa-chart-bar text-slate-400 dark:text-slate-500 flex-shrink-0"></i>
                                         <span class="truncate">Analyzed</span> ${getSortIcon('readiness_computed_at')}
                                     </div>
@@ -2303,13 +2352,12 @@
             row.innerHTML = `
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(pr.author_login)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
+                        ${renderAuthorWithChecks(avatarUrl, pr.author_login, pr.checks_passed, pr.checks_failed, pr.checks_skipped, repoOwnerAvatarUrl, pr.repo_owner)}
                         <span class="text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</span>
                     </div>
                 </td>
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        <img src="${escapeHtml(repoOwnerAvatarUrl)}" alt="${escapeHtml(pr.repo_owner)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                         <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(truncatedTitle)}</a>
                     </div>
                 </td>

@@ -9,13 +9,6 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
     <script>
-        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-        posthog.init('phc_AsrbKREZs1Q8OiQJJfZgzA3OBYLHvScQc4t3OmP9cxF', {
-            api_host: 'https://us.i.posthog.com',
-            defaults: '2026-01-30'
-        })
-    </script>
-    <script>
         window.tailwind = {
             config: {
                 darkMode: 'class'
@@ -80,9 +73,7 @@
                 <i class="fas fa-bug text-red-600"></i> Test Error Tracking
             </h1>
             <p class="text-slate-600 dark:text-slate-400">
-                Use these buttons to fire test exceptions and verify that they appear in your
-                <a href="https://us.posthog.com" target="_blank" rel="noopener noreferrer"
-                    class="text-red-600 hover:text-red-700 dark:text-red-400 underline">PostHog</a> project.
+                Use these buttons to fire test exceptions and verify that they appear in your Slack channel.
             </p>
         </div>
 
@@ -100,8 +91,7 @@
                         <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
                             POSTs to <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">/api/test-error</code>,
                             which raises a <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">RuntimeError</code>
-                            on the Cloudflare Worker. The exception is captured by the PostHog Python client and forwarded to
-                            PostHog as a <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">$exception</code> event.
+                            on the Cloudflare Worker. The exception is caught and forwarded to Slack via the error webhook.
                         </p>
                         <button id="btnServerError"
                             class="inline-flex items-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -121,8 +111,8 @@
                     <div class="flex-1 min-w-0">
                         <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">Frontend JS exception</h2>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                            Calls <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">posthog.capture('$exception', …)</code>
-                            directly from the browser using the PostHog JS SDK already loaded on this page.
+                            POSTs to <code class="font-mono bg-slate-100 dark:bg-slate-700 rounded px-1">/api/client-error</code>
+                            from the browser, which forwards the error to Slack via the server-side error webhook.
                         </p>
                         <button id="btnFrontendError"
                             class="inline-flex items-center gap-2 rounded-lg bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-sm font-semibold px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -139,13 +129,9 @@
         <div class="mt-8 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-5 py-4">
             <p class="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
                 <i class="fas fa-info-circle mt-0.5 shrink-0"></i>
-                After firing a test error, check the
-                <a href="https://us.posthog.com" target="_blank" rel="noopener noreferrer"
-                    class="underline font-semibold">PostHog dashboard</a>
-                → <strong>Activity</strong> → <strong>$exception</strong> events.
-                Server-side events appear with
-                <code class="font-mono bg-blue-100 dark:bg-blue-900/40 rounded px-1">distinct_id: blt-leaf-server</code>;
-                frontend events use your session's distinct ID.
+                After firing a test error, check your configured Slack channel for the error notification.
+                Make sure the <code class="font-mono bg-blue-100 dark:bg-blue-900/40 rounded px-1">SLACK_ERROR_WEBHOOK</code>
+                secret is set in your Cloudflare Worker environment.
             </p>
         </div>
 
@@ -192,7 +178,7 @@
                 const json = await res.json().catch(() => ({}));
                 if (res.status === 500) {
                     showResult('serverResult', true,
-                        'Server returned 500 — exception was raised and captured by PostHog. Check your PostHog dashboard for the <strong>$exception</strong> event.');
+                        'Server returned 500 — exception was raised and forwarded to Slack. Check your Slack channel for the error notification.');
                 } else {
                     showResult('serverResult', false,
                         'Unexpected response: HTTP ' + res.status + ' — ' + JSON.stringify(json));
@@ -207,22 +193,27 @@
 
         // ── Frontend JS error ─────────────────────────────────────────────────────
 
-        document.getElementById('btnFrontendError').addEventListener('click', function () {
+        document.getElementById('btnFrontendError').addEventListener('click', async function () {
             const btn = this;
             btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
 
             try {
-                const err = new Error('PostHog test error — triggered from test-error.html frontend button');
-                posthog.capture('$exception', {
-                    '$exception_type': err.name,
-                    '$exception_message': err.message,
-                    '$exception_stack_trace_raw': err.stack || '',
-                    'source': 'test-error.html',
+                const err = new Error('Slack test error — triggered from test-error.html frontend button');
+                await fetch('/api/client-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        error_type: err.name,
+                        message: err.message,
+                        stack: err.stack || '',
+                        source: 'test-error.html',
+                    }),
                 });
                 showResult('frontendResult', true,
-                    'Frontend <strong>$exception</strong> event sent to PostHog via the JS SDK. Check your PostHog dashboard.');
+                    'Frontend error sent to Slack via <code class="font-mono">/api/client-error</code>. Check your Slack channel for the error notification.');
             } catch (captureErr) {
-                showResult('frontendResult', false, 'Failed to capture via PostHog JS SDK: ' + captureErr.message);
+                showResult('frontendResult', false, 'Failed to report frontend error: ' + captureErr.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-bolt"></i> Fire frontend error';
