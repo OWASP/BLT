@@ -1033,22 +1033,37 @@
             }, 5000);
         }
 
-        function showError(message) {
-            // Show a temporary global error message (toast)
+        function showToast(message, type) {
+            // Show a temporary toast notification (type: 'error', 'success', 'warning')
+            const styles = {
+                error:   { border: 'border-red-200',    bg: 'bg-red-50',    text: 'text-red-900',    dark: 'dark:border-red-900 dark:bg-red-950/30 dark:text-red-400',    iconBg: 'bg-red-100',    iconText: 'text-red-700',    darkIcon: 'dark:bg-red-900 dark:text-red-400',    icon: '!' },
+                success: { border: 'border-green-200',  bg: 'bg-green-50',  text: 'text-green-900',  dark: 'dark:border-green-900 dark:bg-green-950/30 dark:text-green-400',  iconBg: 'bg-green-100',  iconText: 'text-green-700',  darkIcon: 'dark:bg-green-900 dark:text-green-400',  icon: '✓' },
+                warning: { border: 'border-yellow-200', bg: 'bg-yellow-50', text: 'text-yellow-900', dark: 'dark:border-yellow-900 dark:bg-yellow-950/30 dark:text-yellow-400', iconBg: 'bg-yellow-100', iconText: 'text-yellow-700', darkIcon: 'dark:bg-yellow-900 dark:text-yellow-400', icon: '⚠' },
+            };
+            const s = styles[type] || styles.error;
             const toast = document.createElement('div');
-            toast.className = 'fixed top-4 right-4 z-[100] flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-lg dark:border-red-900 dark:bg-red-950/30 dark:text-red-400 max-w-md animate-slide-in';
+            toast.className = `fixed top-4 right-4 z-[100] flex items-start gap-2 rounded-lg border ${s.border} ${s.bg} px-4 py-3 text-sm ${s.text} shadow-lg ${s.dark} max-w-md animate-slide-in`;
             toast.innerHTML = `
-                <span class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900 dark:text-red-400">!</span>
+                <span class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${s.iconBg} text-xs font-bold ${s.iconText} ${s.darkIcon}">${s.icon}</span>
                 <div class="leading-5">${escapeHtml(message)}</div>
             `;
-
             document.body.appendChild(toast);
-
-            // Auto-remove after 5 seconds
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
                 setTimeout(() => toast.remove(), 500);
             }, 5000);
+        }
+
+        function showError(message) {
+            showToast(message, 'error');
+        }
+
+        function showSuccess(message) {
+            showToast(message, 'success');
+        }
+
+        function showWarning(message) {
+            showToast(message, 'warning');
         }
 
         function toggleRepoSort() {
@@ -2837,9 +2852,9 @@
                     // Show success message for bulk imports
                     if (data.imported_count !== undefined) {
                         if (data.truncated) {
-                            alert(`⚠️ Import Completed with Limit\n\n${data.message}\n\nNote: More open PRs exist than can be imported at once.`);
+                            showWarning(`Import Completed with Limit: ${data.message} More open PRs exist than can be imported at once.`);
                         } else {
-                            alert(`✅ ${data.message || 'Import completed successfully.'}`);
+                            showSuccess(data.message || 'Import completed successfully.');
                         }
                     }
                     invalidateApiCache();
@@ -2903,13 +2918,13 @@
 
                 const data = await response.json();
                 if (data.error) {
-                    alert(`Failed to import PRs: ${data.error}`);
+                    showError(`Failed to import PRs: ${data.error}`);
                 } else {
                     // Show success message, with truncation warning if applicable
                     if (data.truncated) {
-                        alert(`⚠️ Import Completed with Limit\n\n${data.message}\n\nNote: This repository has more open PRs than can be imported at once. You can manually add additional PRs using the "Add PR" form.`);
+                        showWarning(`Import Completed with Limit: ${data.message} This repository has more open PRs than can be imported at once. You can manually add additional PRs using the "Add PR" form.`);
                     } else {
-                        alert(`✅ Import completed successfully.\n\n${data.message || 'All open PRs were imported successfully.'}`);
+                        showSuccess(data.message || 'All open PRs were imported successfully.');
                     }
                     invalidateApiCache();
                     await loadRepos(true);
@@ -2918,7 +2933,7 @@
                 }
             } catch (error) {
                 console.error('Error importing PRs:', error);
-                alert(`Failed to import PRs from ${repoOwner}/${repoName}`);
+                showError(`Failed to import PRs from ${repoOwner}/${repoName}`);
             } finally {
                 buttonElement.disabled = false;
                 buttonElement.innerHTML = originalHTML;
