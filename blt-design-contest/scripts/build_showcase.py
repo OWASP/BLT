@@ -704,7 +704,8 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         );
         if (!resp.ok) return;
         issues = await resp.json();
-      }} catch (_) {{
+      }} catch (err) {{
+        console.error('Failed to fetch live reaction counts:', err);
         return;
       }}
 
@@ -715,7 +716,7 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         const reactions = byUrl[card.dataset.issueUrl];
         if (!reactions) continue;
 
-        const thumbsCount = reactions['+1'] || 0;
+        const thumbsCount = parseInt(reactions['+1'], 10) || 0;
         card.dataset.thumbs = thumbsCount;
 
         const container = card.querySelector('[aria-label="Reactions"]');
@@ -724,7 +725,7 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         let html = '';
         let total = 0;
         for (const [content, emoji] of REACTION_LABELS) {{
-          const count = reactions[content] || 0;
+          const count = parseInt(reactions[content], 10) || 0;
           if (!count) continue;
           total++;
           if (content === '+1') {{
