@@ -147,6 +147,16 @@ def fetch_file_count(repo_full_name: str, default_branch: str) -> int:
         return 0
 
 
+def fetch_branch_count(repo_full_name: str) -> int:
+    """Return the total number of branches for a repo."""
+    try:
+        branches = fetch_all_pages(f"/repos/{repo_full_name}/branches")
+        return len(branches)
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch branches for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0
+
+
 def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
     """Return the last `weeks` weekly commit totals as a list of ints."""
     try:
@@ -234,6 +244,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch branch counts for each non-archived repo
+    print("Fetching branch counts…", flush=True)
+    branch_count_map: dict[str, int] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            branch_count_map[repo["full_name"]] = 0
+        else:
+            branch_count_map[repo["full_name"]] = fetch_branch_count(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -256,11 +278,13 @@ def main() -> None:
          "contributors": contributors_map.get(repo["full_name"], []),
          "total_commits": total_commits_map.get(repo["full_name"], 0),
          "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
-         "file_count": file_count_map.get(repo["full_name"], 0)}
+         "file_count": file_count_map.get(repo["full_name"], 0),
+         "branch_count": branch_count_map.get(repo["full_name"], 0)}
         for repo in repos
     ]
 
     total_readme_chars = sum(readme_chars_map.values())
+    total_branches = sum(branch_count_map.values())
 
     output = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -275,6 +299,7 @@ def main() -> None:
             "total_topics":       len(all_topics),
             "total_languages":    len(all_lang_bytes),
             "total_readme_chars": total_readme_chars,
+            "total_branches":     total_branches,
             "lang_bytes":         dict(
                 sorted(all_lang_bytes.items(), key=lambda x: x[1], reverse=True)
             ),
