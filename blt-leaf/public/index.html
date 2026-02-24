@@ -749,7 +749,7 @@
             return `<div class="flex items-center" style="min-width: fit-content;">${avatarHtml}</div>`;
         }
 
-        function renderAuthorWithChecks(avatarUrl, authorLogin, passed, failed, skipped) {
+        function renderAuthorWithChecks(avatarUrl, authorLogin, passed, failed, skipped, orgAvatarUrl, orgName) {
             const safeAvatar = avatarUrl &&
                 (avatarUrl.startsWith('https://avatars.githubusercontent.com/') || avatarUrl.startsWith('https://github.com/'))
                 ? escapeHtml(avatarUrl)
@@ -787,9 +787,21 @@
             if (s > 0) checksParts.push(`${s} skipped`);
             const checksTitle = checksParts.length > 0 ? checksParts.join(', ') : 'No checks';
             const onerror = `this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22${avatarSize}%22 height=%22${avatarSize}%22%3E%3Crect width=%22${avatarSize}%22 height=%22${avatarSize}%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'`;
+            const orgIconSize = 18;
+            const orgIconLeft = svgSize - orgIconSize;
+            const orgIconTop = svgSize - orgIconSize;
+            const orgOnerror = `this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22${orgIconSize}%22 height=%22${orgIconSize}%22%3E%3Crect width=%22${orgIconSize}%22 height=%22${orgIconSize}%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'`;
+            const safeOrgAvatar = orgAvatarUrl &&
+                (orgAvatarUrl.startsWith('https://avatars.githubusercontent.com/') || orgAvatarUrl.startsWith('https://github.com/'))
+                ? escapeHtml(orgAvatarUrl)
+                : null;
+            const orgOverlay = safeOrgAvatar
+                ? `<img src="${safeOrgAvatar}" alt="${escapeHtml(orgName || '')}" title="${escapeHtml(orgName || '')}" class="absolute rounded-full border-2 border-white dark:border-slate-800" style="width:${orgIconSize}px;height:${orgIconSize}px;top:${orgIconTop}px;left:${orgIconLeft}px;" onerror="${orgOnerror}">`
+                : '';
             return `<div class="relative flex-shrink-0" style="width:${svgSize}px;height:${svgSize}px;" title="${escapeHtml(checksTitle)}">
                 <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" class="absolute inset-0">${arcs}</svg>
                 <img src="${safeAvatar}" alt="${escapeHtml(authorLogin)}" class="absolute rounded-full border border-slate-200 dark:border-slate-600" style="width:${avatarSize}px;height:${avatarSize}px;top:${avatarOffset}px;left:${avatarOffset}px;" onerror="${onerror}">
+                ${orgOverlay}
             </div>`;
         }
 
@@ -2316,13 +2328,12 @@
             row.innerHTML = `
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        ${renderAuthorWithChecks(avatarUrl, pr.author_login, pr.checks_passed, pr.checks_failed, pr.checks_skipped)}
+                        ${renderAuthorWithChecks(avatarUrl, pr.author_login, pr.checks_passed, pr.checks_failed, pr.checks_skipped, repoOwnerAvatarUrl, pr.repo_owner)}
                         <span class="text-slate-600 dark:text-slate-400 text-xs truncate">${escapeHtml(pr.author_login)}</span>
                     </div>
                 </td>
                 <td class="px-2 py-3">
                     <div class="flex items-center gap-2 min-w-0">
-                        <img src="${escapeHtml(repoOwnerAvatarUrl)}" alt="${escapeHtml(pr.repo_owner)}" class="h-6 w-6 rounded-full border border-slate-200 dark:border-slate-600 flex-shrink-0" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E'">
                         <a href="${escapeHtml(pr.pr_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-slate-900 hover:text-[#BC0000] dark:text-slate-100 dark:hover:text-red-400 truncate text-xs" title="${escapeHtml(pr.title)}">${escapeHtml(truncatedTitle)}</a>
                     </div>
                 </td>
