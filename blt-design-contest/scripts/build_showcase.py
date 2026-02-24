@@ -192,17 +192,43 @@ def build_card(issue: dict, reactions: dict) -> str:
     description = extract_description(fields)
 
     # Reaction pills
-    reaction_html = ""
     thumbs_count = reactions.get("+1", 0)
-    for content, emoji in REACTION_LABELS.items():
-        count = reactions.get(content, 0)
-        if count > 0:
-            reaction_html += (
-                f'<span class="inline-flex items-center gap-1 text-sm '
-                f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
-                f'rounded-full px-2 py-0.5">'
-                f'{emoji} <span>{count}</span></span>'
-            )
+    total_reactions = sum(reactions.get(c, 0) for c in REACTION_LABELS)
+
+    if total_reactions > 0:
+        reaction_html = ""
+        for content, emoji in REACTION_LABELS.items():
+            count = reactions.get(content, 0)
+            if count == 0:
+                continue
+            if content == "+1":
+                reaction_html += (
+                    f'<button type="button" '
+                    f'class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 '
+                    f'hover:text-[#E10101] transition-colors cursor-pointer" '
+                    f'data-thumbs-btn '
+                    f'aria-label="Thumbs up this design on GitHub">'
+                    f'{emoji} <span>{count}</span></button>'
+                )
+            else:
+                reaction_html += (
+                    f'<span class="inline-flex items-center gap-1 text-sm '
+                    f'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 '
+                    f'rounded-full px-2 py-0.5">'
+                    f'{emoji} <span>{count}</span></span>'
+                )
+    else:
+        reaction_html = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1.5 text-xs '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
+            f'dark:hover:text-[#E10101] transition-colors" '
+            f'aria-label="Be the first to react on GitHub">'
+            f'<i class="fa-regular fa-face-smile" aria-hidden="true"></i>'
+            f'Be the first to react!</a>'
+        )
 
     # Preview image
     if preview_url:
@@ -247,6 +273,7 @@ def build_card(issue: dict, reactions: dict) -> str:
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-thumbs="{thumbs_count}"
+             data-issue-url="{issue_url}"
              aria-label="Design submission: {title}">
       {preview_block}
       <div class="p-5 flex flex-col gap-3 flex-1">
@@ -276,8 +303,7 @@ def build_card(issue: dict, reactions: dict) -> str:
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
           <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
-            {reaction_html if reaction_html else
-             '<span class="text-xs text-gray-400 dark:text-gray-500">No reactions yet</span>'}
+            {reaction_html}
           </div>
           <div class="flex items-center gap-3">
             {design_link}
@@ -642,6 +668,16 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         cards.forEach(card => grid.appendChild(card));
       }});
     }}
+
+    // Thumbs-up click handler — opens the GitHub issue so the user can react there
+    document.querySelectorAll('[data-thumbs-btn]').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        const issueUrl = btn.closest('article')?.dataset.issueUrl;
+        if (issueUrl) {{
+          window.open(issueUrl, '_blank', 'noopener,noreferrer');
+        }}
+      }});
+    }});
   </script>
 </body>
 </html>"""
