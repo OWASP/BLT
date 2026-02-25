@@ -21,6 +21,9 @@ on:
       - "package.json"
       - "package-lock.json"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
