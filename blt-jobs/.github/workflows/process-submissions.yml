@@ -58,6 +58,8 @@ jobs:
 
       - name: Scrape URL and create job file
         id: scrape
+        env:
+          ISSUE_USER: ${{ github.event.issue.user.login }}
         run: |
           OUTPUT=$(python3 scripts/scrape-job-url.py "${{ steps.url.outputs.url }}")
           OUTPUT=$(echo "$OUTPUT" | tail -1)
@@ -109,6 +111,8 @@ jobs:
 
       - name: Create job file from form
         id: create
+        env:
+          ISSUE_USER: ${{ github.event.issue.user.login }}
         run: |
           PATH_OUT=$(node scripts/issue-form-to-job.js < issue_body.txt)
           PATH_OUT=$(echo "$PATH_OUT" | tail -1)

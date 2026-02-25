@@ -29,6 +29,7 @@ function mdToJob(filePath) {
     application_instructions: get("application_instructions") || null,
     created_at: get("created_at") || new Date().toISOString(),
     views_count: parseInt(get("views_count"), 10) || 0,
+    added_by: get("added_by") || null,
   };
 }
 

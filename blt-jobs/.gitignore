@@ -13,3 +13,6 @@ Thumbs.db
 *.tmp
 *.bak
 comment.txt
+
+# Node dependencies
+node_modules/

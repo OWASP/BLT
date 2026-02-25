@@ -59,6 +59,7 @@ function renderJob(job) {
   const description = job.description || "";
   const requirements = job.requirements || "";
   const applicationInstructions = job.application_instructions || "";
+  const addedBy = normalizeString(job.added_by);
 
   root.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -138,6 +139,16 @@ function renderJob(job) {
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                        </svg>
                        <span>Posted ${createdAt}</span>
+                     </div>`
+                  : ""
+              }
+              ${
+                addedBy
+                  ? `<div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                       </svg>
+                       <span>Added by <a href="https://github.com/${addedBy}" target="_blank" rel="noopener noreferrer" class="font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400">@${addedBy}</a></span>
                      </div>`
                   : ""
               }
