@@ -31,9 +31,13 @@ LABEL = "design-submission"
 TITLE_PREFIX = "[Design]"
 REACTION_LABELS = {
     "+1": "👍",
-    "heart": "❤️",
+    "-1": "👎",
+    "laugh": "😄",
     "hooray": "🎉",
+    "confused": "😕",
+    "heart": "❤️",
     "rocket": "🚀",
+    "eyes": "👀",
 }
 
 API_BASE = "https://api.github.com"
@@ -683,10 +687,14 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
     // Live-update reaction counts from the GitHub API on page load
     (async function () {{
       const REACTION_LABELS = [
-        ['+1',    '\U0001F44D'],
-        ['heart', '\u2764\uFE0F'],
-        ['hooray','\U0001F389'],
-        ['rocket','\U0001F680'],
+        ['+1',      '\U0001F44D'],
+        ['-1',      '\U0001F44E'],
+        ['laugh',   '\U0001F604'],
+        ['hooray',  '\U0001F389'],
+        ['confused','\U0001F615'],
+        ['heart',   '\u2764\uFE0F'],
+        ['rocket',  '\U0001F680'],
+        ['eyes',    '\U0001F440'],
       ];
       const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
                  + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
