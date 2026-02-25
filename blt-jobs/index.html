@@ -31,32 +31,43 @@
   <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 dark:text-gray-100">
     <nav class="border-b border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900/95">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 justify-between">
-          <div class="flex items-center gap-4">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center gap-3">
             <a href="https://owaspblt.org/" target="_blank" rel="noopener noreferrer" class="flex select-none">
-              <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 md:h-10 lg:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
+              <img src="https://owaspblt.org/static/img/owasp-blt-logo.svg" class="h-9 sm:h-10 w-auto" alt="OWASP BLT Logo" width="50" height="50" />
             </a>
-            <a href="./index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">
-              Home
-            </a>
-            <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">
-              Browse Jobs
-            </a>
-            <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">
-              Find Talent
-            </a>
-            <a href="./leaderboard.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">
-              Leaderboard
-            </a>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+            <div class="hidden sm:flex items-center gap-1">
+              <a href="./index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Home</a>
+              <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Browse Jobs</a>
+              <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Find Talent</a>
+              <a href="./leaderboard.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Leaderboard</a>
+              <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                <i class="fa-brands fa-github" aria-hidden="true"></i>
+                GitHub
+              </a>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="theme-toggle" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-red-600 text-red-600 transition hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-500 dark:hover:bg-red-600 dark:hover:text-white" aria-label="Toggle dark mode">
+              <i id="sun-icon" class="fas fa-sun text-xl absolute opacity-0 transition-all duration-300 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
+              <i id="moon-icon" class="fas fa-moon text-xl absolute opacity-100 transition-all duration-300 rotate-0 dark:opacity-0 dark:rotate-90"></i>
+            </button>
+            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Open menu">
+              <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div id="mobile-menu" class="hidden border-t border-slate-200 py-3 sm:hidden dark:border-gray-700">
+          <div class="flex flex-col gap-1">
+            <a href="./index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Home</a>
+            <a href="./jobs.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Browse Jobs</a>
+            <a href="./seekers.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Find Talent</a>
+            <a href="./leaderboard.html" class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-800">Leaderboard</a>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
               <i class="fa-brands fa-github" aria-hidden="true"></i>
               GitHub
             </a>
           </div>
-          <button id="theme-toggle" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-red-600 text-red-600 transition hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-500 dark:hover:bg-red-600 dark:hover:text-white" aria-label="Toggle dark mode">
-            <i id="sun-icon" class="fas fa-sun text-xl absolute opacity-0 transition-all duration-300 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
-            <i id="moon-icon" class="fas fa-moon text-xl absolute opacity-100 transition-all duration-300 rotate-0 dark:opacity-0 dark:rotate-90"></i>
-          </button>
         </div>
       </div>
     </nav>
@@ -201,6 +212,23 @@
           </a>
         </div>
       </section>
+
+      <section class="mt-12 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <h2 class="mb-4 text-2xl font-bold dark:text-white">
+          <i class="fa-solid fa-trophy text-yellow-500 mr-2" aria-hidden="true"></i>
+          Top Contributors
+        </h2>
+        <p class="mb-6 text-sm text-slate-600 dark:text-gray-400">Community members who have contributed the most job listings</p>
+        <div id="homepage-leaderboard" class="space-y-3">
+          <p class="text-slate-600 dark:text-gray-400">Loading leaderboard...</p>
+        </div>
+        <div class="mt-6">
+          <a href="./leaderboard.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+            View Full Leaderboard
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </section>
     </main>
 
     <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
@@ -283,6 +311,51 @@
         }).catch(function () {
           container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
         });
+      })();
+    </script>
+    <script>
+      (function () {
+        var MEDAL_ICONS = ['🥇', '🥈', '🥉'];
+        var container = document.getElementById('homepage-leaderboard');
+        if (!container) return;
+        function esc(s) {
+          var d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+        fetch('data/jobs.json', { cache: 'no-cache' })
+          .then(function (r) { return r.ok ? r.json() : { jobs: [] }; })
+          .then(function (data) {
+            var jobs = Array.isArray(data.jobs) ? data.jobs : [];
+            var counts = {};
+            jobs.forEach(function (job) {
+              var user = (job.added_by || '').trim();
+              if (user) counts[user] = (counts[user] || 0) + 1;
+            });
+            var ranked = Object.keys(counts)
+              .map(function (user) { return { user: user, count: counts[user] }; })
+              .sort(function (a, b) { return b.count - a.count || a.user.localeCompare(b.user); })
+              .slice(0, 5);
+            if (ranked.length === 0) {
+              container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">No contributors yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700">post a job</a>!</p>';
+              return;
+            }
+            var html = '<div class="divide-y divide-slate-100 dark:divide-gray-700">';
+            ranked.forEach(function (entry, i) {
+              var medal = MEDAL_ICONS[i] || ('#' + (i + 1));
+              html += '<div class="flex items-center gap-4 py-3">';
+              html += '<span class="w-8 text-center text-lg">' + medal + '</span>';
+              html += '<img src="https://github.com/' + esc(entry.user) + '.png?size=32" alt="' + esc(entry.user) + '" width="32" height="32" class="w-8 h-8 rounded-full border border-slate-200 dark:border-gray-600" loading="lazy" onerror="this.src=\'https://github.com/ghost.png\'" />';
+              html += '<a href="https://github.com/' + esc(entry.user) + '" target="_blank" rel="noopener noreferrer" class="flex-1 font-medium text-slate-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' + esc(entry.user) + '</a>';
+              html += '<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400"><i class="fa-solid fa-briefcase text-xs" aria-hidden="true"></i> ' + entry.count + ' job' + (entry.count !== 1 ? 's' : '') + '</span>';
+              html += '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+          })
+          .catch(function () {
+            container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">Unable to load leaderboard.</p>';
+          });
       })();
     </script>
   </body>
