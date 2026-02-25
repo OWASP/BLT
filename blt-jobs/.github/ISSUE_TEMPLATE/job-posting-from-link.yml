@@ -1,13 +1,8 @@
 name: Job Posting from Link
 description: Post a job by pasting a job URL — we scrape it and add the listing automatically
-title: '[JOB-LINK] '
+title: 'https://'
 labels: ['job-posting-from-link']
 body:
-  - type: input
-    id: job_url
+  - type: markdown
     attributes:
-      label: Job URL
-      description: Paste the job posting URL
-      placeholder: e.g. https://boards.greenhouse.io/company/jobs/12345
-    validations:
-      required: true
+      value: "Replace the issue title above with the full job posting URL, then click **Submit new issue**. Our bot will scrape it and add the listing automatically."
