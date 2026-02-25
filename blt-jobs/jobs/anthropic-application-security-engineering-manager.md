@@ -12,6 +12,7 @@ application_instructions: ""
 requirements: ""
 created_at: "2026-02-24T23:45:37Z"
 views_count: "0"
+added_by: ""
 ---
 
 About Anthropic

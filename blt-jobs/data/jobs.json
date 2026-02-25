@@ -15,7 +15,8 @@
       "application_url": "https://job-boards.greenhouse.io/anthropic/jobs/4562813008",
       "application_instructions": null,
       "created_at": "2026-02-24T23:45:37Z",
-      "views_count": 0
+      "views_count": 0,
+      "added_by": null
     },
     {
       "id": "cloudflare-accountant-1",
@@ -32,7 +33,8 @@
       "application_url": "https://boards.greenhouse.io/cloudflare/jobs/7411392",
       "application_instructions": null,
       "created_at": "2026-02-22T06:07:38Z",
-      "views_count": 0
+      "views_count": 0,
+      "added_by": null
     },
     {
       "id": "cloudflare-accountant",
@@ -49,7 +51,8 @@
       "application_url": "https://boards.greenhouse.io/cloudflare/jobs/7411392",
       "application_instructions": null,
       "created_at": "2026-02-22T05:34:44Z",
-      "views_count": 0
+      "views_count": 0,
+      "added_by": null
     },
     {
       "id": "mozilla-backend-software-engineer-ads",
@@ -66,7 +69,8 @@
       "application_url": "https://job-boards.greenhouse.io/mozilla/jobs/7615645",
       "application_instructions": null,
       "created_at": "2026-02-25T05:42:22Z",
-      "views_count": 0
+      "views_count": 0,
+      "added_by": null
     },
     {
       "id": "sonicwall-senior-manager-software-engineering",
@@ -83,9 +87,10 @@
       "application_url": "https://job-boards.greenhouse.io/sonicwall/jobs/7408072",
       "application_instructions": null,
       "created_at": "2026-02-22T05:38:43Z",
-      "views_count": 0
+      "views_count": 0,
+      "added_by": null
     }
   ],
   "count": 5,
-  "generated_at": "2026-02-25T05:42:24.465Z"
+  "generated_at": "2026-02-25T05:50:32.422Z"
 }

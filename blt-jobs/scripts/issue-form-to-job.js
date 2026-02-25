@@ -59,6 +59,7 @@ function main() {
   filename = path.basename(outPath);
 
   const created = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  const addedBy = (process.env.ISSUE_USER || "").trim();
   const applicationUrl = website || "";
 
   const descriptionBody = [description, requirements ? `## Requirements\n\n${requirements}` : "", howToApply ? `## How to Apply\n\n${howToApply}` : "", additionalInfo ? `## Additional Information\n\n${additionalInfo}` : ""].filter(Boolean).join("\n\n");
@@ -77,6 +78,7 @@ function main() {
     requirements: requirements || "",
     created_at: created,
     views_count: 0,
+    added_by: addedBy || "",
   };
 
   const lines = ["---"];

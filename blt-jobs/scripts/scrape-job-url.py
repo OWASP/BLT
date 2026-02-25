@@ -10,6 +10,7 @@ Strategy (in order):
 """
 
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -388,6 +389,7 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "requirements":            "",
         "created_at":              created,
         "views_count":             0,
+        "added_by":                os.environ.get("ISSUE_USER", "").strip(),
     }
     return fm, description
 
