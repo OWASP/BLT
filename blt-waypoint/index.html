@@ -245,17 +245,17 @@
 
     <!-- Cumulative stats -->
     <section aria-label="Cumulative statistics" class="mb-6">
-      <div id="stats-bar" class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2" style="grid-auto-rows: minmax(3rem, auto);">
-        <!-- Skeleton placeholders -->
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
-        <div class="skeleton h-14 rounded-lg"></div>
+      <div id="stats-bar" class="flex flex-wrap gap-2">
+        <!-- Skeleton placeholders (9 stats) -->
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
+        <div class="skeleton h-10 rounded-lg flex-1 min-w-[6rem]"></div>
       </div>
     </section>
 
@@ -303,7 +303,7 @@
 
     <!-- Repo table (default view) -->
     <div id="repo-table" class="overflow-x-auto hidden">
-      <table class="w-full border-collapse text-sm">
+      <table class="border-collapse text-sm">
         <tbody>
           <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
           <tr><td colspan="11" class="py-2"><div class="skeleton h-8 rounded"></div></td></tr>
@@ -594,7 +594,6 @@ async function loadRepos() {
 function buildStats(repos, cumulative) {
   // Prefer richer pre-computed totals; fall back to summing repo fields.
   const totalRepos    = cumulative ? cumulative.total_repos      : repos.length;
-  const activeRepos   = cumulative ? cumulative.active_repos     : repos.filter(r => !r.archived && !r.fork).length;
   const totalStars    = cumulative ? cumulative.total_stars      : repos.reduce((s, r) => s + r.stargazers_count, 0);
   const totalForks    = cumulative ? cumulative.total_forks      : repos.reduce((s, r) => s + r.forks_count, 0);
   const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + r.open_issues_count, 0);
@@ -611,7 +610,6 @@ function buildStats(repos, cumulative) {
 
   const stats = [
     { icon: 'fa-solid fa-box',         label: 'Repos',       value: formatNumber(totalRepos),        color: 'text-indigo-500', href: `https://github.com/orgs/${ORG}/repositories` },
-    { icon: 'fa-solid fa-circle-check', label: 'Active',      value: formatNumber(activeRepos),       color: 'text-teal-500',   href: `https://github.com/orgs/${ORG}/repositories?type=source` },
     { icon: 'fa-solid fa-star',        label: 'Stars',        value: formatNumber(totalStars),        color: 'text-yellow-500', href: `https://github.com/orgs/${ORG}/repositories?sort=stargazers` },
     { icon: 'fa-solid fa-code-fork',   label: 'Forks',        value: formatNumber(totalForks),        color: 'text-green-500',  href: `https://github.com/orgs/${ORG}/repositories?type=fork` },
     { icon: 'fa-solid fa-circle-dot',  label: 'Issues',       value: formatNumber(totalIssues),       color: 'text-brand',      href: `https://github.com/search?q=org%3A${ORG}+is%3Aissue+is%3Aopen&type=issues` },
@@ -624,12 +622,12 @@ function buildStats(repos, cumulative) {
 
   document.getElementById('stats-bar').innerHTML = stats.map(s => {
     const inner = `
-      <i class="${s.icon} ${s.color} text-base" aria-hidden="true"></i>
+      <i class="${s.icon} ${s.color} text-sm" aria-hidden="true"></i>
       <div class="min-w-0">
-        <p class="text-sm font-bold text-gray-900 dark:text-white leading-tight">${s.value}</p>
+        <p class="text-xs font-bold text-gray-900 dark:text-white leading-tight">${s.value}</p>
         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${s.label}</p>
       </div>`;
-    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : ''}`;
+    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 flex items-center gap-1.5 shadow-sm flex-1 min-w-[6rem] ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : ''}`;
     return s.href
       ? `<a href="${s.href}" target="_blank" rel="noopener noreferrer" class="${cls}" aria-label="${s.label}: ${s.value}">${inner}</a>`
       : `<div class="${cls}">${inner}</div>`;
@@ -982,8 +980,8 @@ function renderTableView(repos, container) {
   }).join('');
 
   container.innerHTML = `
-    <table class="w-full border-collapse text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 sticky top-14">
+    <table class="border-collapse text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 sticky top-14 z-10">
         <tr>
           ${headerCells}
           <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Links</th>
