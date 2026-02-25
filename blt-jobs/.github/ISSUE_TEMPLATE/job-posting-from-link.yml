@@ -6,3 +6,12 @@ body:
   - type: markdown
     attributes:
       value: "Replace the issue title above with the full job posting URL, then click **Submit new issue**. Our bot will scrape it and add the listing automatically."
+
+  - type: input
+    id: job_url
+    attributes:
+      label: Job Posting URL
+      description: Paste the full URL of the job posting here (also set it as the issue title above)
+      placeholder: "https://example.com/jobs/123"
+    validations:
+      required: true

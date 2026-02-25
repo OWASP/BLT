@@ -12,8 +12,8 @@ permissions:
 jobs:
   job-from-url:
     runs-on: ubuntu-latest
-    # Run when: issue has label job-posting-from-link, OR issue was opened/edited with a URL as the title (no label needed)
-    if: github.event.label.name == 'job-posting-from-link' || ((github.event.action == 'opened' || github.event.action == 'edited') && startsWith(github.event.issue.title, 'http'))
+    # Run when: issue has label job-posting-from-link, OR issue was opened/edited with a URL as the title or body (no label needed)
+    if: github.event.label.name == 'job-posting-from-link' || ((github.event.action == 'opened' || github.event.action == 'edited') && (startsWith(github.event.issue.title, 'http') || contains(github.event.issue.body, '### Job Posting URL')))
     steps:
       - name: React with eyes to acknowledge
         if: github.event.action == 'opened'
@@ -29,16 +29,27 @@ jobs:
         with:
           ref: main
 
-      - name: Get job URL from issue title
+      - name: Get job URL from issue body or title
         id: url
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           node -e "
             const title = process.env.ISSUE_TITLE || '';
-            let url = title.trim();
+            const body = process.env.ISSUE_BODY || '';
+
+            // Try to extract URL from body field '### Job Posting URL'
+            const bodyMatch = body.match(/### Job Posting URL\s*\n+([^\n]+)/);
+            let url = (bodyMatch && bodyMatch[1].trim()) || '';
+
+            // Fall back to title if body field is empty or not a URL
+            if (!url || !url.startsWith('http')) {
+              url = title.trim();
+            }
+
             if (!url) {
-              console.error('No Job URL found in issue title');
+              console.error('No Job URL found in issue body or title');
               process.exit(1);
             }
             if (!url.startsWith('http')) url = 'https://' + url.replace(/^\/+/, '');
