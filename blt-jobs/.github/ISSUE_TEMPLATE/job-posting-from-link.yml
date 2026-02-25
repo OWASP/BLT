@@ -3,14 +3,6 @@ description: Post a job by pasting a job URL — we scrape it and add the listin
 title: '[JOB-LINK] '
 labels: ['job-posting-from-link']
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## Post a Job from URL
-        Paste a job posting URL below. Our bot will scrape the details and add the listing to the site. The issue will be closed automatically once done.
-
-        **Supported:** Greenhouse, Lever, Workable, LinkedIn, Indeed, and most career pages (we use APIs + Jina Reader fallback).
-
   - type: input
     id: job_url
     attributes:
@@ -19,17 +11,3 @@ body:
       placeholder: e.g. https://boards.greenhouse.io/company/jobs/12345
     validations:
       required: true
-
-  - type: input
-    id: company_name
-    attributes:
-      label: Company Name (Optional)
-      description: Override the scraped company name if needed
-      placeholder: Leave blank to use scraped value
-
-  - type: textarea
-    id: additional_notes
-    attributes:
-      label: Additional Notes
-      description: Optional context about this posting
-      placeholder: Optional

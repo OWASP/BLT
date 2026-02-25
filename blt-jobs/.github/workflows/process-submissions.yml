@@ -15,6 +15,15 @@ jobs:
     # Run when: issue has label job-posting-from-link, OR issue was opened/edited with "### Job URL" section (no label needed)
     if: github.event.label.name == 'job-posting-from-link' || ((github.event.action == 'opened' || github.event.action == 'edited') && contains(github.event.issue.body, '### Job URL'))
     steps:
+      - name: React with eyes to acknowledge
+        if: github.event.action == 'opened'
+        run: |
+          gh api --method POST \
+            /repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/reactions \
+            -f content=eyes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout main
         uses: actions/checkout@v4
         with:
