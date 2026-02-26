@@ -613,6 +613,7 @@
         let currentAuthor = localStorage.getItem('currentAuthor') || '';
         let allPrs = [];
         let repos = [];
+        let allAuthors = []; // All unique authors from the database (including bots)
         let repoSortByPrs = localStorage.getItem('repoSortByPrs') !== 'false';
         // Support unlimited sort columns
         // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
@@ -1248,8 +1249,12 @@
         }
 
         function getUniqueAuthors() {
-            const authors = [...new Set(allPrs.map(pr => pr.author_login).filter(Boolean))].sort();
-            return authors;
+            // Use server-fetched allAuthors list (includes bots and authors not on current page)
+            // Fall back to authors from currently loaded PRs if allAuthors is not yet populated
+            if (allAuthors.length > 0) {
+                return allAuthors;
+            }
+            return [...new Set(allPrs.map(pr => pr.author_login).filter(Boolean))].sort();
         }
 
         function initAuthorFilter() {
@@ -1363,6 +1368,34 @@
                 renderRepoList();
             } catch (error) {
                 console.error('Error loading repos:', error);
+            }
+        }
+
+        async function loadAuthors(bypassCache = false) {
+            try {
+                const response = bypassCache
+                    ? await fetch(`/api/authors?_=${Date.now()}`)
+                    : await fetch('/api/authors');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading authors:', data.error);
+                    return;
+                }
+
+                // Store just the login strings, sorted alphabetically
+                allAuthors = data.authors.map(a => a.author_login).sort();
+                // Validate saved author filter against loaded authors
+                if (currentAuthor && !allAuthors.includes(currentAuthor)) {
+                    currentAuthor = '';
+                    localStorage.setItem('currentAuthor', '');
+                    const input = document.getElementById('authorFilterInput');
+                    const clearBtn = document.getElementById('authorFilterClearBtn');
+                    if (input) input.value = '';
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading authors:', error);
             }
         }
 
@@ -3516,9 +3549,10 @@
         // initOrgFilter sets up event listeners only; dropdown items are populated from `repos`
         // on user interaction, so calling this before loadRepos() is safe.
         initOrgFilter();
-        // initAuthorFilter sets up event listeners only; dropdown items are populated from loaded PRs.
+        // initAuthorFilter sets up event listeners only; dropdown items are populated from /api/authors.
         initAuthorFilter();
         loadRepos();
+        loadAuthors();
         loadPrs().then(handlePrUrlParam);
         setInterval(loadRateLimit, 600000);
 

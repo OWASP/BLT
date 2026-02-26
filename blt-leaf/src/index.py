@@ -8,6 +8,7 @@ from handlers import (
     handle_add_pr,
     handle_list_prs,
     handle_list_repos,
+    handle_list_authors,
     handle_refresh_pr,
     handle_batch_refresh_prs,
     handle_rate_limit,
@@ -106,6 +107,8 @@ async def on_fetch(request, env):
                 response = await handle_get_pr(env, int(pr_id_str))
         elif path == '/api/repos' and request.method == 'GET':
             response = await handle_list_repos(env)
+        elif path == '/api/authors' and request.method == 'GET':
+            response = await handle_list_authors(env)
         elif path == '/api/refresh' and request.method == 'POST':
             response = await handle_refresh_pr(request, env)
         elif path == '/api/refresh-batch' and request.method == 'POST':
