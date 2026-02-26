@@ -426,7 +426,7 @@ let currentSort   = 'stars';
 let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
-let currentView   = localStorage.getItem('blt-view') || 'table';
+let currentView   = localStorage.getItem('blt-view') || (window.innerWidth < 768 ? 'card' : 'table');
 let tableSortCol  = 'stargazers_count';
 let tableSortDir  = 'desc';
 
