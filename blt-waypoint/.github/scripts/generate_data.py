@@ -157,6 +157,28 @@ def fetch_branch_count(repo_full_name: str) -> int:
         return 0
 
 
+def fetch_latest_issue(repo_full_name: str) -> dict | None:
+    """Return the most recent open issue for a repo, or None if there are none."""
+    try:
+        data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/issues?state=open&sort=created&direction=desc&per_page=5"
+        )
+        if not isinstance(data, list) or not data:
+            return None
+        # The issues API also returns pull requests; skip them
+        for issue in data:
+            if not issue.get("pull_request"):
+                return {
+                    "number": issue.get("number"),
+                    "title": issue.get("title", ""),
+                    "html_url": issue.get("html_url", ""),
+                }
+        return None
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch latest issue for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+
+
 def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
     """Return the last `weeks` weekly commit totals as a list of ints."""
     try:
@@ -256,6 +278,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch the most recent open issue for each non-archived repo
+    print("Fetching latest issues…", flush=True)
+    latest_issue_map: dict[str, dict | None] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            latest_issue_map[repo["full_name"]] = None
+        else:
+            latest_issue_map[repo["full_name"]] = fetch_latest_issue(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -279,7 +313,8 @@ def main() -> None:
          "total_commits": total_commits_map.get(repo["full_name"], 0),
          "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
          "file_count": file_count_map.get(repo["full_name"], 0),
-         "branch_count": branch_count_map.get(repo["full_name"], 0)}
+         "branch_count": branch_count_map.get(repo["full_name"], 0),
+         "latest_issue": latest_issue_map.get(repo["full_name"])}
         for repo in repos
     ]
 

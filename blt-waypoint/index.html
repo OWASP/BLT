@@ -846,6 +846,15 @@ function repoCardHTML(r) {
       ${r.readme_chars ? `<span title="README character count"><i class="fa-solid fa-file-lines mr-1 text-pink-400" aria-hidden="true"></i>${formatNumber(r.readme_chars)} chars</span>` : ''}
     </div>
 
+    <!-- Latest open issue -->
+    ${r.latest_issue ? `
+    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent open issue">
+      <i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>
+      <a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors truncate">
+        #${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}
+      </a>
+    </div>` : ''}
+
     <!-- Sparkline + avatars row -->
     ${(sparkline || avatarStack) ? `
     <div class="flex items-center justify-between gap-2">
