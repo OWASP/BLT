@@ -221,6 +221,67 @@ Evaluates security contributions.
 - `contribution_id` (required) - Contribution ID
 - `contribution_type` (optional) - Type of contribution
 
+## JSON-RPC Example
+
+Since BLT-MCP uses JSON-RPC 2.0 over stdio, below is an example request and response format.
+
+### Example: Calling submit_issue Tool
+
+Request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "submit_issue",
+    "arguments": {
+      "title": "Test issue from JSON-RPC",
+      "description": "This is a test issue created via raw JSON-RPC request.",
+      "severity": "low"
+    }
+  }
+}
+```
+
+Example Response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "success": true,
+    "message": "Issue submitted successfully"
+  }
+}
+```
+
+## Troubleshooting
+
+### Node Version
+Ensure you are running Node.js v18 or higher:
+
+```bash
+node -v
+```
+
+### Missing Environment Variables
+Make sure `.env` is properly configured:
+
+```
+BLT_API_BASE=https://blt.owasp.org/api
+BLT_API_KEY=your_api_key_here
+```
+
+### Build Issues
+If `dist/index.js` is missing, run:
+
+```bash
+npm run build
+```
+
 ## Development
 
 ### Watch Mode
