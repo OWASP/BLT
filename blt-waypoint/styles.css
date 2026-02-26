@@ -1,0 +1,85 @@
+/* Smooth card hover lift */
+.repo-card { transition: box-shadow 0.18s ease, transform 0.18s ease; }
+.repo-card:hover { box-shadow: 0 8px 32px 0 rgba(225,1,1,0.12); transform: translateY(-2px); }
+
+/* Language colour dot */
+.lang-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+
+/* Skeleton animation */
+@keyframes shimmer { 0%{background-position:-800px 0} 100%{background-position:800px 0} }
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 800px 100%;
+}
+
+/* Active sidebar item */
+.nav-active { background: #feeae9; color: #E10101; }
+.dark .nav-active { background: rgba(225,1,1,0.15); color: #f87171; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+.dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+
+/* Focus ring reuse */
+.focus-brand:focus {
+  outline: none;
+  border-color: #E10101;
+  box-shadow: 0 0 0 1px #E10101;
+}
+
+/* Sparkline colour inherits text colour */
+.sparkline { display: block; }
+
+/* Overlapping contributor avatars */
+.avatar-stack { display: flex; align-items: center; }
+.avatar-stack a { margin-left: -6px; display: inline-flex; }
+.avatar-stack a:first-child { margin-left: 0; }
+.avatar-stack img {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  object-fit: cover;
+  display: block;
+}
+.dark .avatar-stack img { border-color: #1f2937; }
+
+/* View toggle active state */
+.view-btn-active { background: #feeae9; color: #E10101; border-color: #E10101; }
+.dark .view-btn-active { background: rgba(225,1,1,0.15); color: #f87171; border-color: #f87171; }
+
+/* Table view sortable headers */
+#repo-table th[data-col] { cursor: pointer; user-select: none; }
+#repo-table th[data-col]:hover { color: #E10101; }
+.dark #repo-table th[data-col]:hover { color: #f87171; }
+
+/* Table view: remove container width constraint */
+#main-layout.table-view { max-width: none; }
+
+/* Table view: force-hide the sidebar even at large breakpoints */
+#main-sidebar.force-hidden { display: none !important; }
+
+/* GSoC card highlight with Google brand colors */
+.gsoc-card {
+  border-color: transparent !important;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border-width: 2px !important;
+}
+.dark .gsoc-card {
+  background-image: linear-gradient(#1f2937, #1f2937), linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+}
+/* GSoC topic badge with Google brand colors */
+.gsoc-label {
+  background: linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+  color: white;
+  font-weight: 500;
+}
