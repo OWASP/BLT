@@ -100,6 +100,24 @@
     #main-layout.table-view { max-width: none; }
     /* Table view: force-hide the sidebar even at large breakpoints */
     #main-sidebar.force-hidden { display: none !important; }
+
+    /* GSoC card highlight with Google brand colors */
+    .gsoc-card {
+      border-color: transparent !important;
+      background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      border-width: 2px !important;
+    }
+    .dark .gsoc-card {
+      background-image: linear-gradient(#1f2937, #1f2937), linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+    }
+    /* GSoC topic badge with Google brand colors */
+    .gsoc-label {
+      background: linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58);
+      color: white;
+      font-weight: 500;
+    }
   </style>
 </head>
 
@@ -747,9 +765,13 @@ function renderRepos(repos) {
 
 function repoCardHTML(r) {
   const langColor = LANG_COLORS[r.language] || '#8b949e';
-  const topics = (r.topics || []).slice(0, 3).map(t =>
-    `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`
-  ).join('');
+  const hasGsoc = (r.topics || []).some(t => t.toLowerCase().includes('gsoc'));
+  const topics = (r.topics || []).slice(0, 5).map(t => {
+    if (t.toLowerCase().includes('gsoc')) {
+      return `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`;
+    }
+    return `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${escapeHtml(t)}</span>`;
+  }).join('');
 
   const archiveBadge = r.archived
     ? `<span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 text-xs px-2 py-0.5 rounded-full font-medium">Archived</span>`
@@ -783,7 +805,7 @@ function repoCardHTML(r) {
   const projectUrl = PROJECT_URLS[r.name];
 
   return `
-  <article class="repo-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
+  <article class="repo-card${hasGsoc ? ' gsoc-card' : ''} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
 
     <!-- Header -->
     <div class="flex items-start gap-3">
@@ -882,6 +904,7 @@ function repoCardHTML(r) {
 /* ------------------------------------------------------------------ */
 const TABLE_COLS = [
   { key: 'name',              label: 'Repository' },
+  { key: 'topics',            label: 'Labels'     },
   { key: 'language',          label: 'Language'   },
   { key: 'stargazers_count',  label: 'Stars'      },
   { key: 'forks_count',       label: 'Forks'      },
@@ -927,10 +950,19 @@ function renderTableView(repos, container) {
       ? `<span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 rounded-full">Fork</span>`
       : '';
     const projectUrl = PROJECT_URLS[r.name];
+    const rowTopics = (r.topics || []).map(t => {
+      if (t.toLowerCase().includes('gsoc')) {
+        return `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap">${escapeHtml(t)}</span>`;
+      }
+      return `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">${escapeHtml(t)}</span>`;
+    }).join(' ');
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
         <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
+      </td>
+      <td class="px-3 py-2">
+        <div class="flex flex-wrap gap-1">${rowTopics || '<span class="text-gray-300 dark:text-gray-600 text-xs">—</span>'}</div>
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-sm">
         ${r.language
@@ -980,8 +1012,8 @@ function renderTableView(repos, container) {
   }).join('');
 
   container.innerHTML = `
-    <table class="border-collapse text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 sticky top-14 z-10">
+    <table class="border-collapse text-sm w-max">
+      <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
         <tr>
           ${headerCells}
           <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Links</th>
