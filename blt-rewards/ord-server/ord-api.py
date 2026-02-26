@@ -1,6 +1,8 @@
 import subprocess
 import os
 import yaml
+import hmac
+import hashlib
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 
@@ -8,6 +10,35 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+
+
+def verify_webhook_signature(req):
+    """Verify the HMAC-SHA256 webhook signature from the X-Signature-256 header.
+
+    The caller must send:
+        X-Signature-256: sha256=<hex_digest>
+
+    where hex_digest = HMAC-SHA256(WEBHOOK_SECRET, raw_request_body).
+
+    Returns True if the signature is valid, False otherwise.
+    """
+    secret = os.getenv("WEBHOOK_SECRET")
+    if not secret:
+        # If no secret is configured, reject all requests for safety.
+        return False
+
+    signature_header = req.headers.get("X-Signature-256", "")
+    if not signature_header.startswith("sha256="):
+        return False
+
+    expected_sig = signature_header[len("sha256="):]
+    computed_sig = hmac.new(
+        secret.encode("utf-8"),
+        req.get_data(),
+        hashlib.sha256,
+    ).hexdigest()
+
+    return hmac.compare_digest(expected_sig, computed_sig)
 
 # Environment Variables
 ORD_PATH = os.getenv("ORD_PATH", "/usr/local/bin/ord")
@@ -37,6 +68,9 @@ WALLET_ADDRESS_REGTEST = os.getenv("WALLET_ADDRESS_REGTEST", "bcrt1")
 
 @app.route("/mainnet/send-bacon-tokens", methods=["POST"])
 def send_bacon_tokens():
+    if not verify_webhook_signature(request):
+        return jsonify({"success": False, "error": "Invalid or missing webhook signature"}), 401
+
     yaml_content = request.json.get("yaml_content")
     fee_rate = request.json.get("fee_rate")
     is_dry_run = request.json.get("dry_run", True)
@@ -89,6 +123,9 @@ def send_bacon_tokens():
 
 @app.route("/regtest/send-bacon-tokens", methods=["POST"])
 def send_bacon_tokens_regtest():
+    if not verify_webhook_signature(request):
+        return jsonify({"success": False, "error": "Invalid or missing webhook signature"}), 401
+
     num_users = request.json.get("num_users")
     fee_rate = request.json.get("fee_rate")
 
@@ -138,6 +175,9 @@ def send_bacon_tokens_regtest():
 
 @app.route("/mainnet/wallet-balance", methods=["GET"])
 def wallet_balance():
+    if not verify_webhook_signature(request):
+        return jsonify({"success": False, "error": "Invalid or missing webhook signature"}), 401
+
     command = [
         "sudo",
         ORD_PATH,
