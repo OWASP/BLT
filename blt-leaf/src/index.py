@@ -67,6 +67,7 @@ async def on_fetch(request, env):
             if request.method == 'GET':
                 repo = url.searchParams.get('repo')
                 org = url.searchParams.get('org')
+                author = url.searchParams.get('author')
                 page = url.searchParams.get('page')
                 per_page_param = url.searchParams.get('per_page')
                 sort_by = url.searchParams.get('sort_by')
@@ -92,7 +93,8 @@ async def on_fetch(request, env):
                     per_page,
                     sort_by,
                     sort_dir,
-                    org
+                    org,
+                    author
                 )
             elif request.method == 'POST':
                 response = await handle_add_pr(request, env)
