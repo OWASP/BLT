@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Getting Started with BACON - Quick start guide for integrating blockchain rewards">
+    <title>Getting Started - BACON</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                        'blt-red-hover': '#b91c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                    <a href="index.html" class="text-xl font-bold text-gray-900">BACON</a>
+                </div>
+                <ul class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <li><a href="index.html" class="text-gray-700 hover:text-blt-red transition-colors">Home</a></li>
+                    <li><a href="getting-started.html" class="text-blt-red">Getting Started</a></li>
+                    <li><a href="api-reference.html" class="text-gray-700 hover:text-blt-red transition-colors">API Reference</a></li>
+                    <li><a href="bitcoin-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                    <li><a href="solana-integration.html" class="text-gray-700 hover:text-blt-red transition-colors">Solana</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" 
+                           class="inline-flex items-center gap-2 px-4 py-2 border border-blt-red text-blt-red rounded-md hover:bg-blt-red hover:text-white transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-gray-50 to-white pt-20 pb-16 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Getting Started</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Integrate BACON into your repository in minutes</p>
+        </div>
+    </section>
+
+    <main>
+        <!-- Prerequisites -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Prerequisites</h2>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <p class="text-gray-700 mb-4 font-medium">Before you begin, make sure you have:</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blue-600 mt-1"></i>
+                            <span class="text-gray-700">A GitHub repository where you want to integrate BACON</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blue-600 mt-1"></i>
+                            <span class="text-gray-700">Node.js 16+ or Python 3.8+ installed</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blue-600 mt-1"></i>
+                            <span class="text-gray-700">A wallet on your chosen blockchain (Bitcoin or Solana)</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-blue-600 mt-1"></i>
+                            <span class="text-gray-700">Basic understanding of blockchain concepts</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Installation</h2>
+                
+                <div class="space-y-6">
+                    <!-- Option 1 -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                            <i class="fab fa-node-js text-green-600 mr-2"></i>
+                            Option 1: Node.js / JavaScript
+                        </h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white mb-3">
+                            npm install @blt-bacon/sdk
+                        </div>
+                        <p class="text-gray-600 mb-2">Or with Yarn:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white">
+                            yarn add @blt-bacon/sdk
+                        </div>
+                    </div>
+
+                    <!-- Option 2 -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                            <i class="fab fa-python text-blue-600 mr-2"></i>
+                            Option 2: Python
+                        </h3>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-sm text-white">
+                            pip install blt-bacon
+                        </div>
+                    </div>
+
+                    <!-- Option 3 -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                            <i class="fab fa-github text-gray-900 mr-2"></i>
+                            Option 3: GitHub Action
+                        </h3>
+                        <p class="text-gray-600 mb-3">Add to your <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">.github/workflows/bacon-rewards.yml</code>:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">name: BACON Rewards
+on:
+  issues:
+    types: [opened, closed]
+  pull_request:
+    types: [opened, merged]
+
+jobs:
+  reward:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: OWASP-BLT/bacon-action@v1
+        with:
+          blockchain: 'bitcoin'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          bacon-key: ${{ secrets.BACON_PRIVATE_KEY }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Guide -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-12">Quick Start Guide</h2>
+                
+                <div class="space-y-8">
+                    <!-- Step 1 -->
+                    <div class="relative pl-8 pb-8 border-l-2 border-blt-red">
+                        <div class="absolute -left-3 top-0 w-6 h-6 bg-blt-red rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-bold">1</span>
+                        </div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Initialize BACON SDK</h3>
+                        <p class="text-gray-600 mb-4">Create a configuration file for your blockchain of choice:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// bacon.config.js
+module.exports = {
+  blockchain: 'bitcoin', // or 'solana'
+  network: 'mainnet',
+  rewards: {
+    issueOpened: 10,
+    pullRequestMerged: 50,
+    issueResolved: 100,
+    codeReview: 25
+  },
+  wallet: {
+    address: process.env.BACON_WALLET_ADDRESS
+  }
+};</pre>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative pl-8 pb-8 border-l-2 border-blt-red">
+                        <div class="absolute -left-3 top-0 w-6 h-6 bg-blt-red rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-bold">2</span>
+                        </div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Set Up Webhook Handler</h3>
+                        <p class="text-gray-600 mb-4">Create a webhook endpoint to receive GitHub events:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">const BaconSDK = require('@blt-bacon/sdk');
+const config = require('./bacon.config');
+
+const bacon = new BaconSDK(config);
+
+// Initialize and start listening
+bacon.initialize().then(() => {
+  bacon.on('issue.opened', async (event) => {
+    await bacon.reward(event.user, config.rewards.issueOpened);
+  });
+
+  bacon.on('pull_request.merged', async (event) => {
+    await bacon.reward(event.user, config.rewards.pullRequestMerged);
+  });
+
+  bacon.start({ port: 3000 });
+});</pre>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative pl-8 pb-8 border-l-2 border-blt-red">
+                        <div class="absolute -left-3 top-0 w-6 h-6 bg-blt-red rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-bold">3</span>
+                        </div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Configure GitHub Webhook</h3>
+                        <p class="text-gray-600 mb-4">In your GitHub repository settings:</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-arrow-right text-blt-red mt-1"></i>
+                                <span class="text-gray-700">Go to Settings → Webhooks → Add webhook</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-arrow-right text-blt-red mt-1"></i>
+                                <span class="text-gray-700">Set Payload URL to your server endpoint (e.g., <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">https://your-domain.com/webhook</code>)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-arrow-right text-blt-red mt-1"></i>
+                                <span class="text-gray-700">Set Content type to <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">application/json</code></span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-arrow-right text-blt-red mt-1"></i>
+                                <span class="text-gray-700">Select individual events: Issues, Pull requests</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-arrow-right text-blt-red mt-1"></i>
+                                <span class="text-gray-700">Add webhook</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-3 top-0 w-6 h-6 bg-blt-red rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-bold">4</span>
+                        </div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Test Your Integration</h3>
+                        <p class="text-gray-600 mb-4">Create a test issue in your repository to verify rewards are working:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white"># Check reward distribution
+bacon-cli status
+
+# View transaction history
+bacon-cli transactions --limit 10
+
+# Check user balance
+bacon-cli balance --user username</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Configuration Options</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Reward Rules -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Reward Rules</h3>
+                        <p class="text-gray-600 mb-4">Customize reward amounts for different actions:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">rewards: {
+  // Issue-related
+  issueOpened: 10,
+  issueResolved: 100,
+  
+  // Pull requests
+  pullRequestMerged: 50,
+  pullRequestReviewed: 25,
+  
+  // Contributions
+  commitPushed: 5,
+  releasePublished: 200
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Blockchain Config -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Blockchain Configuration</h3>
+                        <p class="text-gray-600 mb-4">Choose between Bitcoin and Solana:</p>
+                        <div class="bg-gray-900 rounded-md p-4 font-mono text-xs text-white overflow-x-auto">
+<pre class="text-white">// Bitcoin
+{
+  blockchain: 'bitcoin',
+  network: 'mainnet'
+}
+
+// Solana
+{
+  blockchain: 'solana',
+  network: 'mainnet-beta'
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Next Steps -->
+        <section class="py-16 bg-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Next Steps</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <a href="api-reference.html" class="group bg-white border border-gray-200 rounded-lg p-6 hover:border-blt-red hover:shadow-lg transition-all">
+                        <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blt-red transition-colors">
+                            <i class="fas fa-book text-xl text-blt-red group-hover:text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">API Reference</h3>
+                        <p class="text-gray-600 text-sm mb-4">Explore the complete API documentation</p>
+                        <span class="text-blt-red text-sm font-medium inline-flex items-center gap-2">
+                            View API Docs <i class="fas fa-arrow-right"></i>
+                        </span>
+                    </a>
+                    
+                    <a href="bitcoin-integration.html" class="group bg-white border border-gray-200 rounded-lg p-6 hover:border-blt-red hover:shadow-lg transition-all">
+                        <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blt-red transition-colors">
+                            <i class="fab fa-bitcoin text-xl text-blt-red group-hover:text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Bitcoin Integration</h3>
+                        <p class="text-gray-600 text-sm mb-4">Deep dive into Bitcoin and Runes protocol</p>
+                        <span class="text-blt-red text-sm font-medium inline-flex items-center gap-2">
+                            Learn More <i class="fas fa-arrow-right"></i>
+                        </span>
+                    </a>
+                    
+                    <a href="solana-integration.html" class="group bg-white border border-gray-200 rounded-lg p-6 hover:border-blt-red hover:shadow-lg transition-all">
+                        <div class="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blt-red transition-colors">
+                            <i class="fas fa-circle text-xl text-blt-red group-hover:text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Solana Integration</h3>
+                        <p class="text-gray-600 text-sm mb-4">Set up SPL tokens on Solana</p>
+                        <span class="text-blt-red text-sm font-medium inline-flex items-center gap-2">
+                            Learn More <i class="fas fa-arrow-right"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Need Help?</h2>
+                <p class="text-lg text-gray-600 mb-8">Join our community or check out our documentation</p>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="https://github.com/OWASP-BLT/BLT-Bacon/issues" target="_blank"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-blt-red text-white rounded-md font-medium hover:bg-blt-red-hover transition-colors">
+                        <i class="fas fa-question-circle"></i>
+                        Get Support
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/BLT-Bacon/discussions" target="_blank"
+                       class="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-comments"></i>
+                        Join Discussion
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <img src="./static/images/logo.png" alt="BACON Logo" class="h-8 w-8">
+                        <span class="text-lg font-bold text-gray-900">BACON</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">Blockchain Assisted Contribution Network</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Documentation</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="getting-started.html" class="text-gray-600 hover:text-blt-red transition-colors">Getting Started</a></li>
+                        <li><a href="api-reference.html" class="text-gray-600 hover:text-blt-red transition-colors">API Reference</a></li>
+                        <li><a href="bitcoin-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Bitcoin</a></li>
+                        <li><a href="solana-integration.html" class="text-gray-600 hover:text-blt-red transition-colors">Solana</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Community</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/OWASP-BLT/BLT-Bacon" target="_blank" class="text-gray-600 hover:text-blt-red transition-colors">GitHub</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-blt-red transition-colors">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-600">
+                <p>&copy; 2024 OWASP BLT Project. Licensed under Apache 2.0.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
