@@ -905,6 +905,27 @@ function repoCardHTML(r) {
         </a>
       ` : ''}
     </div>
+    <!-- Tiny action buttons -->
+    <div class="flex gap-1.5 flex-wrap">
+      <a
+        href="${escapeHtml(r.html_url)}/issues/new"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Create new issue"
+        class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand dark:hover:text-brand transition-colors"
+      >
+        <i class="fa-solid fa-circle-plus mr-1" aria-hidden="true"></i>New Issue
+      </a>
+      <a
+        href="https://blt.owasp.org/create-github-issue/?repo=${encodeURIComponent(ORG + '/' + r.name)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Create new agent task"
+        class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand dark:hover:text-brand transition-colors"
+      >
+        <i class="fa-solid fa-robot mr-1" aria-hidden="true"></i>Agent Task
+      </a>
+    </div>
   </article>`;
 }
 
@@ -1015,6 +1036,8 @@ function renderTableView(repos, container) {
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
           ${r.homepage ? `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Live Site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : ''}
           ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : ''}
+          <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
+          <a href="https://blt.owasp.org/create-github-issue/?repo=${encodeURIComponent(ORG + '/' + r.name)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Agent Task"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
         </div>
       </td>
     </tr>`;
