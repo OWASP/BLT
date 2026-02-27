@@ -1,6 +1,11 @@
 name: Build & Deploy Design Showcase
 
 on:
+  # Rebuild on every push to main
+  push:
+    branches:
+      - main
+
   # Rebuild whenever a design-submission issue is opened, edited, or labelled
   issues:
     types: [opened, edited, labeled, unlabeled, closed, reopened, deleted]
