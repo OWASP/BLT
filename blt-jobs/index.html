@@ -196,37 +196,41 @@
         </div>
       </section>
 
-      <section class="mt-12 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <h2 class="mb-4 text-2xl font-bold dark:text-white">Recent Listings</h2>
-        <div id="recent-listings" class="space-y-4">
-          <p class="text-slate-600 dark:text-gray-400">Loading recent listings...</p>
-        </div>
-        <div class="mt-6 flex gap-4">
-          <a href="./jobs.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            View All Jobs
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </a>
-          <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            View All Seekers
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </a>
-        </div>
-      </section>
+      <section class="mt-12">
+        <div class="grid gap-6 lg:grid-cols-3">
+          <div class="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 class="mb-4 text-2xl font-bold dark:text-white">Recent Listings</h2>
+            <div id="recent-listings" class="space-y-4">
+              <p class="text-slate-600 dark:text-gray-400">Loading recent listings...</p>
+            </div>
+            <div class="mt-6 flex gap-4">
+              <a href="./jobs.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                View All Jobs
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+              <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                View All Seekers
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
 
-      <section class="mt-12 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <h2 class="mb-4 text-2xl font-bold dark:text-white">
-          <i class="fa-solid fa-trophy text-yellow-500 mr-2" aria-hidden="true"></i>
-          Top Contributors
-        </h2>
-        <p class="mb-6 text-sm text-slate-600 dark:text-gray-400">Community members who have contributed the most job listings</p>
-        <div id="homepage-leaderboard" class="space-y-3">
-          <p class="text-slate-600 dark:text-gray-400">Loading leaderboard...</p>
-        </div>
-        <div class="mt-6">
-          <a href="./leaderboard.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            View Full Leaderboard
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </a>
+          <div class="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 class="mb-4 text-2xl font-bold dark:text-white">
+              <i class="fa-solid fa-trophy text-yellow-500 mr-2" aria-hidden="true"></i>
+              Top Contributors
+            </h2>
+            <p class="mb-6 text-sm text-slate-600 dark:text-gray-400">Community members who have contributed the most job listings</p>
+            <div id="homepage-leaderboard" class="space-y-3">
+              <p class="text-slate-600 dark:text-gray-400">Loading leaderboard...</p>
+            </div>
+            <div class="mt-6">
+              <a href="./leaderboard.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                View Full Leaderboard
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -282,11 +286,23 @@
           d.textContent = s;
           return d.innerHTML;
         }
+        function fmtDate(iso) {
+          if (!iso) return '';
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return '';
+          return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
         Promise.all([
           fetch('data/jobs.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { jobs: [] }; }),
           fetch('data/seekers.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
         ]).then(function (results) {
-          var jobs = Array.isArray(results[0].jobs) ? results[0].jobs.slice(0, 3) : [];
+          var allJobs = Array.isArray(results[0].jobs) ? results[0].jobs : [];
+          allJobs.sort(function (a, b) {
+            var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+            var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return tb - ta;
+          });
+          var jobs = allJobs.slice(0, 3);
           var seekers = Array.isArray(results[1].seekers) ? results[1].seekers.slice(0, 2) : [];
           if (jobs.length === 0 && seekers.length === 0) {
             container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700">post a job</a> or <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700">create your profile</a>.</p>';
@@ -294,22 +310,28 @@
           }
           var html = '';
           if (jobs.length > 0) {
-            html += '<div class="mb-4"><h3 class="font-semibold mb-2">Recent Jobs</h3><div class="space-y-2">';
+            html += '<div class="mb-4"><h3 class="font-semibold mb-2 dark:text-white">Recent Jobs</h3><div class="space-y-2">';
             jobs.forEach(function (j) {
-              html += '<div class="rounded-lg border border-slate-200 p-3"><a href="job.html?id=' + encodeURIComponent(j.id) + '" class="font-medium text-red-600 hover:text-red-700">' + esc(j.title || 'Untitled') + (j.organization_name ? ' – ' + esc(j.organization_name) : '') + '</a></div>';
+              var meta = '';
+              if (j.created_at) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ' + esc(fmtDate(j.created_at)) + '</span>';
+              if (j.added_by) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> <a href="https://github.com/' + esc(j.added_by) + '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' + esc(j.added_by) + '</a></span>';
+              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3">';
+              html += '<a href="job.html?id=' + encodeURIComponent(j.id) + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">' + esc(j.title || 'Untitled') + (j.organization_name ? ' – ' + esc(j.organization_name) : '') + '</a>';
+              if (meta) html += '<div class="mt-1 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-gray-400">' + meta + '</div>';
+              html += '</div>';
             });
             html += '</div></div>';
           }
           if (seekers.length > 0) {
-            html += '<div><h3 class="font-semibold mb-2">Recent Job Seekers</h3><div class="space-y-2">';
+            html += '<div><h3 class="font-semibold mb-2 dark:text-white">Recent Job Seekers</h3><div class="space-y-2">';
             seekers.forEach(function (s) {
-              html += '<div class="rounded-lg border border-slate-200 p-3"><a href="seekers.html" class="font-medium text-red-600 hover:text-red-700">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
+              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3"><a href="seekers.html" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
             });
             html += '</div></div>';
           }
           container.innerHTML = html;
         }).catch(function () {
-          container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to submit!</p>';
+          container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">No listings yet. Be the first to submit!</p>';
         });
       })();
     </script>
