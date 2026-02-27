@@ -21,7 +21,15 @@ jobs:
 
       - name: Validate required fields
         run: |
-          jq -e '.[] | select(.id and .name and .url and .keyword)' monitors.json > /dev/null
+          invalid_count=$(jq '[.[] | select(.id == null or .name == null or .url == null or .keyword == null)] | length' monitors.json)
+
+          if [ "$invalid_count" -ne 0 ]; then
+          echo "❌ Error: $invalid_count monitor(s) missing required fields (id, name, url, keyword)"
+          jq '.[] | select(.id == null or .name == null or .url == null or .keyword == null)' monitors.json
+          exit 1
+          fi
+
+          echo "✅ All monitor entries contain required fields"
 
       - name: Success
         run: echo "Monitor configuration validated successfully"
