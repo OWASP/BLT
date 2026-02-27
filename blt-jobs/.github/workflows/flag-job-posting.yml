@@ -72,6 +72,8 @@ jobs:
         if: steps.check.outputs.exists == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: "Removes the job posting flagged as inaccurate or expired.\n\nFlagged by @${{ github.event.issue.user.login }} in #${{ github.event.issue.number }}.\n\nCloses #${{ github.event.issue.number }}"
+          COMMENT_BODY: "✅ A pull request has been created to remove this job posting: {PR_URL}\n\nThe issue will be automatically closed when the PR is merged."
         run: |
           BRANCH="remove-job/${{ steps.parse.outputs.job_id }}-issue-${{ github.event.issue.number }}"
           git config user.name "github-actions[bot]"
@@ -91,13 +93,7 @@ jobs:
             --base main \
             --head "$BRANCH" \
             --title "Remove flagged job: ${{ steps.parse.outputs.job_id }}" \
-            --body "Removes the job posting flagged as inaccurate or expired.
-
-Flagged by @${{ github.event.issue.user.login }} in #${{ github.event.issue.number }}.
-
-Closes #${{ github.event.issue.number }}")
+            --body "$PR_BODY")
 
           gh issue comment ${{ github.event.issue.number }} \
-            --body "✅ A pull request has been created to remove this job posting: $PR_URL
-
-The issue will be automatically closed when the PR is merged."
+            --body "${COMMENT_BODY//\{PR_URL\}/$PR_URL}"
