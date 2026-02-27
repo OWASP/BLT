@@ -16,7 +16,7 @@ import sys
 import time
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ORG      = os.environ.get("ORG", "OWASP-BLT")
 OUT_FILE = os.environ.get("OUT_FILE", "data.json")
@@ -194,6 +194,52 @@ def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
         return []
 
 
+def fetch_star_history(repo_full_name: str, weeks: int = 26) -> list:
+    """Return per-week new-star counts for the last `weeks` weeks as a list of ints."""
+    try:
+        all_starred = []
+        page = 1
+        while True:
+            url = f"{API_BASE}/repos/{repo_full_name}/stargazers?per_page={PER_PAGE}&page={page}"
+            req = urllib.request.Request(url)
+            req.add_header("Accept", "application/vnd.github.star+json")
+            req.add_header("X-GitHub-Api-Version", "2022-11-28")
+            if TOKEN:
+                req.add_header("Authorization", f"Bearer {TOKEN}")
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    data = json.loads(resp.read().decode())
+            except urllib.error.HTTPError as exc:
+                if exc.code == 404:
+                    return []
+                raise
+            if not isinstance(data, list) or not data:
+                break
+            all_starred.extend(data)
+            if len(data) < PER_PAGE:
+                break
+            page += 1
+            time.sleep(0.1)
+
+        now = datetime.now(timezone.utc)
+        counts = [0] * weeks
+        for star in all_starred:
+            starred_at = star.get("starred_at", "")
+            if not starred_at:
+                continue
+            try:
+                ts = datetime.fromisoformat(starred_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            week_idx = int((now - ts).total_seconds() // (7 * 86400))
+            if 0 <= week_idx < weeks:
+                counts[weeks - 1 - week_idx] += 1
+        return counts
+    except (urllib.error.HTTPError, urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not fetch star history for {repo_full_name}: {exc}", file=sys.stderr)
+        return []
+
+
 def main() -> None:
     print(f"Fetching repos for org: {ORG}", flush=True)
     repos = fetch_all_pages(f"/orgs/{ORG}/repos")
@@ -290,6 +336,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch per-week star counts for each non-archived repo
+    print("Fetching star history…", flush=True)
+    star_history_map: dict[str, list] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            star_history_map[repo["full_name"]] = []
+        else:
+            star_history_map[repo["full_name"]] = fetch_star_history(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -314,7 +372,8 @@ def main() -> None:
          "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
          "file_count": file_count_map.get(repo["full_name"], 0),
          "branch_count": branch_count_map.get(repo["full_name"], 0),
-         "latest_issue": latest_issue_map.get(repo["full_name"])}
+         "latest_issue": latest_issue_map.get(repo["full_name"]),
+         "star_history": star_history_map.get(repo["full_name"], [])}
         for repo in repos
     ]
 
