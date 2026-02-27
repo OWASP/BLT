@@ -99,7 +99,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-function sparklineSVG(data, width = 80, height = 20) {
+function sparklineSVG(data, width = 80, height = 20, className = 'text-brand opacity-70') {
   if (!data || data.length < 2) return '';
   const max = Math.max(...data, 1);
   const step = width / (data.length - 1);
@@ -108,7 +108,7 @@ function sparklineSVG(data, width = 80, height = 20) {
     const y = (height - (v / max) * (height - 2) - 1).toFixed(1);
     return `${x},${y}`;
   }).join(' ');
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline text-brand opacity-70" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/></svg>`;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline ${className}" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/></svg>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -409,6 +409,9 @@ function repoCardHTML(r) {
   // Activity sparkline
   const sparkline = sparklineSVG(r.weekly_commits);
 
+  // Star history sparkline
+  const starSparkline = sparklineSVG(r.star_history, 80, 20, 'text-yellow-400 opacity-80');
+
   // Maturity score badge
   const score = maturityScore(r);
   const { label: matLabel, color: matColor, bg: matBg } = maturityMeta(score);
@@ -469,10 +472,13 @@ function repoCardHTML(r) {
     </div>` : ''}
 
     <!-- Sparkline + avatars row -->
-    ${(sparkline || avatarStack) ? `
+    ${(sparkline || starSparkline || avatarStack) ? `
     <div class="flex items-center justify-between gap-2">
       ${avatarStack || '<span></span>'}
-      ${sparkline ? `<span title="Commit activity (last 26 weeks)">${sparkline}</span>` : ''}
+      <div class="flex items-center gap-1.5">
+        ${starSparkline ? `<span title="Star activity (last 26 weeks)">${starSparkline}</span>` : ''}
+        ${sparkline ? `<span title="Commit activity (last 26 weeks)">${sparkline}</span>` : ''}
+      </div>
     </div>` : ''}
 
     <!-- Footer -->
