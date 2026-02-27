@@ -164,7 +164,7 @@ jobs:
             const rulesValue = (rulesRaw && rulesRaw !== '_No response_') ? rulesRaw : '';
 
             const newEntry = `
-        {
+            {
             slug: ${JSON.stringify(slug)},
             name: ${JSON.stringify(name)},
             description: \`\n                ${description.replace(/`/g, '\\`')}\n            \`,
@@ -183,7 +183,7 @@ jobs:
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
             }${bannerLine}
-        }`;
+            }`;
 
             // Read the current config file
             const configPath = 'js/hackathons-config.js';
