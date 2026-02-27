@@ -1,0 +1,40 @@
+name: Flag Job Posting
+description: Report an inaccurate or expired job posting for removal
+title: '[FLAG] '
+labels: ['flag-job-posting']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Report an Inaccurate or Expired Job Posting
+        Please fill in the details below. A pull request to remove the job will be created automatically and reviewed by a maintainer.
+
+  - type: input
+    id: job_id
+    attributes:
+      label: Job ID
+      description: The unique identifier of the job posting (the value after `?id=` in the job page URL, e.g. `https://jobs.owaspblt.org/job.html?id=<job-id>`)
+      placeholder: e.g., anthropic-application-security-engineering-manager
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Reason for Flagging
+      description: Why should this job be removed?
+      options:
+        - Job posting has expired
+        - Inaccurate information
+        - Duplicate listing
+        - Spam or inappropriate content
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: Any additional context about the issue (optional)
+      placeholder: Please provide any additional information about why this job should be removed
