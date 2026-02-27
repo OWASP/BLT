@@ -13,6 +13,7 @@ class HackathonIndex {
      * Initialize the index page
      */
     init() {
+        this.loadedAt = new Date();
         const global = this.config.global || {};
         
         // Update site title
@@ -280,7 +281,39 @@ class HackathonIndex {
             console.warn('Failed to fetch rate limit:', e);
         }
 
-        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}</div>`;
+        const lastUpdatedHtml = this.loadedAt
+            ? `<span class="text-gray-400">|</span><span>Updated <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
+            : '';
+
+        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}${lastUpdatedHtml}</div>`;
+        this.startLastUpdatedRefresh();
+    }
+
+    /**
+     * Start periodic refresh of the "last updated" relative time in the footer
+     */
+    startLastUpdatedRefresh() {
+        const infoEl = document.getElementById('github-api-info');
+        if (!infoEl || !this.loadedAt) return;
+        if (this._lastUpdatedInterval) clearInterval(this._lastUpdatedInterval);
+        this._lastUpdatedInterval = setInterval(() => {
+            const timeEl = infoEl.querySelector('#last-updated-time');
+            if (timeEl) timeEl.textContent = this.timeAgo(this.loadedAt);
+        }, 60000);
+    }
+
+    /**
+     * Return a human-readable relative time string (e.g. "just now", "3 minutes ago")
+     */
+    timeAgo(date) {
+        const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        const days = Math.floor(hours / 24);
+        return `${days} day${days !== 1 ? 's' : ''} ago`;
     }
 
     /**
