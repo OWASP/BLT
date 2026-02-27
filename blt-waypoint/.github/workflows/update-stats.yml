@@ -1,4 +1,4 @@
-name: Update Org Stats
+name: Update Stats and Deploy Pages
 
 on:
   schedule:
@@ -10,19 +10,26 @@ on:
     branches:
       - main
 
+# Only allow one deployment at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  update-stats:
-    name: Fetch and commit data.json
+  update-and-deploy:
+    name: Update stats and deploy to GitHub Pages
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to push the updated data.json
+      contents: read    # read the repository contents
+      pages: write      # deploy to GitHub Pages
+      id-token: write   # obtain OIDC token for Pages deployment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          # Use the default GITHUB_TOKEN – no extra secrets needed
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,15 +43,14 @@ jobs:
           OUT_FILE: data.json
         run: python3 .github/scripts/generate_data.py
 
-      - name: Commit and push data.json
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.json
-          # Only commit if the file actually changed
-          if git diff --cached --quiet; then
-            echo "data.json is unchanged – nothing to commit."
-          else
-            git commit -m "chore: update org stats [skip ci]"
-            git push
-          fi
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
