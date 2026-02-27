@@ -7,45 +7,33 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
-          },
-        },
-      };
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
-<body class="bg-gradient-to-b from-slate-50 via-red-50/40 to-white text-slate-900 m-0 p-0 font-sans antialiased">
+<body class="bg-slate-50 text-gray-800 m-0 p-0 font-sans">
 <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-4 sm:p-6 my-2 sm:my-4 flex flex-col sm:flex-row gap-4 sm:gap-6">
   <div class="flex-2 min-w-0">
     <div class="mb-3">
-      <a href="index.html" class="text-red-600 hover:underline inline-flex items-center gap-1 text-sm">
+      <a href="index.html" class="text-blue-600 hover:underline inline-flex items-center gap-1 text-sm">
         <i class="fa-solid fa-arrow-left"></i> Back to Monitors
       </a>
     </div>
     <h1 class="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2.5"><i class="fa-solid fa-globe"></i> <span id="monitor-name">Website Monitor</span></h1>
-    <div class="text-base sm:text-lg mb-2 flex items-center gap-1.5"><i class="fa-solid fa-link"></i> <a id="monitor-url" href="#" target="_blank" class="text-red-600 hover:underline break-all">Loading...</a></div>
+    <div class="text-base sm:text-lg mb-2 flex items-center gap-1.5"><i class="fa-solid fa-link"></i> <a id="monitor-url" href="#" target="_blank" class="text-blue-600 hover:underline break-all">Loading...</a></div>
     <div class="flex items-center gap-2 mb-3">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block">
-        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block">
+        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml/badge.svg">
       </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank">
-        <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/BLT-Monitor?style=social">
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor" target="_blank">
+        <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
       </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/fork" target="_blank" class="inline-flex items-center gap-1">
-        <img alt="GitHub forks" src="https://img.shields.io/github/forks/OWASP-BLT/BLT-Monitor?style=social">
+      <a href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/fork" target="_blank" class="inline-flex items-center gap-1">
+        <img alt="GitHub forks" src="https://img.shields.io/github/forks/OWASP-BLT/OWASP-BLT-Website-Monitor?style=social">
       </a>
     </div>
     <div class="flex gap-1 flex-wrap my-2.5">
-        <a class="bg-red-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-red-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
-        <a class="bg-red-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-red-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/BLT-Monitor/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
-        <a class="bg-red-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-red-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/test-slack.yml" target="_blank"><i class="fa-brands fa-slack"></i>Test Slack</a>
-        <a id="csv-link" class="bg-red-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-red-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/BLT-Monitor/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-play"></i>Run Now</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/edit/main/.github/workflows/website-monitor.yml" target="_blank"><i class="fa-solid fa-sliders"></i>Edit Config</a>
+        <a class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/actions/workflows/test-slack.yml" target="_blank"><i class="fa-brands fa-slack"></i>Test Slack</a>
+        <a id="csv-link" class="bg-blue-600 text-white px-2 py-1 rounded-md cursor-pointer no-underline text-xs sm:text-sm transition-colors hover:bg-blue-700 inline-flex items-center gap-1" href="https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/blob/main/status.csv" target="_blank"><i class="fa-solid fa-table"></i>View CSV</a>
     </div>
     <div id="slack-warning"></div>
     <div class="grid grid-cols-3 gap-3 items-center mb-2.5 overflow-x-auto">
@@ -87,7 +75,7 @@
     <details class="my-2.5">
         <summary class="font-bold cursor-pointer text-sm sm:text-base"><b><i class="fa-solid fa-bell"></i> How to set up Slack notifications</b></summary>
         <ol class="list-decimal pl-5 mt-2 text-sm sm:text-base">
-            <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank" class="text-red-600 hover:underline">https://api.slack.com/apps</a></li>
+            <li>Go to your Slack workspace and create a new Slack App: <a href="https://api.slack.com/apps" target="_blank" class="text-blue-600 hover:underline">https://api.slack.com/apps</a></li>
             <li>Enable <b>Incoming Webhooks</b> for the app.</li>
             <li>Create a new webhook URL and copy it.</li>
             <li>Go to your GitHub repository settings &rarr; <b>Secrets and variables</b> &rarr; <b>Actions</b>.</li>
@@ -123,7 +111,7 @@
         
         // Determine CSV file
         const csvFile = monitors.length > 1 ? `status-${monitor.id}.csv` : 'status.csv';
-        document.getElementById('csv-link').href = `https://github.com/OWASP-BLT/BLT-Monitor/blob/main/${csvFile}`;
+        document.getElementById('csv-link').href = `https://github.com/OWASP-BLT/OWASP-BLT-Website-Monitor/blob/main/${csvFile}`;
         
         // Load monitor data
         loadMonitorData(monitor, csvFile);
@@ -208,8 +196,8 @@
                       label: 'Response Time (ms)',
                       data: data,
                       fill: false,
-                      borderColor: '#E10101',
-                      backgroundColor: '#E10101',
+                      borderColor: '#1976d2',
+                      backgroundColor: '#1976d2',
                       pointBackgroundColor: bgColors,
                       pointRadius: 5,
                       tension: 0.2
