@@ -56,6 +56,13 @@ function renderJob(job) {
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
   const hasUrl = Boolean(job.application_url);
+  let faviconDomain = "";
+  if (job.application_url) {
+    try { faviconDomain = new URL(job.application_url).hostname; } catch (e) {}
+  }
+  const faviconUrl = faviconDomain
+    ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(faviconDomain)}&sz=32`
+    : "";
   const description = job.description || "";
   const requirements = job.requirements || "";
   const applicationInstructions = job.application_instructions || "";
@@ -86,7 +93,8 @@ function renderJob(job) {
             </div>
 
             <!-- Job Title -->
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3">
+              ${faviconUrl ? `<img src="${faviconUrl}" alt="" width="32" height="32" class="w-8 h-8 rounded" aria-hidden="true" />` : ""}
               ${job.title || "Untitled job"}
             </h1>
 
