@@ -237,6 +237,16 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
                 f'{c_login}</a>: {c_body_escaped}</span>'
                 f'</div>'
             )
+    if not comment_block:
+        comment_block = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1.5 text-xs '
+            f'text-gray-400 dark:text-gray-500 hover:text-[#E10101] '
+            f'dark:hover:text-[#E10101] transition-colors" '
+            f'aria-label="Be the first to comment on GitHub">'
+            f'<i class="fa-regular fa-comment" aria-hidden="true"></i>'
+            f'Be the first to comment!</a>'
+        )
 
     # Reaction pills
     thumbs_count = reactions.get("+1", 0)
@@ -345,7 +355,8 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
           <a href="{author_url}" target="_blank" rel="noopener"
              class="text-[#E10101] hover:underline font-medium">{designer_name}</a>
         </div>
-        {('<!-- First comment -->\n        ' + comment_block) if comment_block else ''}
+        <!-- First comment -->
+        {comment_block}
         <!-- Footer: reactions + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
