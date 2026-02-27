@@ -218,6 +218,11 @@ async function loadRepos() {
 /*  STATS BAR                                                           */
 /* ------------------------------------------------------------------ */
 
+/** Returns the number of real open issues (excluding PRs) for a repo. */
+function repoIssueCount(r) {
+  return Math.max(0, (r.open_issues_count || 0) - (r.open_pr_count || 0));
+}
+
 /**
  * @param {Array}  repos       - repo list
  * @param {object|null} cumulative - pre-computed cumulative block from data.json
@@ -227,7 +232,8 @@ function buildStats(repos, cumulative) {
   const totalRepos    = cumulative ? cumulative.total_repos      : repos.length;
   const totalStars    = cumulative ? cumulative.total_stars      : repos.reduce((s, r) => s + r.stargazers_count, 0);
   const totalForks    = cumulative ? cumulative.total_forks      : repos.reduce((s, r) => s + r.forks_count, 0);
-  const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + r.open_issues_count, 0);
+  const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + repoIssueCount(r), 0);
+  const totalPRs      = cumulative ? (cumulative.total_open_prs || 0) : repos.reduce((s, r) => s + (r.open_pr_count || 0), 0);
   const totalSizeKb   = cumulative ? cumulative.total_size_kb    : repos.reduce((s, r) => s + (r.size || 0), 0);
   const totalTopics   = cumulative ? cumulative.total_topics     : new Set(repos.flatMap(r => r.topics || [])).size;
   const totalReadmeChars = cumulative ? cumulative.total_readme_chars : repos.reduce((s, r) => s + (r.readme_chars || 0), 0);
@@ -244,6 +250,7 @@ function buildStats(repos, cumulative) {
     { icon: 'fa-solid fa-star',        label: 'Stars',        value: formatNumber(totalStars),        color: 'text-yellow-500', href: `https://github.com/orgs/${ORG}/repositories?sort=stargazers` },
     { icon: 'fa-solid fa-code-fork',   label: 'Forks',        value: formatNumber(totalForks),        color: 'text-green-500',  href: `https://github.com/orgs/${ORG}/repositories?type=fork` },
     { icon: 'fa-solid fa-circle-dot',  label: 'Issues',       value: formatNumber(totalIssues),       color: 'text-brand',      href: `https://github.com/search?q=org%3A${ORG}+is%3Aissue+is%3Aopen&type=issues` },
+    { icon: 'fa-solid fa-code-pull-request', label: 'PRs',         value: formatNumber(totalPRs),          color: 'text-teal-500',   href: `https://github.com/search?q=org%3A${ORG}+is%3Apr+is%3Aopen&type=pullrequests` },
     { icon: 'fa-solid fa-code',        label: 'Languages',    value: formatNumber(langCount),         color: 'text-purple-500', href: null },
     { icon: 'fa-solid fa-tags',        label: 'Topics',       value: formatNumber(totalTopics),       color: 'text-orange-500', href: null },
     { icon: 'fa-solid fa-database',    label: 'Size',         value: sizeMb,                          color: 'text-cyan-500',   href: null },
@@ -454,7 +461,8 @@ function repoCardHTML(r) {
       ` : ''}
       <a href="${escapeHtml(r.html_url)}/stargazers" target="_blank" rel="noopener noreferrer" title="Stars" class="hover:text-yellow-500 transition-colors"><i class="fa-solid fa-star mr-1 text-yellow-400" aria-hidden="true"></i>${formatNumber(r.stargazers_count)}</a>
       <a href="${escapeHtml(r.html_url)}/forks" target="_blank" rel="noopener noreferrer" title="Forks" class="hover:text-green-600 transition-colors"><i class="fa-solid fa-code-fork mr-1 text-green-500" aria-hidden="true"></i>${formatNumber(r.forks_count)}</a>
-      <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" title="Open issues" class="hover:text-brand transition-colors"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(r.open_issues_count)}</a>
+      <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" title="Open issues" class="hover:text-brand transition-colors"><i class="fa-solid fa-circle-dot mr-1 text-brand" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}</a>
+      ${r.open_pr_count ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" title="Open pull requests" class="hover:text-teal-500 transition-colors"><i class="fa-solid fa-code-pull-request mr-1 text-teal-500" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}</a>` : ''}
       ${r.size ? `<span title="Repository size"><i class="fa-solid fa-database mr-1 text-cyan-400" aria-hidden="true"></i>${formatSize(r.size)}</span>` : ''}
       ${r.file_count ? `<span title="Total files (recursive)"><i class="fa-solid fa-file mr-1 text-teal-400" aria-hidden="true"></i>${formatNumber(r.file_count)} files</span>` : ''}
       ${r.branch_count ? `<a href="${escapeHtml(r.html_url)}/branches" target="_blank" rel="noopener noreferrer" title="Branches" class="hover:text-violet-500 transition-colors"><i class="fa-solid fa-code-branch mr-1 text-violet-400" aria-hidden="true"></i>${formatNumber(r.branch_count)} branches</a>` : ''}
@@ -558,6 +566,7 @@ const TABLE_COLS = [
   { key: 'stargazers_count',  label: 'Stars'      },
   { key: 'forks_count',       label: 'Forks'      },
   { key: 'open_issues_count', label: 'Issues'     },
+  { key: 'open_pr_count',    label: 'PRs'        },
   { key: 'total_commits',     label: 'Commits'    },
   { key: 'branch_count',      label: 'Branches'   },
   { key: 'size',              label: 'Size'       },
@@ -572,6 +581,7 @@ function renderTableView(repos, container) {
     if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
     else if (tableSortCol === 'updated_at') v = new Date(a.updated_at) - new Date(b.updated_at);
     else if (tableSortCol === 'maturity')   v = maturityScore(a) - maturityScore(b);
+    else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
     else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
     return tableSortDir === 'asc' ? v : -v;
   });
@@ -630,8 +640,13 @@ function renderTableView(repos, container) {
       </td>
       <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
         <a href="${escapeHtml(r.html_url)}/issues" target="_blank" rel="noopener noreferrer" class="hover:text-brand transition-colors" title="Open issues">
-          <i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(r.open_issues_count || 0)}
+          <i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>${formatNumber(repoIssueCount(r))}
         </a>
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        ${r.open_pr_count
+          ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-teal-500 transition-colors" title="Open pull requests"><i class="fa-solid fa-code-pull-request text-teal-500 mr-1" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
         ${r.total_commits
