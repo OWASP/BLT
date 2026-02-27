@@ -1,0 +1,34 @@
+name: Validate Monitor Configuration
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Validate monitors.json syntax
+        run: jq empty monitors.json
+
+      - name: Validate required fields
+        run: |
+          invalid_count=$(jq '[.[] | select(.id == null or .name == null or .url == null or .keyword == null)] | length' monitors.json)
+
+          if [ "$invalid_count" -ne 0 ]; then
+          echo "❌ Error: $invalid_count monitor(s) missing required fields (id, name, url, keyword)"
+          jq '.[] | select(.id == null or .name == null or .url == null or .keyword == null)' monitors.json
+          exit 1
+          fi
+
+          echo "✅ All monitor entries contain required fields"
+
+      - name: Success
+        run: echo "Monitor configuration validated successfully"
