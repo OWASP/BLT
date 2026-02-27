@@ -17,13 +17,18 @@ on:
     - cron: "0 */2 * * *"
 
 permissions:
-  contents: write   # needed to push to gh-pages
+  contents: write   # needed to commit index.html back to main
   issues: write     # needed to create/apply labels and read reactions
+  pages: write      # needed to deploy to GitHub Pages
+  id-token: write   # needed for OIDC token used by deploy-pages
 
 jobs:
   build-and-deploy:
     name: Build showcase & deploy to GitHub Pages
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -96,15 +101,22 @@ jobs:
             echo "No changes to index.html -- skipping commit."
             exit 0
           fi
-          git commit -m "chore: rebuild showcase"
+          git commit -m "chore: rebuild showcase [skip ci]"
           git push origin HEAD:main
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Prepare deployment directory
+        run: |
+          mkdir /tmp/deploy
+          cp index.html _config.yml /tmp/deploy/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          exclude_assets: ".github,scripts,README.md,LICENSE,.gitignore"
-          commit_message: "chore: rebuild showcase [skip ci]"
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          path: /tmp/deploy
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
