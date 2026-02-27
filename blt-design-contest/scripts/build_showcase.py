@@ -43,6 +43,9 @@ REACTION_LABELS = {
 API_BASE = "https://api.github.com"
 MARKDOWN_IMAGE_RE = re.compile(r"!\[.*?\]\((https?://[^)]+)\)")
 HTML_IMAGE_RE = re.compile(r'<img\s[^>]*src="(https?://[^"]+)"', re.IGNORECASE)
+COMMENT_STRIP_IMAGE_RE = re.compile(r"!\[.*?\]\(.*?\)")
+COMMENT_STRIP_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
+MAX_COMMENT_LENGTH = 120
 
 
 def github_request(path: str) -> list | dict:
@@ -88,6 +91,16 @@ def fetch_reactions(issue_number: int) -> dict:
         if content in REACTION_LABELS:
             totals[content] = totals.get(content, 0) + 1
     return totals
+
+
+def fetch_first_comment(issue_number: int) -> dict | None:
+    """Return the first comment on an issue, or None if there are none."""
+    data = github_request(
+        f"/repos/{REPO}/issues/{issue_number}/comments?per_page=1&page=1"
+    )
+    if isinstance(data, list) and data:
+        return data[0]
+    return None
 
 
 def parse_issue_body(body: str) -> dict:
@@ -175,7 +188,7 @@ def extract_description(fields: dict) -> str:
     return html.escape(desc)
 
 
-def build_card(issue: dict, reactions: dict) -> str:
+def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) -> str:
     """Return the HTML card markup for a single submission."""
     number = issue["number"]
     title = html.escape(issue.get("title", "Untitled").replace(TITLE_PREFIX + " ", "").strip())
@@ -194,6 +207,36 @@ def build_card(issue: dict, reactions: dict) -> str:
     design_url = html.escape(extract_design_url(fields))
     category = html.escape(extract_category(fields))
     description = extract_description(fields)
+
+    # First comment snippet
+    comment_block = ""
+    if first_comment:
+        c_user = first_comment.get("user", {})
+        c_login = html.escape(c_user.get("login", "unknown"))
+        c_url = html.escape(c_user.get("html_url", "#"))
+        c_avatar = html.escape(c_user.get("avatar_url", ""))
+        c_body = (first_comment.get("body", "") or "").strip()
+        # Strip markdown images and links for the snippet
+        c_body = COMMENT_STRIP_IMAGE_RE.sub("", c_body)
+        c_body = COMMENT_STRIP_LINK_RE.sub(r"\1", c_body)
+        c_body = c_body.strip()
+        if len(c_body) > MAX_COMMENT_LENGTH:
+            c_body = c_body[:MAX_COMMENT_LENGTH - 3] + "…"
+        c_body_escaped = html.escape(c_body)
+        if c_body:
+            c_avatar_img = (
+                f'<img src="{c_avatar}" alt="{c_login}\'s avatar" class="w-5 h-5 rounded-full shrink-0" />'
+                if c_avatar else
+                '<i class="fa-solid fa-user-circle text-base shrink-0" aria-hidden="true"></i>'
+            )
+            comment_block = (
+                f'<div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500">'
+                f'{c_avatar_img}'
+                f'<span><a href="{c_url}" target="_blank" rel="noopener" '
+                f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">'
+                f'{c_login}</a>: {c_body_escaped}</span>'
+                f'</div>'
+            )
 
     # Reaction pills
     thumbs_count = reactions.get("+1", 0)
@@ -302,7 +345,7 @@ def build_card(issue: dict, reactions: dict) -> str:
           <a href="{author_url}" target="_blank" rel="noopener"
              class="text-[#E10101] hover:underline font-medium">{designer_name}</a>
         </div>
-
+        {('<!-- First comment -->\n        ' + comment_block) if comment_block else ''}
         <!-- Footer: reactions + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
@@ -815,7 +858,8 @@ def main() -> None:
         number = issue["number"]
         print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
         reactions = fetch_reactions(number)
-        cards.append(build_card(issue, reactions))
+        first_comment = fetch_first_comment(number)
+        cards.append(build_card(issue, reactions, first_comment))
 
     last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
     page_html = build_html(cards, len(cards), last_updated)
