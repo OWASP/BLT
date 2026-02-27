@@ -35,12 +35,12 @@ const LANG_COLORS = {
 
 let allRepos   = [];
 let filtered   = [];
-let currentSort   = 'stars';
+let currentSort   = 'updated_at';
 let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
 let currentView   = localStorage.getItem('blt-view') || (window.innerWidth < 768 ? 'card' : 'table');
-let tableSortCol  = 'stargazers_count';
+let tableSortCol  = 'updated_at';
 let tableSortDir  = 'desc';
 
 /* ------------------------------------------------------------------ */
@@ -754,6 +754,7 @@ document.getElementById('search-input').addEventListener('input', e => {
 document.getElementById('sort-select').addEventListener('change', e => {
   currentSort = e.target.value;
   document.getElementById('sort-select-mobile').value = currentSort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
 });
 
@@ -761,6 +762,7 @@ document.getElementById('sort-select').addEventListener('change', e => {
 document.getElementById('sort-select-mobile').addEventListener('change', e => {
   currentSort = e.target.value;
   document.getElementById('sort-select').value = currentSort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
 });
 
@@ -790,6 +792,8 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
     currentSort = btn.dataset.sort;
     document.getElementById('sort-select').value = currentSort;
     document.getElementById('sort-select-mobile').value = currentSort;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('nav-active'));
+    btn.classList.add('nav-active');
     applyFilters();
   });
 });
