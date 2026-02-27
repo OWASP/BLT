@@ -1,27 +1,15 @@
 {
-  "lastUpdated": "2026-02-27T05:04:15.348Z",
-  "repositories": 7,
-  "hackathonName": "GSOC 2026 Warmup",
-  "startTime": "2025-11-01T00:00:00Z",
-  "endTime": "2026-05-09T23:59:59Z",
+  "lastUpdated": "2026-02-27T05:17:42.858803+00:00",
+  "repositories": 0,
+  "hackathonName": "Test Hackathon",
+  "startTime": "2025-01-01T00:00:00Z",
+  "endTime": "2025-01-31T23:59:59Z",
   "hackathons": [
     {
-      "slug": "gsoc-2026-warmup",
-      "name": "GSOC 2026 Warmup",
-      "startTime": "2025-11-01T00:00:00Z",
-      "endTime": "2026-05-09T23:59:59Z"
-    },
-    {
-      "slug": "may-2025-hackathon",
-      "name": "May Hackathon $100 prize",
-      "startTime": "2025-05-11T00:00:00Z",
-      "endTime": "2025-06-01T23:59:59Z"
-    },
-    {
-      "slug": "summer-2025-hackathon",
-      "name": "OWASP BLT Summer 2025 hackathon $200 prize",
-      "startTime": "2025-02-28T00:00:00Z",
-      "endTime": "2025-05-08T23:59:59Z"
+      "slug": "test-hackathon",
+      "name": "Test Hackathon",
+      "startTime": "2025-01-01T00:00:00Z",
+      "endTime": "2025-01-31T23:59:59Z"
     }
   ]
 }
