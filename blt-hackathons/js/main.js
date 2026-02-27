@@ -14,88 +14,109 @@ class HackathonDashboard {
     }
 
     /**
-     * Initialize the dashboard
+     * Initialize the dashboard by loading pre-fetched stats from a JSON file.
+     * All data is collected server-side (via fetch_stats.py running hourly) so
+     * the page never makes live GitHub API calls.
      */
     async init() {
         this.showLoading();
         try {
-            // Update basic info
+            // Update basic info from the JS config (name, dates, rules, etc.)
             this.updateBasicInfo();
 
-            // Fetch and process GitHub data
-            const startDate = new Date(this.config.startTime);
-            const endDate = new Date(this.config.endTime);
+            const slug = this.config.slug;
 
-            // Resolve repositories (including organization repos if specified)
+            // Load pre-fetched stats produced by fetch_stats.py
+            let statsData;
             try {
-                this.repositories = await this.api.resolveRepositories(this.config.github);
-                
-                // Check if we have any repositories to work with
-                if (!this.repositories || this.repositories.length === 0) {
-                    throw new Error('No repositories could be resolved. Please check your configuration.');
+                const response = await fetch(`hackathon-data/${slug}.json`);
+                if (!response.ok) {
+                    throw new Error(
+                        `Stats file not available (HTTP ${response.status}). ` +
+                        `Data may not have been generated yet – please wait for ` +
+                        `the hourly refresh or trigger it manually.`
+                    );
                 }
-                
-                console.log(`✅ Successfully resolved ${this.repositories.length} repositories`);
-            } catch (repoError) {
-                console.error('Failed to resolve repositories:', repoError);
-                this.showError(`Unable to load repository list: ${repoError.message}. Please check your organization name or add explicit repositories to the configuration.`);
+                statsData = await response.json();
+            } catch (fetchError) {
+                console.error('Failed to load pre-fetched stats:', fetchError);
+                this.showError(`Unable to load hackathon stats: ${fetchError.message}`);
                 return;
             }
 
-            // Fetch all PRs, issues, and repository metadata in parallel
-            const [prs, issues, repoData] = await Promise.all([
-                this.api.getAllPullRequests(
-                    this.repositories,
-                    startDate,
-                    endDate
-                ),
-                this.api.getAllIssues(
-                    this.repositories,
-                    startDate,
-                    endDate
-                ),
-                this.api.getAllRepositories(this.repositories)
-            ]);
+            // Use repositories from pre-fetched data (may include org repos)
+            this.repositories =
+                statsData.repositories ||
+                this.config.github.repositories ||
+                [];
 
-            // Fetch reviews using the already-fetched PR list (avoids duplicate API calls)
-            const reviews = await this.api.getAllReviews(prs, startDate, endDate);
+            const stats = statsData.stats || {};
 
-            // Process PR data
-            const stats = this.api.processPRData(prs, startDate, endDate);
-
-            // Process review data
-            this.api.processReviewData(reviews, stats.participants);
-
-            // Process issue data
-            const issueStats = this.api.processIssueData(issues, stats.repoStats);
-            stats.totalIssues = issueStats.totalIssues;
-            stats.closedIssues = issueStats.closedIssues;
+            // Reconstruct a participants Map from the pre-fetched leaderboard arrays
+            // so that existing render helpers (generateLeaderboard, etc.) work unchanged.
+            const participants = new Map();
+            const allParticipants = [
+                ...(stats.leaderboard || []),
+                ...(stats.reviewLeaderboard || []),
+            ];
+            const seen = new Set();
+            allParticipants.forEach(p => {
+                if (!seen.has(p.username)) {
+                    seen.add(p.username);
+                    participants.set(p.username, {
+                        user: {
+                            username: p.username,
+                            email: '',
+                            id: `contributor_${p.username}`,
+                        },
+                        count: p.mergedCount || 0,
+                        prs: [],
+                        is_contributor: true,
+                        avatar: p.avatar,
+                        url: p.url,
+                        mergedCount: p.mergedCount || 0,
+                        reviewCount: p.reviewCount || 0,
+                        reviews: p.reviews || [],
+                    });
+                }
+            });
 
             // Update UI
-            this.updateStats(stats);
-            this.renderLeaderboard(stats.participants);
-            this.renderReviewLeaderBoard(stats.participants);
-            
-            // Render chart (optional - gracefully handle missing Chart.js)
+            this.updateStats({
+                participants,
+                participantCount: stats.participantCount,
+                totalPRs: stats.totalPRs || 0,
+                mergedPRs: stats.mergedPRs || 0,
+                totalIssues: stats.totalIssues || 0,
+                closedIssues: stats.closedIssues || 0,
+            });
+            this.renderLeaderboard(participants);
+            this.renderReviewLeaderBoard(participants);
+
+            // Render chart using pre-computed daily merged PR counts
             try {
-                this.renderChart(stats.dailyActivity, prs);
+                this.renderChart(
+                    stats.dailyActivity || {},
+                    stats.dailyMergedPRs || {}
+                );
             } catch (chartError) {
                 console.warn('Failed to render chart (Chart.js may not be loaded):', chartError);
-                // Hide the chart section if Chart.js is not available
                 const chartCanvas = document.getElementById('prActivityChart');
                 if (chartCanvas && chartCanvas.parentElement) {
                     chartCanvas.parentElement.parentElement.style.display = 'none';
                 }
             }
-            
-            this.renderRepositories(stats.repoStats, repoData);
+
+            this.renderRepositories(stats.repoStats || {}, stats.repoData || []);
             this.renderSponsors();
             this.hideLoading();
-            this.loadedAt = new Date();
+            this.loadedAt = statsData.lastUpdated
+                ? new Date(statsData.lastUpdated)
+                : new Date();
             this.updateApiInfo();
         } catch (error) {
             console.error('Error initializing dashboard:', error);
-            this.showError('Failed to load hackathon data. Please check your configuration and try again.');
+            this.showError('Failed to load hackathon data. Please try again later.');
         }
     }
 
@@ -171,7 +192,13 @@ class HackathonDashboard {
      * Update statistics
      */
     updateStats(stats) {
-        document.getElementById('participant-count').textContent = stats.participants.size;
+        // Use explicit participantCount from pre-fetched data when available,
+        // otherwise fall back to the size of the participants Map.
+        const participantCount =
+            stats.participantCount !== undefined
+                ? stats.participantCount
+                : stats.participants.size;
+        document.getElementById('participant-count').textContent = participantCount;
         document.getElementById('pr-count').textContent = stats.totalPRs;
         document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
         document.getElementById('issue-count').textContent = stats.totalIssues || 0;
@@ -308,9 +335,11 @@ class HackathonDashboard {
     }
 
     /**
-     * Render the PR activity chart - simplified to show total merged PRs per day across all repositories
+     * Render the PR activity chart using pre-computed daily merged PR counts.
+     * @param {Object} dailyActivity   - Map of date string -> {total, merged} (used for date range)
+     * @param {Object} dailyMergedPRs  - Map of date string -> merged PR count (pre-computed)
      */
-    renderChart(dailyActivity, prs) {
+    renderChart(dailyActivity, dailyMergedPRs) {
         // Check if Chart.js is available
         if (typeof Chart === 'undefined') {
             console.warn('Chart.js is not available. Skipping chart rendering.');
@@ -319,20 +348,8 @@ class HackathonDashboard {
         
         const dates = Object.keys(dailyActivity).sort();
         
-        // Calculate total merged PRs per day (combined across all repositories)
-        // We use merged_at date to show when contributions were actually accepted
-        const prCountsByDate = {};
-        prs.forEach(pr => {
-            if (!pr.merged_at) return; // Only count merged PRs
-            const prDate = new Date(pr.merged_at).toISOString().split('T')[0];
-            if (!prCountsByDate[prDate]) {
-                prCountsByDate[prDate] = 0;
-            }
-            prCountsByDate[prDate]++;
-        });
-        
-        // Create data array for the chart
-        const data = dates.map(date => prCountsByDate[date] || 0);
+        // Use the pre-computed per-day merged count directly
+        const data = dates.map(date => (dailyMergedPRs[date] || 0));
 
         const ctx = document.getElementById('prActivityChart').getContext('2d');
         if (this.chart) {
@@ -617,45 +634,21 @@ class HackathonDashboard {
     }
 
     /**
-     * Update API info section in footer with token status and rate limit details
+     * Update API info section in footer.
+     * Since stats are pre-fetched server-side, we only show when data was last
+     * refreshed – no live GitHub API calls are made from the frontend.
      */
     async updateApiInfo() {
         const infoEl = document.getElementById('github-api-info');
         if (!infoEl) return;
 
-        const hasToken = typeof this.config.github.token === 'string' && this.config.github.token.length > 0;
-
-        // Use rate limit already captured from prior API calls; fetch if not yet available
-        let rl = this.api.rateLimit;
-        if (rl.remaining === null) {
-            rl = await this.api.fetchRateLimit();
-        }
-
-        const tokenHtml = hasToken
-            ? '<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-key"></i> GitHub Token: Active</span>'
-            : '<span class="inline-flex items-center gap-1 text-yellow-600"><i class="fas fa-exclamation-triangle"></i> No GitHub Token (unauthenticated – 60 req/hr limit)</span>';
-
-        let rateLimitHtml = '';
-        if (rl.remaining !== null) {
-            const resetDate = new Date(rl.reset * 1000);
-            const resetTime = resetDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-            const pct = Math.round((rl.remaining / rl.limit) * 100);
-            const barColor = pct > 50 ? 'bg-green-500' : pct > 20 ? 'bg-yellow-500' : 'bg-red-500';
-            rateLimitHtml = `
-                <span class="text-gray-400">|</span>
-                <span>API calls: <strong>${rl.remaining}</strong> / ${rl.limit} remaining</span>
-                <span class="inline-block w-16 h-2 rounded-full bg-gray-200 align-middle">
-                    <span class="block h-2 rounded-full ${barColor}" style="width:${pct}%"></span>
-                </span>
-                <span class="text-gray-400">|</span>
-                <span>Resets at <strong>${resetTime}</strong></span>`;
-        }
-
         const lastUpdatedHtml = this.loadedAt
-            ? `<span class="text-gray-400">|</span><span>Updated <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
+            ? `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed hourly</span>` +
+              `<span class="text-gray-400">|</span>` +
+              `<span>Last updated: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';
 
-        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}${lastUpdatedHtml}</div>`;
+        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${lastUpdatedHtml}</div>`;
         this.startLastUpdatedRefresh();
     }
 

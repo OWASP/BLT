@@ -23,72 +23,34 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Fetch and update statistics
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Parse hackathons config
         run: |
-          # Create a simple Node.js script to fetch stats
-          cat > fetch-stats.js << 'EOF'
-          const fs = require('fs');
+          node -e "
+            const fs = require('fs');
+            eval(fs.readFileSync('js/hackathons-config.js', 'utf8'));
+            const config = JSON.parse(JSON.stringify(HACKATHONS_CONFIG));
+            // Strip any tokens before writing to disk
+            config.hackathons.forEach(h => { if (h.github) h.github.token = ''; });
+            fs.writeFileSync('/tmp/hackathons-config-parsed.json', JSON.stringify(config));
+            console.log('Parsed ' + config.hackathons.length + ' hackathon(s)');
+          "
 
-          // Read the hackathons config file
-          const configContent = fs.readFileSync('js/hackathons-config.js', 'utf8');
-
-          // Extract the HACKATHONS_CONFIG object by evaluating the file in a safe context
-          // We parse hackathon entries manually using regex
-          const hackathonBlocks = [];
-          const slugMatches = [...configContent.matchAll(/slug:\s*["']([^"']+)["']/g)];
-          const nameMatches = [...configContent.matchAll(/name:\s*["']([^"']+)["']/g)];
-          const startTimeMatches = [...configContent.matchAll(/startTime:\s*["']([^"']+)["']/g)];
-          const endTimeMatches = [...configContent.matchAll(/endTime:\s*["']([^"']+)["']/g)];
-
-          for (let i = 0; i < slugMatches.length; i++) {
-            hackathonBlocks.push({
-              slug: slugMatches[i] ? slugMatches[i][1] : '',
-              name: nameMatches[i] ? nameMatches[i][1] : '',
-              startTime: startTimeMatches[i] ? startTimeMatches[i][1] : '',
-              endTime: endTimeMatches[i] ? endTimeMatches[i][1] : ''
-            });
-          }
-
-          if (hackathonBlocks.length === 0) {
-            console.error('Could not parse hackathons config file');
-            process.exit(1);
-          }
-
-          // Count total unique repositories across all hackathons
-          const reposMatch = [...configContent.matchAll(/repositories:\s*\[([\s\S]*?)\]/g)];
-          const allRepos = new Set();
-          reposMatch.forEach(m => {
-            m[1].split('\n').filter(line => line.trim() && line.includes('/')).forEach(line => {
-              const repo = line.trim().replace(/[",]/g, '').trim();
-              if (repo) allRepos.add(repo);
-            });
-          });
-
-          console.log(`Found ${hackathonBlocks.length} hackathon(s) in config`);
-
-          // Use the most recent (first) hackathon for primary stats fields
-          const primary = hackathonBlocks[0];
-
-          const statsData = {
-            lastUpdated: new Date().toISOString(),
-            repositories: allRepos.size,
-            hackathonName: primary.name,
-            startTime: primary.startTime,
-            endTime: primary.endTime,
-            hackathons: hackathonBlocks
-          };
-
-          fs.writeFileSync('stats.json', JSON.stringify(statsData, null, 2));
-          console.log('Statistics updated successfully at', statsData.lastUpdated);
-          EOF
-
-          node fetch-stats.js
+      - name: Fetch and update statistics
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HACKATHONS_CONFIG_PATH: /tmp/hackathons-config-parsed.json
+        run: python fetch_stats.py
 
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add stats.json
+          git add stats.json hackathon-data/
           git diff --staged --quiet || git commit -m "Update statistics [skip ci]"
           git push
         continue-on-error: true
