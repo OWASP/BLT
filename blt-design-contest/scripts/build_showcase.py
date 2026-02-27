@@ -96,10 +96,10 @@ def fetch_reactions(issue_number: int) -> dict:
 def fetch_last_comment(issue_number: int) -> dict | None:
     """Return the last comment on an issue, or None if there are none."""
     data = github_request(
-        f"/repos/{REPO}/issues/{issue_number}/comments?per_page=1&page=1&direction=desc"
+        f"/repos/{REPO}/issues/{issue_number}/comments"
     )
     if isinstance(data, list) and data:
-        return data[0]
+        return data[-1]
     return None
 
 
@@ -207,6 +207,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -
     design_url = html.escape(extract_design_url(fields))
     category = html.escape(extract_category(fields))
     description = extract_description(fields)
+    comment_count = issue.get("comments", 0)
 
     # Last comment snippet
     comment_block = ""
@@ -229,10 +230,14 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -
                 if c_avatar else
                 '<i class="fa-solid fa-user-circle text-base shrink-0" aria-hidden="true"></i>'
             )
+            count_label = f'{comment_count} comment{"s" if comment_count != 1 else ""} · ' if comment_count > 0 else ''
             comment_block = (
                 f'<div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500">'
                 f'{c_avatar_img}'
-                f'<span><a href="{c_url}" target="_blank" rel="noopener" '
+                f'<span>'
+                f'<a href="{issue_url}" target="_blank" rel="noopener" '
+                f'class="hover:text-[#E10101] transition-colors">{count_label}</a>'
+                f'<a href="{c_url}" target="_blank" rel="noopener" '
                 f'class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">'
                 f'{c_login}</a>: {c_body_escaped}</span>'
                 f'</div>'
