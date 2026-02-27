@@ -21,7 +21,7 @@ Community design showcase for [OWASP BLT](https://owasp.org/www-project-blt/).
 | CI/CD | GitHub Actions (`.github/workflows/build.yml`) |
 | Hosting | GitHub Pages (`gh-pages` branch) |
 
-## Local development
+## Local development.
 
 ```bash
 # Generate index.html (needs GITHUB_TOKEN for > 60 API requests/hr)
