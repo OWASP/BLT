@@ -123,9 +123,10 @@ class GitHubAPI {
                     }
                 }
 
-                // Continue paginating until there are no more results or maxPages is reached.
-                // We cannot stop early based solely on creation date because an issue created before
-                // startDate may still have been closed within the hackathon time range.
+                // If we got fewer than perPage results, we've reached the end
+                if (issues.length < perPage) {
+                    break;
+                }
 
                 page++;
             } catch (error) {
@@ -174,9 +175,10 @@ class GitHubAPI {
                     }
                 }
 
-                // Continue paginating until there are no more results or maxPages is reached.
-                // We cannot stop early based solely on creation date because a PR created before
-                // startDate may still have been merged within the hackathon time range.
+                // If we got fewer than perPage results, we've reached the end
+                if (prs.length < perPage) {
+                    break;
+                }
 
                 page++;
             } catch (error) {
@@ -342,13 +344,28 @@ class GitHubAPI {
      * Fetch reviews for a specific pull request
      */
     async fetchReviews(owner, repo, prNumber) {
-        const url = `${this.baseURL}/repos/${owner}/${repo}/pulls/${prNumber}/reviews`;
-        try {
-            return await this.makeRequest(url);
-        } catch (error) {
-            console.error(`Error fetching reviews for ${owner}/${repo}#${prNumber}:`, error);
-            return [];
+        const allReviews = [];
+        let page = 1;
+        const perPage = 100;
+
+        while (true) {
+            const url = `${this.baseURL}/repos/${owner}/${repo}/pulls/${prNumber}/reviews?per_page=${perPage}&page=${page}`;
+            try {
+                const reviews = await this.makeRequest(url);
+                if (!reviews || reviews.length === 0) {
+                    break;
+                }
+                allReviews.push(...reviews);
+                if (reviews.length < perPage) {
+                    break;
+                }
+                page++;
+            } catch (error) {
+                console.error(`Error fetching reviews for ${owner}/${repo}#${prNumber}:`, error);
+                break;
+            }
         }
+        return allReviews;
     }
 
     /**
