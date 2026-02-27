@@ -157,6 +157,16 @@ def fetch_branch_count(repo_full_name: str) -> int:
         return 0
 
 
+def fetch_open_pr_count(repo_full_name: str) -> int:
+    """Return the count of open pull requests for a repo."""
+    try:
+        prs = fetch_all_pages(f"/repos/{repo_full_name}/pulls?state=open")
+        return len(prs)
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch PR count for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0
+
+
 def fetch_latest_issue(repo_full_name: str) -> dict | None:
     """Return the most recent open issue for a repo, or None if there are none."""
     try:
@@ -324,6 +334,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch open PR counts for each non-archived repo
+    print("Fetching open PR counts…", flush=True)
+    open_pr_count_map: dict[str, int] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            open_pr_count_map[repo["full_name"]] = 0
+        else:
+            open_pr_count_map[repo["full_name"]] = fetch_open_pr_count(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Fetch the most recent open issue for each non-archived repo
     print("Fetching latest issues…", flush=True)
     latest_issue_map: dict[str, dict | None] = {}
@@ -372,6 +394,7 @@ def main() -> None:
          "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
          "file_count": file_count_map.get(repo["full_name"], 0),
          "branch_count": branch_count_map.get(repo["full_name"], 0),
+         "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
          "latest_issue": latest_issue_map.get(repo["full_name"]),
          "star_history": star_history_map.get(repo["full_name"], [])}
         for repo in repos
@@ -379,6 +402,9 @@ def main() -> None:
 
     total_readme_chars = sum(readme_chars_map.values())
     total_branches = sum(branch_count_map.values())
+    total_open_prs = sum(open_pr_count_map.values())
+    # GitHub's open_issues_count includes PRs; subtract to get true issue count
+    total_issues = total_issues - total_open_prs
 
     output = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -389,6 +415,7 @@ def main() -> None:
             "total_stars":        total_stars,
             "total_forks":        total_forks,
             "total_open_issues":  total_issues,
+            "total_open_prs":     total_open_prs,
             "total_size_kb":      total_size_kb,
             "total_topics":       len(all_topics),
             "total_languages":    len(all_lang_bytes),
