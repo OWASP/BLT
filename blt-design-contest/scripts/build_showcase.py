@@ -93,10 +93,10 @@ def fetch_reactions(issue_number: int) -> dict:
     return totals
 
 
-def fetch_first_comment(issue_number: int) -> dict | None:
-    """Return the first comment on an issue, or None if there are none."""
+def fetch_last_comment(issue_number: int) -> dict | None:
+    """Return the last comment on an issue, or None if there are none."""
     data = github_request(
-        f"/repos/{REPO}/issues/{issue_number}/comments?per_page=1&page=1"
+        f"/repos/{REPO}/issues/{issue_number}/comments?per_page=1&page=1&direction=desc"
     )
     if isinstance(data, list) and data:
         return data[0]
@@ -188,7 +188,7 @@ def extract_description(fields: dict) -> str:
     return html.escape(desc)
 
 
-def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) -> str:
+def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -> str:
     """Return the HTML card markup for a single submission."""
     number = issue["number"]
     title = html.escape(issue.get("title", "Untitled").replace(TITLE_PREFIX + " ", "").strip())
@@ -208,14 +208,14 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
     category = html.escape(extract_category(fields))
     description = extract_description(fields)
 
-    # First comment snippet
+    # Last comment snippet
     comment_block = ""
-    if first_comment:
-        c_user = first_comment.get("user", {})
+    if last_comment:
+        c_user = last_comment.get("user", {})
         c_login = html.escape(c_user.get("login", "unknown"))
         c_url = html.escape(c_user.get("html_url", "#"))
         c_avatar = html.escape(c_user.get("avatar_url", ""))
-        c_body = (first_comment.get("body", "") or "").strip()
+        c_body = (last_comment.get("body", "") or "").strip()
         # Strip markdown images and links for the snippet
         c_body = COMMENT_STRIP_IMAGE_RE.sub("", c_body)
         c_body = COMMENT_STRIP_LINK_RE.sub(r"\1", c_body)
@@ -355,7 +355,7 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
           <a href="{author_url}" target="_blank" rel="noopener"
              class="text-[#E10101] hover:underline font-medium">{designer_name}</a>
         </div>
-        <!-- First comment -->
+        <!-- Last comment -->
         {comment_block}
         <!-- Footer: reactions + design link -->
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
@@ -869,8 +869,8 @@ def main() -> None:
         number = issue["number"]
         print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
         reactions = fetch_reactions(number)
-        first_comment = fetch_first_comment(number)
-        cards.append(build_card(issue, reactions, first_comment))
+        last_comment = fetch_last_comment(number)
+        cards.append(build_card(issue, reactions, last_comment))
 
     last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
     page_html = build_html(cards, len(cards), last_updated)
