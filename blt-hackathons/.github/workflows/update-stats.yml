@@ -1,6 +1,8 @@
-name: Update Repository Statistics
+name: Update Statistics and Deploy Pages
 
 on:
+  push:
+    branches: [ main ]
   schedule:
     # Run every hour at minute 0
     - cron: '0 * * * *'
@@ -11,8 +13,13 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   update-stats:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -55,14 +62,25 @@ jobs:
           git push
         continue-on-error: true
 
-      - name: Trigger Pages deployment
-        uses: actions/github-script@v7
+  deploy-pages:
+    needs: update-stats
+    if: ${{ always() && (needs.update-stats.result == 'success' || needs.update-stats.result == 'skipped') }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          script: |
-            // Trigger a Pages build
-            await github.rest.repos.requestPagesBuild({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            }).catch(err => {
-              console.log('Could not trigger Pages build:', err.message);
-            });
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
