@@ -1,0 +1,27 @@
+name: Validate Monitor Configuration
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate monitors.json syntax
+        run: jq empty monitors.json
+
+      - name: Validate required fields
+        run: |
+          jq -e '.[] | select(.id and .name and .url and .keyword)' monitors.json > /dev/null
+
+      - name: Success
+        run: echo "Monitor configuration validated successfully"
