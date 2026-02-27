@@ -29,40 +29,55 @@ jobs:
           cat > fetch-stats.js << 'EOF'
           const fs = require('fs');
 
-          // Read the config file
-          const configContent = fs.readFileSync('js/config.js', 'utf8');
-          
-          // Extract dates and repo count using safer regex patterns
-          const startTimeMatch = configContent.match(/startTime:\s*["']([^"']+)["']/);
-          const endTimeMatch = configContent.match(/endTime:\s*["']([^"']+)["']/);
-          const nameMatch = configContent.match(/name:\s*["']([^"']+)["']/);
-          
-          // Count repositories by finding array entries
-          const reposMatch = configContent.match(/repositories:\s*\[([\s\S]*?)\]/);
-          let repoCount = 0;
-          if (reposMatch) {
-            // Count non-empty lines within the array
-            repoCount = reposMatch[1].split('\n').filter(line => line.trim() && line.includes('/')).length;
+          // Read the hackathons config file
+          const configContent = fs.readFileSync('js/hackathons-config.js', 'utf8');
+
+          // Extract the HACKATHONS_CONFIG object by evaluating the file in a safe context
+          // We parse hackathon entries manually using regex
+          const hackathonBlocks = [];
+          const slugMatches = [...configContent.matchAll(/slug:\s*["']([^"']+)["']/g)];
+          const nameMatches = [...configContent.matchAll(/name:\s*["']([^"']+)["']/g)];
+          const startTimeMatches = [...configContent.matchAll(/startTime:\s*["']([^"']+)["']/g)];
+          const endTimeMatches = [...configContent.matchAll(/endTime:\s*["']([^"']+)["']/g)];
+
+          for (let i = 0; i < slugMatches.length; i++) {
+            hackathonBlocks.push({
+              slug: slugMatches[i] ? slugMatches[i][1] : '',
+              name: nameMatches[i] ? nameMatches[i][1] : '',
+              startTime: startTimeMatches[i] ? startTimeMatches[i][1] : '',
+              endTime: endTimeMatches[i] ? endTimeMatches[i][1] : ''
+            });
           }
-          
-          if (!startTimeMatch || !endTimeMatch || !nameMatch) {
-            console.error('Could not parse config file');
+
+          if (hackathonBlocks.length === 0) {
+            console.error('Could not parse hackathons config file');
             process.exit(1);
           }
-          
-          console.log('Fetching statistics for repositories');
-          console.log('Date range:', startTimeMatch[1], 'to', endTimeMatch[1]);
-          
-          // Create a simple stats file to track the last update time
+
+          // Count total unique repositories across all hackathons
+          const reposMatch = [...configContent.matchAll(/repositories:\s*\[([\s\S]*?)\]/g)];
+          const allRepos = new Set();
+          reposMatch.forEach(m => {
+            m[1].split('\n').filter(line => line.trim() && line.includes('/')).forEach(line => {
+              const repo = line.trim().replace(/[",]/g, '').trim();
+              if (repo) allRepos.add(repo);
+            });
+          });
+
+          console.log(`Found ${hackathonBlocks.length} hackathon(s) in config`);
+
+          // Use the most recent (first) hackathon for primary stats fields
+          const primary = hackathonBlocks[0];
+
           const statsData = {
             lastUpdated: new Date().toISOString(),
-            repositories: repoCount,
-            hackathonName: nameMatch[1],
-            startTime: startTimeMatch[1],
-            endTime: endTimeMatch[1]
+            repositories: allRepos.size,
+            hackathonName: primary.name,
+            startTime: primary.startTime,
+            endTime: primary.endTime,
+            hackathons: hackathonBlocks
           };
-          
-          // Write stats to a JSON file
+
           fs.writeFileSync('stats.json', JSON.stringify(statsData, null, 2));
           console.log('Statistics updated successfully at', statsData.lastUpdated);
           EOF

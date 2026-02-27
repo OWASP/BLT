@@ -347,8 +347,9 @@ class GitHubAPI {
         const allReviews = [];
         let page = 1;
         const perPage = 100;
+        const maxPages = 20;
 
-        while (true) {
+        while (page <= maxPages) {
             const url = `${this.baseURL}/repos/${owner}/${repo}/pulls/${prNumber}/reviews?per_page=${perPage}&page=${page}`;
             try {
                 const reviews = await this.makeRequest(url);
@@ -511,6 +512,14 @@ class GitHubAPI {
         // Group PRs by user
         const leaderboard = {};
 
+        // Initialize daily activity for date range once before processing PRs
+        const currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            stats.dailyActivity[dateStr] = { total: 0, merged: 0 };
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
         // Process each PR
         prs.forEach(pr => {
             const isMerged = pr.merged_at !== null;
@@ -552,14 +561,6 @@ class GitHubAPI {
                         mergedCount: isMerged ? 1 : 0
                     };
                 }
-            }
-
-            // Initialize daily activity for date range
-            const currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                const dateStr = currentDate.toISOString().split('T')[0];
-                stats.dailyActivity[dateStr] = { total: 0, merged: 0 };
-                currentDate.setDate(currentDate.getDate() + 1);
             }
 
             // Track daily activity

@@ -333,9 +333,9 @@ function filterHackathons(status) {
     // Update button styles
     document.querySelectorAll('.filter-btn').forEach(btn => {
         if (btn.dataset.filter === status) {
-            btn.className = 'filter-btn px-4 py-2 rounded-lg bg-red-600 text-white font-medium';
+            btn.className = 'filter-btn px-3 sm:px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm sm:text-base';
         } else {
-            btn.className = 'filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300';
+            btn.className = 'filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base';
         }
     });
 
