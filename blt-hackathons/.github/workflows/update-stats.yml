@@ -39,7 +39,7 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            eval(fs.readFileSync('js/hackathons-config.js', 'utf8'));
+            const HACKATHONS_CONFIG = eval(fs.readFileSync('js/hackathons-config.js', 'utf8') + '\nHACKATHONS_CONFIG');
             const config = JSON.parse(JSON.stringify(HACKATHONS_CONFIG));
             // Strip any tokens before writing to disk
             config.hackathons.forEach(h => { if (h.github) h.github.token = ''; });
