@@ -530,10 +530,10 @@ function repoCardHTML(r) {
         <i class="fa-solid fa-circle-plus mr-1" aria-hidden="true"></i>New Issue
       </a>
       <a
-        href="https://blt.owasp.org/create-github-issue/?repo=${encodeURIComponent(ORG + '/' + r.name)}"
+        href="https://github.com/copilot/c/new?q=${encodeURIComponent('Create an agent task for ' + ORG + '/' + r.name)}"
         target="_blank"
         rel="noopener noreferrer"
-        title="Create new agent task"
+        title="Open new Copilot agent chat for this repo"
         class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand dark:hover:text-brand transition-colors"
       >
         <i class="fa-solid fa-robot mr-1" aria-hidden="true"></i>Agent Task
@@ -650,7 +650,7 @@ function renderTableView(repos, container) {
           ${r.homepage ? `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Live Site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : ''}
           ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : ''}
           <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
-          <a href="https://blt.owasp.org/create-github-issue/?repo=${encodeURIComponent(ORG + '/' + r.name)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Agent Task"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
+          <a href="https://github.com/copilot/c/new?q=${encodeURIComponent('Create an agent task for ' + ORG + '/' + r.name)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="Open new Copilot agent chat for this repo"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
         </div>
       </td>
     </tr>`;
