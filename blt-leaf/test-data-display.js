@@ -54,6 +54,7 @@ function testHTMLStructure() {
       { pattern: /id=["']repoList["']/, name: 'Repository list element' },
       { pattern: /fetch\(['"`]\/api\/prs/, name: 'API fetch for PRs' },
       { pattern: /fetch\(['"`]\/api\/repos/, name: 'API fetch for repos' },
+      { pattern: /fetch\(['"`]\/api\/authors/, name: 'API fetch for authors' },
       { pattern: /<table/, name: 'Table element for data display' },
     ];
 
@@ -110,6 +111,7 @@ function testPythonHandlers() {
     const requiredHandlers = [
       { pattern: /def\s+handle_list_prs/, name: 'handle_list_prs function' },
       { pattern: /def\s+handle_list_repos/, name: 'handle_list_repos function' },
+      { pattern: /def\s+handle_list_authors/, name: 'handle_list_authors function' },
       { pattern: /def\s+handle_add_pr/, name: 'handle_add_pr function' },
       { pattern: /def\s+handle_refresh_pr/, name: 'handle_refresh_pr function' },
     ];
@@ -300,6 +302,7 @@ function testAPIRouting() {
     const requiredRoutes = [
       { pattern: /\/api\/prs/, name: '/api/prs endpoint' },
       { pattern: /\/api\/repos/, name: '/api/repos endpoint' },
+      { pattern: /\/api\/authors/, name: '/api/authors endpoint' },
       { pattern: /\/api\/refresh/, name: '/api/refresh endpoint' },
       { pattern: /\/api\/status/, name: '/api/status endpoint' },
     ];
