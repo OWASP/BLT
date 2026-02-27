@@ -386,19 +386,23 @@ def main() -> None:
         "default_branch", "updated_at", "created_at", "pushed_at",
         "license", "visibility", "size",
     }
-    slim_repos = [
-        {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
-         "readme_chars": readme_chars_map.get(repo["full_name"], 0),
-         "contributors": contributors_map.get(repo["full_name"], []),
-         "total_commits": total_commits_map.get(repo["full_name"], 0),
-         "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
-         "file_count": file_count_map.get(repo["full_name"], 0),
-         "branch_count": branch_count_map.get(repo["full_name"], 0),
-         "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
-         "latest_issue": latest_issue_map.get(repo["full_name"]),
-         "star_history": star_history_map.get(repo["full_name"], [])}
-        for repo in repos
-    ]
+    slim_repos = sorted(
+        [
+            {**{k: v for k, v in repo.items() if k in KEEP_FIELDS},
+             "readme_chars": readme_chars_map.get(repo["full_name"], 0),
+             "contributors": contributors_map.get(repo["full_name"], []),
+             "total_commits": total_commits_map.get(repo["full_name"], 0),
+             "weekly_commits": weekly_commits_map.get(repo["full_name"], []),
+             "file_count": file_count_map.get(repo["full_name"], 0),
+             "branch_count": branch_count_map.get(repo["full_name"], 0),
+             "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
+             "latest_issue": latest_issue_map.get(repo["full_name"]),
+             "star_history": star_history_map.get(repo["full_name"], [])}
+            for repo in repos
+        ],
+        key=lambda r: r.get("updated_at", ""),
+        reverse=True,
+    )
 
     total_readme_chars = sum(readme_chars_map.values())
     total_branches = sum(branch_count_map.values())
