@@ -291,7 +291,7 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
     if preview_url:
         preview_block = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
-            f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
+            f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
             f'  <img src="{preview_url}" alt="{title} preview" loading="lazy" '
             f'       class="w-full h-full object-cover transition-transform duration-300 '
             f'              group-hover:scale-105" />'
@@ -300,7 +300,7 @@ def build_card(issue: dict, reactions: dict, first_comment: dict | None = None) 
     else:
         preview_block = (
             f'<a href="{issue_url}" target="_blank" rel="noopener" '
-            f'   class="flex items-center justify-center aspect-video '
+            f'   class="flex items-center justify-center aspect-square '
             f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
             f'  <i class="fa-solid fa-image text-4xl" aria-hidden="true"></i>'
             f'</a>'
