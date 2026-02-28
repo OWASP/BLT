@@ -1,4 +1,5 @@
 # Python
+python_modules/
 __pycache__/
 *.py[cod]
 *$py.class
