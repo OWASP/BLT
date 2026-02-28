@@ -609,19 +609,21 @@ function renderTableView(repos, container) {
       ? `<span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 rounded-full">Fork</span>`
       : '';
     const projectUrl = PROJECT_URLS[r.name];
-    const rowTopics = (r.topics || []).map(t => {
-      if (t.toLowerCase().includes('gsoc')) {
-        return `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap">${escapeHtml(t)}</span>`;
-      }
-      return `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">${escapeHtml(t)}</span>`;
-    }).join(' ');
+    const topics = r.topics || [];
+    const topicCount = topics.length;
+    const gsocTopic = topics.find(t => t.toLowerCase().includes('gsoc'));
+    const gsocBadge = gsocTopic
+      ? `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-1">${escapeHtml(gsocTopic)}</span>`
+      : '';
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
-        <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}
+        <div class="flex items-center gap-1 flex-wrap">
+          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}
+        </div>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
-      <td class="px-3 py-2">
-        <div class="flex flex-wrap gap-1">${rowTopics || '<span class="text-gray-300 dark:text-gray-600 text-xs">—</span>'}</div>
+      <td class="px-3 py-2 text-center whitespace-nowrap text-sm tabular-nums">
+        ${topicCount > 0 ? `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${topicCount}</span>` : '<span class="text-gray-300 dark:text-gray-600">—</span>'}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-sm">
         ${r.language
