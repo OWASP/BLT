@@ -8,6 +8,7 @@ from handlers import (
     handle_add_pr,
     handle_list_prs,
     handle_list_repos,
+    handle_list_authors,
     handle_refresh_pr,
     handle_batch_refresh_prs,
     handle_rate_limit,
@@ -67,6 +68,7 @@ async def on_fetch(request, env):
             if request.method == 'GET':
                 repo = url.searchParams.get('repo')
                 org = url.searchParams.get('org')
+                author = url.searchParams.get('author')
                 page = url.searchParams.get('page')
                 per_page_param = url.searchParams.get('per_page')
                 sort_by = url.searchParams.get('sort_by')
@@ -92,7 +94,8 @@ async def on_fetch(request, env):
                     per_page,
                     sort_by,
                     sort_dir,
-                    org
+                    org,
+                    author
                 )
             elif request.method == 'POST':
                 response = await handle_add_pr(request, env)
@@ -104,6 +107,8 @@ async def on_fetch(request, env):
                 response = await handle_get_pr(env, int(pr_id_str))
         elif path == '/api/repos' and request.method == 'GET':
             response = await handle_list_repos(env)
+        elif path == '/api/authors' and request.method == 'GET':
+            response = await handle_list_authors(env)
         elif path == '/api/refresh' and request.method == 'POST':
             response = await handle_refresh_pr(request, env)
         elif path == '/api/refresh-batch' and request.method == 'POST':
