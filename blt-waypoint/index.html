@@ -125,6 +125,36 @@
 
   <!-- ===== SIDEBAR ===== -->
   <aside id="main-sidebar" class="hidden lg:flex flex-col gap-2 w-52 shrink-0">
+    <div id="label-filter-sidebar">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Labels</p>
+      <div class="space-y-2 px-2">
+        <div class="relative">
+          <input
+            id="label-search-input"
+            type="text"
+            placeholder="Search labels…"
+            aria-label="Search labels"
+            class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 focus-brand"
+          />
+          <div
+            id="label-dropdown"
+            class="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg hidden z-10 max-h-48 overflow-y-auto"
+          >
+            <ul id="label-list" class="space-y-0"></ul>
+          </div>
+        </div>
+        <button
+          id="clear-label-btn"
+          class="w-full text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-brand hover:text-brand transition-colors"
+          title="Clear label filter"
+        >
+          <i class="fa-solid fa-times mr-1" aria-hidden="true"></i>Clear
+        </button>
+      </div>
+    </div>
+
+    <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
     <nav aria-label="Filter by type">
       <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Filter</p>
       <ul class="space-y-0.5">

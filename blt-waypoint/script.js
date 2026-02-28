@@ -39,9 +39,11 @@ let currentSort   = 'updated_at';
 let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
+let currentLabel  = '';
 let currentView   = localStorage.getItem('blt-view') || (window.innerWidth < 768 ? 'card' : 'table');
 let tableSortCol  = 'updated_at';
 let tableSortDir  = 'desc';
+let allLabels     = [];
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -184,6 +186,7 @@ async function loadRepos() {
       const payload = await resp.json();
       allRepos = payload.repos || [];
       buildLangFilter(allRepos);
+      buildLabelFilter(allRepos);
       buildStats(allRepos, payload.cumulative);
       applyFilters();
       const generatedAt = payload.generated_at
@@ -204,6 +207,7 @@ async function loadRepos() {
     const repos = await fetchAllPages(`${API}/orgs/${ORG}/repos`);
     allRepos = repos;
     buildLangFilter(repos);
+    buildLabelFilter(repos);
     buildStats(repos, null);
     applyFilters();
     document.getElementById('footer-ts').textContent =
@@ -310,6 +314,98 @@ function buildLangFilter(repos) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  LABEL FILTER SIDEBAR                                                */
+/* ------------------------------------------------------------------ */
+function buildLabelFilter(repos) {
+  // Extract all unique labels from topics
+  const labelCount = {};
+  repos.forEach(r => {
+    (r.topics || []).forEach(label => {
+      labelCount[label] = (labelCount[label] || 0) + 1;
+    });
+  });
+
+  // Sort by count
+  allLabels = Object.entries(labelCount)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count }));
+
+  // Initialize label search input
+  const searchInput = document.getElementById('label-search-input');
+  const dropdown = document.getElementById('label-dropdown');
+  const labelList = document.getElementById('label-list');
+
+  function renderLabelDropdown(filteredLabels = allLabels) {
+    labelList.innerHTML = filteredLabels.map(({ label, count }) => `
+      <li>
+        <button
+          data-label="${escapeHtml(label)}"
+          class="label-option w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+        >
+          <span class="text-gray-700 dark:text-gray-300 truncate">${escapeHtml(label)}</span>
+          <span class="text-xs text-gray-400 ml-2 flex-shrink-0">${count}</span>
+        </button>
+      </li>
+    `).join('');
+
+    // Add click listeners to label options
+    labelList.querySelectorAll('.label-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLabel = btn.dataset.label;
+        searchInput.value = currentLabel;
+        dropdown.classList.add('hidden');
+        document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
+        btn.classList.add('nav-active', 'text-brand');
+        applyFilters();
+      });
+    });
+  }
+
+  // Initial render
+  renderLabelDropdown();
+
+  // Search input listener
+  searchInput.addEventListener('input', e => {
+    const query = e.target.value.toLowerCase().trim();
+    if (query === '') {
+      renderLabelDropdown();
+      dropdown.classList.add('hidden');
+    } else {
+      const filtered = allLabels.filter(({ label }) =>
+        label.toLowerCase().includes(query)
+      );
+
+      if (filtered.length > 0) {
+        renderLabelDropdown(filtered);
+        dropdown.classList.remove('hidden');
+      } else {
+        labelList.innerHTML = `
+          <li class="px-3 py-2 text-xs text-gray-400 dark:text-gray-500 italic">
+            No labels found
+          </li>
+        `;
+        dropdown.classList.remove('hidden');
+      }
+    }
+  });
+
+  // Focus listener to show dropdown
+  searchInput.addEventListener('focus', () => {
+    if (allLabels.length > 0) {
+      renderLabelDropdown();
+      dropdown.classList.remove('hidden');
+    }
+  });
+
+  // Click outside to close dropdown
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  FILTER & SORT                                                       */
 /* ------------------------------------------------------------------ */
 function applyFilters() {
@@ -322,6 +418,13 @@ function applyFilters() {
 
   // Language filter
   if (currentLang) repos = repos.filter(r => r.language === currentLang);
+
+  // Label filter
+  if (currentLabel) {
+    repos = repos.filter(r =>
+      (r.topics || []).some(t => t.toLowerCase() === currentLabel.toLowerCase())
+    );
+  }
 
   // Search
   if (currentSearch) {
@@ -861,11 +964,24 @@ document.getElementById('clear-btn').addEventListener('click', () => {
   currentSearch = '';
   currentFilter = 'all';
   currentLang = '';
+  currentLabel = '';
   document.getElementById('search-input').value = '';
+  document.getElementById('label-search-input').value = '';
   document.getElementById('sort-select').value = currentSort;
   document.getElementById('filter-select-mobile').value = 'all';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
+  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
+  document.getElementById('label-dropdown').classList.add('hidden');
+  applyFilters();
+});
+
+// Clear label filter
+document.getElementById('clear-label-btn').addEventListener('click', () => {
+  currentLabel = '';
+  document.getElementById('label-search-input').value = '';
+  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
+  document.getElementById('label-dropdown').classList.add('hidden');
   applyFilters();
 });
 
