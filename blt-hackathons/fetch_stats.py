@@ -8,9 +8,8 @@ GitHub API calls.
 
 OPTIMIZATIONS:
 - Skip ended hackathons (keeps historical data static)
-- Incremental updates (only fetch PRs/reviews updated since last run)
+- Incremental review fetching (only fetch reviews for PRs updated since last run)
 - Org repos caching (fetch once, reuse for all hackathons)
-- Early exit on sorted queries (stops when no more relevant data)
 """
 
 import json
@@ -123,38 +122,23 @@ def fetch_org_repos(org, token=None):
     return [r["full_name"] for r in repos if r and "full_name" in r]
 
 
-def fetch_pull_requests(owner, repo, start_dt, end_dt, token=None, since=None):
-    """Fetch all pull requests for a repository within the date range.
-    
-    Args:
-        since: Optional datetime to fetch only PRs updated since this time
-    """
-    logger.info("Fetching PRs for %s/%s%s", owner, repo, 
-                f" (since {since.isoformat()})" if since else "")
-    
-    # Use updated sort for incremental fetching
-    sort_param = "updated" if since else "created"
+def fetch_pull_requests(owner, repo, start_dt, end_dt, token=None):
+    """Fetch all pull requests for a repository within the date range."""
+    logger.info("Fetching PRs for %s/%s", owner, repo)
     url = (
         f"{GITHUB_API_BASE}/repos/{owner}/{repo}"
-        f"/pulls?state=all&sort={sort_param}&direction=desc"
+        "/pulls?state=all&sort=created&direction=desc"
     )
     all_prs = fetch_all_pages(url, token)
 
     filtered = []
     for pr in all_prs:
         created_at = datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00"))
-        updated_at = datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00"))
         merged_at = (
             datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00"))
             if pr.get("merged_at")
             else None
         )
-        
-        # If we have a since parameter, skip PRs not updated since then
-        if since and updated_at < since:
-            # Early exit: we're sorted by updated desc, so no more recent PRs
-            break
-            
         relevant_by_creation = start_dt <= created_at <= end_dt
         relevant_by_merge = merged_at and start_dt <= merged_at <= end_dt
         if relevant_by_creation or relevant_by_merge:
@@ -387,23 +371,16 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
     end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
     
-    # Load existing data for incremental updates
+    # Load existing data for incremental review fetching
     existing_data = load_existing_data(slug)
     since = None
-    existing_pr_numbers = set()
     
     if existing_data:
         last_updated = existing_data.get("lastUpdated")
         if last_updated:
-            # Fetch only data updated since last run (with 5 min buffer for safety)
+            # Use this to determine which PRs need review fetching
             since = datetime.fromisoformat(last_updated.replace("Z", "+00:00")) - timedelta(minutes=5)
-            logger.info("Incremental update for %s since %s", name, since.isoformat())
-            
-            # Track existing PRs to avoid re-fetching reviews
-            if "stats" in existing_data:
-                # Build set of PR numbers we already have
-                # We'll need to reconstruct this from the stored data
-                pass
+            logger.info("Incremental review fetch for %s since %s", name, since.isoformat())
 
     # Resolve repositories (explicit list + org repos)
     repositories = list(explicit_repos)
@@ -440,9 +417,8 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         logger.warning("No repositories found for hackathon: %s", name)
         return None
 
-    # Fetch all PRs across all repositories (incremental if possible)
+    # Fetch all PRs across all repositories
     all_prs = []
-    new_or_updated_prs = []
     
     for repo_path in repositories:
         parts = repo_path.split("/")
@@ -451,24 +427,28 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
             continue
         owner, repo = parts
         try:
-            prs = fetch_pull_requests(owner, repo, start_dt, end_dt, token, since=since)
+            prs = fetch_pull_requests(owner, repo, start_dt, end_dt, token)
             all_prs.extend(prs)
-            if since:
-                new_or_updated_prs.extend(prs)
         except Exception as exc:
             logger.error("Failed to fetch PRs for %s: %s", repo_path, exc)
 
+    logger.info("Total PRs fetched for %s: %d", name, len(all_prs))
+    
+    # Determine which PRs need review fetching (only recently updated ones)
     if since:
-        logger.info("Total new/updated PRs fetched for %s: %d", name, len(new_or_updated_prs))
+        prs_to_fetch_reviews = [
+            pr for pr in all_prs
+            if datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00")) >= since
+        ]
+        logger.info("PRs updated since last run: %d (will fetch reviews for these)", len(prs_to_fetch_reviews))
     else:
-        logger.info("Total PRs fetched for %s: %d", name, len(all_prs))
+        prs_to_fetch_reviews = all_prs
 
-    # Fetch reviews only for new/updated PRs (huge optimization!)
+    # Fetch reviews only for updated PRs (huge optimization!)
     all_reviews = []
-    prs_to_fetch_reviews = new_or_updated_prs if since else all_prs
     
     if prs_to_fetch_reviews:
-        logger.info("Fetching reviews for %d PRs", len(prs_to_fetch_reviews))
+        logger.info("Fetching reviews for %d PRs (out of %d total)", len(prs_to_fetch_reviews), len(all_prs))
         for pr in prs_to_fetch_reviews:
             repo_path = pr.get("repository", "")
             parts = repo_path.split("/")
