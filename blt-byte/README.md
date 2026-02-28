@@ -1,18 +1,19 @@
-# BLT--Byte 🤖
+# BLT Byte 🤖
 
 AI-powered chatbot for BugHeist (BLT) built with Python Workers and Cloudflare Workers AI.
 
 ## Overview
 
-BLT--Byte is an intelligent chatbot assistant that helps users with bug bounty hunting, vulnerability reporting, and understanding the BugHeist platform. It's powered by Cloudflare Workers AI and runs as a Python worker at the edge.
+BLT Byte is an intelligent chatbot assistant that helps users with bug bounty hunting, vulnerability reporting, and understanding the BugHeist platform. It's powered by Cloudflare Workers AI using the Llama 3.1 8B model and runs as a Python worker at the edge.
 
 ## Features
 
-- 🤖 AI-powered responses using Llama 3.1 8B model
+- 🤖 AI-powered responses using Llama 3.1 8B Instruct model
 - ⚡ Lightning-fast responses from the edge
 - 🔒 Secure and scalable
-- 🌐 CORS-enabled for web integration
+- 🎨 Clean, modern UI inspired by BLT-GSOC design system
 - 💬 Context-aware about BLT and bug bounty processes
+- 📱 Fully responsive design
 
 ## Prerequisites
 
@@ -27,10 +28,7 @@ BLT--Byte is an intelligent chatbot assistant that helps users with bug bounty h
 npm install
 ```
 
-2. Install Python dependencies (handled automatically by uv):
-```bash
-uv sync
-```
+2. Python dependencies are handled automatically by uv when you run the dev server.
 
 ## Development
 
@@ -42,9 +40,21 @@ npm run dev
 
 The chatbot will be available at `http://localhost:8787`
 
+The interface will automatically load, and you can start chatting with the AI assistant right away.
+
 ## Usage
 
-Send a POST request to the worker with a JSON body:
+Simply open your browser to `http://localhost:8787` and start chatting! The AI assistant is ready to help with:
+
+- Bug reporting on BugHeist
+- Understanding vulnerability types
+- Bug bounty best practices
+- Responsible disclosure guidelines
+- Security research tips
+
+### API Usage
+
+You can also use the API directly by sending POST requests:
 
 ```bash
 curl -X POST http://localhost:8787 \
@@ -56,30 +66,8 @@ Response:
 ```json
 {
   "success": true,
-  "message": "To report a bug on BugHeist...",
+  "message": "AI response here...",
   "user_message": "How do I report a bug on BugHeist?"
-}
-```
-
-## API Reference
-
-### POST /
-
-Send a message to the chatbot.
-
-**Request Body:**
-```json
-{
-  "message": "Your question here"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "AI response",
-  "user_message": "Your question"
 }
 ```
 
@@ -91,12 +79,15 @@ Deploy to Cloudflare Workers:
 npm run deploy
 ```
 
+After deployment, your chatbot will be live at your Cloudflare Workers URL.
+
 ## Tech Stack
 
 - **Runtime**: Cloudflare Workers (Python)
 - **AI Model**: Llama 3.1 8B Instruct
 - **Framework**: Workers AI
 - **Language**: Python 3.12+
+- **Frontend**: Vanilla JavaScript with modern CSS
 
 ## Project Structure
 
@@ -104,11 +95,23 @@ npm run deploy
 BLT--Byte/
 ├── src/
 │   └── entry.py          # Main worker entry point
+├── public/
+│   └── index.html        # Chat interface
 ├── package.json          # Node dependencies and scripts
 ├── pyproject.toml        # Python dependencies
 ├── wrangler.jsonc        # Cloudflare Workers configuration
-└── README.md             # This file
+├── .gitignore
+└── README.md
 ```
+
+## Design
+
+The UI is inspired by the BLT-GSOC landing page, featuring:
+- OWASP BLT brand colors (#E10101)
+- Manrope font family
+- Clean, minimal design
+- Smooth animations and transitions
+- Responsive layout for all devices
 
 ## Contributing
 
@@ -117,4 +120,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 See [LICENSE](LICENSE) file for details.
-AI assistant, orchestrator and agent

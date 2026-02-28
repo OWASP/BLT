@@ -1,21 +1,34 @@
 from workers import WorkerEntrypoint, Response
 import json
+import logging
 
 
 class Default(WorkerEntrypoint):
+    logger  = logging.getLogger(__name__)
     async def fetch(self, request):
-        # Handle CORS preflight
+        url = str(request.url)
+        
+        # Handle CORS preflight for API
         if request.method == "OPTIONS":
             return self.handle_cors()
         
-        # Only accept POST requests for chat
-        if request.method != "POST":
-            return Response.json(
-                {"error": "Method not allowed. Use POST to send messages."},
-                status=405,
-                headers=self.get_cors_headers()
-            )
+        # API endpoint for chat (POST requests)
+        if request.method == "POST":
+            return await self.handle_chat(request)
         
+        # For GET requests to root, serve the HTML interface
+        if request.method == "GET":
+            return self.serve_html()
+        
+        # Default response for unsupported methods
+        return Response.json(
+            {"error": "Method not allowed"},
+            status=405,
+            headers=self.get_cors_headers()
+        )
+    
+    async def handle_chat(self, request):
+        """Handle chat API requests"""
         try:
             # Parse request body
             body = await request.json()
@@ -29,8 +42,8 @@ class Default(WorkerEntrypoint):
                 )
             
             # System instructions for BLT chatbot
-            system_instructions = """You are a helpful assistant for BugHeist (BLT - Bug Logging Tool).
-BugHeist is a bug bounty platform where security researchers can report vulnerabilities and earn rewards.
+            system_instructions = """You are a helpful assistant for BLT Byte (BLT - Bug Logging Tool).
+BLT Byte is a bug bounty platform where security researchers can report vulnerabilities and earn rewards.
 
 Your role is to:
 - Help users understand how to report bugs
@@ -72,6 +85,7 @@ Be concise, helpful, and professional in your responses."""
                 headers=self.get_cors_headers()
             )
         except Exception as e:
+            self.logger.error(f"Error handling chat request: {str(e)}")
             return Response.json(
                 {"error": f"An error occurred: {str(e)}"},
                 status=500,
@@ -94,3 +108,24 @@ Be concise, helpful, and professional in your responses."""
             status=204,
             headers=self.get_cors_headers()
         )
+    
+    def serve_html(self):
+        """Serve the HTML interface"""
+        try:
+            with open('public/index.html', 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            return Response(
+                html_content,
+                status=200,
+                headers={
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=300"
+                }
+            )
+        except FileNotFoundError:
+            return Response.json(
+                {"error": "HTML file not found"},
+                status=404,
+                headers=self.get_cors_headers()
+            )
