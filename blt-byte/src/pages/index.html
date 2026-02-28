@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT Byte - AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'blt-red': '#E10101',
+                    },
+                    fontFamily: {
+                        sans: ['system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-in; }
+        .animate-bounce-dot { animation: bounce 1.4s infinite ease-in-out both; }
+        .animate-bounce-dot:nth-child(1) { animation-delay: -0.32s; }
+        .animate-bounce-dot:nth-child(2) { animation-delay: -0.16s; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+    <!-- Gradient overlay -->
+    <div class="pointer-events-none fixed inset-0 -z-10 h-[460px] bg-gradient-to-b from-red-100/50 via-rose-50/30 to-transparent"></div>
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-blt-red rounded-lg flex items-center justify-center text-white font-extrabold text-lg">
+                BLT
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold text-gray-900 leading-tight">BLT Byte</h1>
+                <p class="text-sm font-semibold text-gray-600">AI-Powered Bug Bounty Assistant</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-6" id="chatMain">
+        <div class="max-w-4xl mx-auto">
+            <!-- Welcome Message -->
+            <div class="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm">
+                <h2 class="text-lg font-extrabold text-gray-900 mb-3">👋 Welcome to BLT Byte!</h2>
+                <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+                    I'm your AI assistant for bug bounty hunting and security research. I can help you with:
+                </p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Understanding how to report bugs on BugHeist</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Learning about different vulnerability types</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Bug bounty best practices and methodologies</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Responsible disclosure guidelines</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Security research tips and techniques</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="space-y-4" id="chatMessages">
+                <!-- Loading Indicator -->
+                <div class="hidden animate-fade-in" id="loadingIndicator">
+                    <div class="flex gap-3">
+                        <div class="w-9 h-9 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            AI
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+                            <div class="flex gap-1.5">
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Input Area -->
+    <div class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-gray-200 px-4 sm:px-6 py-4">
+        <div class="max-w-4xl mx-auto">
+            <form class="flex gap-3 items-end" id="chatForm">
+                <textarea
+                    class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 outline-none transition resize-none min-h-[48px] max-h-[120px]"
+                    id="messageInput"
+                    placeholder="Ask me anything about bug bounty hunting..."
+                    rows="1"
+                    autocomplete="off"
+                    required
+                ></textarea>
+                <button
+                    type="submit"
+                    class="px-7 py-3 bg-blt-red text-white rounded-xl font-bold text-sm hover:bg-red-700 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap h-[48px] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200"
+                    id="sendButton"
+                >
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        const chatMain = document.getElementById('chatMain');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Handle enter key
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-scroll to bottom
+        function scrollToBottom() {
+            chatMain.scrollTop = chatMain.scrollHeight;
+        }
+
+        // Simple markdown-like formatting
+        function formatMessage(text) {
+            if (!text) return '';
+            
+            // Convert markdown-style formatting to HTML
+            let formatted = text
+                // Bold: **text** or __text__
+                .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold">$1</strong>')
+                .replace(/__(.+?)__/g, '<strong class="font-bold">$1</strong>')
+                // Italic: *text* or _text_
+                .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
+                .replace(/_(.+?)_/g, '<em class="italic">$1</em>')
+                // Code: `code`
+                .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">$1</code>')
+                // Links: [text](url)
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" class="text-blt-red hover:underline">$1</a>')
+                // Line breaks
+                .replace(/\n\n/g, '</p><p class="mb-2">')
+                .replace(/\n/g, '<br>');
+            
+            return '<p class="mb-2">' + formatted + '</p>';
+        }
+
+        // Add message to chat
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex gap-3 animate-fade-in ${isUser ? 'flex-row-reverse' : ''}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = `w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                isUser ? 'bg-gray-200 text-gray-700' : 'bg-blt-red text-white'
+            }`;
+            avatar.textContent = isUser ? 'U' : 'AI';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `flex-1 max-w-[75%] px-4 py-3 rounded-xl text-sm leading-relaxed ${
+                isUser 
+                    ? 'bg-blt-red text-white font-medium' 
+                    : 'bg-white border border-gray-200 text-gray-700 shadow-sm'
+            }`;
+            
+            // For assistant messages, render HTML formatting
+            if (!isUser && content.includes('**') || content.includes('*') || content.includes('`')) {
+                messageContent.innerHTML = formatMessage(content);
+            } else {
+                messageContent.textContent = content;
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            
+            chatMessages.insertBefore(messageDiv, loadingIndicator);
+            
+            setTimeout(scrollToBottom, 50);
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-200 text-sm font-medium animate-fade-in';
+            errorDiv.textContent = `⚠ ${message}`;
+            chatMessages.insertBefore(errorDiv, loadingIndicator);
+            scrollToBottom();
+            
+            setTimeout(() => {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transition = 'opacity 0.3s';
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 5000);
+        }
+
+        // Send message
+        async function sendMessage(message) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.message;
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // Handle form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, true);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+
+            try {
+                // Send message and get response
+                const response = await sendMessage(message);
+                addMessage(response, false);
+            } catch (error) {
+                showError(error.message || 'Failed to send message. Please try again.');
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                loadingIndicator.classList.add('hidden');
+                messageInput.focus();
+            }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 from workers import WorkerEntrypoint, Response
 import json
+from pathlib import Path
 import logging
 
 
@@ -56,18 +57,39 @@ Your role is to:
 Be concise, helpful, and professional in your responses."""
             
             # Call Cloudflare AI
-            response = await self.env.AI.run(
-                "@cf/meta/llama-3.1-8b-instruct",
-                {
-                    "messages": [
-                        {"role": "system", "content": system_instructions},
-                        {"role": "user", "content": user_message}
-                    ]
-                }
-            )
-            
-            # Extract the response
-            assistant_message = response.response if hasattr(response, 'response') else str(response)
+            try:
+                ai_response = await self.env.AI.run(
+                    "@cf/openai/gpt-oss-120b",
+                    {
+                        "instructions": system_instructions,
+                        "input": user_message,
+                    },
+                )
+                
+                self.logger.info(f"AI response type: {type(ai_response)}")
+                
+                # Extract the response using the output attribute
+                response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+                
+                # The output is a list with reasoning and assistant message
+                # Find the assistant message (last item with role="assistant")
+                assistant_message = "I'm having trouble generating a response."
+                
+                if isinstance(response_output, list):
+                    for item in response_output:
+                        if isinstance(item, dict) and item.get('role') == 'assistant':
+                            content = item.get('content', [])
+                            if content and isinstance(content, list):
+                                for content_item in content:
+                                    if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
+                                        assistant_message = content_item.get('text', '')
+                                        break
+                
+                self.logger.info(f"Successfully extracted AI response: {assistant_message[:100]}...")
+                
+            except Exception as ai_error:
+                self.logger.error(f"AI call error: {str(ai_error)}", exc_info=True)
+                assistant_message = "I'm having trouble connecting to the AI service. Please try again."
             
             return Response.json(
                 {
@@ -112,9 +134,10 @@ Be concise, helpful, and professional in your responses."""
     def serve_html(self):
         """Serve the HTML interface"""
         try:
-            with open('public/index.html', 'r', encoding='utf-8') as f:
-                html_content = f.read()
-            
+            # Path(__file__).parent is src/, go up one level to get to project root
+            html_file = Path(__file__).parent / 'pages' / "index.html"
+            self.logger.info(f"Serving HTML file from path: {html_file}")
+            html_content = html_file.read_text()
             return Response(
                 html_content,
                 status=200,
@@ -123,7 +146,8 @@ Be concise, helpful, and professional in your responses."""
                     "Cache-Control": "public, max-age=300"
                 }
             )
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            self.logger.error(f"HTML file not found at expected path: {e}")
             return Response.json(
                 {"error": "HTML file not found"},
                 status=404,
