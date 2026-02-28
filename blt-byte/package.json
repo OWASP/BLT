@@ -4,9 +4,9 @@
     "description": "BLT AI Chatbot - Python AI worker for bug bounty assistance",
     "private": true,
     "scripts": {
-        "deploy": "uv run pywrangler deploy",
-        "dev": "uv run pywrangler dev",
-        "start": "uv run pywrangler dev"
+        "deploy": "wrangler deploy",
+        "dev": "wrangler dev",
+        "start": "wrangler run dev"
     },
     "devDependencies": {
         "wrangler": "^4.46.0"

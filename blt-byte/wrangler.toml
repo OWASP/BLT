@@ -7,6 +7,11 @@ compatibility_flags = ["python_workers"]
 [ai]
 binding = "AI"
 
+# Static assets configuration
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]

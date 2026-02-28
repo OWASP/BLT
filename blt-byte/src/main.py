@@ -6,6 +6,7 @@ from pathlib import Path
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         url = str(request.url)
+        path = request.url.path
         
         # Handle CORS preflight for API
         if request.method == "OPTIONS":
@@ -15,9 +16,14 @@ class Default(WorkerEntrypoint):
         if request.method == "POST":
             return await self.handle_chat(request)
         
-        # For GET requests to root, serve the HTML interface
-        if request.method == "GET":
+        # For GET requests to root or index.html, serve the HTML interface
+        if request.method == "GET" and path in ("/", "/index.html"):
             return self.serve_html()
+        
+        # For other GET requests (static assets), let them fall through to assets
+        if request.method == "GET":
+            # Return None to let Cloudflare Workers serve from public/ assets
+            return await self.env.ASSETS.fetch(request)
         
         # Default response for unsupported methods
         return Response.json(

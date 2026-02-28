@@ -73,7 +73,7 @@ BLT--Byte/
 ## Technology Stack
 
 - Cloudflare Workers (Python runtime)
-- Cloudflare Workers AI (GPT-OSS-120B model)
+- Cloudflare Workers AI (@cf/openai/gpt-oss-120b model)
 - Tailwind CSS
 - Vanilla JavaScript
 
