@@ -169,7 +169,18 @@
                 // Code: `code`
                 .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">$1</code>')
                 // Links: [text](url)
-                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" class="text-blt-red hover:underline">$1</a>')
+               .replace(/\[(.+?)\]\((.+?)\)/g, function(match, linkText, url) {
+                    let safeUrl = '#';
+                    try {
+                        const parsed = new URL(url, window.location.origin);
+                        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                            safeUrl = parsed.href;
+                        }
+                    } catch (e) {
+                        // If URL parsing fails, fall back to a safe placeholder.
+                    }
+                    return '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">' + linkText + '</a>';
+                })
                 // Line breaks
                 .replace(/\n\n/g, '</p><p class="mb-2">')
                 .replace(/\n/g, '<br>');
