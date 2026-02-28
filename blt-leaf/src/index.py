@@ -2,7 +2,7 @@
 
 from js import Response, URL
 from slack_notifier import notify_slack_exception, notify_slack_error
-
+import json
 # Import all handlers
 from handlers import (
     handle_add_pr,
@@ -128,6 +128,41 @@ async def on_fetch(request, env):
         # Test error endpoint — deliberately raises to verify Slack error reporting
         elif path == '/api/test-error' and request.method == 'POST':
             raise RuntimeError('Slack test error — this exception was triggered intentionally from /api/test-error')
+        elif path == '/api/error-test' and request.method == 'POST':
+            slack_webhook = (getattr(env, 'SLACK_ERROR_WEBHOOK', '') or '').strip()
+            if not slack_webhook:
+                response = Response.new(
+                    json.dumps({'ok': False, 'reason': 'SLACK_ERROR_WEBHOOK not set'}),
+                    {'status': 500, 'headers': {'Content-Type': 'application/json'}},
+                )
+            else:
+                try:
+                    await notify_slack_error(
+                        slack_webhook,
+                        error_type='ErrorTest',
+                        error_message='Slack error-test triggered',
+                        context={
+                            'source': '/api/error-test',
+                            'url': str(request.url),
+                        },
+                        stack_trace=None,
+                    )
+                    response = Response.new(
+                        json.dumps({'ok': True, 'sent_to_slack': True}),
+                        {'status': 200, 'headers': {'Content-Type': 'application/json'}},
+                    )
+                except Exception as e:
+                    print(f'Error-test Slack send failed: {type(e).__name__}: {e}')
+                    response = Response.new(
+                        json.dumps({'ok': False, 'reason': 'Slack send failed (check worker logs)'}),
+                        {'status': 502, 'headers': {'Content-Type': 'application/json'}},
+                    )
+
+            # keep existing CORS behavior consistent with other endpoints
+            for k, v in cors_headers.items():
+                response.headers.set(k, v)
+
+            return response
         # Frontend client-error reporting endpoint
         elif path == '/api/client-error' and request.method == 'POST':
             try:
