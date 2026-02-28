@@ -1,0 +1,25 @@
+name = "blt-github-app"
+main = "worker.py"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["python_workers"]
+
+# ---------------------------------------------------------------------------
+# Non-secret variables — safe to commit
+# ---------------------------------------------------------------------------
+[vars]
+# BLT API base URL
+BLT_API_URL = "https://blt-api.owasp-blt.workers.dev"
+
+# GitHub App slug — the URL-friendly name shown in GitHub App URLs.
+# Example: if your app lives at https://github.com/apps/my-blt-app
+# then set this to "my-blt-app".
+GITHUB_APP_SLUG = "blt-github-app"
+
+# ---------------------------------------------------------------------------
+# Secrets — set these with:  wrangler secret put <NAME>
+# ---------------------------------------------------------------------------
+# APP_ID               — GitHub App numeric ID
+# PRIVATE_KEY          — GitHub App private key (full PEM, PKCS#1 or PKCS#8)
+# WEBHOOK_SECRET       — GitHub App webhook secret
+# GITHUB_CLIENT_ID     — OAuth client ID     (optional)
+# GITHUB_CLIENT_SECRET — OAuth client secret (optional)
