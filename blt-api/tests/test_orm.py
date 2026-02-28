@@ -289,6 +289,22 @@ class TestQuerySetSQLGeneration:
         qs = self.qs.paginate(1, 9999)
         assert qs._limit_val == 100
 
+    def test_limit_negative_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.limit(-1)
+
+    def test_limit_non_integer_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.limit("10")  # type: ignore[arg-type]
+
+    def test_offset_negative_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.offset(-5)
+
+    def test_offset_non_integer_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.offset(3.5)  # type: ignore[arg-type]
+
     # --- VALUES (SELECT specific fields) ---
 
     def test_values(self):

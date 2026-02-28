@@ -30,7 +30,7 @@ T = TypeVar("T", bound="Model")
 
 # ---------------------------------------------------------------------------
 # Allowed characters for field / table identifiers embedded in SQL.
-# Only lowercase letters, digits and underscore are permitted.
+# Only letters (uppercase and lowercase), digits and underscore are permitted.
 # Table-qualified names (e.g. "b.status") split on "." and each part is
 # checked independently.
 # ---------------------------------------------------------------------------
