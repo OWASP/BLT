@@ -56,7 +56,7 @@ class TestGetOnboardingGuide:
         assert isinstance(guide["steps"], list)
         # Must mention the platform URL
         all_text = " ".join(guide["steps"])
-        assert "bugheist.com" in all_text.lower() or "bugheist" in all_text.lower()
+        assert "bugheist" in all_text.lower()
 
     def test_organisation_guide(self):
         guide = _get_onboarding_guide("organisation")

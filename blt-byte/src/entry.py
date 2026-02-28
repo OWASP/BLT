@@ -174,7 +174,7 @@ async def handle_chat(request, env) -> Response:
     history = body.get("history", [])
 
     messages = [{"role": "system", "content": FAQ_CONTEXT}]
-    for turn in history[-10:]:  # keep last 10 turns for context
+    for turn in history[-10:]:  # keep only the 10 most recent turns for context
         role = turn.get("role", "user")
         content = turn.get("content", "")
         if role in ("user", "assistant") and content:
@@ -296,8 +296,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
         return {"error": "'message' is required"}
     messages = [{"role": "system", "content": FAQ_CONTEXT}]
-    for turn in history[-10:]:
-        role = turn.get("role", "user")
+    for turn in history[-10:]:  # keep only the 10 most recent turns for context
         content = turn.get("content", "")
         if role in ("user", "assistant") and content:
             messages.append({"role": role, "content": content})
