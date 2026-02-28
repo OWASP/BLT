@@ -24,12 +24,6 @@
     "keyword": "BLT"
   },
   {
-    "id": "sizzle_owaspblt",
-    "name": "BLT Sizzle",
-    "url": "https://owasp-blt.github.io/BLT-Sizzle/",
-    "keyword": "BLT"
-  },
-  {
     "id": "lettuce_owaspblt",
     "name": "BLT Lettuce",
     "url": "https://lettuce.owaspblt.org",
@@ -42,69 +36,9 @@
     "keyword": "BLT"
   },
   {
-    "id": "owasp_bumper",
-    "name": "BLT OWASP Bumper",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-Bumper/",
-    "keyword": "OWASP"
-  },
-  {
-    "id": "owasp_projects",
-    "name": "BLT OWASP Projects",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-Projects/",
-    "keyword": "OWASP"
-  },
-  {
-    "id": "docs_owaspblt",
-    "name": "BLT Docs",
-    "url": "https://owasp-blt.github.io/BLT-docs/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "owasp_metadata",
-    "name": "BLT OWASP Metadata",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-metadata/",
-    "keyword": "OWASP"
-  },
-  {
     "id": "mcp_owaspblt",
     "name": "BLT MCP",
     "url": "https://github.owaspblt.org/BLT-MCP/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "extension_owaspblt",
-    "name": "BLT Extension",
-    "url": "https://owasp-blt.github.io/BLT-Extension/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "rewards_owaspblt",
-    "name": "BLT Rewards",
-    "url": "https://owasp-blt.github.io/BLT-Rewards/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "ideas_owaspblt",
-    "name": "BLT Ideas",
-    "url": "https://owasp-blt.github.io/BLT-Ideas/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "action_owaspblt",
-    "name": "BLT Action",
-    "url": "https://owasp-blt.github.io/BLT-Action/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "panini_owaspblt",
-    "name": "BLT Panini",
-    "url": "https://owasp-blt.github.io/BLT-Panini/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "netguardian_owaspblt",
-    "name": "BLT NetGuardian",
-    "url": "https://owasp-blt.github.io/BLT-NetGuardian/",
     "keyword": "BLT"
   },
   {
@@ -118,35 +52,5 @@
     "name": "BLT Hackathons",
     "url": "https://hackathons.owaspblt.org",
     "keyword": "BLT"
-  },
-  {
-    "id": "design_owaspblt",
-    "name": "BLT Design",
-    "url": "https://owasp-blt.github.io/BLT-Design/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "design_contest_owaspblt",
-    "name": "BLT Design Contest",
-    "url": "https://owasp-blt.github.io/BLT-Design-Contest/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "gsoc_owaspblt",
-    "name": "BLT GSOC",
-    "url": "https://owasp-blt.github.io/BLT-GSOC/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "mygsoc_owaspblt",
-    "name": "BLT MY GSOC Tool",
-    "url": "https://owasp-blt.github.io/MY-GSOC-TOOL/",
-    "keyword": "BLT"
-  },
-  {
-    "id": "flutter_owaspblt",
-    "name": "BLT Flutter App",
-    "url": "https://apps.apple.com/us/app/owasp-blt/id6448071954",
-    "keyword": "OWASP"
   }
 ]
