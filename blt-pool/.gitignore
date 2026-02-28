@@ -4,3 +4,7 @@ coverage/
 *.log
 npm-debug.log*
 .DS_Store
+__pycache__/
+*.pyc
+*.pyo
+cloudflare-worker/.dev.vars
