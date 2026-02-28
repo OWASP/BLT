@@ -130,6 +130,40 @@ MIGRATION_TARGET=remote ./scripts/migration.sh
 ./scripts/migration.sh
 ```
 
+### Windows (PowerShell)
+
+If you are contributing on Windows, use the following PowerShell equivalents for the setup commands above.
+
+**1. Initialize the D1 database:**
+```powershell
+wrangler d1 create pr_tracker
+```
+
+**2. Copy the example environment file:**
+```powershell
+Copy-Item .env.example .env
+```
+
+**3. Apply database migrations:**
+```powershell
+# For local development
+wrangler d1 migrations apply pr_tracker --local
+
+# For production (remote database)
+wrangler d1 migrations apply pr_tracker --remote
+```
+
+**4. Run migrations via the helper script (use `.\` prefix for local script execution):**
+```powershell
+# Apply locally
+$env:MIGRATION_TARGET="local"; .\scripts\migration.sh
+
+# Apply to remote (default)
+.\scripts\migration.sh
+```
+
+> **Note:** The `migration.sh` script requires a bash-compatible shell such as [Git Bash](https://gitforwindows.org/) or [WSL](https://learn.microsoft.com/en-us/windows/wsl/install). If neither is available, run the `wrangler d1 migrations apply` commands directly as shown in step 3 above.
+
 ### Development
 
 Run the development server:
