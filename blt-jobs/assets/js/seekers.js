@@ -12,10 +12,12 @@ function renderSeekers(seekers) {
   list.innerHTML = "";
 
   if (!seekers || seekers.length === 0) {
+    list.classList.add("hidden");
     empty.classList.remove("hidden");
     return;
   }
 
+  list.classList.remove("hidden");
   empty.classList.add("hidden");
 
   const html = seekers
@@ -23,59 +25,70 @@ function renderSeekers(seekers) {
       const name = s.name || "Anonymous";
       const headline = s.headline || "";
       const location = s.location || "";
-      const skills = (s.skills || "").split(/[,;]+/).map((t) => t.trim()).filter(Boolean);
+      const skills = (s.skills || "")
+        .split(/[,;]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
       const profileUrl = s.profile_url || "";
-      const availability = s.availability || "";
-
-      const initial = name.trim().charAt(0).toUpperCase() || "?";
+      const experienceSummary = s.experience_summary || "";
 
       return `
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-full bg-[#e74c3c] flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-              ${initial}
-            </div>
-            <div>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">${name}</h2>
-              ${headline ? `<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${headline}</p>` : ""}
-              <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                ${location ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700">
-                  <i class="fa-solid fa-location-dot text-[10px]"></i>
-                  <span>${location}</span>
-                </span>` : ""}
-                ${availability ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
-                  <i class="fa-solid fa-circle-check text-[10px]"></i>
-                  <span>${availability}</span>
-                </span>` : ""}
-              </div>
-              ${skills.length ? `
-                <div class="mt-3 flex flex-wrap gap-1">
-                  ${skills
-                    .map(
-                      (skill) =>
-                        `<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs text-gray-700 dark:text-gray-200">${skill}</span>`
-                    )
-                    .join("")}
-                </div>
-              ` : ""}
-            </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
+          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+            <i class="fa-solid fa-user text-2xl text-red-600 dark:text-red-400" aria-hidden="true"></i>
           </div>
-          <div class="flex-shrink-0">
-            ${
-              profileUrl
-                ? `<a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 border-2 border-[#e74c3c] text-[#e74c3c] rounded-lg font-semibold hover:bg-[#e74c3c] hover:text-white dark:border-[#e74c3c] dark:text-[#e74c3c] dark:hover:bg-red-600 dark:hover:text-white transition-colors">
-                     <i class="fa-solid fa-user mr-2"></i>
-                     View profile
-                   </a>`
-                : ""
-            }
+          <h3 class="text-lg font-semibold dark:text-gray-100">${name}</h3>
+          ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${headline}</p>` : ""}
+          <div class="mt-3 space-y-1 text-sm text-slate-600 dark:text-gray-400">
+            ${location ? `<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4" aria-hidden="true"></i> ${location}</div>` : ""}
+            ${experienceSummary ? `<div class="flex items-center gap-2"><i class="fa-solid fa-briefcase w-4" aria-hidden="true"></i> ${experienceSummary}</div>` : ""}
+          </div>
+          ${
+            skills.length
+              ? `
+            <div class="mt-3">
+              <p class="text-xs font-medium text-slate-500 uppercase dark:text-gray-500">Skills</p>
+              <p class="mt-1 text-sm text-slate-600 dark:text-gray-400">${skills.join(", ")}</p>
+            </div>
+          `
+              : ""
+          }
+          <div class="mt-4 flex gap-2">
+            ${profileUrl ? `<a href="${profileUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>` : ""}
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/seekers/${s.id}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i> Full Profile</a>
           </div>
         </div>
       `;
     })
-    .join("\n");
+    .join("");
 
   list.innerHTML = html;
+}
+
+function applyFilters() {
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+
+  const q = normalizeSeekerString(searchInput.value);
+
+  const filtered = allSeekers.filter((seeker) => {
+    const name = normalizeSeekerString(seeker.name);
+    const headline = normalizeSeekerString(seeker.headline);
+    const location = normalizeSeekerString(seeker.location);
+    const skills = normalizeSeekerString(seeker.skills);
+    const about = normalizeSeekerString(seeker.about);
+
+    return (
+      !q ||
+      name.includes(q) ||
+      headline.includes(q) ||
+      location.includes(q) ||
+      skills.includes(q) ||
+      about.includes(q)
+    );
+  });
+
+  renderSeekers(filtered);
 }
 
 async function loadSeekers() {
@@ -90,7 +103,7 @@ async function loadSeekers() {
     }
     const data = await res.json();
     allSeekers = Array.isArray(data.seekers) ? data.seekers : [];
-    renderSeekers(allSeekers);
+    applyFilters();
   } catch (err) {
     console.error("Error loading seekers:", err);
     allSeekers = [];
@@ -98,5 +111,11 @@ async function loadSeekers() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadSeekers);
+document.addEventListener("DOMContentLoaded", () => {
+  loadSeekers();
 
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", applyFilters);
+  }
+});

@@ -78,30 +78,75 @@
         <p class="mt-2 text-slate-600 dark:text-gray-400">Browse open positions in the OWASP BLT community</p>
       </header>
 
-      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="relative flex-1 max-w-md">
-          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
-          <input
-            type="text"
-            id="search"
-            placeholder="Search jobs..."
-            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
-          />
+      <div class="mb-6 space-y-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filter Jobs</h2>
+          <a href="./add.html" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Post a Job
+          </a>
         </div>
-        <a href="./add.html" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          Post a Job
-        </a>
+
+        <form id="filtersForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="relative">
+            <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
+            <i class="fa-solid fa-search absolute left-3 top-9 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Title, company, description..."
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+            />
+          </div>
+
+          <div>
+            <label for="typeFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Type</label>
+            <select
+              id="typeFilter"
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 px-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="">All Types</option>
+              <option value="full-time">Full-time</option>
+              <option value="part-time">Part-time</option>
+              <option value="contract">Contract</option>
+              <option value="internship">Internship</option>
+              <option value="freelance">Freelance</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="locationFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+            <input
+              type="text"
+              id="locationFilter"
+              placeholder="City, state, or remote"
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 px-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+            />
+          </div>
+
+          <div class="flex items-end gap-2">
+            <button
+              type="button"
+              id="clearFiltersButton"
+              class="hidden flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </form>
+
+        <div id="resultsSummary" class="hidden text-sm text-gray-600 dark:text-gray-400">
+          <span id="resultsCount">0</span><span id="resultsLabel"> jobs found</span>
+        </div>
+
+        <div id="emptyState" class="hidden rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <i class="fa-solid fa-briefcase text-4xl text-slate-300 dark:text-gray-600" aria-hidden="true"></i>
+          <h3 class="mt-4 text-lg font-semibold dark:text-gray-100">No jobs found</h3>
+          <p id="emptyStateMessage" class="mt-2 text-slate-600 dark:text-gray-400">Try adjusting your search terms or filters</p>
+        </div>
       </div>
 
-      <div id="jobs-container" class="space-y-4">
-        <div class="flex items-center justify-center py-12">
-          <div class="text-center">
-            <i class="fa-solid fa-spinner fa-spin text-3xl text-red-600" aria-hidden="true"></i>
-            <p class="mt-4 text-slate-600">Loading jobs...</p>
-          </div>
-        </div>
-      </div>
+      <div id="jobList" class="space-y-4"></div>
     </main>
 
     <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
@@ -120,60 +165,6 @@
     </footer>
 
     <script src="assets/js/theme.js"></script>
-    <script>
-      (function () {
-        var allJobs = [];
-        var GITHUB_JOBS = 'https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/';
-
-        function esc(s) {
-          var d = document.createElement('div');
-          d.textContent = s;
-          return d.innerHTML;
-        }
-
-        function displayJobs(jobs) {
-          var container = document.getElementById('jobs-container');
-          if (jobs.length === 0) {
-            container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800"><i class="fa-solid fa-briefcase text-4xl text-slate-300 dark:text-gray-600" aria-hidden="true"></i><h3 class="mt-4 text-lg font-semibold dark:text-gray-100">No jobs posted yet</h3><p class="mt-2 text-slate-600 dark:text-gray-400">Be the first to post a job opportunity!</p><a href="./add.html" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">Post a Job</a></div>';
-            return;
-          }
-          var html = jobs.map(function (job) {
-            var title = esc(job.title || 'Untitled');
-            var faviconDomain = '';
-            if (job.application_url) {
-              try { faviconDomain = new URL(job.application_url).hostname; } catch (e) {}
-            }
-            var faviconImg = faviconDomain
-              ? '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(faviconDomain) + '&sz=32" alt="" width="20" height="20" class="w-5 h-5 rounded inline-block mr-1.5 align-middle" aria-hidden="true" />'
-              : '';
-            var company = job.organization_name ? '<span class="flex items-center gap-1"><i class="fa-solid fa-building" aria-hidden="true"></i> ' + esc(job.organization_name) + '</span>' : '';
-            var location = job.location ? '<span class="flex items-center gap-1"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' + esc(job.location) + '</span>' : '';
-            var type = job.job_type ? '<span class="flex items-center gap-1"><i class="fa-solid fa-clock" aria-hidden="true"></i> ' + esc(job.job_type) + '</span>' : '';
-            var addedBy = job.added_by ? '<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by <a href="https://github.com/' + esc(job.added_by) + '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@' + esc(job.added_by) + '</a></span>' : '';
-            return '<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50"><div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div class="flex-1"><h3 class="text-xl font-semibold dark:text-gray-100">' + faviconImg + title + '</h3><div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-gray-400">' + company + location + type + addedBy + '</div><div class="mt-4"><a href="job.html?id=' + encodeURIComponent(job.id) + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i></a></div></div><a href="' + GITHUB_JOBS + encodeURIComponent(job.id) + '.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub</a></div></div>';
-          }).join('');
-          container.innerHTML = html;
-        }
-
-        fetch('data/jobs.json', { cache: 'no-cache' })
-          .then(function (r) { return r.ok ? r.json() : { jobs: [] }; })
-          .then(function (data) {
-            allJobs = Array.isArray(data.jobs) ? data.jobs : [];
-            displayJobs(allJobs);
-          })
-          .catch(function () {
-            document.getElementById('jobs-container').innerHTML = '<div class="rounded-xl border border-red-200 bg-red-50 p-6 text-center"><p class="text-red-600">Error loading jobs. Please try again later.</p></div>';
-          });
-
-        document.getElementById('search').addEventListener('input', function (e) {
-          var q = e.target.value.toLowerCase();
-          var filtered = allJobs.filter(function (job) {
-            var s = (job.title + ' ' + (job.organization_name || '') + ' ' + (job.location || '') + ' ' + (job.job_type || '')).toLowerCase();
-            return s.indexOf(q) !== -1;
-          });
-          displayJobs(filtered);
-        });
-      })();
-    </script>
+    <script src="assets/js/app.js"></script>
   </body>
 </html>
