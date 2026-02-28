@@ -34,77 +34,6 @@
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }
-
-    /* ── Countdown timer ── */
-    .countdown-unit {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 4.5rem;
-    }
-    .countdown-digit-wrapper {
-      position: relative;
-      height: 3.5rem;
-      overflow: hidden;
-      perspective: 300px;
-    }
-    .countdown-digit {
-      display: block;
-      font-size: 2.5rem;
-      font-weight: 900;
-      line-height: 3.5rem;
-      color: #E10101;
-      transition: none;
-      will-change: transform, opacity;
-    }
-    /* "Melt away" exit animation */
-    @keyframes digitMeltOut {
-      0%   { transform: translateY(0) scaleY(1); opacity: 1; }
-      40%  { transform: translateY(20%) scaleY(0.6); opacity: 0.6; }
-      100% { transform: translateY(100%) scaleY(0); opacity: 0; }
-    }
-    /* New digit falls in from top */
-    @keyframes digitDropIn {
-      0%   { transform: translateY(-80%) scaleY(0.5); opacity: 0; }
-      60%  { transform: translateY(5%) scaleY(1.05); opacity: 1; }
-      80%  { transform: translateY(-2%) scaleY(0.98); }
-      100% { transform: translateY(0) scaleY(1); opacity: 1; }
-    }
-    .digit-melt-out {
-      animation: digitMeltOut 0.45s ease-in forwards;
-      position: absolute;
-      inset: 0;
-    }
-    .digit-drop-in {
-      animation: digitDropIn 0.45s ease-out forwards;
-    }
-    .countdown-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6b7280;
-      margin-top: 0.25rem;
-    }
-    .dark .countdown-label { color: #9ca3af; }
-    .countdown-separator {
-      font-size: 2rem;
-      font-weight: 900;
-      color: #E10101;
-      margin-bottom: 1.25rem;
-      line-height: 3.5rem;
-    }
-    /* Pulse the separator colons */
-    @keyframes colonPulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.2; }
-    }
-    .countdown-separator { animation: colonPulse 1s step-start infinite; }
-
-    /* Glow ring around the whole countdown once < 24 h */
-    .countdown-urgent {
-      box-shadow: 0 0 0 2px #E10101, 0 0 16px 2px rgba(225,1,1,0.35);
-    }
   </style>
 </head>
 
@@ -194,7 +123,7 @@
       </p>
 
       <!-- Prize & deadline banner -->
-      <div class="inline-flex flex-wrap items-center justify-center gap-4 mb-6
+      <div class="inline-flex flex-wrap items-center justify-center gap-4 mb-8
                   bg-[#feeae9] dark:bg-red-900/30 border border-[#E10101]/20
                   rounded-xl px-6 py-3 text-sm font-medium text-[#E10101]">
         <span class="inline-flex items-center gap-1.5">
@@ -204,51 +133,8 @@
         <span class="hidden sm:block text-[#E10101]/40">|</span>
         <span class="inline-flex items-center gap-1.5">
           <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
-          Contest ends <strong>March 1, 2026 00:00 UTC</strong>
+          Contest ends <strong>March 1, 2026</strong>
         </span>
-      </div>
-
-      <!-- Animated countdown -->
-      <div id="countdown-wrapper" class="mb-8 flex flex-col items-center gap-2">
-        <div id="countdown-timer"
-             class="inline-flex items-end gap-1 rounded-2xl
-                    bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
-                    px-6 py-4 shadow-sm transition-all">
-          <!-- Days -->
-          <div class="countdown-unit">
-            <div class="countdown-digit-wrapper" id="cd-days-wrap">
-              <span class="countdown-digit" id="cd-days">--</span>
-            </div>
-            <span class="countdown-label">Days</span>
-          </div>
-          <span class="countdown-separator">:</span>
-          <!-- Hours -->
-          <div class="countdown-unit">
-            <div class="countdown-digit-wrapper" id="cd-hours-wrap">
-              <span class="countdown-digit" id="cd-hours">--</span>
-            </div>
-            <span class="countdown-label">Hours</span>
-          </div>
-          <span class="countdown-separator">:</span>
-          <!-- Minutes -->
-          <div class="countdown-unit">
-            <div class="countdown-digit-wrapper" id="cd-minutes-wrap">
-              <span class="countdown-digit" id="cd-minutes">--</span>
-            </div>
-            <span class="countdown-label">Minutes</span>
-          </div>
-          <span class="countdown-separator">:</span>
-          <!-- Seconds -->
-          <div class="countdown-unit">
-            <div class="countdown-digit-wrapper" id="cd-seconds-wrap">
-              <span class="countdown-digit" id="cd-seconds">--</span>
-            </div>
-            <span class="countdown-label">Seconds</span>
-          </div>
-        </div>
-        <p id="countdown-ended" class="hidden text-[#E10101] font-bold text-lg">
-          🏁 Contest has ended!
-        </p>
       </div>
 
       <div class="flex items-center justify-center gap-4 flex-wrap">
@@ -280,8 +166,8 @@
           <p>Top Prize</p>
         </div>
         <div>
-          <p class="text-3xl font-black text-[#E10101]" id="stats-deadline">Mar 1</p>
-          <p>Deadline <span class="text-xs font-normal">(UTC)</span></p>
+          <p class="text-3xl font-black text-[#E10101]">Mar 1</p>
+          <p>Deadline</p>
         </div>
         <div class="col-span-2 sm:col-span-1">
           <p class="text-3xl font-black text-[#E10101]">∞</p>
@@ -344,7 +230,7 @@
             Design Entries
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            31 submissions · last updated 28 Feb 2026 20:08 UTC
+            31 submissions · last updated 28 Feb 2026 21:15 UTC
           </p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
@@ -478,7 +364,7 @@ At the center is a geometric, interconnected sphere symbolizing the modern inter
     <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
-             data-thumbs="1"
+             data-thumbs="2"
              data-issue-url="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/57"
              aria-label="Design submission: Buggy Squashing Bug">
       <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/57" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/8abe394a-ce15-45dc-bbda-263e1fa5764e" alt="Buggy Squashing Bug preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
@@ -510,7 +396,7 @@ At the center is a geometric, interconnected sphere symbolizing the modern inter
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
           <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
-            <button type="button" class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors cursor-pointer" data-thumbs-btn aria-label="Thumbs up this design on GitHub">👍 <span>1</span></button>
+            <button type="button" class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors cursor-pointer" data-thumbs-btn aria-label="Thumbs up this design on GitHub">👍 <span>2</span></button>
           </div>
           <div class="flex items-center gap-3">
             
@@ -2148,82 +2034,6 @@ The Guardian Edition centers on a eye with a shutter style iris, sym…</p>
         }
         container.innerHTML = html;
       }
-    })();
-
-    // ── Animated countdown to March 1 2026 00:00 UTC ─────────────────────────
-    (function () {
-      const END_UTC = Date.UTC(2026, 2, 1, 0, 0, 0); // month is 0-indexed
-
-      const timerEl  = document.getElementById('countdown-timer');
-      const endedEl  = document.getElementById('countdown-ended');
-      const wrapperEl = document.getElementById('countdown-wrapper');
-
-      const fields = ['days', 'hours', 'minutes', 'seconds'];
-      // Track the last displayed value so we only animate changed digits
-      const prev = { days: null, hours: null, minutes: null, seconds: null };
-
-      function pad(n) { return String(n).padStart(2, '0'); }
-
-      function animateDigit(wrapId, spanId, newVal) {
-        const wrap = document.getElementById(wrapId);
-        const span = document.getElementById(spanId);
-        if (!wrap || !span) return;
-
-        const current = span.textContent;
-        if (current === newVal) return;
-
-        // Clone the current span, animate it out
-        const old = span.cloneNode(true);
-        old.classList.add('digit-melt-out');
-        wrap.appendChild(old);
-        old.addEventListener('animationend', () => old.remove(), { once: true });
-
-        // Update the live span and animate it in
-        span.textContent = newVal;
-        span.classList.remove('digit-drop-in');
-        // Force reflow so the class removal takes effect
-        void span.offsetWidth;
-        span.classList.add('digit-drop-in');
-        span.addEventListener('animationend', () => span.classList.remove('digit-drop-in'), { once: true });
-      }
-
-      function tick() {
-        const now  = Date.now();
-        const diff = END_UTC - now;
-
-        if (diff <= 0) {
-          // Contest has ended
-          if (timerEl)  timerEl.classList.add('hidden');
-          if (endedEl)  endedEl.classList.remove('hidden');
-          return; // stop ticking
-        }
-
-        const totalSeconds = Math.floor(diff / 1000);
-        const d = Math.floor(totalSeconds / 86400);
-        const h = Math.floor((totalSeconds % 86400) / 3600);
-        const m = Math.floor((totalSeconds % 3600) / 60);
-        const s = totalSeconds % 60;
-
-        const vals = { days: pad(d), hours: pad(h), minutes: pad(m), seconds: pad(s) };
-
-        fields.forEach(f => {
-          if (prev[f] !== vals[f]) {
-            animateDigit(`cd-${f}-wrap`, `cd-${f}`, vals[f]);
-            prev[f] = vals[f];
-          }
-        });
-
-        // Add urgent glow when less than 24 hours remain
-        if (timerEl) timerEl.classList.toggle('countdown-urgent', diff < 86400000);
-
-        // Update stats-bar deadline cell to show days remaining
-        const statsEl = document.getElementById('stats-deadline');
-        if (statsEl) statsEl.textContent = d > 0 ? `${d}d` : `${h}h`;
-
-        setTimeout(tick, 1000);
-      }
-
-      tick();
     })();
   </script>
 </body>
