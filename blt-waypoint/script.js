@@ -566,7 +566,8 @@ const TABLE_COLS = [
   { key: 'stargazers_count',  label: 'Stars'      },
   { key: 'forks_count',       label: 'Forks'      },
   { key: 'open_issues_count', label: 'Issues'     },
-  { key: 'open_pr_count',    label: 'PRs'        },
+  { key: 'open_pr_count',     label: 'PRs'        },
+  { key: 'agent_pr_count',    label: 'Agent PRs'  },
   { key: 'total_commits',     label: 'Commits'    },
   { key: 'branch_count',      label: 'Branches'   },
   { key: 'size',              label: 'Size'       },
@@ -646,6 +647,11 @@ function renderTableView(repos, container) {
       <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
         ${r.open_pr_count
           ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-teal-500 transition-colors" title="Open pull requests"><i class="fa-solid fa-code-pull-request text-teal-500 mr-1" aria-hidden="true"></i>${formatNumber(r.open_pr_count)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        ${r.agent_pr_count
+          ? `<a href="${escapeHtml(r.html_url)}/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-purple-500 transition-colors" title="Open agent pull requests"><i class="fa-solid fa-robot text-purple-500 mr-1" aria-hidden="true"></i>${formatNumber(r.agent_pr_count)}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
