@@ -1,0 +1,25 @@
+# Node
+node_modules/
+.npm/
+
+# Wrangler
+.wrangler/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
