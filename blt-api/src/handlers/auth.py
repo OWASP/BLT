@@ -5,11 +5,12 @@ import time
 from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, convert_single_d1_result, extract_id_from_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
 from workers import Response
+from models import User
 
 import logging
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
@@ -89,10 +90,9 @@ async def handle_signup(
             return error_response("Database connection error", 500)
 
         # Check if username or email already exists
-        stmt = await db.prepare("SELECT id FROM users WHERE username = ? OR email = ?").bind(body["username"], body["email"]).first()
-        existing_user = None
-        if stmt:
-            existing_user = stmt.to_py() if hasattr(stmt, 'to_py') else dict(stmt)
+        existing_user = await User.objects(db).filter(username=body["username"]).first()
+        if not existing_user:
+            existing_user = await User.objects(db).filter(email=body["email"]).first()
 
         if existing_user:
             return error_response("User already exists", 400)
@@ -103,11 +103,8 @@ async def handle_signup(
         hashed_password = f"{salt}${password_hash.hex()}"
 
         # Insert the new user into the database
-        result = await db.prepare("INSERT INTO users (username, email, password, is_active) VALUES (?, ?, ?, ?)").bind(body["username"], body["email"], hashed_password, False).run()
-        
-        # Get the last inserted ID
-        last_id_result = await db.prepare('SELECT last_insert_rowid() as id').first()
-        user_id = extract_id_from_result(last_id_result, 'id')
+        new_user = await User.create(db, username=body["username"], email=body["email"], password=hashed_password, is_active=False)
+        user_id = new_user.get("id") if new_user else None
 
         # send verification email here using Mailgun
         email_service = EmailService(
@@ -179,11 +176,9 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             return error_response("Database connection error", 500)
         
         # Fetch user by username    
-        stmt = await db.prepare("SELECT id, password FROM users WHERE username = ?").bind(body["username"]).first()
-        
-        
-        user = await convert_single_d1_result(stmt) if stmt else None
-        if user == None or "password" not in user:
+        user = await User.objects(db).filter(username=body["username"]).first()
+
+        if user is None or "password" not in user:
             return error_response("Invalid username or password", 401)
         stored_password = user["password"]
         
@@ -257,7 +252,7 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
         user_id = payload["user_id"]
 
         # Activate the user's account
-        await db.prepare("UPDATE users SET is_active = ? WHERE id = ?").bind(True, user_id).run()
+        await User.objects(db).filter(id=user_id).update(is_active=True)
 
         return Response.json({"message": "Email verified successfully, your account is now active."}, status=200, headers=cors_headers())
 

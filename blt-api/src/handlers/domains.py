@@ -2,11 +2,12 @@
 Domains handler for the BLT API.
 """
 
-from typing import Any, Dict, List
-from utils import  error_response, paginated_response, parse_pagination_params
+from typing import Any, Dict
+from utils import error_response, parse_pagination_params, convert_d1_results
 from libs.db import get_db_safe
-from utils import convert_d1_results
 from workers import Response
+from models import Domain
+
 
 async def handle_domains(
     request: Any,
@@ -17,41 +18,43 @@ async def handle_domains(
 ) -> Any:
     """
     Handle all domain-related API requests using D1 database.
-    
+
     This handler manages domain data stored in Cloudflare D1 (SQLite),
     providing listing, detail views, and tag associations.
-    
+
     Endpoints:
         GET /domains - List all domains with pagination (ordered by creation date)
         GET /domains/{id} - Get detailed information for a specific domain
         GET /domains/{id}/tags - Get all tags associated with a domain (paginated)
-    
+
     Query parameters for listing:
         - page: Page number for pagination (default: 1)
         - per_page: Items per page (default: 20, max: 100)
-    
+
     Returns:
         JSON response with domain data and pagination metadata,
         or error response (400 for invalid ID, 404 for not found, 500 for DB errors)
     """
     try:
-        db = await get_db_safe(env)  # Ensure database is available and initialized
+        db = await get_db_safe(env)
     except Exception as e:
         return error_response(str(e), status=503)
-    
+
     # Get specific domain
     if "id" in path_params:
         domain_id = path_params["id"]
-        
+
         # Validate ID is numeric
         if not domain_id.isdigit():
             return error_response("Invalid domain ID", status=400)
-        
-        # Check if requesting tags for domain: /domains/{id}/tags
+
+        # GET /domains/{id}/tags
         if path.endswith("/tags"):
             try:
                 page, per_page = parse_pagination_params(query_params)
-                
+
+                # JOIN query – kept as raw parameterized SQL because the ORM
+                # does not yet support cross-table JOINs.
                 result = await db.prepare('''
                     SELECT t.id, t.name, t.created
                     FROM tags t
@@ -60,10 +63,11 @@ async def handle_domains(
                     ORDER BY t.name
                     LIMIT ? OFFSET ?
                 ''').bind(int(domain_id), per_page, (page - 1) * per_page).all()
-                
-                # Convert D1 proxy results to Python list
-                data = convert_d1_results(result.results if hasattr(result, 'results') else [])
-                
+
+                data = convert_d1_results(
+                    result.results if hasattr(result, 'results') else []
+                )
+
                 return Response.json({
                     "success": True,
                     "domain_id": int(domain_id),
@@ -75,74 +79,32 @@ async def handle_domains(
                     }
                 })
             except Exception as e:
-                return error_response(f"Failed to fetch domain tags: {str(e)}", status=500)
-        
-        # Get domain details: /domains/{id}
+                return error_response(
+                    f"Failed to fetch domain tags: {str(e)}", status=500
+                )
+
+        # GET /domains/{id}
         try:
-            result = await db.prepare(
-                'SELECT * FROM domains WHERE id = ?'
-            ).bind(int(domain_id)).first()
-            
-            # D1 .first() returns None or a row dict/proxy
-            if not result:
+            domain = await Domain.objects(db).get(id=int(domain_id))
+            if not domain:
                 return error_response("Domain not found", status=404)
-            
-            # Convert JsProxy to Python dict
-            if hasattr(result, 'to_py'):
-                domain = result.to_py()
-            elif isinstance(result, dict):
-                domain = result
-            else:
-                # Try to convert object attributes to dict
-                domain = {}
-                for key in dir(result):
-                    if not key.startswith('_'):
-                        try:
-                            domain[key] = getattr(result, key)
-                        except:
-                            pass
-            
-            return Response.json({
-                "success": True,
-                "data": domain
-            })
+
+            return Response.json({"success": True, "data": domain})
         except Exception as e:
             return error_response(f"Failed to fetch domain: {str(e)}", status=500)
-    
-    # List domains with pagination: /domains
+
+    # GET /domains  –  list with pagination
     try:
         page, per_page = parse_pagination_params(query_params)
-        
-        # Get total count
-        count_result = await db.prepare(
-            'SELECT COUNT(*) as total FROM domains'
-        ).first()
-        
-        # Handle JsProxy object for count
-        if count_result:
-            if hasattr(count_result, 'to_py'):
-                count_dict = count_result.to_py()
-                total = count_dict.get('total', 0)
-            elif hasattr(count_result, 'total'):
-                total = count_result.total
-            elif isinstance(count_result, dict):
-                total = count_result.get('total', 0)
-            else:
-                total = 0
-        else:
-            total = 0
-        
-        # Get paginated results
-        result = await db.prepare('''
-            SELECT *
-            FROM domains
-            ORDER BY created DESC
-            LIMIT ? OFFSET ?
-        ''').bind(per_page, (page - 1) * per_page).all()
-        
-        # Convert D1 proxy results to Python list
-        data = convert_d1_results(result.results if hasattr(result, 'results') else [])
-        
+
+        total = await Domain.objects(db).count()
+        data = (
+            await Domain.objects(db)
+            .order_by("-created")
+            .paginate(page, per_page)
+            .all()
+        )
+
         return Response.json({
             "success": True,
             "data": data,
