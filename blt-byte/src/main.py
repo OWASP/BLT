@@ -1,11 +1,9 @@
 from workers import WorkerEntrypoint, Response
 import json
 from pathlib import Path
-import logging
 
 
 class Default(WorkerEntrypoint):
-    logger  = logging.getLogger(__name__)
     async def fetch(self, request):
         url = str(request.url)
         
@@ -66,29 +64,47 @@ Be concise, helpful, and professional in your responses."""
                     },
                 )
                 
-                self.logger.info(f"AI response type: {type(ai_response)}")
+                print(f"AI response type: {type(ai_response.output)}")
                 
-                # Extract the response using the output attribute
+                # Extract the response - convert JsProxy to Python object
                 response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+                
+                # Convert JsProxy to Python object if needed
+                if hasattr(response_output, 'to_py'):
+                    response_output = response_output.to_py()
+                    print(f"Converted JsProxy to Python object")
+                
+                print(f"Response output type after conversion: {type(response_output)}")
+                print(f"Response output: {json.dumps(response_output, indent=2)[:1000]}")
                 
                 # The output is a list with reasoning and assistant message
                 # Find the assistant message (last item with role="assistant")
                 assistant_message = "I'm having trouble generating a response."
                 
                 if isinstance(response_output, list):
-                    for item in response_output:
+                    print(f"Response is a list with {len(response_output)} items")
+                    # Find the assistant message object
+                    for idx, item in enumerate(response_output):
+                        print(f"Item {idx}: type={item.get('type')}, role={item.get('role')}")
                         if isinstance(item, dict) and item.get('role') == 'assistant':
                             content = item.get('content', [])
-                            if content and isinstance(content, list):
+                            print(f"Found assistant message with {len(content)} content items")
+                            # Content is an array of objects, find the output_text
+                            if isinstance(content, list):
                                 for content_item in content:
+                                    print(f"Content item type: {content_item.get('type')}")
                                     if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                        assistant_message = content_item.get('text', '')
+                                        assistant_message = content_item.get('text', assistant_message)
+                                        print(f"Extracted text (first 100 chars): {assistant_message[:100]}")
                                         break
-                
-                self.logger.info(f"Successfully extracted AI response: {assistant_message[:100]}...")
+                            break
+                else:
+                    print(f"Response output is not a list, it's: {type(response_output)}")
+            
+                print(f"Final assistant message (first 100 chars): {assistant_message[:100]}...")
                 
             except Exception as ai_error:
-                self.logger.error(f"AI call error: {str(ai_error)}", exc_info=True)
+                print(f"AI call error: {str(ai_error)}")
                 assistant_message = "I'm having trouble connecting to the AI service. Please try again."
             
             return Response.json(
@@ -107,7 +123,7 @@ Be concise, helpful, and professional in your responses."""
                 headers=self.get_cors_headers()
             )
         except Exception as e:
-            self.logger.error(f"Error handling chat request: {str(e)}")
+            print(f"Error handling chat request: {str(e)}")
             return Response.json(
                 {"error": f"An error occurred: {str(e)}"},
                 status=500,
@@ -136,7 +152,7 @@ Be concise, helpful, and professional in your responses."""
         try:
             # Path(__file__).parent is src/, go up one level to get to project root
             html_file = Path(__file__).parent / 'pages' / "index.html"
-            self.logger.info(f"Serving HTML file from path: {html_file}")
+            print(f"Serving HTML file from path: {html_file}")
             html_content = html_file.read_text()
             return Response(
                 html_content,
@@ -147,7 +163,7 @@ Be concise, helpful, and professional in your responses."""
                 }
             )
         except FileNotFoundError as e:
-            self.logger.error(f"HTML file not found at expected path: {e}")
+            print(f"HTML file not found at expected path: {e}")
             return Response.json(
                 {"error": "HTML file not found"},
                 status=404,
