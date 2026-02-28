@@ -157,14 +157,19 @@ def fetch_branch_count(repo_full_name: str) -> int:
         return 0
 
 
-def fetch_open_pr_count(repo_full_name: str) -> int:
-    """Return the count of open pull requests for a repo."""
+def fetch_pr_counts(repo_full_name: str) -> tuple[int, int]:
+    """Return (open_pr_count, agent_pr_count) for a repo.
+
+    agent_pr_count is the number of open PRs authored by GitHub bots/agents.
+    """
     try:
         prs = fetch_all_pages(f"/repos/{repo_full_name}/pulls?state=open")
-        return len(prs)
+        total = len(prs)
+        agent = sum(1 for pr in prs if pr.get("user", {}).get("type") == "Bot")
+        return total, agent
     except (urllib.error.HTTPError, urllib.error.URLError) as exc:
-        print(f"  Warning: could not fetch PR count for {repo_full_name}: {exc}", file=sys.stderr)
-        return 0
+        print(f"  Warning: could not fetch PR counts for {repo_full_name}: {exc}", file=sys.stderr)
+        return 0, 0
 
 
 def fetch_latest_issue(repo_full_name: str) -> dict | None:
@@ -337,11 +342,15 @@ def main() -> None:
     # Fetch open PR counts for each non-archived repo
     print("Fetching open PR counts…", flush=True)
     open_pr_count_map: dict[str, int] = {}
+    agent_pr_count_map: dict[str, int] = {}
     for i, repo in enumerate(repos):
         if repo.get("archived"):
             open_pr_count_map[repo["full_name"]] = 0
+            agent_pr_count_map[repo["full_name"]] = 0
         else:
-            open_pr_count_map[repo["full_name"]] = fetch_open_pr_count(repo["full_name"])
+            total_prs, agent_prs = fetch_pr_counts(repo["full_name"])
+            open_pr_count_map[repo["full_name"]] = total_prs
+            agent_pr_count_map[repo["full_name"]] = agent_prs
             time.sleep(0.1)
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
@@ -396,6 +405,7 @@ def main() -> None:
              "file_count": file_count_map.get(repo["full_name"], 0),
              "branch_count": branch_count_map.get(repo["full_name"], 0),
              "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
+             "agent_pr_count": agent_pr_count_map.get(repo["full_name"], 0),
              "latest_issue": latest_issue_map.get(repo["full_name"]),
              "star_history": star_history_map.get(repo["full_name"], [])}
             for repo in repos
@@ -407,6 +417,7 @@ def main() -> None:
     total_readme_chars = sum(readme_chars_map.values())
     total_branches = sum(branch_count_map.values())
     total_open_prs = sum(open_pr_count_map.values())
+    total_agent_prs = sum(agent_pr_count_map.values())
     # GitHub's open_issues_count includes PRs; subtract to get true issue count
     total_issues = total_issues - total_open_prs
 
@@ -420,6 +431,7 @@ def main() -> None:
             "total_forks":        total_forks,
             "total_open_issues":  total_issues,
             "total_open_prs":     total_open_prs,
+            "total_agent_prs":    total_agent_prs,
             "total_size_kb":      total_size_kb,
             "total_topics":       len(all_topics),
             "total_languages":    len(all_lang_bytes),
