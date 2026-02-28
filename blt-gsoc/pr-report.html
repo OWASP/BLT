@@ -17,9 +17,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
-        }
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        soft: '0 10px 24px -16px rgba(17, 24, 39, 0.35)'
+                    }
+                }
+            }
+        };
     </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -29,194 +48,175 @@
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="css/main.css">
-
-    <!-- Theme Switcher Logic -->
-    <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
 </head>
 
-<body class="bg-white dark:bg-gray-900">
+<body class="bg-[#fafafa] font-sans text-gray-900 antialiased">
     <!-- Navigation -->
-    <nav class="bg-white dark:bg-gray-800 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">OWASP BLT GSoC</h1>
+    <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <a href="./" class="flex items-center gap-3" aria-label="OWASP BLT GSoC Home">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
+                    <i class="fa-solid fa-shield-halved text-sm" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <p class="text-sm font-extrabold leading-none">OWASP BLT</p>
+                    <p class="text-xs font-semibold text-gray-500">Google Summer of Code</p>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="./" class="text-gray-700 dark:text-gray-300 hover:text-red-500">Home</a>
-                    <a href="pr-report.html" class="text-red-500 font-medium">PR Analytics</a>
-                    <a href="https://github.com/OWASP-BLT/BLT-GSOC"
-                        class="text-gray-700 dark:text-gray-300 hover:text-red-500">
-                        <i class="fab fa-github"></i> GitHub
-                    </a>
-                    <!-- Theme Toggle Button -->
-                    <button
-                        class="theme-toggle-btn p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                        aria-label="Toggle Theme">
-                        <i class="fas fa-moon text-gray-600 dark:text-gray-400"></i>
-                    </button>
-                </div>
-            </div>
+            </a>
+
+            <nav class="flex items-center gap-6" aria-label="Top links">
+                <a href="./" class="text-sm font-semibold text-gray-700 hover:text-red-600 hover:underline">Home</a>
+                <a href="pr-report.html" class="text-sm font-semibold text-brand">PR Analytics</a>
+                <a href="https://github.com/OWASP-BLT/BLT-GSOC" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
+                    <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
+                </a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-12">
-        <h1 class="text-4xl font-bold mb-4 text-center text-gray-900 dark:text-white">
+    <main class="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-extrabold text-center text-gray-900 sm:text-4xl mb-4">
             Google Summer of Code - PR Analytics
         </h1>
-        <p class="text-lg text-center text-gray-600 dark:text-gray-400 mb-12">
+        <p class="text-base text-center text-gray-600 mb-12">
             Track pull request contributions across OWASP GSoC projects
         </p>
 
         <!-- Info Notice -->
-        <div
-            class="max-w-4xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8 mb-12">
+        <section class="max-w-4xl mx-auto rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 mb-12">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
-                    <i class="fas fa-info-circle text-3xl text-blue-600 dark:text-blue-400"></i>
+                    <i class="fas fa-info-circle text-3xl text-brand"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-3">
+                    <h2 class="text-2xl font-extrabold text-gray-900 mb-3">
                         Live Analytics Dashboard
                     </h2>
-                    <p class="text-blue-800 dark:text-blue-200 mb-4">
+                    <p class="text-gray-600 mb-4">
                         The PR Analytics dashboard requires a live backend connection to the OWASP BLT application
                         to fetch and display real-time pull request data from GitHub.
                     </p>
-                    <p class="text-blue-800 dark:text-blue-200 mb-6">
+                    <p class="text-gray-600 mb-6">
                         This static GitHub Pages site cannot display live PR data, but you can access the full
                         interactive dashboard on the main BLT application.
                     </p>
                     <a href="https://owaspblt.org/gsoc/pr-report/"
-                        class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700">
                         <i class="fas fa-external-link-alt mr-2"></i>
                         View Live Dashboard on BLT
                     </a>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Feature Overview -->
-        <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
+        <section class="max-w-6xl mx-auto">
+            <h2 class="text-2xl font-extrabold text-center text-gray-900 sm:text-3xl mb-8">
                 Dashboard Features
             </h2>
 
-            <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <div class="grid gap-6 md:grid-cols-2 mb-12">
                 <!-- Feature 1 -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
                     <div class="flex items-center mb-4">
-                        <div
-                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-chart-line text-2xl text-red-600 dark:text-red-400"></i>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 mr-4">
+                            <i class="fas fa-chart-line text-2xl text-brand"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Yearly Trends</h3>
+                        <h3 class="text-lg font-extrabold text-gray-900">Yearly Trends</h3>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400">
+                    <p class="text-sm text-gray-600">
                         Track PR contributions year-over-year across all OWASP GSoC projects with interactive charts
                         showing growth and participation trends.
                     </p>
-                </div>
+                </article>
 
                 <!-- Feature 2 -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
                     <div class="flex items-center mb-4">
-                        <div
-                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-code-branch text-2xl text-red-600 dark:text-red-400"></i>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 mr-4">
+                            <i class="fas fa-code-branch text-2xl text-brand"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Repository Stats</h3>
+                        <h3 class="text-lg font-extrabold text-gray-900">Repository Stats</h3>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400">
+                    <p class="text-sm text-gray-600">
                         View detailed statistics for each repository including total PRs, unique contributors,
                         and contribution patterns.
                     </p>
-                </div>
+                </article>
 
                 <!-- Feature 3 -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
                     <div class="flex items-center mb-4">
-                        <div
-                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-users text-2xl text-red-600 dark:text-red-400"></i>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 mr-4">
+                            <i class="fas fa-users text-2xl text-brand"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Contributor Metrics</h3>
+                        <h3 class="text-lg font-extrabold text-gray-900">Contributor Metrics</h3>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400">
+                    <p class="text-sm text-gray-600">
                         Analyze contributor activity with metrics on PR counts, merge rates, and participation
                         across different GSoC periods.
                     </p>
-                </div>
+                </article>
 
                 <!-- Feature 4 -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
                     <div class="flex items-center mb-4">
-                        <div
-                            class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
-                            <i class="fas fa-filter text-2xl text-red-600 dark:text-red-400"></i>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 mr-4">
+                            <i class="fas fa-filter text-2xl text-brand"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Year Filtering</h3>
+                        <h3 class="text-lg font-extrabold text-gray-900">Year Filtering</h3>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400">
+                    <p class="text-sm text-gray-600">
                         Filter data by specific GSoC years to compare performance and track improvements
                         across different program cycles.
                     </p>
-                </div>
+                </article>
             </div>
 
             <!-- CTA Section -->
             <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-4">
                     Want to Contribute?
                 </h2>
-                <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+                <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
                     Join us in the next Google Summer of Code program and contribute to OWASP security projects.
                     Learn more about available projects and how to apply.
                 </p>
                 <div class="flex flex-wrap justify-center gap-4">
                     <a href="./"
-                        class="inline-flex items-center px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors">
+                        class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700">
                         <i class="fas fa-home mr-2"></i>
                         Back to Home
                     </a>
                     <a href="https://owasp.org/www-community/initiatives/gsoc/"
-                        class="inline-flex items-center px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-lg transition-colors">
+                        class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-6 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
                         <i class="fas fa-book mr-2"></i>
                         GSoC Guidelines
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 dark:bg-gray-800 mt-20">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <p class="text-gray-600 dark:text-gray-400">
+    <footer class="border-t border-neutral-border bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+            <div class="text-center lg:text-left">
+                <p class="text-sm text-gray-600">
                     © 2024-2026 OWASP Foundation. Part of the
-                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-500 hover:text-red-600">OWASP BLT
-                        Project</a>
+                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-600 hover:underline">OWASP BLT Project</a>
                 </p>
-                <p class="text-gray-500 dark:text-gray-500 mt-2 text-sm">
-                    Hosted on <a href="https://pages.github.com/" class="text-red-500 hover:text-red-600">GitHub
-                        Pages</a>
-                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-sm">
+                <a href="https://github.com/OWASP-BLT/BLT-GSOC" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:underline">BLT-GSOC Repo</a>
+                <a href="https://owasp.org/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">OWASP</a>
+                <a href="https://pages.github.com/" class="text-red-600 hover:underline">GitHub Pages</a>
             </div>
         </div>
     </footer>
-    <script src="js/theme.js"></script>
 </body>
 
 </html>
