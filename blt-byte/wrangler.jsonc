@@ -1,0 +1,15 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "blt-byte-chatbot",
+	"main": "src/entry.py",
+	"compatibility_date": "2025-11-02",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"observability": {
+		"enabled": true
+	}
+}

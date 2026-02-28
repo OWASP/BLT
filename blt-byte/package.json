@@ -1,0 +1,14 @@
+{
+    "name": "blt-byte-chatbot",
+    "version": "0.1.0",
+    "description": "BLT AI Chatbot - Python AI worker for bug bounty assistance",
+    "private": true,
+    "scripts": {
+        "deploy": "uv run pywrangler deploy",
+        "dev": "uv run pywrangler dev",
+        "start": "uv run pywrangler dev"
+    },
+    "devDependencies": {
+        "wrangler": "^4.46.0"
+    }
+}
