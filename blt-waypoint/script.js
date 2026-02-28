@@ -601,6 +601,7 @@ function renderTableView(repos, container) {
     else if (tableSortCol === 'updated_at') v = new Date(a.updated_at) - new Date(b.updated_at);
     else if (tableSortCol === 'maturity')   v = maturityScore(a) - maturityScore(b);
     else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
+    else if (tableSortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
     else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
     return tableSortDir === 'asc' ? v : -v;
   });
