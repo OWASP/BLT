@@ -519,7 +519,16 @@ function repoCardHTML(r) {
         >
           <i class="fa-solid fa-arrow-up-right-from-square mr-1.5" aria-hidden="true"></i>Live Site
         </a>
-      ` : ''}
+      ` : `
+        <span
+          role="button"
+          aria-disabled="true"
+          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded-md cursor-not-allowed"
+          title="No live site"
+        >
+          <i class="fa-solid fa-arrow-up-right-from-square mr-1.5" aria-hidden="true"></i>Live Site
+        </span>
+      `}
       ${projectUrl ? `
         <a
           href="${escapeHtml(projectUrl)}"
@@ -530,7 +539,16 @@ function repoCardHTML(r) {
         >
           <i class="fa-solid fa-rocket mr-1.5" aria-hidden="true"></i>Project
         </a>
-      ` : ''}
+      ` : `
+        <span
+          role="button"
+          aria-disabled="true"
+          class="flex-1 text-center text-xs font-semibold px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded-md cursor-not-allowed"
+          title="No project board"
+        >
+          <i class="fa-solid fa-rocket mr-1.5" aria-hidden="true"></i>Project
+        </span>
+      `}
     </div>
     <!-- Tiny action buttons -->
     <div class="flex gap-1.5 flex-wrap">
@@ -670,8 +688,8 @@ function renderTableView(repos, container) {
       <td class="px-3 py-2 whitespace-nowrap">
         <div class="flex gap-1.5">
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-          ${r.homepage ? `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Live Site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : ''}
-          ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : ''}
+          ${r.homepage ? `<a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Live Site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No live site"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>`}
+          ${projectUrl ? `<a href="${escapeHtml(projectUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-brand text-brand rounded hover:bg-brand hover:text-white transition-colors" title="Project Board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></a>` : `<span role="button" aria-disabled="true" class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600 rounded cursor-not-allowed" title="No project board"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>`}
           <a href="${escapeHtml(r.html_url)}/issues/new" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="New Issue"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i></a>
           <a href="https://github.com/${ORG}/${r.name}/agents" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded hover:border-brand hover:text-brand transition-colors" title="Open agent tasks for this repo"><i class="fa-solid fa-robot" aria-hidden="true"></i></a>
         </div>
