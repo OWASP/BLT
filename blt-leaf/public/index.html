@@ -481,6 +481,26 @@
                     <ul id="orgFilterDropdown" class="hidden absolute z-20 mt-1 w-full rounded-lg border border-slate-300 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-700 max-h-48 overflow-y-auto"></ul>
                 </div>
 
+                <!-- Author filter -->
+                <div class="mb-3 relative" id="authorFilterContainer">
+                    <label for="authorFilterInput" class="block mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Filter by Author</label>
+                    <div class="relative">
+                        <input type="text" id="authorFilterInput"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#E10000] focus:outline-none focus:ring-1 focus:ring-[#E10000] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                            placeholder="All authors..."
+                            autocomplete="off"
+                            aria-label="Filter pull requests by author" />
+                        <button id="authorFilterClearBtn" type="button"
+                            class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            aria-label="Clear author filter">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="authorFilterDropdown" class="hidden absolute z-20 mt-1 w-full rounded-lg border border-slate-300 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-700 max-h-48 overflow-y-auto"></ul>
+                </div>
+
                 <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repositories <span id="repoCountDisplay"></span>
                     <button id="repoSortBtn" title="Sort repositories by open PRs" onclick="toggleRepoSort()"
                         class="ml-1 inline-flex items-center rounded px-1 py-0.5 text-slate-400 hover:text-[#BC0000] dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors align-middle"
@@ -590,8 +610,10 @@
     <script>
         let currentRepo = localStorage.getItem('currentRepo') || 'all';
         let currentOrg = localStorage.getItem('currentOrg') || '';
+        let currentAuthor = localStorage.getItem('currentAuthor') || '';
         let allPrs = [];
         let repos = [];
+        let allAuthors = []; // All unique authors from the database (including bots)
         let repoSortByPrs = localStorage.getItem('repoSortByPrs') !== 'false';
         // Support unlimited sort columns
         // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
@@ -1226,6 +1248,93 @@
             });
         }
 
+        function getUniqueAuthors() {
+            // Use server-fetched allAuthors list (includes bots and authors not on current page)
+            // Fall back to authors from currently loaded PRs if allAuthors is not yet populated
+            if (allAuthors.length > 0) {
+                return allAuthors;
+            }
+            return [...new Set(allPrs.map(pr => pr.author_login).filter(Boolean))].sort();
+        }
+
+        function initAuthorFilter() {
+            const input = document.getElementById('authorFilterInput');
+            const dropdown = document.getElementById('authorFilterDropdown');
+            const clearBtn = document.getElementById('authorFilterClearBtn');
+            if (!input || !dropdown || !clearBtn) return;
+
+            // Set initial value from saved state
+            if (currentAuthor) {
+                input.value = currentAuthor;
+                clearBtn.classList.remove('hidden');
+            }
+
+            function renderAuthorDropdown(filter) {
+                const authors = getUniqueAuthors().filter(a =>
+                    !filter || a.toLowerCase().includes(filter.toLowerCase())
+                );
+                dropdown.innerHTML = '';
+                if (authors.length === 0) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+                authors.forEach(author => {
+                    const li = document.createElement('li');
+                    li.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100' +
+                        (author === currentAuthor ? ' bg-red-50 dark:bg-red-950/30 font-semibold' : '');
+                    li.textContent = author;
+                    li.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        selectAuthor(author);
+                    });
+                    dropdown.appendChild(li);
+                });
+                dropdown.classList.remove('hidden');
+            }
+
+            function selectAuthor(author) {
+                currentAuthor = author;
+                localStorage.setItem('currentAuthor', currentAuthor);
+                input.value = author;
+                clearBtn.classList.remove('hidden');
+                dropdown.classList.add('hidden');
+                currentPage = 1;
+                loadPrs();
+            }
+
+            input.addEventListener('focus', () => {
+                renderAuthorDropdown(input.value);
+            });
+
+            input.addEventListener('input', () => {
+                const val = input.value.trim();
+                clearBtn.classList.toggle('hidden', !val);
+                renderAuthorDropdown(val);
+                // If cleared entirely, reset author filter
+                if (!val && currentAuthor) {
+                    currentAuthor = '';
+                    localStorage.setItem('currentAuthor', '');
+                    currentPage = 1;
+                    loadPrs();
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                // Delay hiding to allow mousedown on items to fire
+                setTimeout(() => dropdown.classList.add('hidden'), 150);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                input.value = '';
+                clearBtn.classList.add('hidden');
+                dropdown.classList.add('hidden');
+                currentAuthor = '';
+                localStorage.setItem('currentAuthor', '');
+                currentPage = 1;
+                loadPrs();
+            });
+        }
+
         function scrollToTop() {
             const mainEl = document.querySelector('main');
             if (mainEl) {
@@ -1259,6 +1368,34 @@
                 renderRepoList();
             } catch (error) {
                 console.error('Error loading repos:', error);
+            }
+        }
+
+        async function loadAuthors(bypassCache = false) {
+            try {
+                const response = bypassCache
+                    ? await fetch(`/api/authors?_=${Date.now()}`)
+                    : await fetch('/api/authors');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading authors:', data.error);
+                    return;
+                }
+
+                // Store just the login strings, sorted alphabetically
+                allAuthors = data.authors.map(a => a.author_login).sort();
+                // Validate saved author filter against loaded authors
+                if (currentAuthor && !allAuthors.includes(currentAuthor)) {
+                    currentAuthor = '';
+                    localStorage.setItem('currentAuthor', '');
+                    const input = document.getElementById('authorFilterInput');
+                    const clearBtn = document.getElementById('authorFilterClearBtn');
+                    if (input) input.value = '';
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading authors:', error);
             }
         }
 
@@ -1522,6 +1659,7 @@
                 } else {
                     url = `/api/prs?repo=${encodeURIComponent(currentRepo)}&page=${currentPage}&per_page=${perPage}&sort_by=${sortByParam}&sort_dir=${sortDirParam}`;
                 }
+                if (currentAuthor) url += `&author=${encodeURIComponent(currentAuthor)}`;
                 if (bypassCache) url += `&_=${Date.now()}`;
 
                 const response = await fetch(url);
@@ -3411,7 +3549,10 @@
         // initOrgFilter sets up event listeners only; dropdown items are populated from `repos`
         // on user interaction, so calling this before loadRepos() is safe.
         initOrgFilter();
+        // initAuthorFilter sets up event listeners only; dropdown items are populated from /api/authors.
+        initAuthorFilter();
         loadRepos();
+        loadAuthors();
         loadPrs().then(handlePrUrlParam);
         setInterval(loadRateLimit, 600000);
 

@@ -263,7 +263,7 @@ async def handle_add_pr(request, env):
             {'status': 500, 'headers': {'Content-Type': 'application/json'}}
         )
 
-async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None, org_filter=None):
+async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=None, sort_dir=None, org_filter=None, author_filter=None):
     """List PRs with pagination and sorting (default 30 per page)."""
     try:
         db = get_db(env)
@@ -291,6 +291,10 @@ async def handle_list_prs(env, repo_filter=None, page=1, per_page=30, sort_by=No
         elif org_filter:
             base_query += ' AND repo_owner = ?'
             params.append(org_filter)
+
+        if author_filter:
+            base_query += ' AND author_login = ?'
+            params.append(author_filter)
 
         # Map frontend column names to database column names or SQL expressions
         # This allows the UI to use friendly names that map to actual DB columns
@@ -443,6 +447,33 @@ async def handle_list_repos(env):
         await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_list_repos'})
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}), 
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+async def handle_list_authors(env):
+    """List all unique PR authors (including bots) with count of open PRs"""
+    try:
+        db = get_db(env)
+        stmt = db.prepare('''
+            SELECT author_login, COUNT(*) as pr_count,
+                   MAX(author_avatar) as author_avatar
+            FROM prs
+            WHERE is_merged = 0 AND state = 'open' AND author_login IS NOT NULL AND author_login != ''
+            GROUP BY author_login
+            ORDER BY author_login ASC
+        ''')
+
+        result = await stmt.all()
+        authors = result.results.to_py() if hasattr(result, 'results') else []
+
+        return Response.new(json.dumps({'authors': authors}),
+                          {'headers': {
+                              'Content-Type': 'application/json',
+                              'Cache-Control': 'public, max-age=60, stale-while-revalidate=300'
+                          }})
+    except Exception as e:
+        await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_list_authors'})
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
 
 async def handle_refresh_pr(request, env):
     """Refresh a specific PR's data"""
