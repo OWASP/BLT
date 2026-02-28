@@ -1,10 +1,8 @@
 /* Custom styles for OWASP BLT GSoC Pages */
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    html {
-        color-scheme: dark;
-    }
+/* Force light mode */
+html {
+    color-scheme: light;
 }
 
 /* Mentor description container styles */
