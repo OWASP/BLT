@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Submit a public bug report to BLT Pages. Report broken pages, typos, performance issues, and more." />
+  <title>Report a Bug – BLT Pages</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary:          '#E10101',
+            'primary-hover':  '#B91C1C',
+            'dark-base':      '#111827',
+            'dark-surface':   '#1F2937',
+            'neutral-border': '#E5E5E5',
+            'active-bg':      '#feeae9',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    body { transition: background-color 0.2s, color 0.2s; }
+  </style>
+</head>
+
+<body class="bg-white dark:bg-dark-base text-gray-900 dark:text-gray-100 font-sans antialiased">
+
+  <!-- ================================================================
+       HEADER
+  ================================================================ -->
+  <header class="sticky top-0 z-50 bg-white/95 dark:bg-dark-base/95 backdrop-blur border-b border-neutral-border dark:border-gray-800 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <a href="/" class="flex items-center gap-2 flex-shrink-0" aria-label="BLT Pages home">
+          <span class="flex items-center justify-center w-8 h-8 bg-primary rounded text-white font-bold text-sm" aria-hidden="true">B</span>
+          <span class="font-bold text-gray-900 dark:text-white text-lg leading-none">
+            BLT <span class="text-primary">Pages</span>
+          </span>
+        </a>
+
+        <div class="flex items-center gap-3">
+          <button
+            id="dark-toggle"
+            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+          </button>
+
+          <a href="/" class="hidden sm:inline-flex items-center gap-2 border border-neutral-border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary hover:text-primary font-semibold text-sm px-4 py-2 rounded-lg transition-colors">
+            <i class="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       MAIN
+  ================================================================ -->
+  <main class="py-12 sm:py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Page header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-active-bg rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-bug text-primary" aria-hidden="true"></i>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Report a Bug</h1>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+          Found a public-facing issue? Fill out the form below. Your report will be filed as a
+          GitHub issue and added to the leaderboard.
+        </p>
+      </div>
+
+      <!-- Anonymous notice banner (shown when ?anonymous=true) -->
+      <div id="anon-banner" class="hidden mb-6 flex items-start gap-3 bg-active-bg border border-red-200 rounded-xl p-4">
+        <i class="fa-solid fa-user-secret text-primary text-lg mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Anonymous mode enabled</p>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+            Your report will be submitted via BLT-API. No GitHub account is needed and your
+            identity will not be attached to the issue.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Bug Report Form ── -->
+      <form id="bug-form" novalidate class="space-y-6">
+
+        <!-- Organisation Name -->
+        <div>
+          <label for="org_name" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Organization Name <span class="text-primary" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+            <code class="ml-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">ORG_NAME</code>
+          </label>
+          <input
+            type="text"
+            id="org_name"
+            name="org_name"
+            required
+            autocomplete="organization"
+            placeholder="e.g., Example Corp"
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+            aria-required="true"
+          />
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Name of the organization whose site or product has the issue.</p>
+        </div>
+
+        <!-- Organisation Logo URL -->
+        <div>
+          <label for="logo_url" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Organization Logo URL
+            <code class="ml-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">LOGO_URL</code>
+          </label>
+          <input
+            type="url"
+            id="logo_url"
+            name="logo_url"
+            placeholder="https://example.com/logo.png"
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+          />
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Used to display the organization's logo on the leaderboard (optional).</p>
+        </div>
+
+        <!-- Bug URL -->
+        <div>
+          <label for="bug_url" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Bug URL <span class="text-primary" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <i class="fa-solid fa-link text-gray-400 text-sm" aria-hidden="true"></i>
+            </span>
+            <input
+              type="url"
+              id="bug_url"
+              name="bug_url"
+              required
+              placeholder="https://example.com/broken-page"
+              class="w-full border border-gray-400 dark:border-gray-600 rounded-md pl-9 pr-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+              aria-required="true"
+            />
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Full URL of the page or endpoint with the bug.</p>
+        </div>
+
+        <!-- Bug Title -->
+        <div>
+          <label for="title" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Title <span class="text-primary" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            maxlength="200"
+            placeholder="Short summary of the bug"
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+            aria-required="true"
+          />
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label for="category" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Category <span class="text-primary" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+          </label>
+          <select
+            id="category"
+            name="category"
+            required
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+            aria-required="true"
+          >
+            <option value="" disabled selected>Select a category…</option>
+            <option value="http_error">HTTP Error (404, 500, etc.)</option>
+            <option value="functional">Functional Issue (something broken)</option>
+            <option value="performance">Performance Issue (slow loading)</option>
+            <option value="typo">Typo / Content Error</option>
+            <option value="design">Design Issue</option>
+            <option value="ip_violation">Intellectual Property Violation (trademark / license)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="description" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Description <span class="text-primary" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            required
+            rows="5"
+            placeholder="Describe the bug clearly. What did you expect to happen? What actually happened?"
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition resize-y"
+            aria-required="true"
+          ></textarea>
+        </div>
+
+        <!-- Steps to Reproduce -->
+        <div>
+          <label for="steps" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Steps to Reproduce
+          </label>
+          <textarea
+            id="steps"
+            name="steps"
+            rows="4"
+            placeholder="1. Go to https://…&#10;2. Click on "…"&#10;3. See error"
+            class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition resize-y font-mono"
+          ></textarea>
+        </div>
+
+        <!-- Screenshot URL -->
+        <div>
+          <label for="screenshot_url" class="block text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+            Screenshot / Evidence URL
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <i class="fa-solid fa-image text-gray-400 text-sm" aria-hidden="true"></i>
+            </span>
+            <input
+              type="url"
+              id="screenshot_url"
+              name="screenshot_url"
+              placeholder="https://imgur.com/…"
+              class="w-full border border-gray-400 dark:border-gray-600 rounded-md pl-9 pr-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+            />
+          </div>
+        </div>
+
+        <!-- Anonymous checkbox -->
+        <div class="bg-gray-50 dark:bg-dark-surface border border-neutral-border dark:border-gray-700 rounded-xl p-4">
+          <label class="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              id="anonymous"
+              name="anonymous"
+              class="mt-0.5 h-4 w-4 rounded border-gray-400 cursor-pointer accent-[#E10101]"
+              aria-describedby="anon-form-desc"
+            />
+            <div>
+              <span class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                <i class="fa-solid fa-user-secret mr-1" aria-hidden="true"></i>
+                Report Anonymously
+              </span>
+              <p id="anon-form-desc" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                When checked your report is submitted via BLT-API using a shared token — no GitHub
+                account required and your identity will not appear on the issue.
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Error / success alert area -->
+        <div id="form-alert" class="hidden rounded-xl p-4 text-sm" role="alert" aria-live="polite"></div>
+
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button
+            type="submit"
+            id="submit-btn"
+            class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+            <span id="submit-label">Submit Report</span>
+          </button>
+
+          <a
+            id="github-direct-link"
+            href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-center gap-2 border-2 border-neutral-border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary hover:text-primary font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Open GitHub Template
+          </a>
+        </div>
+
+        <p class="text-xs text-center text-gray-400 dark:text-gray-600">
+          By submitting you agree that this is a publicly visible, non-security issue.
+          For security vulnerabilities use
+          <a href="https://blt-zero.owasp.org" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">BLT-Zero</a>.
+        </p>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- ================================================================
+       FOOTER
+  ================================================================ -->
+  <footer class="bg-gray-50 dark:bg-dark-surface border-t border-neutral-border dark:border-gray-800 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-xs text-gray-400 dark:text-gray-600">
+        &copy; <span id="footer-year"></span> OWASP Foundation &amp; BLT Contributors · AGPLv3
+      </p>
+      <a href="/" class="text-xs text-primary hover:underline">← Back to BLT Pages</a>
+    </div>
+  </footer>
+
+  <!-- ================================================================
+       SCRIPTS
+  ================================================================ -->
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    /* ── Footer year ── */
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+    /* ── Read ?anonymous=true from URL ── */
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const isAnon = params.get('anonymous') === 'true';
+      const checkbox = document.getElementById('anonymous');
+      const banner   = document.getElementById('anon-banner');
+
+      if (isAnon && checkbox) {
+        checkbox.checked = true;
+        if (banner) banner.classList.remove('hidden');
+      }
+    })();
+
+    /* ── Form submission ── */
+    document.getElementById('bug-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const form       = e.target;
+      const submitBtn  = document.getElementById('submit-btn');
+      const submitLbl  = document.getElementById('submit-label');
+      const alert      = document.getElementById('form-alert');
+      const isAnon     = document.getElementById('anonymous').checked;
+
+      const data = {
+        org_name:       form.org_name.value.trim(),
+        logo_url:       form.logo_url.value.trim(),
+        bug_url:        form.bug_url.value.trim(),
+        title:          form.title.value.trim(),
+        category:       form.category.value,
+        description:    form.description.value.trim(),
+        steps:          form.steps.value.trim(),
+        screenshot_url: form.screenshot_url.value.trim(),
+        anonymous:      isAnon,
+      };
+
+      /* Basic validation */
+      if (!data.org_name || !data.bug_url || !data.title || !data.category || !data.description) {
+        showAlert(alert, 'error', 'Please fill in all required fields.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitLbl.textContent = 'Submitting…';
+      alert.classList.add('hidden');
+
+      if (isAnon) {
+        /* ── Anonymous path: POST to BLT-API ── */
+        try {
+          const res = await fetch(`${BLT_CONFIG.BLT_API_URL}/bug-report/`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(data),
+          });
+
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.detail || `Server error ${res.status}`);
+          }
+
+          const result = await res.json();
+          showAlert(alert, 'success',
+            `<i class="fa-solid fa-circle-check mr-2" aria-hidden="true"></i>
+             Report submitted anonymously! Issue ID: <strong>#${result.issue_number || '—'}</strong>.
+             <a href="${result.issue_url || '#'}" target="_blank" rel="noopener noreferrer" class="text-primary underline ml-1">View on GitHub</a>`
+          );
+          form.reset();
+        } catch (err) {
+          showAlert(alert, 'error',
+            `<i class="fa-solid fa-circle-exclamation mr-2" aria-hidden="true"></i>
+             Submission failed: ${err.message}. Please try the
+             <a href="${buildGithubUrl(data)}" target="_blank" rel="noopener noreferrer" class="text-primary underline">GitHub template</a> instead.`
+          );
+        }
+
+      } else {
+        /* ── Authenticated path: redirect to GitHub new-issue URL ── */
+        window.open(buildGithubUrl(data), '_blank', 'noopener,noreferrer');
+        showAlert(alert, 'success',
+          `<i class="fa-solid fa-circle-check mr-2" aria-hidden="true"></i>
+           GitHub issue editor opened in a new tab. Sign in with your GitHub account to submit.`
+        );
+      }
+
+      submitBtn.disabled = false;
+      submitLbl.textContent = 'Submit Report';
+    });
+
+    function buildGithubUrl(data) {
+      const body = [
+        `### Organization Name (ORG_NAME)\n\n${data.org_name}`,
+        `### Organization Logo URL (LOGO_URL)\n\n${data.logo_url || '_Not provided_'}`,
+        `### Bug URL / Link\n\n${data.bug_url}`,
+        `### Bug Category\n\n${data.category}`,
+        `### Description\n\n${data.description}`,
+        data.steps ? `### Steps to Reproduce\n\n${data.steps}` : null,
+        data.screenshot_url ? `### Screenshot / Evidence URL\n\n${data.screenshot_url}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      const params = new URLSearchParams({
+        title:  `[BUG] ${data.title}`,
+        body,
+        labels: 'bug',
+      });
+
+      return `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?${params.toString()}`;
+    }
+
+    function showAlert(el, type, html) {
+      el.innerHTML = html;
+      el.className = [
+        'rounded-xl p-4 text-sm',
+        type === 'success'
+          ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800'
+          : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800',
+      ].join(' ');
+      el.classList.remove('hidden');
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>
