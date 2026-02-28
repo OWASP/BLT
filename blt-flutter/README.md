@@ -4,11 +4,6 @@
 
 [![Build Status](https://github.com/OWASP/BLT/actions/workflows/auto-merge.yml/badge.svg)](https://github.com/OWASP/BLT/actions)  [![Codemagic build status](https://api.codemagic.io/apps/6431abfbf74e86c5576583d2/6431abfbf74e86c5576583d1/status_badge.svg)](https://codemagic.io/apps/6431abfbf74e86c5576583d2/6431abfbf74e86c5576583d1/latest_build)
 
-<img src="./assets/github/gh_screen1.png" width=150> &emsp;
-<img src="./assets/github/gh_screen2.png" width=150> &emsp;
-<img src="./assets/github/gh_screen3.png" width=150> &emsp;
-<img src="./assets/github/gh_screen4.png" width=150> &emsp;
-
 ### Check exiting issues.
 Find the bugs and issues in current websites, maybe help fixing 'em too?
 
