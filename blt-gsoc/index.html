@@ -19,7 +19,15 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Check for dark mode preference at the earliest possible moment
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -41,16 +49,18 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/main.css">
 </head>
 
-<body class="bg-[#fafafa] font-sans text-gray-900 antialiased">
-    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[460px] bg-gradient-to-b from-red-100 via-rose-50 to-transparent"></div>
+<body
+    class="bg-[#fafafa] font-sans text-gray-900 antialiased transition-colors duration-200 dark:bg-dark-base dark:text-gray-100">
 
-    <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur">
+    <header
+        class="sticky top-0 z-50 border-b border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <a href="#main-content" class="flex items-center gap-3" aria-label="OWASP BLT GSoC Home">
                 <img src="./images/logo.png" alt="OWASP BLT Logo" class="h-8 w-8">
@@ -61,12 +71,18 @@
             </a>
 
             <div class="flex items-center gap-2">
+                <button id="theme-toggle" type="button"
+                    class="theme-toggle-btn inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                    aria-label="Toggle dark mode">
+                    <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+                    <i class="fa-solid fa-sun hidden dark:block" aria-hidden="true"></i>
+                </button>
                 <a href="https://github.com/OWASP-BLT/BLT-GSOC" target="_blank" rel="noopener noreferrer"
                     class="hidden items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:inline-flex">
                     <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
                 </a>
                 <button id="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="mobile-drawer"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 lg:hidden">
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 lg:hidden dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                     <i class="fa-solid fa-bars" aria-hidden="true"></i>
                     <span class="sr-only">Open navigation menu</span>
                 </button>
@@ -76,203 +92,38 @@
 
     <div id="mobile-drawer" class="fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
         <div id="mobile-overlay" class="absolute inset-0 bg-black/35"></div>
-        <div class="absolute right-0 top-0 h-full w-[92%] max-w-md overflow-y-auto border-l border-neutral-border bg-white p-4 shadow-2xl">
-            <div class="mb-4 flex items-center justify-between border-b border-neutral-border pb-3">
+        <div
+            class="absolute right-0 top-0 h-full w-[92%] max-w-md overflow-y-auto border-l border-neutral-border bg-white p-4 shadow-2xl transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+            <div
+                class="mb-4 flex items-center justify-between border-b border-neutral-border pb-3 dark:border-gray-800">
                 <p class="text-sm font-extrabold uppercase tracking-[0.14em] text-brand">Open Menu</p>
                 <button id="mobile-close-btn" type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-border text-gray-600 hover:bg-gray-100">
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-border text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     <span class="sr-only">Close navigation menu</span>
                 </button>
             </div>
 
             <div class="space-y-4 pb-8">
-                <div class="rounded-lg border border-neutral-border bg-gray-50 p-3">
-                    <label for="mobile-search" class="sr-only">Search menu</label>
-                    <div class="relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        </span>
-                        <input id="mobile-search" type="search" placeholder="Search pages"
-                            class="w-full rounded-md border border-neutral-border px-4 py-2 pl-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
-                    </div>
-                </div>
 
-                <details open class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Program Sections</summary>
-                    <ul class="mt-3 space-y-2 text-sm font-semibold text-gray-700">
+                <details open
+                    class="rounded-lg border border-neutral-border bg-white p-3 dark:border-gray-800 dark:bg-dark-surface">
+                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900 dark:text-gray-100">Program
+                        Sections</summary>
+                    <ul class="mt-3 space-y-2 text-sm font-semibold text-gray-700 dark:text-gray-400">
                         <li><a href="#main-content" class="text-red-600 hover:underline">Main Content</a></li>
-                        <li><a href="#features" class="text-red-600 hover:underline">Features</a></li>
                         <li><a href="#benefits" class="text-red-600 hover:underline">Program Benefits</a></li>
-                        <li><a href="#partnership" class="text-red-600 hover:underline">OWASP BLT & GSOC Partnership</a></li>
+                        <li><a href="#partnership" class="text-red-600 hover:underline">OWASP BLT & GSOC Partnership</a>
+                        </li>
                         <li><a href="#project-ideas" class="text-red-600 hover:underline">Project Ideas</a></li>
                         <li><a href="#past-events" class="text-red-600 hover:underline">Past GSOC Events</a></li>
                         <li><a href="#success-stories" class="text-red-600 hover:underline">Success Stories</a></li>
-                        <li><a href="#current-mentors" class="text-red-600 hover:underline">Current 2026 Mentors</a></li>
+                        <li><a href="#current-mentors" class="text-red-600 hover:underline">Current 2026 Mentors</a>
+                        </li>
                         <li><a href="#past-mentors" class="text-red-600 hover:underline">Past Mentors</a></li>
                     </ul>
                 </details>
 
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">All</summary>
-                    <p class="mt-2 text-sm text-gray-600">Global dashboard entry point.</p>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Organizations</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Organizations</li>
-                        <li>Register Organization</li>
-                        <li>Domains</li>
-                        <li>Map</li>
-                        <li>Feed</li>
-                        <li>Hackathons</li>
-                        <li>Jobs</li>
-                        <li>Bugs</li>
-                        <li>Issues</li>
-                        <li>Time Logs</li>
-                        <li>Check-In</li>
-                        <li>Scoreboard</li>
-                        <li>Bounties</li>
-                        <li>Reported IPs</li>
-                        <li>Trademarks</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Projects</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Projects</li>
-                        <li>Repositories</li>
-                        <li>Bid on Issues</li>
-                        <li>Funding</li>
-                        <li>BACON (coin)</li>
-                        <li>Bacon Requests</li>
-                        <li>GSOC PR Reports</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Users</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Users</li>
-                        <li>Messaging</li>
-                        <li>Challenges</li>
-                        <li>Staking</li>
-                        <li>Leaderboard</li>
-                        <li>Contributors</li>
-                        <li>Takedowns</li>
-                        <li>Badges</li>
-                        <li>Adventures</li>
-                        <li>Reminder Settings</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Teams</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Teams</li>
-                        <li>Challenges</li>
-                        <li>Leaderboard</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">About Us</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>About Us</li>
-                        <li>Features</li>
-                        <li>Sponsorships</li>
-                        <li>OWASP Project</li>
-                        <li>Donations</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Contribute</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Contribute</li>
-                        <li>Documentation</li>
-                        <li>Developer API</li>
-                        <li>Education</li>
-                        <li>Security Labs</li>
-                        <li>Open Source Sorting Hat</li>
-                        <li>GSOC</li>
-                        <li>Roadmap</li>
-                        <li>Submit PR for review</li>
-                        <li>Create an Issue</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">GitHub</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>GitHub</li>
-                        <li>BLT Core</li>
-                        <li>BLT Flutter</li>
-                        <li>BLT Extension</li>
-                        <li>BLT Action</li>
-                        <li>BLT BACON</li>
-                        <li>BLT Lettuce</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Communication</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Communication</li>
-                        <li>SimilarityScan</li>
-                        <li>Rooms</li>
-                        <li>Video Call</li>
-                        <li>Banned Apps</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Apps</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Apps</li>
-                        <li>iPhone App</li>
-                        <li>Chrome Extension</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Social Links</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Twitter</li>
-                        <li>Facebook</li>
-                        <li>Blog</li>
-                        <li>Slack</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Site Info</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Sitemap</li>
-                        <li>Status</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Stats</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Stats Dashboard</li>
-                        <li>Template List</li>
-                        <li>Website Stats</li>
-                    </ul>
-                </details>
-
-                <details class="rounded-lg border border-neutral-border bg-white p-3">
-                    <summary class="cursor-pointer text-sm font-extrabold text-gray-900">Legal & Resources</summary>
-                    <ul class="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-gray-700">
-                        <li>Terms</li>
-                        <li>Language: English</li>
-                        <li>Design</li>
-                        <li>Style Guide</li>
-                        <li>Edit this page</li>
-                    </ul>
                 </details>
             </div>
         </div>
@@ -281,76 +132,83 @@
     <main id="main-content" class="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="hidden lg:block">
-                <div class="sticky top-24 rounded-xl border border-neutral-border bg-white p-4 shadow-soft">
-                    <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.15em] text-gray-500">Sections</p>
+                <div
+                    class="sticky top-24 rounded-xl border border-neutral-border bg-white p-4 shadow-soft transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+                    <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400">
+                        Sections</p>
                     <div class="mb-5">
-                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500">Overview</p>
+                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
+                            Overview</p>
                         <ul class="space-y-1 text-sm font-semibold">
                             <li>
-                                <a href="#main-content"
-                                    class="flex items-center gap-2 rounded-md bg-[#feeae9] px-3 py-2 text-[#E10101]">
+                                <a href="#hero"
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                     <i class="fa-solid fa-house" aria-hidden="true"></i>Main
                                 </a>
                             </li>
-                            <li><a href="#features" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-list-check text-gray-400" aria-hidden="true"></i>Features</a></li>
-                            <li><a href="#benefits" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-user-graduate text-gray-400" aria-hidden="true"></i>Benefits</a></li>
+                            <li><a href="#benefits"
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-user-graduate" aria-hidden="true"></i>Benefits</a></li>
+                            <li><a href="#partnership"
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-handshake" aria-hidden="true"></i>Partnership</a></li>
                             <li><a href="#project-ideas"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-lightbulb text-gray-400" aria-hidden="true"></i>Project Ideas</a></li>
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-lightbulb" aria-hidden="true"></i>Project
+                                    Ideas</a></li>
                         </ul>
                     </div>
 
                     <div class="mb-5">
-                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500">Community</p>
+                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
+                            Community</p>
                         <ul class="space-y-1 text-sm font-semibold">
-                            <li><a href="#past-events" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-calendar-days text-gray-400" aria-hidden="true"></i>Past Events</a></li>
+                            <li><a href="#past-events"
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-calendar-days" aria-hidden="true"></i>Past
+                                    Events</a></li>
                             <li><a href="#success-stories"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-award text-gray-400" aria-hidden="true"></i>Success Stories</a></li>
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-award" aria-hidden="true"></i>Success
+                                    Stories</a></li>
                             <li><a href="#current-mentors"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-users text-gray-400" aria-hidden="true"></i>Current Mentors</a></li>
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-users" aria-hidden="true"></i>Current
+                                    Mentors</a></li>
                             <li><a href="#past-mentors"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-history text-gray-400" aria-hidden="true"></i>Past Mentors</a></li>
+                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
+                                        class="fa-solid fa-history" aria-hidden="true"></i>Past
+                                    Mentors</a></li>
                         </ul>
-                    </div>
-
-                    <div class="rounded-lg border border-neutral-border bg-gray-50 p-3">
-                        <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Search</p>
-                        <label for="sidebar-search" class="sr-only">Search this page</label>
-                        <div class="relative mt-2">
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                            </span>
-                            <input id="sidebar-search" type="search" placeholder="Search content"
-                                class="w-full rounded-md border border-gray-400 px-4 py-2 pl-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600">
-                        </div>
                     </div>
                 </div>
             </aside>
 
             <div class="space-y-10">
-                <section class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
+                <section id="hero"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
                     <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
                         <div>
                             <span
-                                class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.15em] text-brand">
+                                class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.15em] text-brand dark:bg-red-950/30 dark:border-red-900/50">
                                 <i class="fa-solid fa-rocket" aria-hidden="true"></i>Google Summer of Code
                             </span>
-                            <h1 class="mt-4 text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl">Google Summer of
+                            <h1
+                                class="mt-4 text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl dark:text-white">
+                                Google
+                                Summer of
                                 Code with Open Worldwide Application Security Project (OWASP) Foundation</h1>
-                            <p class="mt-4 text-base leading-relaxed text-gray-600">The
+                            <p class="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">The
                                 <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer"
                                     class="text-red-600 hover:underline">Google Summer of Code program</a>
-                                (GSoC) encourages student participation in open source development. Accepted students are paired
+                                (GSoC) encourages student participation in open source development. Accepted students
+                                are paired
                                 with OWASP mentors who guide implementation across real security-focused deliverables.
                             </p>
-                            <p class="mt-3 text-sm text-gray-600"><i class="fa-solid fa-circle-info mr-2 text-brand"
-                                    aria-hidden="true"></i>This program runs completely online. Students and mentors from more than
+                            <p class="mt-3 text-sm text-gray-600 dark:text-gray-400"><i
+                                    class="fa-solid fa-circle-info mr-2 text-brand" aria-hidden="true"></i>This program
+                                runs completely online. Students and mentors
+                                from more than
                                 100 countries have participated over past years.</p>
 
                             <div class="mt-6 flex flex-wrap gap-3">
@@ -360,255 +218,394 @@
                                 </a>
                                 <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer"
                                     class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-5 py-2.5 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
-                                    <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>Official GSoC Site
+                                    <i class="fa-solid fa-arrow-up-right-from-square mr-2"
+                                        aria-hidden="true"></i>Official GSoC Site
                                 </a>
                             </div>
                         </div>
 
-                        <div class="rounded-xl border border-neutral-border bg-gray-50 p-4">
+                        <div
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-800 dark:bg-dark-base">
                             <img src="images/GSoC_logo.svg" alt="Google Summer of Code Logo"
-                                class="mx-auto w-40 rounded-lg border border-neutral-border bg-white p-3">
+                                class="mx-auto w-40 rounded-lg border border-neutral-border bg-white p-3 dark:border-gray-700 dark:bg-dark-surface">
                             <div class="mt-5 space-y-3">
-                                <article class="rounded-lg border border-neutral-border bg-white px-4 py-3">
+                                <article
+                                    class="rounded-lg border border-neutral-border bg-white px-4 py-3 dark:border-gray-700 dark:bg-dark-surface">
                                     <p class="text-2xl font-extrabold text-brand">100+</p>
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Countries Participated</p>
+                                    <p
+                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Countries
+                                        Participated</p>
                                 </article>
-                                <article class="rounded-lg border border-neutral-border bg-white px-4 py-3">
+                                <article
+                                    class="rounded-lg border border-neutral-border bg-white px-4 py-3 dark:border-gray-700 dark:bg-dark-surface">
                                     <p class="text-2xl font-extrabold text-brand">7</p>
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Years with OWASP BLT</p>
+                                    <p
+                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Years with
+                                        OWASP BLT</p>
                                 </article>
-                                <article class="rounded-lg border border-neutral-border bg-white px-4 py-3">
+                                <article
+                                    class="rounded-lg border border-neutral-border bg-white px-4 py-3 dark:border-gray-700 dark:bg-dark-surface">
                                     <p class="text-2xl font-extrabold text-brand">20+</p>
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Successful Projects</p>
+                                    <p
+                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                        Successful
+                                        Projects</p>
                                 </article>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <section id="features" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.15em] text-brand">Features</p>
-                    <h2 class="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">What this landing page now includes</h2>
-                    <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-layer-group mr-2 text-brand" aria-hidden="true"></i>Full legacy content restored</h3><p
-                                class="mt-2 text-sm text-gray-600">All major sections from previous page content are included.</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-mobile-screen mr-2 text-brand" aria-hidden="true"></i>Mobile-first layout</h3><p
-                                class="mt-2 text-sm text-gray-600">Responsive grid, cards, and typography across screen sizes.</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-bars-staggered mr-2 text-brand" aria-hidden="true"></i>Hamburger navigation</h3><p
-                                class="mt-2 text-sm text-gray-600">Complete sidebar option set placed inside mobile drawer.</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-pen-ruler mr-2 text-brand" aria-hidden="true"></i>BLT style token compliance</h3><p
-                                class="mt-2 text-sm text-gray-600">Primary, outline, links, inputs, search, and active sidebar styles match guide.</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-universal-access mr-2 text-brand" aria-hidden="true"></i>Accessible semantics</h3><p
-                                class="mt-2 text-sm text-gray-600">Semantic sections, labeled controls, and decorative icon handling.</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="text-sm font-extrabold"><i
-                                    class="fa-solid fa-bolt mr-2 text-brand" aria-hidden="true"></i>Tailwind-first architecture</h3><p
-                                class="mt-2 text-sm text-gray-600">Minimal custom CSS and utility-driven component styling.</p></article>
-                    </div>
-                </section>
 
-                <section id="benefits" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Program Benefits</h2>
+                <section id="benefits"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Program Benefits</h2>
                     <div class="mt-6 grid gap-6 lg:grid-cols-2">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <h3 class="text-lg font-extrabold text-gray-900"><i class="fa-solid fa-user-graduate mr-2 text-brand"
-                                    aria-hidden="true"></i>For Students</h3>
-                            <ul class="mt-4 space-y-3 text-sm text-gray-700">
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Gaining exposure to real-world software development scenarios</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>An opportunity for employment in areas related to their academic pursuits</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Google offers successful student contributors a stipend</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Build your professional network</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Gain valuable experience in cybersecurity</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Receive a certificate upon completion</li>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-lg font-extrabold text-gray-900 dark:text-white"><i
+                                    class="fa-solid fa-user-graduate mr-2 text-brand" aria-hidden="true"></i>For
+                                Students</h3>
+                            <ul class="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Gaining
+                                    exposure to real-world software development scenarios</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>An
+                                    opportunity for employment in areas related to their academic pursuits</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Google
+                                    offers successful student contributors a stipend</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Build
+                                    your professional network</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Gain
+                                    valuable experience in cybersecurity</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Receive a
+                                    certificate upon completion</li>
                             </ul>
                         </article>
 
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <h3 class="text-lg font-extrabold text-gray-900"><i class="fa-solid fa-chalkboard-user mr-2 text-brand"
-                                    aria-hidden="true"></i>For Mentors</h3>
-                            <ul class="mt-4 space-y-3 text-sm text-gray-700">
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Shape the next generation of open-source developers</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Enhance project visibility and community engagement</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Develop leadership and mentoring skills</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Expand your professional network within OWASP</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Recognition in the global security community</li>
-                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Contribute to the growth of open-source security projects</li>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-lg font-extrabold text-gray-900 dark:text-white"><i
+                                    class="fa-solid fa-chalkboard-user mr-2 text-brand" aria-hidden="true"></i>For
+                                Mentors</h3>
+                            <ul class="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Shape the
+                                    next generation of open-source developers</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Enhance
+                                    project visibility and community engagement</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Develop
+                                    leadership and mentoring skills</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Expand
+                                    your professional network within OWASP</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand"
+                                        aria-hidden="true"></i>Recognition in the global security community</li>
+                                <li><i class="fa-solid fa-circle-check mr-2 text-brand"
+                                        aria-hidden="true"></i>Contribute to the growth of open-source security projects
+                                </li>
                             </ul>
                         </article>
                     </div>
                 </section>
 
-                <section id="partnership" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">OWASP BLT & GSOC Partnership</h2>
-                    <div class="mt-4 space-y-4 text-sm leading-relaxed text-gray-700">
+                <section id="partnership"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">OWASP BLT & GSOC
+                        Partnership</h2>
+                    <div class="mt-4 space-y-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                         <p>OWASP is an open community dedicated to enabling organizations to conceive, develop, acquire,
-                            operate, and maintain applications that can be trusted. OWASP has been an active participant in the
-                            Google Summer of Code program, providing students with opportunities to contribute to multiple OWASP projects.</p>
-                        <p>OWASP BLT (Bug Logging Tool) has participated in Google Summer of Code for 5 consecutive years,
-                            from 2020 to 2024. BLT is an open-source platform focused on making the internet safer through
+                            operate, and maintain applications that can be trusted. OWASP has been an active participant
+                            in the
+                            Google Summer of Code program, providing students with opportunities to contribute to
+                            multiple OWASP projects.</p>
+                        <p>OWASP BLT (Bug Logging Tool) has participated in Google Summer of Code for 5 consecutive
+                            years,
+                            from 2020 to 2024. BLT is an open-source platform focused on making the internet safer
+                            through
                             community-driven bug reporting and collaboration.</p>
-                        <p>All students currently enrolled in an accredited institution are welcome to participate in GSoC,
+                        <p>All students currently enrolled in an accredited institution are welcome to participate in
+                            GSoC,
                             hopefully along with the OWASP Foundation.</p>
                     </div>
                 </section>
 
-                <section id="project-ideas" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Project Ideas</h2>
+                <section id="project-ideas"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Project Ideas</h2>
 
                     <a href="https://github.com/OWASP-BLT/BLT/milestones" target="_blank" rel="noopener noreferrer"
-                        class="mt-6 block rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-100 p-6 transition hover:border-red-300">
+                        class="mt-6 block rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-100 p-6 transition hover:border-red-300 dark:from-red-950/20 dark:to-rose-950/30 dark:border-red-900/50">
                         <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                             <div>
-                                <h3 class="text-xl font-extrabold text-red-700">OWASP BLT Project Ideas</h3>
-                                <p class="mt-1 text-sm text-red-700">Explore exciting project opportunities with OWASP Bug Logging Tool</p>
-                                <span class="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-brand">Featured Projects</span>
+                                <h3 class="text-xl font-extrabold text-red-700 dark:text-red-400">OWASP BLT Project
+                                    Ideas</h3>
+                                <p class="mt-1 text-sm text-red-700 dark:text-red-300">Explore exciting project
+                                    opportunities with OWASP
+                                    Bug Logging Tool</p>
+                                <span
+                                    class="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-brand dark:bg-gray-800">Featured
+                                    Projects</span>
                             </div>
-                            <div class="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-bold text-brand">
+                            <div
+                                class="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-bold text-brand dark:bg-gray-800">
                                 Browse Now <i class="fa-solid fa-arrow-right ml-2" aria-hidden="true"></i>
                             </div>
                         </div>
                     </a>
 
-                    <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2025ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2025 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2024ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2024 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2023ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2023 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2022ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2022 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2021ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2021 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2020ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2020 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2019ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2019 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2018ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2018 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2017ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand">GSOC Project Ideas 2017 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
+                    <div class="mt-8">
+                        <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">OWASP projects are
+                            encouraged to submit project ideas for Google Summer of Code. Students are also welcome to
+                            submit their own project ideas, provided they align with OWASP's mission. Explore past
+                            project ideas below:</p>
+                        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2026 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2025ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2025 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2024ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2024 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2023ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2023 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2022ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2022 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2021ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2021 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2020ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2020 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2019ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2019 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2018ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2018 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                            <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2017ideas" target="_blank"
+                                rel="noopener noreferrer"
+                                class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-dark-base dark:text-gray-200 dark:hover:bg-red-950/20">GSOC
+                                Project Ideas 2017 <i class="fa-solid fa-link ml-1 text-brand"
+                                    aria-hidden="true"></i></a>
+                        </div>
                     </div>
                 </section>
 
-                <section id="past-events" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Past GSOC Events</h2>
+                <section id="past-events"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Past GSOC Events</h2>
                     <div class="mt-6 grid gap-4 lg:grid-cols-2">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <a href="https://summerofcode.withgoogle.com/archive/2023/organizations/owasp-foundation" target="_blank"
-                                rel="noopener noreferrer" class="text-base font-extrabold text-red-600 hover:underline">2023 GSOC Archive</a>
-                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500">Mentors</p>
-                            <p class="mt-1 text-sm text-gray-700">Abraham Aranguren, Aryan Prasad, Aryan Ranjan, Ben de Haan,
-                                Björn Kimminich, Christian Folini, DonnieBLT, fzipitria, Jannik Hollenbach, José Carlos Chávez,
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <a href="https://summerofcode.withgoogle.com/archive/2023/organizations/owasp-foundation"
+                                target="_blank" rel="noopener noreferrer"
+                                class="text-base font-extrabold text-red-600 hover:underline">2023 GSOC Archive</a>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Mentors</p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Abraham Aranguren, Aryan Prasad,
+                                Aryan Ranjan, Ben de
+                                Haan,
+                                Björn Kimminich, Christian Folini, DonnieBLT, fzipitria, Jannik Hollenbach, Jos├⌐
+                                Carlos Ch├ívez,
                                 Mrigank Anand, Rick M, ShubhamPalriwala, Simon Bennetts, thc202, Timo Pagel, Viyat</p>
                         </article>
 
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <a href="https://summerofcode.withgoogle.com/archive/2022/organizations/owasp-foundation" target="_blank"
-                                rel="noopener noreferrer" class="text-base font-extrabold text-red-600 hover:underline">2022 GSOC Archive</a>
-                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500">Mentors</p>
-                            <p class="mt-1 text-sm text-gray-700">Abraham Aranguren, Ade Yoseman Putra, Ankit Choudhary,
-                                Björn Kimminich, Dhiren Serai, Franziska, fzipitria, Glenn Ten Cate, Jannik Hollenbach, Rejah Rehim,
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <a href="https://summerofcode.withgoogle.com/archive/2022/organizations/owasp-foundation"
+                                target="_blank" rel="noopener noreferrer"
+                                class="text-base font-extrabold text-red-600 hover:underline">2022 GSOC Archive</a>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Mentors</p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Abraham Aranguren, Ade Yoseman
+                                Putra, Ankit Choudhary,
+                                Björn Kimminich, Dhiren Serai, Franziska, fzipitria, Glenn Ten Cate, Jannik Hollenbach,
+                                Rejah Rehim,
                                 Rick M, Saeed Dehqan, Sam Stepanyan, Sparsh Agrawal, thc202, Timo Pagel, Viyat</p>
                         </article>
 
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <a href="https://summerofcode.withgoogle.com/archive/2021/organizations/owasp-foundation" target="_blank"
-                                rel="noopener noreferrer" class="text-base font-extrabold text-red-600 hover:underline">2021 GSOC Archive</a>
-                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500">Mentors</p>
-                            <p class="mt-1 text-sm text-gray-700">8f040, Abe, Abraham Aranguren, Ade Yoseman Putra,
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <a href="https://summerofcode.withgoogle.com/archive/2021/organizations/owasp-foundation"
+                                target="_blank" rel="noopener noreferrer"
+                                class="text-base font-extrabold text-red-600 hover:underline">2021 GSOC Archive</a>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Mentors</p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">8f040, Abe, Abraham Aranguren, Ade
+                                Yoseman Putra,
                                 Ali Razmjoo Qalaei, Anshul Singhal, Ashrith N Shetty, Björn Kimminich, Damien Carol,
                                 Dhiren Devinder Serai, Glenn ten Cate, Jannik Hollenbach, madchap, Mohit Sharma-2,
                                 Rejah Rehim, Riccardo Cate, Rick M, Saeed Dehqan-1, Sam Stepanyan, Simon Bennetts,
                                 Sourav Badami, thc202</p>
                         </article>
 
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5">
-                            <a href="https://summerofcode.withgoogle.com/archive/2020/organizations/owasp-foundation" target="_blank"
-                                rel="noopener noreferrer" class="text-base font-extrabold text-red-600 hover:underline">2020 GSOC Archive</a>
-                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500">Mentors</p>
-                            <p class="mt-1 text-sm text-gray-700">Abe, Abraham Aranguren, Ade Yoseman Putra, Adrian Winckles,
-                                Ali Razmjoo Qalaei, Björn Kimminich, Felipe Zipitria, Glenn ten Cate, Jannik Hollenbach,
-                                Mohit Sharma, Rejah Rehim A A, Rejah Rehim, Ricardo Pereira, Riccardo ten Cate, Rick M, S,
-                                securestep9, Simon Bennetts, Soham Marik, souravbadami, spyros, Sri Harsha G, Timo Pagel,
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
+                            <a href="https://summerofcode.withgoogle.com/archive/2020/organizations/owasp-foundation"
+                                target="_blank" rel="noopener noreferrer"
+                                class="text-base font-extrabold text-red-600 hover:underline">2020 GSOC Archive</a>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Mentors</p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Abe, Abraham Aranguren, Ade Yoseman
+                                Putra, Adrian
+                                Winckles,
+                                Ali Razmjoo Qalaei, Björn Kimminich, Felipe Zipitria, Glenn ten Cate, Jannik
+                                Hollenbach,
+                                Mohit Sharma, Rejah Rehim A A, Rejah Rehim, Ricardo Pereira, Riccardo ten Cate, Rick M,
+                                S,
+                                securestep9, Simon Bennetts, Soham Marik, souravbadami, spyros, Sri Harsha G, Timo
+                                Pagel,
                                 Viyat Bhalodia</p>
                         </article>
                     </div>
                 </section>
 
-                <section id="success-stories" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Success Stories</h2>
+                <section id="success-stories"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Success Stories</h2>
                     <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Shirish Jain</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GSoC 2023</p>
-                            <p class="mt-2 text-sm text-gray-600">Successfully implemented the Sizzle Time Tracking feature.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Shirish Jain</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                GSoC 2023</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Successfully implemented the Sizzle
+                                Time Tracking
+                                feature.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Aryan Ranjan</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GSoC 2023</p>
-                            <p class="mt-2 text-sm text-gray-600">Developed the Discussion Room feature during GSoC 2023.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Aryan Ranjan</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                GSoC 2023</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Developed the Discussion Room
+                                feature during GSoC
+                                2023.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Swapnil Shinde</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GSoC 2022</p>
-                            <p class="mt-2 text-sm text-gray-600">Contributed to OWASP BLT development.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Report</a><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Swapnil Shinde</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                GSoC 2022</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Contributed to OWASP BLT
+                                development.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Report</a><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Bishal Das</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GSoC 2024</p>
-                            <p class="mt-2 text-sm text-gray-600">GSoC learning journey with OWASP BLT.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Bishal Das</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                GSoC 2024</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">GSoC learning journey with OWASP
+                                BLT.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Profile</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Shubham Palriwala</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">OWASP Juice Shop</p>
-                            <p class="mt-2 text-sm text-gray-600">OWASP Juice Shop journey.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Shubham Palriwala</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                OWASP Juice Shop</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">OWASP Juice Shop journey.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Akshay Behl</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">OWASP Nettacker</p>
-                            <p class="mt-2 text-sm text-gray-600">OWASP Nettacker experience.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Akshay Behl</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                OWASP Nettacker</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">OWASP Nettacker experience.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Chakshu Gupta</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">OWASP Honeypot Project</p>
-                            <p class="mt-2 text-sm text-gray-600">OWASP Honeypot project journey.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Chakshu Gupta</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                OWASP Honeypot
+                                Project</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">OWASP Honeypot project journey.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4">
-                            <h3 class="text-base font-extrabold">Rishabh Keshan</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Web3 Juice Shop</p>
-                            <p class="mt-2 text-sm text-gray-600">Web3 journey with Juice Shop.</p>
-                            <div class="mt-3 flex gap-2"><a href="#" class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="text-base font-extrabold dark:text-gray-100">Rishabh Keshan</h3>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Web3 Juice Shop</p>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Web3 journey with Juice Shop.</p>
+                            <div class="mt-3 flex gap-2"><a href="#"
+                                    class="text-sm font-semibold text-red-600 hover:underline">Read Blog</a></div>
                         </article>
                     </div>
                 </section>
 
-                <section id="current-mentors" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Current GSoC 2026 Mentors</h2>
+                <section id="current-mentors"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Current GSoC 2026
+                        Mentors</h2>
 
-                    <article class="mt-5 rounded-xl border border-neutral-border bg-gray-50 p-5">
+                    <article
+                        class="mt-5 rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-700 dark:bg-dark-base">
                         <p class="text-xs font-black uppercase tracking-[0.15em] text-brand">Lead Mentor</p>
-                        <h3 class="mt-1 text-xl font-extrabold text-gray-900">Donnie Brown (All years)</h3>
+                        <h3 class="mt-1 text-xl font-extrabold text-gray-900 dark:text-white">Donnie Brown (All years)
+                        </h3>
                     </article>
 
                     <div class="mt-6 space-y-6">
                         <!-- Md Kaif Ansari -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Md Kaif Ansari</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Md Kaif
+                                        Ansari</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/mdkaifansari04" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/mdkaifansari04" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://mdkaifansari04.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://mdkaifansari04.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -616,35 +613,61 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Rinkit Adhana</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Full Stack Development</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Rinkit Adhana
+                                            </h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full Stack
+                                                Development</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            As a full stack engineer and active BLT contributor, I bring hands-on experience from both sides of the development process. Having participated in GSoC 2025, I understand the challenges new contributors face and can guide you through your open source journey. I specialize in helping developers build scalable web applications, navigate complex codebases, and contribute effectively to real-world projects. My goal is to share practical knowledge and help you grow as a developer while making meaningful contributions to BLT.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            As a full stack engineer and active BLT contributor, I bring hands-on
+                                            experience from both sides of the development process. Having participated
+                                            in GSoC 2025, I understand the challenges new contributors face and can
+                                            guide you through your open source journey. I specialize in helping
+                                            developers build scalable web applications, navigate complex codebases, and
+                                            contribute effectively to real-world projects. My goal is to share practical
+                                            knowledge and help you grow as a developer while making meaningful
+                                            contributions to BLT.
                                         </p>
                                     </div>
                                 </div>
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Raj Gupta</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Full Stack Development mentor</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Raj Gupta</h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full Stack
+                                                Development mentor
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I'm a full stack developer with prior Google Summer of Code (GSoC) experience and a strong passion for open source. Having worked as a contributor, I understand the challenges of getting started - from reading large codebases to making meaningful pull requests. As a mentor, I enjoy guiding contributors through best practices, code reviews, and real-world problem solving. I continue to actively contribute to open source because I believe collaboration and knowledge sharing are what truly drive impactful software.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I'm a full stack developer with prior Google Summer of Code (GSoC)
+                                            experience and a strong passion for open source. Having worked as a
+                                            contributor, I understand the challenges of getting started - from reading
+                                            large codebases to making meaningful pull requests. As a mentor, I enjoy
+                                            guiding contributors through best practices, code reviews, and real-world
+                                            problem solving. I continue to actively contribute to open source because I
+                                            believe collaboration and knowledge sharing are what truly drive impactful
+                                            software.
                                         </p>
                                     </div>
                                 </div>
@@ -652,20 +675,25 @@
                         </article>
 
                         <!-- Preetham -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Preetham</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Preetham
+                                    </h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Pritz395" target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://Pritz395.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://Pritz395.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -673,35 +701,62 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Vinamra Vaswani</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Backend Systems</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Vinamra
+                                                Vaswani</h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Backend
+                                                Systems</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I am a software engineer experienced in building production-grade backend systems using Python, FastAPI, and MongoDB, with a focus on clean architecture and real-world problem solving. Through open-source style projects and mentorship programs, I have guided juniors in working with real codebases, collaborative workflows, and maintainable engineering practices. As a GSoC mentor, my goal is to help students move from tutorials to confident real-world contributors, while giving back to open source by supporting their technical and professional growth in a learning-first environment.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I am a software engineer experienced in building production-grade backend
+                                            systems using Python, FastAPI, and MongoDB, with a focus on clean
+                                            architecture and real-world problem solving. Through open-source style
+                                            projects and mentorship programs, I have guided juniors in working with real
+                                            codebases, collaborative workflows, and maintainable engineering practices.
+                                            As a GSoC mentor, my goal is to help students move from tutorials to
+                                            confident real-world contributors, while giving back to open source by
+                                            supporting their technical and professional growth in a learning-first
+                                            environment.
                                         </p>
                                     </div>
                                 </div>
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Carla Voorhees</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Technical Product Manager</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Carla Voorhees
+                                            </h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Technical
+                                                Product Manager</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I am a technical product manager with a background in cybersecurity and data management. I have experience mentoring students, helping them navigate complex requirements and understand best practices. I focus on guiding students through the product development lifecycle, from ideation to deployment, while fostering a collaborative and inclusive learning environment. I help them to understand how to take requirements and designs and turn them into working code. My goal is to empower students to become confident contributors to open source communities.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I am a technical product manager with a background in cybersecurity and data
+                                            management. I have experience mentoring students, helping them navigate
+                                            complex requirements and understand best practices. I focus on guiding
+                                            students through the product development lifecycle, from ideation to
+                                            deployment, while fostering a collaborative and inclusive learning
+                                            environment. I help them to understand how to take requirements and designs
+                                            and turn them into working code. My goal is to empower students to become
+                                            confident contributors to open source communities.
                                         </p>
                                     </div>
                                 </div>
@@ -709,20 +764,25 @@
                         </article>
 
                         <!-- Siddharth Bansal -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Siddharth Bansal</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">
+                                        Siddharth Bansal</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://sidd190.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://sidd190.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -730,35 +790,56 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Abhinav Kumar Singh</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">AI Engineer</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Abhinav Kumar
+                                                Singh</h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">AI Engineer
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I'm an AI Engineer with a deep love for open source and LLMs. Having been a contributor myself, I know how overwhelming it can feel at the start from understanding huge codebases to shipping your first meaningful PR. As a mentor, I focus on helping people build confidence through clean practices, thoughtful code reviews, and real-world problem solving. I stay active in open source because collaboration and shared learning are what actually move great software forward.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I'm an AI Engineer with a deep love for open source and LLMs. Having been a
+                                            contributor myself, I know how overwhelming it can feel at the start from
+                                            understanding huge codebases to shipping your first meaningful PR. As a
+                                            mentor, I focus on helping people build confidence through clean practices,
+                                            thoughtful code reviews, and real-world problem solving. I stay active in
+                                            open source because collaboration and shared learning are what actually move
+                                            great software forward.
                                         </p>
                                     </div>
                                 </div>
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Rishab Kumar Jha</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Full Stack/Blockchain</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Rishab Kumar
+                                                Jha</h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full
+                                                Stack/Blockchain</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I'm a software developer interested in distributed systems, web3, cloud native technologies & deep-tech. As a past GSoC and LFX alumnus myself, I understand the pain points of new contributors. Happy to mentor and help mentees navigate open-source effectively.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I'm a software developer interested in distributed systems, web3, cloud
+                                            native technologies & deep-tech. As a past GSoC and LFX alumnus myself, I
+                                            understand the pain points of new contributors. Happy to mentor and help
+                                            mentees navigate open-source effectively.
                                         </p>
                                     </div>
                                 </div>
@@ -766,20 +847,25 @@
                         </article>
 
                         <!-- Sakshee Suman -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Sakshee Suman</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Sakshee
+                                        Suman</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/e-esakman" target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://e-esakman.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://e-esakman.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -787,19 +873,34 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Akshay Behl</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Full Stack / Systems Firmware</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Akshay Behl
+                                            </h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full Stack /
+                                                Systems Firmware
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I'm a full-stack developer at Akatsuki AI Technologies in Japan, blending a love for building scalable applications with a deep, technical foundation in system firmware. My journey through GSoC where I contributed with OWASP Project Nettacker and then with the RISC-V community's OpenSBI and EDKII have made me a lifelong advocate for open source. I know exactly how it feels to stare at a massive, complex codebase for the first time, which is why I believe in mentorships like GSoC. I believe the best software isn't built in isolation, it's the result of curiosity, community, and the collective push of open source that makes the most meaningful impact.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I'm a full-stack developer at Akatsuki AI Technologies in Japan, blending a
+                                            love for building scalable applications with a deep, technical foundation in
+                                            system firmware. My journey through GSoC where I contributed with OWASP
+                                            Project Nettacker and then with the RISC-V community's OpenSBI and EDKII
+                                            have made me a lifelong advocate for open source. I know exactly how it
+                                            feels to stare at a massive, complex codebase for the first time, which is
+                                            why I believe in mentorships like GSoC. I believe the best software isn't
+                                            built in isolation, it's the result of curiosity, community, and the
+                                            collective push of open source that makes the most meaningful impact.
                                         </p>
                                     </div>
                                 </div>
@@ -807,20 +908,26 @@
                         </article>
 
                         <!-- Arnav Kirti -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Arnav Kirti</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Arnav
+                                        Kirti</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/arnavkirti" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/arnavkirti" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://arnavkirti.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://arnavkirti.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -830,20 +937,26 @@
                         </article>
 
                         <!-- Savio D'souza -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Savio D'souza</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Savio
+                                        D'souza</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/S3DFX-CYBER" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/S3DFX-CYBER" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://S3DFX-CYBER.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://S3DFX-CYBER.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -851,19 +964,30 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Ahmed ElSheik</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">Cybersecurity / AI Security</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Ahmed ElSheik
+                                            </h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Cybersecurity
+                                                / AI Security</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            I'm a Cybersecurity analyst and AI security engineer. I bring a strong background in threat detection, secure system design, and AI model protection. I'm mentoring students on cutting-edge AI fingerprinting techniques and secure AI integrations in web applications. My goal is to empower contributors to build real-world, secure systems while learning to navigate the intersection of AI and Cybersecurity.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            I'm a Cybersecurity analyst and AI security engineer. I bring a strong
+                                            background in threat detection, secure system design, and AI model
+                                            protection. I'm mentoring students on cutting-edge AI fingerprinting
+                                            techniques and secure AI integrations in web applications. My goal is to
+                                            empower contributors to build real-world, secure systems while learning to
+                                            navigate the intersection of AI and Cybersecurity.
                                         </p>
                                     </div>
                                 </div>
@@ -871,20 +995,26 @@
                         </article>
 
                         <!-- Jayant Malvi -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Jayant Malvi</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Jayant
+                                        Malvi</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/Jayant2908" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/Jayant2908" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://Jayant2908.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://Jayant2908.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -892,19 +1022,26 @@
                                 </div>
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
                                             <i class="fas fa-code text-sm text-brand"></i>
                                         </div>
                                         <div>
-                                            <h4 class="text-base font-extrabold text-gray-900 sm:text-lg">Manikandan Chandran</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm">React/OAuth/REST API</p>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Manikandan
+                                                Chandran</h4>
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+                                                React/OAuth/REST API</p>
                                         </div>
                                     </div>
                                     <div class="max-h-32 overflow-y-auto">
-                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm">
-                                            Mentors teams on building secure React applications with practical OAuth flows and robust REST API design.
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            Mentors teams on building secure React applications with practical OAuth
+                                            flows and robust REST API design.
                                         </p>
                                     </div>
                                 </div>
@@ -912,20 +1049,26 @@
                         </article>
 
                         <!-- Manahil Afzal -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Manahil Afzal</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Manahil
+                                        Afzal</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/Manahil-Afzal" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/Manahil-Afzal" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://manahil-afzal.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://manahil-afzal.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -935,20 +1078,55 @@
                         </article>
 
                         <!-- Kunal Gupta -->
-                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8">
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
-                                <div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
                                 </div>
                                 <div class="flex-1 text-center sm:text-left">
-                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl">Kunal Gupta</h3>
-                                    <p class="text-sm text-gray-600 sm:text-base">2026 Contributor</p>
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Kunal
+                                        Gupta</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
-                                        <a href="https://github.com/Kunal241207" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://github.com/Kunal241207" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
-                                        <a href="https://kunal241207.github.io/MY-GSOC-TOOL/" target="_blank" rel="noopener noreferrer"
+                                        <a href="https://kunal241207.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Nachiket Roy -->
+                        <article
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                            <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
+                                <div
+                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
+                                    <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
+                                </div>
+                                <div class="flex-1 text-center sm:text-left">
+                                    <h3 class="text-lg font-extrabold text-gray-900 sm:text-xl dark:text-white">Nachiket
+                                        Roy</h3>
+                                    <p class="text-sm text-gray-600 sm:text-base dark:text-gray-400">2026 Contributor
+                                    </p>
+                                    <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
+                                        <a href="https://github.com/Nachiket-Roy" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
+                                        </a>
+                                        <a href="https://nachiket-roy.github.io/MY-GSOC-TOOL/" target="_blank"
+                                            rel="noopener noreferrer"
                                             class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
@@ -958,56 +1136,96 @@
                         </article>
                     </div>
 
-                    <article class="mt-6 rounded-xl border border-neutral-border bg-gray-50 p-4 sm:p-5">
-                        <h3 class="text-base font-extrabold sm:text-lg">Available Mentors for Future Students</h3>
+                    <article
+                        class="mt-6 rounded-xl border border-neutral-border bg-gray-50 p-4 sm:p-5 dark:border-gray-800 dark:bg-dark-base">
+                        <h3 class="text-base font-extrabold sm:text-lg dark:text-gray-100">Available Mentors for Future
+                            Students</h3>
                     </article>
                 </section>
 
-                <section id="past-mentors" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Past GSoC Mentors</h2>
+                <section id="past-mentors"
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Past GSoC Mentors</h2>
                     <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="font-extrabold text-brand">2025</h3><p class="mt-2 text-sm text-gray-700">Rahul Negi (Python/Django Mentor)<br>Bishal Das (Django & UI/UX Mentor)<br>Sudhir Palavalasa (Backend and OAuth mentor)</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="font-extrabold text-brand">2024</h3><p class="mt-2 text-sm text-gray-700">Swapnil Shinde (Django and blockchain mentor)<br>Arkadii Yakovets (Python/Django mentor)</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="font-extrabold text-brand">2023</h3><p class="mt-2 text-sm text-gray-700">Aryan Ranjan (Flutter and Django Mentor)</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="font-extrabold text-brand">2022</h3><p class="mt-2 text-sm text-gray-700">Sourav Badami (Django Mentor)<br>Rahul Badami (Payments Mentor)<br>Ankit Choudhary (Flutter Mentor)<br>Sparsh Agrawal (Flutter Mentor)</p></article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-4"><h3 class="font-extrabold text-brand">2020-2021</h3><p class="mt-2 text-sm text-gray-700">Sourav Badami (Django Mentor)</p></article>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="font-extrabold text-brand">2025</h3>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Rahul Negi (Python/Django
+                                Mentor)<br>Bishal Das
+                                (Django & UI/UX Mentor)<br>Sudhir Palavalasa (Backend and OAuth mentor)</p>
+                        </article>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="font-extrabold text-brand">2024</h3>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Swapnil Shinde (Django and
+                                blockchain
+                                mentor)<br>Arkadii Yakovets (Python/Django mentor)</p>
+                        </article>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="font-extrabold text-brand">2023</h3>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Aryan Ranjan (Flutter and Django
+                                Mentor)</p>
+                        </article>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="font-extrabold text-brand">2022</h3>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Sourav Badami (Django
+                                Mentor)<br>Rahul Badami
+                                (Payments Mentor)<br>Ankit Choudhary (Flutter Mentor)<br>Sparsh Agrawal (Flutter Mentor)
+                            </p>
+                        </article>
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
+                            <h3 class="font-extrabold text-brand">2020-2021</h3>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">Sourav Badami (Django Mentor)</p>
+                        </article>
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Page Views (Last 30 Days)</h2>
+                <section
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Page Views (Last 30
+                        Days)</h2>
                     <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5 text-center">
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 text-center dark:border-gray-700 dark:bg-dark-base">
                             <p class="text-4xl font-extrabold text-brand">0</p>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Current</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Current</p>
                         </article>
-                        <article class="rounded-xl border border-neutral-border bg-gray-50 p-5 text-center">
+                        <article
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 text-center dark:border-gray-700 dark:bg-dark-base">
                             <p class="text-4xl font-extrabold text-brand">686</p>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Views</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                Total Views</p>
                         </article>
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8">
+                <section
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
                     <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                         <div>
                             <p class="text-xs font-extrabold uppercase tracking-[0.15em] text-brand">Stay Updated</p>
-                            <h2 class="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">Get BLT GSoC updates</h2>
-                            <p class="mt-2 text-sm text-gray-600">Subscribe for milestones, mentor announcements, and review windows.</p>
-                            <form class="mt-4 flex flex-col gap-3 sm:flex-row" action="#" method="post">
-                                <label for="email" class="sr-only">Email address</label>
-                                <input id="email" name="email" type="email" placeholder="Enter your email"
-                                    class="w-full rounded-md border border-gray-400 px-4 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 sm:max-w-sm">
-                                <button type="submit"
+                            <h2 class="mt-2 text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Get BLT
+                                GSoC updates</h2>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Subscribe for milestones, mentor
+                                announcements, and
+                                review windows.</p>
+                            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                                <a href="https://github.com/OWASP-BLT/BLT/milestones" target="_blank"
+                                    rel="noopener noreferrer"
                                     class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
-                                    <i class="fa-solid fa-envelope mr-2" aria-hidden="true"></i>Notify Me
-                                </button>
-                            </form>
+                                    <i class="fa-solid fa-bell mr-2" aria-hidden="true"></i>Subscribe to Milestones
+                                </a>
+                            </div>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
-                                <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>Official GSoC
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>Official
+                                GSoC
                             </a>
                             <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
@@ -1020,18 +1238,24 @@
         </div>
     </main>
 
-    <footer class="border-t border-neutral-border bg-white">
-        <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-            <p class="text-sm text-gray-600">© <span id="year"></span> OWASP BLT GSoC. Built for contributors and mentors.</p>
+    <footer
+        class="border-t border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+        <div
+            class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+            <p class="text-sm text-gray-600 dark:text-gray-400">┬⌐ <span id="year"></span> OWASP BLT GSoC. Built for
+                contributors and
+                mentors.</p>
             <div class="flex flex-wrap items-center gap-4 text-sm">
                 <a href="https://github.com/OWASP-BLT/BLT-GSOC" target="_blank" rel="noopener noreferrer"
                     class="text-red-600 hover:underline">BLT-GSOC Repo</a>
-                <a href="https://owasp.org/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">OWASP</a>
+                <a href="https://owasp.org/" target="_blank" rel="noopener noreferrer"
+                    class="text-red-600 hover:underline">OWASP</a>
                 <a href="pr-report.html" class="text-red-600 hover:underline">PR Analytics</a>
             </div>
         </div>
     </footer>
 
+    <script src="js/theme.js"></script>
     <script>
         const mobileDrawer = document.getElementById('mobile-drawer');
         const mobileBtn = document.getElementById('mobile-menu-btn');
@@ -1067,6 +1291,45 @@
         });
 
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Scroll-spy navigation highlighting
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('aside a[href^="#"]');
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    updateActiveLink(id);
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+
+        function updateActiveLink(id) {
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href').substring(1);
+                const isActive = href === id;
+
+                const activeClasses = ['bg-[#feeae9]', 'text-[#E10101]', 'dark:bg-red-950/30', 'dark:text-red-400'];
+                const inactiveClasses = ['text-gray-700', 'hover:bg-gray-50', 'dark:text-gray-300', 'dark:hover:bg-gray-800'];
+
+                if (isActive) {
+                    link.classList.add(...activeClasses);
+                    link.classList.remove(...inactiveClasses);
+                } else {
+                    link.classList.remove(...activeClasses);
+                    link.classList.add(...inactiveClasses);
+                }
+            });
+        }
     </script>
 </body>
 

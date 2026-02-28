@@ -47,7 +47,7 @@ const themeToggle = {
             btn.addEventListener('click', () => this.toggle());
         });
 
-        // Initial button state update
+        // Initialize button states
         const currentTheme = localStorage.getItem('theme') ||
             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         this.updateButtons(currentTheme);
@@ -56,18 +56,15 @@ const themeToggle = {
     updateButtons(theme) {
         const buttons = document.querySelectorAll('.theme-toggle-btn');
         buttons.forEach(btn => {
-            const icon = btn.querySelector('i');
-            if (icon) {
-                if (theme === 'dark') {
-                    icon.className = 'fas fa-sun text-yellow-500';
-                    // Optional: update text if present
-                    const text = btn.querySelector('span');
-                    if (text) text.textContent = 'Light Mode';
-                } else {
-                    icon.className = 'fas fa-moon text-gray-600';
-                    const text = btn.querySelector('span');
-                    if (text) text.textContent = 'Dark Mode';
-                }
+            const iconMoon = btn.querySelector('.fa-moon');
+            const iconSun = btn.querySelector('.fa-sun');
+
+            if (theme === 'dark') {
+                if (iconMoon) iconMoon.classList.add('hidden');
+                if (iconSun) iconSun.classList.remove('hidden');
+            } else {
+                if (iconMoon) iconMoon.classList.remove('hidden');
+                if (iconSun) iconSun.classList.add('hidden');
             }
         });
     }
