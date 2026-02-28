@@ -22,6 +22,10 @@ class Default(WorkerEntrypoint):
         if request.method == "GET" and path in ("/", "/index.html"):
             return self.serve_html()
         
+        # For GET requests to /chat, serve the chat interface
+        if request.method == "GET" and path == "/chat":
+            return self.serve_chat_html()
+        
         # For other GET requests (static assets), let them fall through to assets
         if request.method == "GET":
             # Return None to let Cloudflare Workers serve from public/ assets
@@ -164,6 +168,29 @@ Be concise, helpful, and professional in your responses."""
             print(f"HTML file not found at expected path: {e}")
             return Response.json(
                 {"error": "HTML file not found"},
+                status=404,
+                headers=self.get_cors_headers()
+            )
+    
+    def serve_chat_html(self):
+        """Serve the chat HTML interface"""
+        try:
+            # Path(__file__).parent is src/
+            html_file = Path(__file__).parent / 'pages' / "chat.html"
+            print(f"Serving chat HTML file from path: {html_file}")
+            html_content = html_file.read_text()
+            return Response(
+                html_content,
+                status=200,
+                headers={
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=300"
+                }
+            )
+        except FileNotFoundError as e:
+            print(f"Chat HTML file not found at expected path: {e}")
+            return Response.json(
+                {"error": "Chat HTML file not found"},
                 status=404,
                 headers=self.get_cors_headers()
             )
