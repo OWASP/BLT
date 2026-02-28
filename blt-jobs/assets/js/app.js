@@ -51,111 +51,55 @@ function renderJobs(jobs) {
 
   const cardsHtml = jobs
     .map((job) => {
-      const orgName = job.organization_name || "Unknown organization";
-      const orgLogo = job.organization_logo || "";
-      const orgInitial = orgName.charAt(0).toUpperCase();
+      const title = job.title || "Untitled";
+      const company = job.organization_name || "";
       const location = job.location || "";
       const jobType = job.job_type || "";
-      const salary = job.salary_range || "";
-      const createdAt = job.created_at || "";
+      const addedBy = job.added_by || "";
+
+      let faviconDomain = "";
+      if (job.application_url) {
+        try {
+          faviconDomain = new URL(job.application_url).hostname;
+        } catch (e) {}
+      }
+      const faviconImg = faviconDomain
+        ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(faviconDomain)}&sz=32" alt="" width="20" height="20" class="w-5 h-5 rounded inline-block mr-1.5 align-middle" aria-hidden="true" />`
+        : "";
+
+      const companySpan = company
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-building" aria-hidden="true"></i> ${company}</span>`
+        : "";
+      const locationSpan = location
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${location}</span>`
+        : "";
+      const typeSpan = jobType
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-clock" aria-hidden="true"></i> ${jobType}</span>`
+        : "";
+      const addedBySpan = addedBy
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by <a href="https://github.com/${addedBy}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@${addedBy}</a></span>`
+        : "";
 
       return `
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 p-6 hover:border-gray-300 dark:hover:border-gray-600">
-          <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
+        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3">
-                ${
-                  orgLogo
-                    ? `<img src="${orgLogo}"
-                             alt="${orgName}"
-                             width="48"
-                             height="48"
-                             class="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />`
-                    : `<div class="w-12 h-12 bg-[#e74c3c] rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600">
-                         <span class="text-white font-bold text-lg">${orgInitial}</span>
-                       </div>`
-                }
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">${orgName}</p>
-                </div>
+              <h3 class="text-xl font-semibold dark:text-gray-100">${faviconImg}${title}</h3>
+              <div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-gray-400">
+                ${companySpan}
+                ${locationSpan}
+                ${typeSpan}
+                ${addedBySpan}
               </div>
-
-              <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                <a href="job.html?id=${encodeURIComponent(job.id)}"
-                   class="hover:text-[#e74c3c] dark:hover:text-[#f8c471] transition-colors duration-200">
-                  ${job.title || "Untitled job"}
+              <div class="mt-4">
+                <a href="job.html?id=${encodeURIComponent(job.id)}" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                  View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                 </a>
-              </h2>
-
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                ${
-                  location
-                    ? `<span class="flex items-center gap-1">
-                         <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                         </svg>
-                         ${location}
-                       </span>`
-                    : ""
-                }
-                ${
-                  jobType
-                    ? `<span class="flex items-center gap-1">
-                         <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                         </svg>
-                         ${jobType}
-                       </span>`
-                    : ""
-                }
-                ${
-                  salary
-                    ? `<span class="flex items-center gap-1">
-                         <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                         </svg>
-                         ${salary}
-                       </span>`
-                    : ""
-                }
-                ${
-                  createdAt
-                    ? `<span class="flex items-center gap-1 text-gray-500 dark:text-gray-500">
-                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                         </svg>
-                         Posted ${createdAt}
-                       </span>`
-                    : ""
-                }
               </div>
-
-              <p class="text-gray-700 dark:text-gray-300 line-clamp-2">
-                ${job.description ? job.description : ""}
-              </p>
             </div>
-            <div class="flex-shrink-0 mt-4 lg:mt-0">
-              <a
-                href="job.html?id=${encodeURIComponent(job.id)}"
-                class="inline-flex items-center px-6 py-2.5 bg-[#e74c3c] text-white rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105"
-              >
-                View Details
-                <svg
-                  class="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  ></path>
-                </svg>
-              </a>
-            </div>
+            <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
+            </a>
           </div>
         </div>
       `;
