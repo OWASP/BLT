@@ -72,10 +72,30 @@ function parseCSV(csv) {
   return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
 }
 
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? url : '#';
+  } catch (e) { return '#'; }
+}
+
 function createMonitorCard(monitor, rows, lastRow, csvFile) {
-  const card = document.createElement('a');
-  card.href = `monitor.html?id=${monitor.id}`;
-  card.className = 'block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 cursor-pointer';
+  const card = document.createElement('div');
+  card.onclick = () => { window.location.href = `monitor.html?id=${monitor.id}`; };
+  card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${monitor.id}`; } };
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('role', 'link');
+  card.setAttribute('aria-label', `View details for ${monitor.name}`);
+  card.className = 'block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500';
   
   // Calculate status
   let status = 'unknown';
@@ -119,11 +139,20 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
             ${statusIcon}
           </span>
         </div>
-        <div class="text-sm text-gray-600 flex gap-4 flex-wrap">
-          <span class="truncate"><i class="fa-solid fa-link"></i> ${monitor.url}</span>
-          <span><i class="fa-solid fa-clock"></i> ${responseTime}</span>
-          <span><i class="fa-solid fa-calendar"></i> ${lastCheck}</span>
-          ${monitor.keyword ? `<span><i class="fa-solid fa-magnifying-glass"></i> keyword: <strong>${monitor.keyword}</strong></span>` : ''}
+        <div class="text-sm text-gray-600 flex items-center gap-4 flex-wrap mt-1">
+          <span class="flex items-center gap-1 min-w-0">
+            <i class="fa-solid fa-link flex-shrink-0"></i>
+            <span class="truncate max-w-[200px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
+            <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
+               onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+               class="flex-shrink-0 inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 text-xs transition-colors"
+               title="Open in new window">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+            </a>
+          </span>
+          <span class="flex items-center gap-1 min-w-[100px]"><i class="fa-solid fa-clock"></i> ${responseTime}</span>
+          <span class="flex items-center gap-1 min-w-[90px]"><i class="fa-solid fa-calendar"></i> ${lastCheck}</span>
+          ${monitor.keyword ? `<span class="flex items-center gap-1"><i class="fa-solid fa-magnifying-glass"></i> keyword: <strong>${monitor.keyword}</strong></span>` : ''}
         </div>
       </div>
       <div class="w-48 h-8 flex-shrink-0">
