@@ -209,6 +209,26 @@ def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
         return []
 
 
+def fetch_latest_release(repo_full_name: str) -> dict | None:
+    """Return the latest release for a repo, or None if there are none."""
+    try:
+        data = make_request(f"{API_BASE}/repos/{repo_full_name}/releases/latest")
+        return {
+            "tag_name": data.get("tag_name", ""),
+            "name": data.get("name", ""),
+            "html_url": data.get("html_url", ""),
+            "published_at": data.get("published_at", ""),
+        }
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return None
+        print(f"  Warning: could not fetch latest release for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+    except (urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not fetch latest release for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+
+
 def fetch_star_history(repo_full_name: str, weeks: int = 26) -> list:
     """Return per-week new-star counts for the last `weeks` weeks as a list of ints."""
     try:
@@ -379,6 +399,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch the latest release for each non-archived repo
+    print("Fetching latest releases…", flush=True)
+    latest_release_map: dict[str, dict | None] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            latest_release_map[repo["full_name"]] = None
+        else:
+            latest_release_map[repo["full_name"]] = fetch_latest_release(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -407,6 +439,7 @@ def main() -> None:
              "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
              "agent_pr_count": agent_pr_count_map.get(repo["full_name"], 0),
              "latest_issue": latest_issue_map.get(repo["full_name"]),
+             "latest_release": latest_release_map.get(repo["full_name"]),
              "star_history": star_history_map.get(repo["full_name"], [])}
             for repo in repos
         ],

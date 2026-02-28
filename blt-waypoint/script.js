@@ -479,6 +479,15 @@ function repoCardHTML(r) {
       </a>
     </div>` : ''}
 
+    <!-- Latest release -->
+    ${r.latest_release ? `
+    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Latest release">
+      <i class="fa-solid fa-tag mr-1 text-green-500" aria-hidden="true"></i>
+      <a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 hover:underline transition-colors truncate">
+        ${escapeHtml(r.latest_release.tag_name)}${r.latest_release.name && r.latest_release.name !== r.latest_release.tag_name ? ` – ${escapeHtml(r.latest_release.name)}` : ''}
+      </a>
+    </div>` : ''}
+
     <!-- Sparkline + avatars row -->
     ${(sparkline || starSparkline || avatarStack) ? `
     <div class="flex items-center justify-between gap-2">
@@ -590,6 +599,7 @@ const TABLE_COLS = [
   { key: 'branch_count',      label: 'Branches'   },
   { key: 'size',              label: 'Size'       },
   { key: 'maturity',          label: 'Maturity'   },
+  { key: 'latest_release',    label: 'Release'    },
   { key: 'updated_at',        label: 'Updated'    },
 ];
 
@@ -602,6 +612,11 @@ function renderTableView(repos, container) {
     else if (tableSortCol === 'maturity')   v = maturityScore(a) - maturityScore(b);
     else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
     else if (tableSortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
+    else if (tableSortCol === 'latest_release') {
+      const ta = (a.latest_release && a.latest_release.published_at) ? a.latest_release.published_at : '';
+      const tb = (b.latest_release && b.latest_release.published_at) ? b.latest_release.published_at : '';
+      v = ta.localeCompare(tb);
+    }
     else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
     return tableSortDir === 'asc' ? v : -v;
   });
@@ -690,6 +705,11 @@ function renderTableView(repos, container) {
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100">${matLabel} ${score}</span>
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-xs">
+        ${r.latest_release
+          ? `<a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors text-gray-600 dark:text-gray-300" title="Latest release${r.latest_release.published_at ? ': ' + r.latest_release.published_at : ''}"><i class="fa-solid fa-tag text-green-500 mr-1" aria-hidden="true"></i>${escapeHtml(r.latest_release.tag_name)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
       <td class="px-3 py-2 whitespace-nowrap">
