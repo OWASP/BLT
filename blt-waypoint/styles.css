@@ -63,6 +63,9 @@
 /* Table view: remove container width constraint */
 #main-layout.table-view { max-width: none; }
 
+/* Table view: center the table */
+#repo-table table { margin: 0 auto; }
+
 /* Table view: force-hide the sidebar even at large breakpoints */
 #main-sidebar.force-hidden { display: none !important; }
 
