@@ -5,6 +5,11 @@ This script is run every hour via GitHub Actions to keep data fresh.
 
 The frontend simply loads the resulting JSON files without making any live
 GitHub API calls.
+
+OPTIMIZATIONS:
+- Skip ended hackathons (keeps historical data static)
+- Incremental review fetching (only fetch reviews for PRs updated since last run)
+- Org repos caching (fetch once, reuse for all hackathons)
 """
 
 import json
@@ -23,6 +28,26 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 GITHUB_API_BASE = "https://api.github.com"
+
+
+def is_hackathon_active(start_time, end_time):
+    """Check if a hackathon is currently active or upcoming."""
+    now = datetime.now(timezone.utc)
+    end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+    # Keep updating if hackathon hasn't ended yet
+    return now <= end_dt
+
+
+def load_existing_data(slug):
+    """Load existing hackathon data if it exists."""
+    output_path = f"hackathon-data/{slug}.json"
+    if os.path.exists(output_path):
+        try:
+            with open(output_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as exc:
+            logger.warning("Could not load existing data for %s: %s", slug, exc)
+    return None
 
 
 def make_request(url, token=None, retry_count=3):
@@ -329,8 +354,12 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
     }
 
 
-def process_hackathon(hackathon_config, token):
-    """Fetch all data for a single hackathon and return the processed stats."""
+def process_hackathon(hackathon_config, token, org_repos_cache=None):
+    """Fetch all data for a single hackathon and return the processed stats.
+    
+    Args:
+        org_repos_cache: Optional dict to cache org repos across hackathons
+    """
     slug = hackathon_config["slug"]
     name = hackathon_config["name"]
     start_time = hackathon_config["startTime"]
@@ -341,27 +370,47 @@ def process_hackathon(hackathon_config, token):
 
     start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
     end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+    
+    # Load existing data for incremental review fetching
+    existing_data = load_existing_data(slug)
+    since = None
+    
+    if existing_data:
+        last_updated = existing_data.get("lastUpdated")
+        if last_updated:
+            # Use this to determine which PRs need review fetching
+            since = datetime.fromisoformat(last_updated.replace("Z", "+00:00")) - timedelta(minutes=5)
+            logger.info("Incremental review fetch for %s since %s", name, since.isoformat())
 
     # Resolve repositories (explicit list + org repos)
     repositories = list(explicit_repos)
     if organization:
-        try:
-            org_repos = fetch_org_repos(organization, token)
-            if org_repos:
-                combined = list({*repositories, *org_repos})
-                repositories = combined
-                logger.info(
-                    "Resolved %d repositories for %s (%d explicit + %d from org)",
-                    len(repositories),
-                    name,
-                    len(explicit_repos),
-                    len(org_repos),
+        # Use cached org repos if available
+        if org_repos_cache and organization in org_repos_cache:
+            org_repos = org_repos_cache[organization]
+            logger.info("Using cached org repos for %s (%d repos)", organization, len(org_repos))
+        else:
+            try:
+                org_repos = fetch_org_repos(organization, token)
+                if org_repos and org_repos_cache is not None:
+                    org_repos_cache[organization] = org_repos
+            except Exception as exc:
+                logger.error(
+                    "Failed to fetch org repos for %s, using explicit list: %s",
+                    organization,
+                    exc,
                 )
-        except Exception as exc:
-            logger.error(
-                "Failed to fetch org repos for %s, using explicit list: %s",
-                organization,
-                exc,
+                org_repos = []
+        
+        if org_repos:
+            combined = list({*repositories, *org_repos})
+            repositories = combined
+            logger.info(
+                "Resolved %d repositories for %s (%d explicit + %d from org)",
+                len(repositories),
+                name,
+                len(explicit_repos),
+                len(org_repos),
             )
 
     if not repositories:
@@ -370,6 +419,7 @@ def process_hackathon(hackathon_config, token):
 
     # Fetch all PRs across all repositories
     all_prs = []
+    
     for repo_path in repositories:
         parts = repo_path.split("/")
         if len(parts) != 2:
@@ -383,29 +433,44 @@ def process_hackathon(hackathon_config, token):
             logger.error("Failed to fetch PRs for %s: %s", repo_path, exc)
 
     logger.info("Total PRs fetched for %s: %d", name, len(all_prs))
+    
+    # Determine which PRs need review fetching (only recently updated ones)
+    if since:
+        prs_to_fetch_reviews = [
+            pr for pr in all_prs
+            if datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00")) >= since
+        ]
+        logger.info("PRs updated since last run: %d (will fetch reviews for these)", len(prs_to_fetch_reviews))
+    else:
+        prs_to_fetch_reviews = all_prs
 
-    # Fetch reviews for every PR (full pagination per PR)
+    # Fetch reviews only for updated PRs (huge optimization!)
     all_reviews = []
-    for pr in all_prs:
-        repo_path = pr.get("repository", "")
-        parts = repo_path.split("/")
-        if len(parts) != 2:
-            continue
-        owner, repo = parts
-        pr_number = pr["number"]
-        try:
-            reviews = fetch_reviews_for_pr(owner, repo, pr_number, token)
-            for review in reviews:
-                review["repository"] = repo_path
-                review["pull_request_url"] = pr.get("html_url", "")
-                review["pull_request_title"] = pr.get("title", "")
-            all_reviews.extend(reviews)
-        except Exception as exc:
-            logger.error(
-                "Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc
-            )
-
-    logger.info("Total reviews fetched for %s: %d", name, len(all_reviews))
+    
+    if prs_to_fetch_reviews:
+        logger.info("Fetching reviews for %d PRs (out of %d total)", len(prs_to_fetch_reviews), len(all_prs))
+        for pr in prs_to_fetch_reviews:
+            repo_path = pr.get("repository", "")
+            parts = repo_path.split("/")
+            if len(parts) != 2:
+                continue
+            owner, repo = parts
+            pr_number = pr["number"]
+            try:
+                reviews = fetch_reviews_for_pr(owner, repo, pr_number, token)
+                for review in reviews:
+                    review["repository"] = repo_path
+                    review["pull_request_url"] = pr.get("html_url", "")
+                    review["pull_request_title"] = pr.get("title", "")
+                all_reviews.extend(reviews)
+            except Exception as exc:
+                logger.error(
+                    "Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc
+                )
+    
+        logger.info("Total reviews fetched for %s: %d", name, len(all_reviews))
+    else:
+        logger.info("No new PRs to fetch reviews for %s", name)
 
     # Fetch all issues across all repositories
     all_issues = []
@@ -478,19 +543,36 @@ def main():
 
     # Create output directory
     os.makedirs("hackathon-data", exist_ok=True)
+    
+    # Cache for org repos to avoid fetching multiple times
+    org_repos_cache = {}
 
     for hackathon in hackathons:
         slug = hackathon.get("slug", "unknown")
-        logger.info("Processing hackathon: %s", hackathon.get("name", slug))
+        name = hackathon.get("name", slug)
+        start_time = hackathon.get("startTime")
+        end_time = hackathon.get("endTime")
+        
+        # Skip ended hackathons (optimization!)
+        if not is_hackathon_active(start_time, end_time):
+            logger.info("⏭️  Skipping ended hackathon: %s (ended on %s)", name, end_time)
+            # Verify the data file exists
+            output_path = f"hackathon-data/{slug}.json"
+            if not os.path.exists(output_path):
+                logger.warning("⚠️  No data file found for ended hackathon %s, processing once", slug)
+            else:
+                continue
+        
+        logger.info("🔄 Processing active hackathon: %s", name)
         try:
-            data = process_hackathon(hackathon, token)
+            data = process_hackathon(hackathon, token, org_repos_cache)
             if data:
                 output_path = f"hackathon-data/{slug}.json"
                 with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
-                logger.info("Saved stats for '%s' to %s", slug, output_path)
+                logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
         except Exception as exc:
-            logger.error("Failed to process hackathon %s: %s", slug, exc)
+            logger.error("❌ Failed to process hackathon %s: %s", slug, exc)
             import traceback
 
             traceback.print_exc()
