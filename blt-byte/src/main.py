@@ -1,12 +1,14 @@
 from workers import WorkerEntrypoint, Response
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         url = str(request.url)
-        path = request.url.path
+        parsed_url = urlparse(url)
+        path = parsed_url.path
         
         # Handle CORS preflight for API
         if request.method == "OPTIONS":
