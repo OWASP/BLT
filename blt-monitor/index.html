@@ -123,6 +123,7 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
           <span class="truncate"><i class="fa-solid fa-link"></i> ${monitor.url}</span>
           <span><i class="fa-solid fa-clock"></i> ${responseTime}</span>
           <span><i class="fa-solid fa-calendar"></i> ${lastCheck}</span>
+          ${monitor.keyword ? `<span><i class="fa-solid fa-magnifying-glass"></i> keyword: <strong>${monitor.keyword}</strong></span>` : ''}
         </div>
       </div>
       <div class="w-48 h-8 flex-shrink-0">
