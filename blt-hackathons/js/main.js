@@ -11,13 +11,12 @@ class HackathonDashboard {
         // Store resolved repositories (set during initialization)
         // Contains the merged list of explicit repositories and organization repositories
         this.repositories = null;
-        // True when data was fetched live from the GitHub API (no pre-fetched stats)
-        this.liveData = false;
     }
 
     /**
      * Initialize the dashboard by loading pre-fetched stats from a JSON file.
-     * Falls back to live GitHub API calls if the stats file is not yet available.
+     * All data is collected server-side (via fetch_stats.py running hourly) so
+     * the page never makes live GitHub API calls.
      */
     async init() {
         this.showLoading();
@@ -28,24 +27,20 @@ class HackathonDashboard {
             const slug = this.config.slug;
 
             // Load pre-fetched stats produced by fetch_stats.py
-            let statsData = null;
+            let statsData;
             try {
                 const response = await fetch(`hackathon-data/${slug}.json`);
-                if (response.ok) {
-                    statsData = await response.json();
-                } else {
-                    console.warn(
-                        `Pre-fetched stats not available (HTTP ${response.status}). ` +
-                        `Falling back to live GitHub API.`
+                if (!response.ok) {
+                    throw new Error(
+                        `Stats file not available (HTTP ${response.status}). ` +
+                        `Data may not have been generated yet – please wait for ` +
+                        `the hourly refresh or trigger it manually.`
                     );
                 }
+                statsData = await response.json();
             } catch (fetchError) {
-                console.warn('Failed to load pre-fetched stats, falling back to live API:', fetchError);
-            }
-
-            // If no pre-fetched data, fall back to live GitHub API
-            if (!statsData) {
-                await this.initFromGitHubAPI();
+                console.error('Failed to load pre-fetched stats:', fetchError);
+                this.showError(`Unable to load hackathon stats: ${fetchError.message}`);
                 return;
             }
 
@@ -123,76 +118,6 @@ class HackathonDashboard {
             console.error('Error initializing dashboard:', error);
             this.showError('Failed to load hackathon data. Please try again later.');
         }
-    }
-
-    /**
-     * Fallback: fetch live data directly from GitHub API when pre-fetched stats
-     * are not yet available.
-     */
-    async initFromGitHubAPI() {
-        const startDate = new Date(this.config.startTime);
-        const endDate = new Date(this.config.endTime);
-
-        // Resolve repositories (explicit list + org repos)
-        this.repositories = await this.api.resolveRepositories(this.config.github);
-
-        // Fetch PRs and issues in parallel
-        const [allPRs, allIssues] = await Promise.all([
-            this.api.getAllPullRequests(this.repositories, startDate, endDate),
-            this.api.getAllIssues(this.repositories, startDate, endDate)
-        ]);
-
-        // Fetch reviews for all PRs
-        const allReviews = await this.api.getAllReviews(allPRs, startDate, endDate);
-
-        // Fetch repository metadata
-        const repoData = await this.api.getAllRepositories(this.repositories);
-
-        // Process data
-        const prStats = this.api.processPRData(allPRs, startDate, endDate);
-        const { participants, dailyActivity, repoStats } = prStats;
-
-        // Derive dailyMergedPRs from dailyActivity (mirrors the Python fetch_stats.py output)
-        const dailyMergedPRs = {};
-        for (const [date, counts] of Object.entries(dailyActivity)) {
-            if (counts.merged > 0) {
-                dailyMergedPRs[date] = counts.merged;
-            }
-        }
-
-        // Process reviews (updates participants in place)
-        this.api.processReviewData(allReviews, participants);
-
-        // Process issues (updates repoStats in place)
-        const { totalIssues, closedIssues } = this.api.processIssueData(allIssues, repoStats);
-
-        // Update UI
-        this.updateStats({
-            participants,
-            totalPRs: prStats.totalPRs,
-            mergedPRs: prStats.mergedPRs,
-            totalIssues,
-            closedIssues,
-        });
-        this.renderLeaderboard(participants);
-        this.renderReviewLeaderBoard(participants);
-
-        try {
-            this.renderChart(dailyActivity, dailyMergedPRs);
-        } catch (chartError) {
-            console.warn('Failed to render chart:', chartError);
-            const chartCanvas = document.getElementById('prActivityChart');
-            if (chartCanvas && chartCanvas.parentElement) {
-                chartCanvas.parentElement.parentElement.style.display = 'none';
-            }
-        }
-
-        this.renderRepositories(repoStats, repoData);
-        this.renderSponsors();
-        this.hideLoading();
-        this.loadedAt = new Date();
-        this.liveData = true;
-        this.updateApiInfo();
     }
 
     /**
@@ -718,13 +643,9 @@ class HackathonDashboard {
         if (!infoEl) return;
 
         const lastUpdatedHtml = this.loadedAt
-            ? (this.liveData
-                ? `<span class="inline-flex items-center gap-1 text-blue-600"><i class="fas fa-cloud-download-alt"></i> Live data from GitHub API</span>` +
-                  `<span class="text-gray-400">|</span>` +
-                  `<span>Loaded: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
-                : `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed hourly</span>` +
-                  `<span class="text-gray-400">|</span>` +
-                  `<span>Last updated: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`)
+            ? `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed hourly</span>` +
+              `<span class="text-gray-400">|</span>` +
+              `<span>Last updated: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';
 
         infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${lastUpdatedHtml}</div>`;
