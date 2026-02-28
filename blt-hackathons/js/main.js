@@ -258,11 +258,11 @@ class HackathonDashboard {
                                 ${participant.mergedCount} merged PR${participant.mergedCount !== 1 ? 's' : ''}
                             </div>
                         </div>
-                        <a href="https://github.com/search?q=author%3A${participant.username}+type%3Apr" 
+                        <a href="https://github.com/search?q=author%3A${participant.username}+org%3AOWASP-BLT+type%3Apr+is%3Amerged" 
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                           title="View all PRs by ${this.escapeHtml(participant.username)}">
+                           title="View merged PRs by ${this.escapeHtml(participant.username)} to OWASP-BLT repositories">
                             <i class="fas fa-external-link-alt mr-1"></i>
                             <span class="hidden sm:inline">View PRs</span>
                         </a>
