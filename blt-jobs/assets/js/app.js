@@ -4,6 +4,45 @@ function normalizeString(value) {
   return (value || "").toString().toLowerCase();
 }
 
+function isExpiringSoon(expiresAt) {
+  if (!expiresAt) return false;
+  try {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const daysUntilExpiry = (expiryDate - now) / (1000 * 60 * 60 * 24);
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 7;
+  } catch (e) {
+    return false;
+  }
+}
+
+function isExpired(expiresAt) {
+  if (!expiresAt) return false;
+  try {
+    const expiryDate = new Date(expiresAt);
+    return expiryDate < new Date();
+  } catch (e) {
+    return false;
+  }
+}
+
+function formatExpiryDate(expiresAt) {
+  if (!expiresAt) return "";
+  try {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) return "Expired";
+    if (daysUntilExpiry === 0) return "Expires today";
+    if (daysUntilExpiry === 1) return "Expires tomorrow";
+    if (daysUntilExpiry <= 7) return `Expires in ${daysUntilExpiry} days`;
+    return "";
+  } catch (e) {
+    return "";
+  }
+}
+
 function renderJobs(jobs) {
   const jobList = document.getElementById("jobList");
   const resultsSummary = document.getElementById("resultsSummary");
@@ -58,9 +97,18 @@ function renderJobs(jobs) {
       const jobType = job.job_type || "";
       const salary = job.salary_range || "";
       const createdAt = job.created_at || "";
+      const expired = isExpired(job.expires_at);
+      const expiringSoon = isExpiringSoon(job.expires_at);
+      const expiryText = formatExpiryDate(job.expires_at);
 
       return `
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 p-6 hover:border-gray-300 dark:hover:border-gray-600">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border ${
+          expired
+            ? "border-gray-300 dark:border-gray-600 opacity-60"
+            : expiringSoon
+            ? "border-orange-300 dark:border-orange-700"
+            : "border-gray-200 dark:border-gray-700"
+        } hover:shadow-md transition-all duration-200 p-6 hover:border-gray-300 dark:hover:border-gray-600">
           <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-3">
@@ -80,12 +128,31 @@ function renderJobs(jobs) {
                 </div>
               </div>
 
-              <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                <a href="job.html?id=${encodeURIComponent(job.id)}"
-                   class="hover:text-[#e74c3c] dark:hover:text-[#f8c471] transition-colors duration-200">
-                  ${job.title || "Untitled job"}
-                </a>
-              </h2>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex-1">
+                  <a href="job.html?id=${encodeURIComponent(job.id)}"
+                     class="hover:text-[#e74c3c] dark:hover:text-[#f8c471] transition-colors duration-200">
+                    ${job.title || "Untitled job"}
+                  </a>
+                </h2>
+                ${
+                  expired
+                    ? `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                         </svg>
+                         Expired
+                       </span>`
+                    : expiringSoon
+                    ? `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                         </svg>
+                         ${expiryText}
+                       </span>`
+                    : ""
+                }
+              </div>
 
               <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
                 ${

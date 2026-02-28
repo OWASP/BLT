@@ -2,6 +2,45 @@ function normalizeString(value) {
   return (value || "").toString().trim();
 }
 
+function isExpiringSoon(expiresAt) {
+  if (!expiresAt) return false;
+  try {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const daysUntilExpiry = (expiryDate - now) / (1000 * 60 * 60 * 24);
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 7;
+  } catch (e) {
+    return false;
+  }
+}
+
+function isExpired(expiresAt) {
+  if (!expiresAt) return false;
+  try {
+    const expiryDate = new Date(expiresAt);
+    return expiryDate < new Date();
+  } catch (e) {
+    return false;
+  }
+}
+
+function formatExpiryDate(expiresAt) {
+  if (!expiresAt) return "";
+  try {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) return "Expired";
+    if (daysUntilExpiry === 0) return "Expires today";
+    if (daysUntilExpiry === 1) return "Expires tomorrow";
+    if (daysUntilExpiry <= 7) return `Expires in ${daysUntilExpiry} days`;
+    return expiryDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  } catch (e) {
+    return "";
+  }
+}
+
 function renderNotFound() {
   const root = document.getElementById("jobRoot");
   if (!root) return;
@@ -56,6 +95,9 @@ function renderJob(job) {
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
   const hasUrl = Boolean(job.application_url);
+  const expired = isExpired(job.expires_at);
+  const expiringSoon = isExpiringSoon(job.expires_at);
+  const expiryText = formatExpiryDate(job.expires_at);
   let faviconDomain = "";
   if (job.application_url) {
     try { faviconDomain = new URL(job.application_url).hostname; } catch (e) {}
@@ -100,6 +142,37 @@ function renderJob(job) {
               ${faviconUrl ? `<img src="${faviconUrl}" alt="" width="32" height="32" class="w-8 h-8 rounded" aria-hidden="true" />` : ""}
               ${job.title || "Untitled job"}
             </h1>
+
+            ${
+              expired
+                ? `<div class="mb-6 rounded-lg border-2 border-gray-300 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700/50">
+                     <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                       </svg>
+                       <span class="font-semibold">This job posting has expired</span>
+                     </div>
+                   </div>`
+                : expiringSoon
+                ? `<div class="mb-6 rounded-lg border-2 border-orange-300 bg-orange-50 p-4 dark:border-orange-700 dark:bg-orange-900/20">
+                     <div class="flex items-center gap-2 text-orange-800 dark:text-orange-300">
+                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                       </svg>
+                       <span class="font-semibold">${expiryText}</span>
+                     </div>
+                   </div>`
+                : job.expires_at
+                ? `<div class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                     <span class="flex items-center gap-1">
+                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                       </svg>
+                       Application deadline: ${expiryText}
+                     </span>
+                   </div>`
+                : ""
+            }
 
             <!-- Job Meta Info -->
             <div class="flex flex-wrap items-center gap-6 text-gray-700 dark:text-gray-300 mb-8">
@@ -167,7 +240,17 @@ function renderJob(job) {
 
             <!-- Apply Buttons -->
             ${
-              canApply
+              expired
+                ? `<div class="inline-flex items-center px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl font-medium border border-gray-200 dark:border-gray-600">
+                     <svg class="w-5 h-5 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                     </svg>
+                     Applications Closed (Expired)
+                   </div>`
+                : canApply
                 ? `<div class="flex flex-wrap gap-4">
                      ${
                        hasEmail
