@@ -1,0 +1,12 @@
+---
+name: "Md Kaif Ansari"
+headline: "Software Enginerr"
+location: "India"
+skills: ""
+experience_summary: "2 experience"
+profile_url: "https://linkedin.com/in/md-kaif-ansari"
+availability: "Immediately  ## Skills <!-- List your technical skills, programming languages, frameworks, etc. --> Js/Ts, Node, Express, Next.js, React, Postgressql, Python, Devops  ## About Me <!-- Brief professional summary/bio --> I'm a Cs nerd, contributing open source building useful software and breaking internet.   ## Experience Highlights <!-- List key projects, achievements, or relevant experience -->   ## Contact & Links"
+created_at: "2026-02-28T14:22:00Z"
+---
+
+Profile created via issue.
