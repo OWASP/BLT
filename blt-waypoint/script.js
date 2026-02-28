@@ -265,10 +265,10 @@ function buildStats(repos, cumulative) {
         <p class="text-xs font-bold text-gray-900 dark:text-white leading-tight">${s.value}</p>
         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${s.label}</p>
       </div>`;
-    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 flex items-center gap-1.5 shadow-sm flex-1 min-w-[6rem] ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : ''}`;
+    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 flex items-center gap-1.5 shadow-sm flex-1 min-w-[6rem] ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : 'opacity-60 cursor-default'}`;
     return s.href
       ? `<a href="${s.href}" target="_blank" rel="noopener noreferrer" class="${cls}" aria-label="${s.label}: ${s.value}">${inner}</a>`
-      : `<div class="${cls}">${inner}</div>`;
+      : `<div class="${cls}" title="No link available">${inner}</div>`;
   }).join('');
 }
 
