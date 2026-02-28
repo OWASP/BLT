@@ -4,10 +4,10 @@ Tests for the homepage handler.
 
 import pytest
 import sys
-import os
+from pathlib import Path
 
 # Add src to path for imports to work
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from handlers.homepage import handle_homepage
 
