@@ -1,0 +1,114 @@
+name: Update Leaderboard
+
+on:
+  # Regenerate every 6 hours
+  schedule:
+    - cron: "0 */6 * * *"
+
+  # Also regenerate whenever a bug-labelled issue is opened or closed
+  issues:
+    types:
+      - opened
+      - labeled
+      - closed
+      - reopened
+
+  # Allow manual runs from the Actions UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  update-leaderboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate leaderboard data
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Fetch all issues labelled "bug" (paginate through all pages)
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                labels: 'bug',
+                state:  'all',
+                per_page: 100,
+              }
+            );
+
+            // Filter out PRs (GitHub returns PRs in the issues endpoint)
+            const bugIssues = issues.filter(i => !i.pull_request);
+
+            // Tally reporters and extract org names
+            const counts  = {};   // login → { count, avatar_url, profile_url }
+            const orgSet  = new Set();
+
+            for (const issue of bugIssues) {
+              const login = issue.user.login;
+
+              if (!counts[login]) {
+                counts[login] = {
+                  count:       0,
+                  avatar_url:  issue.user.avatar_url,
+                  profile_url: issue.user.html_url,
+                };
+              }
+              counts[login].count++;
+
+              // Try to extract ORG_NAME from the issue body
+              if (issue.body) {
+                const match = issue.body.match(/### Organization Name.*?\n\n(.+)/s);
+                if (match) orgSet.add(match[1].trim().split('\n')[0]);
+              }
+            }
+
+            // Sort descending by report count
+            const leaderboard = Object.entries(counts)
+              .sort(([, a], [, b]) => b.count - a.count)
+              .slice(0, 50)
+              .map(([login, data], idx) => ({
+                rank:        idx + 1,
+                login,
+                count:       data.count,
+                avatar_url:  data.avatar_url,
+                profile_url: data.profile_url,
+              }));
+
+            const payload = {
+              updated_at:  new Date().toISOString(),
+              total_bugs:  bugIssues.length,
+              total_orgs:  orgSet.size,
+              leaderboard,
+            };
+
+            fs.mkdirSync('data', { recursive: true });
+            fs.writeFileSync(
+              'data/leaderboard.json',
+              JSON.stringify(payload, null, 2) + '\n'
+            );
+
+            console.log(
+              `Leaderboard updated: ${bugIssues.length} bugs, ` +
+              `${leaderboard.length} reporters, ${orgSet.size} orgs`
+            );
+
+      - name: Commit updated leaderboard
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "github-actions[bot]"
+          git add data/leaderboard.json
+          # Only commit if there are actual changes
+          git diff --staged --quiet || \
+            git commit -m "chore: update leaderboard data [skip ci]"
+          git push
