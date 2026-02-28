@@ -370,6 +370,10 @@ function buildLabelFilter(repos) {
     if (query === '') {
       renderLabelDropdown();
       dropdown.classList.add('hidden');
+      if (currentLabel) {
+        currentLabel = '';
+        applyFilters();
+      }
     } else {
       const filtered = allLabels.filter(({ label }) =>
         label.toLowerCase().includes(query)
