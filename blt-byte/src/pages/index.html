@@ -595,10 +595,13 @@
     const typingDiv = appendMsg('<span class="msg-typing">Byte is thinking…</span>', 'bot');
 
     try {
-      const res = await fetch('/', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ 
+          message: text,
+          history: history.slice(-10) // Send last 10 messages for context
+        }),
       });
 
       typingDiv.remove();
@@ -610,7 +613,7 @@
       }
 
       const data = await res.json();
-      const reply = data.message || data.reply || '(no response)';
+      const reply = data.reply || '(no response)';
       appendMsg(escHtml(reply).replace(/\n/g, '<br>'), 'bot');
       history.push({ role: 'assistant', content: reply });
     } catch (err) {

@@ -176,6 +176,7 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const welcomeCard = document.getElementById('welcomeCard');
         let hasStartedChat = false;
+        let conversationHistory = []; // Track conversation history
 
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
@@ -292,10 +293,13 @@
         // Send message
         async function sendMessage(message) {
             try {
-                const response = await fetch(API_URL, {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ 
+                        message: message,
+                        history: conversationHistory 
+                    })
                 });
                 
                 if (!response.ok) {
@@ -304,10 +308,12 @@
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    return data.message;
+                if (data.reply) {
+                    return data.reply;
+                } else if (data.error) {
+                    throw new Error(data.error);
                 } else {
-                    throw new Error(data.error || 'Unknown error occurred');
+                    throw new Error('Unknown error occurred');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -327,6 +333,10 @@
 
             // Add user message
             addMessage(message, true);
+            
+            // Add to history
+            conversationHistory.push({ role: 'user', content: message });
+            
             messageInput.value = '';
             messageInput.style.height = 'auto';
             
@@ -339,6 +349,9 @@
                 // Send message and get response
                 const response = await sendMessage(message);
                 addMessage(response, false);
+                
+                // Add assistant response to history
+                conversationHistory.push({ role: 'assistant', content: response });
             } catch (error) {
                 showError(error.message || 'Failed to send message. Please try again.');
             } finally {
