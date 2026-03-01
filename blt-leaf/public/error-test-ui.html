@@ -1,0 +1,101 @@
+<!-- Save as: public/error-test-ui.html  (or wherever your static HTML pages live)
+     Then open: https://leaf.owaspblt.org/error-test-ui.html
+     Works on local too: http://127.0.0.1:8787/error-test-ui.html
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BLT-Leaf Error Test UI</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    .card { max-width: 820px; padding: 16px; border: 1px solid #ddd; border-radius: 10px; }
+    button { padding: 10px 12px; margin: 6px 8px 6px 0; cursor: pointer; }
+    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+    .log { margin-top: 12px; padding: 12px; border: 1px dashed #bbb; border-radius: 10px; white-space: pre-wrap; }
+    .muted { color: #666; font-size: 14px; }
+  </style>
+  <script src="/error-reporter.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h2>Error Test UI (no DevTools required)</h2>
+    <p class="muted">
+      Use these buttons to confirm end-to-end reporting:
+      <code>Browser error → /api/client-error → Slack</code>
+    </p>
+
+    <div>
+      <button id="btnSend">1) Send frontend report (no crash)</button>
+      <button id="btnThrow">2) Trigger uncaught runtime error</button>
+      <button id="btnReject">3) Trigger unhandled rejection</button>
+      <button id="btnResource">4) Trigger resource load failure</button>
+    </div>
+
+    <div class="log" id="log">Ready.</div>
+    <p class="muted">
+      Expected Slack types: <code>ProdTest</code>, <code>RuntimeError</code>, <code>UnhandledRejection</code>, <code>ResourceError</code>.
+    </p>
+  </div>
+  <script>
+    const logEl = document.getElementById("log");
+    function log(msg) {
+      logEl.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logEl.textContent;
+    }
+
+    async function postClientError(payload) {
+      const res = await fetch("/api/client-error", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        // keepalive helps during unload; harmless here
+        keepalive: true,
+      });
+      const text = await res.text().catch(() => "");
+      return { status: res.status, ok: res.ok, body: text };
+    }
+
+    // 1) No-crash report (tests frontend → backend → Slack without breaking page)
+    document.getElementById("btnSend").addEventListener("click", async () => {
+      try {
+        log("Sending /api/client-error (no crash) …");
+        const out = await postClientError({
+          error_type: "ProdTest",
+          message: "frontend reporting test via error-test-ui.html",
+          stack: "",
+          source: "error-test-ui.html",
+          url: location.href,
+        });
+        log(`Response: status=${out.status}, ok=${out.ok}, body=${out.body}`);
+        log("Check Slack for: ProdTest");
+      } catch (e) {
+        log("FAILED to send: " + (e && e.message ? e.message : String(e)));
+      }
+    });
+
+    // 2) Uncaught runtime error (tests window.error path)
+    document.getElementById("btnThrow").addEventListener("click", () => {
+      log("Triggering uncaught runtime error …");
+      setTimeout(() => { throw new Error("RuntimeError test from error-test-ui.html"); }, 0);
+      log("Triggered. Check Slack for: RuntimeError/Error");
+    });
+
+    // 3) Unhandled rejection (tests unhandledrejection path)
+    document.getElementById("btnReject").addEventListener("click", () => {
+      log("Triggering unhandled rejection …");
+      Promise.reject(new Error("UnhandledRejection test from error-test-ui.html"));
+      log("Triggered. Check Slack for: UnhandledRejection");
+    });
+
+    // 4) Resource failure (tests capture-mode error/resource reporting)
+    document.getElementById("btnResource").addEventListener("click", () => {
+      log("Triggering resource load failure …");
+      const s = document.createElement("script");
+      s.src = "https://example.invalid/does-not-exist.js";
+      document.head.appendChild(s);
+      log("Triggered. Check Slack for: ResourceError");
+    });
+  </script>
+</body>
+</html>
