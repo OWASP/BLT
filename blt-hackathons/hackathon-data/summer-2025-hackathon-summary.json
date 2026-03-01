@@ -3,5 +3,25 @@
   "totalPRs": 340,
   "mergedPRs": 207,
   "totalIssues": 198,
-  "repositories": 49
+  "repositories": 49,
+  "topContributors": [
+    {
+      "username": "rinkitadhana",
+      "avatar": "https://avatars.githubusercontent.com/u/115058302?v=4",
+      "url": "https://github.com/rinkitadhana",
+      "mergedCount": 46
+    },
+    {
+      "username": "igennova",
+      "avatar": "https://avatars.githubusercontent.com/u/91773416?v=4",
+      "url": "https://github.com/igennova",
+      "mergedCount": 35
+    },
+    {
+      "username": "krrish-sehgal",
+      "avatar": "https://avatars.githubusercontent.com/u/133865424?v=4",
+      "url": "https://github.com/krrish-sehgal",
+      "mergedCount": 12
+    }
+  ]
 }

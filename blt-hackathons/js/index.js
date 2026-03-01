@@ -48,6 +48,7 @@ class HackathonIndex {
                         mergedPRs: summary.mergedPRs || 0,
                         totalIssues: summary.totalIssues || 0,
                         repositories: summary.repositories || 0,
+                        topContributors: summary.topContributors || [],
                     };
                 }
             } catch (e) {
@@ -204,7 +205,21 @@ class HackathonIndex {
                                 <div class="text-lg font-bold text-red-600">${stats.repositories}</div>
                                 <div class="text-xs text-gray-500">Repositories</div>
                             </div>
-                        </div>` : '';
+                        </div>
+                        ${stats.topContributors && stats.topContributors.length > 0 ? `
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-xs text-gray-500 whitespace-nowrap">Top contributors:</span>
+                            <div class="flex -space-x-2">
+                                ${stats.topContributors.map((c, i) => `
+                                <a href="${this.escapeHtml(c.url)}" target="_blank" rel="noopener noreferrer"
+                                   title="${this.escapeHtml(c.username)} — ${c.mergedCount} merged PR${c.mergedCount !== 1 ? 's' : ''}">
+                                    <img src="${this.escapeHtml(c.avatar)}" alt="${this.escapeHtml(c.username)}"
+                                         class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                                         onerror="this.src='https://github.com/identicons/${this.escapeHtml(c.username)}.png'">
+                                </a>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}` : '';
 
             return `
                 <div class="hackathon-card bg-white rounded-lg shadow-lg overflow-hidden" data-status="${status.status}">

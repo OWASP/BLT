@@ -602,12 +602,23 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
 def build_summary(data):
     """Build a lightweight summary dict from a full hackathon data dict."""
     stats = data.get("stats", {})
+    leaderboard = stats.get("leaderboard", [])
+    top_contributors = [
+        {
+            "username": p["username"],
+            "avatar": p.get("avatar", ""),
+            "url": p.get("url", f"https://github.com/{p['username']}"),
+            "mergedCount": p.get("mergedCount", 0),
+        }
+        for p in leaderboard[:3]
+    ]
     return {
         "participantCount": stats.get("participantCount", 0),
         "totalPRs": stats.get("totalPRs", 0),
         "mergedPRs": stats.get("mergedPRs", 0),
         "totalIssues": stats.get("totalIssues", 0),
         "repositories": len(data.get("repositories", [])),
+        "topContributors": top_contributors,
     }
 
 
