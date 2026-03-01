@@ -9,7 +9,7 @@
       "requirements": null,
       "location": "New York City, NY; San Francisco, CA; Seattle, WA",
       "job_type": "full-time",
-      "salary_range": null,
+      "salary_range": "$405,000 - $485,000",
       "expires_at": null,
       "application_email": null,
       "application_url": "https://job-boards.greenhouse.io/anthropic/jobs/4562813008",
@@ -45,7 +45,7 @@
       "requirements": null,
       "location": "Remote Canada; Remote US",
       "job_type": "full-time",
-      "salary_range": null,
+      "salary_range": "$113,025 - $150,700",
       "expires_at": null,
       "application_email": null,
       "application_url": "https://job-boards.greenhouse.io/mozilla/jobs/7615645",
@@ -92,5 +92,5 @@
     }
   ],
   "count": 5,
-  "generated_at": "2026-03-01T07:14:57.073Z"
+  "generated_at": "2026-03-01T07:52:03.484Z"
 }
