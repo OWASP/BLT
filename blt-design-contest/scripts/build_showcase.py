@@ -650,7 +650,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="description" content="BLT Design Contest — community showcase of design submissions. Rate your favourites with a thumbs up!" />
-  <title>BLT Design Contest — Showcase</title>
+  <title>BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -703,11 +703,11 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contest home">
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
           <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
                        bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contest
+            Design Contests
           </span>
         </a>
 
@@ -761,7 +761,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         Open Design Contests
       </span>
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
-        BLT Design Showcase
+        BLT Design Showcases
       </h1>
       <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-4">
         Community-driven design submissions for OWASP BLT.
@@ -1035,7 +1035,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="description" content="{cname} — community showcase of design submissions. Rate your favourites with a thumbs up!" />
-  <title>{cname} — BLT Design Contest</title>
+  <title>{cname} — BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1088,11 +1088,11 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
 
         <!-- Logo / Brand -->
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contest home">
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
           <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
                        bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
           <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-            Design Contest
+            Design Contests
           </span>
         </a>
 
