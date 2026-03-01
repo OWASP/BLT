@@ -45,7 +45,7 @@ const BLT_CONFIG = {
         "Anonymous reporting via BLT-API",
       ],
       cta: "Get Started",
-      cta_href: "report-bug.html",
+      cta_href: "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml",
       highlighted: false,
     },
     {

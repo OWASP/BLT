@@ -68,10 +68,10 @@ function initAnonymousToggle() {
 
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) {
-      btn.href = "report-bug.html?anonymous=true";
+      btn.href = "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml&anonymous=true";
       btn.querySelector(".btn-label").textContent = "Report Bug Anonymously";
     } else {
-      btn.href = "report-bug.html";
+      btn.href = "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml";
       btn.querySelector(".btn-label").textContent = "Report a Bug";
     }
   });
@@ -231,7 +231,7 @@ function renderLeaderboard(container, data) {
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <i class="fa-solid fa-trophy text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
-      No reports yet. Be the first to <a href="report-bug.html" class="text-primary underline hover:no-underline">report a bug</a>!
+      No reports yet. Be the first to <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">report a bug</a>!
     </td></tr>`;
     return;
   }
