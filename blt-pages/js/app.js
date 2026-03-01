@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initAnonymousToggle();
   initPricing();
+  initLeaderboardTabs();
   loadLeaderboard();
   loadRecentBugs();
   initSmoothScroll();
@@ -174,6 +175,8 @@ async function loadLeaderboard() {
     if (!res.ok) throw new Error("No static data");
     const data = await res.json();
     renderLeaderboard(container, data);
+    renderTopCommenters(document.getElementById("commenters-rows"), data);
+    renderTopDomains(document.getElementById("domains-rows"), data);
     if (statBugs) statBugs.textContent = formatNumber(data.total_bugs || 0);
     if (statReporters) statReporters.textContent = formatNumber(data.leaderboard?.length || 0);
     if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs || 0);
@@ -199,6 +202,8 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
   // Build counts map
   const counts = {};
   const orgs = new Set();
+  const domainCounts = {};
+
   for (const issue of issues) {
     if (issue.pull_request) continue;
     const user = issue.user.login;
@@ -208,6 +213,15 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
     // Extract org from body (ORG_NAME field)
     const orgMatch = issue.body?.match(/### Organization Name.*?\n\n(.+)/s);
     if (orgMatch) orgs.add(orgMatch[1].trim().split("\n")[0]);
+
+    // Extract domain from URL field
+    const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+    if (urlMatch) {
+      try {
+        const domain = new URL(urlMatch[1]).hostname;
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      } catch { /* ignore malformed URLs */ }
+    }
   }
 
   const leaderboard = Object.entries(counts)
@@ -215,14 +229,25 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
     .slice(0, 50)
     .map(([login, data], idx) => ({ rank: idx + 1, login, ...data }));
 
+  const topDomains = Object.entries(domainCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 20)
+    .map(([domain, count], idx) => ({ rank: idx + 1, domain, count }));
+
   const data = {
     leaderboard,
+    // Commenters require per-issue API calls; omit in the live-API fallback
+    // to avoid rate-limit exhaustion. Full data is available via static JSON.
+    top_commenters: [],
+    top_domains: topDomains,
     total_bugs: issues.filter((i) => !i.pull_request).length,
     total_orgs: orgs.size,
     updated_at: new Date().toISOString(),
   };
 
   renderLeaderboard(container, data);
+  renderTopCommenters(document.getElementById("commenters-rows"), data);
+  renderTopDomains(document.getElementById("domains-rows"), data);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
   if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs);
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
@@ -416,6 +441,164 @@ function renderRecentBugs(bugs) {
           <span class="text-xs text-gray-400 dark:text-gray-500">${date}</span>
         </div>
       </div>`;
+    })
+    .join("");
+}
+
+/* ────────────────────────────────────────────────────────────
+   Leaderboard Tabs
+──────────────────────────────────────────────────────────── */
+function initLeaderboardTabs() {
+  const tabs = document.querySelectorAll(".leaderboard-tab");
+  if (!tabs.length) return;
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      // Deactivate all tabs and hide all panels
+      tabs.forEach((t) => {
+        t.setAttribute("aria-selected", "false");
+        t.classList.remove("border-primary", "text-primary");
+        t.classList.add("border-transparent", "text-gray-500", "dark:text-gray-400");
+        const panel = document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.classList.add("hidden");
+      });
+
+      // Activate the clicked tab and show its panel
+      tab.setAttribute("aria-selected", "true");
+      tab.classList.add("border-primary", "text-primary");
+      tab.classList.remove("border-transparent", "text-gray-500", "dark:text-gray-400");
+      const activePanel = document.getElementById(tab.getAttribute("aria-controls"));
+      if (activePanel) activePanel.classList.remove("hidden");
+    });
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+   Top Commenters
+──────────────────────────────────────────────────────────── */
+function renderTopCommenters(container, data) {
+  if (!container) return;
+
+  const commenters = data.top_commenters || [];
+  if (commenters.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      <i class="fa-solid fa-comment text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      No comments yet. Start a conversation on a <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!
+    </td></tr>`;
+    return;
+  }
+
+  const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = commenters[0]?.count || 1;
+
+  container.innerHTML = commenters
+    .map((entry) => {
+      const rankDisplay =
+        entry.rank <= 3
+          ? `<span class="text-xl" aria-label="Rank ${entry.rank}">${rankIcons[entry.rank - 1]}</span>`
+          : `<span class="font-bold text-gray-500 dark:text-gray-400">#${entry.rank}</span>`;
+
+      const rowClass =
+        entry.rank <= 3
+          ? "bg-active-bg dark:bg-red-900/10"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
+
+      return `<tr class="${rowClass} transition-colors">
+        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
+        <td class="px-4 py-3">
+          <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
+             target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-3 group">
+            <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
+                 alt="${escapeHtml(entry.login)}'s avatar"
+                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700"
+                 loading="lazy"
+                 onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+              ${escapeHtml(entry.login)}
+            </span>
+          </a>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
+            <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
+            ${formatNumber(entry.count)}
+          </span>
+        </td>
+        <td class="px-4 py-3 hidden sm:table-cell">
+          <div class="flex justify-end">
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
+              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    })
+    .join("");
+}
+
+/* ────────────────────────────────────────────────────────────
+   Top Domains
+──────────────────────────────────────────────────────────── */
+function renderTopDomains(container, data) {
+  if (!container) return;
+
+  const domains = data.top_domains || [];
+  if (domains.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      <i class="fa-solid fa-globe text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      No domain data yet. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">Be the first to report a bug!</a>
+    </td></tr>`;
+    return;
+  }
+
+  const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = domains[0]?.count || 1;
+
+  container.innerHTML = domains
+    .map((entry) => {
+      const rankDisplay =
+        entry.rank <= 3
+          ? `<span class="text-xl" aria-label="Rank ${entry.rank}">${rankIcons[entry.rank - 1]}</span>`
+          : `<span class="font-bold text-gray-500 dark:text-gray-400">#${entry.rank}</span>`;
+
+      const rowClass =
+        entry.rank <= 3
+          ? "bg-active-bg dark:bg-red-900/10"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
+
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(entry.domain)}&sz=32`;
+
+      return `<tr class="${rowClass} transition-colors">
+        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
+        <td class="px-4 py-3">
+          <a href="https://${escapeHtml(entry.domain)}"
+             target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-3 group">
+            <img src="${faviconUrl}"
+                 alt="${escapeHtml(entry.domain)} favicon"
+                 class="w-5 h-5 rounded flex-shrink-0"
+                 loading="lazy"
+                 onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\\' aria-hidden=\\'true\\'></i>'" />
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+              ${escapeHtml(entry.domain)}
+            </span>
+          </a>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
+            <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+            ${formatNumber(entry.count)}
+          </span>
+        </td>
+        <td class="px-4 py-3 hidden sm:table-cell">
+          <div class="flex justify-end">
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
+              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
     })
     .join("");
 }
