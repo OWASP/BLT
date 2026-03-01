@@ -209,6 +209,39 @@ def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
         return []
 
 
+def fetch_latest_commit(repo_full_name: str, default_branch: str) -> dict | None:
+    """Return the most recent commit (message, author, sha, url, date) for a repo."""
+    try:
+        data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/commits?sha={default_branch}&per_page=1"
+        )
+        if not isinstance(data, list) or not data:
+            return None
+        commit = data[0]
+        commit_detail = commit.get("commit", {})
+        message_full = commit_detail.get("message", "")
+        message = message_full.split("\n")[0][:120]
+        author_obj = commit_detail.get("author") or {}
+        author = author_obj.get("name", "")
+        if not author:
+            author = (commit.get("author") or {}).get("login", "")
+        return {
+            "sha": commit.get("sha", "")[:7],
+            "message": message,
+            "author": author,
+            "html_url": commit.get("html_url", ""),
+            "date": author_obj.get("date", ""),
+        }
+    except urllib.error.HTTPError as exc:
+        if exc.code == 409:
+            return None
+        print(f"  Warning: could not fetch latest commit for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+    except (urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not fetch latest commit for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+
+
 def fetch_latest_release(repo_full_name: str) -> dict | None:
     """Return the latest release for a repo, or None if there are none."""
     try:
@@ -399,6 +432,20 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch the most recent commit for each non-archived repo
+    print("Fetching latest commits…", flush=True)
+    latest_commit_map: dict[str, dict | None] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            latest_commit_map[repo["full_name"]] = None
+        else:
+            latest_commit_map[repo["full_name"]] = fetch_latest_commit(
+                repo["full_name"], repo.get("default_branch", "main")
+            )
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Fetch the latest release for each non-archived repo
     print("Fetching latest releases…", flush=True)
     latest_release_map: dict[str, dict | None] = {}
@@ -439,6 +486,7 @@ def main() -> None:
              "open_pr_count": open_pr_count_map.get(repo["full_name"], 0),
              "agent_pr_count": agent_pr_count_map.get(repo["full_name"], 0),
              "latest_issue": latest_issue_map.get(repo["full_name"]),
+             "latest_commit": latest_commit_map.get(repo["full_name"]),
              "latest_release": latest_release_map.get(repo["full_name"]),
              "star_history": star_history_map.get(repo["full_name"], [])}
             for repo in repos
