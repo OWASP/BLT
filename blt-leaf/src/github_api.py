@@ -181,6 +181,9 @@ async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
             print(f"GitHub API: PR #{pr_number} returned 304 Not Modified (Fast-path)")
             return {'not_modified': True}
             
+        if pr_response.status == 404:
+            return {'not_found': True}
+
         if pr_response.status != 200:
             return None
             

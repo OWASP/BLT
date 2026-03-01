@@ -531,6 +531,20 @@ async def handle_refresh_pr(request, env):
                 'rate_limit': get_rate_limit_cache()
             }), {'headers': {'Content-Type': 'application/json'}})
         
+        if pr_data and pr_data.get('not_found'):
+            if quick_refresh:
+                await invalidate_readiness_cache(env, pr_id)
+                await invalidate_timeline_cache(env, result['repo_owner'], result['repo_name'], result['pr_number'])
+                delete_stmt = db.prepare('DELETE FROM prs WHERE id = ?').bind(pr_id)
+                await delete_stmt.run()
+                return Response.new(json.dumps({
+                    'success': True,
+                    'removed': True,
+                    'message': 'PR not found on GitHub and removed from tracking'
+                }), {'headers': {'Content-Type': 'application/json'}})
+            return Response.new(json.dumps({'error': 'PR not found on GitHub'}),
+                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+
         if not pr_data:
             return Response.new(json.dumps({'error': 'Failed to fetch PR data from GitHub'}), 
                               {'status': 403, 'headers': {'Content-Type': 'application/json'}})
