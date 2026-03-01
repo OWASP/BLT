@@ -17,6 +17,7 @@ import logging
 import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -88,7 +89,7 @@ def make_request(url, token=None, retry_count=3):
     return None
 
 
-def fetch_all_pages(base_url, token=None):
+def fetch_all_pages(base_url, token=None, max_pages=100):
     """Fetch all pages from a paginated GitHub API endpoint."""
     all_items = []
     page = 1
@@ -104,11 +105,13 @@ def fetch_all_pages(base_url, token=None):
 
         all_items.extend(items)
 
-        if len(items) < per_page:
+        if len(items) < per_page or page >= max_pages:
             break
 
         page += 1
-        time.sleep(0.2)  # Be gentle with the API
+        # Reduced sleep when token is present, as we are parallelizing
+        if not token:
+            time.sleep(0.2)
 
     logger.info("Fetched %d items from %s", len(all_items), base_url.split("?")[0])
     return all_items
@@ -417,20 +420,29 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         logger.warning("No repositories found for hackathon: %s", name)
         return None
 
-    # Fetch all PRs across all repositories
+    # Fetch all PRs across all repositories in parallel
     all_prs = []
+    logger.info("Fetching PRs for %d repositories in parallel...", len(repositories))
     
-    for repo_path in repositories:
-        parts = repo_path.split("/")
-        if len(parts) != 2:
-            logger.warning("Skipping invalid repo path: %s", repo_path)
-            continue
-        owner, repo = parts
-        try:
-            prs = fetch_pull_requests(owner, repo, start_dt, end_dt, token)
-            all_prs.extend(prs)
-        except Exception as exc:
-            logger.error("Failed to fetch PRs for %s: %s", repo_path, exc)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if len(parts) != 2:
+                logger.warning("Skipping invalid repo path: %s", repo_path)
+                continue
+            owner, repo = parts
+            future = executor.submit(fetch_pull_requests, owner, repo, start_dt, end_dt, token)
+            future_to_repo[future] = repo_path
+
+        for future in as_completed(future_to_repo):
+            repo_path = future_to_repo[future]
+            try:
+                prs = future.result()
+                if prs:
+                    all_prs.extend(prs)
+            except Exception as exc:
+                logger.error("Failed to fetch PRs for %s: %s", repo_path, exc)
 
     logger.info("Total PRs fetched for %s: %d", name, len(all_prs))
     
@@ -444,16 +456,17 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     else:
         prs_to_fetch_reviews = all_prs
 
-    # Fetch reviews only for updated PRs (huge optimization!)
+    # Fetch reviews only for updated PRs in parallel
     all_reviews = []
     
     if prs_to_fetch_reviews:
-        logger.info("Fetching reviews for %d PRs (out of %d total)", len(prs_to_fetch_reviews), len(all_prs))
-        for pr in prs_to_fetch_reviews:
+        logger.info("Fetching reviews for %d PRs in parallel...", len(prs_to_fetch_reviews))
+        
+        def fetch_enriched_reviews(pr):
             repo_path = pr.get("repository", "")
             parts = repo_path.split("/")
             if len(parts) != 2:
-                continue
+                return []
             owner, repo = parts
             pr_number = pr["number"]
             try:
@@ -462,11 +475,17 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
                     review["repository"] = repo_path
                     review["pull_request_url"] = pr.get("html_url", "")
                     review["pull_request_title"] = pr.get("title", "")
-                all_reviews.extend(reviews)
+                return reviews
             except Exception as exc:
-                logger.error(
-                    "Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc
-                )
+                logger.error("Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc)
+                return []
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            future_to_pr = {executor.submit(fetch_enriched_reviews, pr): pr for pr in prs_to_fetch_reviews}
+            for future in as_completed(future_to_pr):
+                reviews = future.result()
+                if reviews:
+                    all_reviews.extend(reviews)
     
         logger.info("Total reviews fetched for %s: %d", name, len(all_reviews))
     else:
@@ -517,32 +536,51 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
 
     # Fetch all issues across all repositories
     all_issues = []
-    for repo_path in repositories:
-        parts = repo_path.split("/")
-        if len(parts) != 2:
-            continue
-        owner, repo = parts
-        try:
-            issues = fetch_issues(owner, repo, start_dt, end_dt, token)
-            all_issues.extend(issues)
-        except Exception as exc:
-            logger.error("Failed to fetch issues for %s: %s", repo_path, exc)
+    logger.info("Fetching issues for %d repositories in parallel...", len(repositories))
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo_issues = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if len(parts) != 2:
+                continue
+            owner, repo = parts
+            future = executor.submit(fetch_issues, owner, repo, start_dt, end_dt, token)
+            future_to_repo_issues[future] = repo_path
+
+        for future in as_completed(future_to_repo_issues):
+            repo_path = future_to_repo_issues[future]
+            try:
+                issues = future.result()
+                if issues:
+                    all_issues.extend(issues)
+            except Exception as exc:
+                logger.error("Failed to fetch issues for %s: %s", repo_path, exc)
 
     logger.info("Total issues fetched for %s: %d", name, len(all_issues))
 
-    # Fetch repository metadata
+    # Fetch repository metadata in parallel
     repo_data = []
-    for repo_path in repositories:
-        parts = repo_path.split("/")
-        if len(parts) != 2:
-            continue
-        owner, repo = parts
-        try:
-            meta = fetch_repo_metadata(owner, repo, token)
-            if meta:
-                repo_data.append(meta)
-        except Exception as exc:
-            logger.error("Failed to fetch metadata for %s: %s", repo_path, exc)
+    logger.info("Fetching repository metadata in parallel...")
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_repo_meta = {}
+        for repo_path in repositories:
+            parts = repo_path.split("/")
+            if len(parts) != 2:
+                continue
+            owner, repo = parts
+            future = executor.submit(fetch_repo_metadata, owner, repo, token)
+            future_to_repo_meta[future] = repo_path
+
+        for future in as_completed(future_to_repo_meta):
+            repo_path = future_to_repo_meta[future]
+            try:
+                meta = future.result()
+                if meta:
+                    repo_data.append(meta)
+            except Exception as exc:
+                logger.error("Failed to fetch metadata for %s: %s", repo_path, exc)
 
     # Compute stats
     stats = process_hackathon_stats(
