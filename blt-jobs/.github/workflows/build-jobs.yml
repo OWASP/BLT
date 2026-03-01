@@ -42,6 +42,9 @@ jobs:
       - name: Build jobs JSON
         run: npm run build:jobs
 
+      - name: Validate jobs
+        run: npm run validate:jobs
+
       - name: Commit updated data/jobs.json (main only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
