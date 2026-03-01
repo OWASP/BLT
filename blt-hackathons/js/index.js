@@ -7,12 +7,13 @@ class HackathonIndex {
     constructor(config) {
         this.config = config;
         this.currentFilter = 'all';
+        this.hackathonStats = {};
     }
 
     /**
      * Initialize the index page
      */
-    init() {
+    async init() {
         this.loadedAt = new Date();
         const global = this.config.global || {};
         
@@ -27,8 +28,34 @@ class HackathonIndex {
             document.getElementById('hero-description').textContent = global.siteDescription;
         }
 
-        // Render hackathons
+        // Load stats for all hackathons, then render
+        await this.loadAllStats();
         this.renderHackathons();
+    }
+
+    /**
+     * Load pre-fetched stats for all hackathons
+     */
+    async loadAllStats() {
+        const fetches = (this.config.hackathons || []).map(async hackathon => {
+            try {
+                const response = await fetch(`hackathon-data/${hackathon.slug}.json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const stats = data.stats || {};
+                    this.hackathonStats[hackathon.slug] = {
+                        participantCount: stats.participantCount || 0,
+                        totalPRs: stats.totalPRs || 0,
+                        mergedPRs: stats.mergedPRs || 0,
+                        totalIssues: stats.totalIssues || 0,
+                        repositories: (data.repositories || []).length,
+                    };
+                }
+            } catch (e) {
+                console.warn(`Failed to load stats for ${hackathon.slug}:`, e);
+            }
+        });
+        await Promise.all(fetches);
     }
 
     /**
@@ -151,13 +178,34 @@ class HackathonIndex {
             const status = this.getHackathonStatus(hackathon);
             const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
             const timeRemaining = this.getTimeRemaining(hackathon);
-            // Count repositories - show appropriate message for organization-based tracking
-            const explicitRepoCount = hackathon.github.repositories?.length || 0;
-            const hasOrganization = !!hackathon.github.organization;
-            const repoCount = hasOrganization ? `All repos in ${hackathon.github.organization}` : explicitRepoCount;
             const descriptionTrimmed = hackathon.description.trim();
             const descriptionPreview = descriptionTrimmed.substring(0, 150);
             const needsEllipsis = descriptionTrimmed.length > 150;
+            const stats = this.hackathonStats[hackathon.slug];
+
+            const statsHtml = stats ? `
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.participantCount}</div>
+                                <div class="text-xs text-gray-500">Participants</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.totalPRs}</div>
+                                <div class="text-xs text-gray-500">Pull Requests</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.mergedPRs}</div>
+                                <div class="text-xs text-gray-500">Merged PRs</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.totalIssues}</div>
+                                <div class="text-xs text-gray-500">Issues</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg col-span-2">
+                                <div class="text-lg font-bold text-red-600">${stats.repositories}</div>
+                                <div class="text-xs text-gray-500">Repositories</div>
+                            </div>
+                        </div>` : '';
 
             return `
                 <div class="hackathon-card bg-white rounded-lg shadow-lg overflow-hidden" data-status="${status.status}">
@@ -212,17 +260,7 @@ class HackathonIndex {
                             ${this.escapeHtml(descriptionPreview)}${needsEllipsis ? '...' : ''}
                         </p>
                         
-                        <div class="flex items-center text-sm text-gray-600 mb-2">
-                            <i class="fas fa-code-branch mr-2"></i>
-                            <span>${typeof repoCount === 'string' ? repoCount : `${repoCount} repositor${repoCount !== 1 ? 'ies' : 'y'}`}</span>
-                        </div>
-                        
-                        ${hackathon.contributors !== undefined ? `
-                        <div class="flex items-center text-sm text-gray-600 mb-4">
-                            <i class="fas fa-user-friends mr-2"></i>
-                            <span>${hackathon.contributors} contributor${hackathon.contributors !== 1 ? 's' : ''}</span>
-                        </div>
-                        ` : '<div class="mb-4"></div>'}
+                        ${statsHtml}
                         
                         <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 
                            class="block w-full text-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
@@ -344,8 +382,8 @@ function filterHackathons(status) {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     window.hackathonIndex = new HackathonIndex(HACKATHONS_CONFIG);
-    window.hackathonIndex.init();
+    await window.hackathonIndex.init();
     window.hackathonIndex.updateApiInfo();
 });
