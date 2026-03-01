@@ -6,106 +6,59 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Features
 - 🔍 **Smart Profile Analysis** - Fetches and analyzes your GitHub repositories, languages, and topics
-- 🎯 **Personalized Recommendations** - AI-powered matching of projects based on your tech stack
+- 🎯 **Personalized Recommendations** - Matching of projects based on your tech stack
 - 👥 **Community Connections** - Discover relevant developer communities
 - 📚 **Learning Resources** - Curated articles and documentation
 - 💬 **Discussion Channels** - Find active forums and chat platforms
 - 🌙 **Dark Mode** - Beautiful UI with dark mode support
-- ⚡ **Fast & Lightweight** - Built on Cloudflare Workers
+- ⚡ **Fast & Lightweight** - Pure static site hosted on GitHub Pages
 
 ## Tech Stack
-- **Backend**: Python (Cloudflare Workers)
 - **Frontend**: HTML, Tailwind CSS, JavaScript
-- **APIs**: GitHub REST API v3
-- **Deployment**: Cloudflare Workers
+- **APIs**: GitHub REST API v3 (called directly from the browser)
+- **Deployment**: GitHub Pages via GitHub Actions
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- Python (v3.12+)
-- Wrangler CLI
+- A modern web browser (no server-side dependencies)
 
-### Installation
+### Local Development
+Open `index.html` directly in your browser, or serve it with any static file server:
+
 ```bash
-# Install dependencies
-npm install
-
-# Install Python dependencies (if needed)
-pip install -r requirements.txt
+# Python built-in server
+python -m http.server 8000
 ```
 
-### Development
-```bash
-# Start development server
-npm run dev
-# or
-wrangler dev
-```
-
-The application will be available at `http://localhost:8787`
+The application will be available at `http://localhost:8000`
 
 ### Deployment
-```bash
-# Deploy to Cloudflare Workers
-npm run deploy
-# or
-wrangler deploy
-```
+Pushes to the `main` branch automatically deploy to GitHub Pages via the workflow at `.github/workflows/deploy.yml`.
+
+To enable GitHub Pages for the repository:
+1. Go to **Settings → Pages**
+2. Set **Source** to **GitHub Actions**
 
 ## Project Structure
 ```
 BLT-OSSH/
-├── src/
-│   ├── main.py              # Python worker with routing logic
-│   └── pages/
-│       └── index.htm        # Main frontend page
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # GitHub Actions deployment workflow
 ├── static/
 │   └── logo.png            # BLT logo
-├── wrangler.toml           # Cloudflare Workers configuration
-├── package.json            # Node dependencies
-└── pyproject.toml          # Python dependencies
+└── index.html              # Main frontend page (all-in-one)
 ```
 
-## API Endpoints
+## GitHub API
 
-### `GET /`
-Serves the main HTML page
+The site calls the GitHub REST API directly from the browser (no backend required):
 
-### `POST /api`
-Analyzes GitHub profile and returns recommendations
+- `GET https://api.github.com/users/{username}` — profile data
+- `GET https://api.github.com/users/{username}/repos` — repository list
 
-**Request Body:**
-```json
-{
-  "username": "octocat"
-}
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "username": "octocat",
-  "data": {
-    "github_stats": {
-      "username": "octocat",
-      "name": "The Octocat",
-      "avatar_url": "...",
-      "bio": "...",
-      "public_repos": 8,
-      "followers": 1000,
-      "following": 100,
-      "languages": ["JavaScript", "Python"],
-      "topics": ["web", "api"]
-    },
-    "recommended_repos": [...],
-    "recommended_communities": [...],
-    "recommended_articles": [...],
-    "recommended_discussion_channels": [...]
-  }
-}
-```
+> **Note**: Unauthenticated requests are limited to 60 requests/hour per IP. This is sufficient for casual use.
 
 ## Usage
 1. Visit the OSSH page
