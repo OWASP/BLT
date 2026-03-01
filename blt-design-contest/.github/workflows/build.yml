@@ -22,7 +22,7 @@ on:
     - cron: "0 */2 * * *"
 
 permissions:
-  contents: write   # needed to commit index.html back to main
+  contents: write   # needed to commit HTML files back to main
   issues: write     # needed to create/apply labels and read reactions
   pages: write      # needed to deploy to GitHub Pages
   id-token: write   # needed for OIDC token used by deploy-pages
@@ -99,7 +99,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Generate index.html
+      - name: Generate showcase HTML pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
