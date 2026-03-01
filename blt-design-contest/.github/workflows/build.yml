@@ -105,6 +105,12 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/build_showcase.py
 
+      - name: Prepare deployment directory
+        run: |
+          mkdir /tmp/deploy
+          cp *.html _config.yml /tmp/deploy/
+          touch /tmp/deploy/.nojekyll
+
       - name: Commit updated HTML files to main
         run: |
           git config user.name "github-actions[bot]"
@@ -129,11 +135,6 @@ jobs:
           fi
           git commit -m "chore: rebuild showcase [skip ci]"
           git push origin HEAD:main
-
-      - name: Prepare deployment directory
-        run: |
-          mkdir /tmp/deploy
-          cp *.html _config.yml /tmp/deploy/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
