@@ -166,7 +166,7 @@
           <p>Top Prize</p>
         </div>
         <div>
-          <p id="countdown" class="text-3xl font-black text-[#E10101]">Mar 1</p>
+          <p class="text-3xl font-black text-[#E10101]">Mar 1</p>
           <p>Deadline</p>
         </div>
         <div class="col-span-2 sm:col-span-1">
@@ -230,7 +230,7 @@
             Design Entries
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            32 submissions · last updated 28 Feb 2026 23:15 UTC
+            32 submissions · last updated 01 Mar 2026 00:36 UTC
           </p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
@@ -292,7 +292,7 @@
         <div class="flex items-center justify-between gap-2 flex-wrap pt-2
                     border-t border-[#E5E5E5] dark:border-gray-700">
           <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
-            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">❤️ <span>1</span></span>
+            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">❤️ <span>3</span></span>
           </div>
           <div class="flex items-center gap-3">
             
@@ -2085,33 +2085,6 @@ The Guardian Edition centers on a eye with a shutter style iris, sym…</p>
         }
         container.innerHTML = html;
       }
-    })();
-  </script>
-  <script>
-    (function () {
-      const deadline = new Date('2026-03-01T00:00:00Z');
-      const el = document.getElementById('countdown');
-      if (!el) return;
-
-      function update() {
-        const now = new Date();
-        const diff = deadline - now;
-        if (diff <= 0) {
-          el.textContent = 'Ended';
-          clearInterval(timer);
-          return;
-        }
-        const d = Math.floor(diff / 864e5);
-        const h = Math.floor((diff % 864e5) / 36e5);
-        const m = Math.floor((diff % 36e5) / 6e4);
-        const s = Math.floor((diff % 6e4) / 1e3);
-        el.textContent = d > 0
-          ? `${d}d ${String(h).padStart(2,'0')}h`
-          : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      }
-
-      const timer = setInterval(update, 1000);
-      update();
     })();
   </script>
 </body>
