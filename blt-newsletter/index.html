@@ -326,7 +326,9 @@
               <div class="flex items-start gap-2">
                 <i class="fa-solid fa-circle-xmark mt-0.5 text-red-600" aria-hidden="true"></i>
                 <div>
-                  <strong>Error:</strong> Unable to process subscription. Please try again or email us directly at newsletter@blt.owasp.org
+                  <strong>Error:</strong> Unable to process subscription via GitHub API (Status: ${response.status}). 
+                  This may require repository permissions or a personal access token. 
+                  Please try again or email us directly at <strong>newsletter@blt.owasp.org</strong>
                 </div>
               </div>
             `;

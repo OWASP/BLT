@@ -11,6 +11,8 @@ on:
         description: 'Newsletter content file (markdown)'
         required: true
         default: 'newsletters/latest.md'
+  schedule:
+    - cron: '0 0 1 * *' # Run on the 1st of every month at 00:00 UTC
 
 jobs:
   send-newsletter:
@@ -47,13 +49,25 @@ jobs:
             
             const subscribers = issues.data
               .map(issue => {
-                const emailMatch = issue.body.match(/\*\*Email:\*\* (.+)/);
-                const nameMatch = issue.body.match(/\*\*Name:\*\* (.+)/);
-                if (emailMatch) {
-                  return {
-                    email: emailMatch[1].trim(),
-                    name: nameMatch ? nameMatch[1].trim() : 'Subscriber'
-                  };
+                const body = issue.body || '';
+                const lines = body.split('\n');
+                let email = null;
+                let name = 'Subscriber'; // Fallback name
+
+                for (const line of lines) {
+                  const cleanLine = line.replace(/\*/g, '').trim();
+                  if (cleanLine.toLowerCase().startsWith('email:')) {
+                    email = cleanLine.split(':')[1].trim();
+                  } else if (cleanLine.toLowerCase().startsWith('name:')) {
+                    const extractedName = cleanLine.split(':')[1].trim();
+                    if (extractedName && extractedName.toLowerCase() !== 'not provided') {
+                      name = extractedName;
+                    }
+                  }
+                }
+
+                if (email) {
+                  return { email, name };
                 }
                 return null;
               })

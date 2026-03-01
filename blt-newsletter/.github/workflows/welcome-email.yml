@@ -1,0 +1,66 @@
+name: Welcome Email
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  send-welcome-email:
+    if: |
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'newsletter-subscription')) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'newsletter-subscription')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install sendgrid markdown2
+      
+      - name: Extract subscriber info
+        id: info
+        shell: python
+        run: |
+          import os
+          body = """${{ github.event.issue.body }}"""
+          lines = body.split('\n')
+          email = ""
+          name = "Subscriber"
+          
+          for line in lines:
+              clean = line.replace('*', '').strip()
+              if clean.lower().startswith('email:'):
+                  email = clean.split(':', 1)[1].strip()
+              elif clean.lower().startswith('name:'):
+                  extracted_name = clean.split(':', 1)[1].strip()
+                  if extracted_name and extracted_name.lower() != 'not provided':
+                      name = extracted_name
+          
+          if not email:
+              print(f"::error::Email not found in issue body")
+              exit(1)
+              
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"email={email}\n")
+              f.write(f"name={name}\n")
+      
+      - name: Send welcome email
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          SINGLE_RECIPIENT: ${{ steps.info.outputs.email }}
+          SINGLE_NAME: ${{ steps.info.outputs.name }}
+          NEWSLETTER_SUBJECT: "Welcome to the BLT Newsletter! 🐛"
+          NEWSLETTER_CONTENT_FILE: "newsletters/welcome.md"
+        run: |
+          python .github/scripts/send-newsletter.py
