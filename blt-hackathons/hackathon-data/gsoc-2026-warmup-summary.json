@@ -3,5 +3,25 @@
   "totalPRs": 1852,
   "mergedPRs": 1132,
   "totalIssues": 589,
-  "repositories": 49
+  "repositories": 49,
+  "topContributors": [
+    {
+      "username": "Nachiket-Roy",
+      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "url": "https://github.com/Nachiket-Roy",
+      "mergedCount": 56
+    },
+    {
+      "username": "mdkaifansari04",
+      "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
+      "url": "https://github.com/mdkaifansari04",
+      "mergedCount": 43
+    },
+    {
+      "username": "Pritz395",
+      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
+      "url": "https://github.com/Pritz395",
+      "mergedCount": 35
+    }
+  ]
 }
