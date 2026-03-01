@@ -291,6 +291,40 @@
   </section>
 
   <!-- ================================================================
+       RECENT BUG REPORTS
+  ================================================================ -->
+  <section id="recent-bugs" class="py-16 sm:py-20 bg-gray-50 dark:bg-dark-surface">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-1">
+            <i class="fa-solid fa-bug text-primary mr-2" aria-hidden="true"></i>
+            Recent Bug Reports
+          </h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Latest community-reported issues</p>
+        </div>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug+sort%3Acreated-desc"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 border border-primary text-primary hover:bg-primary hover:text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors self-start sm:self-auto"
+        >
+          View All Reports
+        </a>
+      </div>
+
+      <div id="recent-bugs-grid" class="grid md:grid-cols-3 gap-6">
+        <!-- Cards injected by app.js -->
+        <div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">
+          <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-3 block" aria-hidden="true"></i>
+          Loading recent bugs…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
        HOW IT WORKS
   ================================================================ -->
   <section id="how-it-works" class="py-16 sm:py-20 bg-white dark:bg-dark-base">
