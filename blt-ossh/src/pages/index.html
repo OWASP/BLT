@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Open Source Sorting Hat - AI-powered GitHub profile analyzer that recommends perfect open source projects, communities, and resources." />
+  <meta property="og:title" content="OSSH - Open Source Sorting Hat" />
+  <meta property="og:description" content="Discover your perfect open source projects with AI-powered recommendations based on your GitHub profile." />
+  <meta property="og:type" content="website" />
+  <title>OSSH - Open Source Sorting Hat by BLT</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#dc2626',
+            'primary-dark': '#b91c1c',
+            'neutral-border': '#e5e7eb',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    :root {
+      --blt-primary: #dc2626;
+      --blt-border: #e5e7eb;
+      --blt-surface: #ffffff;
+      --blt-background: #f8fafc;
+    }
+
+    .dark {
+      --blt-primary: #ef4444;
+      --blt-border: #374151;
+      --blt-surface: #1F2937;
+      --blt-background: #111827;
+    }
+
+    body {
+      background: var(--blt-background);
+      transition: background-color 0.3s ease;
+    }
+
+    .hero-glow {
+      background:
+        radial-gradient(circle at 50% 10%, rgba(220, 38, 38, 0.15), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.1), transparent 40%),
+        linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+      transition: background 0.3s ease;
+    }
+
+    .dark .hero-glow {
+      background:
+        radial-gradient(circle at 50% 10%, rgba(239, 68, 68, 0.12), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08), transparent 40%),
+        linear-gradient(to bottom, #1F2937 0%, #111827 100%);
+    }
+
+    .surface-card {
+      background: var(--blt-surface);
+      border: 1px solid var(--blt-border);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .surface-card:hover {
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .wizard-icon {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .loading-spinner {
+      border: 3px solid rgba(220, 38, 38, 0.1);
+      border-top: 3px solid #dc2626;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    .dark ::-webkit-scrollbar-track { background: #1F2937; }
+    ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #ef4444; }
+  </style>
+</head>
+
+<body class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
+  <!-- Background Glow Effect -->
+  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="OSSH home">
+        <img
+          src="/static/logo.png"
+          alt="BLT logo"
+          class="h-9 w-9 rounded-lg object-contain"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <span class="hidden h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-sm font-extrabold text-white">
+          <i class="fas fa-hat-wizard"></i>
+        </span>
+        <div>
+          <p class="text-base font-extrabold leading-none dark:text-gray-100">Open Source Sorting Hat</p>
+          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">by OWASP BLT</p>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <button
+          id="dark-toggle"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          aria-label="Toggle dark mode"
+          type="button"
+        >
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline-block" aria-hidden="true"></i>
+        </button>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-OSSH"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-neutral-border px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12 sm:py-20">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <!-- Hero Section -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-2xl mb-6 wizard-icon">
+          <i class="fas fa-hat-wizard text-red-600 dark:text-red-400 text-6xl"></i>
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-5 leading-tight">
+          Find Your Perfect <br/>
+          <span class="text-red-600 dark:text-red-400">Open Source Project</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          Let our AI-powered sorting hat analyze your GitHub profile and discover personalized open source projects, 
+          communities, and resources that match your skills and interests.
+        </p>
+      </div>
+
+      <!-- Input Form Card -->
+      <div class="surface-card rounded-2xl p-8 sm:p-10 mb-12">
+        <form id="ossh-form" class="space-y-6">
+          <div>
+            <label for="github-username" class="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              GitHub Username
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-4">
+                <i class="fab fa-github text-red-600 dark:text-red-400 text-2xl"></i>
+              </span>
+              <input
+                type="text"
+                name="github-username"
+                id="github-username"
+                class="pl-14 pr-4 py-4 block w-full text-base shadow-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-600 focus:border-red-600 transition"
+                placeholder="octocat"
+                required
+              />
+            </div>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <i class="fas fa-info-circle mr-1"></i>
+              Enter your GitHub username to get personalized recommendations
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            class="w-full inline-flex items-center justify-center gap-3 px-6 py-4 border border-transparent text-lg font-bold rounded-xl shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <i class="fas fa-magic text-xl"></i>
+            <span id="btn-text">Find My Projects</span>
+            <div id="loading-spinner" class="loading-spinner hidden"></div>
+          </button>
+        </form>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <div class="flex items-start">
+            <i class="fas fa-exclamation-circle text-red-600 dark:text-red-400 text-xl mr-3 mt-0.5"></i>
+            <div>
+              <h3 class="text-sm font-semibold text-red-800 dark:text-red-300">Error</h3>
+              <p id="error-text" class="text-sm text-red-700 dark:text-red-400 mt-1"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section (Hidden by default) -->
+      <div id="results-section" class="hidden mb-12">
+        <!-- GitHub Stats -->
+        <div class="surface-card rounded-2xl p-8 mb-6">
+          <div class="flex items-start gap-6">
+            <img id="user-avatar" src="" alt="User Avatar" class="w-24 h-24 rounded-full border-4 border-red-100 dark:border-red-900/30" />
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2" id="user-name"></h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-4" id="user-bio"></p>
+              <div class="flex flex-wrap gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-code-branch text-red-600"></i>
+                  <span id="user-repos" class="font-semibold">0</span> repositories
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-users text-red-600"></i>
+                  <span id="user-followers" class="font-semibold">0</span> followers
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-user-plus text-red-600"></i>
+                  <span id="user-following" class="font-semibold">0</span> following
+                </div>
+              </div>
+              <div id="user-languages" class="flex flex-wrap gap-2 mt-4"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Repositories -->
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-star text-red-600"></i>
+            Recommended Projects
+          </h3>
+          <div id="recommended-repos" class="grid gap-4 md:grid-cols-2"></div>
+        </div>
+
+        <!-- Recommended Communities -->
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-users text-red-600"></i>
+            Communities for You
+          </h3>
+          <div id="recommended-communities" class="grid gap-4 md:grid-cols-2"></div>
+        </div>
+
+        <!-- Recommended Articles -->
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-book-open text-red-600"></i>
+            Recommended Reading
+          </h3>
+          <div id="recommended-articles" class="grid gap-4 md:grid-cols-2"></div>
+        </div>
+
+        <!-- Discussion Channels -->
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-comments text-red-600"></i>
+            Join Discussions
+          </h3>
+          <div id="discussion-channels" class="grid gap-4 grid-cols-2 md:grid-cols-4"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-4 mt-8">
+          <button
+            id="analyze-another"
+            class="inline-flex items-center gap-2 px-6 py-3 border border-red-600 text-red-600 dark:border-red-500 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+          >
+            <i class="fas fa-redo"></i>
+            Analyze Another Profile
+          </button>
+          <a
+            id="view-github-profile"
+            href="#"
+            target="_blank"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition"
+          >
+            <i class="fab fa-github"></i>
+            View GitHub Profile
+          </a>
+        </div>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="grid gap-6 md:grid-cols-3 mb-12">
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-xl mb-4">
+            <i class="fas fa-code-branch text-red-600 dark:text-red-400 text-2xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Smart Matching</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            AI analyzes your repos and contributions to find perfect project matches
+          </p>
+        </div>
+
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-xl mb-4">
+            <i class="fas fa-users text-red-600 dark:text-red-400 text-2xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Communities</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Discover active communities aligned with your tech stack
+          </p>
+        </div>
+
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-xl mb-4">
+            <i class="fas fa-book-open text-red-600 dark:text-red-400 text-2xl"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2 text-lg">Resources</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Get curated articles, docs, and learning materials
+          </p>
+        </div>
+      </div>
+
+      <!-- How it Works -->
+      <div class="surface-card rounded-2xl p-8 sm:p-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+          How It Works
+        </h2>
+        <div class="grid gap-6 md:grid-cols-3">
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-red-600 text-white rounded-full font-bold text-xl mb-4">
+              1
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Enter Username</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Simply provide your GitHub username
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-red-600 text-white rounded-full font-bold text-xl mb-4">
+              2
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">AI Analysis</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              We analyze your profile, repos, and activity
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-red-600 text-white rounded-full font-bold text-xl mb-4">
+              3
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Get Recommendations</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Receive personalized project suggestions
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface mt-20">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          &copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors
+        </p>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
+            <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+          </a>
+          <a href="https://twitter.com/owasp_blt" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
+            <i class="fa-brands fa-twitter text-xl" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Dark mode toggle
+    const darkToggle = document.getElementById('dark-toggle');
+    const html = document.documentElement;
+
+    // Check for saved theme preference or default to light mode
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      html.classList.add('dark');
+    }
+
+    darkToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const theme = html.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
+    });
+
+    // Form submission
+    const form = document.getElementById('ossh-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const usernameInput = document.getElementById('github-username');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = usernameInput.value.trim();
+      
+      if (!username) {
+        showError('Please enter a GitHub username');
+        return;
+      }
+
+      // Reset error state
+      hideError();
+
+      // Show loading state
+      submitBtn.disabled = true;
+      btnText.textContent = 'Analyzing...';
+      loadingSpinner.classList.remove('hidden');
+
+      try {
+        // Make API call
+        const response = await fetch('/api', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Display results
+        displayResults(data.data);
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Failed to analyze GitHub profile. Please check the username and try again.');
+      } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.textContent = 'Find My Projects';
+        loadingSpinner.classList.add('hidden');
+      }
+    });
+
+    function showError(message) {
+      errorText.textContent = message;
+      errorMessage.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorMessage.classList.add('hidden');
+    }
+
+    function displayResults(data) {
+      const resultsSection = document.getElementById('results-section');
+      const githubStats = data.github_stats;
+
+      // Populate GitHub Stats
+      document.getElementById('user-avatar').src = githubStats.avatar_url || '/static/logo.png';
+      document.getElementById('user-name').textContent = githubStats.name || githubStats.username;
+      document.getElementById('user-bio').textContent = githubStats.bio || 'No bio available';
+      document.getElementById('user-repos').textContent = githubStats.public_repos || 0;
+      document.getElementById('user-followers').textContent = githubStats.followers || 0;
+      document.getElementById('user-following').textContent = githubStats.following || 0;
+
+      // Display languages
+      const languagesContainer = document.getElementById('user-languages');
+      languagesContainer.innerHTML = '';
+      (githubStats.languages || []).forEach(lang => {
+        const badge = document.createElement('span');
+        badge.className = 'px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-semibold';
+        badge.textContent = lang;
+        languagesContainer.appendChild(badge);
+      });
+
+      // Display recommended repositories
+      const reposContainer = document.getElementById('recommended-repos');
+      reposContainer.innerHTML = '';
+      (data.recommended_repos || []).forEach(repo => {
+        const repoCard = document.createElement('div');
+        repoCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+        repoCard.innerHTML = `
+          <div class="flex items-start justify-between mb-3">
+            <h4 class="font-bold text-gray-900 dark:text-white text-lg">${repo.name}</h4>
+            <span class="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full">
+              <i class="fas fa-star"></i> ${repo.stars}
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">${repo.description}</p>
+          <a href="${repo.url}" target="_blank" class="inline-flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
+            <i class="fab fa-github"></i> View Repository
+          </a>
+        `;
+        reposContainer.appendChild(repoCard);
+      });
+
+      // Display recommended communities
+      const communitiesContainer = document.getElementById('recommended-communities');
+      communitiesContainer.innerHTML = '';
+      (data.recommended_communities || []).forEach(community => {
+        const communityCard = document.createElement('div');
+        communityCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+        communityCard.innerHTML = `
+          <h4 class="font-bold text-gray-900 dark:text-white mb-2">${community.name}</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${community.description}</p>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              <i class="fas fa-users"></i> ${community.members}
+            </span>
+            <a href="${community.url}" target="_blank" class="text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
+              Visit <i class="fas fa-external-link-alt ml-1"></i>
+            </a>
+          </div>
+        `;
+        communitiesContainer.appendChild(communityCard);
+      });
+
+      // Display recommended articles
+      const articlesContainer = document.getElementById('recommended-articles');
+      articlesContainer.innerHTML = '';
+      (data.recommended_articles || []).forEach(article => {
+        const articleCard = document.createElement('div');
+        articleCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+        articleCard.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              <i class="fas fa-file-alt text-red-600 dark:text-red-400"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-semibold text-gray-900 dark:text-white mb-1">${article.title}</h4>
+              <span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
+                ${article.category}
+              </span>
+              <a href="${article.url}" target="_blank" class="block mt-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
+                Read More <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        `;
+        articlesContainer.appendChild(articleCard);
+      });
+
+      // Display discussion channels
+      const channelsContainer = document.getElementById('discussion-channels');
+      channelsContainer.innerHTML = '';
+      (data.recommended_discussion_channels || []).forEach(channel => {
+        const channelCard = document.createElement('div');
+        channelCard.className = 'surface-card rounded-xl p-5 text-center hover:shadow-lg transition';
+        channelCard.innerHTML = `
+          <div class="text-3xl mb-3">
+            <i class="${channel.icon} text-red-600 dark:text-red-400"></i>
+          </div>
+          <h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">${channel.name}</h4>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">${channel.platform}</p>
+          <a href="${channel.url}" target="_blank" class="text-red-600 dark:text-red-400 font-semibold text-xs hover:underline">
+            Join <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        `;
+        channelsContainer.appendChild(channelCard);
+      });
+
+      // Update GitHub profile link
+      document.getElementById('view-github-profile').href = `https://github.com/${githubStats.username}`;
+
+      // Show results section and scroll to it
+      resultsSection.classList.remove('hidden');
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Hide features section
+      document.querySelector('.grid.gap-6.md\\:grid-cols-3.mb-12').classList.add('hidden');
+      document.querySelector('.surface-card.rounded-2xl.p-8.sm\\:p-10').classList.add('hidden');
+    }
+
+    // Analyze another profile button handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const analyzeAnotherBtn = document.getElementById('analyze-another');
+      if (analyzeAnotherBtn) {
+        analyzeAnotherBtn.addEventListener('click', () => {
+          // Hide results
+          document.getElementById('results-section').classList.add('hidden');
+          
+          // Show form and features
+          document.querySelector('.grid.gap-6.md\\:grid-cols-3.mb-12').classList.remove('hidden');
+          document.querySelector('.surface-card.rounded-2xl.p-8.sm\\:p-10').classList.remove('hidden');
+          
+          // Clear form
+          usernameInput.value = '';
+          
+          // Scroll to top
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+    });
+
+    // Set footer year
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
