@@ -267,7 +267,7 @@ async def handle_scan(request, env) -> Response:
     )
 
     raw = (
-        ai_response.get("output ", "")
+        ai_response.get("response", "")
         if isinstance(ai_response, dict)
         else str(ai_response)
     )

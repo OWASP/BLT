@@ -11,5 +11,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "workers-py",
+    "workers-runtime-sdk",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
     "workers-runtime-sdk"
 ]
