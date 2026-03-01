@@ -27,6 +27,13 @@ permissions:
   pages: write      # needed to deploy to GitHub Pages
   id-token: write   # needed for OIDC token used by deploy-pages
 
+# Only one deployment runs at a time; a newer run cancels any in-progress one.
+# This prevents concurrent git pushes from failing with a non-fast-forward error
+# and then skipping the Pages deployment step.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     name: Build showcase & deploy to GitHub Pages
@@ -134,7 +141,7 @@ jobs:
             exit 0
           fi
           git commit -m "chore: rebuild showcase [skip ci]"
-          git push origin HEAD:main
+          git push origin HEAD:main || echo "Push to main failed (possible concurrent push); pages will still be deployed."
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
