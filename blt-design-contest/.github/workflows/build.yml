@@ -105,17 +105,26 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/build_showcase.py
 
-      - name: Commit updated index.html to main
+      - name: Commit updated HTML files to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Stash all generated HTML files
           cp index.html /tmp/generated_index.html
+          for f in *.html; do
+            [ "$f" != "index.html" ] && cp "$f" "/tmp/generated_${f}"
+          done
           git fetch origin main
           git checkout -f origin/main
+          # Restore generated files
           cp /tmp/generated_index.html index.html
-          git add index.html
+          for f in /tmp/generated_*.html; do
+            name="${f#/tmp/generated_}"
+            cp "$f" "$name"
+          done
+          git add *.html
           if git diff --cached --quiet; then
-            echo "No changes to index.html -- skipping commit."
+            echo "No changes to HTML files -- skipping commit."
             exit 0
           fi
           git commit -m "chore: rebuild showcase [skip ci]"
@@ -124,7 +133,7 @@ jobs:
       - name: Prepare deployment directory
         run: |
           mkdir /tmp/deploy
-          cp index.html _config.yml /tmp/deploy/
+          cp *.html _config.yml /tmp/deploy/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
