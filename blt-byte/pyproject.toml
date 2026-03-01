@@ -1,7 +1,7 @@
 [project]
-name = "blt-byte"
+name = "blt-byte-chatbot"
 version = "0.1.0"
-description = "OWASP BLT AI assistant, orchestrator and security agent (Cloudflare Workers AI)"
+description = "BLT AI Chatbot - Python AI worker powered by Cloudflare Workers AI"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

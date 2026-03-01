@@ -10,12 +10,14 @@ Routes:
 """
 
 import json
+from pathlib import Path
 
 from workers import Response, WorkerEntrypoint
 
 # ---------------------------------------------------------------------------
 # BLT FAQ knowledge base
 # ---------------------------------------------------------------------------
+CLOUDFLARE_AI_MODEL = "@cf/openai/gpt-oss-120b"
 FAQ_CONTEXT = """
 You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool).
 OWASP BLT is a gamified, crowd-sourced QA testing and vulnerability disclosure
@@ -173,26 +175,61 @@ async def handle_chat(request, env) -> Response:
 
     history = body.get("history", [])
 
-    messages = [{"role": "system", "content": FAQ_CONTEXT}]
-    for turn in history[-10:]:  # keep only the 10 most recent turns for context
-        role = turn.get("role", "user")
-        content = turn.get("content", "")
-        if role in ("user", "assistant") and content:
-            messages.append({"role": role, "content": content})
-    messages.append({"role": "user", "content": user_message})
+    # Build system instructions with context
+    system_instructions = FAQ_CONTEXT
+    
+    # Add conversation history to instructions
+    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
+    history_list = list(history[-10:]) if history else []
+    if history_list:
+        system_instructions += "\n\nConversation history:\n"
+        for turn in history_list:
+            role = str(turn.get("role", "user"))
+            content = str(turn.get("content", ""))
+            if role in ("user", "assistant") and content:
+                system_instructions += f"{role}: {content}\n"
 
-    ai_response = await env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct",
-        {"messages": messages, "max_tokens": 512},
-    )
+    # Call Cloudflare AI
+    try:
+        ai_response = await env.AI.run(
+            CLOUDFLARE_AI_MODEL,
+            {
+                "instructions": system_instructions,
+                "input": user_message,
+            },
+        )
+        
+        # Extract the response - convert JsProxy to Python object
+        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+        
+        # Convert JsProxy to Python object if needed
+        if hasattr(response_output, 'to_py'):
+            response_output = response_output.to_py()
+        
+        # The output is a list with reasoning and assistant message
+        # Find the assistant message (last item with role="assistant")
+        reply = "I'm having trouble generating a response."
+        
+        if isinstance(response_output, list):
+            # Find the assistant message object
+            for item in response_output:
+                if isinstance(item, dict) and item.get('role') == 'assistant':
+                    content = item.get('content', [])
+                    # Content is an array of objects, find the output_text
+                    if isinstance(content, list):
+                        for content_item in content:
+                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
+                                reply = content_item.get('text', reply)
+                                break
+                    break
+        else:
+            print(f"Response output is not a list, it's: {type(response_output)}")
+    
+    except Exception as ai_error:
+        print(f"AI call error: {str(ai_error)}")
+        reply = "I'm having trouble connecting to the AI service. Please try again."
 
-    reply = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
-
-    return json_response({"reply": reply, "model": "@cf/meta/llama-3.1-8b-instruct"})
+    return json_response({"reply": reply, "model": CLOUDFLARE_AI_MODEL})
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +262,7 @@ async def handle_scan(request, env) -> Response:
     ]
 
     ai_response = await env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct",
+        CLOUDFLARE_AI_MODEL,
         {"messages": messages, "max_tokens": 768},
     )
 
@@ -295,21 +332,61 @@ async def handle_mcp(request, env) -> Response:
 async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
         return {"error": "'message' is required"}
-    messages = [{"role": "system", "content": FAQ_CONTEXT}]
-    for turn in history[-10:]:  # keep only the 10 most recent turns for context
-        content = turn.get("content", "")
-        if role in ("user", "assistant") and content:
-            messages.append({"role": role, "content": content})
-    messages.append({"role": "user", "content": message})
-    ai_response = await env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct",
-        {"messages": messages, "max_tokens": 512},
-    )
-    reply = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
+    
+    # Build system instructions with context
+    system_instructions = FAQ_CONTEXT
+    
+    # Add conversation history to instructions
+    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
+    history_list = list(history[-10:]) if history else []
+    if history_list:
+        system_instructions += "\n\nConversation history:\n"
+        for turn in history_list:
+            role = str(turn.get("role", "user"))
+            content = str(turn.get("content", ""))
+            if role in ("user", "assistant") and content:
+                system_instructions += f"{role}: {content}\n"
+    
+    # Call Cloudflare AI
+    try:
+        ai_response = await env.AI.run(
+            CLOUDFLARE_AI_MODEL,
+            {
+                "instructions": system_instructions,
+                "input": message,
+            },
+        )
+        
+        # Extract the response - convert JsProxy to Python object
+        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+        
+        # Convert JsProxy to Python object if needed
+        if hasattr(response_output, 'to_py'):
+            response_output = response_output.to_py()
+        
+        # The output is a list with reasoning and assistant message
+        # Find the assistant message (last item with role="assistant")
+        reply = "I'm having trouble generating a response."
+        
+        if isinstance(response_output, list):
+            # Find the assistant message object
+            for item in response_output:
+                if isinstance(item, dict) and item.get('role') == 'assistant':
+                    content = item.get('content', [])
+                    # Content is an array of objects, find the output_text
+                    if isinstance(content, list):
+                        for content_item in content:
+                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
+                                reply = content_item.get('text', reply)
+                                break
+                    break
+        else:
+            print(f"Response output is not a list, it's: {type(response_output)}")
+    
+    except Exception as ai_error:
+        print(f"AI call error: {str(ai_error)}")
+        reply = "I'm having trouble connecting to the AI service. Please try again."
+    
     return {"reply": reply}
 
 
@@ -326,7 +403,7 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         {"role": "user", "content": f"Analyse this target: {url}\n{depth_note}"},
     ]
     ai_response = await env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct",
+        CLOUDFLARE_AI_MODEL,
         {"messages": messages, "max_tokens": 768},
     )
     raw = (
@@ -403,7 +480,7 @@ def _get_onboarding_guide(role: str) -> dict:
 # ---------------------------------------------------------------------------
 # Main Worker entrypoint
 # ---------------------------------------------------------------------------
-class BltByte(WorkerEntrypoint):
+class Default(WorkerEntrypoint):
     async def fetch(self, request) -> Response:
         url = request.url
         # Parse path from full URL
@@ -426,7 +503,7 @@ class BltByte(WorkerEntrypoint):
         if path == "/api/health":
             return json_response({"status": "ok", "service": "blt-byte"})
 
-        # Chat endpoint
+        # Chat endpoint (API format)
         if path == "/api/chat" and method == "POST":
             return await handle_chat(request, self.env)
 
@@ -438,9 +515,53 @@ class BltByte(WorkerEntrypoint):
         if path == "/api/mcp":
             return await handle_mcp(request, self.env)
 
+        # HTML serving routes (GET requests)
+        if method == "GET":
+            # Landing page
+            if path in ("/", "/index.html"):
+                return self._serve_html()
+            
+            # Chat page
+            if path == "/chat":
+                return self._serve_chat_html()
+        
         # 404 for unknown API paths
         if path.startswith("/api/"):
             return error_response("Not found", 404)
 
-        # All other routes: let Assets binding serve static files
+        # All other routes: let Assets binding serve static files (logo, etc.)
         return await self.env.ASSETS.fetch(request)
+    
+    def _serve_html(self) -> Response:
+        """Serve the landing page HTML"""
+        try:
+            html_file = Path(__file__).parent / 'pages' / "index.html"
+            html_content = html_file.read_text()
+            return Response(
+                html_content,
+                status=200,
+                headers={
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=300",
+                    **cors_headers()
+                }
+            )
+        except FileNotFoundError:
+            return error_response("HTML file not found", 404)
+    
+    def _serve_chat_html(self) -> Response:
+        """Serve the chat page HTML"""
+        try:
+            html_file = Path(__file__).parent / 'pages' / "chat.html"
+            html_content = html_file.read_text()
+            return Response(
+                html_content,
+                status=200,
+                headers={
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=300",
+                    **cors_headers()
+                }
+            )
+        except FileNotFoundError:
+            return error_response("Chat HTML file not found", 404)

@@ -6,21 +6,27 @@
   <title>BLT Byte – AI Security Assistant</title>
   <meta name="description" content="Byte is the AI-powered assistant for OWASP BLT. Get answers to FAQs, onboarding guides, and security scan insights – all powered by Cloudflare Workers AI." />
   <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
     /* ── Reset & base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blt-orange:   #e74c3c;
-      --blt-orange-h: #c0392b;
-      --blt-bg:       #0d0d0d;
-      --blt-surface:  #1a1a1a;
-      --blt-card:     #242424;
-      --blt-border:   #333;
-      --blt-text:     #f0f0f0;
-      --blt-muted:    #9a9a9a;
-      --blt-accent:   #ff6b35;
+      --blt-red:      #E10101;
+      --blt-red-h:    #c00000;
+      --blt-bg:       #fafafa;
+      --blt-surface:  #ffffff;
+      --blt-card:     #ffffff;
+      --blt-border:   #e5e7eb;
+      --blt-text:     #1f2937;
+      --blt-muted:    #6b7280;
+      --blt-accent:   #E10101;
       --radius:       10px;
-      --shadow:       0 4px 24px rgba(0,0,0,.45);
+      --shadow:       0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg:    0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
     }
 
     html { scroll-behavior: smooth; }
@@ -33,17 +39,18 @@
       min-height: 100vh;
     }
 
-    a { color: var(--blt-orange); text-decoration: none; }
-    a:hover { color: var(--blt-accent); text-decoration: underline; }
+    a { color: var(--blt-red); text-decoration: none; }
+    a:hover { color: var(--blt-red-h); text-decoration: underline; }
 
     /* ── Navbar ── */
     nav {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 2rem; height: 60px;
-      background: rgba(13,13,13,.92);
+      background: rgba(255,255,255,.98);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--blt-border);
+      box-shadow: var(--shadow);
     }
 
     .nav-logo {
@@ -55,7 +62,7 @@
 
     .nav-links { display: flex; gap: 1.5rem; list-style: none; }
     .nav-links a { color: var(--blt-muted); font-size: .9rem; transition: color .2s; }
-    .nav-links a:hover { color: var(--blt-orange); text-decoration: none; }
+    .nav-links a:hover { color: var(--blt-red); text-decoration: none; }
 
     .btn {
       display: inline-flex; align-items: center; gap: .4rem;
@@ -63,26 +70,26 @@
       font-size: .9rem; cursor: pointer; transition: all .2s; border: none;
     }
     .btn-primary {
-      background: var(--blt-orange); color: #fff;
+      background: var(--blt-red); color: #fff;
     }
-    .btn-primary:hover { background: var(--blt-orange-h); text-decoration: none; color: #fff; }
+    .btn-primary:hover { background: var(--blt-red-h); text-decoration: none; color: #fff; }
     .btn-outline {
-      background: transparent; color: var(--blt-orange);
-      border: 1.5px solid var(--blt-orange);
+      background: transparent; color: var(--blt-red);
+      border: 1.5px solid var(--blt-red);
     }
-    .btn-outline:hover { background: var(--blt-orange); color: #fff; text-decoration: none; }
+    .btn-outline:hover { background: var(--blt-red); color: #fff; text-decoration: none; }
 
     /* ── Hero ── */
     .hero {
       text-align: center;
       padding: 6rem 2rem 4rem;
-      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(231,76,60,.18), transparent);
+      background: linear-gradient(180deg, rgba(225,1,1,.03) 0%, rgba(255,255,255,0) 100%);
     }
 
     .hero-badge {
       display: inline-flex; align-items: center; gap: .4rem;
-      background: rgba(231,76,60,.15); border: 1px solid rgba(231,76,60,.4);
-      color: var(--blt-orange); border-radius: 20px;
+      background: rgba(225,1,1,.08); border: 1px solid rgba(225,1,1,.2);
+      color: var(--blt-red); border-radius: 20px;
       padding: .3rem .9rem; font-size: .8rem; font-weight: 600;
       margin-bottom: 1.5rem; letter-spacing: .04em;
     }
@@ -93,7 +100,7 @@
       margin-bottom: 1.2rem;
     }
 
-    .hero h1 span { color: var(--blt-orange); }
+    .hero h1 span { color: var(--blt-red); }
 
     .hero p {
       max-width: 640px; margin: 0 auto 2.4rem;
@@ -121,13 +128,14 @@
     .feature-card {
       background: var(--blt-card); border: 1px solid var(--blt-border);
       border-radius: var(--radius); padding: 1.8rem 1.5rem;
-      transition: border-color .2s, transform .2s;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      box-shadow: var(--shadow);
     }
-    .feature-card:hover { border-color: var(--blt-orange); transform: translateY(-3px); }
+    .feature-card:hover { border-color: var(--blt-red); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 
     .feature-icon {
       width: 44px; height: 44px; border-radius: 8px;
-      background: rgba(231,76,60,.15);
+      background: rgba(225,1,1,.1);
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 1rem; font-size: 1.3rem;
     }
@@ -137,7 +145,7 @@
 
     /* ── Chat widget ── */
     .chat-section {
-      background: var(--blt-surface);
+      background: #f9fafb;
       border-top: 1px solid var(--blt-border);
       border-bottom: 1px solid var(--blt-border);
     }
@@ -149,7 +157,7 @@
 
     .chat-box {
       background: var(--blt-card); border: 1px solid var(--blt-border);
-      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg);
     }
 
     .chat-header {
@@ -161,7 +169,7 @@
 
     .chat-avatar {
       width: 36px; height: 36px; border-radius: 50%;
-      background: var(--blt-orange);
+      background: var(--blt-red);
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: 1rem; color: #fff;
       flex-shrink: 0;
@@ -187,13 +195,14 @@
     .msg {
       max-width: 82%; padding: .65rem 1rem; border-radius: 12px;
       font-size: .9rem; line-height: 1.5; word-wrap: break-word;
+      animation: fadeIn .3s ease-in;
     }
     .msg-user {
-      background: var(--blt-orange); color: #fff;
+      background: var(--blt-red); color: #fff;
       align-self: flex-end; border-bottom-right-radius: 3px;
     }
     .msg-bot {
-      background: var(--blt-surface); color: var(--blt-text);
+      background: #f3f4f6; color: var(--blt-text);
       align-self: flex-start; border-bottom-left-radius: 3px;
       border: 1px solid var(--blt-border);
     }
@@ -211,15 +220,15 @@
       color: var(--blt-text); border-radius: 8px; padding: .6rem .9rem;
       font-size: .9rem; outline: none; transition: border-color .2s;
     }
-    #chat-input:focus { border-color: var(--blt-orange); }
+    #chat-input:focus { border-color: var(--blt-red); }
     #chat-input::placeholder { color: var(--blt-muted); }
 
     #send-btn {
-      background: var(--blt-orange); color: #fff; border: none; border-radius: 8px;
+      background: var(--blt-red); color: #fff; border: none; border-radius: 8px;
       padding: .6rem 1.1rem; cursor: pointer; font-size: .9rem; font-weight: 600;
       transition: background .2s;
     }
-    #send-btn:hover { background: var(--blt-orange-h); }
+    #send-btn:hover { background: var(--blt-red-h); }
     #send-btn:disabled { opacity: .5; cursor: not-allowed; }
 
     .quick-prompts {
@@ -231,7 +240,7 @@
       color: var(--blt-muted); border-radius: 16px; padding: .3rem .8rem;
       font-size: .78rem; cursor: pointer; transition: all .2s;
     }
-    .quick-btn:hover { border-color: var(--blt-orange); color: var(--blt-orange); }
+    .quick-btn:hover { border-color: var(--blt-red); color: var(--blt-red); background: rgba(225,1,1,.05); }
 
     /* ── How it works ── */
     .steps-grid {
@@ -248,7 +257,7 @@
     .step-card::before {
       content: counter(step);
       position: absolute; top: -14px; left: 1.2rem;
-      background: var(--blt-orange); color: #fff;
+      background: var(--blt-red); color: #fff;
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: .85rem;
@@ -274,8 +283,8 @@
       display: inline-block; padding: .15rem .55rem; border-radius: 4px;
       font-size: .75rem; font-weight: 600; font-family: monospace;
     }
-    .badge-get { background: rgba(76,175,80,.2); color: #81c784; }
-    .badge-post { background: rgba(255,152,0,.2); color: #ffb74d; }
+    .badge-get { background: rgba(76,175,80,.15); color: #059669; }
+    .badge-post { background: rgba(225,1,1,.15); color: var(--blt-red); }
     code {
       background: rgba(255,255,255,.07); padding: .1rem .4rem; border-radius: 4px;
       font-size: .85em; font-family: 'Fira Code', 'Cascadia Code', monospace;
@@ -283,8 +292,8 @@
 
     /* ── CTA banner ── */
     .cta-banner {
-      background: linear-gradient(135deg, rgba(231,76,60,.15) 0%, rgba(255,107,53,.08) 100%);
-      border: 1px solid rgba(231,76,60,.3);
+      background: linear-gradient(135deg, rgba(225,1,1,.08) 0%, rgba(225,1,1,.03) 100%);
+      border: 1px solid rgba(225,1,1,.2);
       border-radius: var(--radius); padding: 3rem 2rem; text-align: center;
     }
     .cta-banner h2 { font-size: 1.8rem; margin-bottom: .8rem; }
@@ -300,7 +309,7 @@
       font-size: .85rem;
     }
     footer a { color: var(--blt-muted); }
-    footer a:hover { color: var(--blt-orange); }
+    footer a:hover { color: var(--blt-red); }
     .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: .8rem; flex-wrap: wrap; }
 
     /* ── Responsive ── */
@@ -315,20 +324,7 @@
 <!-- ── Navbar ── -->
 <nav>
   <a class="nav-logo" href="/">
-    <!-- BLT bug icon -->
-    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="16" cy="16" r="15" fill="#e74c3c" opacity=".15" stroke="#e74c3c" stroke-width="1.5"/>
-      <ellipse cx="16" cy="17" rx="8" ry="9" fill="#e74c3c"/>
-      <circle cx="16" cy="9.5" r="3.5" fill="#e74c3c"/>
-      <line x1="8" y1="13" x2="4" y2="10" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="24" y1="13" x2="28" y2="10" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="8" y1="18" x2="3" y2="17" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="24" y1="18" x2="29" y2="17" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="8" y1="23" x2="4" y2="26" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="24" y1="23" x2="28" y2="26" stroke="#e74c3c" stroke-width="1.8" stroke-linecap="round"/>
-      <ellipse cx="13" cy="16" rx="1.5" ry="2" fill="white" opacity=".7"/>
-      <ellipse cx="19" cy="16" rx="1.5" ry="2" fill="white" opacity=".7"/>
-    </svg>
+    <img src="/logo.png" alt="BLT Logo" style="width: 32px; height: 32px; object-fit: contain;">
     BLT Byte
   </a>
   <ul class="nav-links">
@@ -412,7 +408,12 @@
 <!-- ── Chat widget ── -->
 <div class="chat-section" id="chat">
   <div class="chat-wrapper">
-    <h2 class="section-title" style="margin-bottom:.4rem">Try Byte Now</h2>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .4rem;">
+      <h2 class="section-title" style="margin-bottom:0">Try Byte Now</h2>
+      <a href="/chat" class="btn btn-outline" style="font-size: .85rem; padding: .4rem .9rem;">
+        Open Full Chat →
+      </a>
+    </div>
     <p class="section-sub" style="margin-bottom:2rem">
       Ask anything about OWASP BLT or request a security scan. Responses are powered by Cloudflare Workers AI.
     </p>
@@ -597,7 +598,10 @@
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: history.slice(-10) }),
+        body: JSON.stringify({ 
+          message: text,
+          history: history.slice(-10) // Send last 10 messages for context
+        }),
       });
 
       typingDiv.remove();
@@ -614,7 +618,7 @@
       history.push({ role: 'assistant', content: reply });
     } catch (err) {
       typingDiv.remove();
-      appendMsg('⚠️ Network error. Make sure you have deployed the Worker.', 'bot');
+      appendMsg('⚠️ Network error. Make sure the Worker is running.', 'bot');
       history.pop();
     } finally {
       setLoading(false);

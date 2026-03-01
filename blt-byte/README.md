@@ -1,39 +1,51 @@
-# BLT Byte 🤖🐛
+# BLT Byte
 
-**AI assistant, orchestrator and security agent for [OWASP BLT](https://github.com/OWASP-BLT/BLT)**
+AI-powered assistant for bug bounty hunting and security research on the BLT (Bug Logging Tool) platform.
 
-Byte is a Python [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) application that sits on the BLT website and acts as:
+## Overview
 
-- **FAQ agent** – answers common questions about OWASP BLT
+BLT Byte provides intelligent assistance to security researchers working with the BugHeist platform. Built on Cloudflare Workers with Python runtime, it leverages Cloudflare Workers AI to deliver real-time guidance on vulnerability reporting, bug bounty methodologies, and responsible disclosure practices.
+
+Byte acts as:
+- **FAQ agent** – instant answers about OWASP BLT
 - **Onboarding assistant** – step-by-step guides for contributors, bug hunters, and organisations
 - **Security scan orchestrator** – AI-generated checklists for any URL (OWASP Top 10 focus)
 - **MCP server** – exposes BLT capabilities as [Model Context Protocol](https://modelcontextprotocol.io/) tools for AI IDEs
 
----
+## Prerequisites
 
-## Project structure
+- Node.js and npm
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
+- Cloudflare account with Workers AI enabled
 
-```
-.
-├── src/
-│   └── entry.py          # Cloudflare Worker entrypoint (Python)
-├── public/
-│   └── index.html        # Landing page (served via CF Assets binding)
-├── tests/
-│   ├── conftest.py       # Workers runtime stubs for pytest
-│   └── test_entry.py     # Unit tests for pure-Python helpers
-├── wrangler.toml         # Cloudflare Workers configuration
-└── pyproject.toml        # Python project metadata & dev dependencies
+## Quick Start
+
+Install dependencies:
+```bash
+npm install
 ```
 
----
+Start development server:
+```bash
+npm run dev
+```
 
-## API endpoints
+Access the application at `http://localhost:8787`
+
+## Deployment
+
+```bash
+npm run deploy
+```
+
+## API Reference
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/` | Landing page |
+| `GET` | `/chat` | Chat interface |
 | `GET` | `/api/health` | Health check |
-| `POST` | `/api/chat` | FAQ + onboarding chat agent |
+| `POST` | `/api/chat` | FAQ + onboarding agent |
 | `POST` | `/api/scan` | Security scan orchestrator |
 | `GET` | `/api/mcp` | MCP manifest (tool discovery) |
 | `POST` | `/api/mcp` | MCP tool invocation |
@@ -42,7 +54,7 @@ Byte is a Python [Cloudflare Workers AI](https://developers.cloudflare.com/worke
 
 ```json
 {
-  "message": "How do I report a bug on BLT?",
+  "message": "How do I report a bug on BugHeist?",
   "history": []
 }
 ```
@@ -56,8 +68,6 @@ Byte is a Python [Cloudflare Workers AI](https://developers.cloudflare.com/worke
 }
 ```
 
-`scan_type` is `quick` (default) or `full`.
-
 ### MCP tool call (`POST /api/mcp`)
 
 ```json
@@ -69,62 +79,40 @@ Byte is a Python [Cloudflare Workers AI](https://developers.cloudflare.com/worke
 
 Available tools: `chat`, `scan_url`, `get_onboarding_guide`.
 
----
+## Project Structure
 
-## Local development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) ≥ 18 (for Wrangler)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) ≥ 3.x
-- Python ≥ 3.12
-
-### Install Wrangler
-
-```bash
-npm install -g wrangler
+```
+BLT--Byte/
+├── src/
+│   ├── main.py              # Python worker entry point
+│   └── pages/
+│       ├── index.html       # Landing page
+│       └── chat.html        # Chat interface
+├── static/
+│   └── logo.png             # BLT branding assets
+├── tests/
+│   ├── conftest.py          # Workers runtime stubs for pytest
+│   └── test_entry.py        # Unit tests
+├── package.json
+├── pyproject.toml
+└── wrangler.toml
 ```
 
-### Run locally
+## Technology Stack
 
-```bash
-wrangler dev
-```
+- Cloudflare Workers (Python runtime)
+- Cloudflare Workers AI (`@cf/openai/gpt-oss-120b` model)
+- Tailwind CSS
+- Vanilla JavaScript
 
-The Worker runs at `http://localhost:8787`.
-
-### Run tests
+## Running Tests
 
 ```bash
 pip install pytest pytest-asyncio
 python -m pytest tests/ -v
 ```
 
----
-
-## Deployment
-
-### 1. Authenticate with Cloudflare
-
-```bash
-wrangler login
-```
-
-### 2. Enable Workers AI
-
-Workers AI is enabled by default for all Cloudflare accounts. No extra configuration is needed – the `[ai]` binding in `wrangler.toml` handles it.
-
-### 3. Deploy
-
-```bash
-wrangler deploy
-```
-
-Wrangler will output the deployed URL (e.g. `https://blt-byte.<account>.workers.dev`).
-
----
-
-## MCP integration (AI IDEs)
+## MCP Integration (AI IDEs)
 
 Point your AI IDE at the deployed Worker's MCP endpoint:
 
@@ -133,26 +121,13 @@ Point your AI IDE at the deployed Worker's MCP endpoint:
 {
   "servers": {
     "blt-byte": {
-      "url": "https://blt-byte.<account>.workers.dev/api/mcp",
+      "url": "https://blt-byte-chatbot.<account>.workers.dev/api/mcp",
       "transport": "http"
     }
   }
 }
 ```
 
----
-
-## Contributing
-
-This project follows the same contribution process as [OWASP BLT](https://github.com/OWASP-BLT/BLT/blob/main/CONTRIBUTING.md).
-
-1. Fork and clone this repository.
-2. Make your changes in a feature branch.
-3. Ensure all tests pass (`python -m pytest tests/ -v`).
-4. Open a pull request.
-
----
-
 ## License
 
-[AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) – © OWASP BLT contributors.
+See [LICENSE](LICENSE) file for details.

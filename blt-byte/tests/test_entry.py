@@ -12,7 +12,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 # Import only the pure-Python helpers (no runtime deps needed)
-from entry import (
+from main import (
     FAQ_CONTEXT,
     MCP_MANIFEST,
     SCAN_SYSTEM_PROMPT,
