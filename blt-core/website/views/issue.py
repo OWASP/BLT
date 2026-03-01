@@ -86,7 +86,9 @@ from website.utils import (
     get_email_from_domain,
     get_page_votes,
     image_validator,
+    is_face_processing_available,
     is_valid_https_url,
+    process_bug_screenshot,
     rebuild_safe_url,
     safe_redirect_request,
     validate_screenshot_hash,
@@ -1418,6 +1420,15 @@ class IssueCreate(IssueBaseCreate, CreateView):
             # Only validate uploaded screenshots if there are any
 
             if len(self.request.FILES.getlist("screenshots")) > 0:
+                # Process screenshots for privacy protection (face overlay)
+                processed_screenshots = []
+                face_processing_available = is_face_processing_available()
+
+                if not face_processing_available:
+                    logger.warning(
+                        "Face processing not available - screenshots will be saved without privacy protection"
+                    )
+
                 for screenshot in self.request.FILES.getlist("screenshots"):
                     img_valid = image_validator(screenshot)
                     if img_valid is not True:
@@ -1427,6 +1438,30 @@ class IssueCreate(IssueBaseCreate, CreateView):
                             "report.html",
                             {"form": self.get_form(), "captcha_form": CaptchaForm()},
                         )
+
+                    # Process screenshot for face detection and overlay
+                    if face_processing_available:
+                        try:
+                            processed_screenshot = process_bug_screenshot(screenshot, overlay_color=(0, 0, 0))
+                            if processed_screenshot is not None:
+                                processed_screenshots.append(processed_screenshot)
+                                logger.info(
+                                    f"Successfully processed screenshot {screenshot.name} with privacy protection"
+                                )
+                            else:
+                                # Fallback to original if processing fails
+                                processed_screenshots.append(screenshot)
+                                logger.warning(f"Face processing failed for {screenshot.name}, using original")
+                        except Exception as e:
+                            # Graceful fallback on any processing error
+                            logger.error(f"Face processing error for {screenshot.name}: {str(e)}", exc_info=True)
+                            processed_screenshots.append(screenshot)
+                    else:
+                        # No face processing available, use original
+                        processed_screenshots.append(screenshot)
+
+                # Replace original screenshots with processed ones in request.FILES
+                self.request.FILES.setlist("screenshots", processed_screenshots)
             tokenauth = False
             obj = form.save(commit=False)
             report_anonymous = self.request.POST.get("report_anonymous", "off") == "on"
@@ -1727,10 +1762,14 @@ class IssueCreate(IssueBaseCreate, CreateView):
                         {"form": self.get_form(), "captcha_form": CaptchaForm()},
                     )
 
-            # Save screenshots
+            # Save screenshots (these are now processed with face overlay if available)
             for screenshot in self.request.FILES.getlist("screenshots"):
                 filename = screenshot.name
-                extension = filename.split(".")[-1]
+                # Ensure JPG extension for processed files
+                if hasattr(screenshot, "_processed") and screenshot._processed:
+                    extension = "jpg"
+                else:
+                    extension = filename.split(".")[-1]
                 screenshot.name = (filename[:10] + str(uuid.uuid4()))[:40] + "." + extension
                 default_storage.save(f"screenshots/{screenshot.name}", screenshot)
                 IssueScreenshot.objects.create(image=f"screenshots/{screenshot.name}", issue=obj)
@@ -2044,39 +2083,47 @@ class IssueView(DetailView):
     template_name = "issue.html"
 
     def get(self, request, *args, **kwargs):
-        ipdetails = IP()
         try:
-            id = int(self.kwargs["slug"])
+            issue_id = int(self.kwargs["slug"])
         except ValueError:
             return HttpResponseNotFound("Invalid ID: ID must be an integer")
 
-        self.object = get_object_or_404(Issue, id=self.kwargs["slug"])
-        ipdetails.user = self.request.user.username if self.request.user.is_authenticated else None
+        self.object = get_object_or_404(Issue, id=issue_id)
+
+        # 🔒 Private / hidden issue protection
+        if self.object.is_hidden:
+            if not request.user.is_authenticated:
+                raise Http404("Issue not found")
+
+            allowed = request.user.is_superuser or request.user == self.object.user or request.user.is_staff
+
+            if not allowed:
+                raise Http404("Issue not found")
+
+        # ✅ Only reach here if allowed
+        ipdetails = IP()
+        ipdetails.user = request.user.username if request.user.is_authenticated else None
         ipdetails.address = get_client_ip(request)
         ipdetails.issuenumber = self.object.id
         ipdetails.path = request.path
-        ipdetails.agent = request.META["HTTP_USER_AGENT"]
-        ipdetails.referer = request.META.get("HTTP_REFERER", None)
+        ipdetails.agent = request.META.get("HTTP_USER_AGENT")
+        ipdetails.referer = request.META.get("HTTP_REFERER")
 
         try:
-            if self.request.user.is_authenticated:
-                # Check if IP record already exists for this authenticated user and issue
-                if not IP.objects.filter(user=self.request.user.username, issuenumber=self.object.id).exists():
-                    # First time this user is viewing this issue
+            if request.user.is_authenticated:
+                if not IP.objects.filter(user=request.user.username, issuenumber=self.object.id).exists():
                     ipdetails.save()
                     self.object.views = (self.object.views or 0) + 1
                     self.object.save()
             else:
-                # Check if IP record already exists for this address and issue
                 if not IP.objects.filter(address=get_client_ip(request), issuenumber=self.object.id).exists():
-                    # First time this IP is viewing this issue
                     ipdetails.save()
                     self.object.views = (self.object.views or 0) + 1
                     self.object.save()
-        except Exception as e:
-            logger.error(f"Error tracking IP view for issue {self.object.id}: {e}")
-            pass  # Continue loading the page even if view tracking fails
-        return super(IssueView, self).get(request, *args, **kwargs)
+        except Exception:
+            logger.exception("Error tracking IP view for issue %s", self.object.id)
+
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(IssueView, self).get_context_data(**kwargs)
