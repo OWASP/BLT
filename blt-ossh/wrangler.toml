@@ -1,11 +1,8 @@
 name = "blt-ossh"
 main = "src/main.py"
 compatibility_date = "2025-11-02"
-remote = true
 compatibility_flags = ["python_workers"]
 
-[ai]
-binding = "AI"
 
 # Static assets configuration
 [assets]

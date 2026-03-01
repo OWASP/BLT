@@ -1,5 +1,5 @@
-from worker import WorkerEntrypoint
+from workers import WorkerEntrypoint, Response
 
 class Default(WorkerEntrypoint):
-    def on_fetch(self, request):
-        return "Hello World!"
+    def fetch(self, request):
+        return Response.json({"message": "Hello World!"})

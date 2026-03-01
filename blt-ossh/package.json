@@ -1,0 +1,14 @@
+{
+    "name": "blt-ossh",
+    "version": "0.1.0",
+    "description": "BLT AI Chatbot - Python AI worker for bug bounty assistance",
+    "private": true,
+    "scripts": {
+        "deploy": "wrangler deploy",
+        "dev": "wrangler dev",
+        "start": "wrangler run dev"
+    },
+    "devDependencies": {
+        "wrangler": "^4.46.0"
+    }
+}
