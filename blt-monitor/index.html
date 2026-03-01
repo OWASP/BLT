@@ -22,7 +22,7 @@
       <span class="text-[#e2e8f0]">OWASP <span class="text-red-500">BLT</span></span>
     </div>
     <div class="flex items-center gap-3">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank"
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank" rel="noopener noreferrer"
          class="flex items-center gap-1.5 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
         <i class="fa-brands fa-github"></i>
         <span>GitHub</span>
@@ -43,15 +43,15 @@
     </h1>
     <p class="text-slate-400 text-sm sm:text-base mb-4 relative z-10">Monitor multiple websites and view their uptime status at a glance</p>
     <div class="flex items-center gap-2 flex-wrap relative z-10">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" target="_blank"
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" rel="noopener noreferrer" target="_blank"
          class="inline-block rounded overflow-hidden border border-slate-700">
         <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
       </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/stargazers" target="_blank"
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/stargazers" target="_blank" rel="noopener noreferrer"
          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-yellow-700/60 bg-yellow-900/30 text-yellow-300 text-xs font-medium hover:bg-yellow-800/50 hover:shadow-md hover:shadow-yellow-900/40 transition-all">
         <i class="fa-regular fa-star"></i> Stars <span id="gh-stars" class="font-bold">...</span>
       </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/forks" target="_blank"
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/forks" target="_blank" rel="noopener noreferrer"
          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-blue-700/60 bg-blue-900/30 text-blue-300 text-xs font-medium hover:bg-blue-800/50 hover:shadow-md hover:shadow-blue-900/40 transition-all">
         <i class="fa-solid fa-code-fork"></i> Forks <span id="gh-forks" class="font-bold">...</span>
       </a>
@@ -151,7 +151,7 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
     <div class="flex items-start gap-4">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
-          <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${monitor.name}</h2>
+          <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${escapeHTML(monitor.name)}</h2>
           <span class="${statusBadgeClass}">${statusIcon}</span>
         </div>
         <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
@@ -173,7 +173,7 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
           </span>
           ${monitor.keyword ? `
           <span class="flex items-center gap-1 text-xs text-slate-500">
-            <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${monitor.keyword}</strong>
+            <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${escapeHTML(monitor.keyword)}</strong>
           </span>` : ''}
         </div>
       </div>
@@ -242,7 +242,10 @@ function timeAgo(date) {
 
 // GitHub stats
 fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) throw new Error('API error');
+    return r.json();
+  })
   .then(data => {
     document.getElementById('gh-stars').textContent = data.stargazers_count;
     document.getElementById('gh-forks').textContent = data.forks_count;
@@ -272,6 +275,5 @@ function toggleTheme() {
   }
 } 
 </script>
-<!-- white:#e2e8f0 | bg:#0a0f1e | card:#0f172a | red:#dc2626 -->
 </body>
 </html>
