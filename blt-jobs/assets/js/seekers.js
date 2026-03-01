@@ -34,10 +34,10 @@ function renderSeekers(seekers) {
 
       return `
         <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
-          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <i class="fa-solid fa-user text-2xl text-red-600 dark:text-red-400" aria-hidden="true"></i>
-          </div>
-          <h3 class="text-lg font-semibold dark:text-gray-100">${name}</h3>
+          <a href="seeker.html?id=${s.id}" class="block mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white text-xl font-bold select-none" aria-hidden="true">
+            ${(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
+          </a>
+          <h3 class="text-lg font-semibold dark:text-gray-100"><a href="seeker.html?id=${s.id}" class="hover:text-red-600 dark:hover:text-red-400 transition">${name}</a></h3>
           ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${headline}</p>` : ""}
           <div class="mt-3 space-y-1 text-sm text-slate-600 dark:text-gray-400">
             ${location ? `<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4" aria-hidden="true"></i> ${location}</div>` : ""}
@@ -54,8 +54,8 @@ function renderSeekers(seekers) {
               : ""
           }
           <div class="mt-4 flex gap-2">
+            <a href="seeker.html?id=${s.id}" class="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-user" aria-hidden="true"></i> View Profile</a>
             ${profileUrl ? `<a href="${profileUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>` : ""}
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/seekers/${s.id}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i> Full Profile</a>
           </div>
         </div>
       `;
