@@ -1,0 +1,69 @@
+name: Release Artifacts
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter code
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: flutter build apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build macOS application
+        run: flutter build macos
+
+      - name: Upload macOS application
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-release-app
+          path: build/macos/Build/Products/Release/*.app
+
+      - name: Build Linux application
+        run: flutter build linux
+
+      - name: Upload Linux application
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-release-app
+          path: build/linux/x64/release/bundle/*
+
+      - name: Build Windows application
+        run: flutter build windows
+
+      - name: Upload Windows application
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-release-app
+          path: build/windows/x64/runner/Release/*.exe
