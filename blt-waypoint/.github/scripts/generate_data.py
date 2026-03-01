@@ -222,13 +222,18 @@ def fetch_latest_commit(repo_full_name: str, default_branch: str) -> dict | None
         message_full = commit_detail.get("message", "")
         message = message_full.split("\n")[0][:120]
         author_obj = commit_detail.get("author") or {}
+        github_author = commit.get("author") or {}
         author = author_obj.get("name", "")
         if not author:
-            author = (commit.get("author") or {}).get("login", "")
+            author = github_author.get("login", "")
+        author_avatar = github_author.get("avatar_url", "")
+        author_html_url = github_author.get("html_url", "")
         return {
             "sha": commit.get("sha", "")[:7],
             "message": message,
             "author": author,
+            "author_avatar": author_avatar,
+            "author_html_url": author_html_url,
             "html_url": commit.get("html_url", ""),
             "date": author_obj.get("date", ""),
         }
