@@ -335,6 +335,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
                     flex flex-col hover:shadow-md transition-shadow"
              data-thumbs="{thumbs_count}"
+             data-total-reactions="{total_reactions}"
              data-issue-url="{issue_url}"
              aria-label="Design submission: {title}">
       {preview_block}
@@ -660,6 +661,15 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
             <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
             Sort by 👍
           </button>
+          <button id="sort-reactions" type="button"
+                  class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                         text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                         text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                  aria-pressed="false"
+                  title="Sort by total reactions">
+            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+            Sort by all reactions
+          </button>
           <a href="{html.escape(submit_url)}"
              target="_blank" rel="noopener"
              class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101]
@@ -727,14 +737,27 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
 
     // Sort by thumbs-up toggle
     const sortBtn = document.getElementById('sort-thumbs');
+    const sortReactionsBtn = document.getElementById('sort-reactions');
     const grid = document.getElementById('cards-grid');
     let sortedByThumbs = false;
+    let sortedByReactions = false;
     let originalOrder = [];
+
+    function resetSortBtn(btn) {{
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.classList.remove('border-[#E10101]', 'text-[#E10101]');
+      btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
+    }}
 
     if (sortBtn && grid) {{
       originalOrder = Array.from(grid.children);
       sortBtn.addEventListener('click', () => {{
         sortedByThumbs = !sortedByThumbs;
+        if (sortedByThumbs) {{
+          sortedByReactions = false;
+          resetSortBtn(sortReactionsBtn);
+        }}
         sortBtn.setAttribute('aria-pressed', String(sortedByThumbs));
         sortBtn.classList.toggle('border-[#E10101]', sortedByThumbs);
         sortBtn.classList.toggle('text-[#E10101]', sortedByThumbs);
@@ -746,6 +769,31 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         const cards = sortedByThumbs
           ? [...originalOrder].sort((a, b) =>
               parseInt(b.dataset.thumbs || '0', 10) - parseInt(a.dataset.thumbs || '0', 10))
+          : [...originalOrder];
+
+        cards.forEach(card => grid.appendChild(card));
+      }});
+    }}
+
+    if (sortReactionsBtn && grid) {{
+      if (!originalOrder.length) originalOrder = Array.from(grid.children);
+      sortReactionsBtn.addEventListener('click', () => {{
+        sortedByReactions = !sortedByReactions;
+        if (sortedByReactions) {{
+          sortedByThumbs = false;
+          resetSortBtn(sortBtn);
+        }}
+        sortReactionsBtn.setAttribute('aria-pressed', String(sortedByReactions));
+        sortReactionsBtn.classList.toggle('border-[#E10101]', sortedByReactions);
+        sortReactionsBtn.classList.toggle('text-[#E10101]', sortedByReactions);
+        sortReactionsBtn.classList.toggle('border-gray-300', !sortedByReactions);
+        sortReactionsBtn.classList.toggle('dark:border-gray-600', !sortedByReactions);
+        sortReactionsBtn.classList.toggle('text-gray-700', !sortedByReactions);
+        sortReactionsBtn.classList.toggle('dark:text-gray-200', !sortedByReactions);
+
+        const cards = sortedByReactions
+          ? [...originalOrder].sort((a, b) =>
+              parseInt(b.dataset.totalReactions || '0', 10) - parseInt(a.dataset.totalReactions || '0', 10))
           : [...originalOrder];
 
         cards.forEach(card => grid.appendChild(card));
@@ -841,6 +889,8 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
 
         const thumbsCount = parseInt(reactions['+1'], 10) || 0;
         card.dataset.thumbs = thumbsCount;
+        const totalReactions = REACTION_LABELS.reduce((sum, [c]) => sum + (parseInt(reactions[c], 10) || 0), 0);
+        card.dataset.totalReactions = totalReactions;
 
         const container = card.querySelector('[aria-label="Reactions"]');
         if (!container) continue;
