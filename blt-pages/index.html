@@ -494,6 +494,62 @@
           Leaderboard refreshes every 6 hours via GitHub Actions.
           <a href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">View all reports on GitHub</a>.
         </p>
+
+        <!-- Top Commenters -->
+        <div class="mt-12">
+          <h3 class="mb-6 text-2xl font-extrabold text-gray-900 dark:text-gray-100">
+            <i class="fa-solid fa-comments mr-2 text-primary dark:text-red-400" aria-hidden="true"></i>
+            Top Commenters
+          </h3>
+          <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <table class="w-full" aria-label="Top commenters leaderboard">
+              <thead>
+                <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                  <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
+                  <th scope="col" class="px-4 py-3">Commenter</th>
+                  <th scope="col" class="px-4 py-3 text-right">Comments</th>
+                  <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
+                </tr>
+              </thead>
+              <tbody id="commenters-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
+                <tr>
+                  <td colspan="4" class="py-12 text-center text-gray-400 dark:text-gray-500">
+                    <i class="fa-solid fa-circle-notch fa-spin mb-3 block text-2xl" aria-hidden="true"></i>
+                    Loading commenters...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top Domains -->
+        <div class="mt-12">
+          <h3 class="mb-6 text-2xl font-extrabold text-gray-900 dark:text-gray-100">
+            <i class="fa-solid fa-globe mr-2 text-primary dark:text-red-400" aria-hidden="true"></i>
+            Top Domains
+          </h3>
+          <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <table class="w-full" aria-label="Top reported domains leaderboard">
+              <thead>
+                <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                  <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
+                  <th scope="col" class="px-4 py-3">Domain</th>
+                  <th scope="col" class="px-4 py-3 text-right">Reports</th>
+                  <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
+                </tr>
+              </thead>
+              <tbody id="domains-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
+                <tr>
+                  <td colspan="4" class="py-12 text-center text-gray-400 dark:text-gray-500">
+                    <i class="fa-solid fa-circle-notch fa-spin mb-3 block text-2xl" aria-hidden="true"></i>
+                    Loading domains...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
 
