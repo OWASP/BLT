@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initAnonymousToggle();
   initPricing();
-  initLeaderboardTabs();
   loadLeaderboard();
   loadRecentBugs();
   initSmoothScroll();
@@ -443,34 +442,6 @@ function renderRecentBugs(bugs) {
       </div>`;
     })
     .join("");
-}
-
-/* ────────────────────────────────────────────────────────────
-   Leaderboard Tabs
-──────────────────────────────────────────────────────────── */
-function initLeaderboardTabs() {
-  const tabs = document.querySelectorAll(".leaderboard-tab");
-  if (!tabs.length) return;
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      // Deactivate all tabs and hide all panels
-      tabs.forEach((t) => {
-        t.setAttribute("aria-selected", "false");
-        t.classList.remove("border-primary", "text-primary");
-        t.classList.add("border-transparent", "text-gray-500", "dark:text-gray-400");
-        const panel = document.getElementById(t.getAttribute("aria-controls"));
-        if (panel) panel.classList.add("hidden");
-      });
-
-      // Activate the clicked tab and show its panel
-      tab.setAttribute("aria-selected", "true");
-      tab.classList.add("border-primary", "text-primary");
-      tab.classList.remove("border-transparent", "text-gray-500", "dark:text-gray-400");
-      const activePanel = document.getElementById(tab.getAttribute("aria-controls"));
-      if (activePanel) activePanel.classList.remove("hidden");
-    });
-  });
 }
 
 /* ────────────────────────────────────────────────────────────

@@ -13,6 +13,12 @@ on:
       - closed
       - reopened
 
+  # Regenerate when a comment is added or edited on any issue
+  issue_comment:
+    types:
+      - created
+      - edited
+
   # Allow manual runs from the Actions UI
   workflow_dispatch:
 
@@ -122,6 +128,8 @@ jobs:
             for (const comments of allCommentArrays) {
               for (const comment of comments) {
                 const login = comment.user.login;
+                // Skip bot accounts
+                if (login.endsWith('[bot]')) continue;
                 if (!commentCounts[login]) {
                   commentCounts[login] = {
                     count:       0,
