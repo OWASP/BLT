@@ -56,6 +56,31 @@ function mdToSeeker(filePath) {
   };
 }
 
+function detectDuplicates(jobs) {
+  const seen = new Map();
+  const duplicates = [];
+
+  for (const job of jobs) {
+    const fingerprint = [
+      (job.title || "").toLowerCase().trim(),
+      (job.organization_name || "").toLowerCase().trim(),
+      (job.location || "").toLowerCase().trim(),
+    ].join("|");
+
+    if (seen.has(fingerprint)) {
+      duplicates.push({
+        duplicate: job.id,
+        original: seen.get(fingerprint),
+        fingerprint,
+      });
+    } else {
+      seen.set(fingerprint, job.id);
+    }
+  }
+
+  return duplicates;
+}
+
 function buildJobs() {
   if (!fs.existsSync(JOBS_DIR)) {
     fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
@@ -68,6 +93,32 @@ function buildJobs() {
       .readdirSync(JOBS_DIR)
       .filter((f) => f.endsWith(".md") && f !== "README.md");
     const jobs = files.map((f) => mdToJob(path.join(JOBS_DIR, f)));
+
+    const duplicates = detectDuplicates(jobs);
+    if (duplicates.length > 0) {
+      console.warn("\nDuplicate jobs detected:");
+      duplicates.forEach((dup) => {
+        console.warn(`  ${dup.duplicate} is a duplicate of ${dup.original}`);
+      });
+      console.warn("  Consider removing duplicate job files.\n");
+    }
+
+    const now = new Date();
+    const activeJobs = jobs.filter((job) => {
+      if (!job.expires_at) return true;
+      try {
+        const expiryDate = new Date(job.expires_at);
+        return expiryDate > now;
+      } catch (e) {
+        return true;
+      }
+    });
+
+    const expiredCount = jobs.length - activeJobs.length;
+    if (expiredCount > 0) {
+      console.log(`Filtered out ${expiredCount} expired job(s)`);
+    }
+
     
     // Warn about jobs needing manual review
     const needsReview = jobs.filter(j => j.needs_manual_review);
@@ -80,8 +131,8 @@ function buildJobs() {
     }
     
     const out = {
-      jobs,
-      count: jobs.length,
+      jobs: activeJobs,
+      count: activeJobs.length,
       generated_at: new Date().toISOString(),
     };
     fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
