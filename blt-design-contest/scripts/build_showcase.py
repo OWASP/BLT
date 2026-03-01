@@ -58,8 +58,8 @@ CONTESTS = [
         "template": "logo-submission.yml",
         "description": "Design a new logo for OWASP BLT and all its repositories.",
         "prize": "$25",
-        "deadline": "2026-06-01T00:00:00Z",
-        "deadline_display": "June 1, 2026",
+        "deadline": "2026-03-15T00:00:00Z",
+        "deadline_display": "March 15, 2026",
         "icon": "fa-solid fa-brush",
     },
     {
@@ -70,8 +70,8 @@ CONTESTS = [
         "template": "homepage-submission.yml",
         "description": "Design the new homepage for the OWASP BLT website.",
         "prize": "$25",
-        "deadline": "2026-06-01T00:00:00Z",
-        "deadline_display": "June 1, 2026",
+        "deadline": "2026-03-15T00:00:00Z",
+        "deadline_display": "March 15, 2026",
         "icon": "fa-solid fa-house",
     },
 ]
@@ -790,7 +790,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         <span class="hidden sm:block text-[#E10101]/40">|</span>
         <span class="inline-flex items-center gap-1.5">
           <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
-          Contests end <strong>June 1, 2026</strong>
+          Contests end <strong>March 15, 2026</strong>
         </span>
       </div>
 
