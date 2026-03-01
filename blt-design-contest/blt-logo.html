@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BLT Logo Contest — community showcase of design submissions. Rate your favourites with a thumbs up!" />
+  <title>BLT Logo Contest — BLT Design Contest</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: '#E10101',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Minimal custom overrides -->
+  <style>
+    :root { --brand: #E10101; }
+    *:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+             flex flex-col font-sans antialiased">
+
+  <!-- ── Skip to content ── -->
+  <a href="#contest-blt-logo"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:rounded-md focus:font-medium">
+    Skip to content
+  </a>
+
+  <!-- ══════════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════════ -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+                 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+
+        <!-- Logo / Brand -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contest home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
+                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
+            Design Contest
+          </span>
+        </a>
+
+        <!-- Centre nav links -->
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+          <a href="index.html"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+          </a>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
+            <i class="fa-solid fa-brush" aria-hidden="true"></i> BLT Logo Contest
+          </span>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1">
+            <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+          </a>
+        </div>
+
+        <!-- CTA -->
+        <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/new?template=logo-submission.yml"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                  text-white text-sm font-semibold px-4 py-2 rounded-md
+                  transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Submit Design</span>
+        </a>
+
+        <!-- Dark-mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="p-2 rounded-md text-gray-500 dark:text-gray-400
+                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode">
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       CONTEST CONTENT
+  ══════════════════════════════════════════ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      <!-- Last updated note -->
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-4 text-right">
+        Last updated 01 Mar 2026 08:14 UTC
+      </p>
+
+      
+    <div id="contest-blt-logo" class="contest-panel" role="tabpanel" aria-labelledby="tab-blt-logo">
+
+      <!-- Contest info bar -->
+      <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <i class="fa-solid fa-brush text-[#E10101]" aria-hidden="true"></i>
+              BLT Logo Contest
+            </h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Design a new logo for OWASP BLT and all its repositories.</p>
+            <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
+              <span class="inline-flex items-center gap-1 text-[#E10101]">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize
+              </span>
+              <span class="inline-flex items-center gap-1 text-[#E10101]">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends June 1, 2026
+              </span>
+              <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-images" aria-hidden="true"></i>
+                0 submissions
+              </span>
+            </div>
+          </div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/new?template=logo-submission.yml"
+             target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                    text-white text-sm font-semibold px-4 py-2 rounded-md
+                    transition-colors shrink-0">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Add Entry
+          </a>
+        </div>
+      </div>
+      
+      <!-- Sort controls -->
+      <div class="flex items-center gap-3 flex-wrap mb-6">
+        <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
+        <button id="sort-thumbs-blt-logo" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="thumbs" data-contest="blt-logo">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By 👍
+        </button>
+        <button id="sort-reactions-blt-logo" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="reactions" data-contest="blt-logo">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By all reactions
+        </button>
+      </div>
+
+      <!-- Cards grid -->
+      <div id="cards-grid-blt-logo"
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-brush text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i><p class="text-lg font-medium">No submissions yet — be the first!</p><p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p></div>
+      </div>
+
+    </div>
+
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
+                flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
+                text-gray-500 dark:text-gray-400">
+      <p>
+        &copy; 2026
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+        Content licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="index.html"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+        </a>
+        <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+        </a>
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+  <script>
+    // Dark-mode toggle
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Initialise from localStorage or system preference
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+         window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+
+    toggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    });
+
+    // Sort buttons — work independently per contest panel
+    const sortState = {};
+
+    function resetSortBtn(btn) {
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.classList.remove('border-[#E10101]', 'text-[#E10101]');
+      btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
+    }
+
+    document.querySelectorAll('[data-sort][data-contest]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cid = btn.dataset.contest;
+        const sortType = btn.dataset.sort;
+        const grid = document.getElementById(`cards-grid-${cid}`);
+        if (!grid) return;
+
+        if (!sortState[cid]) sortState[cid] = { thumbs: false, reactions: false, originalOrder: null };
+        if (!sortState[cid].originalOrder) sortState[cid].originalOrder = Array.from(grid.children);
+
+        const otherType = sortType === 'thumbs' ? 'reactions' : 'thumbs';
+        const otherBtn = document.querySelector(`[data-sort="${otherType}"][data-contest="${cid}"]`);
+        const isActive = sortState[cid][sortType];
+
+        sortState[cid][sortType] = !isActive;
+        sortState[cid][otherType] = false;
+        resetSortBtn(otherBtn);
+
+        btn.setAttribute('aria-pressed', String(!isActive));
+        btn.classList.toggle('border-[#E10101]', !isActive);
+        btn.classList.toggle('text-[#E10101]', !isActive);
+        btn.classList.toggle('border-gray-300', isActive);
+        btn.classList.toggle('dark:border-gray-600', isActive);
+        btn.classList.toggle('text-gray-700', isActive);
+        btn.classList.toggle('dark:text-gray-200', isActive);
+
+        const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
+        // Preserve winner pinning: keep winner cards at the top, only sort within non-winners.
+        const allCards = [...sortState[cid].originalOrder];
+        const winnerCards = allCards.filter(card => card.dataset.winner === 'true');
+        const nonWinnerCards = allCards.filter(card => card.dataset.winner !== 'true');
+        const sortedNonWinners = !isActive
+          ? [...nonWinnerCards].sort((a, b) =>
+              parseInt(b.dataset[dataKey] || '0', 10) - parseInt(a.dataset[dataKey] || '0', 10))
+          : nonWinnerCards;
+        const cards = [...winnerCards, ...sortedNonWinners];
+
+        cards.forEach(card => grid.appendChild(card));
+      });
+    });
+
+    // Thumbs-up click handler — opens the GitHub issue so the user can react there
+    // Uses event delegation so it works for both static and live-updated buttons
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-thumbs-btn]');
+      if (!btn) return;
+      const issueUrl = btn.closest('article')?.dataset.issueUrl;
+      if (issueUrl) {
+        window.open(issueUrl, '_blank', 'noopener,noreferrer');
+      }
+    });
+
+    // Live-update reaction counts from the GitHub API on page load
+    (async function () {
+      const REACTION_LABELS = [
+        ['+1',      '👍'],
+        ['-1',      '👎'],
+        ['laugh',   '😄'],
+        ['hooray',  '🎉'],
+        ['confused','😕'],
+        ['heart',   '❤️'],
+        ['rocket',  '🚀'],
+        ['eyes',    '👀'],
+      ];
+      const PILL = 'inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 '
+                 + 'text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5';
+      const THUMBS_PILL = PILL + ' hover:bg-red-100 dark:hover:bg-red-900/30 '
+                        + 'hover:text-[#E10101] transition-colors cursor-pointer';
+      const ETAG_KEY   = 'bltDesignIssuesEtag';
+      const CACHE_KEY  = 'bltDesignIssuesCache';
+      const BASE_URL   = 'https://api.github.com/repos/OWASP-BLT/BLT-Design-Contest/issues?state=open&per_page=100';
+      const API_HEADERS = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+
+      const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
+      if (!cards.length) return;
+
+      // Load cached data from localStorage
+      let cachedEtag = null;
+      let issues = null;
+      try {
+        cachedEtag = localStorage.getItem(ETAG_KEY);
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) issues = JSON.parse(raw);
+      } catch (_) {}
+
+      // Fetch fresh data, using a conditional request when we have a cached ETag
+      try {
+        const firstPageHeaders = cachedEtag
+          ? { ...API_HEADERS, 'If-None-Match': cachedEtag }
+          : { ...API_HEADERS };
+        const resp = await fetch(`${BASE_URL}&page=1`, { headers: firstPageHeaders });
+
+        if (resp.status === 304) {
+          // Not modified — reuse cached issues, no rate-limit hit
+        } else if (resp.ok) {
+          const allIssues = await resp.json();
+          const newEtag = resp.headers.get('ETag');
+          let page = 2;
+          while (true) {
+            const next = await fetch(`${BASE_URL}&page=${page}`, { headers: API_HEADERS });
+            if (!next.ok) break;
+            const batch = await next.json();
+            if (!Array.isArray(batch) || !batch.length) break;
+            allIssues.push(...batch);
+            if (batch.length < 100) break;
+            page++;
+          }
+          issues = allIssues;
+          try {
+            if (newEtag) localStorage.setItem(ETAG_KEY, newEtag);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(issues));
+          } catch (_) {}
+        } else {
+          console.error('Failed to fetch live reaction counts:', resp.status, resp.statusText);
+        }
+      } catch (err) {
+        console.error('Failed to fetch live reaction counts:', err);
+      }
+
+      if (!issues) return;
+
+      const byUrl = {};
+      for (const issue of issues) byUrl[issue.html_url] = issue.reactions || {};
+
+      for (const card of cards) {
+        const reactions = byUrl[card.dataset.issueUrl];
+        if (!reactions) continue;
+
+        const thumbsCount = parseInt(reactions['+1'], 10) || 0;
+        card.dataset.thumbs = thumbsCount;
+        const totalReactions = REACTION_LABELS.reduce((sum, [c]) => sum + (parseInt(reactions[c], 10) || 0), 0);
+        card.dataset.totalReactions = totalReactions;
+
+        const container = card.querySelector('[aria-label="Reactions"]');
+        if (!container) continue;
+
+        let html = '';
+        let total = 0;
+        for (const [content, emoji] of REACTION_LABELS) {
+          const count = parseInt(reactions[content], 10) || 0;
+          if (!count) continue;
+          total++;
+          if (content === '+1') {
+            html += `<button type="button" class="${THUMBS_PILL}" data-thumbs-btn `
+                  + `aria-label="Thumbs up this design on GitHub">${emoji} <span>${count}</span></button>`;
+          } else {
+            html += `<span class="${PILL}">${emoji} <span>${count}</span></span>`;
+          }
+        }
+        if (!total) {
+          html = `<a href="${card.dataset.issueUrl}" target="_blank" rel="noopener" `
+               + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
+               + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
+               + `aria-label="Be the first to react on GitHub">`
+               + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
+        }
+        container.innerHTML = html;
+      }
+    })();
+  </script>
+</body>
+</html>

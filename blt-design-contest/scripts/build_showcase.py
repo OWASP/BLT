@@ -38,16 +38,16 @@ WINNER_LABEL = "winner"
 # All active design contests.  Each entry drives one tab on the showcase page.
 CONTESTS = [
     {
-        "id": "blt-redesign",
-        "name": "BLT App Redesign",
+        "id": "blt-tshirt",
+        "name": "BLT T-Shirt Design Contest",
         "label": "design-submission",
         "title_prefix": "[Design]",
         "template": "design-submission.yml",
-        "description": "Redesign the OWASP BLT application interface.",
+        "description": "Design a T-shirt or apparel for OWASP BLT.",
         "prize": "$25",
         "deadline": "2026-06-01T00:00:00Z",
         "deadline_display": "June 1, 2026",
-        "icon": "fa-solid fa-palette",
+        "icon": "fa-solid fa-shirt",
     },
     {
         "id": "blt-logo",
@@ -559,8 +559,9 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     </div>"""
 
 
+
 def build_html(contests_data: list[dict], last_updated: str) -> str:
-    """Return the complete index.html as a string.
+    """Return the complete index.html (homepage) as a string.
 
     ``contests_data`` is a list of dicts, each with keys:
       - ``config``  – the CONTESTS entry dict
@@ -569,32 +570,63 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
     """
     total_all = sum(d["total"] for d in contests_data)
 
-    # Build tab buttons
-    tab_buttons_html = ""
+    # Build contest summary cards for the homepage
+    contest_cards_html = ""
     for d in contests_data:
         c = d["config"]
         cid = html.escape(c["id"])
         cname = html.escape(c["name"])
+        cdesc = html.escape(c["description"])
+        cprize = html.escape(c["prize"])
+        cdeadline = html.escape(c["deadline_display"])
+        ctotal = d["total"]
         icon = c["icon"]
-        tab_buttons_html += (
-            f'<button role="tab" id="tab-{cid}" data-tab="{cid}"'
-            f' aria-selected="false" aria-controls="contest-{cid}"'
-            f' class="contest-tab inline-flex items-center gap-2 px-4 py-3 text-sm font-medium'
-            f' border-b-2 border-transparent text-gray-600 dark:text-gray-300'
-            f' hover:text-[#E10101] hover:border-[#E10101] transition-colors whitespace-nowrap">'
-            f'<i class="{icon}" aria-hidden="true"></i>'
-            f' {cname}'
-            f' <span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500'
-            f' dark:text-gray-400 rounded-full px-1.5 py-0.5">{d["total"]}</span>'
-            f'</button>'
-        )
+        page_url = f"{cid}.html"
 
-    # Build contest panels
-    contest_panels_html = ""
-    for d in contests_data:
-        contest_panels_html += build_contest_section(
-            d["config"], d["cards"], d["total"], winner_count=d.get("winner_count", 0)
-        )
+        contest_cards_html += f"""
+        <a href="{page_url}"
+           class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+                  border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                  hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <div class="p-6 sm:p-7">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+                          flex items-center justify-center shrink-0">
+                <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full
+                             bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                  Active
+                </span>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
+            <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 text-[#E10101]">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
+              </span>
+              <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends {cdeadline}
+              </span>
+            </div>
+            <div class="flex items-center justify-between pt-4
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <div>
+                <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  submission{'' if ctotal == 1 else 's'}
+                </p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                           group-hover:gap-2.5 transition-all duration-200">
+                View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </a>"""
 
     # For the hero submit URL, use the first contest
     first_submit_url = html.escape(
@@ -651,7 +683,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
-  <a href="#showcase"
+  <a href="#contests"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
             focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
             focus:rounded-md focus:font-medium">
@@ -677,9 +709,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
 
         <!-- Centre nav links -->
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="#showcase"
+          <a href="#contests"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
-            Showcase
+            Contests
           </a>
           <a href="#how-it-works"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">
@@ -755,7 +787,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
           <i class="fa-solid fa-pen-ruler" aria-hidden="true"></i>
           Submit Your Design
         </a>
-        <a href="#showcase"
+        <a href="#contests"
            class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101]
                   hover:bg-[#E10101] hover:text-white font-semibold px-6 py-3
                   rounded-md transition-colors">
@@ -848,9 +880,245 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   </section>
 
   <!-- ══════════════════════════════════════════
-       SHOWCASE (TABBED MULTI-CONTEST)
+       CONTESTS OVERVIEW
   ══════════════════════════════════════════ -->
-  <main id="showcase" class="flex-1">
+  <section id="contests" class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Active Contests</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Pick a contest to browse submissions and vote for your favourites.
+          </p>
+        </div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+          Last updated {last_updated}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {contest_cards_html}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8
+                flex flex-col sm:flex-row items-center justify-between gap-4 text-sm
+                text-gray-500 dark:text-gray-400">
+      <p>
+        &copy; {datetime.now(timezone.utc).year}
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+        Content licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener"
+           class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+        </a>
+        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
+           class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════════ -->
+  <script>
+    // Dark-mode toggle
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Initialise from localStorage or system preference
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+         window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      html.classList.add('dark');
+    }}
+
+    toggle.addEventListener('click', () => {{
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    }});
+
+    // Countdown timer to nearest contest deadline
+    (function () {{
+      const deadline = new Date('{earliest_deadline}').getTime();
+      const els = {{
+        days:  document.getElementById('cd-days'),
+        hours: document.getElementById('cd-hours'),
+        mins:  document.getElementById('cd-mins'),
+        secs:  document.getElementById('cd-secs'),
+      }};
+      if (!els.days) return;
+      function pad(n) {{ return String(n).padStart(2, '0'); }}
+      function tick() {{
+        const diff = deadline - Date.now();
+        if (diff <= 0) {{
+          els.days.textContent = '00';
+          els.hours.textContent = '00';
+          els.mins.textContent  = '00';
+          els.secs.textContent  = '00';
+          clearInterval(intervalId);
+          return;
+        }}
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000)  /   60000);
+        const s = Math.floor((diff %   60000)  /    1000);
+        els.days.textContent  = pad(d);
+        els.hours.textContent = pad(h);
+        els.mins.textContent  = pad(m);
+        els.secs.textContent  = pad(s);
+      }}
+      tick();
+      const intervalId = setInterval(tick, 1000);
+    }})();
+  </script>
+</body>
+</html>"""
+
+
+def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
+    """Return a complete standalone HTML page for a single contest."""
+    c = contest_data["config"]
+    cid = html.escape(c["id"])
+    cname = html.escape(c["name"])
+    icon = c["icon"]
+    submit_url = html.escape(
+        f"https://github.com/{REPO}/issues/new?template={c['template']}"
+    )
+    deadline = c["deadline"]
+
+    # The contest content (info bar + winner banner + sort controls + cards grid)
+    contest_section = build_contest_section(
+        contest_data["config"],
+        contest_data["cards"],
+        contest_data["total"],
+        winner_count=contest_data.get("winner_count", 0),
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{cname} — community showcase of design submissions. Rate your favourites with a thumbs up!" />
+  <title>{cname} — BLT Design Contest</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+        extend: {{
+          colors: {{
+            brand: '#E10101',
+          }},
+        }},
+      }},
+    }};
+  </script>
+
+  <!-- Font Awesome 6 (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Minimal custom overrides -->
+  <style>
+    :root {{ --brand: #E10101; }}
+    *:focus-visible {{
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen
+             flex flex-col font-sans antialiased">
+
+  <!-- ── Skip to content ── -->
+  <a href="#contest-{cid}"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
+            focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
+            focus:rounded-md focus:font-medium">
+    Skip to content
+  </a>
+
+  <!-- ══════════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════════ -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700
+                 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+
+        <!-- Logo / Brand -->
+        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contest home">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md
+                       bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
+            Design Contest
+          </span>
+        </a>
+
+        <!-- Centre nav links -->
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+          <a href="index.html"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+          </a>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
+            <i class="{icon}" aria-hidden="true"></i> {cname}
+          </span>
+          <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
+                    inline-flex items-center gap-1">
+            <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+          </a>
+        </div>
+
+        <!-- CTA -->
+        <a href="{submit_url}"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                  text-white text-sm font-semibold px-4 py-2 rounded-md
+                  transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Submit Design</span>
+        </a>
+
+        <!-- Dark-mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="p-2 rounded-md text-gray-500 dark:text-gray-400
+                       hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Toggle dark mode">
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+        </button>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       CONTEST CONTENT
+  ══════════════════════════════════════════ -->
+  <main class="flex-1">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
       <!-- Last updated note -->
@@ -858,16 +1126,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         Last updated {last_updated}
       </p>
 
-      <!-- Contest tab strip -->
-      <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div class="border-b border-[#E5E5E5] dark:border-gray-700 mb-8 flex gap-1 min-w-max"
-             role="tablist" aria-label="Design contests">
-          {tab_buttons_html}
-        </div>
-      </div>
-
-      <!-- Contest panels (one per contest, shown/hidden via JS) -->
-      {contest_panels_html}
+      {contest_section}
 
     </div>
   </main>
@@ -888,6 +1147,10 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
            class="text-[#E10101] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
+        <a href="index.html"
+           class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+        </a>
         <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
           <i class="fa-brands fa-github" aria-hidden="true"></i> Source
@@ -1087,63 +1350,6 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         container.innerHTML = html;
       }}
     }})();
-
-    // Contest tab navigation
-    (function () {{
-      const tabs = document.querySelectorAll('[role="tab"][data-tab]');
-      const panels = document.querySelectorAll('.contest-panel');
-
-      function switchTab(targetId) {{
-        panels.forEach(panel => {{ panel.hidden = panel.id !== `contest-${{targetId}}`; }});
-        tabs.forEach(tab => {{
-          const isActive = tab.dataset.tab === targetId;
-          tab.setAttribute('aria-selected', String(isActive));
-          tab.classList.toggle('border-[#E10101]', isActive);
-          tab.classList.toggle('text-[#E10101]', isActive);
-          tab.classList.toggle('font-semibold', isActive);
-          tab.classList.toggle('border-transparent', !isActive);
-          tab.classList.toggle('text-gray-600', !isActive);
-          tab.classList.toggle('dark:text-gray-300', !isActive);
-        }});
-      }}
-
-      tabs.forEach(tab => {{ tab.addEventListener('click', () => switchTab(tab.dataset.tab)); }});
-      if (tabs.length) switchTab(tabs[0].dataset.tab);
-    }})();
-
-    // Countdown timer to nearest contest deadline
-    (function () {{
-      const deadline = new Date('{earliest_deadline}').getTime();
-      const els = {{
-        days:  document.getElementById('cd-days'),
-        hours: document.getElementById('cd-hours'),
-        mins:  document.getElementById('cd-mins'),
-        secs:  document.getElementById('cd-secs'),
-      }};
-      if (!els.days) return;
-      function pad(n) {{ return String(n).padStart(2, '0'); }}
-      function tick() {{
-        const diff = deadline - Date.now();
-        if (diff <= 0) {{
-          els.days.textContent = '00';
-          els.hours.textContent = '00';
-          els.mins.textContent  = '00';
-          els.secs.textContent  = '00';
-          clearInterval(intervalId);
-          return;
-        }}
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000)  /   60000);
-        const s = Math.floor((diff %   60000)  /    1000);
-        els.days.textContent  = pad(d);
-        els.hours.textContent = pad(h);
-        els.mins.textContent  = pad(m);
-        els.secs.textContent  = pad(s);
-      }}
-      tick();
-      const intervalId = setInterval(tick, 1000);
-    }})();
   </script>
 </body>
 </html>"""
@@ -1201,12 +1407,23 @@ def main() -> None:
             "winner_count": len(winner_cards),
         })
 
-    page_html = build_html(contests_data, last_updated)
+    root_dir = os.path.dirname(os.path.dirname(__file__))
 
-    out_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "index.html")
+    # Write homepage (index.html) with contest summary cards
+    page_html = build_html(contests_data, last_updated)
+    out_path = os.path.join(root_dir, "index.html")
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(page_html)
     print(f"\nWritten → {out_path}")
+
+    # Write a standalone page for each contest (e.g. blt-tshirt.html)
+    for contest_data in contests_data:
+        cid = contest_data["config"]["id"]
+        contest_page_html = build_contest_page_html(contest_data, last_updated)
+        contest_out_path = os.path.join(root_dir, f"{cid}.html")
+        with open(contest_out_path, "w", encoding="utf-8") as fh:
+            fh.write(contest_page_html)
+        print(f"Written → {contest_out_path}")
 
 
 if __name__ == "__main__":
