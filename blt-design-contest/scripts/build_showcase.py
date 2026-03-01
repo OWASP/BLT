@@ -244,7 +244,8 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
     number = issue["number"]
     title = html.escape(issue.get("title", "Untitled").replace(title_prefix + " ", "").strip())
     issue_url = html.escape(issue.get("html_url", "#"))
-    created = issue.get("created_at", "")[:10]
+    created_at_iso = html.escape(issue.get("created_at", ""))
+    created = created_at_iso[:10]  # UTC date used as static fallback
     user = issue.get("user", {})
     author_login = html.escape(user.get("login", "unknown"))
     author_url = html.escape(user.get("html_url", "#"))
@@ -409,7 +410,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
         <!-- Category + issue number -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full {cat_colour}">{category}</span>
-          <span class="text-xs text-gray-400 dark:text-gray-500">#{number} · {created}</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">#{number} · <time class="sub-date" datetime="{created_at_iso}">{created}</time></span>
         </div>
 
         <!-- Title -->
@@ -983,6 +984,21 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       tick();
       const intervalId = setInterval(tick, 1000);
     }})();
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {{
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {{
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {{
+          year: 'numeric', month: 'short', day: 'numeric'
+        }});
+      }});
+    }})();
   </script>
 </body>
 </html>"""
@@ -1349,6 +1365,21 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         }}
         container.innerHTML = html;
       }}
+    }})();
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {{
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {{
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {{
+          year: 'numeric', month: 'short', day: 'numeric'
+        }});
+      }});
     }})();
   </script>
 </body>
