@@ -14,7 +14,7 @@ function mdToJob(filePath) {
   const stem = path.basename(filePath, ".md");
   const { data: fm, content: body } = matter(content);
   const get = (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
-  
+
   // Extract salary from description if not in frontmatter
   const description = (body || get("description") || "").trim();
   let salaryRange = get("salary_range") || null;
