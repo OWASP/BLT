@@ -73,9 +73,10 @@
       "application_instructions": null,
       "created_at": "2026-02-22T05:38:43Z",
       "views_count": 0,
-      "added_by": null
+      "added_by": null,
+      "needs_manual_review": false
     }
   ],
   "count": 4,
-  "generated_at": "2026-03-01T09:01:11.116Z"
+  "generated_at": "2026-03-01T09:06:40.425Z"
 }
