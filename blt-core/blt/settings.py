@@ -137,7 +137,7 @@ if DEBUG:
 
 BLUESKY_USERNAME = env("BLUESKY_USERNAME", default="default_username")
 BLUESKY_PASSWORD = env("BLUESKY_PASSWORD", default="default_password")
-TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+
 
 if DEBUG and not TESTING:
     # Configure INTERNAL_IPS for Docker environment
