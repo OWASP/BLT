@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-01T08:40:44.852Z",
+  "updated_at": "2026-03-01T09:38:01.049Z",
   "total_bugs": 2,
   "total_orgs": 0,
   "leaderboard": [
@@ -14,14 +14,25 @@
   "top_commenters": [
     {
       "rank": 1,
+      "login": "mdkaifansari04",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
+      "profile_url": "https://github.com/mdkaifansari04"
+    },
+    {
+      "rank": 2,
       "login": "DonnieBLT",
-      "count": 5,
+      "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     }
   ],
   "top_domains": [
-    { "rank": 1, "domain": "owasp.org", "count": 2 }
+    {
+      "rank": 1,
+      "domain": "www.owasp.community",
+      "count": 2
+    }
   ],
   "recent_bugs": [
     {
