@@ -708,6 +708,7 @@ const TABLE_COLS = [
   { key: 'maturity',          label: 'Maturity'   },
   { key: 'latest_release',    label: 'Release'    },
   { key: 'updated_at',        label: 'Updated'    },
+  { key: 'latest_issue',      label: 'Latest Issue' },
 ];
 
 function renderTableView(repos, container) {
@@ -723,6 +724,9 @@ function renderTableView(repos, container) {
       const ta = (a.latest_release && a.latest_release.published_at) ? a.latest_release.published_at : '';
       const tb = (b.latest_release && b.latest_release.published_at) ? b.latest_release.published_at : '';
       v = ta.localeCompare(tb);
+    }
+    else if (tableSortCol === 'latest_issue') {
+      v = (a.latest_issue ? a.latest_issue.number : 0) - (b.latest_issue ? b.latest_issue.number : 0);
     }
     else v = (a[tableSortCol] || 0) - (b[tableSortCol] || 0);
     return tableSortDir === 'asc' ? v : -v;
@@ -819,6 +823,11 @@ function renderTableView(repos, container) {
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
+      <td class="px-3 py-2 text-xs max-w-[14rem]">
+        ${r.latest_issue
+          ? `<a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}"><i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <div class="flex gap-1.5">
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-xs px-2 py-1 bg-brand text-white rounded hover:bg-red-700 transition-colors" title="View on GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
