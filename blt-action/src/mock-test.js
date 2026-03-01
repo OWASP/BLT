@@ -43,10 +43,10 @@ async function postGiphyComment(owner, repo, issueNumber, searchText, giphyApiKe
 
 async function postTipComment(owner, repo, issueNumber, receiver, amount) {
   const sponsorUrl = `https://github.com/sponsors/${receiver}`;
-  
+
   // Check if GitHub Sponsors is enabled
   await axios.head(sponsorUrl);
-  
+
   const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`;
   const response = await axios.post(url, {
     body: `💰 **Tip Request from @sender to @${receiver}**\n\nAmount: **$${amount}**\n\nTo complete this tip, please visit @${receiver}'s GitHub Sponsors page and select a one-time payment:\n\n🔗 [Sponsor @${receiver}](${sponsorUrl})\n\n*Note: GitHub Sponsors does not support automated payments via API. Please complete the transaction manually by selecting "One-time" on the sponsor page and entering your desired amount.*`
@@ -229,10 +229,10 @@ describe('GitHub API Mock Test', () => {
 
     const githubScope = nock('https://api.github.com')
       .post(`/repos/${owner}/${repo}/issues/${issueNumber}/comments`, (body) => {
-        return body.body.includes('Tip Request') && 
-               body.body.includes(`@${receiver}`) && 
-               body.body.includes(`$${amount}`) &&
-               body.body.includes(`https://github.com/sponsors/${receiver}`);
+        return body.body.includes('Tip Request') &&
+          body.body.includes(`@${receiver}`) &&
+          body.body.includes(`$${amount}`) &&
+          body.body.includes(`https://github.com/sponsors/${receiver}`);
       })
       .reply(201, { status: 'success' });
 
@@ -528,11 +528,11 @@ describe('GitHub API Mock Test', () => {
 
   describe('Human commenter guard for /assign and /unassign', () => {
     function isHumanCommenter(comment) {
-        return (
-            comment &&
-            comment.user &&
-            (comment.user.type === 'User' || comment.user.type === 'Mannequin')
-        );
+      return (
+        comment &&
+        comment.user &&
+        (comment.user.type === 'User' || comment.user.type === 'Mannequin')
+      );
     }
 
     const assignKeywords = [
@@ -623,6 +623,77 @@ describe('GitHub API Mock Test', () => {
       };
 
       assert.strictEqual(isHumanCommenter(mannequinComment), true);
+    });
+  });
+
+  describe('Extract Linked Issue from PR Body', () => {
+    const { extractLinkedIssuesFromPRBody } = require('./index.js');
+
+    it('parses plain "Fixes #123" format', () => {
+      const body = 'This PR fixes a bug.\n\nFixes #3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses "Fixes Owner/Repo#123" format (Copilot style)', () => {
+      const body = 'Fixes OWASP-BLT/BLT#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses full URL format "Fixes https://github.com/owner/repo/issues/123"', () => {
+      const body = 'Fixes https://github.com/OWASP-BLT/BLT/issues/3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('rejects Owner/Repo#123 from a different repository', () => {
+      const body = 'Fixes SomeOtherOrg/OtherRepo#999';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, []);
+    });
+
+    it('handles case-insensitive owner/repo matching', () => {
+      const body = 'Fixes owasp-blt/blt#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('handles case-insensitive URL matching', () => {
+      const body = 'Fixes https://github.com/owasp-blt/blt/issues/3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('returns empty array for null or empty body', () => {
+      assert.deepStrictEqual(extractLinkedIssuesFromPRBody(null, 'OWASP-BLT', 'BLT'), []);
+      assert.deepStrictEqual(extractLinkedIssuesFromPRBody('', 'OWASP-BLT', 'BLT'), []);
+    });
+
+    it('deduplicates issue numbers when mentioned multiple times', () => {
+      const body = 'Fixes OWASP-BLT/BLT#3753\n\n- Fixes OWASP-BLT/BLT#3753';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('parses a real Copilot PR body (PR #4969)', () => {
+      const body = [
+        'This PR implements a complete zero-trust vulnerability disclosure system.',
+        '',
+        'Fixes OWASP-BLT/BLT#3753',
+        '',
+        '<!-- START COPILOT CODING AGENT SUFFIX -->',
+        '',
+        '- Fixes OWASP-BLT/BLT#3753',
+      ].join('\n');
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [3753]);
+    });
+
+    it('handles multiple keyword variations (closes, resolved, fix)', () => {
+      const body = 'Closes #100\nResolved #200\nFix #300';
+      const result = extractLinkedIssuesFromPRBody(body, 'OWASP-BLT', 'BLT');
+      assert.deepStrictEqual(result, [100, 200, 300]);
     });
   });
 });
