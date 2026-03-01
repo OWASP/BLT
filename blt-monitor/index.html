@@ -255,25 +255,6 @@ fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
     document.getElementById('gh-forks').textContent = '—';
   });
 
-//for toggletheme
-function toggleTheme() {
-  const body = document.body;
-  const icon = document.getElementById('theme-icon');
-  const label = document.getElementById('theme-label');
-  const isDark = body.classList.toggle('light-mode');
-
-  if (isDark) {
-    body.style.background = '#f1f5f9';
-    body.style.color = '#0f172a';
-    icon.className = 'fa-solid fa-sun';
-    label.textContent = 'Light';
-  } else {
-    body.style.background = '#0a0f1e';
-    body.style.color = '#e2e8f0';
-    icon.className = 'fa-solid fa-moon';
-    label.textContent = 'Dark';
-  }
-} 
 </script>
 </body>
 </html>

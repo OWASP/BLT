@@ -174,6 +174,7 @@
       </div>
 
       <!-- Slack setup -->
+       <div id="slack-warning"></div>
       <details class="mt-5 bg-[#0f172a] border border-slate-800 rounded-xl p-4">
         <summary class="font-bold cursor-pointer text-sm flex items-center gap-2">
           <i class="fa-solid fa-bell text-red-500"></i> How to set up Slack notifications
@@ -294,10 +295,10 @@ function parseCSV(csv) {
           // Keyword badge
           const keywordBadge = document.getElementById('keyword-badge');
           if (keyword === 'found') {
-              keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${keywordText}</b>`;
+              keywordBadge.innerHTML = `<i class='fa-solid fa-check'></i> Found: <b>${escapeHTML(keywordText)}</b>`;
               keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-teal-900/50 text-teal-300 border border-teal-800';
           } else {
-              keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${keywordText}</b>`;
+              keywordBadge.innerHTML = `<i class='fa-solid fa-xmark'></i> Not Found: <b>${escapeHTML(keywordText)}</b>`;
               keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
           }
 
@@ -396,6 +397,19 @@ function parseCSV(csv) {
     document.getElementById('gh-stars').textContent = '—';
     document.getElementById('gh-forks').textContent = '—';
   });
+
+  function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function (match) {
+    const escape = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+    return escape[match];
+  });
+}
 </script>
 </body>
 </html>
