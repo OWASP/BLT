@@ -39,16 +39,15 @@ class HackathonIndex {
     async loadAllStats() {
         const fetches = (this.config.hackathons || []).map(async hackathon => {
             try {
-                const response = await fetch(`hackathon-data/${hackathon.slug}.json`);
+                const response = await fetch(`hackathon-data/${hackathon.slug}-summary.json`);
                 if (response.ok) {
-                    const data = await response.json();
-                    const stats = data.stats || {};
+                    const summary = await response.json();
                     this.hackathonStats[hackathon.slug] = {
-                        participantCount: stats.participantCount || 0,
-                        totalPRs: stats.totalPRs || 0,
-                        mergedPRs: stats.mergedPRs || 0,
-                        totalIssues: stats.totalIssues || 0,
-                        repositories: (data.repositories || []).length,
+                        participantCount: summary.participantCount || 0,
+                        totalPRs: summary.totalPRs || 0,
+                        mergedPRs: summary.mergedPRs || 0,
+                        totalIssues: summary.totalIssues || 0,
+                        repositories: summary.repositories || 0,
                     };
                 }
             } catch (e) {
