@@ -247,6 +247,23 @@ def fetch_latest_commit(repo_full_name: str, default_branch: str) -> dict | None
         return None
 
 
+def fetch_has_wrangler_toml(repo_full_name: str, default_branch: str) -> bool:
+    """Return True if the repo contains a wrangler.toml in its root directory."""
+    try:
+        make_request(
+            f"{API_BASE}/repos/{repo_full_name}/contents/wrangler.toml?ref={default_branch}"
+        )
+        return True
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            return False
+        print(f"  Warning: could not check wrangler.toml for {repo_full_name}: {exc}", file=sys.stderr)
+        return False
+    except (urllib.error.URLError, Exception) as exc:
+        print(f"  Warning: could not check wrangler.toml for {repo_full_name}: {exc}", file=sys.stderr)
+        return False
+
+
 def fetch_latest_release(repo_full_name: str) -> dict | None:
     """Return the latest release for a repo, or None if there are none."""
     try:
@@ -463,6 +480,20 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Check for wrangler.toml in each non-archived repo
+    print("Checking for wrangler.toml…", flush=True)
+    has_wrangler_toml_map: dict[str, bool] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            has_wrangler_toml_map[repo["full_name"]] = False
+        else:
+            has_wrangler_toml_map[repo["full_name"]] = fetch_has_wrangler_toml(
+                repo["full_name"], repo.get("default_branch", "main")
+            )
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Language counts (how many repos use each language as primary)
     lang_repo_count: dict[str, int] = {}
     for repo in repos:
@@ -477,7 +508,7 @@ def main() -> None:
         "language", "stargazers_count", "forks_count", "open_issues_count",
         "fork", "archived", "private", "topics",
         "default_branch", "updated_at", "created_at", "pushed_at",
-        "license", "visibility", "size",
+        "license", "visibility", "size", "has_pages",
     }
     slim_repos = sorted(
         [
@@ -493,7 +524,8 @@ def main() -> None:
              "latest_issue": latest_issue_map.get(repo["full_name"]),
              "latest_commit": latest_commit_map.get(repo["full_name"]),
              "latest_release": latest_release_map.get(repo["full_name"]),
-             "star_history": star_history_map.get(repo["full_name"], [])}
+             "star_history": star_history_map.get(repo["full_name"], []),
+             "has_wrangler_toml": has_wrangler_toml_map.get(repo["full_name"], False)}
             for repo in repos
         ],
         key=lambda r: r.get("updated_at", ""),

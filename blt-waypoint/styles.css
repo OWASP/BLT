@@ -69,6 +69,13 @@
 /* Table view: force-hide the sidebar even at large breakpoints */
 #main-sidebar.force-hidden { display: none !important; }
 
+/* Table view: make stats bar and results count match table width */
+#main-layout.table-view #repo-table { overflow-x: visible; }
+#main-layout.table-view #content-inner { width: max-content; min-width: 100%; }
+
+/* Table view: expand header inner div to full width */
+header.table-view-header #header-inner { max-width: none; }
+
 /* GSoC card highlight with Google brand colors */
 .gsoc-card {
   border-color: transparent !important;
