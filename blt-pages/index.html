@@ -12,6 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -53,8 +54,16 @@
       --blt-background: #f8fafc;
     }
 
+    .dark {
+      --blt-primary: #EF4444;
+      --blt-border: #374151;
+      --blt-surface: #1F2937;
+      --blt-background: #111827;
+    }
+
     body {
       background: var(--blt-background);
+      transition: background-color 0.3s ease;
     }
 
     .hero-glow {
@@ -62,12 +71,21 @@
         radial-gradient(circle at 18% 8%, rgba(225, 1, 1, 0.14), transparent 40%),
         radial-gradient(circle at 78% 0%, rgba(225, 1, 1, 0.1), transparent 28%),
         linear-gradient(to bottom, #ffffff 0%, #f8fafc 70%);
+      transition: background 0.3s ease;
+    }
+
+    .dark .hero-glow {
+      background:
+        radial-gradient(circle at 18% 8%, rgba(239, 68, 68, 0.12), transparent 40%),
+        radial-gradient(circle at 78% 0%, rgba(239, 68, 68, 0.08), transparent 28%),
+        linear-gradient(to bottom, #1F2937 0%, #111827 70%);
     }
 
     .surface-card {
       background: var(--blt-surface);
       border: 1px solid var(--blt-border);
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: all 0.3s ease;
     }
 
     .section-link:hover {
@@ -77,14 +95,16 @@
 
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #f3f4f6; }
+    .dark ::-webkit-scrollbar-track { background: #1F2937; }
     ::-webkit-scrollbar-thumb { background: #E10101; border-radius: 999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
   </style>
 </head>
 
-<body class="font-sans text-gray-900 antialiased">
+<body class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[500px] hero-glow"></div>
 
-  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur">
+  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT Pages home">
       <img
@@ -95,31 +115,40 @@
       />
         <span class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
         <div>
-          <p class="text-sm font-extrabold leading-none">BLT Pages</p>
-          <p class="text-xs font-semibold text-gray-500">OWASP Bug Logging Tool</p>
+          <p class="text-sm font-extrabold leading-none dark:text-gray-100">BLT Pages</p>
+          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">OWASP Bug Logging Tool</p>
         </div>
       </a>
 
       <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-        <a href="#features" class="section-link text-sm font-semibold">Features</a>
-        <a href="#how-it-works" class="section-link text-sm font-semibold">How it works</a>
-        <a href="#leaderboard" class="section-link text-sm font-semibold">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold">
+        <a href="#features" class="section-link text-sm font-semibold dark:text-gray-200">Features</a>
+        <a href="#how-it-works" class="section-link text-sm font-semibold dark:text-gray-200">How it works</a>
+        <a href="#leaderboard" class="section-link text-sm font-semibold dark:text-gray-200">Leaderboard</a>
+        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200">Pricing</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold dark:text-gray-200">
           <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>GitHub
         </a>
       </nav>
 
       <div class="flex items-center gap-2">
+        <button
+          id="dark-toggle"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          aria-label="Toggle dark mode"
+          type="button"
+        >
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline-block" aria-hidden="true"></i>
+        </button>
         <a
           href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-          class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 sm:inline-flex"
+          class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex"
         >
           <i class="fa-solid fa-bug mr-2" aria-hidden="true"></i>Report Bug
         </a>
         <button
           id="mobile-menu-toggle"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 md:hidden"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
           aria-label="Open navigation menu"
           aria-expanded="false"
           type="button"
@@ -129,18 +158,18 @@
       </div>
     </div>
 
-    <div id="mobile-menu" class="hidden border-t border-neutral-border bg-white px-4 py-4 md:hidden">
+    <div id="mobile-menu" class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
       <nav class="space-y-3" aria-label="Mobile navigation">
-        <a href="#features" class="block text-sm font-semibold text-red-600 hover:underline">Features</a>
-        <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline">How it works</a>
-        <a href="#leaderboard" class="block text-sm font-semibold text-red-600 hover:underline">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="block text-sm font-semibold text-red-600 hover:underline">
+        <a href="#features" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Features</a>
+        <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">How it works</a>
+        <a href="#leaderboard" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
+        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Pricing</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">
           <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
         </a>
         <a
           href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-          class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+          class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
         >
           <i class="fa-solid fa-bug mr-2" aria-hidden="true"></i>Report Bug
         </a>
@@ -153,15 +182,15 @@
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
           <div>
-            <span class="mb-5 inline-flex items-center rounded-full border border-red-200 bg-active-bg px-3 py-1 text-xs font-semibold text-primary">
+            <span class="mb-5 inline-flex items-center rounded-full border border-red-200 bg-active-bg px-3 py-1 text-xs font-semibold text-primary dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-shield-halved mr-2" aria-hidden="true"></i>
               OWASP Project • AGPLv3 Licensed
             </span>
-            <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[3.35rem]">
+            <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[3.35rem] dark:text-gray-100">
               One landing page for
-              <span class="text-primary">public bugs, secure disclosures, and contributor momentum.</span>
+              <span class="text-primary dark:text-red-400">public bugs, secure disclosures, and contributor momentum.</span>
             </h1>
-            <p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+            <p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">
               BLT Pages gives teams a practical front door to collect issue reports, route sensitive vulnerabilities to BLT-Zero,
               and keep community reporting transparent through a live leaderboard.
             </p>
@@ -169,7 +198,7 @@
             <div class="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-                class="inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+                class="inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
               >
                 <i class="fa-solid fa-bug mr-2" aria-hidden="true"></i>Start reporting
               </a>
@@ -177,24 +206,24 @@
                 href="https://blt-zero.owasp.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+                class="inline-flex items-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
               >
                 <i class="fa-solid fa-lock mr-2" aria-hidden="true"></i>Use BLT-Zero
               </a>
             </div>
 
-            <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft">
+            <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-700 dark:bg-dark-surface">
               <div>
-                <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary">-</dd>
-                <dt class="mt-1 text-xs font-medium text-gray-500">Bugs reported</dt>
+                <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">-</dd>
+                <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Bugs reported</dt>
               </div>
-              <div class="border-x border-neutral-border px-3">
-                <dd id="stat-orgs" class="text-2xl font-extrabold text-primary">-</dd>
-                <dt class="mt-1 text-xs font-medium text-gray-500">Organizations</dt>
+              <div class="border-x border-neutral-border px-3 dark:border-gray-700">
+                <dd id="stat-orgs" class="text-2xl font-extrabold text-primary dark:text-red-400">-</dd>
+                <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Organizations</dt>
               </div>
               <div>
-                <dd id="stat-reporters" class="text-2xl font-extrabold text-primary">-</dd>
-                <dt class="mt-1 text-xs font-medium text-gray-500">Active reporters</dt>
+                <dd id="stat-reporters" class="text-2xl font-extrabold text-primary dark:text-red-400">-</dd>
+                <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Active reporters</dt>
               </div>
             </dl>
           </div>
@@ -202,62 +231,62 @@
       </div>
     </section>
 
-    <section id="features" class="bg-white py-14 sm:py-16">
+    <section id="features" class="bg-white py-14 sm:py-16 dark:bg-dark-surface">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10 max-w-3xl">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">What BLT Pages gives your team</h2>
-          <p class="mt-3 text-base leading-relaxed text-gray-600">
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">What BLT Pages gives your team</h2>
+          <p class="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300">
             Built for practical bug intake: clear public reporting, safe vulnerability handling, and community visibility in one workflow.
           </p>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-bug" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Public bug reports</h3>
-            <p class="mt-2 text-sm text-gray-600">Capture 404/500 issues, UI regressions, performance problems, typo fixes, and policy violations in one place.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Public bug reports</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Capture 404/500 issues, UI regressions, performance problems, typo fixes, and policy violations in one place.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-user-secret" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Anonymous intake via BLT-API</h3>
-            <p class="mt-2 text-sm text-gray-600">Contributors can submit reports without exposing account identity when privacy is important.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Anonymous intake via BLT-API</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Contributors can submit reports without exposing account identity when privacy is important.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Secure vulnerability path</h3>
-            <p class="mt-2 text-sm text-gray-600">Route critical security disclosures through BLT-Zero with zero-log, zero-tracking guarantees.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Secure vulnerability path</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Route critical security disclosures through BLT-Zero with zero-log, zero-tracking guarantees.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-trophy" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Live leaderboard</h3>
-            <p class="mt-2 text-sm text-gray-600">Recognition stays visible through an auto-refreshed leaderboard generated from issue activity.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Live leaderboard</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Recognition stays visible through an auto-refreshed leaderboard generated from issue activity.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-toggle-on" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Fork-friendly pricing toggle</h3>
-            <p class="mt-2 text-sm text-gray-600">OWASP deployments keep pricing hidden, while commercial forks can switch plans on in config.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Fork-friendly pricing toggle</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">OWASP deployments keep pricing hidden, while commercial forks can switch plans on in config.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary">
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Reporter revenue sharing</h3>
-            <p class="mt-2 text-sm text-gray-600">Commercial plan users can share a percentage of subscription value with contributing reporters.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Reporter revenue sharing</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Commercial plan users can share a percentage of subscription value with contributing reporters.</p>
           </article>
         </div>
       </div>
@@ -266,8 +295,8 @@
     <section id="reporting" class="py-14 sm:py-16">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10 max-w-3xl">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">How teams use BLT Pages daily</h2>
-          <p class="mt-3 text-base leading-relaxed text-gray-600">
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">How teams use BLT Pages daily</h2>
+          <p class="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300">
             Keep public issue intake simple, keep sensitive security reports private, and keep contributor trust high with transparent tracking.
           </p>
         </div>
@@ -275,29 +304,29 @@
         <div class="grid gap-6 md:grid-cols-2">
           <article class="surface-card flex flex-col rounded-2xl p-7">
             <div class="mb-5 flex items-center gap-3">
-              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary">
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
                 <i class="fa-solid fa-bug text-lg" aria-hidden="true"></i>
               </div>
               <div>
-                <h3 class="text-xl font-bold text-gray-900">Report a public bug</h3>
-                <p class="text-xs font-medium text-gray-500">GitHub template or anonymous submission</p>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Report a public bug</h3>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">GitHub template or anonymous submission</p>
               </div>
             </div>
 
-            <p class="mb-4 text-sm text-gray-600">Supported issue categories include:</p>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">Supported issue categories include:</p>
 
             <div class="mb-6 flex flex-wrap gap-2" role="list" aria-label="Supported bug categories">
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">404 / 500 errors</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">Functional issues</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">Performance</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">Slow loading</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">Typos</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">Design issues</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">IP / trademark</span>
-              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary">License violations</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">404 / 500 errors</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Functional issues</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Performance</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Slow loading</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Typos</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Design issues</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">IP / trademark</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">License violations</span>
             </div>
 
-            <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3">
+            <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3 dark:border-gray-700">
               <input
                 id="anonymous-toggle"
                 type="checkbox"
@@ -305,15 +334,15 @@
                 aria-describedby="anonymous-desc"
               />
               <div>
-                <span class="text-sm font-semibold text-gray-900">Report anonymously</span>
-                <p id="anonymous-desc" class="mt-0.5 text-xs text-gray-500">Submit through BLT-API without exposing your GitHub identity.</p>
+                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Report anonymously</span>
+                <p id="anonymous-desc" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Submit through BLT-API without exposing your GitHub identity.</p>
               </div>
             </label>
 
             <a
               id="report-bug-btn"
               href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-              class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+              class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
             >
               <i class="fa-solid fa-arrow-right mr-2" aria-hidden="true"></i>
               <span class="btn-label">Report a bug</span>
@@ -322,26 +351,26 @@
 
           <article class="surface-card flex flex-col rounded-2xl p-7">
             <div class="mb-5 flex items-center gap-3">
-              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary">
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
                 <i class="fa-solid fa-shield-halved text-lg" aria-hidden="true"></i>
               </div>
               <div>
-                <h3 class="text-xl font-bold text-gray-900">Report a vulnerability</h3>
-                <p class="text-xs font-medium text-gray-500">Private channel powered by BLT-Zero</p>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Report a vulnerability</h3>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Private channel powered by BLT-Zero</p>
               </div>
             </div>
 
-            <p class="mb-4 text-sm text-gray-600">For sensitive security findings, use a private disclosure route with stronger safety guarantees:</p>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">For sensitive security findings, use a private disclosure route with stronger safety guarantees:</p>
 
             <div class="mb-6 flex flex-wrap gap-2" role="list" aria-label="Security guarantees">
-              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero logs</span>
-              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero tracking</span>
-              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero storage</span>
-              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Encrypted transport</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero logs</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero tracking</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Zero storage</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Encrypted transport</span>
             </div>
 
-            <div class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600">
-              <i class="fa-solid fa-circle-info mr-2 text-primary" aria-hidden="true"></i>
+            <div class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <i class="fa-solid fa-circle-info mr-2 text-primary dark:text-red-400" aria-hidden="true"></i>
               Only the report ID and status are visible to the organization. Sensitive vulnerability payloads are not stored in the receiving server.
             </div>
 
@@ -349,7 +378,7 @@
               href="https://blt-zero.owasp.org"
               target="_blank"
               rel="noopener noreferrer"
-              class="mt-auto inline-flex items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+              class="mt-auto inline-flex items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
             >
               <i class="fa-solid fa-lock mr-2" aria-hidden="true"></i>Report vulnerability
             </a>
@@ -358,28 +387,28 @@
       </div>
     </section>
 
-    <section id="recent-bugs" class="bg-white py-14 sm:py-16">
+    <section id="recent-bugs" class="bg-white py-14 sm:py-16 dark:bg-dark-surface">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              <i class="fa-solid fa-bug mr-2 text-primary" aria-hidden="true"></i>
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">
+              <i class="fa-solid fa-bug mr-2 text-primary dark:text-red-400" aria-hidden="true"></i>
               Recent bug reports
             </h2>
-            <p class="mt-1 text-sm text-gray-500">Latest community-submitted issues from this repository</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Latest community-submitted issues from this repository</p>
           </div>
           <a
             href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug+sort%3Acreated-desc"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
+            class="inline-flex items-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
           >
             View all reports
           </a>
         </div>
 
         <div id="recent-bugs-grid" class="grid gap-6 md:grid-cols-3">
-          <div class="col-span-3 py-12 text-center text-gray-400">
+          <div class="col-span-3 py-12 text-center text-gray-400 dark:text-gray-500">
             <i class="fa-solid fa-circle-notch fa-spin mb-3 block text-2xl" aria-hidden="true"></i>
             Loading recent bugs...
           </div>
@@ -390,69 +419,69 @@
     <section id="how-it-works" class="py-14 sm:py-16">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-3xl text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">How it works</h2>
-          <p class="mt-3 text-base text-gray-600">Three practical steps to improve web quality and security response.</p>
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">How it works</h2>
+          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Three practical steps to improve web quality and security response.</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-3">
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary">
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-magnifying-glass text-2xl" aria-hidden="true"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-900">1. Spot a bug</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600">Find a broken flow, performance issue, typo, visual regression, or policy concern.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">1. Spot a bug</h3>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Find a broken flow, performance issue, typo, visual regression, or policy concern.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary">
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-paper-plane text-2xl" aria-hidden="true"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-900">2. Submit report</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600">Use the GitHub template for normal issues or submit anonymously through BLT-API.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">2. Submit report</h3>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Use the GitHub template for normal issues or submit anonymously through BLT-API.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary">
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
               <i class="fa-solid fa-trophy text-2xl" aria-hidden="true"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-900">3. Build trust</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600">Accepted reports improve your leaderboard rank and help teams triage faster.</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">3. Build trust</h3>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Accepted reports improve your leaderboard rank and help teams triage faster.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section id="leaderboard" class="bg-white py-14 sm:py-16">
+    <section id="leaderboard" class="bg-white py-14 sm:py-16 dark:bg-dark-surface">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              <i class="fa-solid fa-trophy mr-2 text-primary" aria-hidden="true"></i>
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">
+              <i class="fa-solid fa-trophy mr-2 text-primary dark:text-red-400" aria-hidden="true"></i>
               Leaderboard
             </h2>
-            <p id="leaderboard-updated" class="mt-1 text-sm text-gray-500">Loading...</p>
+            <p id="leaderboard-updated" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
           </div>
           <a
             href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-            class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+            class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
           >
             <i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Submit report
           </a>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft">
+        <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
           <table class="w-full" aria-label="Bug reporter leaderboard">
             <thead>
-              <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+              <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
                 <th scope="col" class="px-4 py-3">Reporter</th>
                 <th scope="col" class="px-4 py-3 text-right">Bugs</th>
                 <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
               </tr>
             </thead>
-            <tbody id="leaderboard-rows" class="divide-y divide-neutral-border">
+            <tbody id="leaderboard-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
               <tr>
-                <td colspan="4" class="py-12 text-center text-gray-400">
+                <td colspan="4" class="py-12 text-center text-gray-400 dark:text-gray-500">
                   <i class="fa-solid fa-circle-notch fa-spin mb-3 block text-2xl" aria-hidden="true"></i>
                   Loading leaderboard...
                 </td>
@@ -461,9 +490,9 @@
           </table>
         </div>
 
-        <p class="mt-4 text-center text-xs text-gray-400">
+        <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
           Leaderboard refreshes every 6 hours via GitHub Actions.
-          <a href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">View all reports on GitHub</a>.
+          <a href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">View all reports on GitHub</a>.
         </p>
       </div>
     </section>
@@ -471,21 +500,21 @@
     <section id="pricing" class="py-14 sm:py-16">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-3xl text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Simple, transparent pricing</h2>
-          <p class="mt-3 text-base text-gray-600">Public bug reporting remains free. Commercial forks can enable managed intake plans.</p>
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">Simple, transparent pricing</h2>
+          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Public bug reporting remains free. Commercial forks can enable managed intake plans.</p>
         </div>
 
         <div id="pricing-grid" class="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"></div>
 
-        <p class="mt-8 text-center text-xs text-gray-400">
+        <p class="mt-8 text-center text-xs text-gray-400 dark:text-gray-500">
           Revenue share is paid monthly to reporters whose submissions resulted in company sign-up.
-          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">See the source code</a>.
+          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">See the source code</a>.
         </p>
       </div>
     </section>
   </main>
 
-  <footer class="border-t border-neutral-border bg-white">
+  <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface">
     <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div class="mb-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
@@ -497,50 +526,50 @@
               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
             />
             <span class="hidden h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-white">B</span>
-            <span class="font-bold text-gray-900">BLT <span class="text-primary">Pages</span></span>
+            <span class="font-bold text-gray-900 dark:text-gray-100">BLT <span class="text-primary dark:text-red-400">Pages</span></span>
           </div>
-          <p class="text-sm leading-relaxed text-gray-500">An OWASP Foundation project focused on open, practical bug reporting workflows.</p>
-          <p class="mt-3 text-xs text-gray-400">
+          <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">An OWASP Foundation project focused on open, practical bug reporting workflows.</p>
+          <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
             Licensed under
-            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">AGPLv3</a>
+            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">AGPLv3</a>
           </p>
         </div>
 
         <div>
-          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900">Report</h3>
+          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">Report</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-red-600 hover:underline"><i class="fa-solid fa-bug mr-2" aria-hidden="true"></i>Public bug</a></li>
-            <li><a href="https://blt-zero.owasp.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-shield-halved mr-2" aria-hidden="true"></i>Security vulnerability</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml&amp;anonymous=true" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-user-secret mr-2" aria-hidden="true"></i>Anonymous route</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-bug mr-2" aria-hidden="true"></i>Public bug</a></li>
+            <li><a href="https://blt-zero.owasp.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-shield-halved mr-2" aria-hidden="true"></i>Security vulnerability</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml&amp;anonymous=true" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-user-secret mr-2" aria-hidden="true"></i>Anonymous route</a></li>
           </ul>
         </div>
 
         <div>
-          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900">Project</h3>
+          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">Project</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-brands fa-github mr-2" aria-hidden="true"></i>Source code</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-code-branch mr-2" aria-hidden="true"></i>BLT core</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-circle-dot mr-2" aria-hidden="true"></i>Issue tracker</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-brands fa-github mr-2" aria-hidden="true"></i>Source code</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-code-branch mr-2" aria-hidden="true"></i>BLT core</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-circle-dot mr-2" aria-hidden="true"></i>Issue tracker</a></li>
           </ul>
         </div>
 
         <div>
-          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900">OWASP</h3>
+          <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">OWASP</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-globe mr-2" aria-hidden="true"></i>owasp.org</a></li>
-            <li><a href="https://owasp.org/donate" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-heart mr-2" aria-hidden="true"></i>Donate</a></li>
-            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline"><i class="fa-solid fa-book mr-2" aria-hidden="true"></i>BLT project page</a></li>
+            <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-globe mr-2" aria-hidden="true"></i>owasp.org</a></li>
+            <li><a href="https://owasp.org/donate" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-heart mr-2" aria-hidden="true"></i>Donate</a></li>
+            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><i class="fa-solid fa-book mr-2" aria-hidden="true"></i>BLT project page</a></li>
           </ul>
         </div>
       </div>
 
-      <div class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row">
-        <p class="text-xs text-gray-400">&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
+      <div class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row dark:border-gray-700">
+        <p class="text-xs text-gray-400 dark:text-gray-500">&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
         <div class="flex items-center gap-4">
-          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary" aria-label="OWASP BLT on GitHub">
+          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP BLT on GitHub">
             <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
           </a>
-          <a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary" aria-label="OWASP on X">
+          <a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP on X">
             <i class="fa-brands fa-x-twitter text-lg" aria-hidden="true"></i>
           </a>
         </div>
