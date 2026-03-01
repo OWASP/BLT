@@ -599,6 +599,18 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     }
 
 
+def build_summary(data):
+    """Build a lightweight summary dict from a full hackathon data dict."""
+    stats = data.get("stats", {})
+    return {
+        "participantCount": stats.get("participantCount", 0),
+        "totalPRs": stats.get("totalPRs", 0),
+        "mergedPRs": stats.get("mergedPRs", 0),
+        "totalIssues": stats.get("totalIssues", 0),
+        "repositories": len(data.get("repositories", [])),
+    }
+
+
 def main():
     config_path = os.environ.get(
         "HACKATHONS_CONFIG_PATH", "/tmp/hackathons-config-parsed.json"
@@ -639,9 +651,20 @@ def main():
             logger.info("⏭️  Skipping ended hackathon: %s (ended on %s)", name, end_time)
             # Verify the data file exists
             output_path = f"hackathon-data/{slug}.json"
+            summary_path = f"hackathon-data/{slug}-summary.json"
             if not os.path.exists(output_path):
                 logger.warning("⚠️  No data file found for ended hackathon %s, processing once", slug)
             else:
+                # Generate missing summary file from existing data without re-fetching
+                if not os.path.exists(summary_path):
+                    try:
+                        with open(output_path, "r", encoding="utf-8") as f:
+                            existing = json.load(f)
+                        with open(summary_path, "w", encoding="utf-8") as f:
+                            json.dump(build_summary(existing), f, indent=2)
+                        logger.info("✅ Generated summary for ended hackathon '%s'", slug)
+                    except Exception as exc:
+                        logger.warning("Could not generate summary for %s: %s", slug, exc)
                 continue
         
         logger.info("🔄 Processing active hackathon: %s", name)
@@ -652,6 +675,11 @@ def main():
                 with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
                 logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
+                # Write lightweight summary file for the index page
+                summary_path = f"hackathon-data/{slug}-summary.json"
+                with open(summary_path, "w", encoding="utf-8") as f:
+                    json.dump(build_summary(data), f, indent=2)
+                logger.info("✅ Saved summary for '%s' to %s", slug, summary_path)
         except Exception as exc:
             logger.error("❌ Failed to process hackathon %s: %s", slug, exc)
             import traceback
