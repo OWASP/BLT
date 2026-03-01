@@ -35,14 +35,14 @@ const LANG_COLORS = {
 
 let allRepos   = [];
 let filtered   = [];
-let currentSort   = 'updated_at';
+let currentSort   = localStorage.getItem('blt-sort') || 'updated_at';
 let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
 let currentLabel  = '';
 let currentView   = localStorage.getItem('blt-view') || (window.innerWidth < 768 ? 'card' : 'table');
-let tableSortCol  = 'updated_at';
-let tableSortDir  = 'desc';
+let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
+let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
 
 /* ------------------------------------------------------------------ */
@@ -852,6 +852,8 @@ function renderTableView(repos, container) {
         tableSortCol = col;
         tableSortDir = 'desc';
       }
+      localStorage.setItem('blt-table-sort-col', tableSortCol);
+      localStorage.setItem('blt-table-sort-dir', tableSortDir);
       renderTableView(filtered, container);
     });
   });
@@ -894,6 +896,11 @@ document.getElementById('view-card-btn').addEventListener('click', () => {
 // Initialize button states immediately
 updateViewButtons();
 
+// Initialize sort UI to reflect stored preference
+document.getElementById('sort-select').value = currentSort;
+document.getElementById('sort-select-mobile').value = currentSort;
+document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
+
 // Search (debounced)
 let searchTimer;
 document.getElementById('search-input').addEventListener('input', e => {
@@ -907,6 +914,7 @@ document.getElementById('search-input').addEventListener('input', e => {
 // Sort (header select)
 document.getElementById('sort-select').addEventListener('change', e => {
   currentSort = e.target.value;
+  localStorage.setItem('blt-sort', currentSort);
   document.getElementById('sort-select-mobile').value = currentSort;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
@@ -915,6 +923,7 @@ document.getElementById('sort-select').addEventListener('change', e => {
 // Sort (mobile select)
 document.getElementById('sort-select-mobile').addEventListener('change', e => {
   currentSort = e.target.value;
+  localStorage.setItem('blt-sort', currentSort);
   document.getElementById('sort-select').value = currentSort;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
@@ -944,6 +953,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 document.querySelectorAll('.sort-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     currentSort = btn.dataset.sort;
+    localStorage.setItem('blt-sort', currentSort);
     document.getElementById('sort-select').value = currentSort;
     document.getElementById('sort-select-mobile').value = currentSort;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('nav-active'));
