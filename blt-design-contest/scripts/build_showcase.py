@@ -2,8 +2,12 @@
 """
 build_showcase.py
 -----------------
-Fetches all open GitHub issues labelled "design-submission" and generates
+Fetches GitHub issues for each configured design contest and generates
 a static index.html design-showcase page styled with the BLT brand guide.
+
+Each contest is configured in CONTESTS below with its own label, title
+prefix, and issue template.  Issues labelled with WINNER_LABEL are
+highlighted at the top of their contest section.
 
 Environment variables
   GITHUB_TOKEN   – optional; increases API rate limit from 60 → 5000/hr
@@ -27,8 +31,54 @@ from datetime import datetime, timezone
 # ---------------------------------------------------------------------------
 REPO = os.environ.get("GITHUB_REPOSITORY", "OWASP-BLT/BLT-Design-Contest")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
-LABEL = "design-submission"
-TITLE_PREFIX = "[Design]"
+
+# Label applied to the winning submission(s) in any contest
+WINNER_LABEL = "winner"
+
+# All active design contests.  Each entry drives one tab on the showcase page.
+CONTESTS = [
+    {
+        "id": "blt-redesign",
+        "name": "BLT App Redesign",
+        "label": "design-submission",
+        "title_prefix": "[Design]",
+        "template": "design-submission.yml",
+        "description": "Redesign the OWASP BLT application interface.",
+        "prize": "$25",
+        "deadline": "2026-06-01T00:00:00Z",
+        "deadline_display": "June 1, 2026",
+        "icon": "fa-solid fa-palette",
+    },
+    {
+        "id": "blt-logo",
+        "name": "BLT Logo Contest",
+        "label": "logo-submission",
+        "title_prefix": "[Logo]",
+        "template": "logo-submission.yml",
+        "description": "Design a new logo for OWASP BLT and all its repositories.",
+        "prize": "$25",
+        "deadline": "2026-06-01T00:00:00Z",
+        "deadline_display": "June 1, 2026",
+        "icon": "fa-solid fa-brush",
+    },
+    {
+        "id": "blt-homepage",
+        "name": "BLT Homepage Design",
+        "label": "homepage-submission",
+        "title_prefix": "[Homepage]",
+        "template": "homepage-submission.yml",
+        "description": "Design the new homepage for the OWASP BLT website.",
+        "prize": "$25",
+        "deadline": "2026-06-01T00:00:00Z",
+        "deadline_display": "June 1, 2026",
+        "icon": "fa-solid fa-house",
+    },
+]
+
+# Backward-compatible aliases (used by helpers that pre-date multi-contest support)
+LABEL = CONTESTS[0]["label"]
+TITLE_PREFIX = CONTESTS[0]["title_prefix"]
+
 REACTION_LABELS = {
     "+1": "👍",
     "-1": "👎",
@@ -188,10 +238,11 @@ def extract_description(fields: dict) -> str:
     return html.escape(desc)
 
 
-def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -> str:
+def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
+               is_winner: bool = False, title_prefix: str = TITLE_PREFIX) -> str:
     """Return the HTML card markup for a single submission."""
     number = issue["number"]
-    title = html.escape(issue.get("title", "Untitled").replace(TITLE_PREFIX + " ", "").strip())
+    title = html.escape(issue.get("title", "Untitled").replace(title_prefix + " ", "").strip())
     issue_url = html.escape(issue.get("html_url", "#"))
     created = issue.get("created_at", "")[:10]
     user = issue.get("user", {})
@@ -330,14 +381,29 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -
         "T-Shirt / Apparel Design": "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200",
     }.get(category, "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200")
 
+    # Winner badge and extra styling
+    winner_badge = ""
+    winner_ring = ""
+    winner_attr = ""
+    if is_winner:
+        winner_badge = (
+            '<div class="absolute top-2 left-2 z-10 flex items-center gap-1.5 '
+            'bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 '
+            'rounded-full shadow-md pointer-events-none">'
+            '<i class="fa-solid fa-trophy" aria-hidden="true"></i> Winner</div>'
+        )
+        winner_ring = " ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-[#111827]"
+        winner_attr = ' data-winner="true"'
+
     return f"""
-    <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
                     border-[#E5E5E5] dark:border-gray-700 overflow-hidden
-                    flex flex-col hover:shadow-md transition-shadow"
+                    flex flex-col hover:shadow-md transition-shadow{winner_ring}"
              data-thumbs="{thumbs_count}"
              data-total-reactions="{total_reactions}"
-             data-issue-url="{issue_url}"
+             data-issue-url="{issue_url}"{winner_attr}
              aria-label="Design submission: {title}">
+      {winner_badge}
       {preview_block}
       <div class="p-5 flex flex-col gap-3 flex-1">
         <!-- Category + issue number -->
@@ -384,17 +450,155 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None) -
     </article>"""
 
 
-def build_html(cards: list[str], total: int, last_updated: str) -> str:
-    """Return the complete index.html as a string."""
-    cards_html = "\n".join(cards) if cards else (
-        '<div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400">'
-        '<i class="fa-solid fa-palette text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i>'
-        '<p class="text-lg font-medium">No submissions yet — be the first!</p>'
-        '<p class="mt-2 text-sm">Click <strong>Submit Your Design</strong> above to get started.</p>'
-        '</div>'
+def build_contest_section(contest: dict, cards: list[str], total: int) -> str:
+    """Return the HTML panel for one contest tab (without wrapping <main>)."""
+    cid = html.escape(contest["id"])
+    name = html.escape(contest["name"])
+    description = html.escape(contest["description"])
+    prize = html.escape(contest["prize"])
+    deadline_display = html.escape(contest["deadline_display"])
+    submit_url = html.escape(
+        f"https://github.com/{REPO}/issues/new?template={contest['template']}"
     )
+    icon = contest["icon"]
+    winner_count = sum(1 for c in cards if 'data-winner="true"' in c)
 
-    submit_url = f"https://github.com/{REPO}/issues/new?template=design-submission.yml"
+    if cards:
+        cards_html = "\n".join(cards)
+    else:
+        cards_html = (
+            '<div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400">'
+            f'<i class="{icon} text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i>'
+            '<p class="text-lg font-medium">No submissions yet — be the first!</p>'
+            '<p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p>'
+            '</div>'
+        )
+
+    winner_banner = ""
+    if winner_count:
+        s = "s" if winner_count > 1 else ""
+        are = "are" if winner_count > 1 else "is"
+        winner_banner = f"""
+      <!-- Winner announcement banner -->
+      <div class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-600
+                  rounded-xl px-5 py-4 flex items-center gap-3">
+        <i class="fa-solid fa-trophy text-2xl text-amber-500" aria-hidden="true"></i>
+        <div>
+          <p class="font-semibold text-amber-800 dark:text-amber-300">Winner{s} Selected!</p>
+          <p class="text-sm text-amber-700 dark:text-amber-400">
+            {winner_count} winning design{s} {are} highlighted below.
+          </p>
+        </div>
+      </div>"""
+
+    return f"""
+    <div id="contest-{cid}" class="contest-panel" role="tabpanel" aria-labelledby="tab-{cid}">
+
+      <!-- Contest info bar -->
+      <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <i class="{icon} text-[#E10101]" aria-hidden="true"></i>
+              {name}
+            </h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+            <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
+              <span class="inline-flex items-center gap-1 text-[#E10101]">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize
+              </span>
+              <span class="inline-flex items-center gap-1 text-[#E10101]">
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends {deadline_display}
+              </span>
+              <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-images" aria-hidden="true"></i>
+                {total} submission{'' if total == 1 else 's'}
+              </span>
+            </div>
+          </div>
+          <a href="{submit_url}"
+             target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
+                    text-white text-sm font-semibold px-4 py-2 rounded-md
+                    transition-colors shrink-0">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Add Entry
+          </a>
+        </div>
+      </div>
+      {winner_banner}
+      <!-- Sort controls -->
+      <div class="flex items-center gap-3 flex-wrap mb-6">
+        <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
+        <button id="sort-thumbs-{cid}" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="thumbs" data-contest="{cid}">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By 👍
+        </button>
+        <button id="sort-reactions-{cid}" type="button"
+                class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
+                       text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+                aria-pressed="false"
+                data-sort="reactions" data-contest="{cid}">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          By all reactions
+        </button>
+      </div>
+
+      <!-- Cards grid -->
+      <div id="cards-grid-{cid}"
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cards_html}
+      </div>
+
+    </div>"""
+
+
+def build_html(contests_data: list[dict], last_updated: str) -> str:
+    """Return the complete index.html as a string.
+
+    ``contests_data`` is a list of dicts, each with keys:
+      - ``config``  – the CONTESTS entry dict
+      - ``cards``   – list of card HTML strings (winners first)
+      - ``total``   – submission count for that contest
+    """
+    total_all = sum(d["total"] for d in contests_data)
+
+    # Build tab buttons
+    tab_buttons_html = ""
+    for d in contests_data:
+        c = d["config"]
+        cid = html.escape(c["id"])
+        cname = html.escape(c["name"])
+        icon = c["icon"]
+        tab_buttons_html += (
+            f'<button role="tab" id="tab-{cid}" data-tab="{cid}"'
+            f' aria-selected="false" aria-controls="contest-{cid}"'
+            f' class="contest-tab inline-flex items-center gap-2 px-4 py-3 text-sm font-medium'
+            f' border-b-2 border-transparent text-gray-600 dark:text-gray-300'
+            f' hover:text-[#E10101] hover:border-[#E10101] transition-colors whitespace-nowrap">'
+            f'<i class="{icon}" aria-hidden="true"></i>'
+            f' {cname}'
+            f' <span class="ml-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500'
+            f' dark:text-gray-400 rounded-full px-1.5 py-0.5">{d["total"]}</span>'
+            f'</button>'
+        )
+
+    # Build contest panels
+    contest_panels_html = ""
+    for d in contests_data:
+        contest_panels_html += build_contest_section(d["config"], d["cards"], d["total"])
+
+    # For the hero submit URL, use the first contest
+    first_submit_url = html.escape(
+        f"https://github.com/{REPO}/issues/new?template={contests_data[0]['config']['template']}"
+        if contests_data else f"https://github.com/{REPO}/issues/new"
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -481,7 +685,7 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         </div>
 
         <!-- CTA -->
-        <a href="{html.escape(submit_url)}"
+        <a href="{first_submit_url}"
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
@@ -510,7 +714,7 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
       <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
                    text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-        Open Design Contest
+        Open Design Contests
       </span>
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
         BLT Design Showcase
@@ -526,17 +730,17 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
                   rounded-xl px-6 py-3 text-sm font-medium text-[#E10101]">
         <span class="inline-flex items-center gap-1.5">
           <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-          <strong>$25 prize</strong> for the best design
+          <strong>$25 prize</strong> per contest
         </span>
         <span class="hidden sm:block text-[#E10101]/40">|</span>
         <span class="inline-flex items-center gap-1.5">
           <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
-          Contest ends <strong>March 1, 2026</strong>
+          Contests end <strong>June 1, 2026</strong>
         </span>
       </div>
 
       <div class="flex items-center justify-center gap-4 flex-wrap">
-        <a href="{html.escape(submit_url)}"
+        <a href="{first_submit_url}"
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                   text-white font-semibold px-6 py-3 rounded-md transition-colors">
@@ -556,12 +760,12 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto
                   text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
-          <p class="text-3xl font-black text-[#E10101]">{total}</p>
-          <p>Submission{'' if total == 1 else 's'}</p>
+          <p class="text-3xl font-black text-[#E10101]">{total_all}</p>
+          <p>Submission{'' if total_all == 1 else 's'}</p>
         </div>
         <div>
-          <p class="text-3xl font-black text-[#E10101]">$25</p>
-          <p>Top Prize</p>
+          <p class="text-3xl font-black text-[#E10101]">{len(contests_data)}</p>
+          <p>Contest{'' if len(contests_data) == 1 else 's'}</p>
         </div>
         <div class="col-span-2 sm:col-span-1">
           <div id="countdown" class="flex justify-center gap-3 text-[#E10101]">
@@ -636,55 +840,26 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
   </section>
 
   <!-- ══════════════════════════════════════════
-       SHOWCASE GRID
+       SHOWCASE (TABBED MULTI-CONTEST)
   ══════════════════════════════════════════ -->
   <main id="showcase" class="flex-1">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-      <!-- Section header -->
-      <div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Design Entries
-          </h2>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {total} submission{'' if total == 1 else 's'} · last updated {last_updated}
-          </p>
-        </div>
-        <div class="flex items-center gap-3 flex-wrap">
-          <button id="sort-thumbs" type="button"
-                  class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                         text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
-                         text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                  aria-pressed="false"
-                  title="Sort by thumbs up">
-            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-            Sort by 👍
-          </button>
-          <button id="sort-reactions" type="button"
-                  class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
-                         text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
-                         text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                  aria-pressed="false"
-                  title="Sort by total reactions">
-            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-            Sort by all reactions
-          </button>
-          <a href="{html.escape(submit_url)}"
-             target="_blank" rel="noopener"
-             class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101]
-                    hover:bg-[#E10101] hover:text-white text-sm font-semibold
-                    px-4 py-2 rounded-md transition-colors">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            Add Entry
-          </a>
+      <!-- Last updated note -->
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-4 text-right">
+        Last updated {last_updated}
+      </p>
+
+      <!-- Contest tab strip -->
+      <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div class="border-b border-[#E5E5E5] dark:border-gray-700 mb-8 flex gap-1 min-w-max"
+             role="tablist" aria-label="Design contests">
+          {tab_buttons_html}
         </div>
       </div>
 
-      <!-- Cards grid -->
-      <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cards_html}
-      </div>
+      <!-- Contest panels (one per contest, shown/hidden via JS) -->
+      {contest_panels_html}
 
     </div>
   </main>
@@ -735,13 +910,8 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     }});
 
-    // Sort by thumbs-up toggle
-    const sortBtn = document.getElementById('sort-thumbs');
-    const sortReactionsBtn = document.getElementById('sort-reactions');
-    const grid = document.getElementById('cards-grid');
-    let sortedByThumbs = false;
-    let sortedByReactions = false;
-    let originalOrder = [];
+    // Sort buttons — work independently per contest panel
+    const sortState = {{}};
 
     function resetSortBtn(btn) {{
       if (!btn) return;
@@ -750,55 +920,41 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       btn.classList.add('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200');
     }}
 
-    if (sortBtn && grid) {{
-      originalOrder = Array.from(grid.children);
-      sortBtn.addEventListener('click', () => {{
-        sortedByThumbs = !sortedByThumbs;
-        if (sortedByThumbs) {{
-          sortedByReactions = false;
-          resetSortBtn(sortReactionsBtn);
-        }}
-        sortBtn.setAttribute('aria-pressed', String(sortedByThumbs));
-        sortBtn.classList.toggle('border-[#E10101]', sortedByThumbs);
-        sortBtn.classList.toggle('text-[#E10101]', sortedByThumbs);
-        sortBtn.classList.toggle('border-gray-300', !sortedByThumbs);
-        sortBtn.classList.toggle('dark:border-gray-600', !sortedByThumbs);
-        sortBtn.classList.toggle('text-gray-700', !sortedByThumbs);
-        sortBtn.classList.toggle('dark:text-gray-200', !sortedByThumbs);
+    document.querySelectorAll('[data-sort][data-contest]').forEach(btn => {{
+      btn.addEventListener('click', () => {{
+        const cid = btn.dataset.contest;
+        const sortType = btn.dataset.sort;
+        const grid = document.getElementById(`cards-grid-${{cid}}`);
+        if (!grid) return;
 
-        const cards = sortedByThumbs
-          ? [...originalOrder].sort((a, b) =>
-              parseInt(b.dataset.thumbs || '0', 10) - parseInt(a.dataset.thumbs || '0', 10))
-          : [...originalOrder];
+        if (!sortState[cid]) sortState[cid] = {{ thumbs: false, reactions: false, originalOrder: null }};
+        if (!sortState[cid].originalOrder) sortState[cid].originalOrder = Array.from(grid.children);
 
-        cards.forEach(card => grid.appendChild(card));
-      }});
-    }}
+        const otherType = sortType === 'thumbs' ? 'reactions' : 'thumbs';
+        const otherBtn = document.querySelector(`[data-sort="${{otherType}}"][data-contest="${{cid}}"]`);
+        const isActive = sortState[cid][sortType];
 
-    if (sortReactionsBtn && grid) {{
-      if (!originalOrder.length) originalOrder = Array.from(grid.children);
-      sortReactionsBtn.addEventListener('click', () => {{
-        sortedByReactions = !sortedByReactions;
-        if (sortedByReactions) {{
-          sortedByThumbs = false;
-          resetSortBtn(sortBtn);
-        }}
-        sortReactionsBtn.setAttribute('aria-pressed', String(sortedByReactions));
-        sortReactionsBtn.classList.toggle('border-[#E10101]', sortedByReactions);
-        sortReactionsBtn.classList.toggle('text-[#E10101]', sortedByReactions);
-        sortReactionsBtn.classList.toggle('border-gray-300', !sortedByReactions);
-        sortReactionsBtn.classList.toggle('dark:border-gray-600', !sortedByReactions);
-        sortReactionsBtn.classList.toggle('text-gray-700', !sortedByReactions);
-        sortReactionsBtn.classList.toggle('dark:text-gray-200', !sortedByReactions);
+        sortState[cid][sortType] = !isActive;
+        sortState[cid][otherType] = false;
+        resetSortBtn(otherBtn);
 
-        const cards = sortedByReactions
-          ? [...originalOrder].sort((a, b) =>
-              parseInt(b.dataset.totalReactions || '0', 10) - parseInt(a.dataset.totalReactions || '0', 10))
-          : [...originalOrder];
+        btn.setAttribute('aria-pressed', String(!isActive));
+        btn.classList.toggle('border-[#E10101]', !isActive);
+        btn.classList.toggle('text-[#E10101]', !isActive);
+        btn.classList.toggle('border-gray-300', isActive);
+        btn.classList.toggle('dark:border-gray-600', isActive);
+        btn.classList.toggle('text-gray-700', isActive);
+        btn.classList.toggle('dark:text-gray-200', isActive);
+
+        const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
+        const cards = !isActive
+          ? [...sortState[cid].originalOrder].sort((a, b) =>
+              parseInt(b.dataset[dataKey] || '0', 10) - parseInt(a.dataset[dataKey] || '0', 10))
+          : [...sortState[cid].originalOrder];
 
         cards.forEach(card => grid.appendChild(card));
       }});
-    }}
+    }});
 
     // Thumbs-up click handler — opens the GitHub issue so the user can react there
     // Uses event delegation so it works for both static and live-updated buttons
@@ -919,9 +1075,32 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
       }}
     }})();
 
-    // Countdown timer to contest deadline (March 1 2026 00:00:00 UTC)
+    // Contest tab navigation
     (function () {{
-      const deadline = new Date('2026-03-01T00:00:00Z').getTime();
+      const tabs = document.querySelectorAll('[role="tab"][data-tab]');
+      const panels = document.querySelectorAll('.contest-panel');
+
+      function switchTab(targetId) {{
+        panels.forEach(panel => {{ panel.hidden = panel.id !== `contest-${{targetId}}`; }});
+        tabs.forEach(tab => {{
+          const isActive = tab.dataset.tab === targetId;
+          tab.setAttribute('aria-selected', String(isActive));
+          tab.classList.toggle('border-[#E10101]', isActive);
+          tab.classList.toggle('text-[#E10101]', isActive);
+          tab.classList.toggle('font-semibold', isActive);
+          tab.classList.toggle('border-transparent', !isActive);
+          tab.classList.toggle('text-gray-600', !isActive);
+          tab.classList.toggle('dark:text-gray-300', !isActive);
+        }});
+      }}
+
+      tabs.forEach(tab => {{ tab.addEventListener('click', () => switchTab(tab.dataset.tab)); }});
+      if (tabs.length) switchTab(tabs[0].dataset.tab);
+    }})();
+
+    // Countdown timer to contest deadline (June 1 2026 00:00:00 UTC)
+    (function () {{
+      const deadline = new Date('2026-06-01T00:00:00Z').getTime();
       const els = {{
         days:  document.getElementById('cd-days'),
         hours: document.getElementById('cd-hours'),
@@ -958,36 +1137,59 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
 
 
 def main() -> None:
-    print(f"Fetching issues from {REPO} with label '{LABEL}'…")
-    issues = github_request(f"/repos/{REPO}/issues?state=open&labels={LABEL}")
-    print(f"  Found {len(issues)} labelled submissions.")
-
-    # Also pick up any [Design] issues that may be missing the label
-    all_issues = github_request(f"/repos/{REPO}/issues?state=open")
-    seen = {i["number"] for i in issues}
-    for issue in all_issues:
-        if issue["number"] not in seen and issue.get("title", "").startswith(TITLE_PREFIX):
-            issues.append(issue)
-            seen.add(issue["number"])
-            print(f"  Picked up unlabelled issue #{issue['number']}: {issue.get('title', '')[:60]}")
-
-    print(f"  Total submissions: {len(issues)}.")
-
-    cards = []
-    for issue in issues:
-        number = issue["number"]
-        print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
-        reactions = fetch_reactions(number)
-        last_comment = fetch_last_comment(number)
-        cards.append(build_card(issue, reactions, last_comment))
-
     last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
-    page_html = build_html(cards, len(cards), last_updated)
+    contests_data = []
+
+    for contest in CONTESTS:
+        label = contest["label"]
+        title_prefix = contest["title_prefix"]
+        print(f"\nFetching issues for contest '{contest['name']}' (label: {label})…")
+
+        issues = github_request(f"/repos/{REPO}/issues?state=open&labels={label}")
+        print(f"  Found {len(issues)} labelled submissions.")
+
+        # Also pick up issues with the correct title prefix that may be missing the label
+        all_issues = github_request(f"/repos/{REPO}/issues?state=open")
+        seen = {i["number"] for i in issues}
+        for issue in all_issues:
+            if issue["number"] not in seen and issue.get("title", "").startswith(title_prefix):
+                issues.append(issue)
+                seen.add(issue["number"])
+                print(f"  Picked up unlabelled issue #{issue['number']}: {issue.get('title', '')[:60]}")
+
+        print(f"  Total submissions: {len(issues)}.")
+
+        cards = []
+        winner_cards = []
+        non_winner_cards = []
+        for issue in issues:
+            number = issue["number"]
+            print(f"  Processing issue #{number}: {issue.get('title', '')[:60]}")
+            reactions = fetch_reactions(number)
+            last_comment = fetch_last_comment(number)
+            label_names = [lb["name"] for lb in issue.get("labels", [])]
+            is_winner = WINNER_LABEL in label_names
+            card_html = build_card(issue, reactions, last_comment,
+                                   is_winner=is_winner, title_prefix=title_prefix)
+            if is_winner:
+                winner_cards.append(card_html)
+            else:
+                non_winner_cards.append(card_html)
+
+        # Winners always appear first
+        cards = winner_cards + non_winner_cards
+        contests_data.append({
+            "config": contest,
+            "cards": cards,
+            "total": len(cards),
+        })
+
+    page_html = build_html(contests_data, last_updated)
 
     out_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "index.html")
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(page_html)
-    print(f"Written → {out_path}")
+    print(f"\nWritten → {out_path}")
 
 
 if __name__ == "__main__":

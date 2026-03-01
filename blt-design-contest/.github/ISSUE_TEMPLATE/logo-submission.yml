@@ -1,0 +1,72 @@
+name: BLT Logo Submission
+description: Submit your logo design entry for the BLT Logo Contest
+title: "[Logo] "
+labels: ["logo-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎨 BLT Logo Contest Submission
+        Thank you for submitting your logo design! This contest is for a new logo that
+        will represent OWASP BLT and all of its repositories.
+        Please fill out all fields below.
+        Your submission will appear on the [Design Showcase](https://owasp-blt.github.io/BLT-Design-Contest/) once approved.
+
+  - type: textarea
+    id: preview_image
+    attributes:
+      label: Preview Image
+      description: >
+        Upload your logo preview image by dragging and dropping it here,
+        pasting it, or clicking the attachment button below.
+        GitHub will host the image automatically.
+        Provide multiple variants (light/dark background, different sizes) if available.
+      placeholder: "Drag & drop or paste your image here…"
+    validations:
+      required: true
+
+  - type: input
+    id: design_url
+    attributes:
+      label: Design / Source File Link
+      description: >
+        Link to your Figma file, vector source file, or hosted design.
+        SVG or AI files are preferred for logo submissions.
+      placeholder: "https://www.figma.com/file/..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Design Category
+      options:
+        - Logo / Brand Identity
+        - Icon Set
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe your logo design: the concept, colour palette, typography,
+        and how it represents the BLT brand across all repositories.
+      placeholder: "My logo uses…"
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission Agreement
+      description: >
+        Show your support for this design by reacting with a 👍 thumbs up!
+      options:
+        - label: >
+            I confirm this is my original work and I grant OWASP BLT
+            permission to display and use it on the showcase and in the project.
+          required: true

@@ -1,0 +1,72 @@
+name: BLT Homepage Design Submission
+description: Submit your homepage design entry for the BLT Homepage Design Contest
+title: "[Homepage] "
+labels: ["homepage-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🏠 BLT Homepage Design Contest Submission
+        Thank you for submitting your homepage design! This contest is for the new
+        OWASP BLT website homepage.
+        Please fill out all fields below.
+        Your submission will appear on the [Design Showcase](https://owasp-blt.github.io/BLT-Design-Contest/) once approved.
+
+  - type: textarea
+    id: preview_image
+    attributes:
+      label: Preview Image
+      description: >
+        Upload your homepage design preview by dragging and dropping it here,
+        pasting it, or clicking the attachment button below.
+        GitHub will host the image automatically.
+        Desktop and mobile screenshots are both welcome.
+      placeholder: "Drag & drop or paste your image here…"
+    validations:
+      required: true
+
+  - type: input
+    id: design_url
+    attributes:
+      label: Design / Prototype Link
+      description: >
+        Link to your Figma file, prototype, or hosted design.
+        Include both desktop and mobile views if possible.
+      placeholder: "https://www.figma.com/file/..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Design Category
+      options:
+        - UI / Website Redesign
+        - Banner / Marketing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe your homepage design: the layout, key sections, colour palette,
+        and how it communicates the OWASP BLT mission to new visitors.
+      placeholder: "My homepage design features…"
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission Agreement
+      description: >
+        Show your support for this design by reacting with a 👍 thumbs up!
+      options:
+        - label: >
+            I confirm this is my original work and I grant OWASP BLT
+            permission to display and use it on the showcase and in the project.
+          required: true
