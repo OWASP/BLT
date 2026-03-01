@@ -45,8 +45,9 @@ CONTESTS = [
         "template": "design-submission.yml",
         "description": "Design a T-shirt or apparel for OWASP BLT.",
         "prize": "$25",
-        "deadline": "2026-06-01T00:00:00Z",
-        "deadline_display": "June 1, 2026",
+        "deadline": "2026-03-01T00:00:00Z",
+        "deadline_display": "March 1, 2026",
+        "status": "selecting_winner",
         "icon": "fa-solid fa-shirt",
     },
     {
@@ -463,6 +464,8 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
         f"https://github.com/{REPO}/issues/new?template={contest['template']}"
     )
     icon = contest["icon"]
+    cstatus = contest.get("status", "active")
+    ends_label = "Ended" if cstatus == "selecting_winner" else "Ends"
 
     if cards:
         cards_html = "\n".join(cards)
@@ -509,7 +512,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
                 <i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize
               </span>
               <span class="inline-flex items-center gap-1 text-[#E10101]">
-                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends {deadline_display}
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_label} {deadline_display}
               </span>
               <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-images" aria-hidden="true"></i>
@@ -583,6 +586,23 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         ctotal = d["total"]
         icon = c["icon"]
         page_url = f"{cid}.html"
+        cstatus = c.get("status", "active")
+        if cstatus == "selecting_winner":
+            status_badge = (
+                '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+                ' bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">'
+                'Ended \u2013 Selecting Winner'
+                '</span>'
+            )
+            ends_text = f"Ended {cdeadline}"
+        else:
+            status_badge = (
+                '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+                ' bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">'
+                'Active'
+                '</span>'
+            )
+            ends_text = f"Ends {cdeadline}"
 
         contest_cards_html += f"""
         <a href="{page_url}"
@@ -598,10 +618,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
-                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full
-                             bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                  Active
-                </span>
+                {status_badge}
               </div>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
@@ -610,7 +627,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                 <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
               </span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends {cdeadline}
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
@@ -633,12 +650,6 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
     first_submit_url = html.escape(
         f"https://github.com/{REPO}/issues/new?template={contests_data[0]['config']['template']}"
         if contests_data else f"https://github.com/{REPO}/issues/new"
-    )
-
-    # Earliest deadline across all contests (used for the countdown timer)
-    earliest_deadline = min(
-        (d["config"]["deadline"] for d in contests_data),
-        default="2026-06-01T00:00:00Z",
     )
 
     return f"""<!DOCTYPE html>
@@ -801,7 +812,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       </div>
 
       <!-- Stats bar -->
-      <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto
+      <div class="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-2xl mx-auto
                   text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
           <p class="text-3xl font-black text-[#E10101]">{total_all}</p>
@@ -811,31 +822,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
           <p class="text-3xl font-black text-[#E10101]">{len(contests_data)}</p>
           <p>Contest{'' if len(contests_data) == 1 else 's'}</p>
         </div>
-        <div class="col-span-2 sm:col-span-1">
-          <div id="countdown" class="flex justify-center gap-3 text-[#E10101]">
-            <span class="flex flex-col items-center">
-              <span id="cd-days" class="text-3xl font-black">--</span>
-              <span class="text-xs">days</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-hours" class="text-3xl font-black">--</span>
-              <span class="text-xs">hrs</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-mins" class="text-3xl font-black">--</span>
-              <span class="text-xs">min</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-secs" class="text-3xl font-black">--</span>
-              <span class="text-xs">sec</span>
-            </span>
-          </div>
-          <p>Until Deadline</p>
-        </div>
-        <div class="col-span-2 sm:col-span-1">
+        <div>
           <p class="text-3xl font-black text-[#E10101]">∞</p>
           <p>Creativity</p>
         </div>
@@ -953,40 +940,6 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       html.classList.toggle('dark');
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     }});
-
-    // Countdown timer to nearest contest deadline
-    (function () {{
-      const deadline = new Date('{earliest_deadline}').getTime();
-      const els = {{
-        days:  document.getElementById('cd-days'),
-        hours: document.getElementById('cd-hours'),
-        mins:  document.getElementById('cd-mins'),
-        secs:  document.getElementById('cd-secs'),
-      }};
-      if (!els.days) return;
-      function pad(n) {{ return String(n).padStart(2, '0'); }}
-      function tick() {{
-        const diff = deadline - Date.now();
-        if (diff <= 0) {{
-          els.days.textContent = '00';
-          els.hours.textContent = '00';
-          els.mins.textContent  = '00';
-          els.secs.textContent  = '00';
-          clearInterval(intervalId);
-          return;
-        }}
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000)  /   60000);
-        const s = Math.floor((diff %   60000)  /    1000);
-        els.days.textContent  = pad(d);
-        els.hours.textContent = pad(h);
-        els.mins.textContent  = pad(m);
-        els.secs.textContent  = pad(s);
-      }}
-      tick();
-      const intervalId = setInterval(tick, 1000);
-    }})();
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {{

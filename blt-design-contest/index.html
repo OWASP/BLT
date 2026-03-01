@@ -158,7 +158,7 @@
       </div>
 
       <!-- Stats bar -->
-      <div class="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto
+      <div class="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-2xl mx-auto
                   text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
           <p class="text-3xl font-black text-[#E10101]">33</p>
@@ -168,31 +168,7 @@
           <p class="text-3xl font-black text-[#E10101]">3</p>
           <p>Contests</p>
         </div>
-        <div class="col-span-2 sm:col-span-1">
-          <div id="countdown" class="flex justify-center gap-3 text-[#E10101]">
-            <span class="flex flex-col items-center">
-              <span id="cd-days" class="text-3xl font-black">--</span>
-              <span class="text-xs">days</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-hours" class="text-3xl font-black">--</span>
-              <span class="text-xs">hrs</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-mins" class="text-3xl font-black">--</span>
-              <span class="text-xs">min</span>
-            </span>
-            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
-            <span class="flex flex-col items-center">
-              <span id="cd-secs" class="text-3xl font-black">--</span>
-              <span class="text-xs">sec</span>
-            </span>
-          </div>
-          <p>Until Deadline</p>
-        </div>
-        <div class="col-span-2 sm:col-span-1">
+        <div>
           <p class="text-3xl font-black text-[#E10101]">∞</p>
           <p>Creativity</p>
         </div>
@@ -273,10 +249,7 @@
               </div>
               <div class="min-w-0">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">BLT T-Shirt Design Contest</h3>
-                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full
-                             bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                  Active
-                </span>
+                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Ended &#8211; Selecting Winner</span>
               </div>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Design a T-shirt or apparel for OWASP BLT.</p>
@@ -285,7 +258,7 @@
                 <i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize
               </span>
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends June 1, 2026
+                <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ended March 1, 2026
               </span>
             </div>
             <div class="flex items-center justify-between pt-4
@@ -439,40 +412,6 @@
       html.classList.toggle('dark');
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     });
-
-    // Countdown timer to nearest contest deadline
-    (function () {
-      const deadline = new Date('2026-06-01T00:00:00Z').getTime();
-      const els = {
-        days:  document.getElementById('cd-days'),
-        hours: document.getElementById('cd-hours'),
-        mins:  document.getElementById('cd-mins'),
-        secs:  document.getElementById('cd-secs'),
-      };
-      if (!els.days) return;
-      function pad(n) { return String(n).padStart(2, '0'); }
-      function tick() {
-        const diff = deadline - Date.now();
-        if (diff <= 0) {
-          els.days.textContent = '00';
-          els.hours.textContent = '00';
-          els.mins.textContent  = '00';
-          els.secs.textContent  = '00';
-          clearInterval(intervalId);
-          return;
-        }
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000)  /   60000);
-        const s = Math.floor((diff %   60000)  /    1000);
-        els.days.textContent  = pad(d);
-        els.hours.textContent = pad(h);
-        els.mins.textContent  = pad(m);
-        els.secs.textContent  = pad(s);
-      }
-      tick();
-      const intervalId = setInterval(tick, 1000);
-    })();
 
     // Format submission dates in user's local timezone; cap any future dates to today
     (function () {
