@@ -11,7 +11,7 @@ Open Source FTW!
 ### This Repository
 All of the BLT app's code is in this repository.
 
-### The BLT repository repository
+### The BLT repository
 To keep things maintainable, the website's frontend, backend, and the API's code is in The [BLT repository.](https://github.com/OWASP/BLT)
 
 ### Time to contribute!
