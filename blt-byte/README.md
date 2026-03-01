@@ -79,6 +79,26 @@ npm run deploy
 
 Available tools: `chat`, `scan_url`, `get_onboarding_guide`.
 
+### POST /
+
+Send a chat message to the AI assistant.
+
+**Request:**
+```json
+{
+  "message": "How do I report a bug on BugHeist?"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "AI response",
+  "user_message": "How do I report a bug on BugHeist?"
+}
+```
+
 ## Project Structure
 
 ```
@@ -93,6 +113,10 @@ BLT--Byte/
 ├── tests/
 │   ├── conftest.py          # Workers runtime stubs for pytest
 │   └── test_entry.py        # Unit tests
+│       └── index.html       # Chat interface
+├── public/
+│   └── images/
+│       └── logo.png         # BLT branding assets
 ├── package.json
 ├── pyproject.toml
 └── wrangler.toml
@@ -127,6 +151,10 @@ Point your AI IDE at the deployed Worker's MCP endpoint:
   }
 }
 ```
+
+- Cloudflare Workers AI (@cf/openai/gpt-oss-120b model)
+- Tailwind CSS
+- Vanilla JavaScript
 
 ## License
 
