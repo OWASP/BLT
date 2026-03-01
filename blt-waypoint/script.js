@@ -587,6 +587,16 @@ function repoCardHTML(r) {
       </a>
     </div>` : ''}
 
+    <!-- Latest commit -->
+    ${r.latest_commit ? `
+    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent commit">
+      <i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>
+      <a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">
+        <span class="font-mono text-gray-400 dark:text-gray-500 mr-1">${escapeHtml(r.latest_commit.sha)}</span>${escapeHtml(r.latest_commit.message)}
+      </a>
+      ${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}
+    </div>` : ''}
+
     <!-- Latest release -->
     ${r.latest_release ? `
     <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Latest release">
@@ -708,6 +718,7 @@ const TABLE_COLS = [
   { key: 'size',              label: 'Size'       },
   { key: 'maturity',          label: 'Maturity'   },
   { key: 'latest_release',    label: 'Release'    },
+  { key: 'latest_commit',     label: 'Last Commit' },
   { key: 'updated_at',        label: 'Updated'    },
   { key: 'latest_issue',      label: 'Latest Issue' },
 ];
@@ -724,6 +735,11 @@ function renderTableView(repos, container) {
     else if (tableSortCol === 'latest_release') {
       const ta = (a.latest_release && a.latest_release.published_at) ? a.latest_release.published_at : '';
       const tb = (b.latest_release && b.latest_release.published_at) ? b.latest_release.published_at : '';
+      v = ta.localeCompare(tb);
+    }
+    else if (tableSortCol === 'latest_commit') {
+      const ta = (a.latest_commit && a.latest_commit.date) ? a.latest_commit.date : '';
+      const tb = (b.latest_commit && b.latest_commit.date) ? b.latest_commit.date : '';
       v = ta.localeCompare(tb);
     }
     else if (tableSortCol === 'latest_issue') {
@@ -821,6 +837,11 @@ function renderTableView(repos, container) {
       <td class="px-3 py-2 whitespace-nowrap text-xs">
         ${r.latest_release
           ? `<a href="${escapeHtml(r.latest_release.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-green-600 transition-colors text-gray-600 dark:text-gray-300" title="Latest release${r.latest_release.published_at ? ': ' + r.latest_release.published_at : ''}"><i class="fa-solid fa-tag text-green-500 mr-1" aria-hidden="true"></i>${escapeHtml(r.latest_release.tag_name)}</a>`
+          : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-xs max-w-[16rem]">
+        ${r.latest_commit
+          ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i><span class="font-mono text-gray-400 dark:text-gray-500 mr-1">${escapeHtml(r.latest_commit.sha)}</span>${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
