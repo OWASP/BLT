@@ -592,9 +592,9 @@ function repoCardHTML(r) {
     <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent commit">
       <i class="fa-solid fa-code-commit mr-1 text-blue-400" aria-hidden="true"></i>
       <a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">
-        <span class="font-mono text-gray-400 dark:text-gray-500 mr-1">${escapeHtml(r.latest_commit.sha)}</span>${escapeHtml(r.latest_commit.message)}
+        ${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}
       </a>
-      ${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}
+      ${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${r.latest_commit.author_html_url ? `<a href="${escapeHtml(r.latest_commit.author_html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">${escapeHtml(r.latest_commit.author)}</a>` : escapeHtml(r.latest_commit.author)}</span>` : ''}
     </div>` : ''}
 
     <!-- Latest release -->
@@ -841,7 +841,7 @@ function renderTableView(repos, container) {
       </td>
       <td class="px-3 py-2 text-xs max-w-[16rem]">
         ${r.latest_commit
-          ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i><span class="font-mono text-gray-400 dark:text-gray-500 mr-1">${escapeHtml(r.latest_commit.sha)}</span>${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
+          ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
