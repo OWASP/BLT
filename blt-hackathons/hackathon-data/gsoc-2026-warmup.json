@@ -1,64 +1,64 @@
 {
-  "lastUpdated": "2026-03-01T19:09:43.892016+00:00",
+  "lastUpdated": "2026-03-01T20:08:00.451057+00:00",
   "slug": "gsoc-2026-warmup",
   "name": "GSOC 2026 Warmup",
   "startTime": "2025-11-01T00:00:00Z",
   "endTime": "2026-05-09T23:59:59Z",
   "repositories": [
-    "OWASP-BLT/BLT-Sammich",
-    "OWASP-BLT/BLT-NetGuardian-Client",
-    "OWASP-BLT/BLT-MCP",
-    "OWASP-BLT/BLT-Newsletter",
-    "OWASP-BLT/BLT-Flutter",
-    "OWASP-BLT/BLT-Action",
-    "OWASP-BLT/BLT-CVE",
-    "OWASP-BLT/BLT-Ideas",
-    "OWASP-BLT/BLT-Github-Sportscaster",
     "OWASP-BLT/BLT-Hackathons",
-    "OWASP-BLT/BLT-Sizzle",
-    "OWASP-BLT/BLT-SafeCloak",
-    "OWASP-BLT/BLT-OWASP-Bumper",
-    "OWASP-BLT/BLT-Preflight",
-    "OWASP-BLT/BLT",
-    "OWASP-BLT/BLT-Rewards",
-    "OWASP-BLT/BLT-Timer-Flutter",
+    "OWASP-BLT/BLT-docs",
+    "OWASP-BLT/BLT-Raven",
+    "OWASP-BLT/BLT-team",
+    "OWASP-BLT/BLT-Byte",
+    "OWASP-BLT/owasp-blt.github.io",
+    "OWASP-BLT/BLT-Lettuce",
     "OWASP-BLT/.github",
+    "OWASP-BLT/BLT-Tomato",
+    "OWASP-BLT/BLT-Action",
+    "OWASP-BLT/BLT",
     "OWASP-BLT/BLT-Panini",
-    "OWASP-BLT/BLT-API",
-    "OWASP-BLT/BLT-Monitor",
+    "OWASP-BLT/BLT-Github-Sportscaster",
+    "OWASP-BLT/BLT-Sizzle",
+    "OWASP-BLT/BLT-OSSH",
     "OWASP-BLT/BLT-Zero",
+    "OWASP-BLT/BLT-Flutter",
+    "OWASP-BLT/BLT-Next",
+    "OWASP-BLT/BLT-Sammich",
+    "OWASP-BLT/BLT-Monitor",
+    "OWASP-BLT/BLT-OWASP-metadata",
+    "OWASP-BLT/BLT-Design",
+    "OWASP-BLT/BLT-NetGuardian",
+    "OWASP-BLT/BLT-Leaf",
+    "OWASP-BLT/BLT-OWASP-Projects",
+    "OWASP-BLT/BLT-CVE",
+    "OWASP-BLT/BLT-Design-Contest",
+    "OWASP-BLT/BLT-OWASP-Bumper",
+    "OWASP-BLT/BLT-on-Cloudflare",
+    "OWASP-BLT/BLT-Newsletter",
     "OWASP-BLT/BLT-University",
     "OWASP-BLT/BLT-Timer-Web",
-    "OWASP-BLT/BLT-Jobs",
-    "OWASP-BLT/BLT-Tomato",
-    "OWASP-BLT/MY-GSOC-TOOL",
-    "OWASP-BLT/BLT-Raven",
-    "OWASP-BLT/BLT-Lettuce",
-    "OWASP-BLT/BLT-NetGuardian",
-    "OWASP-BLT/owasp-blt.github.io",
-    "OWASP-BLT/BLT--Byte",
-    "OWASP-BLT/BLT-Design-Contest",
     "OWASP-BLT/BLT-GitHub-App",
-    "OWASP-BLT/BLT-Next",
-    "OWASP-BLT/BLT-OWASP-Wich",
-    "OWASP-BLT/BLT-on-Cloudflare",
-    "OWASP-BLT/BLT-docs",
-    "OWASP-BLT/BLT-team",
-    "OWASP-BLT/BLT-GSOC",
-    "OWASP-BLT/BLT-Pages",
-    "OWASP-BLT/BLT-Extension",
-    "OWASP-BLT/BLT-Design",
-    "OWASP-BLT/BLT-OWASP-Projects",
-    "OWASP-BLT/BLT-OSSH",
+    "OWASP-BLT/MY-GSOC-TOOL",
+    "OWASP-BLT/BLT-Preflight",
     "OWASP-BLT/BLT-Bacon",
-    "OWASP-BLT/BLT-Leaf",
-    "OWASP-BLT/BLT-Toasty",
-    "OWASP-BLT/BLT-OWASP-metadata",
-    "OWASP-BLT/BLT-Personal-Privacy-Protection"
+    "OWASP-BLT/BLT-Timer-Flutter",
+    "OWASP-BLT/BLT-GSOC",
+    "OWASP-BLT/BLT-OWASP-Wich",
+    "OWASP-BLT/BLT-Extension",
+    "OWASP-BLT/BLT-MCP",
+    "OWASP-BLT/BLT-Jobs",
+    "OWASP-BLT/BLT-Ideas",
+    "OWASP-BLT/BLT-API",
+    "OWASP-BLT/BLT-Personal-Privacy-Protection",
+    "OWASP-BLT/BLT-SafeCloak",
+    "OWASP-BLT/BLT-Pages",
+    "OWASP-BLT/BLT-Rewards",
+    "OWASP-BLT/BLT-NetGuardian-Client",
+    "OWASP-BLT/BLT-Toasty"
   ],
   "stats": {
-    "totalPRs": 1890,
-    "mergedPRs": 1170,
+    "totalPRs": 1892,
+    "mergedPRs": 1178,
     "totalIssues": 597,
     "closedIssues": 504,
     "participantCount": 134,
@@ -69,7 +69,7 @@
         "url": "https://github.com/Nachiket-Roy",
         "mergedCount": 57,
         "prCount": 79,
-        "reviewCount": 214,
+        "reviewCount": 215,
         "reviews": [
           {
             "id": 3863386599,
@@ -78,6 +78,54 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863386599",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+          },
+          {
+            "id": 3873255984,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:27:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5932#pullrequestreview-3873255984",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5932",
+            "pull_request_title": "Fix HTMX actions login redirect"
+          },
+          {
+            "id": 3841234749,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T14:02:46Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841234749",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3841245651,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T14:05:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841245651",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842586403,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:42:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842586403",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842606999,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:46:25Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842606999",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842630971,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:51:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842630971",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
           },
           {
             "id": 3736109712,
@@ -414,46 +462,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5009#pullrequestreview-3837053617",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5009",
             "pull_request_title": "Add Social Stats & Organization Profile Edit Page"
-          },
-          {
-            "id": 3841234749,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T14:02:46Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841234749",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3841245651,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T14:05:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841245651",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842586403,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:42:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842586403",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842606999,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:46:25Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842606999",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842630971,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:51:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842630971",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
           },
           {
             "id": 3675657600,
@@ -1794,6 +1802,150 @@
         "reviewCount": 195,
         "reviews": [
           {
+            "id": 3696946167,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:54:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946167",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696946666,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:06Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946666",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696947312,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:17Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947312",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696947927,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:28Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947927",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696954746,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:57:26Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696954746",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696956080,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:57:46Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696956080",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696978435,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:04:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696978435",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696979007,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:04:28Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696979007",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696989585,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:07:19Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696989585",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696991399,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:07:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696991399",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696992668,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:08:14Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696992668",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696995487,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696995487",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696996364,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696996364",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696997235,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:37Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696997235",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697000473,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:10:33Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697000473",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697002739,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:11:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697002739",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697004607,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:11:24Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697004607",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697020512,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:16:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697020512",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
             "id": 3873080031,
             "state": "COMMENTED",
             "submitted_at": "2026-03-01T18:34:37Z",
@@ -2954,150 +3106,6 @@
             "pull_request_title": "Fixes dark mode hover contrasts in tables & UI inconsistencies"
           },
           {
-            "id": 3696946167,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:54:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946167",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696946666,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:06Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946666",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696947312,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:17Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947312",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696947927,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:28Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947927",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696954746,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:57:26Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696954746",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696956080,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:57:46Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696956080",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696978435,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:04:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696978435",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696979007,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:04:28Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696979007",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696989585,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:07:19Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696989585",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696991399,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:07:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696991399",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696992668,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:08:14Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696992668",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696995487,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:05Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696995487",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696996364,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696996364",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696997235,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:37Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696997235",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697000473,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:10:33Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697000473",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697002739,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:11:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697002739",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697004607,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:11:24Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697004607",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697020512,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:16:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697020512",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
             "id": 3675459678,
             "state": "APPROVED",
             "submitted_at": "2026-01-18T12:48:43Z",
@@ -3822,6 +3830,38 @@
         "reviewCount": 31,
         "reviews": [
           {
+            "id": 3856495495,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-25T19:45:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5897#pullrequestreview-3856495495",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5897",
+            "pull_request_title": "fix: secure dev.to blog fetching and display to home page"
+          },
+          {
+            "id": 3834733303,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-21T00:48:49Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5853#pullrequestreview-3834733303",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5853",
+            "pull_request_title": "Add Social Stats to Dashboard"
+          },
+          {
+            "id": 3834729059,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-21T00:44:49Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5860#pullrequestreview-3834729059",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5860",
+            "pull_request_title": "Add missing __str__ methods to 13 models with tests"
+          },
+          {
+            "id": 3838515967,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T19:41:17Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838515967",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
             "id": 3798603205,
             "state": "COMMENTED",
             "submitted_at": "2026-02-13T17:40:56Z",
@@ -3868,30 +3908,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5148#pullrequestreview-3798551501",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5148",
             "pull_request_title": "Add migration to enforce unique email with safe duplicate removal"
-          },
-          {
-            "id": 3856495495,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-25T19:45:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5897#pullrequestreview-3856495495",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5897",
-            "pull_request_title": "fix: secure dev.to blog fetching and display to home page"
-          },
-          {
-            "id": 3838515967,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T19:41:17Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838515967",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3834733303,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-21T00:48:49Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5853#pullrequestreview-3834733303",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5853",
-            "pull_request_title": "Add Social Stats to Dashboard"
           },
           {
             "id": 3834729451,
@@ -3948,14 +3964,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5826#pullrequestreview-3818537924",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5826",
             "pull_request_title": "chore: remove blog from core"
-          },
-          {
-            "id": 3834729059,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-21T00:44:49Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5860#pullrequestreview-3834729059",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5860",
-            "pull_request_title": "Add missing __str__ methods to 13 models with tests"
           },
           {
             "id": 3810426766,
@@ -5077,18 +5085,10 @@
         "username": "e-esakman",
         "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4",
         "url": "https://github.com/e-esakman",
-        "mergedCount": 22,
+        "mergedCount": 23,
         "prCount": 31,
         "reviewCount": 28,
         "reviews": [
-          {
-            "id": 3872952635,
-            "state": "COMMENTED",
-            "submitted_at": "2026-03-01T18:00:42Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259#pullrequestreview-3872952635",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259",
-            "pull_request_title": "Fix layout height/scroll issue and resolve theme toggle on How It Wor\u2026"
-          },
           {
             "id": 3872990549,
             "state": "COMMENTED",
@@ -5104,14 +5104,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5935#pullrequestreview-3873062962",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5935",
             "pull_request_title": "Fix Django Debug Toolbar 403 error in Docker by configuring INTERNAL_IPS"
-          },
-          {
-            "id": 3873141035,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-01T18:51:01Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5732#pullrequestreview-3873141035",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5732",
-            "pull_request_title": "Fix profile data persistence"
           },
           {
             "id": 3842571695,
@@ -5136,6 +5128,38 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842908798",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
             "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842326970,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-23T17:00:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5871#pullrequestreview-3842326970",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5871",
+            "pull_request_title": "fix(comments): replace bare except to prevent swallowing system exits"
+          },
+          {
+            "id": 3842391329,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-23T17:11:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5862#pullrequestreview-3842391329",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5862",
+            "pull_request_title": "feat: add triage search endpoint and indexed filters for issues"
+          },
+          {
+            "id": 3872952635,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T18:00:42Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259#pullrequestreview-3872952635",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259",
+            "pull_request_title": "Fix layout height/scroll issue and resolve theme toggle on How It Wor\u2026"
+          },
+          {
+            "id": 3873141035,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T18:51:01Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5732#pullrequestreview-3873141035",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5732",
+            "pull_request_title": "Fix profile data persistence"
           },
           {
             "id": 3866287191,
@@ -5200,22 +5224,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/102#pullrequestreview-3646660407",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/102",
             "pull_request_title": "prevent assigning issues that already have an open pr linked"
-          },
-          {
-            "id": 3842326970,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-23T17:00:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5871#pullrequestreview-3842326970",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5871",
-            "pull_request_title": "fix(comments): replace bare except to prevent swallowing system exits"
-          },
-          {
-            "id": 3842391329,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-23T17:11:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5862#pullrequestreview-3842391329",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5862",
-            "pull_request_title": "feat: add triage search endpoint and indexed filters for issues"
           },
           {
             "id": 3810319480,
@@ -5313,8 +5321,32 @@
         "url": "https://github.com/Jayant2908",
         "mergedCount": 18,
         "prCount": 30,
-        "reviewCount": 173,
+        "reviewCount": 175,
         "reviews": [
+          {
+            "id": 3873323601,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:53:09Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5944#pullrequestreview-3873323601",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5944",
+            "pull_request_title": "fix: prevent peer review workflow cancellation to ensure label updates"
+          },
+          {
+            "id": 3863682370,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-26T21:39:30Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863682370",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
+            "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+          },
+          {
+            "id": 3848214810,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-24T14:15:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3848214810",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
           {
             "id": 3870736248,
             "state": "COMMENTED",
@@ -5324,12 +5356,28 @@
             "pull_request_title": "feat(api): enhance duplicate check with AI-ready metadata"
           },
           {
-            "id": 3863682370,
+            "id": 3826323618,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-19T14:38:47Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5846#pullrequestreview-3826323618",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5846",
+            "pull_request_title": "Final fix auth UI"
+          },
+          {
+            "id": 3873330676,
             "state": "APPROVED",
-            "submitted_at": "2026-02-26T21:39:30Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863682370",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
-            "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+            "submitted_at": "2026-03-01T20:01:50Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873330676",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3699423674,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-01-23T20:13:02Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3699423674",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
           },
           {
             "id": 3662395681,
@@ -5578,22 +5626,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/100#pullrequestreview-3574263604",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/100",
             "pull_request_title": "Add composite BLT bounty processor and /bounty issue_comment workflow"
-          },
-          {
-            "id": 3848214810,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-24T14:15:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3848214810",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
-            "id": 3826323618,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-19T14:38:47Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5846#pullrequestreview-3826323618",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5846",
-            "pull_request_title": "Final fix auth UI"
           },
           {
             "id": 3820948626,
@@ -6058,14 +6090,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5521#pullrequestreview-3694280849",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5521",
             "pull_request_title": "feat: Add system color preference detection for dark mode theme"
-          },
-          {
-            "id": 3699423674,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-01-23T20:13:02Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3699423674",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
           },
           {
             "id": 3675617198,
@@ -6718,6 +6742,102 @@
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
           },
           {
+            "id": 3849206551,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-24T16:45:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3849206551",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
+          {
+            "id": 3854935143,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-25T15:17:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3854935143",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
+          {
+            "id": 3838465934,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:46:34Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838465934",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466228,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:46:50Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466228",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466502,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:47:15Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466502",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466890,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:47:52Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466890",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838467125,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:48:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838467125",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838479658,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T19:06:37Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838479658",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3838490759,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-22T19:18:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838490759",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3826349259,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-19T14:43:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5836#pullrequestreview-3826349259",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5836",
+            "pull_request_title": "Restore Chatbot Functionality"
+          },
+          {
+            "id": 3829707802,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-20T03:32:11Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3829707802",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
+            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
+          },
+          {
+            "id": 3690184879,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-22T01:32:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3690184879",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
             "id": 3852294060,
             "state": "APPROVED",
             "submitted_at": "2026-02-25T06:59:16Z",
@@ -6982,22 +7102,6 @@
             "pull_request_title": "fix: mobile view for gsoc page"
           },
           {
-            "id": 3849206551,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-24T16:45:36Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3849206551",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
-            "id": 3854935143,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-25T15:17:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3854935143",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
             "id": 3845753795,
             "state": "APPROVED",
             "submitted_at": "2026-02-24T07:41:21Z",
@@ -7022,62 +7126,6 @@
             "pull_request_title": "fix: remove Jigyasu Rajput from GSoC 2026 mentors list"
           },
           {
-            "id": 3838465934,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:46:34Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838465934",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466228,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:46:50Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466228",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466502,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:47:15Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466502",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466890,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:47:52Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466890",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838467125,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:48:12Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838467125",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838479658,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T19:06:37Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838479658",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
-            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
-          },
-          {
-            "id": 3838490759,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-22T19:18:36Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838490759",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
-            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
-          },
-          {
             "id": 3821838130,
             "state": "COMMENTED",
             "submitted_at": "2026-02-18T19:36:39Z",
@@ -7092,22 +7140,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5837#pullrequestreview-3833795965",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5837",
             "pull_request_title": "Added Ahmed Elsheik as a Mentor "
-          },
-          {
-            "id": 3829707802,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-20T03:32:11Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3829707802",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
-            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
-          },
-          {
-            "id": 3826349259,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-19T14:43:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5836#pullrequestreview-3826349259",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5836",
-            "pull_request_title": "Restore Chatbot Functionality"
           },
           {
             "id": 3824619806,
@@ -7326,14 +7358,6 @@
             "pull_request_title": "Fix inconsistent Page Stats panel behavior across desktop and mobile"
           },
           {
-            "id": 3690184879,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-22T01:32:05Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3690184879",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
             "id": 3687460097,
             "state": "COMMENTED",
             "submitted_at": "2026-01-21T14:12:44Z",
@@ -7493,23 +7517,15 @@
         "url": "https://github.com/DonnieBLT",
         "mergedCount": 15,
         "prCount": 19,
-        "reviewCount": 237,
+        "reviewCount": 248,
         "reviews": [
           {
-            "id": 3873160957,
+            "id": 3873330298,
             "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:56:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5917#pullrequestreview-3873160957",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5917",
-            "pull_request_title": "refactor: optimize imports and add type hints to UserIssueViewSet"
-          },
-          {
-            "id": 3873045160,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:24:33Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5941#pullrequestreview-3873045160",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5941",
-            "pull_request_title": "refactor: high-performance async github issue sync engine"
+            "submitted_at": "2026-03-01T20:01:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3873330298",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
           },
           {
             "id": 3873145042,
@@ -7552,20 +7568,164 @@
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
           },
           {
+            "id": 3873329792,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T20:00:41Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5898#pullrequestreview-3873329792",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5898",
+            "pull_request_title": "chore: standardize Comment model and resolve CI blockers"
+          },
+          {
+            "id": 3873198809,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:09:09Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5925#pullrequestreview-3873198809",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5925",
+            "pull_request_title": "feat(api): enhance duplicate check with AI-ready metadata"
+          },
+          {
+            "id": 3873317428,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:49:06Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5884#pullrequestreview-3873317428",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5884",
+            "pull_request_title": "Fix #3860: Implement email notification for new encrypted chat threads"
+          },
+          {
+            "id": 3873273117,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:32:47Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5848#pullrequestreview-3873273117",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5848",
+            "pull_request_title": "Fix crashes from missing POST data and malformed URLs in organization views"
+          },
+          {
+            "id": 3873294991,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:37:39Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5849#pullrequestreview-3873294991",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5849",
+            "pull_request_title": "Fix N+1 queries in leaderboard and project API endpoints"
+          },
+          {
+            "id": 3838860745,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:36:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838860745",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838861828,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:37:31Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838861828",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838862257,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:37:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838862257",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838863489,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:39:11Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838863489",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838864739,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:40:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838864739",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838865343,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:40:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838865343",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873309520,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T19:45:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873309520",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873311912,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:46:31Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873311912",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873313822,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:47:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873313822",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873315923,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:48:20Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3873315923",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3873256687,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:27:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3873256687",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
+            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
+          },
+          {
+            "id": 3873333135,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T20:05:04Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3873333135",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3873160957,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T18:56:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5917#pullrequestreview-3873160957",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5917",
+            "pull_request_title": "refactor: optimize imports and add type hints to UserIssueViewSet"
+          },
+          {
+            "id": 3873045160,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T18:24:33Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5941#pullrequestreview-3873045160",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5941",
+            "pull_request_title": "refactor: high-performance async github issue sync engine"
+          },
+          {
             "id": 3857693014,
             "state": "APPROVED",
             "submitted_at": "2026-02-26T00:27:41Z",
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5903#pullrequestreview-3857693014",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5903",
             "pull_request_title": "Fixed contributor card in gsoc page"
-          },
-          {
-            "id": 3873049746,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:26:34Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5900#pullrequestreview-3873049746",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5900",
-            "pull_request_title": "feat: implement robust weighted security scoring engine and heuristic fallback"
           },
           {
             "id": 3736350582,
@@ -8134,54 +8294,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5892#pullrequestreview-3852294721",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5892",
             "pull_request_title": "fix: prevent arbitrary code execution via pull_request_target in CI/CD"
-          },
-          {
-            "id": 3838860745,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:36:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838860745",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838861828,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:37:31Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838861828",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838862257,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:37:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838862257",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838863489,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:39:11Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838863489",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838864739,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:40:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838864739",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838865343,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:40:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838865343",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
           },
           {
             "id": 3838418135,
@@ -9995,6 +10107,15 @@
         "reviews": []
       },
       {
+        "username": "ojaswa072",
+        "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+        "url": "https://github.com/ojaswa072",
+        "mergedCount": 3,
+        "prCount": 18,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
         "username": "gojo-satorou-v7",
         "avatar": "https://avatars.githubusercontent.com/u/118048127?v=4",
         "url": "https://github.com/gojo-satorou-v7",
@@ -10305,15 +10426,6 @@
         "reviews": []
       },
       {
-        "username": "nytrixis",
-        "avatar": "https://avatars.githubusercontent.com/u/80510308?v=4",
-        "url": "https://github.com/nytrixis",
-        "mergedCount": 2,
-        "prCount": 2,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
         "username": "karunarapolu",
         "avatar": "https://avatars.githubusercontent.com/u/165272362?v=4",
         "url": "https://github.com/karunarapolu",
@@ -10336,32 +10448,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5558#pullrequestreview-3762713905",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5558",
             "pull_request_title": "Fixing markdown syntax in IssueDetailView"
-          }
-        ]
-      },
-      {
-        "username": "aryanghai12",
-        "avatar": "https://avatars.githubusercontent.com/u/141923179?v=4",
-        "url": "https://github.com/aryanghai12",
-        "mergedCount": 2,
-        "prCount": 9,
-        "reviewCount": 2,
-        "reviews": [
-          {
-            "id": 3847154339,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-24T11:41:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111#pullrequestreview-3847154339",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111",
-            "pull_request_title": "Fix `extractLinkedIssuesFromPRBody` regex to support the `Owner/Repo#IssueNumber` format used by GitHub Copilot PRs, preventing silent failures in the unassignment flow."
-          },
-          {
-            "id": 3470059180,
-            "state": "APPROVED",
-            "submitted_at": "2025-11-16T11:20:18Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/4842#pullrequestreview-3470059180",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/4842",
-            "pull_request_title": "feat(slack): add /apps command to list workspace apps with admin API fallback (#3344)"
           }
         ]
       },
@@ -10392,6 +10478,41 @@
         ]
       },
       {
+        "username": "nytrixis",
+        "avatar": "https://avatars.githubusercontent.com/u/80510308?v=4",
+        "url": "https://github.com/nytrixis",
+        "mergedCount": 2,
+        "prCount": 2,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "aryanghai12",
+        "avatar": "https://avatars.githubusercontent.com/u/141923179?v=4",
+        "url": "https://github.com/aryanghai12",
+        "mergedCount": 2,
+        "prCount": 9,
+        "reviewCount": 2,
+        "reviews": [
+          {
+            "id": 3847154339,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-24T11:41:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111#pullrequestreview-3847154339",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111",
+            "pull_request_title": "Fix `extractLinkedIssuesFromPRBody` regex to support the `Owner/Repo#IssueNumber` format used by GitHub Copilot PRs, preventing silent failures in the unassignment flow."
+          },
+          {
+            "id": 3470059180,
+            "state": "APPROVED",
+            "submitted_at": "2025-11-16T11:20:18Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/4842#pullrequestreview-3470059180",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/4842",
+            "pull_request_title": "feat(slack): add /apps command to list workspace apps with admin API fallback (#3344)"
+          }
+        ]
+      },
+      {
         "username": "Rudra-rps",
         "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
         "url": "https://github.com/Rudra-rps",
@@ -10399,6 +10520,64 @@
         "prCount": 8,
         "reviewCount": 0,
         "reviews": []
+      },
+      {
+        "username": "stealthwhizz",
+        "avatar": "https://avatars.githubusercontent.com/u/151893825?v=4",
+        "url": "https://github.com/stealthwhizz",
+        "mergedCount": 2,
+        "prCount": 4,
+        "reviewCount": 6,
+        "reviews": [
+          {
+            "id": 3872059379,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T12:54:06Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3872059379",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
+          },
+          {
+            "id": 3872059454,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T12:54:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3872059454",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
+          },
+          {
+            "id": 3872059706,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T12:54:19Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3872059706",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
+          },
+          {
+            "id": 3872059950,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T12:54:26Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3872059950",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
+          },
+          {
+            "id": 3872073688,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T13:08:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3872073688",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
+          },
+          {
+            "id": 3872030855,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T12:37:24Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5935#pullrequestreview-3872030855",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5935",
+            "pull_request_title": "Fix Django Debug Toolbar 403 error in Docker by configuring INTERNAL_IPS"
+          }
+        ]
       },
       {
         "username": "mujeeb-mughal1",
@@ -10593,36 +10772,9 @@
         ]
       },
       {
-        "username": "Aashik1701",
-        "avatar": "https://avatars.githubusercontent.com/u/135402409?v=4",
-        "url": "https://github.com/Aashik1701",
-        "mergedCount": 1,
-        "prCount": 1,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "Sumit6307",
-        "avatar": "https://avatars.githubusercontent.com/u/167127879?v=4",
-        "url": "https://github.com/Sumit6307",
-        "mergedCount": 1,
-        "prCount": 5,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "ojaswa072",
-        "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-        "url": "https://github.com/ojaswa072",
-        "mergedCount": 1,
-        "prCount": 18,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "khushal-winner",
-        "avatar": "https://avatars.githubusercontent.com/u/175409209?v=4",
-        "url": "https://github.com/khushal-winner",
+        "username": "SGNayak12",
+        "avatar": "https://avatars.githubusercontent.com/u/152470982?v=4",
+        "url": "https://github.com/SGNayak12",
         "mergedCount": 1,
         "prCount": 1,
         "reviewCount": 0,
@@ -10638,9 +10790,9 @@
         "reviews": []
       },
       {
-        "username": "SGNayak12",
-        "avatar": "https://avatars.githubusercontent.com/u/152470982?v=4",
-        "url": "https://github.com/SGNayak12",
+        "username": "khushal-winner",
+        "avatar": "https://avatars.githubusercontent.com/u/175409209?v=4",
+        "url": "https://github.com/khushal-winner",
         "mergedCount": 1,
         "prCount": 1,
         "reviewCount": 0,
@@ -10661,6 +10813,24 @@
         "url": "https://github.com/Kunal1522",
         "mergedCount": 1,
         "prCount": 1,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Aashik1701",
+        "avatar": "https://avatars.githubusercontent.com/u/135402409?v=4",
+        "url": "https://github.com/Aashik1701",
+        "mergedCount": 1,
+        "prCount": 1,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Sumit6307",
+        "avatar": "https://avatars.githubusercontent.com/u/167127879?v=4",
+        "url": "https://github.com/Sumit6307",
+        "mergedCount": 1,
+        "prCount": 5,
         "reviewCount": 0,
         "reviews": []
       },
@@ -10985,23 +11155,15 @@
         "url": "https://github.com/DonnieBLT",
         "mergedCount": 15,
         "prCount": 19,
-        "reviewCount": 237,
+        "reviewCount": 248,
         "reviews": [
           {
-            "id": 3873160957,
+            "id": 3873330298,
             "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:56:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5917#pullrequestreview-3873160957",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5917",
-            "pull_request_title": "refactor: optimize imports and add type hints to UserIssueViewSet"
-          },
-          {
-            "id": 3873045160,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:24:33Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5941#pullrequestreview-3873045160",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5941",
-            "pull_request_title": "refactor: high-performance async github issue sync engine"
+            "submitted_at": "2026-03-01T20:01:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5936#pullrequestreview-3873330298",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5936",
+            "pull_request_title": "Fix: Only count bug report points in Top Bug Reporters leaderboard"
           },
           {
             "id": 3873145042,
@@ -11044,20 +11206,164 @@
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
           },
           {
+            "id": 3873329792,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T20:00:41Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5898#pullrequestreview-3873329792",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5898",
+            "pull_request_title": "chore: standardize Comment model and resolve CI blockers"
+          },
+          {
+            "id": 3873198809,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:09:09Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5925#pullrequestreview-3873198809",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5925",
+            "pull_request_title": "feat(api): enhance duplicate check with AI-ready metadata"
+          },
+          {
+            "id": 3873317428,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:49:06Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5884#pullrequestreview-3873317428",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5884",
+            "pull_request_title": "Fix #3860: Implement email notification for new encrypted chat threads"
+          },
+          {
+            "id": 3873273117,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:32:47Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5848#pullrequestreview-3873273117",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5848",
+            "pull_request_title": "Fix crashes from missing POST data and malformed URLs in organization views"
+          },
+          {
+            "id": 3873294991,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:37:39Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5849#pullrequestreview-3873294991",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5849",
+            "pull_request_title": "Fix N+1 queries in leaderboard and project API endpoints"
+          },
+          {
+            "id": 3838860745,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:36:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838860745",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838861828,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:37:31Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838861828",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838862257,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:37:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838862257",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838863489,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:39:11Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838863489",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838864739,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:40:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838864739",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838865343,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T02:40:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838865343",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873309520,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T19:45:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873309520",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873311912,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:46:31Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873311912",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873313822,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:47:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873313822",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3873315923,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:48:20Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3873315923",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3873256687,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T19:27:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3873256687",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
+            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
+          },
+          {
+            "id": 3873333135,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T20:05:04Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3873333135",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3873160957,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T18:56:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5917#pullrequestreview-3873160957",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5917",
+            "pull_request_title": "refactor: optimize imports and add type hints to UserIssueViewSet"
+          },
+          {
+            "id": 3873045160,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-01T18:24:33Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5941#pullrequestreview-3873045160",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5941",
+            "pull_request_title": "refactor: high-performance async github issue sync engine"
+          },
+          {
             "id": 3857693014,
             "state": "APPROVED",
             "submitted_at": "2026-02-26T00:27:41Z",
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5903#pullrequestreview-3857693014",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5903",
             "pull_request_title": "Fixed contributor card in gsoc page"
-          },
-          {
-            "id": 3873049746,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-03-01T18:26:34Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5900#pullrequestreview-3873049746",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5900",
-            "pull_request_title": "feat: implement robust weighted security scoring engine and heuristic fallback"
           },
           {
             "id": 3736350582,
@@ -11626,54 +11932,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5892#pullrequestreview-3852294721",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5892",
             "pull_request_title": "fix: prevent arbitrary code execution via pull_request_target in CI/CD"
-          },
-          {
-            "id": 3838860745,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:36:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838860745",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838861828,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:37:31Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838861828",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838862257,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:37:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838862257",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838863489,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:39:11Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838863489",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838864739,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:40:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838864739",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838865343,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T02:40:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838865343",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
           },
           {
             "id": 3838418135,
@@ -12891,7 +13149,7 @@
         "url": "https://github.com/Nachiket-Roy",
         "mergedCount": 57,
         "prCount": 79,
-        "reviewCount": 214,
+        "reviewCount": 215,
         "reviews": [
           {
             "id": 3863386599,
@@ -12900,6 +13158,54 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863386599",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+          },
+          {
+            "id": 3873255984,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:27:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5932#pullrequestreview-3873255984",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5932",
+            "pull_request_title": "Fix HTMX actions login redirect"
+          },
+          {
+            "id": 3841234749,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T14:02:46Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841234749",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3841245651,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T14:05:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841245651",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842586403,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:42:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842586403",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842606999,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:46:25Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842606999",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842630971,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-23T17:51:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842630971",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
+            "pull_request_title": "remove slack integration"
           },
           {
             "id": 3736109712,
@@ -13236,46 +13542,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5009#pullrequestreview-3837053617",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5009",
             "pull_request_title": "Add Social Stats & Organization Profile Edit Page"
-          },
-          {
-            "id": 3841234749,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T14:02:46Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841234749",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3841245651,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T14:05:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3841245651",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842586403,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:42:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842586403",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842606999,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:46:25Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842606999",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
-          },
-          {
-            "id": 3842630971,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-23T17:51:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842630971",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
-            "pull_request_title": "remove slack integration"
           },
           {
             "id": 3675657600,
@@ -14616,6 +14882,150 @@
         "reviewCount": 195,
         "reviews": [
           {
+            "id": 3696946167,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:54:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946167",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696946666,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:06Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946666",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696947312,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:17Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947312",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696947927,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:55:28Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947927",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696954746,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:57:26Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696954746",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696956080,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T10:57:46Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696956080",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696978435,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:04:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696978435",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696979007,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:04:28Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696979007",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696989585,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:07:19Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696989585",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696991399,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:07:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696991399",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696992668,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:08:14Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696992668",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696995487,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696995487",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696996364,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696996364",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3696997235,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:09:37Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696997235",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697000473,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:10:33Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697000473",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697002739,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:11:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697002739",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697004607,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:11:24Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697004607",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
+            "id": 3697020512,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-23T11:16:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697020512",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
             "id": 3873080031,
             "state": "COMMENTED",
             "submitted_at": "2026-03-01T18:34:37Z",
@@ -15776,150 +16186,6 @@
             "pull_request_title": "Fixes dark mode hover contrasts in tables & UI inconsistencies"
           },
           {
-            "id": 3696946167,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:54:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946167",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696946666,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:06Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696946666",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696947312,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:17Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947312",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696947927,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:55:28Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696947927",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696954746,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:57:26Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696954746",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696956080,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T10:57:46Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696956080",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696978435,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:04:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696978435",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696979007,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:04:28Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696979007",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696989585,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:07:19Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696989585",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696991399,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:07:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696991399",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696992668,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:08:14Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696992668",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696995487,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:05Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696995487",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696996364,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696996364",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3696997235,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:09:37Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3696997235",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697000473,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:10:33Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697000473",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697002739,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:11:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697002739",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697004607,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:11:24Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697004607",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
-            "id": 3697020512,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-23T11:16:21Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3697020512",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
-          },
-          {
             "id": 3675459678,
             "state": "APPROVED",
             "submitted_at": "2026-01-18T12:48:43Z",
@@ -16183,8 +16449,32 @@
         "url": "https://github.com/Jayant2908",
         "mergedCount": 18,
         "prCount": 30,
-        "reviewCount": 173,
+        "reviewCount": 175,
         "reviews": [
+          {
+            "id": 3873323601,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T19:53:09Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5944#pullrequestreview-3873323601",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5944",
+            "pull_request_title": "fix: prevent peer review workflow cancellation to ensure label updates"
+          },
+          {
+            "id": 3863682370,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-26T21:39:30Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863682370",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
+            "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+          },
+          {
+            "id": 3848214810,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-24T14:15:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3848214810",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
           {
             "id": 3870736248,
             "state": "COMMENTED",
@@ -16194,12 +16484,28 @@
             "pull_request_title": "feat(api): enhance duplicate check with AI-ready metadata"
           },
           {
-            "id": 3863682370,
+            "id": 3826323618,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-19T14:38:47Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5846#pullrequestreview-3826323618",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5846",
+            "pull_request_title": "Final fix auth UI"
+          },
+          {
+            "id": 3873330676,
             "state": "APPROVED",
-            "submitted_at": "2026-02-26T21:39:30Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5914#pullrequestreview-3863682370",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5914",
-            "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
+            "submitted_at": "2026-03-01T20:01:50Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3873330676",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3699423674,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-01-23T20:13:02Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3699423674",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
           },
           {
             "id": 3662395681,
@@ -16448,22 +16754,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/100#pullrequestreview-3574263604",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/100",
             "pull_request_title": "Add composite BLT bounty processor and /bounty issue_comment workflow"
-          },
-          {
-            "id": 3848214810,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-24T14:15:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3848214810",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
-            "id": 3826323618,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-19T14:38:47Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5846#pullrequestreview-3826323618",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5846",
-            "pull_request_title": "Final fix auth UI"
           },
           {
             "id": 3820948626,
@@ -16928,14 +17218,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5521#pullrequestreview-3694280849",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5521",
             "pull_request_title": "feat: Add system color preference detection for dark mode theme"
-          },
-          {
-            "id": 3699423674,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-01-23T20:13:02Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3699423674",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
           },
           {
             "id": 3675617198,
@@ -18590,6 +18872,102 @@
             "pull_request_title": "Move GSoC Page to Its Own Separate Web Page"
           },
           {
+            "id": 3849206551,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-24T16:45:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3849206551",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
+          {
+            "id": 3854935143,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-25T15:17:51Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3854935143",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
+            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
+          },
+          {
+            "id": 3838465934,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:46:34Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838465934",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466228,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:46:50Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466228",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466502,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:47:15Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466502",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838466890,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:47:52Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466890",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838467125,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T18:48:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838467125",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
+            "id": 3838479658,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T19:06:37Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838479658",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3838490759,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-22T19:18:36Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838490759",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
+            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
+          },
+          {
+            "id": 3826349259,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-19T14:43:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5836#pullrequestreview-3826349259",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5836",
+            "pull_request_title": "Restore Chatbot Functionality"
+          },
+          {
+            "id": 3829707802,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-20T03:32:11Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3829707802",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
+            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
+          },
+          {
+            "id": 3690184879,
+            "state": "COMMENTED",
+            "submitted_at": "2026-01-22T01:32:05Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3690184879",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
+            "pull_request_title": "feat: add ai spam detection"
+          },
+          {
             "id": 3852294060,
             "state": "APPROVED",
             "submitted_at": "2026-02-25T06:59:16Z",
@@ -18854,22 +19232,6 @@
             "pull_request_title": "fix: mobile view for gsoc page"
           },
           {
-            "id": 3849206551,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-24T16:45:36Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3849206551",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
-            "id": 3854935143,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-25T15:17:51Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5893#pullrequestreview-3854935143",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5893",
-            "pull_request_title": "Add Phase 1 cyber dashboard with DNS checks and tests"
-          },
-          {
             "id": 3845753795,
             "state": "APPROVED",
             "submitted_at": "2026-02-24T07:41:21Z",
@@ -18894,62 +19256,6 @@
             "pull_request_title": "fix: remove Jigyasu Rajput from GSoC 2026 mentors list"
           },
           {
-            "id": 3838465934,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:46:34Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838465934",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466228,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:46:50Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466228",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466502,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:47:15Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466502",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838466890,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:47:52Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838466890",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838467125,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T18:48:12Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838467125",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3838479658,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T19:06:37Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838479658",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
-            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
-          },
-          {
-            "id": 3838490759,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-22T19:18:36Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5875#pullrequestreview-3838490759",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5875",
-            "pull_request_title": "fix(org): restrict access to inactive organizations in OrganizationDetailView"
-          },
-          {
             "id": 3821838130,
             "state": "COMMENTED",
             "submitted_at": "2026-02-18T19:36:39Z",
@@ -18964,22 +19270,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5837#pullrequestreview-3833795965",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5837",
             "pull_request_title": "Added Ahmed Elsheik as a Mentor "
-          },
-          {
-            "id": 3829707802,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-20T03:32:11Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5843#pullrequestreview-3829707802",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5843",
-            "pull_request_title": "feat(security): add org-scoped security monitoring dashboard"
-          },
-          {
-            "id": 3826349259,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-19T14:43:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5836#pullrequestreview-3826349259",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5836",
-            "pull_request_title": "Restore Chatbot Functionality"
           },
           {
             "id": 3824619806,
@@ -19196,14 +19486,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5508#pullrequestreview-3690991607",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5508",
             "pull_request_title": "Fix inconsistent Page Stats panel behavior across desktop and mobile"
-          },
-          {
-            "id": 3690184879,
-            "state": "COMMENTED",
-            "submitted_at": "2026-01-22T01:32:05Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5515#pullrequestreview-3690184879",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5515",
-            "pull_request_title": "feat: add ai spam detection"
           },
           {
             "id": 3687460097,
@@ -20092,6 +20374,38 @@
         "reviewCount": 31,
         "reviews": [
           {
+            "id": 3856495495,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-25T19:45:29Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5897#pullrequestreview-3856495495",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5897",
+            "pull_request_title": "fix: secure dev.to blog fetching and display to home page"
+          },
+          {
+            "id": 3834733303,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-21T00:48:49Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5853#pullrequestreview-3834733303",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5853",
+            "pull_request_title": "Add Social Stats to Dashboard"
+          },
+          {
+            "id": 3834729059,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-21T00:44:49Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5860#pullrequestreview-3834729059",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5860",
+            "pull_request_title": "Add missing __str__ methods to 13 models with tests"
+          },
+          {
+            "id": 3838515967,
+            "state": "COMMENTED",
+            "submitted_at": "2026-02-22T19:41:17Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838515967",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
+            "pull_request_title": "Update SECURITY.md"
+          },
+          {
             "id": 3798603205,
             "state": "COMMENTED",
             "submitted_at": "2026-02-13T17:40:56Z",
@@ -20138,30 +20452,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5148#pullrequestreview-3798551501",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5148",
             "pull_request_title": "Add migration to enforce unique email with safe duplicate removal"
-          },
-          {
-            "id": 3856495495,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-25T19:45:29Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5897#pullrequestreview-3856495495",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5897",
-            "pull_request_title": "fix: secure dev.to blog fetching and display to home page"
-          },
-          {
-            "id": 3838515967,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-22T19:41:17Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5874#pullrequestreview-3838515967",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5874",
-            "pull_request_title": "Update SECURITY.md"
-          },
-          {
-            "id": 3834733303,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-21T00:48:49Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5853#pullrequestreview-3834733303",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5853",
-            "pull_request_title": "Add Social Stats to Dashboard"
           },
           {
             "id": 3834729451,
@@ -20218,14 +20508,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5826#pullrequestreview-3818537924",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5826",
             "pull_request_title": "chore: remove blog from core"
-          },
-          {
-            "id": 3834729059,
-            "state": "COMMENTED",
-            "submitted_at": "2026-02-21T00:44:49Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5860#pullrequestreview-3834729059",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5860",
-            "pull_request_title": "Add missing __str__ methods to 13 models with tests"
           },
           {
             "id": 3810426766,
@@ -20345,18 +20627,10 @@
         "username": "e-esakman",
         "avatar": "https://avatars.githubusercontent.com/u/187769872?v=4",
         "url": "https://github.com/e-esakman",
-        "mergedCount": 22,
+        "mergedCount": 23,
         "prCount": 31,
         "reviewCount": 28,
         "reviews": [
-          {
-            "id": 3872952635,
-            "state": "COMMENTED",
-            "submitted_at": "2026-03-01T18:00:42Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259#pullrequestreview-3872952635",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259",
-            "pull_request_title": "Fix layout height/scroll issue and resolve theme toggle on How It Wor\u2026"
-          },
           {
             "id": 3872990549,
             "state": "COMMENTED",
@@ -20372,14 +20646,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5935#pullrequestreview-3873062962",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5935",
             "pull_request_title": "Fix Django Debug Toolbar 403 error in Docker by configuring INTERNAL_IPS"
-          },
-          {
-            "id": 3873141035,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-01T18:51:01Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5732#pullrequestreview-3873141035",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5732",
-            "pull_request_title": "Fix profile data persistence"
           },
           {
             "id": 3842571695,
@@ -20404,6 +20670,38 @@
             "html_url": "https://github.com/OWASP-BLT/BLT/pull/5887#pullrequestreview-3842908798",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5887",
             "pull_request_title": "remove slack integration"
+          },
+          {
+            "id": 3842326970,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-23T17:00:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5871#pullrequestreview-3842326970",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5871",
+            "pull_request_title": "fix(comments): replace bare except to prevent swallowing system exits"
+          },
+          {
+            "id": 3842391329,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-02-23T17:11:57Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5862#pullrequestreview-3842391329",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5862",
+            "pull_request_title": "feat: add triage search endpoint and indexed filters for issues"
+          },
+          {
+            "id": 3872952635,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-01T18:00:42Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259#pullrequestreview-3872952635",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/259",
+            "pull_request_title": "Fix layout height/scroll issue and resolve theme toggle on How It Wor\u2026"
+          },
+          {
+            "id": 3873141035,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-01T18:51:01Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5732#pullrequestreview-3873141035",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5732",
+            "pull_request_title": "Fix profile data persistence"
           },
           {
             "id": 3866287191,
@@ -20468,22 +20766,6 @@
             "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/102#pullrequestreview-3646660407",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/102",
             "pull_request_title": "prevent assigning issues that already have an open pr linked"
-          },
-          {
-            "id": 3842326970,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-23T17:00:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5871#pullrequestreview-3842326970",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5871",
-            "pull_request_title": "fix(comments): replace bare except to prevent swallowing system exits"
-          },
-          {
-            "id": 3842391329,
-            "state": "CHANGES_REQUESTED",
-            "submitted_at": "2026-02-23T17:11:57Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5862#pullrequestreview-3842391329",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5862",
-            "pull_request_title": "feat: add triage search endpoint and indexed filters for issues"
           },
           {
             "id": 3810319480,
@@ -21199,8 +21481,8 @@
         "username": "stealthwhizz",
         "avatar": "https://avatars.githubusercontent.com/u/151893825?v=4",
         "url": "https://github.com/stealthwhizz",
-        "mergedCount": 0,
-        "prCount": 2,
+        "mergedCount": 2,
+        "prCount": 4,
         "reviewCount": 6,
         "reviews": [
           {
@@ -21616,32 +21898,6 @@
         ]
       },
       {
-        "username": "aryanghai12",
-        "avatar": "https://avatars.githubusercontent.com/u/141923179?v=4",
-        "url": "https://github.com/aryanghai12",
-        "mergedCount": 2,
-        "prCount": 9,
-        "reviewCount": 2,
-        "reviews": [
-          {
-            "id": 3847154339,
-            "state": "APPROVED",
-            "submitted_at": "2026-02-24T11:41:58Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111#pullrequestreview-3847154339",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111",
-            "pull_request_title": "Fix `extractLinkedIssuesFromPRBody` regex to support the `Owner/Repo#IssueNumber` format used by GitHub Copilot PRs, preventing silent failures in the unassignment flow."
-          },
-          {
-            "id": 3470059180,
-            "state": "APPROVED",
-            "submitted_at": "2025-11-16T11:20:18Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/4842#pullrequestreview-3470059180",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/4842",
-            "pull_request_title": "feat(slack): add /apps command to list workspace apps with admin API fallback (#3344)"
-          }
-        ]
-      },
-      {
         "username": "DevalPrime",
         "avatar": "https://avatars.githubusercontent.com/u/122857622?v=4",
         "url": "https://github.com/DevalPrime",
@@ -21690,6 +21946,32 @@
             "html_url": "https://github.com/OWASP-BLT/BLT-Lettuce/pull/109#pullrequestreview-3675598317",
             "pull_request_url": "https://github.com/OWASP-BLT/BLT-Lettuce/pull/109",
             "pull_request_title": "Add interactive conversational feature for Slack bot project recommendations"
+          }
+        ]
+      },
+      {
+        "username": "aryanghai12",
+        "avatar": "https://avatars.githubusercontent.com/u/141923179?v=4",
+        "url": "https://github.com/aryanghai12",
+        "mergedCount": 2,
+        "prCount": 9,
+        "reviewCount": 2,
+        "reviews": [
+          {
+            "id": 3847154339,
+            "state": "APPROVED",
+            "submitted_at": "2026-02-24T11:41:58Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111#pullrequestreview-3847154339",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Action/pull/111",
+            "pull_request_title": "Fix `extractLinkedIssuesFromPRBody` regex to support the `Owner/Repo#IssueNumber` format used by GitHub Copilot PRs, preventing silent failures in the unassignment flow."
+          },
+          {
+            "id": 3470059180,
+            "state": "APPROVED",
+            "submitted_at": "2025-11-16T11:20:18Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/4842#pullrequestreview-3470059180",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/4842",
+            "pull_request_title": "feat(slack): add /apps command to list workspace apps with admin API fallback (#3344)"
           }
         ]
       },
@@ -21851,7 +22133,7 @@
       },
       {
         "username": "Sarthak5598",
-        "avatar": "https://avatars.githubusercontent.com/u/108613416?v=4",
+        "avatar": "",
         "url": "https://github.com/Sarthak5598",
         "mergedCount": 0,
         "prCount": 0,
@@ -21876,20 +22158,20 @@
         ]
       },
       {
-        "username": "Ankit-singh-dot",
-        "avatar": "https://avatars.githubusercontent.com/u/183590562?v=4",
-        "url": "https://github.com/Ankit-singh-dot",
-        "mergedCount": 4,
-        "prCount": 8,
+        "username": "amehtacc",
+        "avatar": "https://avatars.githubusercontent.com/u/156931995?v=4",
+        "url": "https://github.com/amehtacc",
+        "mergedCount": 0,
+        "prCount": 1,
         "reviewCount": 1,
         "reviews": [
           {
-            "id": 3601609922,
+            "id": 3856791890,
             "state": "COMMENTED",
-            "submitted_at": "2025-12-21T09:08:12Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5274#pullrequestreview-3601609922",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5274",
-            "pull_request_title": "feature [admin]: add superuser dashboard for user activity visibility"
+            "submitted_at": "2026-02-25T20:35:35Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Next/pull/20#pullrequestreview-3856791890",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Next/pull/20",
+            "pull_request_title": "Refactor header: auth, menu and theme handlers"
           }
         ]
       },
@@ -21912,20 +22194,20 @@
         ]
       },
       {
-        "username": "amehtacc",
-        "avatar": "https://avatars.githubusercontent.com/u/156931995?v=4",
-        "url": "https://github.com/amehtacc",
-        "mergedCount": 0,
-        "prCount": 1,
+        "username": "Ankit-singh-dot",
+        "avatar": "https://avatars.githubusercontent.com/u/183590562?v=4",
+        "url": "https://github.com/Ankit-singh-dot",
+        "mergedCount": 4,
+        "prCount": 8,
         "reviewCount": 1,
         "reviews": [
           {
-            "id": 3856791890,
+            "id": 3601609922,
             "state": "COMMENTED",
-            "submitted_at": "2026-02-25T20:35:35Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Next/pull/20#pullrequestreview-3856791890",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Next/pull/20",
-            "pull_request_title": "Refactor header: auth, menu and theme handlers"
+            "submitted_at": "2025-12-21T09:08:12Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT/pull/5274#pullrequestreview-3601609922",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5274",
+            "pull_request_title": "feature [admin]: add superuser dashboard for user activity visibility"
           }
         ]
       },
@@ -21985,107 +22267,47 @@
       }
     ],
     "repoStats": {
-      "OWASP-BLT/BLT-Sammich": {
-        "total": 16,
-        "merged": 3,
-        "issues": 2,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-NetGuardian-Client": {
-        "total": 2,
-        "merged": 2,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-MCP": {
-        "total": 11,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Newsletter": {
-        "total": 4,
-        "merged": 4,
-        "issues": 2,
-        "closedIssues": 2
-      },
-      "OWASP-BLT/BLT-Flutter": {
-        "total": 4,
-        "merged": 3,
-        "issues": 2,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Action": {
-        "total": 27,
-        "merged": 14,
-        "issues": 11,
-        "closedIssues": 9
-      },
-      "OWASP-BLT/BLT-CVE": {
-        "total": 4,
-        "merged": 1,
-        "issues": 1,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Ideas": {
-        "total": 54,
-        "merged": 47,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Github-Sportscaster": {
-        "total": 16,
-        "merged": 12,
-        "issues": 2,
-        "closedIssues": 1
-      },
       "OWASP-BLT/BLT-Hackathons": {
         "total": 43,
         "merged": 40,
         "issues": 5,
         "closedIssues": 5
       },
-      "OWASP-BLT/BLT-Sizzle": {
-        "total": 7,
-        "merged": 4,
-        "issues": 3,
-        "closedIssues": 3
-      },
-      "OWASP-BLT/BLT-SafeCloak": {
-        "total": 2,
-        "merged": 1,
-        "issues": 2,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-OWASP-Bumper": {
-        "total": 23,
-        "merged": 21,
-        "issues": 4,
-        "closedIssues": 4
-      },
-      "OWASP-BLT/BLT-Preflight": {
-        "total": 6,
-        "merged": 2,
-        "issues": 4,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT": {
-        "total": 1024,
-        "merged": 522,
-        "issues": 339,
-        "closedIssues": 339
-      },
-      "OWASP-BLT/BLT-Rewards": {
-        "total": 8,
+      "OWASP-BLT/BLT-docs": {
+        "total": 5,
         "merged": 3,
-        "issues": 4,
+        "issues": 1,
         "closedIssues": 1
       },
-      "OWASP-BLT/BLT-Timer-Flutter": {
-        "total": 1,
-        "merged": 1,
+      "OWASP-BLT/BLT-Raven": {
+        "total": 0,
+        "merged": 0,
         "issues": 0,
         "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-team": {
+        "total": 2,
+        "merged": 1,
+        "issues": 6,
+        "closedIssues": 5
+      },
+      "OWASP-BLT/BLT-Byte": {
+        "total": 2,
+        "merged": 1,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/owasp-blt.github.io": {
+        "total": 46,
+        "merged": 43,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Lettuce": {
+        "total": 35,
+        "merged": 17,
+        "issues": 6,
+        "closedIssues": 5
       },
       "OWASP-BLT/.github": {
         "total": 34,
@@ -22093,17 +22315,71 @@
         "issues": 0,
         "closedIssues": 0
       },
+      "OWASP-BLT/BLT-Tomato": {
+        "total": 2,
+        "merged": 1,
+        "issues": 1,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Action": {
+        "total": 27,
+        "merged": 14,
+        "issues": 11,
+        "closedIssues": 9
+      },
+      "OWASP-BLT/BLT": {
+        "total": 1026,
+        "merged": 530,
+        "issues": 339,
+        "closedIssues": 339
+      },
       "OWASP-BLT/BLT-Panini": {
         "total": 14,
         "merged": 13,
         "issues": 3,
         "closedIssues": 3
       },
-      "OWASP-BLT/BLT-API": {
-        "total": 24,
-        "merged": 18,
-        "issues": 9,
-        "closedIssues": 9
+      "OWASP-BLT/BLT-Github-Sportscaster": {
+        "total": 16,
+        "merged": 12,
+        "issues": 2,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Sizzle": {
+        "total": 7,
+        "merged": 4,
+        "issues": 3,
+        "closedIssues": 3
+      },
+      "OWASP-BLT/BLT-OSSH": {
+        "total": 2,
+        "merged": 0,
+        "issues": 1,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Zero": {
+        "total": 2,
+        "merged": 1,
+        "issues": 1,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Flutter": {
+        "total": 4,
+        "merged": 3,
+        "issues": 2,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Next": {
+        "total": 21,
+        "merged": 8,
+        "issues": 13,
+        "closedIssues": 6
+      },
+      "OWASP-BLT/BLT-Sammich": {
+        "total": 16,
+        "merged": 3,
+        "issues": 2,
+        "closedIssues": 1
       },
       "OWASP-BLT/BLT-Monitor": {
         "total": 18,
@@ -22111,11 +22387,65 @@
         "issues": 4,
         "closedIssues": 3
       },
-      "OWASP-BLT/BLT-Zero": {
-        "total": 2,
+      "OWASP-BLT/BLT-OWASP-metadata": {
+        "total": 16,
+        "merged": 15,
+        "issues": 3,
+        "closedIssues": 3
+      },
+      "OWASP-BLT/BLT-Design": {
+        "total": 3,
+        "merged": 2,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-NetGuardian": {
+        "total": 11,
+        "merged": 5,
+        "issues": 1,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Leaf": {
+        "total": 200,
+        "merged": 158,
+        "issues": 67,
+        "closedIssues": 58
+      },
+      "OWASP-BLT/BLT-OWASP-Projects": {
+        "total": 10,
+        "merged": 7,
+        "issues": 0,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-CVE": {
+        "total": 4,
         "merged": 1,
         "issues": 1,
         "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Design-Contest": {
+        "total": 43,
+        "merged": 41,
+        "issues": 36,
+        "closedIssues": 2
+      },
+      "OWASP-BLT/BLT-OWASP-Bumper": {
+        "total": 23,
+        "merged": 21,
+        "issues": 4,
+        "closedIssues": 4
+      },
+      "OWASP-BLT/BLT-on-Cloudflare": {
+        "total": 11,
+        "merged": 5,
+        "issues": 7,
+        "closedIssues": 4
+      },
+      "OWASP-BLT/BLT-Newsletter": {
+        "total": 4,
+        "merged": 4,
+        "issues": 2,
+        "closedIssues": 2
       },
       "OWASP-BLT/BLT-University": {
         "total": 10,
@@ -22129,15 +22459,9 @@
         "issues": 2,
         "closedIssues": 0
       },
-      "OWASP-BLT/BLT-Jobs": {
-        "total": 29,
-        "merged": 26,
-        "issues": 14,
-        "closedIssues": 14
-      },
-      "OWASP-BLT/BLT-Tomato": {
-        "total": 2,
-        "merged": 1,
+      "OWASP-BLT/BLT-GitHub-App": {
+        "total": 4,
+        "merged": 3,
         "issues": 1,
         "closedIssues": 0
       },
@@ -22147,77 +22471,23 @@
         "issues": 5,
         "closedIssues": 5
       },
-      "OWASP-BLT/BLT-Raven": {
-        "total": 0,
-        "merged": 0,
+      "OWASP-BLT/BLT-Preflight": {
+        "total": 6,
+        "merged": 2,
+        "issues": 4,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Bacon": {
+        "total": 8,
+        "merged": 3,
+        "issues": 4,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Timer-Flutter": {
+        "total": 1,
+        "merged": 1,
         "issues": 0,
         "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Lettuce": {
-        "total": 35,
-        "merged": 17,
-        "issues": 6,
-        "closedIssues": 5
-      },
-      "OWASP-BLT/BLT-NetGuardian": {
-        "total": 11,
-        "merged": 5,
-        "issues": 1,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/owasp-blt.github.io": {
-        "total": 46,
-        "merged": 43,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT--Byte": {
-        "total": 2,
-        "merged": 1,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Design-Contest": {
-        "total": 43,
-        "merged": 41,
-        "issues": 36,
-        "closedIssues": 2
-      },
-      "OWASP-BLT/BLT-GitHub-App": {
-        "total": 4,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Next": {
-        "total": 21,
-        "merged": 8,
-        "issues": 13,
-        "closedIssues": 6
-      },
-      "OWASP-BLT/BLT-OWASP-Wich": {
-        "total": 4,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-on-Cloudflare": {
-        "total": 11,
-        "merged": 5,
-        "issues": 7,
-        "closedIssues": 4
-      },
-      "OWASP-BLT/BLT-docs": {
-        "total": 5,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-team": {
-        "total": 2,
-        "merged": 1,
-        "issues": 6,
-        "closedIssues": 5
       },
       "OWASP-BLT/BLT-GSOC": {
         "total": 13,
@@ -22225,10 +22495,10 @@
         "issues": 5,
         "closedIssues": 2
       },
-      "OWASP-BLT/BLT-Pages": {
-        "total": 11,
-        "merged": 10,
-        "issues": 3,
+      "OWASP-BLT/BLT-OWASP-Wich": {
+        "total": 4,
+        "merged": 3,
+        "issues": 1,
         "closedIssues": 1
       },
       "OWASP-BLT/BLT-Extension": {
@@ -22237,53 +22507,65 @@
         "issues": 4,
         "closedIssues": 4
       },
-      "OWASP-BLT/BLT-Design": {
-        "total": 3,
-        "merged": 2,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-OWASP-Projects": {
-        "total": 10,
-        "merged": 7,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-OSSH": {
-        "total": 2,
-        "merged": 0,
-        "issues": 1,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Bacon": {
-        "total": 8,
+      "OWASP-BLT/BLT-MCP": {
+        "total": 11,
         "merged": 3,
-        "issues": 4,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Leaf": {
-        "total": 200,
-        "merged": 158,
-        "issues": 67,
-        "closedIssues": 58
-      },
-      "OWASP-BLT/BLT-Toasty": {
-        "total": 13,
-        "merged": 6,
-        "issues": 4,
+        "issues": 1,
         "closedIssues": 0
       },
-      "OWASP-BLT/BLT-OWASP-metadata": {
-        "total": 16,
-        "merged": 15,
-        "issues": 3,
-        "closedIssues": 3
+      "OWASP-BLT/BLT-Jobs": {
+        "total": 29,
+        "merged": 26,
+        "issues": 14,
+        "closedIssues": 14
+      },
+      "OWASP-BLT/BLT-Ideas": {
+        "total": 54,
+        "merged": 47,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-API": {
+        "total": 24,
+        "merged": 18,
+        "issues": 9,
+        "closedIssues": 9
       },
       "OWASP-BLT/BLT-Personal-Privacy-Protection": {
         "total": 3,
         "merged": 2,
         "issues": 3,
         "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-SafeCloak": {
+        "total": 2,
+        "merged": 1,
+        "issues": 2,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Pages": {
+        "total": 11,
+        "merged": 10,
+        "issues": 3,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Rewards": {
+        "total": 8,
+        "merged": 3,
+        "issues": 4,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-NetGuardian-Client": {
+        "total": 2,
+        "merged": 2,
+        "issues": 0,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Toasty": {
+        "total": 13,
+        "merged": 6,
+        "issues": 4,
+        "closedIssues": 0
       }
     },
     "dailyActivity": {
@@ -22768,8 +23050,8 @@
         "merged": 45
       },
       "2026-03-01": {
-        "total": 65,
-        "merged": 71
+        "total": 67,
+        "merged": 79
       },
       "2026-03-02": {
         "total": 0,
@@ -23049,61 +23331,61 @@
       }
     },
     "dailyMergedPRs": {
-      "2026-03-01": 71,
+      "2026-02-23": 51,
+      "2025-11-17": 37,
+      "2025-11-16": 47,
+      "2026-03-01": 79,
+      "2025-11-02": 13,
+      "2026-02-12": 22,
+      "2026-02-28": 45,
       "2026-02-22": 58,
+      "2026-02-16": 51,
+      "2026-02-15": 41,
+      "2026-02-10": 13,
+      "2025-12-14": 13,
+      "2025-11-27": 53,
+      "2025-11-01": 5,
+      "2026-02-27": 35,
+      "2026-02-26": 8,
+      "2026-02-25": 13,
+      "2026-02-24": 32,
       "2026-02-20": 19,
       "2026-02-09": 13,
-      "2025-11-24": 13,
-      "2026-02-23": 51,
-      "2026-02-18": 31,
-      "2026-02-15": 41,
-      "2025-11-27": 53,
-      "2025-11-17": 37,
-      "2026-02-28": 45,
-      "2026-02-27": 35,
-      "2026-02-24": 32,
-      "2026-02-19": 39,
-      "2026-02-12": 22,
-      "2025-11-02": 13,
       "2026-02-21": 18,
       "2026-02-02": 16,
       "2026-01-10": 1,
-      "2025-11-16": 47,
-      "2025-11-01": 5,
-      "2026-02-07": 13,
-      "2026-02-04": 11,
-      "2026-01-29": 2,
-      "2025-12-15": 22,
-      "2026-02-25": 13,
-      "2025-12-03": 14,
-      "2025-12-02": 16,
-      "2026-02-16": 51,
-      "2026-02-10": 13,
-      "2025-12-14": 13,
-      "2025-11-15": 8,
+      "2026-02-19": 39,
+      "2026-02-14": 22,
+      "2026-02-18": 31,
       "2025-12-05": 2,
       "2025-12-04": 8,
       "2025-12-11": 9,
       "2025-11-20": 6,
+      "2025-11-28": 18,
+      "2025-12-13": 3,
+      "2025-12-15": 22,
+      "2025-12-18": 1,
+      "2025-12-02": 16,
+      "2025-11-30": 3,
+      "2025-11-29": 6,
       "2026-02-17": 30,
-      "2026-02-11": 9,
-      "2026-02-08": 9,
+      "2025-11-24": 13,
+      "2025-12-03": 14,
+      "2025-11-15": 8,
+      "2025-11-12": 2,
       "2026-01-21": 1,
       "2026-01-28": 1,
       "2026-01-12": 19,
       "2025-11-09": 5,
-      "2025-12-13": 3,
-      "2026-02-26": 8,
-      "2025-11-12": 2,
-      "2025-12-18": 1,
-      "2025-11-30": 3,
-      "2025-11-29": 6,
-      "2026-02-14": 22,
+      "2025-11-25": 11,
+      "2026-02-11": 9,
+      "2026-02-08": 9,
+      "2026-02-07": 13,
+      "2026-02-04": 11,
+      "2026-01-29": 2,
       "2025-12-12": 2,
       "2025-11-26": 26,
       "2025-11-22": 18,
-      "2025-11-28": 18,
-      "2025-11-25": 11,
       "2026-02-13": 3,
       "2026-02-06": 2,
       "2026-02-03": 1,
@@ -23137,44 +23419,28 @@
     },
     "repoData": [
       {
-        "full_name": "OWASP-BLT/BLT-Newsletter",
-        "description": "The BLT Newsletter",
-        "stargazers_count": 0,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Newsletter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Github-Sportscaster",
-        "description": "A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Github-Sportscaster"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Ideas",
-        "description": "BLT Ideas",
-        "stargazers_count": 14,
-        "forks_count": 15,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Ideas"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-NetGuardian-Client",
-        "description": "The client run on your computer to make the web safer",
-        "stargazers_count": 0,
+        "full_name": "OWASP-BLT/BLT-Tomato",
+        "description": "Scripts related to projects mainly for high level OWASP project management",
+        "stargazers_count": 2,
         "forks_count": 0,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian-Client"
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Tomato"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Hackathons",
-        "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes ",
-        "stargazers_count": 6,
-        "forks_count": 6,
+        "full_name": "OWASP-BLT/.github",
+        "description": "Info on the BLT Repos",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/.github"
+      },
+      {
+        "full_name": "OWASP-BLT/owasp-blt.github.io",
+        "description": "OWASP BLT Main Github Page and Waypoint ",
+        "stargazers_count": 1,
+        "forks_count": 1,
         "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Hackathons"
+        "html_url": "https://github.com/OWASP-BLT/owasp-blt.github.io"
       },
       {
         "full_name": "OWASP-BLT/BLT-Action",
@@ -23185,20 +23451,92 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Action"
       },
       {
-        "full_name": "OWASP-BLT/BLT-CVE",
-        "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
+        "full_name": "OWASP-BLT/BLT-Byte",
+        "description": "AI assistant, orchestrator and agent",
         "stargazers_count": 1,
-        "forks_count": 1,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-CVE"
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Byte"
       },
       {
-        "full_name": "OWASP-BLT/BLT-MCP",
-        "description": "An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces",
-        "stargazers_count": 4,
-        "forks_count": 12,
+        "full_name": "OWASP-BLT/BLT-team",
+        "description": "general team information ",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/BLT-team"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT",
+        "description": "OWASP BLT - Bug Logging Tools",
+        "stargazers_count": 287,
+        "forks_count": 391,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Hackathons",
+        "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes ",
+        "stargazers_count": 6,
+        "forks_count": 6,
         "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-MCP"
+        "html_url": "https://github.com/OWASP-BLT/BLT-Hackathons"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Lettuce",
+        "description": "An intelligent Slack bot for the OWASP community",
+        "stargazers_count": 2,
+        "forks_count": 14,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Lettuce"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-docs",
+        "description": "Official documentation for the OWASP Bug Logging Tool (BLT) project",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/BLT-docs"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Panini",
+        "description": "App Security Ratings",
+        "stargazers_count": 2,
+        "forks_count": 2,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Panini"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Github-Sportscaster",
+        "description": "A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Github-Sportscaster"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Zero",
+        "description": "Zero Trust Bug Reporting without a trace",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/BLT-Zero"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Sizzle",
+        "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
+        "stargazers_count": 2,
+        "forks_count": 7,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Sizzle"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OSSH",
+        "description": "a magical hat that reads your GitHub profile and suggests blogs or projects you might like ",
+        "stargazers_count": 0,
+        "forks_count": 2,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/BLT-OSSH"
       },
       {
         "full_name": "OWASP-BLT/BLT-Flutter",
@@ -23217,284 +23555,12 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Sammich"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Sizzle",
-        "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
-        "stargazers_count": 2,
-        "forks_count": 7,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Sizzle"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-SafeCloak",
-        "description": "secure video chat and voice protection with secure AI notes and consent protection",
-        "stargazers_count": 0,
-        "forks_count": 5,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-SafeCloak"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Preflight",
-        "description": "Provide security intent and risk guidance before contributors submit code to prevent common mistakes and improve contributor understanding",
-        "stargazers_count": 1,
-        "forks_count": 7,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Preflight"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Bumper",
-        "description": "OWASP repo dashboard with smart insights & metrics",
-        "stargazers_count": 3,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Bumper"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Rewards",
-        "description": "BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem. By integrating with Bitcoin Core and utilizing the Runes protocol, BACON introduces a transparent, secure, and gamified environment that rewards developers and contributors for their efforts.",
-        "stargazers_count": 6,
-        "forks_count": 10,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Rewards"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT",
-        "description": "OWASP BLT - Bug Logging Tools",
-        "stargazers_count": 287,
-        "forks_count": 391,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Timer-Flutter",
-        "description": "Flutter App for local time tracking",
-        "stargazers_count": 0,
-        "forks_count": 0,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Flutter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-API",
-        "description": "Full-featured REST API for OWASP BLT",
-        "stargazers_count": 0,
-        "forks_count": 5,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-API"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Panini",
-        "description": "App Security Ratings",
-        "stargazers_count": 2,
-        "forks_count": 2,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Panini"
-      },
-      {
-        "full_name": "OWASP-BLT/.github",
-        "description": "Info on the BLT Repos",
-        "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/.github"
-      },
-      {
         "full_name": "OWASP-BLT/BLT-Monitor",
         "description": "Monitors a website using Github Actions",
         "stargazers_count": 2,
         "forks_count": 8,
         "language": "HTML",
         "html_url": "https://github.com/OWASP-BLT/BLT-Monitor"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Zero",
-        "description": "Zero Trust Bug Reporting without a trace",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/BLT-Zero"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-University",
-        "description": "Security related courses and knowledge transfer",
-        "stargazers_count": 2,
-        "forks_count": 5,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-University"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Timer-Web",
-        "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
-        "stargazers_count": 2,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Web"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Tomato",
-        "description": "Scripts related to projects mainly for high level OWASP project management",
-        "stargazers_count": 2,
-        "forks_count": 0,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Tomato"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Jobs",
-        "description": "A community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages.",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Jobs"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-NetGuardian",
-        "description": "an agent that continually scans the web making it secure by reporting bugs",
-        "stargazers_count": 2,
-        "forks_count": 5,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Lettuce",
-        "description": "An intelligent Slack bot for the OWASP community",
-        "stargazers_count": 2,
-        "forks_count": 14,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Lettuce"
-      },
-      {
-        "full_name": "OWASP-BLT/MY-GSOC-TOOL",
-        "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation ",
-        "stargazers_count": 7,
-        "forks_count": 20,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/MY-GSOC-TOOL"
-      },
-      {
-        "full_name": "OWASP-BLT/owasp-blt.github.io",
-        "description": "OWASP BLT Main Github Page and Waypoint ",
-        "stargazers_count": 1,
-        "forks_count": 1,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/owasp-blt.github.io"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Design-Contest",
-        "description": "Design Contest Website",
-        "stargazers_count": 1,
-        "forks_count": 1,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Design-Contest"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Next",
-        "description": "a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value",
-        "stargazers_count": 4,
-        "forks_count": 18,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Next"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-GitHub-App",
-        "description": "BLT GitHub App that integrates BLT services into GitHub",
-        "stargazers_count": 0,
-        "forks_count": 1,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-GitHub-App"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Wich",
-        "description": "OWASP Project compliance checker can be used on other repos too ",
-        "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Wich"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT--Byte",
-        "description": "AI assistant, orchestrator and agent",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT--Byte"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-on-Cloudflare",
-        "description": "BLT on Cloudflare",
-        "stargazers_count": 2,
-        "forks_count": 8,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-on-Cloudflare"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-docs",
-        "description": "Official documentation for the OWASP Bug Logging Tool (BLT) project",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/BLT-docs"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-GSOC",
-        "description": "GSOC related",
-        "stargazers_count": 1,
-        "forks_count": 10,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-GSOC"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-team",
-        "description": "general team information ",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/BLT-team"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Design",
-        "description": "Our design system light and dark mode, logos, colors etc. ",
-        "stargazers_count": 0,
-        "forks_count": 1,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Design"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Extension",
-        "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
-        "stargazers_count": 3,
-        "forks_count": 13,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Extension"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Projects",
-        "description": "A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.",
-        "stargazers_count": 0,
-        "forks_count": 0,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Projects"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Leaf",
-        "description": "PR readiness checker ",
-        "stargazers_count": 5,
-        "forks_count": 13,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Leaf"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Toasty",
-        "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
-        "stargazers_count": 4,
-        "forks_count": 4,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Toasty"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Pages",
-        "description": "Pages Based UI issue reporting platform",
-        "stargazers_count": 0,
-        "forks_count": 1,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages"
       },
       {
         "full_name": "OWASP-BLT/BLT-OWASP-metadata",
@@ -23505,12 +23571,196 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata"
       },
       {
-        "full_name": "OWASP-BLT/BLT-OSSH",
-        "description": "a magical hat that reads your GitHub profile and suggests blogs or projects you might like ",
+        "full_name": "OWASP-BLT/BLT-Next",
+        "description": "a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value",
+        "stargazers_count": 4,
+        "forks_count": 19,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Next"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Design",
+        "description": "Our design system light and dark mode, logos, colors etc. ",
+        "stargazers_count": 0,
+        "forks_count": 1,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Design"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-NetGuardian",
+        "description": "an agent that continually scans the web making it secure by reporting bugs",
+        "stargazers_count": 2,
+        "forks_count": 5,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Leaf",
+        "description": "PR readiness checker ",
+        "stargazers_count": 5,
+        "forks_count": 13,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Leaf"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-Projects",
+        "description": "A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Projects"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-CVE",
+        "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
+        "stargazers_count": 1,
+        "forks_count": 1,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-CVE"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-on-Cloudflare",
+        "description": "BLT on Cloudflare",
+        "stargazers_count": 2,
+        "forks_count": 8,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-on-Cloudflare"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-Bumper",
+        "description": "OWASP repo dashboard with smart insights & metrics",
+        "stargazers_count": 3,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Bumper"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-University",
+        "description": "Security related courses and knowledge transfer",
+        "stargazers_count": 2,
+        "forks_count": 5,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-University"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Newsletter",
+        "description": "The BLT Newsletter",
         "stargazers_count": 0,
         "forks_count": 2,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/BLT-OSSH"
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Newsletter"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Design-Contest",
+        "description": "Design Contest Website",
+        "stargazers_count": 1,
+        "forks_count": 1,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Design-Contest"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Timer-Web",
+        "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
+        "stargazers_count": 2,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Web"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-GitHub-App",
+        "description": "BLT GitHub App that integrates BLT services into GitHub",
+        "stargazers_count": 0,
+        "forks_count": 1,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-GitHub-App"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Preflight",
+        "description": "Provide security intent and risk guidance before contributors submit code to prevent common mistakes and improve contributor understanding",
+        "stargazers_count": 1,
+        "forks_count": 7,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Preflight"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Timer-Flutter",
+        "description": "Flutter App for local time tracking",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Flutter"
+      },
+      {
+        "full_name": "OWASP-BLT/MY-GSOC-TOOL",
+        "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation ",
+        "stargazers_count": 7,
+        "forks_count": 20,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/MY-GSOC-TOOL"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-GSOC",
+        "description": "GSOC related",
+        "stargazers_count": 1,
+        "forks_count": 10,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-GSOC"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Extension",
+        "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
+        "stargazers_count": 3,
+        "forks_count": 13,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Extension"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-Wich",
+        "description": "OWASP Project compliance checker can be used on other repos too ",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Wich"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-MCP",
+        "description": "An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces",
+        "stargazers_count": 4,
+        "forks_count": 12,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-MCP"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Rewards",
+        "description": "BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem. By integrating with Bitcoin Core and utilizing the Runes protocol, BACON introduces a transparent, secure, and gamified environment that rewards developers and contributors for their efforts.",
+        "stargazers_count": 6,
+        "forks_count": 10,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Rewards"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Jobs",
+        "description": "A community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages.",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Jobs"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Ideas",
+        "description": "BLT Ideas",
+        "stargazers_count": 14,
+        "forks_count": 15,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Ideas"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-API",
+        "description": "Full-featured REST API for OWASP BLT",
+        "stargazers_count": 0,
+        "forks_count": 5,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-API"
       },
       {
         "full_name": "OWASP-BLT/BLT-Personal-Privacy-Protection",
@@ -23521,12 +23771,44 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Personal-Privacy-Protection"
       },
       {
+        "full_name": "OWASP-BLT/BLT-SafeCloak",
+        "description": "secure video chat and voice protection with secure AI notes and consent protection",
+        "stargazers_count": 0,
+        "forks_count": 6,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-SafeCloak"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-NetGuardian-Client",
+        "description": "The client run on your computer to make the web safer",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian-Client"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Pages",
+        "description": "Pages Based UI issue reporting platform",
+        "stargazers_count": 0,
+        "forks_count": 1,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages"
+      },
+      {
         "full_name": "OWASP-BLT/BLT-Rewards",
         "description": "BACON is a cutting-edge Bitcoin-based token system designed to incentivize engagement and contributions within the OWASP BLT ecosystem. By integrating with Bitcoin Core and utilizing the Runes protocol, BACON introduces a transparent, secure, and gamified environment that rewards developers and contributors for their efforts.",
         "stargazers_count": 6,
         "forks_count": 10,
         "language": "HTML",
         "html_url": "https://github.com/OWASP-BLT/BLT-Rewards"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Toasty",
+        "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
+        "stargazers_count": 4,
+        "forks_count": 4,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Toasty"
       }
     ]
   }
