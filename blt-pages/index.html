@@ -87,12 +87,12 @@
   <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT Pages home">
-        <img
-          src="src/logo.png"
-          alt="BLT logo"
-          class="h-9 w-9 rounded-md object-contain"
-          onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
-        />
+      <img
+        src="./static/logo.png"
+        alt="BLT logo"
+        class="h-8 w-8 rounded-md object-contain"
+        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
+      />
         <span class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
         <div>
           <p class="text-sm font-extrabold leading-none">BLT Pages</p>
@@ -101,11 +101,11 @@
       </a>
 
       <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-        <a href="#features" class="section-link text-sm font-semibold text-red-600">Features</a>
-        <a href="#how-it-works" class="section-link text-sm font-semibold text-red-600">How it works</a>
-        <a href="#leaderboard" class="section-link text-sm font-semibold text-red-600">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold text-red-600">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold text-red-600">
+        <a href="#features" class="section-link text-sm font-semibold">Features</a>
+        <a href="#how-it-works" class="section-link text-sm font-semibold">How it works</a>
+        <a href="#leaderboard" class="section-link text-sm font-semibold">Leaderboard</a>
+        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold">Pricing</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold">
           <i class="fa-brands fa-github mr-1" aria-hidden="true"></i>GitHub
         </a>
       </nav>
@@ -198,72 +198,6 @@
               </div>
             </dl>
           </div>
-
-          <aside class="surface-card h-fit rounded-2xl p-5 lg:sticky lg:top-24" aria-label="Quick navigation">
-            <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-gray-500">Quick navigation</p>
-
-            <label for="page-search" class="sr-only">Search this page</label>
-            <div class="relative mt-4">
-              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-              </span>
-              <input
-                id="page-search"
-                type="search"
-                placeholder="Search sections"
-                class="w-full rounded-md border border-gray-400 px-4 py-2 pl-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600"
-              />
-            </div>
-
-            <div class="mt-5 rounded-lg border border-neutral-border p-3">
-              <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500">Overview</p>
-              <ul class="space-y-1 text-sm font-semibold">
-                <li>
-                  <a href="#features" class="flex items-center gap-2 rounded-md bg-active-bg px-3 py-2 text-primary">
-                    <i class="fa-solid fa-list-check" aria-hidden="true"></i>Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#recent-bugs" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">
-                    <i class="fa-solid fa-clock-rotate-left text-gray-400" aria-hidden="true"></i>Recent reports
-                  </a>
-                </li>
-                <li>
-                  <a href="#how-it-works" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">
-                    <i class="fa-solid fa-gears text-gray-400" aria-hidden="true"></i>How it works
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div class="mt-3 rounded-lg border border-neutral-border p-3">
-              <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500">Reporting paths</p>
-              <ul class="space-y-1 text-sm font-semibold">
-                <li>
-                  <a href="#reporting" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">
-                    <i class="fa-solid fa-bug text-gray-400" aria-hidden="true"></i>Public bug intake
-                  </a>
-                </li>
-                <li>
-                  <a href="https://blt-zero.owasp.org" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">
-                    <i class="fa-solid fa-shield-halved text-gray-400" aria-hidden="true"></i>Private vulnerability reporting
-                  </a>
-                </li>
-                <li>
-                  <a href="#leaderboard" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">
-                    <i class="fa-solid fa-trophy text-gray-400" aria-hidden="true"></i>Leaderboard
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <a
-              href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-              class="mt-5 inline-flex w-full items-center justify-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
-            >
-              <i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Open issue template
-            </a>
-          </aside>
         </div>
       </div>
     </section>
@@ -557,7 +491,7 @@
         <div>
           <div class="mb-3 flex items-center gap-2">
             <img
-              src="src/logo.png"
+              src="./static/logo.png"
               alt="BLT logo"
               class="h-8 w-8 rounded-md object-contain"
               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
