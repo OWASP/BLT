@@ -562,9 +562,29 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
           <p class="text-3xl font-black text-[#E10101]">$25</p>
           <p>Top Prize</p>
         </div>
-        <div>
-          <p class="text-3xl font-black text-[#E10101]">Mar 1</p>
-          <p>Deadline</p>
+        <div class="col-span-2 sm:col-span-1">
+          <div id="countdown" class="flex justify-center gap-3 text-[#E10101]">
+            <span class="flex flex-col items-center">
+              <span id="cd-days" class="text-3xl font-black">--</span>
+              <span class="text-xs">days</span>
+            </span>
+            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
+            <span class="flex flex-col items-center">
+              <span id="cd-hours" class="text-3xl font-black">--</span>
+              <span class="text-xs">hrs</span>
+            </span>
+            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
+            <span class="flex flex-col items-center">
+              <span id="cd-mins" class="text-3xl font-black">--</span>
+              <span class="text-xs">min</span>
+            </span>
+            <span class="text-3xl font-black leading-none self-start pt-1">:</span>
+            <span class="flex flex-col items-center">
+              <span id="cd-secs" class="text-3xl font-black">--</span>
+              <span class="text-xs">sec</span>
+            </span>
+          </div>
+          <p>Until Deadline</p>
         </div>
         <div class="col-span-2 sm:col-span-1">
           <p class="text-3xl font-black text-[#E10101]">∞</p>
@@ -847,6 +867,40 @@ def build_html(cards: list[str], total: int, last_updated: str) -> str:
         }}
         container.innerHTML = html;
       }}
+    }})();
+
+    // Countdown timer to contest deadline (March 1 2026 00:00:00 UTC)
+    (function () {{
+      const deadline = new Date('2026-03-01T00:00:00Z').getTime();
+      const els = {{
+        days:  document.getElementById('cd-days'),
+        hours: document.getElementById('cd-hours'),
+        mins:  document.getElementById('cd-mins'),
+        secs:  document.getElementById('cd-secs'),
+      }};
+      if (!els.days) return;
+      function pad(n) {{ return String(n).padStart(2, '0'); }}
+      function tick() {{
+        const diff = deadline - Date.now();
+        if (diff <= 0) {{
+          els.days.textContent = '00';
+          els.hours.textContent = '00';
+          els.mins.textContent  = '00';
+          els.secs.textContent  = '00';
+          clearInterval(intervalId);
+          return;
+        }}
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000)  /   60000);
+        const s = Math.floor((diff %   60000)  /    1000);
+        els.days.textContent  = pad(d);
+        els.hours.textContent = pad(h);
+        els.mins.textContent  = pad(m);
+        els.secs.textContent  = pad(s);
+      }}
+      tick();
+      const intervalId = setInterval(tick, 1000);
     }})();
   </script>
 </body>
