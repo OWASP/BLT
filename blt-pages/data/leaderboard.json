@@ -11,6 +11,18 @@
       "profile_url": "https://github.com/DonnieBLT"
     }
   ],
+  "top_commenters": [
+    {
+      "rank": 1,
+      "login": "DonnieBLT",
+      "count": 5,
+      "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "profile_url": "https://github.com/DonnieBLT"
+    }
+  ],
+  "top_domains": [
+    { "rank": 1, "domain": "owasp.org", "count": 2 }
+  ],
   "recent_bugs": [
     {
       "number": 8,

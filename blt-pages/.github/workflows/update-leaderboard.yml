@@ -85,6 +85,64 @@ jobs:
                 profile_url: data.profile_url,
               }));
 
+            // Extract domain from the URL field in an issue body
+            function extractDomain(body) {
+              if (!body) return null;
+              const match = body.match(/### URL\s*\n\n(https?:\/\/([^/\s\n]+))/);
+              if (!match) return null;
+              try { return new URL(match[1]).hostname; } catch { return null; }
+            }
+
+            // Build top-domains leaderboard
+            const domainCounts = {};
+            for (const issue of bugIssues) {
+              const domain = extractDomain(issue.body);
+              if (domain) domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+            }
+            const topDomains = Object.entries(domainCounts)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 20)
+              .map(([domain, count], idx) => ({ rank: idx + 1, domain, count }));
+
+            // Build top-commenters leaderboard (fetch all issues' comments in parallel)
+            const commentCounts = {};
+            const allCommentArrays = await Promise.all(
+              bugIssues.map(issue =>
+                github.paginate(
+                  github.rest.issues.listComments,
+                  {
+                    owner: context.repo.owner,
+                    repo:  context.repo.repo,
+                    issue_number: issue.number,
+                    per_page: 100,
+                  }
+                )
+              )
+            );
+            for (const comments of allCommentArrays) {
+              for (const comment of comments) {
+                const login = comment.user.login;
+                if (!commentCounts[login]) {
+                  commentCounts[login] = {
+                    count:       0,
+                    avatar_url:  comment.user.avatar_url,
+                    profile_url: comment.user.html_url,
+                  };
+                }
+                commentCounts[login].count++;
+              }
+            }
+            const topCommenters = Object.entries(commentCounts)
+              .sort(([, a], [, b]) => b.count - a.count)
+              .slice(0, 20)
+              .map(([login, data], idx) => ({
+                rank:        idx + 1,
+                login,
+                count:       data.count,
+                avatar_url:  data.avatar_url,
+                profile_url: data.profile_url,
+              }));
+
             // Extract first image URL from an issue body (markdown or HTML)
             function extractFirstImage(body) {
               if (!body) return null;
@@ -113,11 +171,13 @@ jobs:
             }));
 
             const payload = {
-              updated_at:  new Date().toISOString(),
-              total_bugs:  bugIssues.length,
-              total_orgs:  orgSet.size,
+              updated_at:     new Date().toISOString(),
+              total_bugs:     bugIssues.length,
+              total_orgs:     orgSet.size,
               leaderboard,
-              recent_bugs: recentBugs,
+              top_commenters: topCommenters,
+              top_domains:    topDomains,
+              recent_bugs:    recentBugs,
             };
 
             fs.mkdirSync('data', { recursive: true });
@@ -128,7 +188,8 @@ jobs:
 
             console.log(
               `Leaderboard updated: ${bugIssues.length} bugs, ` +
-              `${leaderboard.length} reporters, ${orgSet.size} orgs`
+              `${leaderboard.length} reporters, ${orgSet.size} orgs, ` +
+              `${topCommenters.length} commenters, ${topDomains.length} domains`
             );
 
       - name: Commit updated leaderboard
