@@ -491,7 +491,50 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     else:
         logger.info("No new PRs to fetch reviews for %s", name)
 
-    # Fetch all issues across all repositories in parallel
+    # Merge with old reviews if incremental
+    if since and existing_data:
+        old_reviews = []
+        old_participants = existing_data.get("stats", {}).get("leaderboard", []) + \
+                          existing_data.get("stats", {}).get("reviewLeaderboard", [])
+        
+        # Track which PRs we just fetched reviews for, so we don't duplicate them
+        newly_fetched_pr_urls = {pr["html_url"] for pr in prs_to_fetch_reviews}
+        
+        # Extract reviews from existing leaderboard/paticipants
+        seen_review_ids = {r["id"] for r in all_reviews if r.get("id")}
+        
+        for p in old_participants:
+            for r in p.get("reviews", []):
+                review_id = r.get("id")
+                pr_url = r.get("pull_request_url")
+                
+                # Skip if we just fetched fresh reviews for this PR
+                if pr_url in newly_fetched_pr_urls:
+                    continue
+                    
+                # Skip if we somehow already have this review ID
+                if review_id and review_id in seen_review_ids:
+                    continue
+                
+                # Reconstruct enough of the review object for process_hackathon_stats
+                # We need: user.login, submitted_at, state, id, html_url, pull_request_url, pull_request_title
+                reconstructed_review = {
+                    "id": review_id,
+                    "user": {"login": p["username"]},
+                    "submitted_at": r.get("submitted_at"),
+                    "state": r.get("state"),
+                    "html_url": r.get("html_url"),
+                    "pull_request_url": pr_url,
+                    "pull_request_title": r.get("pull_request_title"),
+                }
+                old_reviews.append(reconstructed_review)
+                if review_id:
+                    seen_review_ids.add(review_id)
+        
+        logger.info("Merged %d old reviews from existing data", len(old_reviews))
+        all_reviews.extend(old_reviews)
+
+    # Fetch all issues across all repositories
     all_issues = []
     logger.info("Fetching issues for %d repositories in parallel...", len(repositories))
     
