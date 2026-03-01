@@ -44,7 +44,7 @@
 
 <!-- ===== TOP NAV ===== -->
 <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-  <div class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+  <div id="header-inner" class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
     <!-- Logo -->
     <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 shrink-0">
@@ -210,7 +210,8 @@
   </aside>
 
   <!-- ===== CONTENT ===== -->
-  <main class="flex-1 min-w-0">
+  <main class="flex-1 min-w-0 overflow-x-auto">
+  <div id="content-inner">
 
     <!-- Cumulative stats -->
     <section aria-label="Cumulative statistics" class="mb-6">
@@ -293,6 +294,7 @@
           document.getElementById('repo-table').classList.remove('hidden');
           document.getElementById('main-sidebar').classList.add('force-hidden');
           document.getElementById('main-layout').classList.add('table-view');
+          document.querySelector('header').classList.add('table-view-header');
         }
       })();
     </script>
@@ -322,6 +324,7 @@
       </button>
     </div>
 
+  </div><!-- #content-inner -->
   </main>
 </div>
 

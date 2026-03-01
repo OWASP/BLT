@@ -480,12 +480,14 @@ function renderRepos(repos) {
     table.classList.remove('hidden');
     document.getElementById('main-sidebar').classList.add('force-hidden');
     document.getElementById('main-layout').classList.add('table-view');
+    document.querySelector('header').classList.add('table-view-header');
     renderTableView(repos, table);
   } else {
     table.classList.add('hidden');
     grid.classList.remove('hidden');
     document.getElementById('main-sidebar').classList.remove('force-hidden');
     document.getElementById('main-layout').classList.remove('table-view');
+    document.querySelector('header').classList.remove('table-view-header');
     grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
   }
 }
@@ -531,6 +533,16 @@ function repoCardHTML(r) {
   const { label: matLabel, color: matColor, bg: matBg } = maturityMeta(score);
   const maturityBadge = `<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100"><i class="fa-solid fa-rocket" aria-hidden="true"></i>${matLabel} ${score}</span>`;
 
+  // Cloud icon for repos with wrangler.toml
+  const wranglerIcon = r.has_wrangler_toml
+    ? `<i class="fa-solid fa-cloud text-sky-500 text-xs" title="Uses Cloudflare Workers (wrangler.toml)" aria-label="Cloudflare Workers"></i>`
+    : '';
+
+  // Page/scroll icon for repos with GitHub Pages enabled
+  const pagesIcon = r.has_pages
+    ? `<i class="fa-solid fa-scroll text-purple-500 text-xs" title="GitHub Pages enabled" aria-label="GitHub Pages"></i>`
+    : '';
+
   // Project board URL (rocket button)
   const projectUrl = PROJECT_URLS[r.name];
 
@@ -549,6 +561,7 @@ function repoCardHTML(r) {
           >${escapeHtml(r.name)}</a>
           ${archiveBadge}${forkBadge}${privateBadge}
           ${maturityBadge}
+          ${wranglerIcon}${pagesIcon}
         </div>
         <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
           ${escapeHtml(r.description) || '<span class="italic">No description</span>'}
@@ -778,10 +791,16 @@ function renderTableView(repos, container) {
     const gsocBadge = gsocTopic
       ? `<span class="inline-block gsoc-label text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-1">${escapeHtml(gsocTopic)}</span>`
       : '';
+    const wranglerIcon = r.has_wrangler_toml
+      ? `<i class="fa-solid fa-cloud text-sky-500 text-xs ml-1" title="Uses Cloudflare Workers (wrangler.toml)" aria-label="Cloudflare Workers"></i>`
+      : '';
+    const pagesIcon = r.has_pages
+      ? `<i class="fa-solid fa-scroll text-purple-500 text-xs ml-1" title="GitHub Pages enabled" aria-label="GitHub Pages"></i>`
+      : '';
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
         <div class="flex items-center gap-1 flex-wrap">
-          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}
+          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}${wranglerIcon}${pagesIcon}
         </div>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
