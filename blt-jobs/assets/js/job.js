@@ -374,6 +374,11 @@ function initJobDetail() {
         return;
       }
 
+      // Track job view
+      if (window.BLTAnalytics && typeof window.BLTAnalytics.trackJobView === 'function') {
+        window.BLTAnalytics.trackJobView(job.id);
+      }
+
       renderJob(job);
     })
     .catch((err) => {

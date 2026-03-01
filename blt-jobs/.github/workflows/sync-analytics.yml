@@ -1,0 +1,100 @@
+name: Sync Analytics Data
+
+on:
+  # Manual trigger with analytics data
+  workflow_dispatch:
+    inputs:
+      analytics_data:
+        description: 'Analytics data JSON (from BLTAnalytics.exportAnalytics())'
+        required: true
+        type: string
+
+  # Scheduled sync (weekly)
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight UTC
+
+jobs:
+  sync-analytics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update view counts
+        id: update_counts
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const matter = require('gray-matter');
+          
+          // Get analytics data from workflow input or use empty object
+          const analyticsData = process.env.ANALYTICS_DATA 
+            ? JSON.parse(process.env.ANALYTICS_DATA) 
+            : {};
+          
+          console.log('Analytics data:', analyticsData);
+          
+          const jobsDir = path.join(process.cwd(), 'jobs');
+          const files = fs.readdirSync(jobsDir)
+            .filter(f => f.endsWith('.md') && f !== 'README.md');
+          
+          let updatedCount = 0;
+          
+          for (const file of files) {
+            const filePath = path.join(jobsDir, file);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const { data: frontmatter, content: body } = matter(content);
+            
+            const jobId = path.basename(file, '.md');
+            
+            // Update view count if we have analytics data for this job
+            if (analyticsData[jobId]) {
+              const newCount = analyticsData[jobId].count || 0;
+              const currentCount = parseInt(frontmatter.views_count) || 0;
+              
+              // Only update if the new count is higher
+              if (newCount > currentCount) {
+                frontmatter.views_count = newCount.toString();
+                
+                // Reconstruct the file
+                const newContent = matter.stringify(body, frontmatter);
+                fs.writeFileSync(filePath, newContent);
+                
+                console.log(`Updated ${jobId}: ${currentCount} -> ${newCount} views`);
+                updatedCount++;
+              }
+            }
+          }
+          
+          console.log(`Updated ${updatedCount} job(s)`);
+          
+          // Set output for commit message
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `updated_count=${updatedCount}\n`);
+          EOF
+        env:
+          ANALYTICS_DATA: ${{ github.event.inputs.analytics_data || '{}' }}
+
+      - name: Rebuild jobs.json
+        if: steps.update_counts.outputs.updated_count > 0
+        run: npm run build:jobs
+
+      - name: Commit and push changes
+        if: steps.update_counts.outputs.updated_count > 0
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add jobs/*.md data/jobs.json
+          git commit -m "chore: update job view counts (${{ steps.update_counts.outputs.updated_count }} jobs) [skip ci]"
+          git push
