@@ -402,7 +402,7 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
              data-thumbs="{thumbs_count}"
              data-total-reactions="{total_reactions}"
              data-issue-url="{issue_url}"{winner_attr}
-             aria-label="Design submission: {title}">
+             aria-label="Contest submission: {title}">
       {winner_badge}
       {preview_block}
       <div class="p-5 flex flex-col gap-3 flex-1">
@@ -450,7 +450,8 @@ def build_card(issue: dict, reactions: dict, last_comment: dict | None = None,
     </article>"""
 
 
-def build_contest_section(contest: dict, cards: list[str], total: int) -> str:
+def build_contest_section(contest: dict, cards: list[str], total: int,
+                          winner_count: int = 0) -> str:
     """Return the HTML panel for one contest tab (without wrapping <main>)."""
     cid = html.escape(contest["id"])
     name = html.escape(contest["name"])
@@ -461,7 +462,6 @@ def build_contest_section(contest: dict, cards: list[str], total: int) -> str:
         f"https://github.com/{REPO}/issues/new?template={contest['template']}"
     )
     icon = contest["icon"]
-    winner_count = sum(1 for c in cards if 'data-winner="true"' in c)
 
     if cards:
         cards_html = "\n".join(cards)
@@ -592,12 +592,20 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
     # Build contest panels
     contest_panels_html = ""
     for d in contests_data:
-        contest_panels_html += build_contest_section(d["config"], d["cards"], d["total"])
+        contest_panels_html += build_contest_section(
+            d["config"], d["cards"], d["total"], winner_count=d.get("winner_count", 0)
+        )
 
     # For the hero submit URL, use the first contest
     first_submit_url = html.escape(
         f"https://github.com/{REPO}/issues/new?template={contests_data[0]['config']['template']}"
         if contests_data else f"https://github.com/{REPO}/issues/new"
+    )
+
+    # Earliest deadline across all contests (used for the countdown timer)
+    earliest_deadline = min(
+        (d["config"]["deadline"] for d in contests_data),
+        default="2026-06-01T00:00:00Z",
     )
 
     return f"""<!DOCTYPE html>
@@ -947,10 +955,15 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         btn.classList.toggle('dark:text-gray-200', isActive);
 
         const dataKey = sortType === 'thumbs' ? 'thumbs' : 'totalReactions';
-        const cards = !isActive
-          ? [...sortState[cid].originalOrder].sort((a, b) =>
+        // Preserve winner pinning: keep winner cards at the top, only sort within non-winners.
+        const allCards = [...sortState[cid].originalOrder];
+        const winnerCards = allCards.filter(card => card.dataset.winner === 'true');
+        const nonWinnerCards = allCards.filter(card => card.dataset.winner !== 'true');
+        const sortedNonWinners = !isActive
+          ? [...nonWinnerCards].sort((a, b) =>
               parseInt(b.dataset[dataKey] || '0', 10) - parseInt(a.dataset[dataKey] || '0', 10))
-          : [...sortState[cid].originalOrder];
+          : nonWinnerCards;
+        const cards = [...winnerCards, ...sortedNonWinners];
 
         cards.forEach(card => grid.appendChild(card));
       }});
@@ -1098,9 +1111,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       if (tabs.length) switchTab(tabs[0].dataset.tab);
     }})();
 
-    // Countdown timer to contest deadline (June 1 2026 00:00:00 UTC)
+    // Countdown timer to nearest contest deadline
     (function () {{
-      const deadline = new Date('2026-06-01T00:00:00Z').getTime();
+      const deadline = new Date('{earliest_deadline}').getTime();
       const els = {{
         days:  document.getElementById('cd-days'),
         hours: document.getElementById('cd-hours'),
@@ -1140,6 +1153,11 @@ def main() -> None:
     last_updated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
     contests_data = []
 
+    # Fetch all open issues once to use for the title-prefix fallback across all contests
+    print(f"Fetching all open issues from {REPO}…")
+    all_issues = github_request(f"/repos/{REPO}/issues?state=open")
+    print(f"  Found {len(all_issues)} open issues total.")
+
     for contest in CONTESTS:
         label = contest["label"]
         title_prefix = contest["title_prefix"]
@@ -1149,7 +1167,6 @@ def main() -> None:
         print(f"  Found {len(issues)} labelled submissions.")
 
         # Also pick up issues with the correct title prefix that may be missing the label
-        all_issues = github_request(f"/repos/{REPO}/issues?state=open")
         seen = {i["number"] for i in issues}
         for issue in all_issues:
             if issue["number"] not in seen and issue.get("title", "").startswith(title_prefix):
@@ -1159,7 +1176,6 @@ def main() -> None:
 
         print(f"  Total submissions: {len(issues)}.")
 
-        cards = []
         winner_cards = []
         non_winner_cards = []
         for issue in issues:
@@ -1182,6 +1198,7 @@ def main() -> None:
             "config": contest,
             "cards": cards,
             "total": len(cards),
+            "winner_count": len(winner_cards),
         })
 
     page_html = build_html(contests_data, last_updated)
