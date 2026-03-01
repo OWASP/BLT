@@ -79,6 +79,7 @@ function main() {
     created_at: created,
     views_count: 0,
     added_by: addedBy || "",
+    needs_manual_review: false,
   };
 
   const lines = ["---"];

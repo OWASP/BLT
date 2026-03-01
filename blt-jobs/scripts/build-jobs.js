@@ -14,13 +14,16 @@ function mdToJob(filePath) {
   const stem = path.basename(filePath, ".md");
   const { data: fm, content: body } = matter(content);
   const get = (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
-  
+
   // Extract salary from description if not in frontmatter
   const description = (body || get("description") || "").trim();
   let salaryRange = get("salary_range") || null;
   if (!salaryRange && description) {
     salaryRange = extractSalary(description);
   }
+  
+  
+  const needsReview = get("needs_manual_review") === true || get("needs_manual_review") === "true";
   
   return {
     id: stem,
@@ -39,6 +42,7 @@ function mdToJob(filePath) {
     created_at: get("created_at") || new Date().toISOString(),
     views_count: parseInt(get("views_count"), 10) || 0,
     added_by: get("added_by") || null,
+    needs_manual_review: needsReview,
   };
 }
 
@@ -124,6 +128,17 @@ function buildJobs() {
       console.log(`Filtered out ${expiredCount} expired job(s)`);
     }
 
+    
+    // Warn about jobs needing manual review
+    const needsReview = jobs.filter(j => j.needs_manual_review);
+    if (needsReview.length > 0) {
+      console.warn("\n⚠️  WARNING: The following jobs need manual review (possible scrape failures):");
+      needsReview.forEach(j => {
+        console.warn(`   - ${j.id}: ${j.title} (${j.organization_name})`);
+      });
+      console.warn(`\nTotal jobs needing review: ${needsReview.length}\n`);
+    }
+    
     const out = {
       jobs: activeJobs,
       count: activeJobs.length,

@@ -125,6 +125,17 @@ jobs:
         if: steps.duplicate_check.outcome == 'success'
         run: npm run build:jobs
 
+      - name: Check if job needs manual review
+        id: validate
+        run: |
+          JOB_FILE=$(basename "${{ steps.scrape.outputs.path }}" .md)
+          if npm run validate:jobs 2>&1 | grep -q "$JOB_FILE"; then
+            echo "needs_review=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_review=false" >> "$GITHUB_OUTPUT"
+          fi
+        continue-on-error: true
+
       - name: Commit and push job file
         if: steps.duplicate_check.outcome == 'success'
         run: |
@@ -137,7 +148,11 @@ jobs:
       - name: Comment and close issue
         if: steps.duplicate_check.outcome == 'success'
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          if [ "${{ steps.validate.outputs.needs_review }}" = "true" ]; then
+            gh issue comment ${{ github.event.issue.number }} --body " Job added but **needs manual review** (possible scrape failure detected). Please verify the job details at [View on site](https://jobs.owaspblt.org/jobs.html) and update if needed. This issue will be closed."
+          else
+            gh issue comment ${{ github.event.issue.number }} --body "Job added from URL. Listing: [View on site](https://jobs.owaspblt.org/jobs.html). This issue will be closed."
+          fi
           gh issue close ${{ github.event.issue.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

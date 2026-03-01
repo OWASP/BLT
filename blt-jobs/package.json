@@ -2,7 +2,9 @@
   "name": "blt-jobs",
   "private": true,
   "scripts": {
-    "build:jobs": "node scripts/build-jobs.js"
+    "build:jobs": "node scripts/build-jobs.js",
+    "validate:jobs": "node scripts/validate-jobs.js",
+    "list:jobs": "node scripts/list-jobs-status.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3"
