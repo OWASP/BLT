@@ -89,7 +89,7 @@ def make_request(url, token=None, retry_count=3):
     return None
 
 
-def fetch_all_pages(base_url, token=None, max_pages=10):
+def fetch_all_pages(base_url, token=None, max_pages=100):
     """Fetch all pages from a paginated GitHub API endpoint."""
     all_items = []
     page = 1
