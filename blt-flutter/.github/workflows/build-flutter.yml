@@ -9,11 +9,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: "zulu"
+          java-version: "17"
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           architecture: x64
       - run: flutter pub get
       - run: flutter analyze
@@ -21,7 +21,7 @@ jobs:
       - run: flutter build apk
 
       # Upload APK as a build artifact
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -35,7 +35,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           architecture: x64
 
       - name: Clean the build environment
@@ -61,7 +61,7 @@ jobs:
       - name: Build macOS application with verbose logging
         run: flutter build macos --verbose
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-release-app
           path: build/macos/Build/Products/Release/*.app
@@ -75,7 +75,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           architecture: x64
 
       - name: Clean the build environment
@@ -92,7 +92,7 @@ jobs:
       - name: Build Linux application with verbose logging
         run: flutter build linux --verbose
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-release-app
           path: build/linux/x64/release/bundle/*
@@ -106,7 +106,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           architecture: x64
 
       - name: Clean the build environment
@@ -125,7 +125,7 @@ jobs:
       - name: Build Windows application with verbose logging
         run: flutter build windows --verbose
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-release-app
           path: build/windows/x64/runner/Release/*.exe
