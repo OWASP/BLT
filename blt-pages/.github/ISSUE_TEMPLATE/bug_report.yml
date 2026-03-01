@@ -5,53 +5,12 @@ labels:
   - bug
 assignees: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## Bug Report
-        Thank you for helping make the web better!
-        Please fill in as much detail as possible — every field helps the organization fix the issue faster.
-
   - type: input
-    id: org_name
+    id: url
     attributes:
-      label: Organization Name (ORG_NAME)
-      description: Name of the organization whose website/product is affected.
-      placeholder: "e.g., Example Corp"
-    validations:
-      required: true
-
-  - type: input
-    id: logo_url
-    attributes:
-      label: Organization Logo URL (LOGO_URL)
-      description: Direct URL to the organization's logo image (used on the leaderboard).
-      placeholder: "https://example.com/logo.png"
-    validations:
-      required: false
-
-  - type: input
-    id: link
-    attributes:
-      label: Bug URL / Link
+      label: URL
       description: The full URL where the bug can be reproduced.
       placeholder: "https://example.com/page-with-bug"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: category
-    attributes:
-      label: Bug Category
-      description: Select the category that best describes the issue.
-      options:
-        - "HTTP Error (404, 500, etc.)"
-        - "Functional Issue (something broken)"
-        - "Performance Issue (slow loading)"
-        - "Typo / Content Error"
-        - "Design Issue"
-        - "Intellectual Property Violation (trademark / license)"
-        - "Other"
     validations:
       required: true
 
@@ -59,50 +18,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: Describe the bug clearly. What did you expect to happen? What actually happened?
-      placeholder: "Please describe the issue in detail…"
-      render: markdown
+      description: Describe the bug clearly. You can drag and drop screenshots or images directly into this field.
+      placeholder: "Describe the issue and drag/drop screenshots here…"
     validations:
       required: true
-
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to Reproduce
-      description: Numbered steps that reproduce the issue reliably.
-      placeholder: |
-        1. Go to https://…
-        2. Click on "…"
-        3. See error
-    validations:
-      required: false
-
-  - type: input
-    id: screenshot_url
-    attributes:
-      label: Screenshot / Evidence URL
-      description: Link to a screenshot or screen recording showing the issue.
-      placeholder: "https://imgur.com/…"
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: anonymous
-    attributes:
-      label: Anonymity
-      options:
-        - label: >
-            I submitted this report anonymously via BLT-API (do not associate
-            this issue with my GitHub account)
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: confirmation
-    attributes:
-      label: Confirmation
-      options:
-        - label: I confirm this is a publicly visible issue and not a security vulnerability.
-          required: true
-        - label: I have searched for existing reports and this is not a duplicate.
-          required: true
