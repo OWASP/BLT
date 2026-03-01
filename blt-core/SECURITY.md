@@ -14,7 +14,7 @@ Follow the prompts to submit a private security advisory.
 
 ### 2. Responsible Disclosure Process
 
-We ask security researchers to:
+We ask anyone submitting a disclosure to:
 - Allow us reasonable time to fix the vulnerability before public disclosure (typically 90 days)
 - Follow up every 30 days on the advisory thread to check on the progress
 - Not exploit the vulnerability or demonstrate it on live systems
