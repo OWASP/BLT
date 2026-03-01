@@ -3,59 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Monitors</title>
+    <title>BLT Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { font-family: 'Segoe UI', system-ui, sans-serif; }
+      .card-hover { transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease; }
+      .card-hover:hover { transform: translateY(-1px); }
+    </style>
 </head>
-<body class="bg-slate-50 text-gray-800 m-0 p-0 font-sans">
-<div class="max-w-7xl mx-auto p-4 sm:p-6 my-2 sm:my-4">
-  <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4">
-    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2.5 mb-2">
-      <i class="fa-solid fa-globe"></i> Website Monitors
-    </h1>
-    <p class="text-gray-600 text-sm sm:text-base mb-3">Monitor multiple websites and view their uptime status at a glance</p>
-    <div class="flex items-center gap-2">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" target="_blank" class="inline-block">
-        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
-      </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank">
-        <img alt="GitHub stars" src="https://img.shields.io/github/stars/OWASP-BLT/BLT-Monitor?style=social">
-      </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/fork" target="_blank" class="inline-flex items-center gap-1">
-        <img alt="GitHub forks" src="https://img.shields.io/github/forks/OWASP-BLT/BLT-Monitor?style=social">
+<body class="bg-[#0a0f1e] text-[#e2e8f0] m-0 p-0">
+
+<nav class="bg-[#0f172a] border-b border-slate-800 px-4 sm:px-6 py-3 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-3 mb-4 flex items-center justify-between">
+    <div class="flex items-center gap-2 font-bold text-lg">
+      <img src="https://api.owaspblt.org/logo.png" class="w-[30px]" alt="BLT"/>
+      <span class="text-[#e2e8f0]">OWASP <span class="text-red-500">BLT</span></span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank"
+         class="flex items-center gap-1.5 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
+        <i class="fa-brands fa-github"></i>
+        <span>GitHub</span>
       </a>
     </div>
   </div>
-  
+</nav>
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 my-2 sm:my-6">
+
+  <!-- Header Card -->
+  <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-5 sm:p-7 mb-6 relative overflow-hidden">
+    <!-- subtle red glow top-left -->
+    <div class="absolute -top-10 -left-10 w-48 h-48 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 mb-1.5 relative z-10">
+      <i class="fa-solid fa-globe text-red-500"></i>
+      <span>Website Monitors</span>
+    </h1>
+    <p class="text-slate-400 text-sm sm:text-base mb-4 relative z-10">Monitor multiple websites and view their uptime status at a glance</p>
+    <div class="flex items-center gap-2 flex-wrap relative z-10">
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" target="_blank"
+         class="inline-block rounded overflow-hidden border border-slate-700">
+        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/stargazers" target="_blank"
+         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-yellow-700/60 bg-yellow-900/30 text-yellow-300 text-xs font-medium hover:bg-yellow-800/50 hover:shadow-md hover:shadow-yellow-900/40 transition-all">
+        <i class="fa-regular fa-star"></i> Stars <span id="gh-stars" class="font-bold">...</span>
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT-Monitor/forks" target="_blank"
+         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-blue-700/60 bg-blue-900/30 text-blue-300 text-xs font-medium hover:bg-blue-800/50 hover:shadow-md hover:shadow-blue-900/40 transition-all">
+        <i class="fa-solid fa-code-fork"></i> Forks <span id="gh-forks" class="font-bold">...</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Monitor Cards -->
   <div id="monitors-list" class="space-y-3">
     <!-- Monitor cards will be inserted here -->
   </div>
 </div>
+
 <script>
-// Fetch monitors configuration
 fetch('monitors.json')
   .then(r => r.json())
   .then(monitors => {
     const container = document.getElementById('monitors-list');
-    
     monitors.forEach(monitor => {
-      // Determine the CSV file name - try the new pattern first, fall back to status.csv
       const csvFile = monitors.length > 1 ? `status-${monitor.id}.csv` : 'status.csv';
-      
       fetch(csvFile)
         .then(r => r.text())
         .then(csv => {
           const rows = parseCSV(csv);
           const lastRow = rows[rows.length - 1];
-          
-          // Create monitor card
           const card = createMonitorCard(monitor, rows, lastRow, csvFile);
           container.appendChild(card);
         })
         .catch(err => {
           console.error(`Failed to load data for ${monitor.id}:`, err);
-          // Create card with error state
           const card = createMonitorCard(monitor, [], null, csvFile);
           container.appendChild(card);
         });
@@ -63,8 +88,8 @@ fetch('monitors.json')
   })
   .catch(err => {
     console.error('Failed to load monitors configuration:', err);
-    document.getElementById('monitors-list').innerHTML = 
-      '<div class="bg-red-100 text-red-800 border border-red-200 rounded-lg p-4 text-center">Failed to load monitors configuration</div>';
+    document.getElementById('monitors-list').innerHTML =
+      '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
   });
 
 function parseCSV(csv) {
@@ -74,11 +99,8 @@ function parseCSV(csv) {
 
 function escapeHTML(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function safeUrl(url) {
@@ -95,140 +117,161 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
   card.setAttribute('tabindex', '0');
   card.setAttribute('role', 'link');
   card.setAttribute('aria-label', `View details for ${monitor.name}`);
-  card.className = 'block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500';
-  
-  // Calculate status
+  card.className = 'card-hover block bg-[#0f172a] border border-slate-800 rounded-xl hover:border-slate-600 hover:shadow-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500';
+
   let status = 'unknown';
-  let statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
+  let statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700';
   let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
   let responseTime = '--';
   let lastCheck = 'Never';
-  
+
   if (lastRow) {
     const isSuccess = lastRow[2] === 'success';
     const keywordFound = lastRow[3] === 'found';
     status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
-    
-    // Set badge class and icon based on status
+
     if (status === 'up') {
-      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-800';
       statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
     } else if (status === 'warning') {
-      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800';
+      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
       statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
     } else if (status === 'down') {
-      statusBadgeClass = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800';
       statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
     }
-    
+
     responseTime = parseInt(lastRow[1]).toLocaleString() + ' ms';
-    
-    const checkDate = new Date(lastRow[0]);
-    lastCheck = timeAgo(checkDate);
+    lastCheck = timeAgo(new Date(lastRow[0]));
   }
-  
-  // Create sparkline canvas
+
   const canvasId = `chart-${monitor.id}`;
-  
+
   card.innerHTML = `
-    <div class="flex items-center gap-4">
+    <div class="flex items-start gap-4">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
-          <h2 class="text-lg font-semibold truncate">${monitor.name}</h2>
-          <span class="${statusBadgeClass}">
-            ${statusIcon}
-          </span>
+          <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${monitor.name}</h2>
+          <span class="${statusBadgeClass}">${statusIcon}</span>
         </div>
-        <div class="text-sm text-gray-600 flex items-center gap-4 flex-wrap mt-1">
-          <span class="flex items-center gap-1 min-w-0">
-            <i class="fa-solid fa-link flex-shrink-0"></i>
-            <span class="truncate max-w-[200px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
-            <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
-               onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
-               class="flex-shrink-0 inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 text-xs transition-colors"
-               title="Open in new window">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
-            </a>
+        <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
+          <i class="fa-solid fa-link flex-shrink-0 text-slate-600"></i>
+          <span class="truncate max-w-[300px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap mt-2.5">
+          <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
+             onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+             class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-white bg-red-600 hover:bg-red-700 text-xs font-medium transition-colors"
+             title="Open in new window">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+          </a>
+          <span class="flex items-center gap-1 bg-teal-900/40 text-teal-300 px-2.5 py-0.5 rounded-full text-xs border border-teal-800/60">
+            <i class="fa-solid fa-clock"></i> ${responseTime}
           </span>
-          <span class="flex items-center gap-1 min-w-[100px]"><i class="fa-solid fa-clock"></i> ${responseTime}</span>
-          <span class="flex items-center gap-1 min-w-[90px]"><i class="fa-solid fa-calendar"></i> ${lastCheck}</span>
-          ${monitor.keyword ? `<span class="flex items-center gap-1"><i class="fa-solid fa-magnifying-glass"></i> keyword: <strong>${monitor.keyword}</strong></span>` : ''}
+          <span class="flex items-center gap-1 bg-orange-900/40 text-orange-300 px-2.5 py-0.5 rounded-full text-xs border border-orange-800/60">
+            <i class="fa-solid fa-calendar"></i> ${lastCheck}
+          </span>
+          ${monitor.keyword ? `
+          <span class="flex items-center gap-1 text-xs text-slate-500">
+            <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${monitor.keyword}</strong>
+          </span>` : ''}
         </div>
       </div>
-      <div class="w-48 h-8 flex-shrink-0">
-        <canvas id="${canvasId}" style="height: 32px;"></canvas>
+      <div class="w-40 sm:w-48 h-16 sm:h-20 flex-shrink-0">
+        <canvas id="${canvasId}"></canvas>
       </div>
     </div>
   `;
-  
-  // Draw sparkline chart after card is added to DOM
+
   setTimeout(() => {
-    if (rows.length > 0) {
-      drawSparkline(canvasId, rows);
-    }
+    if (rows.length > 0) drawSparkline(canvasId, rows);
   }, 10);
-  
+
   return card;
 }
 
 function drawSparkline(canvasId, rows) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  
   const ctx = canvas.getContext('2d');
-  const data = rows.slice(-20).map(r => parseInt(r[1])); // Last 20 data points
-  const bgColors = rows.slice(-20).map(r => 
-    (r[2]==='success' && r[3]==='found') ? '#4CAF50' : 
+  const data = rows.slice(-20).map(r => parseInt(r[1]));
+  const bgColors = rows.slice(-20).map(r =>
+    (r[2]==='success' && r[3]==='found') ? '#4CAF50' :
     (r[2]==='success' ? '#FFC107' : '#f44336')
   );
-  
+
   new Chart(ctx, {
     type: 'line',
     data: {
       labels: data.map((_, i) => i),
       datasets: [{
-        data: data,
-        fill: false,
-        borderColor: '#1976d2',
-        backgroundColor: '#1976d2',
+        data,
+        fill: true,
+        borderColor: '#2dd4bf',
+        backgroundColor: 'rgba(45, 212, 191, 0.12)',
         pointBackgroundColor: bgColors,
+        pointBorderColor: 'rgba(0,0,0,0.4)',
+        pointBorderWidth: 1,
         pointRadius: 3,
         pointHoverRadius: 5,
-        tension: 0.2,
+        tension: 0.4,
         borderWidth: 2
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { 
-        legend: { display: false },
-        tooltip: { enabled: false }
-      },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
       scales: {
         y: { display: false, beginAtZero: true },
         x: { display: false }
-      },
-      elements: {
-        line: {
-          borderWidth: 2
-        }
       }
     }
   });
 }
 
 function timeAgo(date) {
-  const now = new Date();
-  const seconds = Math.floor((now - date) / 1000);
+  const seconds = Math.floor((new Date() - date) / 1000);
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
+
+// GitHub stats
+fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('gh-stars').textContent = data.stargazers_count;
+    document.getElementById('gh-forks').textContent = data.forks_count;
+  })
+  .catch(() => {
+    document.getElementById('gh-stars').textContent = '—';
+    document.getElementById('gh-forks').textContent = '—';
+  });
+
+//for toggletheme
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const isDark = body.classList.toggle('light-mode');
+
+  if (isDark) {
+    body.style.background = '#f1f5f9';
+    body.style.color = '#0f172a';
+    icon.className = 'fa-solid fa-sun';
+    label.textContent = 'Light';
+  } else {
+    body.style.background = '#0a0f1e';
+    body.style.color = '#e2e8f0';
+    icon.className = 'fa-solid fa-moon';
+    label.textContent = 'Dark';
+  }
+} 
 </script>
+<!-- white:#e2e8f0 | bg:#0a0f1e | card:#0f172a | red:#dc2626 -->
 </body>
 </html>
