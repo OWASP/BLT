@@ -251,7 +251,7 @@
           </p>
         </div>
         <p class="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-          Last updated 01 Mar 2026 11:04 UTC
+          Last updated 01 Mar 2026 11:06 UTC
         </p>
       </div>
 
@@ -469,6 +469,21 @@
       }
       tick();
       const intervalId = setInterval(tick, 1000);
+    })();
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    (function () {
+      var now = new Date();
+      document.querySelectorAll('time.sub-date').forEach(function (el) {
+        var raw = el.getAttribute('datetime');
+        if (!raw) return;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return;
+        if (d > now) d = now;
+        el.textContent = d.toLocaleDateString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+      });
     })();
   </script>
 </body>
