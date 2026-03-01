@@ -105,7 +105,7 @@ For development environment:
 npm run deploy:dev
 ```
 
-## 🔗 Features
+## ✨ Features
 
 - ✨ Multi-Chain Support (Bitcoin & Solana)
 - 🔒 Secure & Transparent
