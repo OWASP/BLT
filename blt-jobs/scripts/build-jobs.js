@@ -13,6 +13,9 @@ function mdToJob(filePath) {
   const stem = path.basename(filePath, ".md");
   const { data: fm, content: body } = matter(content);
   const get = (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
+  
+  const needsReview = get("needs_manual_review") === true || get("needs_manual_review") === "true";
+  
   return {
     id: stem,
     organization_name: get("organization_name", "Unknown organization"),
@@ -30,6 +33,7 @@ function mdToJob(filePath) {
     created_at: get("created_at") || new Date().toISOString(),
     views_count: parseInt(get("views_count"), 10) || 0,
     added_by: get("added_by") || null,
+    needs_manual_review: needsReview,
   };
 }
 
@@ -64,6 +68,17 @@ function buildJobs() {
       .readdirSync(JOBS_DIR)
       .filter((f) => f.endsWith(".md") && f !== "README.md");
     const jobs = files.map((f) => mdToJob(path.join(JOBS_DIR, f)));
+    
+    // Warn about jobs needing manual review
+    const needsReview = jobs.filter(j => j.needs_manual_review);
+    if (needsReview.length > 0) {
+      console.warn("\n⚠️  WARNING: The following jobs need manual review (possible scrape failures):");
+      needsReview.forEach(j => {
+        console.warn(`   - ${j.id}: ${j.title} (${j.organization_name})`);
+      });
+      console.warn(`\nTotal jobs needing review: ${needsReview.length}\n`);
+    }
+    
     const out = {
       jobs,
       count: jobs.length,

@@ -42,6 +42,37 @@ def slugify(s: str) -> str:
     return s.strip("-") or "job"
 
 
+def detect_failed_scrape(description: str, title: str) -> bool:
+    """Detect if a scrape failed based on common failure patterns."""
+    if not description or len(description.strip()) < 50:
+        return True
+    
+    # Common failure indicators
+    failure_patterns = [
+        r"warning.*captcha",
+        r"please.*verify.*human",
+        r"access.*denied",
+        r"cloudflare",
+        r"security.*check",
+        r"enable.*javascript",
+        r"403.*forbidden",
+        r"401.*unauthorized",
+        r"page.*not.*found",
+        r"error.*occurred",
+    ]
+    
+    desc_lower = description.lower()
+    for pattern in failure_patterns:
+        if re.search(pattern, desc_lower, re.IGNORECASE):
+            return True
+    
+    # Generic title with minimal content suggests failure
+    if title.lower() in ("job listing", "untitled") and len(description.strip()) < 200:
+        return True
+    
+    return False
+
+
 def html_to_text(html: str, max_chars: int = 15000) -> str:
     """Strip HTML tags and return plain text."""
     if not html:
@@ -330,6 +361,7 @@ def scrape_jina(url: str) -> tuple[dict, str]:
             "organization_name": org_from_host(url),
             "location": "", "job_type": "full-time", "salary_range": "",
             "application_url": url,
+            "needs_manual_review": True,
         }, f"See full listing at: {url}"
 
     lines = [l.strip() for l in content.splitlines() if l.strip()]
@@ -353,6 +385,7 @@ def scrape_jina(url: str) -> tuple[dict, str]:
         "organization_name": org_name,
         "location": "", "job_type": "full-time", "salary_range": "",
         "application_url": url,
+        "needs_manual_review": False,
     }, description
 
 
@@ -374,6 +407,15 @@ def scrape_url(url: str) -> tuple[dict, str]:
         sys.exit(1)
 
     fm_partial, description = result
+    
+    # Detect if scrape failed
+    needs_review = fm_partial.get("needs_manual_review", False)
+    if not needs_review:
+        needs_review = detect_failed_scrape(description, fm_partial.get("title", ""))
+    
+    if needs_review:
+        print("⚠️  WARNING: Scrape may have failed - flagged for manual review", file=sys.stderr)
+    
     created = datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if hasattr(datetime, "UTC") else datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     fm = {
         "title":                   fm_partial.get("title", "Job Listing"),
@@ -390,6 +432,7 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "created_at":              created,
         "views_count":             0,
         "added_by":                os.environ.get("ISSUE_USER", "").strip(),
+        "needs_manual_review":     needs_review,
     }
     return fm, description
 
