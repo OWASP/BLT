@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const matter = require("gray-matter");
+const { extractSalary } = require("./extract-salary");
 
 const JOBS_DIR = path.join(__dirname, "..", "jobs");
 const OUT_FILE = path.join(__dirname, "..", "data", "jobs.json");
@@ -14,6 +15,14 @@ function mdToJob(filePath) {
   const { data: fm, content: body } = matter(content);
   const get = (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
   
+  // Extract salary from description if not in frontmatter
+  const description = (body || get("description") || "").trim();
+  let salaryRange = get("salary_range") || null;
+  if (!salaryRange && description) {
+    salaryRange = extractSalary(description);
+  }
+  
+  
   const needsReview = get("needs_manual_review") === true || get("needs_manual_review") === "true";
   
   return {
@@ -21,11 +30,11 @@ function mdToJob(filePath) {
     organization_name: get("organization_name", "Unknown organization"),
     organization_logo: get("organization_logo") || null,
     title: get("title", "Untitled"),
-    description: (body || get("description") || "").trim(),
+    description,
     requirements: get("requirements") || null,
     location: get("location") || null,
     job_type: get("job_type", "full-time"),
-    salary_range: get("salary_range") || null,
+    salary_range: salaryRange,
     expires_at: get("expires_at") || null,
     application_email: get("application_email") || null,
     application_url: get("application_url") || null,
