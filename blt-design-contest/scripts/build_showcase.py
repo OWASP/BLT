@@ -646,6 +646,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="description" content="BLT Design Contest — community showcase of design submissions. Rate your favourites with a thumbs up!" />
   <title>BLT Design Contest — Showcase</title>
 
@@ -1028,6 +1031,9 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="description" content="{cname} — community showcase of design submissions. Rate your favourites with a thumbs up!" />
   <title>{cname} — BLT Design Contest</title>
 
