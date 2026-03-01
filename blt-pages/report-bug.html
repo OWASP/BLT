@@ -241,12 +241,11 @@
     });
 
     function buildGithubUrl(data) {
-      const body = `**URL:** ${data.bug_url}\n\n${data.description}`;
-
       const params = new URLSearchParams({
-        title:  `[BUG] ${data.title}`,
-        body,
-        labels: 'bug',
+        template:    'bug_report.yml',
+        title:       `[BUG] ${data.title}`,
+        url:         data.bug_url,
+        description: data.description,
       });
 
       return `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?${params.toString()}`;
