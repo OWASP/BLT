@@ -1,0 +1,39 @@
+name: Build Index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cves/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Regenerate index.json and feed.json
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate index and feed
+        run: python scripts/build_index.py
+
+      - name: Commit updated index if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.json feed.json
+          if git diff --cached --quiet; then
+            echo "No changes to index.json or feed.json"
+          else
+            git commit -m "chore: regenerate index.json and feed.json [skip ci]"
+            git push
+          fi

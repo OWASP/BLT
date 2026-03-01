@@ -1,0 +1,56 @@
+name: Validate CVE Entries
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cves/**'
+      - 'schema/**'
+
+jobs:
+  validate:
+    name: Validate BLT CVE entries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Validate all CVE JSON files
+        run: python scripts/validate_cves.py
+
+  build-index:
+    name: Verify index can be regenerated
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate index and feed
+        run: python scripts/build_index.py
+
+      - name: Check index.json is up to date
+        run: |
+          if ! git diff --quiet index.json feed.json; then
+            echo "ERROR: index.json or feed.json is out of date. Run scripts/build_index.py locally and commit the result."
+            git diff index.json feed.json
+            exit 1
+          fi
