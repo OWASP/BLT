@@ -193,6 +193,7 @@ jobs:
             const payload = {
               updated_at:     new Date().toISOString(),
               total_bugs:     bugIssues.length,
+              total_domains:  Object.keys(domainCounts).length,
               total_orgs:     orgSet.size,
               leaderboard,
               top_commenters: topCommenters,

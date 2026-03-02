@@ -178,7 +178,7 @@ async function loadLeaderboard() {
     renderTopDomains(document.getElementById("domains-rows"), data);
     if (statBugs) statBugs.textContent = formatNumber(data.total_bugs || 0);
     if (statReporters) statReporters.textContent = formatNumber(data.leaderboard?.length || 0);
-    if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs || 0);
+    if (statOrgs) statOrgs.textContent = formatNumber(data.total_domains ?? data.top_domains?.length ?? 0);
   } catch {
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
@@ -240,6 +240,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
     top_commenters: [],
     top_domains: topDomains,
     total_bugs: issues.filter((i) => !i.pull_request).length,
+    total_domains: Object.keys(domainCounts).length,
     total_orgs: orgs.size,
     updated_at: new Date().toISOString(),
   };
@@ -248,7 +249,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
   renderTopCommenters(document.getElementById("commenters-rows"), data);
   renderTopDomains(document.getElementById("domains-rows"), data);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
-  if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs);
+  if (statOrgs) statOrgs.textContent = formatNumber(data.total_domains ?? data.top_domains?.length ?? 0);
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
 }
 
