@@ -20,7 +20,7 @@ jobs:
     name: Update stats and deploy to GitHub Pages
     runs-on: ubuntu-latest
     permissions:
-      contents: read    # read the repository contents
+      contents: write   # read and commit the generated data.json
       pages: write      # deploy to GitHub Pages
       id-token: write   # obtain OIDC token for Pages deployment
     environment:
@@ -42,6 +42,13 @@ jobs:
           ORG: OWASP-BLT
           OUT_FILE: data.json
         run: python3 .github/scripts/generate_data.py
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || (git commit -m "chore: update data.json with latest stats" && git push)
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
