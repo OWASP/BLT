@@ -734,6 +734,7 @@ const TABLE_COLS = [
   { key: 'latest_commit',     label: 'Last Commit' },
   { key: 'updated_at',        label: 'Updated'    },
   { key: 'latest_issue',      label: 'Latest Issue' },
+  { key: 'infra',             label: 'Infra'        },
 ];
 
 function renderTableView(repos, container) {
@@ -800,7 +801,7 @@ function renderTableView(repos, container) {
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
         <div class="flex items-center gap-1 flex-wrap">
-          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}${wranglerIcon}${pagesIcon}
+          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}
         </div>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
@@ -868,6 +869,11 @@ function renderTableView(repos, container) {
         ${r.latest_issue
           ? `<a href="${escapeHtml(r.latest_issue.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-brand hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}"><i class="fa-solid fa-circle-dot text-brand mr-1" aria-hidden="true"></i>#${r.latest_issue.number}: ${escapeHtml(r.latest_issue.title)}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-center">
+        <div class="flex items-center justify-center gap-1.5">
+          ${wranglerIcon}${pagesIcon}${(!wranglerIcon && !pagesIcon) ? '<span class="text-gray-300 dark:text-gray-600">—</span>' : ''}
+        </div>
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <div class="flex gap-1.5">
