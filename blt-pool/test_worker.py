@@ -574,5 +574,63 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         self.assertEqual(comments, [])
 
 
+class TestSecretVarsStatusHtml(unittest.TestCase):
+    """_secret_vars_status_html and _landing_html secret variable display"""
+
+    def _make_env(self, **attrs):
+        env = types.SimpleNamespace()
+        for k, v in attrs.items():
+            setattr(env, k, v)
+        return env
+
+    def test_required_vars_set_shows_green(self):
+        env = self._make_env(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+        html = _worker._secret_vars_status_html(env)
+        self.assertIn("APP_ID", html)
+        self.assertIn("PRIVATE_KEY", html)
+        self.assertIn("WEBHOOK_SECRET", html)
+        # All three required vars are set — should show "Set" badge (green #4ade80)
+        self.assertEqual(html.count("4ade80"), 3)
+
+    def test_required_vars_missing_shows_red(self):
+        env = self._make_env()  # no attributes set
+        html = _worker._secret_vars_status_html(env)
+        # All three required vars missing — should show "Not set" badge (red #f87171)
+        self.assertEqual(html.count("f87171"), 3)
+
+    def test_optional_vars_set_shows_green(self):
+        env = self._make_env(GITHUB_CLIENT_ID="cid", GITHUB_CLIENT_SECRET="csec")
+        html = _worker._secret_vars_status_html(env)
+        self.assertIn("GITHUB_CLIENT_ID", html)
+        self.assertIn("GITHUB_CLIENT_SECRET", html)
+        self.assertEqual(html.count("4ade80"), 2)
+
+    def test_optional_vars_missing_shows_gray(self):
+        env = self._make_env()
+        html = _worker._secret_vars_status_html(env)
+        # Optional vars missing — should show "Not configured" badge (gray #9ca3af)
+        self.assertEqual(html.count("9ca3af"), 2)
+
+    def test_optional_label_present(self):
+        env = self._make_env()
+        html = _worker._secret_vars_status_html(env)
+        self.assertIn("(optional)", html)
+
+    def test_landing_html_includes_secret_vars(self):
+        env = self._make_env(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="sec")
+        html = _worker._landing_html("my-app", env)
+        self.assertIn("APP_ID", html)
+        self.assertIn("PRIVATE_KEY", html)
+        self.assertIn("WEBHOOK_SECRET", html)
+        self.assertIn("GITHUB_CLIENT_ID", html)
+        self.assertIn("GITHUB_CLIENT_SECRET", html)
+        # Placeholder should be replaced
+        self.assertNotIn("{{SECRET_VARS_STATUS}}", html)
+
+    def test_landing_html_no_env_removes_placeholder(self):
+        html = _worker._landing_html("my-app", None)
+        self.assertNotIn("{{SECRET_VARS_STATUS}}", html)
+
+
 if __name__ == "__main__":
     unittest.main()
