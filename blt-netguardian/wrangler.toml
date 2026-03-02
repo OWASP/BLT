@@ -30,7 +30,7 @@ head_sampling_rate = 1
 [[d1_databases]]
 binding = "DB"
 database_name = "blt-netguardian"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "529b739a-6643-4574-9210-99ecd384f085"
 
 # Note: Durable Objects removed - not implemented yet
 # Note: Build configuration removed - Workers Python runtime doesn't need pip install
