@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-02T06:29:55.135Z",
+  "updated_at": "2026-03-02T07:32:53.390Z",
   "total_bugs": 2,
   "total_orgs": 0,
   "leaderboard": [
@@ -21,13 +21,20 @@
     },
     {
       "rank": 2,
+      "login": "Armaansaxena",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
+      "profile_url": "https://github.com/Armaansaxena"
+    },
+    {
+      "rank": 3,
       "login": "mdkaifansari04",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "profile_url": "https://github.com/mdkaifansari04"
     },
     {
-      "rank": 3,
+      "rank": 4,
       "login": "DonnieBLT",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
