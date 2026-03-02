@@ -1,6 +1,7 @@
 name = "fresh-time-tracker"
-main = "src/index.ts"
-compatibility_date = "2023-11-15"
+main = "src/worker.py"
+compatibility_date = "2024-12-02"
+compatibility_flags = ["python_workers"]
 workers_dev = true
 
 [env.production]
@@ -16,13 +17,3 @@ preview_id = "time_tracking_data_preview"
 binding = "ACTIVITY_DATA"
 id = "activity_data"
 preview_id = "activity_data_preview"
-
-# Durable Objects for real-time tracking
-[[durable_objects.bindings]]
-name = "TRACKER_SESSION"
-class_name = "TrackerSession"
-script_name = "fresh-time-tracker"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["TrackerSession"]
