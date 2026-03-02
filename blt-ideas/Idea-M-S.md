@@ -132,7 +132,8 @@ Deliverable: Functional Miner dashboard
 Miner focuses on retrospective knowledge intelligence, not live PR gating.
 
 ## Mockup
-![Security Knowledge Miner Dashboard Mockup](https://github.com/user-attachments/assets/192ff514-3539-427f-8224-176ae60c18fd)
+![Security Knowledge Miner Dashboard Mockup]<img width="1536" height="1024" alt="file_0000000048f871fdbec73af3e2568804" src="https://github.com/user-attachments/assets/60e32bbd-51d9-4c05-a54b-f7aa453cfd69" />
+
 
 > Illustrative mockup — final UX will evolve based on maintainer feedback.
 
