@@ -252,11 +252,125 @@
         </div>
     </footer>
 
+    <!-- Sponsor Modal -->
+    <div id="sponsor-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="sponsor-modal-title">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900" id="sponsor-modal-title">
+                    <i class="fas fa-handshake mr-2 text-red-600"></i>Become a Sponsor
+                </h2>
+                <button onclick="closeSponsorModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Close">&times;</button>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-4">
+                Fill in your details below. Clicking <strong>Submit</strong> will open a GitHub issue pre-filled with your information.
+            </p>
+
+            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4 text-sm text-yellow-800">
+                <i class="fas fa-info-circle mr-1"></i>
+                <strong>Payment note:</strong> Payment must be made directly to the contributors through
+                <a href="https://github.com/sponsors" target="_blank" rel="noopener noreferrer" class="underline hover:text-yellow-900">GitHub Sponsors</a>.
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="sponsor-name" class="block text-sm font-medium text-gray-700 mb-1">Name / Company <span class="text-red-500">*</span></label>
+                    <input type="text" id="sponsor-name" placeholder="e.g., Acme Corp or your GitHub username"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+                <div>
+                    <label for="sponsor-website" class="block text-sm font-medium text-gray-700 mb-1">Website (optional)</label>
+                    <input type="url" id="sponsor-website" placeholder="https://example.com"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+                <div>
+                    <label for="sponsor-amount" class="block text-sm font-medium text-gray-700 mb-1">Sponsorship Amount <span class="text-red-500">*</span></label>
+                    <input type="text" id="sponsor-amount" placeholder="e.g., $50"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+                <div>
+                    <label for="sponsor-message" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (optional)</label>
+                    <textarea id="sponsor-message" rows="3" placeholder="Any extra information you'd like to share…"
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"></textarea>
+                </div>
+            </div>
+
+            <div id="sponsor-modal-error" class="hidden mt-3 text-sm text-red-600"></div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeSponsorModal()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitSponsorForm()"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Submit via GitHub</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main JavaScript -->
     <!-- Optional legacy single-hackathon configuration (defines HACKATHON_CONFIG if used) -->
     <script src="js/config.js"></script>
     <script src="js/hackathons-config.js"></script>
     <script src="js/github-api.js"></script>
     <script src="js/main.js"></script>
+
+    <script>
+        function openSponsorModal() {
+            document.getElementById('sponsor-modal').classList.remove('hidden');
+            document.getElementById('sponsor-name').focus();
+        }
+
+        function closeSponsorModal() {
+            document.getElementById('sponsor-modal').classList.add('hidden');
+            document.getElementById('sponsor-modal-error').classList.add('hidden');
+            document.getElementById('sponsor-modal-error').textContent = '';
+        }
+
+        function submitSponsorForm() {
+            const name = document.getElementById('sponsor-name').value.trim();
+            const website = document.getElementById('sponsor-website').value.trim();
+            const amount = document.getElementById('sponsor-amount').value.trim();
+            const message = document.getElementById('sponsor-message').value.trim();
+            const errorEl = document.getElementById('sponsor-modal-error');
+
+            if (!name || !amount) {
+                errorEl.textContent = 'Please fill in the required fields (Name and Sponsorship Amount).';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            errorEl.classList.add('hidden');
+
+            const hackathonName = document.getElementById('hackathon-name')
+                ? document.getElementById('hackathon-name').textContent.trim()
+                : 'BLT Hackathon';
+
+            const title = encodeURIComponent(`[Sponsor]: ${name} – ${hackathonName}`);
+            let body = `**Hackathon:** ${hackathonName}\n**Sponsor Name / Company:** ${name}\n`;
+            if (website) body += `**Website:** ${website}\n`;
+            body += `**Sponsorship Amount:** ${amount}\n`;
+            if (message) body += `\n**Additional Notes:**\n${message}\n`;
+            body += `\n---\n_Payment will be made directly to contributors through [GitHub Sponsors](https://github.com/sponsors)._`;
+
+            const url = `https://github.com/OWASP-BLT/BLT-Hackathons/issues/new?title=${title}&body=${encodeURIComponent(body)}&labels=sponsorship`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+            closeSponsorModal();
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('sponsor-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSponsorModal();
+        });
+
+        // Close modal on Escape key only when it is visible
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('sponsor-modal').classList.contains('hidden')) {
+                closeSponsorModal();
+            }
+        });
+    </script>
 </body>
 </html>

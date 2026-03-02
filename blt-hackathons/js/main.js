@@ -564,29 +564,28 @@ class HackathonDashboard {
      */
     renderSponsors() {
         const container = document.getElementById('sponsors-list');
+
+        const becomeASponsorBtn = `
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <button onclick="openSponsorModal()"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+                    <i class="fas fa-handshake mr-2"></i>
+                    Become a Sponsor
+                </button>
+            </div>
+        `;
+
         if (!this.config.sponsors || this.config.sponsors.length === 0) {
             let html = '<p class="text-gray-500 italic">No sponsors yet.</p>';
-            if (this.config.sponsorNote || this.config.sponsorLink) {
-                html += '<div class="mt-6 pt-6 border-t border-gray-200">';
-                if (this.config.sponsorNote) {
-                    html += `
-                        <div class="mb-4">
-                            <h3 class="text-lg font-semibold mb-2 text-gray-800">Sponsorship Information</h3>
-                            <p class="text-gray-600">${this.escapeHtml(this.config.sponsorNote)}</p>
-                        </div>
-                    `;
-                }
-                if (this.config.sponsorLink) {
-                    html += `
-                        <a href="${this.config.sponsorLink}" target="_blank"
-                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
-                            <i class="fas fa-handshake mr-2"></i>
-                            Become a Sponsor
-                        </a>
-                    `;
-                }
-                html += '</div>';
+            if (this.config.sponsorNote) {
+                html += `
+                    <div class="mt-4">
+                        <h3 class="text-lg font-semibold mb-2 text-gray-800">Sponsorship Information</h3>
+                        <p class="text-gray-600">${this.escapeHtml(this.config.sponsorNote)}</p>
+                    </div>
+                `;
             }
+            html += becomeASponsorBtn;
             container.innerHTML = html;
             return;
         }
@@ -601,7 +600,7 @@ class HackathonDashboard {
             }
         });
 
-        const html = levels.map(level => {
+        const sponsorsHtml = levels.map(level => {
             const sponsors = grouped[level];
             if (sponsors.length === 0) return '';
 
@@ -630,7 +629,7 @@ class HackathonDashboard {
             `;
         }).join('');
 
-        container.innerHTML = html || '<p class="text-gray-500 italic">No sponsors yet.</p>';
+        container.innerHTML = (sponsorsHtml || '<p class="text-gray-500 italic">No sponsors yet.</p>') + becomeASponsorBtn;
     }
 
     /**
