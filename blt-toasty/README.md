@@ -4,12 +4,15 @@ The smart, context-aware AI code reviewer from OWASP BLT.
 
 ## Overview
 
-Toasty is an AI-powered code review service designed to help developers improve code quality through automated analysis and intelligent suggestions.
+Toasty is an AI-powered code review service designed to help developers improve code quality through automated analysis and intelligent suggestions. It consists of a Django application for the main service and a Cloudflare Worker for serverless, globally distributed API endpoints.
 
 ## Project Structure
 
 - **Django Application** (`/aibot`, `/toasty`) - Main Django-based application
-- **Cloudflare Worker Backend** (`/cloudflare-worker`) - Serverless Python backend using Cloudflare Workers
+- **Cloudflare Worker** (root directory) - Serverless Python backend using Cloudflare Workers
+  - `worker.py` - Main worker handler
+  - `wrangler.toml` - Cloudflare Workers configuration
+  - `test_worker.py` - Worker tests
 
 ## Components
 
@@ -37,14 +40,12 @@ A serverless backend built with Cloudflare Workers and Python for globally distr
 - Health monitoring endpoints
 - Code review API
 - Status monitoring
-- CORS support
-- Comprehensive error handling
+- CORS support with preflight handling
+- Comprehensive error handling and validation
 
 **Quick Start:**
 ```bash
-cd cloudflare-worker
-
-# Install Wrangler CLI
+# Install Node dependencies (including Wrangler CLI)
 npm install
 
 # Run locally
@@ -54,8 +55,6 @@ npm run dev
 npm run deploy
 ```
 
-For detailed information, see [cloudflare-worker/README.md](cloudflare-worker/README.md).
-
 ## Development
 
 ### Prerequisites
@@ -63,13 +62,23 @@ For detailed information, see [cloudflare-worker/README.md](cloudflare-worker/RE
 - Python >=3.13,<4.0.0
 - Poetry (for Django app)
 - Node.js and npm (for Cloudflare Worker)
-- Wrangler CLI (for Cloudflare Worker deployment)
 
 ### Installation
 
 1. Clone the repository
 2. Install Django dependencies: `poetry install`
-3. Install Worker dependencies: `cd cloudflare-worker && npm install`
+3. Install Worker dependencies: `npm install`
+
+## API Endpoints
+
+The Cloudflare Worker provides these REST endpoints:
+
+- `GET /` - Service information
+- `GET /health` - Health check
+- `POST /api/review` - Submit code for review
+- `GET /api/status` - Service status
+
+See `worker.py` for detailed API documentation.
 
 ## License
 

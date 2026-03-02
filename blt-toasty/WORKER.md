@@ -1,6 +1,6 @@
 # Toasty Cloudflare Worker Backend
 
-This directory contains the Cloudflare Worker backend for Toasty, OWASP BLT's AI-powered code review service.
+This is the Cloudflare Worker backend for Toasty, OWASP BLT's AI-powered code review service.
 
 ## Overview
 
@@ -11,8 +11,10 @@ The Toasty backend is built using Cloudflare Workers with Python, providing a se
 - **Health Monitoring**: `/health` endpoint for service health checks
 - **Code Review API**: `/api/review` endpoint for submitting code for AI-powered analysis
 - **Status Monitoring**: `/api/status` endpoint for checking service operational status
-- **CORS Support**: Cross-Origin Resource Sharing enabled for web clients
+- **CORS Support**: Cross-Origin Resource Sharing enabled for web clients with preflight handling
 - **Error Handling**: Comprehensive error responses with proper HTTP status codes
+- **Request Validation**: Size limits and type checking for secure operation
+- **Method Validation**: Returns 405 Method Not Allowed for unsupported methods
 
 ## API Endpoints
 
@@ -103,21 +105,16 @@ Get detailed service status information.
    ```bash
    npm install -g wrangler
    ```
-3. **Python**: Python 3.11+ (for local development and testing)
+3. **Python**: Python 3.13+ (for local development and testing)
 
 ### Installation
 
-1. Navigate to the cloudflare-worker directory:
-   ```bash
-   cd cloudflare-worker
-   ```
-
-2. Authenticate with Cloudflare:
+1. Authenticate with Cloudflare:
    ```bash
    wrangler login
    ```
 
-3. Configure your worker:
+2. Configure your worker:
    - Edit `wrangler.toml` to set your account details
    - Add any required secrets:
      ```bash

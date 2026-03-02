@@ -5,8 +5,44 @@ This worker handles API requests for the Toasty AI code review service.
 It provides endpoints for code analysis, health checks, and status monitoring.
 """
 
-from js import Response, fetch, Headers
+from js import Response, Headers
 import json
+
+# Maximum request body size in bytes (1MB)
+MAX_BODY_SIZE = 1024 * 1024
+
+
+
+def parse_path(url):
+    """
+    Extract clean path from URL, handling query params and fragments.
+    
+    Args:
+        url: The full URL string
+        
+    Returns:
+        str: The path component of the URL
+    """
+    # Extract path from URL (handle query params and fragments)
+    # Format: https://domain.com/path?query#fragment
+    url_without_protocol = url.split('://', 1)[1] if '://' in url else url
+    path_start = url_without_protocol.find('/')
+    
+    if path_start == -1:
+        path = '/'
+    else:
+        # Get everything after the domain
+        path_with_query = url_without_protocol[path_start:]
+        # Remove query parameters and fragments
+        path = path_with_query.split('?')[0].split('#')[0]
+        # Ensure path starts with /
+        if not path.startswith('/'):
+            path = '/' + path
+        # Remove trailing slash for consistent matching (except root)
+        if len(path) > 1 and path.endswith('/'):
+            path = path[:-1]
+    
+    return path
 
 
 async def on_fetch(request, env):
@@ -25,38 +61,56 @@ async def on_fetch(request, env):
     
     # Parse the URL to get the path
     try:
-        # Extract path from URL (handle query params and fragments)
-        # Format: https://domain.com/path?query#fragment
-        url_without_protocol = url.split('://', 1)[1] if '://' in url else url
-        path_start = url_without_protocol.find('/')
-        
-        if path_start == -1:
-            path = '/'
-        else:
-            # Get everything after the domain
-            path_with_query = url_without_protocol[path_start:]
-            # Remove query parameters and fragments
-            path = path_with_query.split('?')[0].split('#')[0]
-            # Ensure path starts with /
-            if not path.startswith('/'):
-                path = '/' + path
-            # Remove trailing slash for consistent matching (except root)
-            if len(path) > 1 and path.endswith('/'):
-                path = path[:-1]
+        path = parse_path(url)
     except Exception as e:
         return create_error_response(f"Error parsing URL: {str(e)}", 500)
     
+    # Handle CORS preflight requests
+    if method == 'OPTIONS':
+        return handle_options(request)
+    
     # Route requests based on path and method
     if path == '/' or path == '':
-        return handle_root(request)
+        if method in ('GET', 'HEAD'):
+            return handle_root(request)
+        else:
+            return create_method_not_allowed_response(path, ['GET', 'HEAD'])
     elif path == '/health':
-        return handle_health(request)
-    elif path == '/api/review' and method == 'POST':
-        return await handle_review(request, env)
-    elif path == '/api/status' and method == 'GET':
-        return handle_status(request)
+        if method in ('GET', 'HEAD'):
+            return handle_health(request)
+        else:
+            return create_method_not_allowed_response(path, ['GET', 'HEAD'])
+    elif path == '/api/review':
+        if method == 'POST':
+            return await handle_review(request, env)
+        else:
+            return create_method_not_allowed_response(path, ['POST'])
+    elif path == '/api/status':
+        if method in ('GET', 'HEAD'):
+            return handle_status(request)
+        else:
+            return create_method_not_allowed_response(path, ['GET', 'HEAD'])
     else:
         return create_error_response(f"Not Found: {path}", 404)
+
+
+def handle_options(request):
+    """
+    Handle CORS preflight OPTIONS requests.
+    
+    Args:
+        request: The incoming HTTP request
+        
+    Returns:
+        Response: 204 No Content with CORS headers
+    """
+    headers = Headers.new()
+    headers.set("Access-Control-Allow-Origin", "*")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Access-Control-Max-Age", "86400")
+    
+    return Response.new("", status=204, headers=headers)
 
 
 def handle_root(request):
@@ -115,8 +169,27 @@ async def handle_review(request, env):
         Response: Code review results
     """
     try:
-        # Parse request body
+        # Check Content-Length header if present
+        content_length_header = request.headers.get('Content-Length')
+        if content_length_header:
+            try:
+                content_length = int(content_length_header)
+                if content_length > MAX_BODY_SIZE:
+                    return create_error_response(
+                        f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes",
+                        413
+                    )
+            except ValueError:
+                pass  # Invalid Content-Length, will be caught during reading
+        
+        # Parse request body with size limit
         body = await request.text()
+        
+        if len(body) > MAX_BODY_SIZE:
+            return create_error_response(
+                f"Request body too large. Maximum size is {MAX_BODY_SIZE} bytes",
+                413
+            )
         
         if not body:
             return create_error_response("Request body is required", 400)
@@ -130,7 +203,15 @@ async def handle_review(request, env):
         if 'code' not in data:
             return create_error_response("Missing required field: 'code'", 400)
         
-        code = data.get('code', '')
+        code = data.get('code')
+        
+        # Validate that code is a non-empty string
+        if not isinstance(code, str):
+            return create_error_response("Field 'code' must be a string", 400)
+        
+        if not code or not code.strip():
+            return create_error_response("Field 'code' cannot be empty", 400)
+        
         language = data.get('language', 'unknown')
         context = data.get('context', '')
         
@@ -229,3 +310,37 @@ def create_error_response(message, status_code=500):
     }
     
     return create_json_response(error_data, status_code)
+
+
+def create_method_not_allowed_response(path, allowed_methods):
+    """
+    Create a 405 Method Not Allowed response.
+    
+    Args:
+        path: The request path
+        allowed_methods: List of allowed HTTP methods
+        
+    Returns:
+        Response: HTTP 405 response with Allow header
+    """
+    message = f"Method Not Allowed for {path}. Allowed methods: {', '.join(allowed_methods)}"
+    
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Access-Control-Allow-Origin", "*")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+    headers.set("Access-Control-Allow-Headers", "Content-Type")
+    headers.set("Allow", ", ".join(allowed_methods))
+    
+    error_data = {
+        "error": "Method Not Allowed",
+        "message": message,
+        "status": 405
+    }
+    
+    return Response.new(
+        json.dumps(error_data),
+        status=405,
+        headers=headers
+    )
+

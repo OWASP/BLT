@@ -3,29 +3,39 @@ Test file for Toasty Cloudflare Worker
 
 Note: These are example tests to demonstrate the worker's expected behavior.
 Actual testing would require the Cloudflare Workers runtime or a test harness.
+The parse_path function is duplicated here for testing without runtime dependencies.
 """
 
-import json
+
+def parse_path(url):
+    """
+    Extract clean path from URL, handling query params and fragments.
+    This is a copy of the function from worker.py for testing purposes.
+    
+    Args:
+        url: The full URL string
+        
+    Returns:
+        str: The path component of the URL
+    """
+    url_without_protocol = url.split('://', 1)[1] if '://' in url else url
+    path_start = url_without_protocol.find('/')
+    
+    if path_start == -1:
+        path = '/'
+    else:
+        path_with_query = url_without_protocol[path_start:]
+        path = path_with_query.split('?')[0].split('#')[0]
+        if not path.startswith('/'):
+            path = '/' + path
+        if len(path) > 1 and path.endswith('/'):
+            path = path[:-1]
+    
+    return path
 
 
 def test_route_parsing():
     """Test URL path parsing logic."""
-    def parse_path(url):
-        """Parse path from URL (matching worker.py logic)."""
-        url_without_protocol = url.split('://', 1)[1] if '://' in url else url
-        path_start = url_without_protocol.find('/')
-        
-        if path_start == -1:
-            path = '/'
-        else:
-            path_with_query = url_without_protocol[path_start:]
-            path = path_with_query.split('?')[0].split('#')[0]
-            if not path.startswith('/'):
-                path = '/' + path
-            if len(path) > 1 and path.endswith('/'):
-                path = path[:-1]
-        return path
-    
     # Test case 1: Root path
     url1 = "https://toasty.example.workers.dev/"
     path1 = parse_path(url1)
