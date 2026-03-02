@@ -13,12 +13,19 @@ function parseSeekerContent(seeker) {
   const availabilityStatus =
     firstHashIdx === -1 ? availability.trim() : availability.slice(0, firstHashIdx).trim();
 
-  // Extract embedded sections from the availability field
+  // Extract embedded sections from the availability field (old format)
   const skillsMatch = availability.match(/##\s+Skills\s*([\s\S]*?)(?=\s*##|$)/i);
   const aboutMatch = availability.match(/##\s+About\s+Me\s*([\s\S]*?)(?=\s*##|$)/i);
   const expMatch = availability.match(/##\s+Experience\s+Highlights?\s*([\s\S]*?)(?=\s*##|$)/i);
-  // Match both straight apostrophe (') and right-single-quotation-mark (\u2019)
   const lookingForMatch = availability.match(/##\s+What\s+I['\u2019]m\s+Looking\s+For\s*([\s\S]*?)(?=\s*##|$)/i);
+
+  // Extract sections from body (new format)
+  const bodyAboutMatch = aboutBody.match(/##\s+About\s+Me\s*([\s\S]*?)(?=\s*##|$)/i);
+  const bodyWorkExpMatch = aboutBody.match(/##\s+Work\s+Experience\s*([\s\S]*?)(?=\s*##|$)/i);
+  const bodyProjectsMatch = aboutBody.match(/##\s+Projects\s+&\s+Portfolio\s*([\s\S]*?)(?=\s*##|$)/i);
+  const bodyCertsMatch = aboutBody.match(/##\s+Certifications\s+&\s+Education\s*([\s\S]*?)(?=\s*##|$)/i);
+  const bodyWorkSamplesMatch = aboutBody.match(/##\s+Work\s+Samples\s*([\s\S]*?)(?=\s*##|$)/i);
+  const bodyLookingForMatch = aboutBody.match(/##\s+What\s+I['\u2019]m\s+Looking\s+For\s*([\s\S]*?)(?=\s*##|$)/i);
 
   // Skills: frontmatter first, then embedded section
   let skills = (seeker.skills || "").trim();
@@ -26,28 +33,60 @@ function parseSeekerContent(seeker) {
     skills = stripHtmlComments(skillsMatch[1]);
   }
 
-  // About: embedded section first, then body (skip placeholder)
+  // About: new format first, then old format, then body
   let about = "";
-  if (aboutMatch) {
+  if (bodyAboutMatch) {
+    about = stripHtmlComments(bodyAboutMatch[1]);
+  } else if (aboutMatch) {
     about = stripHtmlComments(aboutMatch[1]);
-  }
-  if (!about && aboutBody && aboutBody !== "Profile created via issue.") {
+  } else if (aboutBody && aboutBody !== "Profile created via issue." && !aboutBody.includes("##")) {
     about = aboutBody;
   }
 
-  // Experience highlights from embedded section
-  let experience = "";
-  if (expMatch) {
-    experience = stripHtmlComments(expMatch[1]);
+  // Work Experience: new format first, then old experience highlights
+  let workExperience = "";
+  if (bodyWorkExpMatch) {
+    workExperience = stripHtmlComments(bodyWorkExpMatch[1]);
+  } else if (expMatch) {
+    workExperience = stripHtmlComments(expMatch[1]);
   }
 
-  // "What I'm looking for" from embedded section
+  // Projects & Portfolio
+  let projects = "";
+  if (bodyProjectsMatch) {
+    projects = stripHtmlComments(bodyProjectsMatch[1]);
+  }
+
+  // Certifications & Education
+  let certifications = "";
+  if (bodyCertsMatch) {
+    certifications = stripHtmlComments(bodyCertsMatch[1]);
+  }
+
+  // Work Samples
+  let workSamples = "";
+  if (bodyWorkSamplesMatch) {
+    workSamples = stripHtmlComments(bodyWorkSamplesMatch[1]);
+  }
+
+  // "What I'm looking for": new format first, then old format
   let lookingFor = "";
-  if (lookingForMatch) {
+  if (bodyLookingForMatch) {
+    lookingFor = stripHtmlComments(bodyLookingForMatch[1]);
+  } else if (lookingForMatch) {
     lookingFor = stripHtmlComments(lookingForMatch[1]);
   }
 
-  return { availabilityStatus, skills, about, experience, lookingFor };
+  return { 
+    availabilityStatus, 
+    skills, 
+    about, 
+    workExperience, 
+    projects, 
+    certifications, 
+    workSamples, 
+    lookingFor 
+  };
 }
 
 function getInitials(name) {
@@ -113,28 +152,32 @@ function renderSeeker(seeker) {
   const name = seeker.name || "Anonymous";
   const headline = seeker.headline || "";
   const location = seeker.location || "";
-  const profileUrl = seeker.profile_url || "";
   const experienceSummary = seeker.experience_summary || "";
   const createdAtRaw = seeker.created_at || "";
   const createdAt = createdAtRaw
     ? new Date(createdAtRaw).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "";
 
-  const { availabilityStatus, skills, about, experience, lookingFor } = parseSeekerContent(seeker);
+  // Get all contact links
+  const github = seeker.github || "";
+  const linkedin = seeker.linkedin || (seeker.profile_url && seeker.profile_url.includes("linkedin") ? seeker.profile_url : "");
+  const portfolio = seeker.portfolio || "";
+  const email = seeker.email || "";
+  const twitter = seeker.twitter || "";
+  const resumeUrl = seeker.resume_url || "";
+
+  const { availabilityStatus, skills, about, workExperience, projects, certifications, workSamples, lookingFor } = parseSeekerContent(seeker);
   const initials = getInitials(name);
   const skillBadges = renderSkillBadges(skills);
 
-  // Determine LinkedIn vs GitHub icon using proper hostname parsing
-  let profileHostname = "";
-  try { profileHostname = new URL(profileUrl).hostname.toLowerCase(); } catch (e) {}
-  const isLinkedIn = profileHostname === "linkedin.com" || profileHostname.endsWith(".linkedin.com");
-  const isGitHub = profileHostname === "github.com" || profileHostname.endsWith(".github.com");
-  const profileLinkIcon = isLinkedIn
-    ? `<i class="fa-brands fa-linkedin" aria-hidden="true"></i>`
-    : isGitHub
-    ? `<i class="fa-brands fa-github" aria-hidden="true"></i>`
-    : `<i class="fa-solid fa-link" aria-hidden="true"></i>`;
-  const profileLinkLabel = isLinkedIn ? "LinkedIn" : isGitHub ? "GitHub" : "Profile";
+  // Build contact links
+  const contactLinks = [];
+  if (linkedin) contactLinks.push(`<a href="${linkedin}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>`);
+  if (github) contactLinks.push(`<a href="${github}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>`);
+  if (portfolio) contactLinks.push(`<a href="${portfolio}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-globe" aria-hidden="true"></i> Portfolio</a>`);
+  if (twitter) contactLinks.push(`<a href="${twitter}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> Twitter</a>`);
+  if (resumeUrl) contactLinks.push(`<a href="${resumeUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Resume</a>`);
+  if (email) contactLinks.push(`<a href="mailto:${email}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</a>`);
 
   document.title = `${name} — BLT Jobs`;
 
@@ -147,7 +190,7 @@ function renderSeeker(seeker) {
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               <!-- Avatar -->
-              <div class="flex-shrink-0 flex h-20 w-20 items-center justify-center rounded-full bg-red-600 text-white text-2xl font-bold select-none" aria-hidden="true">
+              <div class="flex-shrink-0 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-2xl font-bold select-none shadow-lg" aria-hidden="true">
                 ${initials}
               </div>
               <!-- Name & Meta -->
@@ -157,20 +200,17 @@ function renderSeeker(seeker) {
                 <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                   ${location ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-400" aria-hidden="true"></i> ${location}</span>` : ""}
                   ${experienceSummary ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-gray-400" aria-hidden="true"></i> ${experienceSummary}</span>` : ""}
-                  ${availabilityStatus ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i> Available: ${availabilityStatus}</span>` : ""}
+                  ${availabilityStatus ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i> ${availabilityStatus}</span>` : ""}
                   ${createdAt ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-calendar text-gray-400" aria-hidden="true"></i> Joined ${createdAt}</span>` : ""}
                 </div>
               </div>
             </div>
 
-            <!-- Action Links -->
+            <!-- Contact Links -->
             ${
-              profileUrl
+              contactLinks.length > 0
                 ? `<div class="mt-6 flex flex-wrap gap-3">
-                     <a href="${profileUrl}" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-                       ${profileLinkIcon} ${profileLinkLabel}
-                     </a>
+                     ${contactLinks.join("")}
                    </div>`
                 : ""
             }
@@ -180,7 +220,10 @@ function renderSeeker(seeker) {
           ${
             skillBadges
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Skills</h2>
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-code text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     Skills
+                   </h2>
                    <div class="flex flex-wrap gap-2">${skillBadges}</div>
                  </div>`
               : ""
@@ -190,21 +233,72 @@ function renderSeeker(seeker) {
           ${
             about
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">About Me</h2>
-                   <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-a:text-red-600 prose-a:dark:text-red-400">
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-user text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     About Me
+                   </h2>
+                   <div class="profile-content">
                      ${renderMarkdown(about)}
                    </div>
                  </div>`
               : ""
           }
 
-          <!-- Experience Highlights Card -->
+          <!-- Work Experience Card -->
           ${
-            experience
+            workExperience
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Experience Highlights</h2>
-                   <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-a:text-red-600 prose-a:dark:text-red-400">
-                     ${renderMarkdown(experience)}
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-briefcase text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     Work Experience
+                   </h2>
+                   <div class="profile-content">
+                     ${renderMarkdown(workExperience)}
+                   </div>
+                 </div>`
+              : ""
+          }
+
+          <!-- Projects & Portfolio Card -->
+          ${
+            projects
+              ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-folder-open text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     Projects & Portfolio
+                   </h2>
+                   <div class="profile-content">
+                     ${renderMarkdown(projects)}
+                   </div>
+                 </div>`
+              : ""
+          }
+
+          <!-- Certifications & Education Card -->
+          ${
+            certifications
+              ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-graduation-cap text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     Certifications & Education
+                   </h2>
+                   <div class="profile-content">
+                     ${renderMarkdown(certifications)}
+                   </div>
+                 </div>`
+              : ""
+          }
+
+          <!-- Work Samples Card -->
+          ${
+            workSamples
+              ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-file-lines text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     Work Samples
+                   </h2>
+                   <div class="profile-content">
+                     ${renderMarkdown(workSamples)}
                    </div>
                  </div>`
               : ""
@@ -214,8 +308,11 @@ function renderSeeker(seeker) {
           ${
             lookingFor
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">What I'm Looking For</h2>
-                   <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-a:text-red-600 prose-a:dark:text-red-400">
+                   <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                     <i class="fa-solid fa-bullseye text-red-600 dark:text-red-400" aria-hidden="true"></i>
+                     What I'm Looking For
+                   </h2>
+                   <div class="profile-content">
                      ${renderMarkdown(lookingFor)}
                    </div>
                  </div>`
