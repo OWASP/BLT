@@ -50,6 +50,18 @@
       <span>Allow camera and microphone access when prompted. Your media stays peer-to-peer — it never leaves your device except to the person you call.</span>
     </div>
 
+    <!-- ── Camera Denied Instructions ── -->
+    <div class="alert alert-danger" id="camera-denied" style="display:none;flex-direction:column;gap:0.85rem" role="alert" aria-live="assertive">
+      <div style="display:flex;align-items:center;gap:0.6rem;font-weight:700;font-size:1rem;color:#fff">
+        <span aria-hidden="true">🚫</span>
+        Camera &amp; microphone access was blocked
+      </div>
+      <div id="camera-denied-instructions" style="font-size:0.875rem;line-height:1.7"></div>
+      <div>
+        <button class="btn btn-primary btn-sm" id="btn-camera-retry">🔄 Try Again</button>
+      </div>
+    </div>
+
     <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem" id="main-grid">
 
       <!-- ── Video area ── -->
