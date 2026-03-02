@@ -16,3 +16,18 @@ binding = "DB"
 database_name = "time_tracker"
 database_id = "f0c8a598-a525-4923-8f9d-ec44a81b4c80"
 migrations_dir = "migrations"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
