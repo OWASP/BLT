@@ -14,44 +14,47 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- A GitHub App (see [Probot docs](https://probot.github.io/docs/development/))
-
-### Installation
-
-```bash
-git clone https://github.com/OWASP-BLT/BLT-GitHub-App.git
-cd BLT-GitHub-App
-npm install
-```
+- [Cloudflare Workers](https://workers.cloudflare.com/) account
+- A GitHub App
 
 ### Configuration
 
-Copy `.env.example` to `.env` and fill in your GitHub App credentials:
+Copy `.dev.vars.example` to `.dev.vars` and fill in your credentials:
 
 ```bash
-cp .env.example .env
+cp .dev.vars.example .dev.vars
 ```
 
 | Variable | Description |
 |---|---|
-| `APP_ID` | Your GitHub App's ID |
-| `PRIVATE_KEY` | Your GitHub App's private key (PEM format) |
-| `WEBHOOK_SECRET` | Your GitHub App's webhook secret |
+| `APP_ID` | GitHub App numeric ID |
+| `PRIVATE_KEY` | GitHub App private key (PEM, PKCS#1 or PKCS#8) |
+| `WEBHOOK_SECRET` | GitHub App webhook secret |
+| `GITHUB_APP_SLUG` | GitHub App URL slug (e.g. `blt-github-app`) |
+| `BLT_API_URL` | BLT API base URL (default: `https://blt-api.owasp-blt.workers.dev`) |
 | `GITHUB_CLIENT_ID` | OAuth client ID (optional) |
 | `GITHUB_CLIENT_SECRET` | OAuth client secret (optional) |
-| `BLT_API_URL` | BLT API base URL (default: `https://blt-api.owasp-blt.workers.dev`) |
 
 ### Running
 
 ```bash
-npm start
+cp .dev.vars.example .dev.vars   # fill in your credentials
+npx wrangler dev                 # local dev server
+npx wrangler deploy              # deploy to Cloudflare
+```
+
+Set secrets securely for production:
+```bash
+npx wrangler secret put APP_ID
+npx wrangler secret put PRIVATE_KEY
+npx wrangler secret put WEBHOOK_SECRET
 ```
 
 ### Testing
 
 ```bash
-npm test
+pip install pytest
+pytest test_worker.py -v
 ```
 
 ## GitHub App Permissions
@@ -88,56 +91,13 @@ To release an issue:
 
 When an issue is labeled with `bug`, `vulnerability`, or `security`, the app automatically creates a corresponding entry in the BLT platform and posts the Bug ID as a comment.
 
-## Cloudflare Worker (Python)
+## Cloudflare Worker
 
-A Python port of the app is available in the `cloudflare-worker/` directory.
-It runs as a [Cloudflare Workers](https://workers.cloudflare.com/) Python Worker
+This app runs as a [Cloudflare Workers](https://workers.cloudflare.com/) Python Worker
 and includes a **landing homepage** where users can view the app status and
 install it on their own GitHub organization.
 
-### Quick start
-
-```bash
-cd cloudflare-worker
-cp .dev.vars.example .dev.vars   # fill in your credentials
-npx wrangler dev                 # local dev server
-npx wrangler deploy              # deploy to Cloudflare
-```
-
-### Cloudflare environment variables
-
-| Variable | Description |
-|---|---|
-| `APP_ID` | GitHub App numeric ID |
-| `PRIVATE_KEY` | GitHub App private key (PEM, PKCS#1 or PKCS#8) |
-| `WEBHOOK_SECRET` | GitHub App webhook secret |
-| `GITHUB_APP_SLUG` | GitHub App URL slug (e.g. `blt-github-app`) |
-| `BLT_API_URL` | BLT API base URL (default: `https://blt-api.owasp-blt.workers.dev`) |
-| `GITHUB_CLIENT_ID` | OAuth client ID (optional) |
-| `GITHUB_CLIENT_SECRET` | OAuth client secret (optional) |
-
-Set secrets securely:
-```bash
-npx wrangler secret put APP_ID
-npx wrangler secret put PRIVATE_KEY
-npx wrangler secret put WEBHOOK_SECRET
-```
-
-### Landing page
-
-The worker serves a landing page at `/` showing:
-- Live operational status
-- Feature overview
-- A one-click **"Add to GitHub Organization"** button
-
-### Python tests
-
-```bash
-pip install pytest
-pytest cloudflare-worker/test_worker.py -v
-```
-
-### Cloudflare Worker endpoints
+### Endpoints
 
 | Method | Path | Description |
 |---|---|---|
@@ -149,22 +109,12 @@ pytest cloudflare-worker/test_worker.py -v
 ## Project Structure
 
 ```
-├── index.js                      # Main Probot app entry point
-├── src/
-│   ├── blt-api.js                # BLT API client
-│   └── handlers/
-│       ├── issue-assign.js       # /assign and /unassign command handlers
-│       ├── issue-opened.js       # New issue and label handlers
-│       └── pull-request.js      # PR opened/closed handlers
-├── test/                         # Jest test suite
-├── cloudflare-worker/
-│   ├── worker.py                 # Python Cloudflare Worker (all handlers + landing page)
-│   ├── wrangler.toml             # Cloudflare Worker configuration
-│   ├── .dev.vars.example         # Local dev environment variables template
-│   └── test_worker.py            # pytest unit tests for pure-Python utilities
+├── worker.py                     # Python Cloudflare Worker (all handlers + landing page)
+├── wrangler.toml                 # Cloudflare Worker configuration
+├── .dev.vars.example             # Local dev environment variables template
+├── test_worker.py                # pytest unit tests for pure-Python utilities
 ├── app.yml                       # GitHub App manifest
-├── .env.example                  # Environment variable template (Node.js)
-└── package.json
+└── LICENSE
 ```
 
 ## Related Projects

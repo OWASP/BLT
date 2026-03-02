@@ -4,7 +4,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
 (no ``from js import ...`` needed).  Run with:
 
     pip install pytest
-    pytest cloudflare-worker/test_worker.py -v
+    pytest test_worker.py -v
 """
 
 import asyncio
