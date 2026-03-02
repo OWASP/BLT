@@ -23,28 +23,14 @@ enabled = false
 persist = true
 head_sampling_rate = 1
 
-# KV Namespace Bindings
-# Replace the placeholder IDs below with your actual Cloudflare KV namespace IDs.
-# Create KV namespaces via: wrangler kv:namespace create <BINDING_NAME>
-[[kv_namespaces]]
-binding = "JOB_STATE"
-id = "00000000000000000000000000000001"
-preview_id = "00000000000000000000000000000001"
-
-[[kv_namespaces]]
-binding = "TASK_QUEUE"
-id = "00000000000000000000000000000002"
-preview_id = "00000000000000000000000000000002"
-
-[[kv_namespaces]]
-binding = "VULN_DB"
-id = "00000000000000000000000000000003"
-preview_id = "00000000000000000000000000000003"
-
-[[kv_namespaces]]
-binding = "TARGET_REGISTRY"
-id = "00000000000000000000000000000004"
-preview_id = "00000000000000000000000000000004"
+# D1 Database Binding
+# Replace the placeholder ID below with your actual Cloudflare D1 database ID.
+# Create a D1 database via: wrangler d1 create blt-netguardian
+# Apply the schema via: wrangler d1 execute blt-netguardian --file=schema.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-netguardian"
+database_id = "00000000-0000-0000-0000-000000000001"
 
 # Note: Durable Objects removed - not implemented yet
 # Note: Build configuration removed - Workers Python runtime doesn't need pip install
