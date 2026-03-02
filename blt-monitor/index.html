@@ -65,23 +65,13 @@
 </div>
 
 <script>
-  const usedSafeIds = new Set();
-
-  function sanitizeId(id, index) {
-    const cleaned = String(id || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9-_]/g, '');
-    const base = cleaned || 'monitor';
-    const candidate = `${base}-${index}`;
-    if (usedSafeIds.has(candidate)) {
-      const unique = `${base}-${index}-${Math.random().toString(36).slice(2, 6)}`;
-      usedSafeIds.add(unique);
-      return unique;
-    }
-    usedSafeIds.add(candidate);
-    return candidate;
+  // sanitizeId: stable ID for routing + CSV naming (must match monitor.html)
+  function sanitizeId(id) {
+    const cleaned = String(id || '').toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    return cleaned || 'monitor';
   }
 
+  // parseCSV now filters blank lines, validates column count & date
   function parseCSV(csv) {
     return csv
       .split('\n')
@@ -93,6 +83,7 @@
   }
 
   function escapeHTML(str) {
+    // null-safe escapeHTML
     return String(str ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -123,7 +114,8 @@
     .then(monitors => {
       const container = document.getElementById('monitors-list');
       monitors.forEach((monitor, index) => {
-        const safeId = sanitizeId(monitor.id, index);
+        const safeId = sanitizeId(monitor.id);          // used for routing & CSV — must stay stable
+        const domSafeId = `${safeId}-${index}`;        // DOM-only: guarantees unique canvas/element IDs
         const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
         fetch(csvFile)
           .then(r => {
@@ -133,12 +125,12 @@
           .then(csv => {
             const rows = parseCSV(csv);
             const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
-            const card = createMonitorCard(monitor, safeId, rows, lastRow, csvFile);
+            const card = createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, csvFile);
             container.appendChild(card);
           })
           .catch(err => {
             console.error(`Failed to load data for ${monitor.id}:`, err);
-            const card = createMonitorCard(monitor, safeId, [], null, csvFile);
+            const card = createMonitorCard(monitor, safeId, domSafeId, [], null, csvFile);
             container.appendChild(card);
           });
       });
@@ -149,7 +141,7 @@
         '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
     });
 
-  function createMonitorCard(monitor, safeId, rows, lastRow, csvFile) {
+  function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, csvFile) {
     const card = document.createElement('div');
     card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
     card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
@@ -182,11 +174,12 @@
       const ms = parseInt(lastRow[1]);
       responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
 
+      //guard against invalid date before calling timeAgo
       const checkDate = new Date(lastRow[0]);
       lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
     }
 
-    const canvasId = `chart-${safeId}`;
+    const canvasId = `chart-${domSafeId}`;
 
     card.innerHTML = `
       <div class="flex items-start gap-4">
@@ -236,7 +229,7 @@
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    // FIX 7: filter out NaN response times before charting
+    // filter out NaN response times before charting
     const recentRows = rows.slice(-20).filter(r => !isNaN(parseInt(r[1])));
     const data = recentRows.map(r => parseInt(r[1]));
     const bgColors = recentRows.map(r =>
@@ -276,7 +269,7 @@
     });
   }
 
-  // GitHub stats 
+  // GitHub stats
   fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
     .then(r => {
       if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
