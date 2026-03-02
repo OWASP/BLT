@@ -17,7 +17,7 @@ The back-end runs as a **Cloudflare Python Worker** – no Node.js required.
 ### 🔒 Privacy First
 - **Local LLM Processing**: All screenshot analysis happens on your machine
 - **No 3rd Party Upload**: Screenshots and sensitive data never leave your device  
-- **Encrypted Storage**: All data encrypted in Cloudflare KV
+- **Encrypted Storage**: All data stored in Cloudflare D1
 - **User Control**: You decide what to track and when
 
 ### 📊 Comprehensive Tracking
@@ -28,7 +28,7 @@ The back-end runs as a **Cloudflare Python Worker** – no Node.js required.
 
 ### ⚡ Modern Architecture
 - **Cloudflare Python Workers**: Global edge deployment for low latency
-- **KV Storage**: Persistent, distributed data storage
+- **D1 Database**: Persistent, relational SQL data storage
 - **Pure Python**: No Node.js or npm required
 
 ## 🚀 Quick Start
@@ -45,9 +45,11 @@ wrangler >= 3    (npm install -g wrangler  OR  npx wrangler)
 # Login to Cloudflare
 npx wrangler login
 
-# Create KV namespaces (copy the IDs into wrangler.toml)
-npx wrangler kv:namespace create TIME_TRACKING_DATA
-npx wrangler kv:namespace create ACTIVITY_DATA
+# Create D1 database (copy the database_id into wrangler.toml)
+npx wrangler d1 create time_tracker
+
+# Apply the database schema
+npx wrangler d1 migrations apply DB
 
 # Deploy the Python Worker
 npx wrangler deploy
@@ -104,12 +106,11 @@ print("Session started:", session_id)
 │                 │     - Session management
 └────────┬────────┘
          │
-    ┌────┴────┐
-    │         │
-┌───▼───┐ ┌──▼──────┐
-│  KV   │ │  KV     │
-│ Store │ │ Activity│
-└───────┘ └─────────┘
+┌────────▼────────┐
+│  D1 Database    │  ← Cloudflare D1 (SQL)
+│  (SQL)          │     - sessions table
+│                 │     - activities table
+└─────────────────┘
 ```
 
 ## 🔐 Privacy Guarantees
@@ -170,11 +171,11 @@ python -m py_compile src/worker.py
 # Login to Cloudflare
 npx wrangler login
 
-# Create KV namespaces
-npx wrangler kv:namespace create TIME_TRACKING_DATA
-npx wrangler kv:namespace create ACTIVITY_DATA
+# Create D1 database (copy the database_id into wrangler.toml)
+npx wrangler d1 create time_tracker
 
-# Update wrangler.toml with the KV namespace IDs printed above
+# Apply the database schema
+npx wrangler d1 migrations apply DB
 
 # Deploy
 npx wrangler deploy

@@ -1,6 +1,7 @@
 """
 Fresh Time Tracker - Cloudflare Python Worker
 Privacy-focused time tracking system with GitHub integration and local LLM analysis
+Uses Cloudflare D1 (SQL) for persistent data storage.
 """
 
 import json
@@ -35,6 +36,34 @@ def json_err(message, status=400):
     return Response(json.dumps({"error": message}), status=status, headers=headers)
 
 
+def _row_to_session(row):
+    """Convert a D1 row dict to the session dict returned by the API."""
+    session = {
+        "id": row["id"],
+        "userId": row["userId"],
+        "projectId": row["projectId"],
+        "startTime": row["startTime"],
+        "status": row["status"],
+    }
+    if row.get("endTime") is not None:
+        session["endTime"] = row["endTime"]
+    if row.get("duration") is not None:
+        session["duration"] = row["duration"]
+    return session
+
+
+def _row_to_activity(row):
+    """Convert a D1 row dict to the activity event dict returned by the API."""
+    return {
+        "id": row["id"],
+        "sessionId": row["sessionId"],
+        "userId": row["userId"],
+        "type": row["type"],
+        "timestamp": row["timestamp"],
+        "data": json.loads(row["data"]),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Route handlers
 # ---------------------------------------------------------------------------
@@ -67,7 +96,7 @@ def handle_root():
             "cloudflareWorker": True,
         },
         "privacy": {
-            "dataStorage": "Cloudflare KV (encrypted)",
+            "dataStorage": "Cloudflare D1 (SQL database)",
             "screenshotProcessing": "Local only - never uploaded",
             "llmAnalysis": "Local models only - no 3rd party",
             "dataSecurity": "End-to-end encryption",
@@ -101,7 +130,10 @@ async def handle_start_session(request, env):
         "status": "active",
     }
 
-    await env.TIME_TRACKING_DATA.put(f"session:{session['id']}", json.dumps(session))
+    await env.DB.prepare(
+        "INSERT INTO sessions (id, userId, projectId, startTime, status)"
+        " VALUES (?, ?, ?, ?, ?)"
+    ).bind(session["id"], user_id, project_id, session["startTime"], "active").run()
     return json_ok({"session": session}, 201)
 
 
@@ -110,17 +142,22 @@ async def handle_end_session(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    raw = await env.TIME_TRACKING_DATA.get(f"session:{session_id}")
-    if raw is None:
+    row = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE id = ?"
+    ).bind(session_id).first()
+    if row is None:
         return json_err("Session not found", 404)
 
-    session = json.loads(raw)
     end_time = int(time.time() * 1000)
-    session["endTime"] = end_time
-    session["duration"] = end_time - session["startTime"]
-    session["status"] = "completed"
+    duration = end_time - row["startTime"]
+    await env.DB.prepare(
+        "UPDATE sessions SET endTime = ?, duration = ?, status = 'completed' WHERE id = ?"
+    ).bind(end_time, duration, session_id).run()
 
-    await env.TIME_TRACKING_DATA.put(f"session:{session_id}", json.dumps(session))
+    session = _row_to_session(row)
+    session["endTime"] = end_time
+    session["duration"] = duration
+    session["status"] = "completed"
     return json_ok({"session": session})
 
 
@@ -129,13 +166,18 @@ async def handle_pause_session(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    raw = await env.TIME_TRACKING_DATA.get(f"session:{session_id}")
-    if raw is None:
+    row = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE id = ?"
+    ).bind(session_id).first()
+    if row is None:
         return json_err("Session not found", 404)
 
-    session = json.loads(raw)
+    await env.DB.prepare(
+        "UPDATE sessions SET status = 'paused' WHERE id = ?"
+    ).bind(session_id).run()
+
+    session = _row_to_session(row)
     session["status"] = "paused"
-    await env.TIME_TRACKING_DATA.put(f"session:{session_id}", json.dumps(session))
     return json_ok({"session": session})
 
 
@@ -144,13 +186,18 @@ async def handle_resume_session(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    raw = await env.TIME_TRACKING_DATA.get(f"session:{session_id}")
-    if raw is None:
+    row = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE id = ?"
+    ).bind(session_id).first()
+    if row is None:
         return json_err("Session not found", 404)
 
-    session = json.loads(raw)
+    await env.DB.prepare(
+        "UPDATE sessions SET status = 'active' WHERE id = ?"
+    ).bind(session_id).run()
+
+    session = _row_to_session(row)
     session["status"] = "active"
-    await env.TIME_TRACKING_DATA.put(f"session:{session_id}", json.dumps(session))
     return json_ok({"session": session})
 
 
@@ -159,11 +206,13 @@ async def handle_get_session(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    raw = await env.TIME_TRACKING_DATA.get(f"session:{session_id}")
-    if raw is None:
+    row = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE id = ?"
+    ).bind(session_id).first()
+    if row is None:
         return json_err("Session not found", 404)
 
-    return json_ok({"session": json.loads(raw)})
+    return json_ok({"session": _row_to_session(row)})
 
 
 async def handle_list_sessions(request, env, query_string):
@@ -174,18 +223,11 @@ async def handle_list_sessions(request, env, query_string):
     params = parse_qs(query_string or "")
     limit = int(params.get("limit", ["50"])[0])
 
-    list_result = await env.TIME_TRACKING_DATA.list(prefix="session:")
-    sessions = []
-    for key in list_result.keys:
-        if len(sessions) >= limit:
-            break
-        raw = await env.TIME_TRACKING_DATA.get(key.name)
-        if raw:
-            session = json.loads(raw)
-            if session.get("userId") == user_id:
-                sessions.append(session)
+    result = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE userId = ? ORDER BY startTime DESC LIMIT ?"
+    ).bind(user_id, limit).all()
 
-    sessions.sort(key=lambda s: s.get("startTime", 0), reverse=True)
+    sessions = [_row_to_session(row) for row in result.results]
     return json_ok({"sessions": sessions})
 
 
@@ -215,13 +257,13 @@ async def handle_track_activity(request, env):
         "data": data,
     }
 
-    await env.ACTIVITY_DATA.put(f"activity:{event['id']}", json.dumps(event))
-
-    session_key = f"session:{session_id}:activities"
-    existing = await env.ACTIVITY_DATA.get(session_key)
-    activity_ids = json.loads(existing) if existing else []
-    activity_ids.append(event["id"])
-    await env.ACTIVITY_DATA.put(session_key, json.dumps(activity_ids))
+    await env.DB.prepare(
+        "INSERT INTO activities (id, sessionId, userId, type, timestamp, data)"
+        " VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(
+        event["id"], session_id, user_id, event_type,
+        event["timestamp"], json.dumps(data),
+    ).run()
 
     return json_ok({"event": event}, 201)
 
@@ -231,18 +273,11 @@ async def handle_get_activities(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    session_key = f"session:{session_id}:activities"
-    existing = await env.ACTIVITY_DATA.get(session_key)
-    if not existing:
-        return json_ok({"activities": []})
+    result = await env.DB.prepare(
+        "SELECT * FROM activities WHERE sessionId = ? ORDER BY timestamp ASC"
+    ).bind(session_id).all()
 
-    activity_ids = json.loads(existing)
-    events = []
-    for aid in activity_ids:
-        raw = await env.ACTIVITY_DATA.get(f"activity:{aid}")
-        if raw:
-            events.append(json.loads(raw))
-
+    events = [_row_to_activity(row) for row in result.results]
     return json_ok({"activities": events})
 
 
@@ -251,21 +286,18 @@ async def handle_get_summary(request, env, session_id):
     if not user_id:
         return json_err("User ID required", 401)
 
-    raw = await env.TIME_TRACKING_DATA.get(f"session:{session_id}")
-    if raw is None:
+    row = await env.DB.prepare(
+        "SELECT * FROM sessions WHERE id = ?"
+    ).bind(session_id).first()
+    if row is None:
         return json_err("Session not found", 404)
 
-    session = json.loads(raw)
+    session = _row_to_session(row)
 
-    session_key = f"session:{session_id}:activities"
-    existing = await env.ACTIVITY_DATA.get(session_key)
-    activity_ids = json.loads(existing) if existing else []
-
-    activities = []
-    for aid in activity_ids:
-        act_raw = await env.ACTIVITY_DATA.get(f"activity:{aid}")
-        if act_raw:
-            activities.append(json.loads(act_raw))
+    act_result = await env.DB.prepare(
+        "SELECT * FROM activities WHERE sessionId = ? ORDER BY timestamp ASC"
+    ).bind(session_id).all()
+    activities = [_row_to_activity(r) for r in act_result.results]
 
     summary = {
         "sessionId": session_id,
@@ -324,13 +356,13 @@ async def handle_github_webhook(request, env):
     if event is None:
         return json_ok({"message": "Event ignored"})
 
-    await env.ACTIVITY_DATA.put(f"activity:{event['id']}", json.dumps(event))
-
-    session_key = f"session:{session_id}:activities"
-    existing = await env.ACTIVITY_DATA.get(session_key)
-    activity_ids = json.loads(existing) if existing else []
-    activity_ids.append(event["id"])
-    await env.ACTIVITY_DATA.put(session_key, json.dumps(activity_ids))
+    await env.DB.prepare(
+        "INSERT INTO activities (id, sessionId, userId, type, timestamp, data)"
+        " VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(
+        event["id"], session_id, user_id, event["type"],
+        event["timestamp"], json.dumps(event["data"]),
+    ).run()
 
     return json_ok({"event": event}, 201)
 
