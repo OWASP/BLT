@@ -61,7 +61,7 @@
 | project_classification | 301 |
 | sidebar_type | 108 |
 | social_facebook | 75 |
-| social_linkedin | 147 |
+| social_linkedin | 148 |
 | social_meetup | 320 |
 | social_twitter | 155 |
 | social_youtube | 73 |
