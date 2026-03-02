@@ -621,6 +621,7 @@ class HackathonDashboard {
                                 `}
                                 <div class="text-center">
                                     <div class="text-sm font-medium">${this.escapeHtml(sponsor.name)}</div>
+                                    ${sponsor.amount ? `<div class="text-xs text-green-600 font-semibold mt-1">${this.escapeHtml(sponsor.amount)}</div>` : ''}
                                 </div>
                             </a>
                         `).join('')}

@@ -1,0 +1,215 @@
+name: Process Sponsor Request
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process-sponsor:
+    if: contains(github.event.issue.labels.*.name, 'sponsorship')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add eyes reaction
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              content: 'eyes'
+            });
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse issue and update config
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = context.payload.issue.body || '';
+            const issueNumber = context.payload.issue.number;
+
+            // Helper: extract the value of a **Bold:** field from the issue body
+            function extractField(label) {
+              const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(`\\*\\*${escaped}:\\*\\*\\s*(.+?)(?:\\r?\\n|$)`, 'i');
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            }
+
+            const hackathonName = extractField('Hackathon');
+            const sponsorName   = extractField('Sponsor Name / Company');
+            const website       = extractField('Website');
+            const amount        = extractField('Sponsorship Amount');
+
+            // Validate required fields
+            const missing = [];
+            if (!hackathonName) missing.push('Hackathon');
+            if (!sponsorName)   missing.push('Sponsor Name / Company');
+            if (!amount)        missing.push('Sponsorship Amount');
+
+            if (missing.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ Could not process sponsor request — the following required fields are missing:\n\n${missing.map(f => `- **${f}**`).join('\n')}\n\nPlease edit the issue to include all required fields.`
+              });
+              core.setFailed('Missing required fields: ' + missing.join(', '));
+              return;
+            }
+
+            // Load and eval the hackathons config
+            const configPath = 'js/hackathons-config.js';
+            const config = fs.readFileSync(configPath, 'utf8');
+
+            let HACKATHONS_CONFIG;
+            try {
+              HACKATHONS_CONFIG = eval(config + '\nHACKATHONS_CONFIG');
+            } catch (e) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ Failed to parse \`js/hackathons-config.js\`: ${e.message}`
+              });
+              core.setFailed('Config parse error: ' + e.message);
+              return;
+            }
+
+            // Find matching hackathon by name (case-insensitive, then partial match)
+            let hackathon = HACKATHONS_CONFIG.hackathons.find(
+              h => h.name.toLowerCase().trim() === hackathonName.toLowerCase().trim()
+            );
+            if (!hackathon) {
+              hackathon = HACKATHONS_CONFIG.hackathons.find(
+                h => h.name.toLowerCase().includes(hackathonName.toLowerCase()) ||
+                     hackathonName.toLowerCase().includes(h.name.toLowerCase())
+              );
+            }
+
+            if (!hackathon) {
+              const available = HACKATHONS_CONFIG.hackathons.map(h => `\`${h.name}\``).join(', ');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ No hackathon found matching **"${hackathonName}"**.\n\nAvailable hackathons: ${available}\n\nPlease edit the issue with the exact hackathon name.`
+              });
+              core.setFailed('Hackathon not found: ' + hackathonName);
+              return;
+            }
+
+            const GITHUB_NO_RESPONSE = '_No response_';
+
+            const slug = hackathon.slug;
+
+            // Build the new sponsor entry as compact JSON on one line
+            const newSponsor = {
+              name: sponsorName,
+              website: website && website !== GITHUB_NO_RESPONSE ? website : '',
+              amount: amount,
+              level: 'partner',
+              logo: ''
+            };
+            const newSponsorJSON = JSON.stringify(newSponsor);
+
+            // Find the hackathon block by locating slug positions in the raw text
+            const slugMatches = [];
+            const slugRe = /slug:\s*"([^"]+)"/g;
+            let m;
+            while ((m = slugRe.exec(config)) !== null) {
+              slugMatches.push({ slug: m[1], index: m.index });
+            }
+
+            const targetIdx = slugMatches.findIndex(s => s.slug === slug);
+            if (targetIdx === -1) {
+              core.setFailed('Could not locate slug in config: ' + slug);
+              return;
+            }
+
+            const blockStart = slugMatches[targetIdx].index;
+            const blockEnd = targetIdx + 1 < slugMatches.length
+              ? slugMatches[targetIdx + 1].index
+              : config.length;
+
+            const block = config.substring(blockStart, blockEnd);
+
+            // Replace the sponsors array within this hackathon's block
+            // Pattern: sponsors: [ <anything without ]> ]
+            const updatedBlock = block.replace(
+              /sponsors:\s*\[([^\]]*)\]/,
+              (match, inner) => {
+                const trimmed = inner.trim();
+                if (!trimmed) {
+                  return `sponsors: [\n                ${newSponsorJSON}\n            ]`;
+                }
+                return `sponsors: [${inner.trimEnd()},\n                ${newSponsorJSON}\n            ]`;
+              }
+            );
+
+            if (updatedBlock === block) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `❌ Could not update the sponsors array in the config for hackathon **"${hackathon.name}"**. Please update \`js/hackathons-config.js\` manually.`
+              });
+              core.setFailed('Sponsors array not found in hackathon block');
+              return;
+            }
+
+            const updatedConfig = config.substring(0, blockStart) + updatedBlock + config.substring(blockEnd);
+            fs.writeFileSync(configPath, updatedConfig, 'utf8');
+            console.log(`Sponsor "${sponsorName}" added to hackathon "${hackathon.name}" (${slug}).`);
+
+            core.setOutput('slug', slug);
+            core.setOutput('hackathon_name', hackathon.name);
+            core.setOutput('sponsor_name', sponsorName);
+            core.setOutput('issue_number', String(issueNumber));
+
+      - name: Commit and push changes
+        if: steps.parse.outputs.slug != ''
+        env:
+          SLUG: ${{ steps.parse.outputs.slug }}
+          ISSUE_NUMBER: ${{ steps.parse.outputs.issue_number }}
+          SPONSOR_NAME: ${{ steps.parse.outputs.sponsor_name }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add js/hackathons-config.js
+          git diff --staged --quiet || git commit -m "Add sponsor: ${SPONSOR_NAME} to ${SLUG} (issue #${ISSUE_NUMBER})"
+          git push
+
+      - name: Comment success and close issue
+        if: steps.parse.outputs.slug != ''
+        env:
+          HACKATHON_NAME: ${{ steps.parse.outputs.hackathon_name }}
+          SPONSOR_NAME: ${{ steps.parse.outputs.sponsor_name }}
+          ISSUE_NUMBER: ${{ steps.parse.outputs.issue_number }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber  = Number(process.env.ISSUE_NUMBER);
+            const hackathonName = process.env.HACKATHON_NAME;
+            const sponsorName  = process.env.SPONSOR_NAME;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `✅ **${sponsorName}** has been added as a sponsor for **${hackathonName}**!\n\nThey will appear in the Sponsors section after the next deployment.\n\n> 💡 Payment should be arranged directly through [GitHub Sponsors](https://github.com/sponsors).`
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed'
+            });
