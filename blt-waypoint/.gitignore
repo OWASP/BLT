@@ -16,10 +16,6 @@ nohup.out
 *~
 .DS_Store
 
-# Node modules
-node_modules/
-npm-debug.log*
-
 # Temporary files
 tmp/
 temp/
