@@ -729,6 +729,7 @@ const TABLE_COLS = [
   { key: 'total_commits',     label: 'Commits'    },
   { key: 'branch_count',      label: 'Branches'   },
   { key: 'size',              label: 'Size'       },
+  { key: 'readme_chars',      label: 'README Size' },
   { key: 'maturity',          label: 'Maturity'   },
   { key: 'latest_release',    label: 'Release'    },
   { key: 'latest_commit',     label: 'Last Commit' },
@@ -850,6 +851,9 @@ function renderTableView(repos, container) {
       </td>
       <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
         <i class="fa-solid fa-database text-cyan-400 mr-1" aria-hidden="true"></i>${formatSize(r.size)}
+      </td>
+      <td class="px-3 py-2 text-right whitespace-nowrap text-sm tabular-nums">
+        ${r.readme_chars ? `<i class="fa-solid fa-file-lines text-pink-400 mr-1" aria-hidden="true"></i>${formatNumber(r.readme_chars)}` : '<span class="text-gray-300 dark:text-gray-600">—</span>'}
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
         <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100">${matLabel} ${score}</span>
