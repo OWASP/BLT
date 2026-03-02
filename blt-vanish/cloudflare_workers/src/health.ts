@@ -53,7 +53,7 @@ async function checkBrokerHealth(brokerId: string): Promise<any> {
     const response = await fetch(url, {
       method: 'HEAD',
       headers: {
-        'User-Agent': 'SelfErase-HealthCheck/1.0',
+        'User-Agent': 'BLT-Vanish-HealthCheck/1.0',
       },
       // Timeout after 5 seconds
       signal: AbortSignal.timeout(5000),

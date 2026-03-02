@@ -1,10 +1,10 @@
 # Quick Start Guide
 
-Get started with SelfErase in 5 minutes!
+Get started with BLT-Vanish in 5 minutes!
 
-## What is SelfErase?
+## What is BLT-Vanish?
 
-SelfErase is a privacy toolkit that helps you:
+BLT-Vanish is a privacy toolkit that helps you:
 - 🔍 Find where your personal data is exposed online
 - 📝 Generate opt-out/deletion requests
 - 📊 Track your privacy progress
@@ -16,20 +16,20 @@ SelfErase is a privacy toolkit that helps you:
 
 ### Option 1: Download Pre-Built App (Easiest)
 
-1. Go to [Releases](https://github.com/OWASP-BLT/SelfErase/releases)
+1. Go to [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
 2. Download for your platform:
-   - **Android**: `selferase-android.apk`
-   - **Windows**: `selferase-windows-x64.zip`
-   - **macOS**: `selferase-macos-x64.zip`
-   - **Linux**: `selferase-linux-x64.tar.gz`
+   - **Android**: `blt-vanish-android.apk`
+   - **Windows**: `blt-vanish-windows-x64.zip`
+   - **macOS**: `blt-vanish-macos-x64.zip`
+   - **Linux**: `blt-vanish-linux-x64.tar.gz`
 3. Install/extract and run
 
 ### Option 2: Build from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/SelfErase.git
-cd SelfErase/flutter_app
+git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
+cd BLT-Vanish-Web/flutter_app
 
 # Install dependencies
 flutter pub get
@@ -42,7 +42,7 @@ flutter run
 
 ### 1. Launch the App
 
-Open SelfErase on your device.
+Open BLT-Vanish on your device.
 
 ### 2. Create Your Profile
 
@@ -160,7 +160,7 @@ You need internet only for:
 3. You manually send it to the broker
 4. You track the response in the app
 
-**SelfErase doesn't send requests for you** - you stay in control.
+**BLT-Vanish doesn't send requests for you** - you stay in control.
 
 ### Can I use this on multiple devices?
 
@@ -175,17 +175,17 @@ No problem! Your data stays safe. Update whenever you remember.
 
 As many as you want! There's no limit.
 
-### Is SelfErase free?
+### Is BLT-Vanish free?
 
-Yes! SelfErase is completely free and open-source.
+Yes! BLT-Vanish is completely free and open-source.
 
 ## Getting Help
 
 ### Need Support?
 
-- 📖 [Documentation](https://github.com/OWASP-BLT/SelfErase/tree/main/docs)
-- 💬 [Discussions](https://github.com/OWASP-BLT/SelfErase/discussions)
-- 🐛 [Report a Bug](https://github.com/OWASP-BLT/SelfErase/issues)
+- 📖 [Documentation](https://github.com/OWASP-BLT/BLT-Vanish-Web/tree/main/docs)
+- 💬 [Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
+- 🐛 [Report a Bug](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
 
 ### Want to Contribute?
 
@@ -223,7 +223,7 @@ Now that you're set up:
 
 ## Privacy Laws to Know
 
-SelfErase helps you exercise rights under:
+BLT-Vanish helps you exercise rights under:
 
 - **GDPR** (EU): Right to erasure
 - **CCPA** (California): Right to deletion
@@ -275,4 +275,4 @@ Stay tuned for updates!
 
 ---
 
-**Welcome to SelfErase! Take control of your privacy today.** 🔒✨
+**Welcome to BLT-Vanish! Take control of your privacy today.** 🔒✨

@@ -1,6 +1,6 @@
-# Adding Data Brokers to SelfErase
+# Adding Data Brokers to BLT-Vanish
 
-Thank you for helping expand the SelfErase broker database! This guide will help you add new data brokers to the system.
+Thank you for helping expand the BLT-Vanish broker database! This guide will help you add new data brokers to the system.
 
 ## Before You Start
 
@@ -318,7 +318,7 @@ Good broker entries have:
 ## Getting Help
 
 Need help adding a broker?
-- Open a [Discussion](https://github.com/OWASP-BLT/SelfErase/discussions)
+- Open a [Discussion](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
 - Ask in the Pull Request
 - Check existing brokers for examples
 

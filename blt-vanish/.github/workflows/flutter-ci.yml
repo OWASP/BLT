@@ -121,13 +121,13 @@ jobs:
       
       - name: Archive Linux build
         working-directory: flutter_app/build/linux/x64/release/bundle
-        run: tar -czf selferase-linux-x64.tar.gz .
+        run: tar -czf blt-vanish-linux-x64.tar.gz .
       
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v3
         with:
           name: linux-build
-          path: flutter_app/build/linux/x64/release/bundle/selferase-linux-x64.tar.gz
+          path: flutter_app/build/linux/x64/release/bundle/blt-vanish-linux-x64.tar.gz
 
   build-windows:
     name: Build Windows
@@ -158,13 +158,13 @@ jobs:
       
       - name: Archive Windows build
         working-directory: flutter_app/build/windows/x64/runner/Release
-        run: Compress-Archive -Path * -DestinationPath selferase-windows-x64.zip
+        run: Compress-Archive -Path * -DestinationPath blt-vanish-windows-x64.zip
       
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v3
         with:
           name: windows-build
-          path: flutter_app/build/windows/x64/runner/Release/selferase-windows-x64.zip
+          path: flutter_app/build/windows/x64/runner/Release/blt-vanish-windows-x64.zip
 
   build-macos:
     name: Build macOS
@@ -196,10 +196,10 @@ jobs:
       - name: Archive macOS build
         working-directory: flutter_app/build/macos/Build/Products/Release
         run: |
-          zip -r selferase-macos-x64.zip selferase.app
+          zip -r blt-vanish-macos-x64.zip blt-vanish.app
       
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v3
         with:
           name: macos-build
-          path: flutter_app/build/macos/Build/Products/Release/selferase-macos-x64.zip
+          path: flutter_app/build/macos/Build/Products/Release/blt-vanish-macos-x64.zip

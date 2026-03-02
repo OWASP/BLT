@@ -1,4 +1,4 @@
-// SelfErase Web App - Privacy Profile Manager
+// BLT-Vanish Web App - Privacy Profile Manager
 // All operations happen in the browser - no data is sent to servers
 
 // State management
@@ -47,7 +47,7 @@ function setupEventListeners() {
 // Load brokers data from GitHub
 async function loadBrokers() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/OWASP-BLT/SelfErase/main/data/brokers/brokers.json');
+        const response = await fetch('https://raw.githubusercontent.com/OWASP-BLT/BLT-Vanish-Web/main/data/brokers/brokers.json');
         brokers = await response.json();
         console.log(`Loaded ${brokers.length} brokers`);
     } catch (error) {
@@ -143,7 +143,7 @@ async function handleFileUpload(event) {
             
             updateProfileUI();
         } catch (error) {
-            showAlert('Error reading file. Make sure it\'s a valid SelfErase profile.', 'error');
+            showAlert('Error reading file. Make sure it\'s a valid BLT-Vanish profile.', 'error');
             console.error('File upload error:', error);
         }
     };
@@ -339,7 +339,7 @@ async function encryptAndDownload() {
         const profileJson = JSON.stringify(currentProfile, null, 2);
         const encrypted = await encryptData(profileJson, password);
         
-        downloadFile(encrypted, 'selferase-profile.enc', 'text/plain');
+        downloadFile(encrypted, 'blt-vanish-profile.enc', 'text/plain');
         showAlert('Profile encrypted and downloaded successfully!', 'success');
         
         // Clear password field

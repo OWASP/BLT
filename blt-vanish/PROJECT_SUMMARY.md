@@ -1,14 +1,14 @@
-# SelfErase Project Summary
+# BLT-Vanish Project Summary
 
 ## Overview
 
-SelfErase is a comprehensive, open-source privacy toolkit that helps users identify, manage, and remove their personal data from data brokers online—without ever sharing personal information with any external service.
+BLT-Vanish is a comprehensive, open-source privacy toolkit that helps users identify, manage, and remove their personal data from data brokers online—without ever sharing personal information with any external service.
 
 ## Architecture
 
 ### Hybrid Local+Edge Design
 
-SelfErase uses a unique architecture that combines local security with edge automation:
+BLT-Vanish uses a unique architecture that combines local security with edge automation:
 
 1. **Local Flutter App**: Handles ALL sensitive personal data
 2. **Cloudflare Workers**: Serves ONLY public metadata
@@ -248,7 +248,7 @@ Workers → Broker Website → Health Status → App (when online)
 
 ### For Users
 
-1. Download from [Releases](https://github.com/OWASP-BLT/SelfErase/releases)
+1. Download from [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
 2. Install on your device
 3. Create your profile (encrypted locally)
 4. Browse data brokers
@@ -261,8 +261,8 @@ See [Quick Start Guide](docs/quick-start.md) for details.
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/SelfErase.git
-cd SelfErase
+git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
+cd BLT-Vanish-Web
 
 # Flutter app
 cd flutter_app
@@ -291,7 +291,7 @@ See [Broker Guide](docs/broker-guide.md) for adding brokers.
 
 ## Privacy Laws Supported
 
-SelfErase helps users exercise rights under:
+BLT-Vanish helps users exercise rights under:
 
 - **GDPR** (EU): Right to erasure (Article 17)
 - **CCPA** (California): Right to deletion (Section 1798.105)
@@ -312,8 +312,8 @@ All core features implemented, tested, and documented. Ready for:
 
 ## Support & Community
 
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/SelfErase/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/SelfErase/discussions)
+- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
 - **Security**: [Security Policy](SECURITY.md)
 - **Contributing**: [Contribution Guidelines](CONTRIBUTING.md)
 
@@ -352,6 +352,6 @@ See [LICENSE](LICENSE) for full text.
 
 ---
 
-**SelfErase: Your privacy, your control. Always.**
+**BLT-Vanish: Your privacy, your control. Always.**
 
 *Built with ❤️ by the OWASP BLT community*

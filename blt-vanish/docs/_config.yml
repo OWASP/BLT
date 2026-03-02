@@ -1,10 +1,10 @@
-# GitHub Pages Configuration for SelfErase
+# GitHub Pages Configuration for BLT-Vanish
 
 # Theme
 theme: minima
 
 # Site settings
-title: SelfErase
+title: BLT-Vanish
 description: >-
   An open-source, privacy-first toolkit for managing and deleting 
   personal data from data brokers

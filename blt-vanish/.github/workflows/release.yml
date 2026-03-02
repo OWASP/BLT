@@ -25,20 +25,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: SelfErase ${{ github.ref_name }}
+          release_name: BLT-Vanish ${{ github.ref_name }}
           draft: false
           prerelease: false
           body: |
-            ## SelfErase ${{ github.ref_name }}
+            ## BLT-Vanish ${{ github.ref_name }}
             
             ### Downloads
             
             Choose the appropriate version for your platform:
             
-            - **Android**: `selferase-android.apk`
-            - **Windows**: `selferase-windows-x64.zip`
-            - **macOS**: `selferase-macos-x64.zip`
-            - **Linux**: `selferase-linux-x64.tar.gz`
+            - **Android**: `blt-vanish-android.apk`
+            - **Windows**: `blt-vanish-windows-x64.zip`
+            - **macOS**: `blt-vanish-macos-x64.zip`
+            - **Linux**: `blt-vanish-linux-x64.tar.gz`
             
             ### Verification
             
@@ -46,14 +46,14 @@ jobs:
             
             ### What's New
             
-            See [CHANGELOG.md](https://github.com/OWASP-BLT/SelfErase/blob/main/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/OWASP-BLT/BLT-Vanish-Web/blob/main/CHANGELOG.md) for details.
             
             ### Privacy Notice
             
-            SelfErase stores all your personal data encrypted on your device only.
+            BLT-Vanish stores all your personal data encrypted on your device only.
             No data is ever transmitted to external servers.
             
-            For more information, see our [Security Whitepaper](https://github.com/OWASP-BLT/SelfErase/blob/main/SECURITY.md).
+            For more information, see our [Security Whitepaper](https://github.com/OWASP-BLT/BLT-Vanish-Web/blob/main/SECURITY.md).
 
   build-android:
     name: Build Android Release
@@ -95,7 +95,7 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
-          asset_name: selferase-android.apk
+          asset_name: blt-vanish-android.apk
           asset_content_type: application/vnd.android.package-archive
       
       - name: Upload checksum
@@ -105,7 +105,7 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: flutter_app/build/app/outputs/flutter-apk/app-release.apk.sha256
-          asset_name: selferase-android.apk.sha256
+          asset_name: blt-vanish-android.apk.sha256
           asset_content_type: text/plain
 
   build-windows:
@@ -135,13 +135,13 @@ jobs:
       
       - name: Create ZIP
         working-directory: flutter_app/build/windows/x64/runner/Release
-        run: Compress-Archive -Path * -DestinationPath selferase-windows-x64.zip
+        run: Compress-Archive -Path * -DestinationPath blt-vanish-windows-x64.zip
       
       - name: Generate checksum
         working-directory: flutter_app/build/windows/x64/runner/Release
         run: |
-          $hash = Get-FileHash selferase-windows-x64.zip -Algorithm SHA256
-          "$($hash.Hash)  selferase-windows-x64.zip" | Out-File -Encoding ASCII selferase-windows-x64.zip.sha256
+          $hash = Get-FileHash blt-vanish-windows-x64.zip -Algorithm SHA256
+          "$($hash.Hash)  blt-vanish-windows-x64.zip" | Out-File -Encoding ASCII blt-vanish-windows-x64.zip.sha256
       
       - name: Upload Windows ZIP
         uses: actions/upload-release-asset@v1
@@ -149,8 +149,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/windows/x64/runner/Release/selferase-windows-x64.zip
-          asset_name: selferase-windows-x64.zip
+          asset_path: flutter_app/build/windows/x64/runner/Release/blt-vanish-windows-x64.zip
+          asset_name: blt-vanish-windows-x64.zip
           asset_content_type: application/zip
       
       - name: Upload checksum
@@ -159,8 +159,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/windows/x64/runner/Release/selferase-windows-x64.zip.sha256
-          asset_name: selferase-windows-x64.zip.sha256
+          asset_path: flutter_app/build/windows/x64/runner/Release/blt-vanish-windows-x64.zip.sha256
+          asset_name: blt-vanish-windows-x64.zip.sha256
           asset_content_type: text/plain
 
   build-macos:
@@ -190,12 +190,12 @@ jobs:
       
       - name: Create ZIP
         working-directory: flutter_app/build/macos/Build/Products/Release
-        run: zip -r selferase-macos-x64.zip selferase.app
+        run: zip -r blt-vanish-macos-x64.zip blt-vanish.app
       
       - name: Generate checksum
         working-directory: flutter_app/build/macos/Build/Products/Release
         run: |
-          shasum -a 256 selferase-macos-x64.zip > selferase-macos-x64.zip.sha256
+          shasum -a 256 blt-vanish-macos-x64.zip > blt-vanish-macos-x64.zip.sha256
       
       - name: Upload macOS ZIP
         uses: actions/upload-release-asset@v1
@@ -203,8 +203,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/macos/Build/Products/Release/selferase-macos-x64.zip
-          asset_name: selferase-macos-x64.zip
+          asset_path: flutter_app/build/macos/Build/Products/Release/blt-vanish-macos-x64.zip
+          asset_name: blt-vanish-macos-x64.zip
           asset_content_type: application/zip
       
       - name: Upload checksum
@@ -213,8 +213,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/macos/Build/Products/Release/selferase-macos-x64.zip.sha256
-          asset_name: selferase-macos-x64.zip.sha256
+          asset_path: flutter_app/build/macos/Build/Products/Release/blt-vanish-macos-x64.zip.sha256
+          asset_name: blt-vanish-macos-x64.zip.sha256
           asset_content_type: text/plain
 
   build-linux:
@@ -249,12 +249,12 @@ jobs:
       
       - name: Create tar.gz
         working-directory: flutter_app/build/linux/x64/release/bundle
-        run: tar -czf selferase-linux-x64.tar.gz *
+        run: tar -czf blt-vanish-linux-x64.tar.gz *
       
       - name: Generate checksum
         working-directory: flutter_app/build/linux/x64/release/bundle
         run: |
-          sha256sum selferase-linux-x64.tar.gz > selferase-linux-x64.tar.gz.sha256
+          sha256sum blt-vanish-linux-x64.tar.gz > blt-vanish-linux-x64.tar.gz.sha256
       
       - name: Upload Linux tar.gz
         uses: actions/upload-release-asset@v1
@@ -262,8 +262,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/linux/x64/release/bundle/selferase-linux-x64.tar.gz
-          asset_name: selferase-linux-x64.tar.gz
+          asset_path: flutter_app/build/linux/x64/release/bundle/blt-vanish-linux-x64.tar.gz
+          asset_name: blt-vanish-linux-x64.tar.gz
           asset_content_type: application/gzip
       
       - name: Upload checksum
@@ -272,6 +272,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: flutter_app/build/linux/x64/release/bundle/selferase-linux-x64.tar.gz.sha256
-          asset_name: selferase-linux-x64.tar.gz.sha256
+          asset_path: flutter_app/build/linux/x64/release/bundle/blt-vanish-linux-x64.tar.gz.sha256
+          asset_name: blt-vanish-linux-x64.tar.gz.sha256
           asset_content_type: text/plain

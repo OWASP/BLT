@@ -1,10 +1,10 @@
-# Contributing to SelfErase
+# Contributing to BLT-Vanish
 
-Thank you for your interest in contributing to SelfErase! We're building a privacy-first toolkit that helps people take control of their personal data online.
+Thank you for your interest in contributing to BLT-Vanish! We're building a privacy-first toolkit that helps people take control of their personal data online.
 
 ## 🎯 Project Mission
 
-SelfErase is committed to:
+BLT-Vanish is committed to:
 - **Privacy First**: No user data ever leaves their device
 - **Security First**: Industry-standard encryption and security practices
 - **Transparency**: Open-source and verifiable
@@ -70,7 +70,7 @@ Enhance the edge automation layer.
 
 ### 5. Security Improvements
 
-Help make SelfErase more secure.
+Help make BLT-Vanish more secure.
 
 **Areas to contribute**:
 - Security audits
@@ -120,8 +120,8 @@ Add or improve tests.
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/SelfErase.git
-cd SelfErase
+git clone https://github.com/YOUR_USERNAME/BLT-Vanish.git
+cd BLT-Vanish-Web
 
 # Set up Flutter app
 cd flutter_app
@@ -162,11 +162,11 @@ flutter run --release
 ```bash
 # Fork the repository on GitHub
 # Then clone your fork
-git clone https://github.com/YOUR_USERNAME/SelfErase.git
-cd SelfErase
+git clone https://github.com/YOUR_USERNAME/BLT-Vanish.git
+cd BLT-Vanish-Web
 
 # Add upstream remote
-git remote add upstream https://github.com/OWASP-BLT/SelfErase.git
+git remote add upstream https://github.com/OWASP-BLT/BLT-Vanish-Web.git
 ```
 
 ### 2. Create a Branch
@@ -424,7 +424,7 @@ When creating a PR, include:
 
 ## 📄 Licensing
 
-By contributing to SelfErase, you agree that your contributions will be licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+By contributing to BLT-Vanish, you agree that your contributions will be licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 
 See [LICENSE](./LICENSE) for full license text.
 
@@ -457,9 +457,9 @@ Outstanding contributors may be featured in:
 
 ### Where to Ask Questions
 
-- **General Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/SelfErase/discussions)
-- **Bug Reports**: [GitHub Issues](https://github.com/OWASP-BLT/SelfErase/issues)
-- **Security Issues**: [Security Advisory](https://github.com/OWASP-BLT/SelfErase/security/advisories)
+- **General Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
+- **Bug Reports**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
+- **Security Issues**: [Security Advisory](https://github.com/OWASP-BLT/BLT-Vanish-Web/security/advisories)
 - **Pull Requests**: Comment on the PR
 
 ### Code of Conduct
@@ -490,4 +490,4 @@ Every contribution, no matter how small, helps make the internet a more private 
 
 ---
 
-*Questions? Open a [Discussion](https://github.com/OWASP-BLT/SelfErase/discussions) and we'll help you get started!*
+*Questions? Open a [Discussion](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions) and we'll help you get started!*
