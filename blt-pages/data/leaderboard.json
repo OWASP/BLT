@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-02T21:06:11.769Z",
+  "updated_at": "2026-03-02T21:09:02.196Z",
   "total_bugs": 6,
   "total_orgs": 0,
   "leaderboard": [
@@ -21,17 +21,17 @@
   "top_commenters": [
     {
       "rank": 1,
+      "login": "sidd190",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "profile_url": "https://github.com/sidd190"
+    },
+    {
+      "rank": 2,
       "login": "azizrebhi",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
       "profile_url": "https://github.com/azizrebhi"
-    },
-    {
-      "rank": 2,
-      "login": "sidd190",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
-      "profile_url": "https://github.com/sidd190"
     },
     {
       "rank": 3,
