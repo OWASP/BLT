@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-03-02T20:58:37.341Z",
-  "total_bugs": 4,
+  "updated_at": "2026-03-02T21:04:21.570Z",
+  "total_bugs": 5,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 3,
+      "count": 4,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -66,7 +66,7 @@
     {
       "rank": 1,
       "domain": "owaspblt.org",
-      "count": 2
+      "count": 3
     },
     {
       "rank": 2,
@@ -75,6 +75,18 @@
     }
   ],
   "recent_bugs": [
+    {
+      "number": 19,
+      "title": "[FEATURE] make sure reactions are showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19",
+      "created_at": "2026-03-02T21:04:11Z",
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/507176e7-0a58-4df4-b3e9-72e430f1b834"
+    },
     {
       "number": 17,
       "title": "[BUG] video bugs are not showing up",
@@ -98,18 +110,6 @@
         "profile_url": "https://github.com/sidd190"
       },
       "image_url": null
-    },
-    {
-      "number": 8,
-      "title": "[BUG] join chapter button does not work",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
-      "created_at": "2026-03-01T08:40:35Z",
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c"
     }
   ]
 }
