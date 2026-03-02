@@ -1,4 +1,4 @@
-name = "blt-byte-chatbot"
+name = "blt-byte"
 main = "src/main.py"
 compatibility_date = "2025-11-02"
 remote = true
