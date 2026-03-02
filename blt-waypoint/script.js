@@ -608,6 +608,20 @@ function repoCardHTML(r) {
       ${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${r.latest_commit.author_html_url ? `<a href="${escapeHtml(r.latest_commit.author_html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">${escapeHtml(r.latest_commit.author)}</a>` : escapeHtml(r.latest_commit.author)}</span>` : ''}
     </div>` : ''}
 
+    <!-- Latest PR -->
+    ${r.latest_pr ? `
+    <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Most recent PR [${r.latest_pr.state}]">
+      ${r.latest_pr.state === 'merged'
+        ? `<i class="fa-solid fa-code-merge mr-1 text-purple-500" aria-hidden="true" title="Merged"></i>`
+        : r.latest_pr.state === 'open'
+          ? `<i class="fa-solid fa-code-pull-request mr-1 text-green-500" aria-hidden="true" title="Open"></i>`
+          : `<i class="fa-solid fa-circle-xmark mr-1 text-red-500" aria-hidden="true" title="Closed"></i>`}
+      <a href="${escapeHtml(r.latest_pr.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">
+        ${r.latest_pr.author_avatar ? `<img src="${escapeHtml(r.latest_pr.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_pr.author)}" title="${escapeHtml(r.latest_pr.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}
+      </a>
+      ${r.latest_pr.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${r.latest_pr.author_html_url ? `<a href="${escapeHtml(r.latest_pr.author_html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors">${escapeHtml(r.latest_pr.author)}</a>` : escapeHtml(r.latest_pr.author)}</span>` : ''}
+    </div>` : ''}
+
     <!-- Latest release -->
     ${r.latest_release ? `
     <div class="text-xs text-gray-500 dark:text-gray-400 truncate" title="Latest release">
@@ -731,6 +745,7 @@ const TABLE_COLS = [
   { key: 'maturity',          label: 'Maturity'   },
   { key: 'latest_release',    label: 'Release'    },
   { key: 'latest_commit',     label: 'Last Commit' },
+  { key: 'latest_pr',        label: 'Last PR'    },
   { key: 'updated_at',        label: 'Updated'    },
   { key: 'latest_issue',      label: 'Latest Issue' },
   { key: 'infra',             label: 'Infra'        },
@@ -756,6 +771,14 @@ function renderTableView(repos, container) {
     else if (tableSortCol === 'latest_commit') {
       const ta = (a.latest_commit && a.latest_commit.date) ? new Date(a.latest_commit.date) : null;
       const tb = (b.latest_commit && b.latest_commit.date) ? new Date(b.latest_commit.date) : null;
+      if (!ta && !tb) v = 0;
+      else if (!ta) v = -1;
+      else if (!tb) v = 1;
+      else v = ta - tb;
+    }
+    else if (tableSortCol === 'latest_pr') {
+      const ta = (a.latest_pr && a.latest_pr.updated_at) ? new Date(a.latest_pr.updated_at) : null;
+      const tb = (b.latest_pr && b.latest_pr.updated_at) ? new Date(b.latest_pr.updated_at) : null;
       if (!ta && !tb) v = 0;
       else if (!ta) v = -1;
       else if (!tb) v = 1;
@@ -871,6 +894,17 @@ function renderTableView(repos, container) {
         ${r.latest_commit
           ? `<a href="${escapeHtml(r.latest_commit.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? ' by ' + escapeHtml(r.latest_commit.author) : ''}"><i class="fa-solid fa-code-commit text-blue-400 mr-1" aria-hidden="true"></i>${r.latest_commit.author_avatar ? `<img src="${escapeHtml(r.latest_commit.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_commit.author)}" title="${escapeHtml(r.latest_commit.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}${escapeHtml(r.latest_commit.message)}${r.latest_commit.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_commit.author)}</span>` : ''}</a>`
           : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
+      </td>
+      <td class="px-3 py-2 text-xs max-w-[16rem]">
+        ${r.latest_pr ? (() => {
+          const prState = r.latest_pr.state;
+          const prIcon = prState === 'merged'
+            ? `<i class="fa-solid fa-code-merge text-purple-500 mr-1" aria-hidden="true" title="Merged"></i>`
+            : prState === 'open'
+              ? `<i class="fa-solid fa-code-pull-request text-green-500 mr-1" aria-hidden="true" title="Open"></i>`
+              : `<i class="fa-solid fa-circle-xmark text-red-500 mr-1" aria-hidden="true" title="Closed"></i>`;
+          return `<a href="${escapeHtml(r.latest_pr.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-blue-500 hover:underline transition-colors text-gray-600 dark:text-gray-300 truncate block" title="#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? ' by ' + escapeHtml(r.latest_pr.author) : ''} [${prState}]">${prIcon}${r.latest_pr.author_avatar ? `<img src="${escapeHtml(r.latest_pr.author_avatar)}&amp;s=20" alt="${escapeHtml(r.latest_pr.author)}" title="${escapeHtml(r.latest_pr.author)}" class="inline-block w-4 h-4 rounded-full mr-1 align-middle" loading="lazy" />` : ''}#${r.latest_pr.number}: ${escapeHtml(r.latest_pr.title)}${r.latest_pr.author ? `<span class="ml-1 text-gray-400 dark:text-gray-500">by ${escapeHtml(r.latest_pr.author)}</span>` : ''}</a>`;
+        })() : `<span class="text-gray-300 dark:text-gray-600">—</span>`}
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400" title="Last updated: ${escapeHtml(r.updated_at)}">${timeAgo(r.updated_at)}</td>
       <td class="px-3 py-2 text-xs max-w-[14rem]">
