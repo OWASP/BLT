@@ -265,10 +265,8 @@ function buildStats(repos, cumulative) {
   document.getElementById('stats-bar').innerHTML = stats.map(s => {
     const inner = `
       <i class="${s.icon} ${s.color} text-sm" aria-hidden="true"></i>
-      <div class="min-w-0">
-        <p class="text-xs font-bold text-gray-900 dark:text-white leading-tight">${s.value}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${s.label}</p>
-      </div>`;
+      <span class="text-xs font-bold text-gray-900 dark:text-white">${s.value}</span>
+      <span class="text-xs text-gray-500 dark:text-gray-400">${s.label}</span>`;
     const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 flex items-center gap-1.5 shadow-sm ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : 'opacity-60 cursor-default'}`;
     return s.href
       ? `<a href="${s.href}" target="_blank" rel="noopener noreferrer" class="${cls}" aria-label="${s.label}: ${s.value}">${inner}</a>`
