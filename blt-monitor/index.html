@@ -65,208 +65,231 @@
 </div>
 
 <script>
-  function sanitizeId(id) {
-  const cleaned = String(id || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, '');
-  return cleaned || 'monitor';
-}
-fetch('monitors.json')
-  .then(r => r.json())
-  .then(monitors => {
-    const container = document.getElementById('monitors-list');
-    monitors.forEach(monitor => {
-      const baseId = sanitizeId(monitor.id);
-      const safeId = `${baseId}-${index}`;
-      const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
-      fetch(csvFile)
-        .then(r => {
-    if (!r.ok) throw new Error('CSV fetch failed');
-    return r.text();
-  })
-        .then(csv => {
-          const rows = parseCSV(csv);
-          const lastRow = rows[rows.length - 1];
-          const card = createMonitorCard(monitor, safeId, rows, lastRow, csvFile);
-          container.appendChild(card);
-        })
-        .catch(err => {
-          console.error(`Failed to load data for ${monitor.id}:`, err);
-          const card = createMonitorCard(monitor, safeId, [], null, csvFile);
-          container.appendChild(card);
-        });
-    });
-  })
-  .catch(err => {
-  console.error('Failed to load monitors configuration:', err);
-  document.getElementById('monitors-list').innerHTML =
-    '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
-});
+  const usedSafeIds = new Set();
 
-function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  return lines.filter(l => !/^\s*datetime\s*,/i.test(l)).map(l => l.split(','));
-}
-
-function escapeHTML(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-function safeUrl(url) {
-  try {
-    const u = new URL(url);
-    return (u.protocol === 'http:' || u.protocol === 'https:') ? url : '#';
-  } catch (e) { return '#'; }
-}
-
-function createMonitorCard(monitor, safeId, rows, lastRow, csvFile) {
-  const card = document.createElement('div');
-  card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
-  card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
-  card.setAttribute('tabindex', '0');
-  card.setAttribute('role', 'link');
-  card.setAttribute('aria-label', `View details for ${monitor.name}`);
-  card.className = 'card-hover block bg-[#0f172a] border border-slate-800 rounded-xl hover:border-slate-600 hover:shadow-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500';
-
-  let status = 'unknown';
-  let statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700';
-  let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
-  let responseTime = '--';
-  let lastCheck = 'Never';
-
-  if (lastRow) {
-    const isSuccess = lastRow[2] === 'success';
-    const keywordFound = lastRow[3] === 'found';
-    status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
-
-    if (status === 'up') {
-      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-800';
-      statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
-    } else if (status === 'warning') {
-      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
-      statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
-    } else if (status === 'down') {
-      statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800';
-      statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
+  function sanitizeId(id, index) {
+    const cleaned = String(id || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9-_]/g, '');
+    const base = cleaned || 'monitor';
+    const candidate = `${base}-${index}`;
+    if (usedSafeIds.has(candidate)) {
+      const unique = `${base}-${index}-${Math.random().toString(36).slice(2, 6)}`;
+      usedSafeIds.add(unique);
+      return unique;
     }
-
-    const ms = parseInt(lastRow[1]);
-    responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
-    const checkDate = new Date(lastRow[0]);
-    lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
+    usedSafeIds.add(candidate);
+    return candidate;
   }
 
-  const canvasId = `chart-${safeId}`;
+  function parseCSV(csv) {
+    return csv
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean)
+      .filter(l => !/^\s*datetime\s*,/i.test(l))
+      .map(l => l.split(',').map(c => c.trim()))
+      .filter(cols => cols.length >= 4 && !isNaN(Date.parse(cols[0])));
+  }
 
-  card.innerHTML = `
-    <div class="flex items-start gap-4">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-1">
-          <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${escapeHTML(monitor.name)}</h2>
-          <span class="${statusBadgeClass}">${statusIcon}</span>
-        </div>
-        <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
-          <i class="fa-solid fa-link flex-shrink-0 text-slate-600"></i>
-          <span class="truncate max-w-[300px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap mt-2.5">
-          <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
-             onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
-             class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-white bg-red-600 hover:bg-red-700 text-xs font-medium transition-colors"
-             title="Open in new window">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
-          </a>
-          <span class="flex items-center gap-1 bg-teal-900/40 text-teal-300 px-2.5 py-0.5 rounded-full text-xs border border-teal-800/60">
-            <i class="fa-solid fa-clock"></i> ${responseTime}
-          </span>
-          <span class="flex items-center gap-1 bg-orange-900/40 text-orange-300 px-2.5 py-0.5 rounded-full text-xs border border-orange-800/60">
-            <i class="fa-solid fa-calendar"></i> ${lastCheck}
-          </span>
-          ${monitor.keyword ? `
-          <span class="flex items-center gap-1 text-xs text-slate-500">
-            <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${escapeHTML(monitor.keyword)}</strong>
-          </span>` : ''}
-        </div>
-      </div>
-      <div class="w-40 sm:w-48 h-16 sm:h-20 flex-shrink-0">
-        <canvas id="${canvasId}"></canvas>
-      </div>
-    </div>
-  `;
+  function escapeHTML(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 
-  setTimeout(() => {
-    if (rows.length > 0) drawSparkline(canvasId, rows);
-  }, 10);
+  function safeUrl(url) {
+    try {
+      const u = new URL(url);
+      return (u.protocol === 'http:' || u.protocol === 'https:') ? url : '#';
+    } catch (e) { return '#'; }
+  }
 
-  return card;
-}
+  function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
 
-function drawSparkline(canvasId, rows) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const data = rows.slice(-20).map(r => parseInt(r[1]));
-  const bgColors = rows.slice(-20).map(r =>
-    (r[2]==='success' && r[3]==='found') ? '#4CAF50' :
-    (r[2]==='success' ? '#FFC107' : '#f44336')
-  );
+  fetch('monitors.json')
+    .then(r => {
+      if (!r.ok) throw new Error('Failed to fetch monitors.json');
+      return r.json();
+    })
+    .then(monitors => {
+      const container = document.getElementById('monitors-list');
+      monitors.forEach((monitor, index) => {
+        const safeId = sanitizeId(monitor.id, index);
+        const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
+        fetch(csvFile)
+          .then(r => {
+            if (!r.ok) throw new Error(`CSV fetch failed: ${r.status} ${r.statusText}`);
+            return r.text();
+          })
+          .then(csv => {
+            const rows = parseCSV(csv);
+            const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+            const card = createMonitorCard(monitor, safeId, rows, lastRow, csvFile);
+            container.appendChild(card);
+          })
+          .catch(err => {
+            console.error(`Failed to load data for ${monitor.id}:`, err);
+            const card = createMonitorCard(monitor, safeId, [], null, csvFile);
+            container.appendChild(card);
+          });
+      });
+    })
+    .catch(err => {
+      console.error('Failed to load monitors configuration:', err);
+      document.getElementById('monitors-list').innerHTML =
+        '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
+    });
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.map((_, i) => i),
-      datasets: [{
-        data,
-        fill: true,
-        borderColor: '#2dd4bf',
-        backgroundColor: 'rgba(45, 212, 191, 0.12)',
-        pointBackgroundColor: bgColors,
-        pointBorderColor: 'rgba(0,0,0,0.4)',
-        pointBorderWidth: 1,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        tension: 0.4,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: {
-        y: { display: false, beginAtZero: true },
-        x: { display: false }
+  function createMonitorCard(monitor, safeId, rows, lastRow, csvFile) {
+    const card = document.createElement('div');
+    card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
+    card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'link');
+    card.setAttribute('aria-label', `View details for ${monitor.name}`);
+    card.className = 'card-hover block bg-[#0f172a] border border-slate-800 rounded-xl hover:border-slate-600 hover:shadow-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500';
+
+    let statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700';
+    let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
+    let responseTime = '--';
+    let lastCheck = 'Never';
+
+    if (lastRow) {
+      const isSuccess = lastRow[2] === 'success';
+      const keywordFound = lastRow[3] === 'found';
+      const status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
+
+      if (status === 'up') {
+        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-800';
+        statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
+      } else if (status === 'warning') {
+        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
+        statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
+      } else if (status === 'down') {
+        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800';
+        statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
       }
+
+      const ms = parseInt(lastRow[1]);
+      responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
+
+      const checkDate = new Date(lastRow[0]);
+      lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
     }
-  });
-}
 
-function timeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
+    const canvasId = `chart-${safeId}`;
 
-// GitHub stats
-fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
-  .then(r => {
-    if (!r.ok) throw new Error('API error');
-    return r.json();
-  })
-  .then(data => {
-    document.getElementById('gh-stars').textContent = data.stargazers_count;
-    document.getElementById('gh-forks').textContent = data.forks_count;
-  })
-  .catch(() => {
-    document.getElementById('gh-stars').textContent = '—';
-    document.getElementById('gh-forks').textContent = '—';
-  });
+    card.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${escapeHTML(monitor.name)}</h2>
+            <span class="${statusBadgeClass}">${statusIcon}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
+            <i class="fa-solid fa-link flex-shrink-0 text-slate-600"></i>
+            <span class="truncate max-w-[300px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap mt-2.5">
+            <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
+               onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+               class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-white bg-red-600 hover:bg-red-700 text-xs font-medium transition-colors"
+               title="Open in new window">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+            </a>
+            <span class="flex items-center gap-1 bg-teal-900/40 text-teal-300 px-2.5 py-0.5 rounded-full text-xs border border-teal-800/60">
+              <i class="fa-solid fa-clock"></i> ${responseTime}
+            </span>
+            <span class="flex items-center gap-1 bg-orange-900/40 text-orange-300 px-2.5 py-0.5 rounded-full text-xs border border-orange-800/60">
+              <i class="fa-solid fa-calendar"></i> ${lastCheck}
+            </span>
+            ${monitor.keyword ? `
+            <span class="flex items-center gap-1 text-xs text-slate-500">
+              <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${escapeHTML(monitor.keyword)}</strong>
+            </span>` : ''}
+          </div>
+        </div>
+        <div class="w-40 sm:w-48 h-16 sm:h-20 flex-shrink-0">
+          <canvas id="${canvasId}"></canvas>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      if (rows.length > 0) drawSparkline(canvasId, rows);
+    }, 10);
+
+    return card;
+  }
+
+  function drawSparkline(canvasId, rows) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    // FIX 7: filter out NaN response times before charting
+    const recentRows = rows.slice(-20).filter(r => !isNaN(parseInt(r[1])));
+    const data = recentRows.map(r => parseInt(r[1]));
+    const bgColors = recentRows.map(r =>
+      (r[2] === 'success' && r[3] === 'found') ? '#4CAF50' :
+      (r[2] === 'success' ? '#FFC107' : '#f44336')
+    );
+
+    if (data.length === 0) return;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map((_, i) => i),
+        datasets: [{
+          data,
+          fill: true,
+          borderColor: '#2dd4bf',
+          backgroundColor: 'rgba(45, 212, 191, 0.12)',
+          pointBackgroundColor: bgColors,
+          pointBorderColor: 'rgba(0,0,0,0.4)',
+          pointBorderWidth: 1,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.4,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          y: { display: false, beginAtZero: true },
+          x: { display: false }
+        }
+      }
+    });
+  }
+
+  // GitHub stats 
+  fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
+    .then(r => {
+      if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
+      return r.json();
+    })
+    .then(data => {
+      document.getElementById('gh-stars').textContent = data.stargazers_count;
+      document.getElementById('gh-forks').textContent = data.forks_count;
+    })
+    .catch(() => {
+      document.getElementById('gh-stars').textContent = '—';
+      document.getElementById('gh-forks').textContent = '—';
+    });
 
 </script>
 </body>
