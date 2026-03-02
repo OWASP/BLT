@@ -22,7 +22,7 @@ const BLT_CONFIG = {
   REPO_NAME: "BLT-Pages",
 
   /* ── External services ── */
-  BLT_ZERO_URL: "https://blt-zero.owasp.org",
+  BLT_ZERO_URL: "https://zero.owaspblt.org",
   BLT_API_URL: "https://blt.owasp.org/api",
 
   /* ── Pricing (set to true in commercial forks) ── */
