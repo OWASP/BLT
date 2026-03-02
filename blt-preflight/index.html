@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT-Preflight — Security Advisory for Open Source Contributors</title>
+  <meta name="description" content="BLT-Preflight is a pre-contribution advisory system that helps contributors understand security expectations before opening pull requests." />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover: '#b91c1c',
+              light: '#feeae9',
+            },
+            dark: {
+              base: '#111827',
+              surface: '#1F2937',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /* Custom scrollbar for code blocks */
+    pre::-webkit-scrollbar { height: 4px; }
+    pre::-webkit-scrollbar-track { background: #1F2937; }
+    pre::-webkit-scrollbar-thumb { background: #E10101; border-radius: 2px; }
+  </style>
+</head>
+
+<body class="bg-white text-gray-900 dark:bg-dark-base dark:text-gray-100 font-sans antialiased">
+
+  <!-- ───────────────────────────── NAV ───────────────────────────── -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-dark-base border-b border-[#E5E5E5] dark:border-dark-surface">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 font-bold text-xl text-gray-900 dark:text-white">
+        <span class="w-8 h-8 rounded-md bg-[#E10101] flex items-center justify-center text-white text-sm font-extrabold">B</span>
+        <span>BLT<span class="text-[#E10101]">-Preflight</span></span>
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Primary navigation">
+        <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors">Features</a>
+        <a href="#how-it-works" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors">How It Works</a>
+        <a href="#quickstart" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors">Quickstart</a>
+        <a href="#components" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors">Style Guide</a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Preflight"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1.5 border border-[#E10101] text-[#E10101] px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#E10101] hover:text-white transition-colors"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          GitHub
+        </a>
+      </nav>
+
+      <!-- Mobile menu button -->
+      <button
+        id="menu-btn"
+        class="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-[#E10101]"
+        aria-label="Toggle mobile menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <i class="fa-solid fa-bars text-xl" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-[#E5E5E5] dark:border-dark-surface bg-white dark:bg-dark-base px-4 pb-4">
+      <nav class="flex flex-col gap-3 pt-3 text-sm font-medium" aria-label="Mobile navigation">
+        <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Features</a>
+        <a href="#how-it-works" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">How It Works</a>
+        <a href="#quickstart" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Quickstart</a>
+        <a href="#components" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Style Guide</a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Preflight"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 border border-[#E10101] text-[#E10101] px-4 py-2 rounded-md hover:bg-[#E10101] hover:text-white transition-colors w-fit"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- ───────────────────────────── HERO ───────────────────────────── -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-white via-[#fff5f5] to-white dark:from-dark-base dark:via-dark-surface dark:to-dark-base py-24 px-4 sm:px-6 lg:px-8">
+    <!-- Decorative blobs -->
+    <div class="pointer-events-none absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-[#E10101]/10 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -bottom-24 -left-24 w-[320px] h-[320px] rounded-full bg-[#E10101]/5 blur-2xl" aria-hidden="true"></div>
+
+    <div class="relative max-w-4xl mx-auto text-center">
+      <!-- Badge -->
+      <span class="inline-flex items-center gap-1.5 bg-[#feeae9] dark:bg-brand-light/10 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full mb-6">
+        <i class="fa-solid fa-shield-halved text-xs" aria-hidden="true"></i>
+        OWASP BLT Project
+      </span>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
+        Security guidance<br />
+        <span class="text-[#E10101]">before you contribute</span>
+      </h1>
+
+      <p class="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+        BLT-Preflight is a pre-contribution advisory system that gives contributors
+        actionable security guidance before they open a pull request — reducing risk
+        and maintainer workload at the same time.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="#quickstart"
+          class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition-colors shadow-sm"
+        >
+          <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+          Get Started
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Preflight"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white font-semibold px-6 py-3 rounded-md transition-colors"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          View on GitHub
+        </a>
+      </div>
+
+      <!-- Badges row -->
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License" />
+        <img src="https://img.shields.io/badge/OWASP-Project-orange.svg" alt="OWASP Project" />
+        <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python 3.11+" />
+        <img src="https://img.shields.io/badge/Advisory-Only-green.svg" alt="Advisory Only" />
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────────────────────── STATS STRIP ────────────────────────── -->
+  <section class="border-y border-[#E5E5E5] dark:border-dark-surface bg-gray-50 dark:bg-dark-surface py-10 px-4" aria-label="Statistics">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">100%</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Advisory only</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">0</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">External dependencies</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">5 min</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Setup time</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">OWASP</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Backed guidelines</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── FEATURES ───────────────────────────── -->
+  <section id="features" class="py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Why BLT-Preflight?</h2>
+        <p class="mt-3 text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+          Catch security issues before they become pull requests.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <!-- Feature card -->
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-solid fa-magnifying-glass-chart text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Context-Aware Analysis</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            Evaluates issue labels, changed file patterns, and repository metadata to tailor guidance to each contribution.
+          </p>
+        </article>
+
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-solid fa-book-open text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Plain-Language Guidance</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            Every advisory includes clear, actionable recommendations with links to OWASP documentation and severity levels.
+          </p>
+        </article>
+
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-solid fa-comment-dots text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Optional Intent Capture</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            Contributors can share their intent to receive even more targeted guidance, fostering a collaborative security culture.
+          </p>
+        </article>
+
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-solid fa-chart-bar text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Maintainer Dashboard</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            Track advisory effectiveness, feedback statistics, helpfulness rates, and pattern analysis in one place.
+          </p>
+        </article>
+
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-solid fa-arrows-rotate text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Learning Loop</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            The system improves over time by collecting feedback, analyzing intent patterns, and refining guidance based on real effectiveness.
+          </p>
+        </article>
+
+        <article class="group p-6 bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 hover:border-[#E10101] hover:shadow-md transition-all">
+          <div class="w-11 h-11 rounded-lg bg-[#feeae9] dark:bg-brand-light/10 flex items-center justify-center mb-4 text-[#E10101] group-hover:bg-[#E10101] group-hover:text-white transition-colors">
+            <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Zero-friction Integration</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+            Drop a single GitHub Actions workflow file into your repo. No external services, no API keys, no breaking changes.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ──────────────────────── HOW IT WORKS ──────────────────────── -->
+  <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-dark-surface">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">How It Works</h2>
+        <p class="mt-3 text-gray-500 dark:text-gray-400 text-lg">
+          From contribution to advisory in seconds.
+        </p>
+      </div>
+
+      <ol class="relative border-l-2 border-[#E10101]/30 dark:border-[#E10101]/20 space-y-12 pl-8">
+
+        <li class="relative">
+          <div class="absolute -left-[2.35rem] w-9 h-9 rounded-full bg-[#E10101] flex items-center justify-center text-white font-bold text-sm shadow">1</div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-xl mb-2">Contributor opens a PR or issue</h3>
+          <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+            The GitHub Actions workflow triggers automatically when a pull request or issue is opened. No extra steps required from the contributor.
+          </p>
+        </li>
+
+        <li class="relative">
+          <div class="absolute -left-[2.35rem] w-9 h-9 rounded-full bg-[#E10101] flex items-center justify-center text-white font-bold text-sm shadow">2</div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-xl mb-2">BLT-Preflight analyses context</h3>
+          <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+            The advisory engine inspects labels, changed file paths, and repository history to build a context profile for the contribution.
+          </p>
+          <div class="mt-4 grid sm:grid-cols-3 gap-3">
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-dark-base rounded-md px-3 py-2 border border-[#E5E5E5] dark:border-gray-700">
+              <i class="fa-solid fa-tag text-[#E10101]" aria-hidden="true"></i>
+              Issue &amp; PR labels
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-dark-base rounded-md px-3 py-2 border border-[#E5E5E5] dark:border-gray-700">
+              <i class="fa-solid fa-file-code text-[#E10101]" aria-hidden="true"></i>
+              Changed file paths
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-dark-base rounded-md px-3 py-2 border border-[#E5E5E5] dark:border-gray-700">
+              <i class="fa-solid fa-clock-rotate-left text-[#E10101]" aria-hidden="true"></i>
+              Past patterns
+            </div>
+          </div>
+        </li>
+
+        <li class="relative">
+          <div class="absolute -left-[2.35rem] w-9 h-9 rounded-full bg-[#E10101] flex items-center justify-center text-white font-bold text-sm shadow">3</div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-xl mb-2">Advisory posted as a comment</h3>
+          <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+            A structured comment appears on the PR or issue with severity-classified recommendations and links to OWASP documentation — purely advisory, never blocking.
+          </p>
+        </li>
+
+        <li class="relative">
+          <div class="absolute -left-[2.35rem] w-9 h-9 rounded-full bg-[#E10101] flex items-center justify-center text-white font-bold text-sm shadow">4</div>
+          <h3 class="font-semibold text-gray-900 dark:text-white text-xl mb-2">Feedback improves future guidance</h3>
+          <p class="text-gray-500 dark:text-gray-400 leading-relaxed">
+            Contributors and maintainers can rate advisory helpfulness. The learning loop uses this data to refine patterns over time.
+          </p>
+        </li>
+
+      </ol>
+    </div>
+  </section>
+
+
+  <!-- ──────────────────────── QUICKSTART ──────────────────────── -->
+  <section id="quickstart" class="py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Quickstart</h2>
+        <p class="mt-3 text-gray-500 dark:text-gray-400 text-lg">
+          Get BLT-Preflight running in your repository in under 5 minutes.
+        </p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="space-y-8">
+
+        <!-- Step 1 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-3 border-b border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-dark-base">
+            <span class="w-6 h-6 rounded-full bg-[#E10101] text-white text-xs flex items-center justify-center font-bold">1</span>
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy the workflow file into your repo</p>
+          </div>
+          <pre class="overflow-x-auto text-sm text-gray-100 bg-[#111827] p-5 leading-relaxed"><code><span class="text-green-400"># .github/workflows/blt-preflight.yml</span>
+<span class="text-[#E10101]">name</span>: BLT Preflight Advisory
+
+<span class="text-[#E10101]">on</span>:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issues:
+    types: [opened, labeled]
+
+<span class="text-[#E10101]">permissions</span>:
+  pull-requests: write
+  issues: write
+  contents: read
+
+<span class="text-[#E10101]">jobs</span>:
+  security-advisory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: OWASP-BLT/BLT-Preflight@main</code></pre>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-3 border-b border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-dark-base">
+            <span class="w-6 h-6 rounded-full bg-[#E10101] text-white text-xs flex items-center justify-center font-bold">2</span>
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Run locally for a preview</p>
+          </div>
+          <pre class="overflow-x-auto text-sm text-gray-100 bg-[#111827] p-5 leading-relaxed"><code><span class="text-green-400"># Clone &amp; install</span>
+git clone https://github.com/OWASP-BLT/BLT-Preflight.git
+cd BLT-Preflight
+pip install -r requirements.txt
+
+<span class="text-green-400"># Generate an advisory</span>
+python3 src/blt_preflight.py advise \
+  --labels security,authentication \
+  --files src/auth/login.py \
+  --repo your-org/your-repo
+
+<span class="text-green-400"># View the maintainer dashboard</span>
+python3 src/blt_preflight.py dashboard</code></pre>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-3 border-b border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-dark-base">
+            <span class="w-6 h-6 rounded-full bg-[#E10101] text-white text-xs flex items-center justify-center font-bold">3</span>
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Record feedback to improve guidance</p>
+          </div>
+          <pre class="overflow-x-auto text-sm text-gray-100 bg-[#111827] p-5 leading-relaxed"><code>python3 src/blt_preflight.py feedback \
+  --pattern "Security Advisory: Authentication" \
+  --helpful yes</code></pre>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────── STYLE GUIDE / COMPONENTS ─────────────────── -->
+  <section id="components" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-dark-surface">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">BLT Style Guide</h2>
+        <p class="mt-3 text-gray-500 dark:text-gray-400 text-lg">
+          Copy-paste ready components following BLT brand tokens.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+
+        <!-- Sidebar col (left) -->
+        <aside class="lg:col-span-1">
+          <div class="bg-white dark:bg-dark-base rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+            <div class="px-4 py-3 border-b border-[#E5E5E5] dark:border-gray-700">
+              <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Sidebar Example</p>
+            </div>
+
+            <!-- Search in sidebar -->
+            <div class="px-3 py-3 border-b border-[#E5E5E5] dark:border-gray-700">
+              <label for="sidebar-search" class="sr-only">Search</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                  <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+                </span>
+                <input
+                  id="sidebar-search"
+                  type="search"
+                  placeholder="Search…"
+                  class="w-full border border-gray-400 dark:border-gray-600 rounded-md pl-9 pr-3 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 dark:focus:border-red-600 dark:focus:ring-red-600"
+                />
+              </div>
+            </div>
+
+            <nav aria-label="Sidebar navigation">
+              <!-- Group -->
+              <p class="px-4 pt-4 pb-1 text-xs font-semibold uppercase tracking-widest text-gray-400">Main</p>
+              <ul class="space-y-0.5 px-2 pb-2">
+                <li>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium bg-[#feeae9] text-[#E10101]" aria-current="page">
+                    <i class="fa-solid fa-house w-4 text-center" aria-hidden="true"></i>
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+                    <i class="fa-solid fa-shield-halved w-4 text-center" aria-hidden="true"></i>
+                    Advisories
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+                    <i class="fa-solid fa-chart-bar w-4 text-center" aria-hidden="true"></i>
+                    Analytics
+                  </a>
+                </li>
+              </ul>
+
+              <p class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-widest text-gray-400">Config</p>
+              <ul class="space-y-0.5 px-2 pb-4">
+                <li>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+                    <i class="fa-solid fa-gear w-4 text-center" aria-hidden="true"></i>
+                    Settings
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+                    <i class="fa-solid fa-circle-question w-4 text-center" aria-hidden="true"></i>
+                    Help
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </aside>
+
+        <!-- Components panel (right) -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <!-- Buttons -->
+          <div class="bg-white dark:bg-dark-base rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+            <h3 class="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">Buttons</h3>
+            <div class="flex flex-wrap gap-3">
+              <button type="button" class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-sm">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                Primary
+              </button>
+              <button type="button" class="inline-flex items-center gap-2 border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white font-semibold px-4 py-2 rounded-md transition-colors text-sm">
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                Outline
+              </button>
+              <button type="button" class="inline-flex items-center gap-2 bg-gray-100 dark:bg-dark-surface text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold px-4 py-2 rounded-md transition-colors text-sm">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                Neutral
+              </button>
+              <button type="button" disabled class="inline-flex items-center gap-2 bg-[#E10101]/40 text-white font-semibold px-4 py-2 rounded-md cursor-not-allowed text-sm" aria-disabled="true">
+                Disabled
+              </button>
+            </div>
+          </div>
+
+          <!-- Inputs -->
+          <div class="bg-white dark:bg-dark-base rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+            <h3 class="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">Inputs</h3>
+            <div class="space-y-4">
+
+              <div>
+                <label for="example-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Text input</label>
+                <input
+                  id="example-input"
+                  type="text"
+                  placeholder="e.g. src/auth/login.py"
+                  class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                />
+              </div>
+
+              <div>
+                <label for="example-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search with icon</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+                  </span>
+                  <input
+                    id="example-search"
+                    type="search"
+                    placeholder="Search advisories…"
+                    class="w-full border border-gray-400 dark:border-gray-600 rounded-md pl-9 pr-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="example-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select</label>
+                <select
+                  id="example-select"
+                  class="w-full border border-gray-400 dark:border-gray-600 rounded-md px-4 py-2 text-sm bg-white dark:bg-dark-surface text-gray-900 dark:text-gray-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                >
+                  <option>Critical</option>
+                  <option>Warning</option>
+                  <option>Info</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Badges / Severity -->
+          <div class="bg-white dark:bg-dark-base rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+            <h3 class="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">Severity Badges</h3>
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                Critical
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                Warning
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                Info
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                Passed
+              </span>
+            </div>
+          </div>
+
+          <!-- Links -->
+          <div class="bg-white dark:bg-dark-base rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+            <h3 class="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">Links</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              See the
+              <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">OWASP BLT Project</a>
+              and the
+              <a href="https://github.com/OWASP-BLT/BLT-Preflight" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">BLT-Preflight repository</a>
+              for full documentation and contribution guidelines.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────────────────── SAMPLE ADVISORY CARD ────────────────────── -->
+  <section class="py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Example Advisory</h2>
+        <p class="mt-2 text-gray-500 dark:text-gray-400">This is what contributors see on their PR.</p>
+      </div>
+
+      <div class="bg-white dark:bg-dark-surface rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden shadow-sm">
+        <!-- Card header -->
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-[#E5E5E5] dark:border-gray-700 bg-[#feeae9] dark:bg-[#E10101]/10">
+          <i class="fa-solid fa-shield-halved text-[#E10101] text-xl" aria-hidden="true"></i>
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-white text-sm">BLT Preflight Security Advisory</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Generated automatically · purely advisory</p>
+          </div>
+        </div>
+
+        <!-- Advisory body -->
+        <div class="p-5 space-y-4 text-sm text-gray-700 dark:text-gray-300">
+          <p>
+            Hello <strong>@contributor</strong> 👋 — thanks for your contribution! Here's a security advisory based on the files and labels in this PR.
+          </p>
+
+          <!-- Critical item -->
+          <div class="flex gap-3 p-3 rounded-md border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10">
+            <i class="fa-solid fa-circle-exclamation text-red-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p class="font-semibold text-red-700 dark:text-red-400">Critical · Authentication changes detected</p>
+              <p class="mt-1 text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
+                Changes to authentication flows should be reviewed for session fixation, credential exposure, and brute-force risks.
+                See <a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">OWASP Top 10 A07</a>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Warning item -->
+          <div class="flex gap-3 p-3 rounded-md border border-yellow-200 dark:border-yellow-900/40 bg-yellow-50 dark:bg-yellow-900/10">
+            <i class="fa-solid fa-triangle-exclamation text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p class="font-semibold text-yellow-700 dark:text-yellow-400">Warning · Input validation recommended</p>
+              <p class="mt-1 text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
+                Ensure all user-supplied inputs are validated and sanitized before processing or persistence.
+              </p>
+            </div>
+          </div>
+
+          <!-- Info item -->
+          <div class="flex gap-3 p-3 rounded-md border border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-900/10">
+            <i class="fa-solid fa-circle-info text-blue-600 mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <p class="font-semibold text-blue-700 dark:text-blue-400">Info · Security tests encouraged</p>
+              <p class="mt-1 text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
+                Adding unit tests for auth edge cases (e.g., expired tokens, invalid credentials) would strengthen coverage.
+              </p>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-400">
+            This advisory is informational only and does not block merging. Rate this advisory:
+            <button type="button" class="text-green-600 hover:underline font-medium">👍 Helpful</button> ·
+            <button type="button" class="text-gray-500 hover:underline font-medium">👎 Not helpful</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ──────────────────────────── CTA ──────────────────────────── -->
+  <section class="py-20 px-4 sm:px-6 lg:px-8 bg-[#E10101]">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white">Ready to protect your contributors?</h2>
+      <p class="mt-4 text-red-100 text-lg">
+        Add BLT-Preflight to your repository today — it's free, open-source, and takes under 5 minutes.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Preflight"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 bg-white text-[#E10101] hover:bg-red-50 font-semibold px-6 py-3 rounded-md transition-colors shadow-sm"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          Star on GitHub
+        </a>
+        <a
+          href="#quickstart"
+          class="inline-flex items-center gap-2 border border-white text-white hover:bg-white/10 font-semibold px-6 py-3 rounded-md transition-colors"
+        >
+          <i class="fa-solid fa-book" aria-hidden="true"></i>
+          Read the Docs
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ──────────────────────────── FOOTER ──────────────────────────── -->
+  <footer class="bg-[#111827] text-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+
+      <div>
+        <div class="flex items-center gap-2 font-bold text-white text-lg mb-3">
+          <span class="w-7 h-7 rounded-md bg-[#E10101] flex items-center justify-center text-xs font-extrabold">B</span>
+          BLT-Preflight
+        </div>
+        <p class="text-sm leading-relaxed">
+          A pre-contribution security advisory system by the OWASP BLT Project.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-white text-sm font-semibold mb-3">Project</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight/blob/main/README.md" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Documentation</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Contributing</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">License</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-white text-sm font-semibold mb-3">Community</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">OWASP BLT</a></li>
+          <li><a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub Org</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight/issues" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Report an Issue</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-white text-sm font-semibold mb-3">Resources</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">OWASP Top 10</a></li>
+          <li><a href="https://cheatsheetseries.owasp.org/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">OWASP Cheat Sheets</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Preflight/blob/main/docs/SECURITY_GUIDANCE.md" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Security Guidance</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="max-w-6xl mx-auto border-t border-gray-700 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <p>© 2025 OWASP BLT Project · Apache 2.0 License</p>
+      <p class="flex items-center gap-1.5">
+        Built with
+        <i class="fa-solid fa-heart text-[#E10101]" aria-hidden="true"></i>
+        for open-source security
+      </p>
+    </div>
+  </footer>
+
+
+  <!-- ──────────────── JS: mobile menu + dark mode toggle ──────────────── -->
+  <script>
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    menuBtn.addEventListener('click', () => {
+      const open = mobileMenu.classList.toggle('hidden') === false;
+      menuBtn.setAttribute('aria-expanded', String(open));
+      const icon = menuBtn.querySelector('i');
+      icon.className = open ? 'fa-solid fa-xmark text-xl' : 'fa-solid fa-bars text-xl';
+    });
+
+    // Close mobile menu when a link is clicked
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.querySelector('i').className = 'fa-solid fa-bars text-xl';
+      });
+    });
+  </script>
+
+</body>
+</html>
