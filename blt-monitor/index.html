@@ -76,7 +76,8 @@ fetch('monitors.json')
   .then(monitors => {
     const container = document.getElementById('monitors-list');
     monitors.forEach(monitor => {
-      const safeId = sanitizeId(monitor.id);
+      const baseId = sanitizeId(monitor.id);
+      const safeId = `${baseId}-${index}`;
       const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
       fetch(csvFile)
         .then(r => {
@@ -153,7 +154,8 @@ function createMonitorCard(monitor, safeId, rows, lastRow, csvFile) {
 
     const ms = parseInt(lastRow[1]);
     responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
-    lastCheck = timeAgo(new Date(lastRow[0]));
+    const checkDate = new Date(lastRow[0]);
+    lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
   }
 
   const canvasId = `chart-${safeId}`;
