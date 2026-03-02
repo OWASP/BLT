@@ -2,19 +2,26 @@
 
 This repository contains the Google Summer of Code (GSoC) pages for the OWASP BLT project, hosted as a static GitHub Pages site.
 
+---
+
 ## 🌐 Live Site
 
 **URL**: https://owasp-blt.github.io/BLT-GSOC/
 
+---
+
 ## 📄 Pages
 
 - **Home Page** (`index.html`) - Main GSoC landing page with:
+
   - Program overview and benefits
   - Statistics and project showcase
   - Application guidelines and timeline
   - Mentor information and FAQ
 
 - **PR Analytics** (`pr-report.html`) - Information about the PR analytics dashboard
+
+---
 
 ## 📁 Repository Structure
 
@@ -33,6 +40,7 @@ BLT-GSOC/
 ├── CHANGELOG.md       # Version history
 └── SUMMARY.md         # Project summary
 ```
+---
 
 ## 🎨 Technology Stack
 
@@ -41,6 +49,8 @@ BLT-GSOC/
 - **Font Awesome** (CDN) - Icon library
 - **Custom CSS** - Additional styles and animations
 
+---
+
 ### Features
 - ✅ Fully responsive design (mobile, tablet, desktop)
 - ✅ Dark mode support (automatic)
@@ -48,20 +58,23 @@ BLT-GSOC/
 - ✅ SEO optimized
 - ✅ Accessible markup
 
+---
+
 ## 📜 History
 
 This repository includes all GSoC-related components from the BLT application:
 
-## 📜 History
-
 This repository originally contained Django templates, views, and management commands for GSoC functionality within the main OWASP BLT application. These have been converted to static HTML pages for hosting on GitHub Pages.
 
 ### Evolution
+
 1. **Initial Migration** - GSoC pages extracted from main BLT repository
 2. **Static Conversion** - Django templates converted to standalone HTML
 3. **Root Migration** - Moved from `docs/` folder to root for simpler structure
 
 All Django backend functionality has been removed in favor of a pure static site that can be easily hosted on GitHub Pages.
+
+---
 
 ## 🚀 GitHub Pages Deployment
 
@@ -74,6 +87,8 @@ The site is configured to serve from the repository root. To enable GitHub Pages
 5. Click **Save**
 
 The site will be published at: `https://owasp-blt.github.io/BLT-GSOC/`
+
+---
 
 ## 🔧 Local Development
 
@@ -91,6 +106,8 @@ Or use any static file server like:
 - VS Code Live Server extension
 - `php -S localhost:8000`
 
+---
+
 ## 📝 Content
 
 ### Main Page Features
@@ -99,6 +116,7 @@ Or use any static file server like:
 - Student and mentor benefits
 - Application timeline and process
 - 7 OWASP project showcases:
+
   - BLT (Bug Logging Tool)
   - NEST
   - NETTACKER
@@ -106,13 +124,18 @@ Or use any static file server like:
   - DSOMM
   - PYGOAT
   - OpenCRE
+  
 - Mentor profiles
 - Comprehensive FAQ section
+
+---
 
 ### PR Analytics Page
 - Feature overview
 - Information about live dashboard (requires BLT backend)
 - Links to main BLT application
+
+---
 
 ## 🤝 Contributing
 
@@ -122,9 +145,13 @@ This is a static documentation site. To update content:
 3. Test locally before committing
 4. Submit a pull request
 
+---
+
 ## 📄 License
 
 This project is part of the OWASP BLT project and inherits its license.
+
+---
 
 ## 🔗 Related Links
 
