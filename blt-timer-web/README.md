@@ -4,11 +4,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.x-blue)](https://www.python.org/)
 
 ## Overview
 
 Fresh is a comprehensive time tracking system designed specifically for developers who want to monitor their productivity without compromising privacy. It tracks your work across multiple sources while ensuring all sensitive data processing happens locally on your machine.
+
+The back-end runs as a **Cloudflare Python Worker** – no Node.js required.
 
 ## ✨ Features
 
@@ -25,53 +27,57 @@ Fresh is a comprehensive time tracking system designed specifically for develope
 - **Screenshot Analysis**: Optional local analysis for productivity insights
 
 ### ⚡ Modern Architecture
-- **Cloudflare Workers**: Global edge deployment for low latency
-- **Durable Objects**: Real-time session management with WebSocket support
+- **Cloudflare Python Workers**: Global edge deployment for low latency
 - **KV Storage**: Persistent, distributed data storage
-- **TypeScript**: Type-safe codebase
+- **Pure Python**: No Node.js or npm required
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-```bash
-node >= 18.0.0
-npm >= 9.0.0
+```
+python >= 3.11   (only needed for local examples / tests)
+wrangler >= 3    (npm install -g wrangler  OR  npx wrangler)
 ```
 
-### Installation
+### Deploy
 
 ```bash
-# Clone the repository
-git clone https://github.com/OWASP-BLT/Fresh.git
-cd Fresh
+# Login to Cloudflare
+npx wrangler login
 
-# Install dependencies
-npm install
+# Create KV namespaces (copy the IDs into wrangler.toml)
+npx wrangler kv:namespace create TIME_TRACKING_DATA
+npx wrangler kv:namespace create ACTIVITY_DATA
 
-# Start development server
-npm run dev
+# Deploy the Python Worker
+npx wrangler deploy
 ```
 
-### Basic Usage
+### Local development
 
-```typescript
-import TimeTrackerClient from './client/tracker-client';
+```bash
+npx wrangler dev
+```
 
-const tracker = new TimeTrackerClient({
-  apiUrl: 'http://localhost:8787',
-  userId: 'your-user-id',
-  projectId: 'your-project-id',
-  enableKeyboard: true,
-  enableMouse: true,
-});
+### Basic Usage (Python client)
 
-// Start tracking
-await tracker.startSession();
+```python
+import urllib.request, json
 
-// Your work happens here...
+API_URL = "http://localhost:8787"
+USER_ID = "your-user-id"
 
-// End tracking
-await tracker.endSession();
+# Start a session
+req = urllib.request.Request(
+    f"{API_URL}/api/sessions/start",
+    data=json.dumps({"projectId": "my-project"}).encode(),
+    headers={"Content-Type": "application/json", "X-User-ID": USER_ID},
+    method="POST",
+)
+with urllib.request.urlopen(req) as resp:
+    data = json.loads(resp.read())
+session_id = data["session"]["id"]
+print("Session started:", session_id)
 ```
 
 ## 📚 Documentation
@@ -79,32 +85,30 @@ await tracker.endSession();
 - [Complete Documentation](docs/README.md)
 - [API Reference](docs/README.md#api-endpoints)
 - [Privacy & Security](docs/README.md#privacy-guarantees)
-- [Client Usage](docs/README.md#client-usage)
-- [GitHub Integration](examples/github-integration.ts)
-- [CLI Tool](examples/cli-tracker.ts)
+- [GitHub Integration](examples/github_integration.py)
+- [CLI Tool](examples/cli_tracker.py)
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐
-│  Client-Side    │  ← User's Machine (Browser/CLI)
+│  Client-Side    │  ← User's Machine (Browser/CLI/Python script)
 │  Tracker        │     - Activity monitoring
 └────────┬────────┘     - Local LLM analysis
          │
-         │ HTTPS/WebSocket
+         │ HTTPS
          │
 ┌────────▼────────┐
-│  Cloudflare     │  ← Edge Network
-│  Worker         │     - API endpoints
-│  + Durable      │     - Session management
-│    Objects      │     - Real-time updates
+│  Cloudflare     │  ← Edge Network (Python Worker)
+│  Python Worker  │     - API endpoints
+│                 │     - Session management
 └────────┬────────┘
          │
     ┌────┴────┐
     │         │
 ┌───▼───┐ ┌──▼──────┐
-│  KV   │ │ Durable │
-│ Store │ │ Objects │
+│  KV   │ │  KV     │
+│ Store │ │ Activity│
 └───────┘ └─────────┘
 ```
 
@@ -133,31 +137,29 @@ When enabled (requires explicit consent):
 
 ### Project Structure
 ```
-Fresh/
+BLT-Timer-Web/
 ├── src/
-│   ├── api/              # API routes
-│   ├── modules/          # Core tracking modules
-│   ├── types/            # TypeScript types
-│   ├── durable-objects/  # Durable Objects
-│   └── utils/            # Utilities
-├── client/               # Client-side tracker
-├── examples/             # Example implementations
+│   └── worker.py         # Cloudflare Python Worker (main entry point)
+├── client/               # (browser dashboard)
+├── examples/             # Python example scripts
+│   ├── cli_tracker.py
+│   └── github_integration.py
 ├── docs/                 # Documentation
-└── tests/                # Tests
+├── public/               # Static HTML dashboard
+└── wrangler.toml         # Cloudflare Worker configuration
 ```
 
-### Available Scripts
+### Available Commands
 
 ```bash
-# Development
-npm run dev              # Start dev server
-npm run type-check       # Type checking
+# Development server
+npx wrangler dev
 
-# Deployment
-npm run deploy           # Deploy to Cloudflare
+# Deploy to Cloudflare
+npx wrangler deploy
 
-# Testing
-npm test                 # Run tests
+# Type-check / lint Python
+python -m py_compile src/worker.py
 ```
 
 ## 📦 Deployment
@@ -172,10 +174,10 @@ npx wrangler login
 npx wrangler kv:namespace create TIME_TRACKING_DATA
 npx wrangler kv:namespace create ACTIVITY_DATA
 
-# Update wrangler.toml with KV namespace IDs
+# Update wrangler.toml with the KV namespace IDs printed above
 
 # Deploy
-npm run deploy
+npx wrangler deploy
 ```
 
 ## 🔧 Configuration
@@ -222,14 +224,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [Cloudflare Workers](https://workers.cloudflare.com/)
-- Powered by [Hono](https://hono.dev/)
 - Inspired by privacy-focused productivity tools
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/Fresh/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/Fresh/discussions)
-- **Email**: support@example.com
+- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Timer-Web/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Timer-Web/discussions)
 
 ## 🗺️ Roadmap
 
