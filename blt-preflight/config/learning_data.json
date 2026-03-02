@@ -24,6 +24,24 @@
       "helpful": 1,
       "comments": "Test comment",
       "timestamp": "2026-02-18T02:29:30.452537"
+    },
+    {
+      "pattern": "Test Pattern",
+      "helpful": 1,
+      "comments": "Test comment",
+      "timestamp": "2026-03-02T01:04:12.116075"
+    },
+    {
+      "pattern": "Test Pattern",
+      "helpful": 1,
+      "comments": "Test comment",
+      "timestamp": "2026-03-02T01:04:29.635860"
+    },
+    {
+      "pattern": "Test Pattern",
+      "helpful": 1,
+      "comments": "Test comment",
+      "timestamp": "2026-03-02T01:05:48.375525"
     }
   ],
   "intents": [
@@ -67,6 +85,42 @@
     {
       "intent": "Adding two-factor authentication",
       "timestamp": "2026-02-18T02:29:30.452940",
+      "context": {
+        "labels": [
+          "security"
+        ],
+        "files": [
+          "src/auth.py"
+        ]
+      }
+    },
+    {
+      "intent": "Adding two-factor authentication",
+      "timestamp": "2026-03-02T01:04:12.116492",
+      "context": {
+        "labels": [
+          "security"
+        ],
+        "files": [
+          "src/auth.py"
+        ]
+      }
+    },
+    {
+      "intent": "Adding two-factor authentication",
+      "timestamp": "2026-03-02T01:04:29.636320",
+      "context": {
+        "labels": [
+          "security"
+        ],
+        "files": [
+          "src/auth.py"
+        ]
+      }
+    },
+    {
+      "intent": "Adding two-factor authentication",
+      "timestamp": "2026-03-02T01:05:48.375970",
       "context": {
         "labels": [
           "security"

@@ -62,7 +62,21 @@ The system improves over time by:
 
 ### As a Contributor
 
-When you open a PR, BLT-Preflight automatically:
+#### Local pre-commit check
+
+Install the `pf` command once and run it before every commit:
+
+```bash
+# Install
+git clone https://github.com/OWASP-BLT/BLT-Preflight.git
+cd BLT-Preflight
+./install.sh          # sets up the 'pf' command
+
+# Run before committing (checks your staged files)
+pf
+```
+
+When you open a PR, BLT-Preflight also runs automatically via GitHub Actions:
 1. Analyzes your changes and labels
 2. Generates relevant security guidance
 3. Posts an advisory comment on your PR
@@ -78,39 +92,69 @@ You can optionally:
 2. **Review the configuration** in `config/security_patterns.json`
 3. **Check the dashboard** periodically:
    ```bash
-   python3 src/blt_preflight.py dashboard --output docs/MAINTAINER_DASHBOARD.md
+   pf dashboard --output docs/MAINTAINER_DASHBOARD.md
    ```
 
 ## Installation
 
-### GitHub Action (Recommended)
+### `pf` Command (Recommended for local use)
+
+Use the included installer to set up the `pf` command:
+
+```bash
+git clone https://github.com/OWASP-BLT/BLT-Preflight.git
+cd BLT-Preflight
+./install.sh
+```
+
+Options:
+
+```bash
+./install.sh            # install for the current user (default)
+./install.sh --system   # install system-wide (requires sudo)
+./install.sh --uninstall
+```
+
+Or install directly with pip:
+
+```bash
+pip install -e .
+```
+
+### GitHub Action (Recommended for CI)
 
 The advisory system runs automatically via GitHub Actions. No installation required!
 
 Just ensure the workflow file exists: `.github/workflows/advisory.yml`
 
-### Local CLI Usage
-
-For local testing or development:
-
-```bash
-# Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-Preflight.git
-cd BLT-Preflight
-
-# No dependencies required (uses Python standard library)
-# Optional: Install dependencies for enhanced features
-pip install -r requirements.txt
-```
-
 ## Usage
 
-### CLI Commands
+### `pf` CLI Commands
+
+#### Pre-commit check (default)
+
+```bash
+# Check all staged files before committing
+pf
+
+# Check specific files
+pf check --files "src/auth.py,src/login.py"
+```
+
+`pf` exits with code **1** when critical security advisories are found (matching
+git hook / CI pipeline conventions) and **0** otherwise.
+
+#### Use as a git pre-commit hook
+
+```bash
+echo '#!/bin/sh\npf' > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
 
 #### Generate Advisory
 
 ```bash
-python3 src/blt_preflight.py advise \
+pf advise \
   --labels "security,authentication" \
   --files "src/auth.py,src/login.py" \
   --repo "OWASP-BLT/BLT" \
@@ -120,7 +164,7 @@ python3 src/blt_preflight.py advise \
 #### Provide Feedback
 
 ```bash
-python3 src/blt_preflight.py feedback \
+pf feedback \
   --pattern "Security Advisory: Authentication" \
   --helpful yes \
   --comments "Very clear and actionable!"
@@ -129,7 +173,7 @@ python3 src/blt_preflight.py feedback \
 #### Capture Intent
 
 ```bash
-python3 src/blt_preflight.py intent \
+pf intent \
   --intent "Adding two-factor authentication support" \
   --labels "security,authentication" \
   --files "src/auth/mfa.py"
@@ -138,7 +182,7 @@ python3 src/blt_preflight.py intent \
 #### Generate Dashboard
 
 ```bash
-python3 src/blt_preflight.py dashboard --output docs/MAINTAINER_DASHBOARD.md
+pf dashboard --output docs/MAINTAINER_DASHBOARD.md
 ```
 
 ### GitHub Action
