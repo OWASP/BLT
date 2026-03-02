@@ -11,24 +11,31 @@ const SEEKERS_DIR = path.join(__dirname, "..", "seekers");
 
 function parseFormBody(body) {
   const data = {};
-  // ### Label (form-style)
-  const formSections = body.split(/\n### /).filter(Boolean);
-  for (const section of formSections) {
-    const firstNewline = section.indexOf("\n");
-    let label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
-    label = label.replace(/^#+\s*/, "").trim();
-    let value = firstNewline === -1 ? "" : section.slice(firstNewline).replace(/^\n+/, "");
-    value = value.split(/\n\n###/)[0].trim();
-    if (label) data[label] = value;
-  }
-  // **Label:** value (markdown template style) - only if not already set
-  const boldRegex = /\*\*([^*]+):\*\*\s*([^\n]*(?:\n(?!\*\*)[^\n]*)*)/g;
+  
+  // First, extract **Label:** value pairs (these are within sections)
+  const boldRegex = /\*\*([^*]+):\*\*\s*([^\n]+)/g;
   let m;
   while ((m = boldRegex.exec(body)) !== null) {
     const label = m[1].trim();
     const value = m[2].trim();
-    if (!data[label]) data[label] = value;
+    data[label] = value;
   }
+  
+  // Then extract ## Section content (for multi-line sections)
+  const sectionRegex = /## ([^\n]+)\n((?:(?!## ).|\n)*)/g;
+  while ((m = sectionRegex.exec(body)) !== null) {
+    const label = m[1].trim().replace(/\s*\(Optional\)\s*$/, "");
+    let value = m[2].trim();
+    
+    // Skip if this section only contains **Label:** pairs (already extracted)
+    if (!value.match(/^\*\*[^*]+:\*\*/)) {
+      // Only set if not already set by **Label:** extraction
+      if (!data[label]) {
+        data[label] = value;
+      }
+    }
+  }
+  
   return data;
 }
 
@@ -39,6 +46,27 @@ function slugify(s) {
     .replace(/[-\s]+/g, "-")
     .replace(/^-|-$/g, "")
     || "seeker";
+}
+
+function extractLinks(data) {
+  const links = {
+    github: "",
+    linkedin: "",
+    portfolio: "",
+    email: "",
+    twitter: "",
+    resume: ""
+  };
+  
+  // Extract from individual fields
+  links.github = (data["GitHub"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.linkedin = (data["LinkedIn"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.portfolio = (data["Portfolio/Website"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.email = (data["Email"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.twitter = (data["Twitter/X"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.resume = (data["Resume"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  
+  return links;
 }
 
 function main() {
@@ -52,13 +80,15 @@ function main() {
   const experience = (d["Years of Experience"] || "").trim();
   const availability = (d["Availability"] || d["Preferred Job Type"] || "").trim();
   const about = (d["About Me"] || "").trim();
-  const experienceHighlights = (d["Experience Highlights"] || "").trim();
+  const workExperience = (d["Work Experience"] || d["Experience Highlights"] || "").trim();
+  const projects = (d["Projects & Portfolio"] || "").trim();
+  const certifications = (d["Certifications & Education"] || "").trim();
+  const workSamples = (d["Work Samples"] || "").trim();
   const lookingFor = (d["What I'm Looking For"] || "").trim();
-  const linkedin = (d["LinkedIn"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
-  const github = (d["GitHub"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
-  const profileUrl = linkedin || github || "";
+  
+  const links = extractLinks(d);
 
-  const experienceSummary = experience ? `${experience} experience` : experienceHighlights.slice(0, 200) || "";
+  const experienceSummary = experience ? `${experience} years` : "";
 
   let filename = `${slugify(name)}.md`;
   let outPath = path.join(SEEKERS_DIR, filename);
@@ -76,15 +106,24 @@ function main() {
     headline: headline || "",
     location: location || "",
     skills: skills || "",
+    experience_years: experience || "",
     experience_summary: experienceSummary || "",
-    profile_url: profileUrl || "",
     availability: availability || "",
+    github: links.github || "",
+    linkedin: links.linkedin || "",
+    portfolio: links.portfolio || "",
+    email: links.email || "",
+    twitter: links.twitter || "",
+    resume_url: links.resume || "",
     created_at: created,
   };
 
   const bodyParts = [];
   if (about) bodyParts.push(`## About Me\n\n${about}`);
-  if (experienceHighlights) bodyParts.push(`## Experience Highlights\n\n${experienceHighlights}`);
+  if (workExperience) bodyParts.push(`## Work Experience\n\n${workExperience}`);
+  if (projects) bodyParts.push(`## Projects & Portfolio\n\n${projects}`);
+  if (certifications) bodyParts.push(`## Certifications & Education\n\n${certifications}`);
+  if (workSamples) bodyParts.push(`## Work Samples\n\n${workSamples}`);
   if (lookingFor) bodyParts.push(`## What I'm Looking For\n\n${lookingFor}`);
   const bodyContent = bodyParts.join("\n\n") || "Profile created via issue.";
 
