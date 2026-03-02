@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-02T20:50:59.087Z",
+  "updated_at": "2026-03-02T20:56:56.351Z",
   "total_bugs": 4,
   "total_orgs": 0,
   "leaderboard": [
@@ -21,38 +21,38 @@
   "top_commenters": [
     {
       "rank": 1,
+      "login": "azizrebhi",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
+      "profile_url": "https://github.com/azizrebhi"
+    },
+    {
+      "rank": 2,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 3,
+      "rank": 4,
       "login": "mdkaifansari04",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "profile_url": "https://github.com/mdkaifansari04"
     },
     {
-      "rank": 4,
+      "rank": 5,
       "login": "DonnieBLT",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
-    },
-    {
-      "rank": 5,
-      "login": "azizrebhi",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
-      "profile_url": "https://github.com/azizrebhi"
     }
   ],
   "top_domains": [
