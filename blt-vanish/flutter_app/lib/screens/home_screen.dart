@@ -5,6 +5,7 @@ import '../services/broker_service.dart';
 import '../models/user_data.dart';
 import '../models/opt_out_request.dart';
 import 'brokers_screen.dart';
+import 'monitor_screen.dart';
 import 'profile_screen.dart';
 import 'requests_screen.dart';
 
@@ -93,6 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Requests',
           ),
           NavigationDestination(
+            icon: Icon(Icons.monitor_outlined),
+            selectedIcon: Icon(Icons.monitor),
+            label: 'Monitor',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
@@ -111,6 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         return const RequestsScreen();
       case 3:
+        return const MonitorScreen();
+      case 4:
         return ProfileScreen(onProfileUpdated: _loadData);
       default:
         return _buildDashboard();
@@ -297,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Colors.deepPurple,
                 () {
                   setState(() {
-                    _selectedIndex = 3;
+                    _selectedIndex = 4;
                   });
                 },
               )
@@ -322,6 +330,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 () {
                   setState(() {
                     _selectedIndex = 2;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildQuickActionButton(
+                'Manage Monitors',
+                'Track keywords and personal info',
+                Icons.monitor,
+                Colors.orange,
+                () {
+                  setState(() {
+                    _selectedIndex = 3;
                   });
                 },
               ),

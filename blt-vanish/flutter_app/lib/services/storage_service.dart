@@ -4,6 +4,7 @@ import 'package:encrypt/encrypt.dart' as encrypt_pkg;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_data.dart';
 import '../models/opt_out_request.dart';
+import '../models/monitor_entry.dart';
 
 /// Service for encrypted local storage of sensitive data
 /// All PII is encrypted with AES-256 and stored only on device
@@ -11,6 +12,7 @@ class StorageService {
   static const String _encryptionKeyKey = 'encryption_key';
   static const String _userDataKey = 'user_data';
   static const String _requestsKey = 'opt_out_requests';
+  static const String _monitorEntriesKey = 'monitor_entries';
   
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   late SharedPreferences _prefs;
@@ -128,6 +130,48 @@ class StorageService {
     await _prefs.setString(_requestsKey, encrypted);
   }
 
+  /// Save a monitor entry (encrypted)
+  Future<void> saveMonitorEntry(MonitorEntry entry) async {
+    final entries = await getMonitorEntries();
+    final index = entries.indexWhere((e) => e.id == entry.id);
+
+    if (index >= 0) {
+      entries[index] = entry;
+    } else {
+      entries.add(entry);
+    }
+
+    final jsonString = jsonEncode(entries.map((e) => e.toJson()).toList());
+    final encrypted = _encrypt(jsonString);
+    await _prefs.setString(_monitorEntriesKey, encrypted);
+  }
+
+  /// Get all monitor entries (decrypted)
+  Future<List<MonitorEntry>> getMonitorEntries() async {
+    final encrypted = _prefs.getString(_monitorEntriesKey);
+    if (encrypted == null) return [];
+
+    try {
+      final decrypted = _decrypt(encrypted);
+      final jsonList = jsonDecode(decrypted) as List<dynamic>;
+      return jsonList
+          .map((json) => MonitorEntry.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Delete a monitor entry
+  Future<void> deleteMonitorEntry(String entryId) async {
+    final entries = await getMonitorEntries();
+    entries.removeWhere((e) => e.id == entryId);
+
+    final jsonString = jsonEncode(entries.map((e) => e.toJson()).toList());
+    final encrypted = _encrypt(jsonString);
+    await _prefs.setString(_monitorEntriesKey, encrypted);
+  }
+
   /// Clear all data (use with caution!)
   Future<void> clearAllData() async {
     await _prefs.clear();
@@ -139,12 +183,14 @@ class StorageService {
   Future<String> exportData() async {
     final userData = await getUserData();
     final requests = await getRequests();
+    final monitorEntries = await getMonitorEntries();
     
     final exportData = {
       'version': '1.0',
       'exportedAt': DateTime.now().toIso8601String(),
       'userData': userData?.toJson(),
       'requests': requests.map((r) => r.toJson()).toList(),
+      'monitorEntries': monitorEntries.map((e) => e.toJson()).toList(),
     };
     
     final jsonString = jsonEncode(exportData);
@@ -168,6 +214,14 @@ class StorageService {
         for (var requestJson in requestsList) {
           final request = OptOutRequest.fromJson(requestJson as Map<String, dynamic>);
           await saveRequest(request);
+        }
+      }
+
+      if (json['monitorEntries'] != null) {
+        final entriesList = json['monitorEntries'] as List<dynamic>;
+        for (var entryJson in entriesList) {
+          final entry = MonitorEntry.fromJson(entryJson as Map<String, dynamic>);
+          await saveMonitorEntry(entry);
         }
       }
     } catch (e) {
