@@ -1,5 +1,5 @@
 name = "blt-lettuce"
-main = "cloudflare-worker/worker.py"
+main = "src/worker.py"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
