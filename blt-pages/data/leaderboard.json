@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-02T18:23:20.631Z",
-  "total_bugs": 2,
+  "updated_at": "2026-03-02T20:45:10.156Z",
+  "total_bugs": 3,
   "total_orgs": 0,
   "leaderboard": [
     {
@@ -9,6 +9,13 @@
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
+    },
+    {
+      "rank": 2,
+      "login": "sidd190",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "profile_url": "https://github.com/sidd190"
     }
   ],
   "top_commenters": [
@@ -53,9 +60,26 @@
       "rank": 1,
       "domain": "www.owasp.community",
       "count": 2
+    },
+    {
+      "rank": 2,
+      "domain": "owaspblt.org",
+      "count": 1
     }
   ],
   "recent_bugs": [
+    {
+      "number": 15,
+      "title": "[BUG] : Gradient background should be fixed and transition should not be visible.",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/15",
+      "created_at": "2026-03-02T20:45:00Z",
+      "user": {
+        "login": "sidd190",
+        "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
+        "profile_url": "https://github.com/sidd190"
+      },
+      "image_url": null
+    },
     {
       "number": 8,
       "title": "[BUG] join chapter button does not work",
