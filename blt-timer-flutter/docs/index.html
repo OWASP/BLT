@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT Timer — Flutter Activity Tracker</title>
+  <meta name="description" content="Real-time keyboard & mouse activity tracking for Linux. Privacy-first, open source, part of the OWASP BLT ecosystem." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover:   '#B91C1C',
+              light:   '#feeae9',
+            },
+            dark: {
+              base:    '#111827',
+              surface: '#1F2937',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /* Subtle animated gradient for hero */
+    @keyframes gradient-shift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #111827 0%, #1a0000 50%, #111827 100%);
+      background-size: 200% 200%;
+      animation: gradient-shift 10s ease infinite;
+    }
+    /* Pulse ring for live indicator */
+    @keyframes ping-slow {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    .ping-slow { animation: ping-slow 2s cubic-bezier(0,0,0.2,1) infinite; }
+  </style>
+</head>
+
+<body class="bg-white text-gray-900 font-sans antialiased dark:bg-dark-base dark:text-gray-100">
+
+  <!-- ───────────────────────────── NAV ───────────────────────────── -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E5E5E5] dark:bg-dark-surface dark:border-gray-700">
+    <nav class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between" aria-label="Main navigation">
+
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white hover:text-brand transition-colors" aria-label="BLT Timer home">
+        <span class="inline-flex items-center justify-center w-8 h-8 bg-brand rounded-lg text-white text-sm font-bold" aria-hidden="true">B</span>
+        BLT Timer
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300" role="list">
+        <li><a href="#features"     class="hover:text-brand hover:underline transition-colors">Features</a></li>
+        <li><a href="#how-it-works" class="hover:text-brand hover:underline transition-colors">How It Works</a></li>
+        <li><a href="#install"      class="hover:text-brand hover:underline transition-colors">Install</a></li>
+        <li><a href="#privacy"      class="hover:text-brand hover:underline transition-colors">Privacy</a></li>
+      </ul>
+
+      <!-- CTA -->
+      <div class="flex items-center gap-3">
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Timer-Flutter"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center gap-2 border border-[#E10101] text-[#E10101] text-sm font-semibold px-4 py-2 rounded-md hover:bg-[#E10101] hover:text-white transition-colors"
+          aria-label="View source on GitHub"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          GitHub
+        </a>
+        <a
+          href="#install"
+          class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors"
+        >
+          Get Started
+        </a>
+      </div>
+    </nav>
+  </header>
+
+
+  <!-- ───────────────────────────── HERO ───────────────────────────── -->
+  <section class="hero-gradient text-white py-24 sm:py-32 px-4" aria-label="Hero">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+
+      <!-- Copy -->
+      <div class="flex-1 text-center lg:text-left">
+
+        <!-- Live badge -->
+        <span class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-sm font-medium px-3 py-1 rounded-full mb-6">
+          <span class="relative flex h-2.5 w-2.5" aria-hidden="true">
+            <span class="ping-slow absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
+          </span>
+          Live activity tracking
+        </span>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
+          Track every keystroke.<br />
+          <span class="text-[#E10101]">Own your data.</span>
+        </h1>
+
+        <p class="text-gray-300 text-lg sm:text-xl max-w-xl mx-auto lg:mx-0 mb-8">
+          BLT Timer is a privacy-first Flutter desktop app for Linux that captures real-time keyboard and mouse activity — no keystroke content, no coordinates, no snooping. Open source and part of the OWASP BLT ecosystem.
+        </p>
+
+        <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+          <a
+            href="#install"
+            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition-colors text-base"
+          >
+            <i class="fa-solid fa-download" aria-hidden="true"></i>
+            Install Now
+          </a>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Timer-Flutter"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 border border-white/40 text-white hover:border-white hover:bg-white/10 font-semibold px-6 py-3 rounded-md transition-colors text-base"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            View Source
+          </a>
+        </div>
+
+        <!-- Tech badges -->
+        <div class="flex flex-wrap items-center gap-2 mt-8 justify-center lg:justify-start">
+          <span class="inline-flex items-center gap-1.5 bg-white/10 text-xs font-medium px-2.5 py-1 rounded-full">
+            <i class="fa-brands fa-linux text-[#E10101]" aria-hidden="true"></i> Linux
+          </span>
+          <span class="inline-flex items-center gap-1.5 bg-white/10 text-xs font-medium px-2.5 py-1 rounded-full">
+            <i class="fa-solid fa-mobile-screen-button text-[#E10101]" aria-hidden="true"></i> Flutter 3+
+          </span>
+          <span class="inline-flex items-center gap-1.5 bg-white/10 text-xs font-medium px-2.5 py-1 rounded-full">
+            <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i> Privacy-first
+          </span>
+          <span class="inline-flex items-center gap-1.5 bg-white/10 text-xs font-medium px-2.5 py-1 rounded-full">
+            <i class="fa-solid fa-lock-open text-[#E10101]" aria-hidden="true"></i> MIT License
+          </span>
+        </div>
+      </div>
+
+      <!-- App mock-up card -->
+      <div class="flex-shrink-0 w-full max-w-md" aria-label="App dashboard preview">
+        <div class="bg-dark-surface rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+
+          <!-- Window chrome -->
+          <div class="flex items-center gap-1.5 px-4 py-3 bg-gray-800 border-b border-white/10">
+            <span class="w-3 h-3 rounded-full bg-red-500" aria-hidden="true"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-400" aria-hidden="true"></span>
+            <span class="w-3 h-3 rounded-full bg-green-400" aria-hidden="true"></span>
+            <span class="ml-2 text-xs text-gray-400">BLT Timer — Activity Tracker</span>
+          </div>
+
+          <!-- Dashboard content -->
+          <div class="p-4 space-y-4">
+
+            <!-- Stat row -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-gray-800 rounded-xl p-3">
+                <p class="text-xs text-gray-400 mb-1">Keys / sec</p>
+                <p class="text-2xl font-bold text-white">4.2</p>
+                <p class="text-xs text-green-400 mt-1"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i> +12%</p>
+              </div>
+              <div class="bg-gray-800 rounded-xl p-3">
+                <p class="text-xs text-gray-400 mb-1">Mouse dist.</p>
+                <p class="text-2xl font-bold text-white">1.8 km</p>
+                <p class="text-xs text-gray-400 mt-1">today</p>
+              </div>
+              <div class="bg-gray-800 rounded-xl p-3">
+                <p class="text-xs text-gray-400 mb-1">Clicks</p>
+                <p class="text-2xl font-bold text-white">2,341</p>
+                <p class="text-xs text-gray-400 mt-1">L: 1,894 · R: 447</p>
+              </div>
+              <div class="bg-gray-800 rounded-xl p-3">
+                <p class="text-xs text-gray-400 mb-1">Scroll steps</p>
+                <p class="text-2xl font-bold text-white">5,102</p>
+                <p class="text-xs text-gray-400 mt-1">today</p>
+              </div>
+            </div>
+
+            <!-- Fake bar chart -->
+            <div class="bg-gray-800 rounded-xl p-3">
+              <p class="text-xs text-gray-400 mb-2">Key presses — last 60 s</p>
+              <div class="flex items-end gap-0.5 h-12" aria-label="Bar chart showing key presses over 60 seconds" role="img">
+                <!-- 30 bars with varying heights -->
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:40%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:60%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:30%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:80%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:55%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:70%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:45%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:90%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:65%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:50%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:75%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:35%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:85%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:60%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:40%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:95%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:70%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:50%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:30%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:65%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:80%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:55%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:45%"></span>
+                <span class="flex-1 bg-[#E10101]/70 rounded-sm" style="height:100%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:88%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:72%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:60%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:44%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:78%"></span>
+                <span class="flex-1 bg-[#E10101]   rounded-sm" style="height:92%"></span>
+              </div>
+            </div>
+
+            <!-- VS Code prompts chip -->
+            <div class="flex items-center justify-between bg-gray-800 rounded-xl px-3 py-2">
+              <span class="text-xs text-gray-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-terminal text-[#E10101]" aria-hidden="true"></i>
+                VS Code AI prompts today
+              </span>
+              <span class="text-sm font-bold text-white">47</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── STATS BAR ───────────────────────────── -->
+  <section class="bg-[#feeae9] dark:bg-gray-800 border-y border-[#E5E5E5] dark:border-gray-700 py-6 px-4" aria-label="Key metrics">
+    <div class="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">&lt;1%</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">CPU overhead</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">10 ms</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Poll cycle</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">1 Hz</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">UI update rate</p>
+      </div>
+      <div>
+        <p class="text-3xl font-extrabold text-[#E10101]">~60 MB</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Memory footprint</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── FEATURES ───────────────────────────── -->
+  <section id="features" class="py-20 px-4 bg-white dark:bg-dark-base" aria-labelledby="features-heading">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="text-center mb-14">
+        <span class="text-[#E10101] text-sm font-semibold uppercase tracking-widest">Capabilities</span>
+        <h2 id="features-heading" class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+          Everything you need to understand your workflow
+        </h2>
+        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+          BLT Timer goes beyond raw counts — it surfaces patterns that help you optimise focus, rest, and coding habits.
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card -->
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-keyboard text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">Real-time Tracking</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Counts keystrokes, mouse distance, left/right clicks, and scroll steps every second via a low-overhead X11/XInput2 native library.
+          </p>
+        </article>
+
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-chart-bar text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">Live Visual Dashboard</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Smooth per-second bar charts, 60-second rolling history, and real-time stat cards built with custom Flutter <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">CustomPainter</code>.
+          </p>
+        </article>
+
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-calendar-day text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">Daily Summaries</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Persistent daily totals auto-saved across sessions. Manual reset button lets you start fresh at any time. Stored locally — never leaves your device by default.
+          </p>
+        </article>
+
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-terminal text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">VS Code AI Prompt Tracker</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Automatically discovers and counts AI prompts sent in VS Code and VS Code Insiders to help you understand your AI-assisted coding cadence.
+          </p>
+        </article>
+
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-plug text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">Optional API Integration</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Push anonymised session summaries to the BLT Fresh backend over HTTPS. Configurable <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">apiUrl</code>, <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">userId</code>, and <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">projectId</code>.
+          </p>
+        </article>
+
+        <article class="group border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6 hover:shadow-md hover:border-[#E10101] transition-all duration-200">
+          <div class="flex items-center justify-center w-12 h-12 bg-[#feeae9] dark:bg-gray-800 rounded-xl mb-4 group-hover:bg-[#E10101] transition-colors">
+            <i class="fa-solid fa-shield-halved text-[#E10101] text-xl group-hover:text-white transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-bold text-gray-900 dark:text-white mb-2">Privacy by Design</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Zero keystroke content, zero cursor coordinates, zero window titles. Only aggregate numeric metrics — you stay in full control.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── HOW IT WORKS ───────────────────────────── -->
+  <section id="how-it-works" class="py-20 px-4 bg-gray-50 dark:bg-dark-surface" aria-labelledby="how-heading">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="text-center mb-14">
+        <span class="text-[#E10101] text-sm font-semibold uppercase tracking-widest">Architecture</span>
+        <h2 id="how-heading" class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+          How BLT Timer works
+        </h2>
+        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+          A thin native C library handles low-level X11 events. Flutter polls it every 10 ms and aggregates into per-second updates shown in the dashboard.
+        </p>
+      </div>
+
+      <!-- Step pipeline -->
+      <ol class="relative" aria-label="Data flow steps">
+
+        <!-- Connector line (desktop) -->
+        <div class="hidden lg:block absolute left-1/2 top-8 bottom-8 w-px bg-[#E5E5E5] dark:bg-gray-600 -translate-x-1/2" aria-hidden="true"></div>
+
+        <!-- Step 1 -->
+        <li class="relative flex flex-col lg:flex-row items-center lg:items-start gap-6 mb-12">
+          <div class="flex-1 lg:text-right order-2 lg:order-1 lg:pr-12">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">X11 / XInput2 Events</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              The native <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">activity_tracker.c</code> library hooks into X11's XInput2 extension to capture raw device events with minimal overhead. No window IDs or coordinates are stored.
+            </p>
+          </div>
+          <div class="order-1 lg:order-2 relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#E10101] text-white font-bold text-lg shadow-lg flex-shrink-0">
+            1
+          </div>
+          <div class="flex-1 order-3 lg:pl-12 lg:text-left">
+            <div class="inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-microchip text-[#E10101]" aria-hidden="true"></i>
+              <code class="font-mono">linux/activity_tracker.c</code>
+            </div>
+          </div>
+        </li>
+
+        <!-- Step 2 -->
+        <li class="relative flex flex-col lg:flex-row items-center lg:items-start gap-6 mb-12">
+          <div class="flex-1 order-2 lg:order-1 lg:pr-12 lg:text-right">
+            <div class="inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-link text-[#E10101]" aria-hidden="true"></i>
+              <code class="font-mono">lib/native_tracker.dart</code>
+            </div>
+          </div>
+          <div class="order-1 lg:order-2 relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#E10101] text-white font-bold text-lg shadow-lg flex-shrink-0">
+            2
+          </div>
+          <div class="flex-1 order-3 lg:pl-12">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">FFI Bridge (10 ms poll)</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Dart FFI calls the shared library every 10 ms, pulling aggregated counters — no raw events cross the boundary. Bindings live in <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">native_tracker.dart</code>.
+            </p>
+          </div>
+        </li>
+
+        <!-- Step 3 -->
+        <li class="relative flex flex-col lg:flex-row items-center lg:items-start gap-6 mb-12">
+          <div class="flex-1 lg:text-right order-2 lg:order-1 lg:pr-12">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">ActivityService (1 s aggregation)</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Per-second averages and cumulative totals are computed and broadcast via a Dart <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">Stream</code>, keeping the UI layer free of business logic.
+            </p>
+          </div>
+          <div class="order-1 lg:order-2 relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#E10101] text-white font-bold text-lg shadow-lg flex-shrink-0">
+            3
+          </div>
+          <div class="flex-1 order-3 lg:pl-12 lg:text-left">
+            <div class="inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-gears text-[#E10101]" aria-hidden="true"></i>
+              <code class="font-mono">lib/activity_service.dart</code>
+            </div>
+          </div>
+        </li>
+
+        <!-- Step 4 -->
+        <li class="relative flex flex-col lg:flex-row items-center lg:items-start gap-6 mb-12">
+          <div class="flex-1 order-2 lg:order-1 lg:pr-12 lg:text-right">
+            <div class="inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-desktop text-[#E10101]" aria-hidden="true"></i>
+              <code class="font-mono">lib/main.dart</code>
+            </div>
+          </div>
+          <div class="order-1 lg:order-2 relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#E10101] text-white font-bold text-lg shadow-lg flex-shrink-0">
+            4
+          </div>
+          <div class="flex-1 order-3 lg:pl-12">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Flutter UI (CustomPainter charts)</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">setState</code> rebuilds at 1 Hz, rendering stat cards and bar charts using custom painters — no heavyweight charting dependency.
+            </p>
+          </div>
+        </li>
+
+        <!-- Step 5 (optional) -->
+        <li class="relative flex flex-col lg:flex-row items-center lg:items-start gap-6">
+          <div class="flex-1 lg:text-right order-2 lg:order-1 lg:pr-12">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+              Optional: BLT Backend
+              <span class="ml-2 text-xs font-normal text-gray-400 align-middle">(opt-in)</span>
+            </h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              When enabled, <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">TrackerIntegration</code> POSTs anonymised session payloads to a Cloudflare Worker endpoint. HTTPS-only, no PII transmitted.
+            </p>
+          </div>
+          <div class="order-1 lg:order-2 relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-lg shadow flex-shrink-0">
+            5
+          </div>
+          <div class="flex-1 order-3 lg:pl-12 lg:text-left">
+            <div class="inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-cloud-arrow-up text-gray-400" aria-hidden="true"></i>
+              <code class="font-mono">lib/tracker_integration.dart</code>
+            </div>
+          </div>
+        </li>
+
+      </ol>
+
+      <!-- Data flow diagram (text) -->
+      <div class="mt-12 bg-dark-base text-gray-300 rounded-xl p-6 font-mono text-sm overflow-x-auto" role="img" aria-label="Data flow pipeline diagram">
+        <p class="text-gray-500 mb-3 font-sans text-xs">Data pipeline</p>
+        <p><span class="text-[#E10101]">X11 Events</span> → <span class="text-yellow-400">C Library (10 ms)</span> → <span class="text-blue-400">FFI Poll</span> → <span class="text-green-400">ActivityService (1 s)</span> → <span class="text-purple-400">Flutter UI</span> → <span class="text-gray-500">[Optional] BLT API</span></p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── INSTALL ───────────────────────────── -->
+  <section id="install" class="py-20 px-4 bg-white dark:bg-dark-base" aria-labelledby="install-heading">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="text-center mb-14">
+        <span class="text-[#E10101] text-sm font-semibold uppercase tracking-widest">Setup</span>
+        <h2 id="install-heading" class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+          Get running in minutes
+        </h2>
+      </div>
+
+      <!-- Step tabs -->
+      <div class="space-y-4">
+
+        <!-- Step A -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-xl overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700">
+            <span class="flex items-center justify-center w-7 h-7 bg-[#E10101] text-white text-xs font-bold rounded-full flex-shrink-0" aria-hidden="true">1</span>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Install system dependencies</h3>
+          </div>
+          <div class="px-5 py-4">
+            <pre class="bg-gray-950 text-green-400 rounded-lg px-4 py-3 text-sm overflow-x-auto" tabindex="0"><code>sudo apt-get update
+sudo apt-get install -y libx11-dev libxtst-dev libxi-dev build-essential</code></pre>
+          </div>
+        </div>
+
+        <!-- Step B -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-xl overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700">
+            <span class="flex items-center justify-center w-7 h-7 bg-[#E10101] text-white text-xs font-bold rounded-full flex-shrink-0" aria-hidden="true">2</span>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Set up Flutter (Linux desktop)</h3>
+          </div>
+          <div class="px-5 py-4">
+            <pre class="bg-gray-950 text-green-400 rounded-lg px-4 py-3 text-sm overflow-x-auto" tabindex="0"><code>git clone https://github.com/flutter/flutter.git -b stable
+export PATH="$PATH:$HOME/flutter/bin"
+flutter doctor
+flutter config --enable-linux-desktop</code></pre>
+          </div>
+        </div>
+
+        <!-- Step C -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-xl overflow-hidden">
+          <div class="flex items-center gap-3 px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700">
+            <span class="flex items-center justify-center w-7 h-7 bg-[#E10101] text-white text-xs font-bold rounded-full flex-shrink-0" aria-hidden="true">3</span>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Clone, build native library, and run</h3>
+          </div>
+          <div class="px-5 py-4">
+            <pre class="bg-gray-950 text-green-400 rounded-lg px-4 py-3 text-sm overflow-x-auto" tabindex="0"><code>git clone https://github.com/OWASP-BLT/BLT-Timer-Flutter.git
+cd BLT-Timer-Flutter/linux
+./build.sh
+cd ..
+flutter pub get
+flutter run -d linux</code></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        Need more detail?
+        <a href="https://github.com/OWASP-BLT/BLT-Timer-Flutter#readme" target="_blank" rel="noopener noreferrer" class="text-[#E10101] hover:underline">
+          Read the full README <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-0.5" aria-hidden="true"></i>
+        </a>
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── PRIVACY ───────────────────────────── -->
+  <section id="privacy" class="py-20 px-4 bg-gray-50 dark:bg-dark-surface" aria-labelledby="privacy-heading">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="text-center mb-14">
+        <span class="text-[#E10101] text-sm font-semibold uppercase tracking-widest">Privacy</span>
+        <h2 id="privacy-heading" class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+          What we track — and what we don't
+        </h2>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-6">
+
+        <!-- Tracked -->
+        <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6">
+          <h3 class="flex items-center gap-2 font-bold text-gray-900 dark:text-white mb-4">
+            <i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i>
+            Tracked (aggregate counts only)
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300" role="list">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> Keystroke count (not content)</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> Mouse movement distance (not position)</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> Left &amp; right click counts</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> Scroll step totals</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> AI prompt counts (VS Code)</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500 w-4" aria-hidden="true"></i> Session start / end timestamps</li>
+          </ul>
+        </div>
+
+        <!-- NOT tracked -->
+        <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-6">
+          <h3 class="flex items-center gap-2 font-bold text-gray-900 dark:text-white mb-4">
+            <i class="fa-solid fa-circle-xmark text-[#E10101]" aria-hidden="true"></i>
+            Never tracked
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300" role="list">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Keystroke content or sequences</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Cursor X/Y coordinates</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Window titles or app names</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Screenshots or screen recordings</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Network usage or visited URLs</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-[#E10101] w-4" aria-hidden="true"></i> Any personally identifiable data</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        All data is stored locally by default. Optional backend push is HTTPS-only and explicitly opt-in.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── INTEGRATION ───────────────────────────── -->
+  <section class="py-20 px-4 bg-white dark:bg-dark-base" aria-labelledby="integration-heading">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="text-center mb-12">
+        <span class="text-[#E10101] text-sm font-semibold uppercase tracking-widest">Integration</span>
+        <h2 id="integration-heading" class="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+          Push data to BLT Fresh (optional)
+        </h2>
+        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
+          Wire up the tracker to a Cloudflare Worker in three lines of Dart.
+        </p>
+      </div>
+
+      <pre class="bg-gray-950 text-sm rounded-xl overflow-x-auto p-5" tabindex="0" role="region" aria-label="Integration code example"><code><span class="text-gray-500">// lib/main.dart — initialise integration</span>
+<span class="text-blue-400">final</span> <span class="text-yellow-300">_integration</span> = <span class="text-green-400">TrackerIntegration</span>(
+  <span class="text-purple-400">apiUrl</span>:     <span class="text-orange-300">'https://your-worker.workers.dev'</span>,
+  <span class="text-purple-400">userId</span>:     <span class="text-orange-300">'user-123'</span>,
+  <span class="text-purple-400">projectId</span>: <span class="text-orange-300">'project-456'</span>,
+);
+<span class="text-blue-400">await</span> <span class="text-yellow-300">_integration</span>.<span class="text-green-400">startSession</span>();
+
+<span class="text-gray-500">// on each 1-second ActivityService update:</span>
+<span class="text-yellow-300">_integration</span>.<span class="text-green-400">sendActivityData</span>(<span class="text-yellow-300">data</span>);</code></pre>
+
+      <!-- API endpoints -->
+      <div class="mt-8 grid sm:grid-cols-3 gap-4">
+        <div class="bg-gray-50 dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-4 text-center">
+          <span class="inline-block mb-2 text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded">POST</span>
+          <p class="font-mono text-sm text-gray-700 dark:text-gray-300">/api/sessions/start</p>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-4 text-center">
+          <span class="inline-block mb-2 text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded">POST</span>
+          <p class="font-mono text-sm text-gray-700 dark:text-gray-300">/api/activity</p>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-4 text-center">
+          <span class="inline-block mb-2 text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded">POST</span>
+          <p class="font-mono text-sm text-gray-700 dark:text-gray-300">/api/sessions/end</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── CTA ───────────────────────────── -->
+  <section class="py-20 px-4 hero-gradient text-white" aria-labelledby="cta-heading">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 id="cta-heading" class="text-3xl sm:text-4xl font-extrabold mb-4">
+        Ready to own your activity data?
+      </h2>
+      <p class="text-gray-300 mb-8 text-lg">
+        Open source, privacy-first, and part of the OWASP BLT security ecosystem.
+      </p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a
+          href="#install"
+          class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-md transition-colors text-base"
+        >
+          <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+          Get Started
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Timer-Flutter"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 border border-white/40 text-white hover:border-white hover:bg-white/10 font-semibold px-8 py-3 rounded-md transition-colors text-base"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          Star on GitHub
+        </a>
+      </div>
+
+      <!-- Notify me / search -->
+      <form class="mt-8 flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto" aria-label="Stay updated form" onsubmit="return false;">
+        <label for="notify-email" class="sr-only">Your GitHub username</label>
+        <div class="relative w-full">
+          <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none" aria-hidden="true">
+            <i class="fa-brands fa-github text-gray-400"></i>
+          </span>
+          <input
+            id="notify-email"
+            type="text"
+            placeholder="Your GitHub username"
+            class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+            autocomplete="off"
+          />
+        </div>
+        <button
+          type="submit"
+          class="flex-shrink-0 inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 rounded-md transition-colors"
+        >
+          <i class="fa-solid fa-bell" aria-hidden="true"></i>
+          Watch Repo
+        </button>
+      </form>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────── FOOTER ───────────────────────────── -->
+  <footer class="bg-dark-base text-gray-400 py-12 px-4 border-t border-gray-700">
+    <div class="max-w-6xl mx-auto">
+
+      <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 mb-10">
+
+        <!-- Brand -->
+        <div class="text-center md:text-left">
+          <a href="#" class="inline-flex items-center gap-2 font-bold text-lg text-white hover:text-[#E10101] transition-colors mb-2">
+            <span class="inline-flex items-center justify-center w-8 h-8 bg-[#E10101] rounded-lg text-white text-sm font-bold" aria-hidden="true">B</span>
+            BLT Timer
+          </a>
+          <p class="text-sm max-w-xs">
+            A Flutter Linux desktop app for real-time activity tracking. Part of the
+            <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="text-[#E10101] hover:underline">OWASP BLT</a>
+            ecosystem.
+          </p>
+        </div>
+
+        <!-- Links -->
+        <nav aria-label="Footer navigation">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 text-sm">
+            <div>
+              <p class="text-white font-semibold mb-2">Project</p>
+              <ul class="space-y-1.5" role="list">
+                <li><a href="https://github.com/OWASP-BLT/BLT-Timer-Flutter" target="_blank" rel="noopener noreferrer" class="hover:text-[#E10101] hover:underline transition-colors">GitHub Repo</a></li>
+                <li><a href="https://github.com/OWASP-BLT/BLT-Timer-Flutter/issues" target="_blank" rel="noopener noreferrer" class="hover:text-[#E10101] hover:underline transition-colors">Issues</a></li>
+                <li><a href="https://github.com/OWASP-BLT/BLT-Timer-Flutter/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-[#E10101] hover:underline transition-colors">Pull Requests</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-2">Docs</p>
+              <ul class="space-y-1.5" role="list">
+                <li><a href="#install" class="hover:text-[#E10101] hover:underline transition-colors">Setup Guide</a></li>
+                <li><a href="#how-it-works" class="hover:text-[#E10101] hover:underline transition-colors">Architecture</a></li>
+                <li><a href="#integration-heading" class="hover:text-[#E10101] hover:underline transition-colors">API Integration</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-2">Community</p>
+              <ul class="space-y-1.5" role="list">
+                <li><a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#E10101] hover:underline transition-colors">OWASP BLT</a></li>
+                <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="hover:text-[#E10101] hover:underline transition-colors">OWASP</a></li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <div class="border-t border-gray-700 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+        <p>© 2025 OWASP BLT Contributors. Released under the <a href="https://github.com/OWASP-BLT/BLT-Timer-Flutter/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="text-[#E10101] hover:underline">MIT License</a>.</p>
+        <p class="flex items-center gap-1.5">
+          Built with <i class="fa-brands fa-flutter text-blue-400" aria-hidden="true"></i> Flutter &amp; <span class="text-[#E10101]">♥</span> by the OWASP community
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
