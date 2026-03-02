@@ -21,7 +21,6 @@ import base64
 import hashlib
 import hmac as _hmac
 import json
-import os as _os
 import time
 from urllib.parse import urlparse
 
@@ -513,10 +512,267 @@ async def handle_webhook(request, env) -> Response:
 
 
 # ---------------------------------------------------------------------------
-# Landing page HTML — loaded from public/index.html
+# Landing page HTML — embedded at build time to avoid filesystem access in
+# the Cloudflare Workers Python runtime (where open() cannot reach public/).
 # ---------------------------------------------------------------------------
 
-_PUBLIC_DIR = _os.path.join(_os.path.dirname(_os.path.dirname(__file__)), "public")
+_INDEX_HTML_TEMPLATE = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT GitHub App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body class="min-h-screen flex flex-col" style="background:#111827;color:#e5e7eb;">
+  <!-- Header -->
+  <header class="w-full px-6 py-3 flex items-center gap-3" style="background:#1F2937;border-bottom:1px solid #374151;">
+    <img
+      src="https://avatars.githubusercontent.com/u/47849434?s=40"
+      alt="OWASP BLT logo"
+      class="w-10 h-10 rounded-lg"
+    />
+    <h1 class="flex-1 text-lg font-bold text-white">BLT GitHub App</h1>
+    <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.25);">
+      <i class="fa-solid fa-circle" style="font-size:0.45rem;" aria-hidden="true"></i>
+      Operational
+    </span>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-12">
+
+    <!-- Hero -->
+    <section class="text-center py-16 px-8 rounded-xl mb-12" style="background:#1F2937;border:1px solid #374151;">
+      <h2 class="text-4xl font-extrabold text-white mb-4">
+        Supercharge your GitHub&nbsp;org&nbsp;with&nbsp;BLT
+      </h2>
+      <p class="text-lg max-w-xl mx-auto mb-8 leading-relaxed" style="color:#9ca3af;">
+        Automate issue assignment, bug reporting to OWASP&nbsp;BLT, and
+        contributor onboarding — powered by a lightweight Python Cloudflare Worker.
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a
+          href="{{INSTALL_URL}}"
+          class="inline-flex items-center gap-2 text-white font-semibold text-base px-6 py-3 rounded-lg transition-colors"
+          style="background:#E10101;"
+          onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#E10101'"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          Add to GitHub Organization
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-GitHub-App"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2 font-semibold text-base px-6 py-3 rounded-lg transition-colors"
+          style="border:1px solid #E10101;color:#E10101;"
+          onmouseover="this.style.background='#E10101';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#E10101'"
+        >
+          <i class="fa-solid fa-code" aria-hidden="true"></i>
+          View Source
+        </a>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-white mb-5">Features</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
+            <i class="fa-solid fa-list-check text-lg" style="color:#E10101;" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-white font-semibold mb-2">/assign &amp; /unassign</h3>
+          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
+            Comment <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">/assign</code> on any
+            issue to claim it with a 24-hour deadline. Release with
+            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">/unassign</code>.
+          </p>
+        </div>
+
+        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
+            <i class="fa-solid fa-bug text-lg" style="color:#E10101;" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-white font-semibold mb-2">Auto Bug Reporting</h3>
+          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
+            Issues labeled <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">bug</code>,
+            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">vulnerability</code>, or
+            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">security</code> are instantly
+            reported to the OWASP BLT platform.
+          </p>
+        </div>
+
+        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
+            <i class="fa-solid fa-comments text-lg" style="color:#E10101;" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-white font-semibold mb-2">Welcome Messages</h3>
+          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
+            New issues and pull requests receive friendly onboarding messages
+            with contribution guidelines.
+          </p>
+        </div>
+
+        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
+            <i class="fa-solid fa-trophy text-lg" style="color:#E10101;" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-white font-semibold mb-2">Merge Congratulations</h3>
+          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
+            Merged PRs trigger a celebratory acknowledgement for the
+            contributor.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- System Status -->
+    <section class="rounded-xl p-6 mb-12" style="background:#1F2937;border:1px solid #374151;">
+      <h2 class="text-xl font-bold text-white mb-4">System Status</h2>
+      <div style="border-top:1px solid #374151;">
+
+        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
+          <span style="color:#d1d5db;">Worker</span>
+          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Operational
+          </span>
+        </div>
+
+        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
+          <span style="color:#d1d5db;">GitHub Webhooks</span>
+          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Listening
+          </span>
+        </div>
+
+        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
+          <span style="color:#d1d5db;">BLT API</span>
+          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Connected
+          </span>
+        </div>
+
+        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
+          <span style="color:#d1d5db;">Webhook endpoint</span>
+          <code class="rounded text-xs px-2 py-0.5" style="background:#111827;color:#9ca3af;">/api/github/webhooks</code>
+        </div>
+
+        <div class="flex justify-between items-center py-3 text-sm">
+          <span style="color:#d1d5db;">Health endpoint</span>
+          <code class="rounded text-xs px-2 py-0.5" style="background:#111827;color:#9ca3af;">/health</code>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- How to Add -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-white mb-5">How to Add to Your Organization</h2>
+      <ol class="space-y-3">
+
+        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
+          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">1</span>
+          <h3 class="text-white font-semibold text-sm mb-1">Click &#34;Add to GitHub Organization&#34; above</h3>
+          <p class="text-sm" style="color:#9ca3af;">This starts the GitHub App installation flow.</p>
+        </li>
+
+        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
+          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">2</span>
+          <h3 class="text-white font-semibold text-sm mb-1">Choose your organization or account</h3>
+          <p class="text-sm" style="color:#9ca3af;">
+            Select the GitHub organization or personal account where you want to install BLT.
+          </p>
+        </li>
+
+        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
+          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">3</span>
+          <h3 class="text-white font-semibold text-sm mb-1">Grant repository access</h3>
+          <p class="text-sm" style="color:#9ca3af;">
+            Choose which repositories the app should monitor — all repos or a specific selection.
+          </p>
+        </li>
+
+        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
+          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">4</span>
+          <h3 class="text-white font-semibold text-sm mb-1">You&#39;re done!</h3>
+          <p class="text-sm" style="color:#9ca3af;">
+            BLT will immediately start responding to issues and pull requests in the selected repositories.
+          </p>
+        </li>
+
+      </ol>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full px-6 py-5 text-center text-sm" style="background:#1F2937;border-top:1px solid #374151;color:#9ca3af;">
+    <p>
+      Built with <i class="fa-solid fa-heart" style="color:#E10101;" aria-hidden="true"></i> by
+      <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener"
+         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">OWASP BLT</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/OWASP-BLT/BLT-GitHub-App" target="_blank" rel="noopener"
+         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Source on GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://owaspblt.org" target="_blank" rel="noopener"
+         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">owaspblt.org</a>
+      &nbsp;·&nbsp; © {{YEAR}} OWASP BLT — AGPL-3.0
+    </p>
+  </footer>
+</body>
+</html>
+"""
+
+_CALLBACK_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT GitHub App — Installed!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body class="min-h-screen flex items-center justify-center" style="background:#111827;color:#e5e7eb;">
+  <div class="text-center rounded-xl p-12 max-w-md w-full mx-4" style="background:#1F2937;border:1px solid #374151;">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background:rgba(225,1,1,0.1);">
+      <i class="fa-solid fa-circle-check text-3xl" style="color:#E10101;" aria-hidden="true"></i>
+    </div>
+    <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
+    <p class="leading-relaxed mb-6" style="color:#9ca3af;">
+      BLT GitHub App has been successfully installed on your organization.<br />
+      Issues and pull requests will now be handled automatically.
+    </p>
+    <a
+      href="https://owaspblt.org"
+      target="_blank"
+      rel="noopener"
+      style="color:#E10101;"
+      onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"
+    >
+      Visit OWASP BLT <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+    </a>
+  </div>
+</body>
+</html>
+"""
 
 
 def _landing_html(app_slug: str) -> str:
@@ -526,14 +782,11 @@ def _landing_html(app_slug: str) -> str:
         else "https://github.com/apps/blt-github-app/installations/new"
     )
     year = time.gmtime().tm_year
-    with open(_os.path.join(_PUBLIC_DIR, "index.html"), encoding="utf-8") as fh:
-        template = fh.read()
-    return template.replace("{{INSTALL_URL}}", install_url).replace("{{YEAR}}", str(year))
+    return _INDEX_HTML_TEMPLATE.replace("{{INSTALL_URL}}", install_url).replace("{{YEAR}}", str(year))
 
 
 def _callback_html() -> str:
-    with open(_os.path.join(_PUBLIC_DIR, "callback.html"), encoding="utf-8") as fh:
-        return fh.read()
+    return _CALLBACK_HTML
 
 
 # ---------------------------------------------------------------------------
