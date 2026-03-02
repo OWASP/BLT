@@ -188,6 +188,7 @@ jobs:
                 profile_url: issue.user.html_url,
               },
               image_url: extractFirstImage(issue.body),
+              domain:    extractDomain(issue.body),
             }));
 
             const payload = {

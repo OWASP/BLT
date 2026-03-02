@@ -347,18 +347,26 @@ async function loadRecentBugsFromAPI(grid) {
   const bugs = issues
     .filter((i) => !i.pull_request)
     .slice(0, 3)
-    .map((issue) => ({
-      number: issue.number,
-      title: issue.title,
-      html_url: issue.html_url,
-      created_at: issue.created_at,
-      user: {
-        login: issue.user.login,
-        avatar_url: issue.user.avatar_url,
-        profile_url: issue.user.html_url,
-      },
-      image_url: extractFirstImage(issue.body),
-    }));
+    .map((issue) => {
+      let domain = null;
+      const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+      if (urlMatch) {
+        try { domain = new URL(urlMatch[1]).hostname; } catch { /* ignore */ }
+      }
+      return {
+        number: issue.number,
+        title: issue.title,
+        html_url: issue.html_url,
+        created_at: issue.created_at,
+        user: {
+          login: issue.user.login,
+          avatar_url: issue.user.avatar_url,
+          profile_url: issue.user.html_url,
+        },
+        image_url: extractFirstImage(issue.body),
+        domain,
+      };
+    });
 
   renderRecentBugs(bugs);
 }
@@ -412,12 +420,20 @@ function renderRecentBugs(bugs) {
       );
       const login = escapeHtml(bug.user.login);
 
+      const faviconHtml = bug.domain
+        ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bug.domain)}&sz=32"
+                alt="${escapeHtml(bug.domain)} favicon"
+                class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1"
+                loading="lazy"
+                onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>'" />`
+        : "";
+
       return `<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
         ${imgHtml}
         <h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">
           <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
-             class="hover:text-primary transition-colors">
-            ${escapeHtml(bug.title)}
+             class="hover:text-primary transition-colors inline-flex items-center gap-1 flex-wrap">
+            ${faviconHtml}${escapeHtml(bug.title)}
           </a>
         </h3>
         <div class="flex items-center justify-between mt-auto pt-3 border-t border-neutral-border dark:border-gray-700">
