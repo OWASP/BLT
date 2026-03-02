@@ -135,6 +135,10 @@ class HackathonDashboard {
             bannerSection.style.backgroundImage = `url('${this.config.bannerImage}')`;
             bannerSection.style.backgroundSize = 'cover';
             bannerSection.style.backgroundPosition = 'center';
+            const bannerText = document.getElementById('banner-text');
+            if (bannerText) {
+                bannerText.classList.add('bg-black', 'bg-opacity-50', 'rounded-lg', 'px-6', 'py-4');
+            }
         }
 
         // Update description
