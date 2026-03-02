@@ -86,37 +86,32 @@ npm install -g wrangler
 wrangler login
 ```
 
-### 3. Create KV Namespaces
+### 3. Create D1 Database
 
 ```bash
-# Time tracking data
-wrangler kv:namespace create TIME_TRACKING_DATA
-
-# Activity data  
-wrangler kv:namespace create ACTIVITY_DATA
-
-# Preview namespaces (for development)
-wrangler kv:namespace create TIME_TRACKING_DATA --preview
-wrangler kv:namespace create ACTIVITY_DATA --preview
+# Create the D1 database
+wrangler d1 create time_tracker
 ```
 
 ### 4. Update wrangler.toml
 
-Copy the namespace IDs from the output and update `wrangler.toml`:
+Copy the `database_id` from the output and update `wrangler.toml`:
 
 ```toml
-[[kv_namespaces]]
-binding = "TIME_TRACKING_DATA"
-id = "your-kv-namespace-id-here"
-preview_id = "your-preview-namespace-id-here"
-
-[[kv_namespaces]]
-binding = "ACTIVITY_DATA"
-id = "your-kv-namespace-id-here"
-preview_id = "your-preview-namespace-id-here"
+[[d1_databases]]
+binding = "DB"
+database_name = "time_tracker"
+database_id = "your-d1-database-id-here"
+migrations_dir = "migrations"
 ```
 
-### 5. Set Environment Variables
+### 5. Apply Database Schema
+
+```bash
+wrangler d1 migrations apply DB
+```
+
+### 6. Set Environment Variables
 
 ```bash
 # Set production secrets
@@ -396,13 +391,16 @@ wrangler metrics
 npm install -g wrangler
 ```
 
-**Issue**: KV namespace errors
+**Issue**: D1 database errors
 ```bash
-# Verify namespaces exist
-wrangler kv:namespace list
+# Verify database exists
+wrangler d1 list
 
 # Create if missing
-wrangler kv:namespace create TIME_TRACKING_DATA
+wrangler d1 create time_tracker
+
+# Apply schema migrations
+wrangler d1 migrations apply DB
 ```
 
 **Issue**: Local LLM connection refused

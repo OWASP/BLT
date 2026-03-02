@@ -7,13 +7,9 @@ workers_dev = true
 [env.production]
 name = "fresh-time-tracker-prod"
 
-# KV namespaces for data storage
-[[kv_namespaces]]
-binding = "TIME_TRACKING_DATA"
-id = "time_tracking_data"
-preview_id = "time_tracking_data_preview"
-
-[[kv_namespaces]]
-binding = "ACTIVITY_DATA"
-id = "activity_data"
-preview_id = "activity_data_preview"
+# D1 database for data storage
+[[d1_databases]]
+binding = "DB"
+database_name = "time_tracker"
+database_id = "your-d1-database-id"
+migrations_dir = "migrations"
