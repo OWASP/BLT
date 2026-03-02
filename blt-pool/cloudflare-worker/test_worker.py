@@ -1,4 +1,4 @@
-"""Unit tests for pure-Python utility functions in worker.py.
+"""Unit tests for pure-Python utility functions and event handlers in worker.py.
 
 These tests cover the logic that does NOT require the Cloudflare runtime
 (no ``from js import ...`` needed).  Run with:
@@ -7,6 +7,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
     pytest cloudflare-worker/test_worker.py -v
 """
 
+import asyncio
 import base64
 import hashlib
 import hmac as _hmac
@@ -15,6 +16,7 @@ import json
 import sys
 import types
 import unittest
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # Minimal stub for the ``js`` module so worker.py can be imported outside the
@@ -214,6 +216,362 @@ class TestIsHuman(unittest.TestCase):
 
     def test_empty_dict(self):
         self.assertFalse(_is_human({}))
+
+
+# ---------------------------------------------------------------------------
+# Handler tests — mirror the Node.js Jest test suite
+# ---------------------------------------------------------------------------
+
+def _run(coro):
+    """Run a coroutine synchronously."""
+    return asyncio.run(coro)
+
+
+def _make_issue_payload(
+    owner="OWASP-BLT",
+    repo="TestRepo",
+    number=1,
+    state="open",
+    assignees=None,
+    labels=None,
+    html_url="https://github.com/OWASP-BLT/TestRepo/issues/1",
+    title="Test issue",
+    is_pr=False,
+    comment_body="/assign",
+    comment_user=None,
+    sender=None,
+    label=None,
+):
+    if assignees is None:
+        assignees = []
+    if labels is None:
+        labels = []
+    if comment_user is None:
+        comment_user = {"login": "alice", "type": "User"}
+    if sender is None:
+        sender = {"login": "alice", "type": "User"}
+    issue = {
+        "number": number,
+        "state": state,
+        "assignees": assignees,
+        "labels": labels,
+        "html_url": html_url,
+        "title": title,
+    }
+    if is_pr:
+        issue["pull_request"] = {"url": "https://api.github.com/repos/test/test/pulls/1"}
+    payload = {
+        "repository": {"owner": {"login": owner}, "name": repo},
+        "issue": issue,
+        "comment": {"user": comment_user, "body": comment_body},
+        "sender": sender,
+    }
+    if label is not None:
+        payload["label"] = label
+    return payload
+
+
+def _make_pr_payload(
+    owner="OWASP-BLT",
+    repo="TestRepo",
+    number=1,
+    merged=False,
+    pr_user=None,
+    sender=None,
+):
+    if pr_user is None:
+        pr_user = {"login": "alice", "type": "User"}
+    if sender is None:
+        sender = {"login": "alice", "type": "User"}
+    return {
+        "repository": {"owner": {"login": owner}, "name": repo},
+        "pull_request": {"number": number, "merged": merged, "user": pr_user},
+        "sender": sender,
+    }
+
+
+class TestHandleAssign(unittest.TestCase):
+    """_assign — mirrors handleAssign in issue-assign.test.js"""
+
+    def _run_assign(self, payload, comments, github_calls):
+        async def _inner():
+            with (
+                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
+                patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))),
+            ):
+                await _worker._assign(
+                    payload["repository"]["owner"]["login"],
+                    payload["repository"]["name"],
+                    payload["issue"],
+                    payload["comment"]["user"]["login"],
+                    "tok",
+                )
+        _run(_inner())
+
+    def test_assigns_user_to_open_issue(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        # Expect a POST to the assignees endpoint
+        self.assertTrue(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("assigned to this issue" in c for c in comments))
+
+    def test_does_not_assign_closed_issue(self):
+        payload = _make_issue_payload(state="closed")
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("already closed" in c for c in comments))
+
+    def test_does_not_assign_already_assigned(self):
+        payload = _make_issue_payload(assignees=[{"login": "alice"}])
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("already assigned" in c for c in comments))
+
+    def test_does_not_assign_when_max_assignees_reached(self):
+        payload = _make_issue_payload(
+            assignees=[{"login": "bob"}, {"login": "carol"}, {"login": "dave"}]
+        )
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("maximum number of assignees" in c for c in comments))
+
+    def test_does_not_assign_on_pull_request(self):
+        payload = _make_issue_payload(is_pr=True)
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("pull requests" in c for c in comments))
+
+
+class TestHandleUnassign(unittest.TestCase):
+    """_unassign — mirrors handleUnassign in issue-assign.test.js"""
+
+    def _run_unassign(self, payload, comments, github_calls):
+        async def _inner():
+            with (
+                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
+                patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))),
+            ):
+                await _worker._unassign(
+                    payload["repository"]["owner"]["login"],
+                    payload["repository"]["name"],
+                    payload["issue"],
+                    payload["comment"]["user"]["login"],
+                    "tok",
+                )
+        _run(_inner())
+
+    def test_removes_user_from_assigned_issue(self):
+        payload = _make_issue_payload(assignees=[{"login": "alice"}])
+        comments, calls = [], []
+        self._run_unassign(payload, comments, calls)
+        # Expect a DELETE to the assignees endpoint
+        self.assertTrue(any(
+            method == "DELETE" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("unassigned" in c for c in comments))
+
+    def test_does_not_remove_user_not_assigned(self):
+        payload = _make_issue_payload(assignees=[])
+        comments, calls = [], []
+        self._run_unassign(payload, comments, calls)
+        self.assertEqual(calls, [])
+        self.assertTrue(any("not currently assigned" in c for c in comments))
+
+
+class TestHandleIssueComment(unittest.TestCase):
+    """handle_issue_comment — routes /assign and /unassign commands"""
+
+    def _run_comment(self, payload, assign_calls, unassign_calls):
+        async def _inner():
+            with (
+                patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))),
+                patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))),
+            ):
+                await _worker.handle_issue_comment(payload, "tok")
+        _run(_inner())
+
+    def test_routes_assign_command(self):
+        payload = _make_issue_payload(comment_body="/assign")
+        assigns, unassigns = [], []
+        self._run_comment(payload, assigns, unassigns)
+        self.assertEqual(len(assigns), 1)
+        self.assertEqual(len(unassigns), 0)
+
+    def test_routes_unassign_command(self):
+        payload = _make_issue_payload(comment_body="/unassign")
+        assigns, unassigns = [], []
+        self._run_comment(payload, assigns, unassigns)
+        self.assertEqual(len(assigns), 0)
+        self.assertEqual(len(unassigns), 1)
+
+    def test_ignores_bot_comments(self):
+        payload = _make_issue_payload(
+            comment_body="/assign",
+            comment_user={"login": "bot", "type": "Bot"},
+        )
+        assigns, unassigns = [], []
+        self._run_comment(payload, assigns, unassigns)
+        self.assertEqual(assigns, [])
+        self.assertEqual(unassigns, [])
+
+    def test_ignores_unrelated_comments(self):
+        payload = _make_issue_payload(comment_body="just a comment")
+        assigns, unassigns = [], []
+        self._run_comment(payload, assigns, unassigns)
+        self.assertEqual(assigns, [])
+        self.assertEqual(unassigns, [])
+
+
+class TestHandleIssueOpened(unittest.TestCase):
+    """handle_issue_opened — mirrors handleIssueOpened in issue-opened.test.js"""
+
+    def _run_opened(self, payload, comments, bug_calls, bug_return=None):
+        async def _inner():
+            async def _mock_report(url, data):
+                bug_calls.append(data)
+                return bug_return
+
+            with (
+                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
+                patch.object(_worker, "report_bug_to_blt", new=_mock_report),
+            ):
+                await _worker.handle_issue_opened(payload, "tok", "https://blt.example")
+        _run(_inner())
+
+    def test_posts_welcome_message(self):
+        payload = _make_issue_payload()
+        comments, bugs = [], []
+        self._run_opened(payload, comments, bugs)
+        self.assertEqual(len(comments), 1)
+        self.assertIn("Thanks for opening this issue", comments[0])
+        self.assertIn("/assign", comments[0])
+
+    def test_reports_bug_to_blt_for_bug_label(self):
+        payload = _make_issue_payload(labels=[{"name": "bug"}])
+        comments, bugs = [], []
+        self._run_opened(payload, comments, bugs, bug_return={"id": 42})
+        self.assertEqual(len(bugs), 1)
+        self.assertIn("Bug ID: #42", comments[0])
+
+    def test_does_not_report_bug_without_bug_label(self):
+        payload = _make_issue_payload(labels=[])
+        comments, bugs = [], []
+        self._run_opened(payload, comments, bugs)
+        self.assertEqual(bugs, [])
+
+    def test_ignores_bot_senders(self):
+        payload = _make_issue_payload(sender={"login": "bot", "type": "Bot"})
+        comments, bugs = [], []
+        self._run_opened(payload, comments, bugs)
+        self.assertEqual(comments, [])
+
+
+class TestHandleIssueLabeled(unittest.TestCase):
+    """handle_issue_labeled — mirrors handleIssueLabeled in issue-opened.test.js"""
+
+    def _run_labeled(self, payload, comments, bug_calls, bug_return=None):
+        async def _inner():
+            async def _mock_report(url, data):
+                bug_calls.append(data)
+                return bug_return
+
+            with (
+                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
+                patch.object(_worker, "report_bug_to_blt", new=_mock_report),
+            ):
+                await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
+        _run(_inner())
+
+    def test_reports_to_blt_when_bug_label_added(self):
+        payload = _make_issue_payload(
+            labels=[{"name": "bug"}],
+            label={"name": "bug"},
+        )
+        comments, bugs = [], []
+        self._run_labeled(payload, comments, bugs, bug_return={"id": 42})
+        self.assertEqual(len(bugs), 1)
+        self.assertIn("Bug ID: #42", comments[0])
+
+    def test_does_not_report_for_non_bug_labels(self):
+        payload = _make_issue_payload(
+            labels=[{"name": "enhancement"}],
+            label={"name": "enhancement"},
+        )
+        comments, bugs = [], []
+        self._run_labeled(payload, comments, bugs)
+        self.assertEqual(bugs, [])
+
+    def test_does_not_report_if_bug_label_already_present(self):
+        payload = _make_issue_payload(
+            labels=[{"name": "bug"}, {"name": "vulnerability"}],
+            label={"name": "vulnerability"},
+        )
+        comments, bugs = [], []
+        self._run_labeled(payload, comments, bugs)
+        self.assertEqual(bugs, [])
+
+
+class TestHandlePullRequestOpened(unittest.TestCase):
+    """handle_pull_request_opened — mirrors handlePullRequestOpened in pull-request.test.js"""
+
+    def _run_opened(self, payload, comments):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                await _worker.handle_pull_request_opened(payload, "tok")
+        _run(_inner())
+
+    def test_posts_welcome_message(self):
+        payload = _make_pr_payload()
+        comments = []
+        self._run_opened(payload, comments)
+        self.assertEqual(len(comments), 1)
+        self.assertIn("Thanks for opening this pull request", comments[0])
+        self.assertIn("OWASP BLT", comments[0])
+
+    def test_ignores_bot_senders(self):
+        payload = _make_pr_payload(sender={"login": "bot", "type": "Bot"})
+        comments = []
+        self._run_opened(payload, comments)
+        self.assertEqual(comments, [])
+
+
+class TestHandlePullRequestClosed(unittest.TestCase):
+    """handle_pull_request_closed — mirrors handlePullRequestClosed in pull-request.test.js"""
+
+    def _run_closed(self, payload, comments):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                await _worker.handle_pull_request_closed(payload, "tok")
+        _run(_inner())
+
+    def test_posts_congratulations_when_merged(self):
+        payload = _make_pr_payload(merged=True)
+        comments = []
+        self._run_closed(payload, comments)
+        self.assertEqual(len(comments), 1)
+        self.assertIn("PR merged", comments[0])
+        self.assertIn("alice", comments[0])
+
+    def test_does_not_post_when_not_merged(self):
+        payload = _make_pr_payload(merged=False)
+        comments = []
+        self._run_closed(payload, comments)
+        self.assertEqual(comments, [])
+
+    def test_ignores_bot_merges(self):
+        payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
+        comments = []
+        self._run_closed(payload, comments)
+        self.assertEqual(comments, [])
 
 
 if __name__ == "__main__":
