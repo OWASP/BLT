@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-03-02T20:45:10.156Z",
-  "total_bugs": 3,
+  "updated_at": "2026-03-02T20:50:59.087Z",
+  "total_bugs": 4,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 2,
+      "count": 3,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -58,16 +58,28 @@
   "top_domains": [
     {
       "rank": 1,
-      "domain": "www.owasp.community",
+      "domain": "owaspblt.org",
       "count": 2
     },
     {
       "rank": 2,
-      "domain": "owaspblt.org",
-      "count": 1
+      "domain": "www.owasp.community",
+      "count": 2
     }
   ],
   "recent_bugs": [
+    {
+      "number": 17,
+      "title": "[BUG] video bugs are not showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
+      "created_at": "2026-03-02T20:50:49Z",
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45"
+    },
     {
       "number": 15,
       "title": "[BUG] : Gradient background should be fixed and transition should not be visible.",
@@ -91,18 +103,6 @@
         "profile_url": "https://github.com/DonnieBLT"
       },
       "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c"
-    },
-    {
-      "number": 6,
-      "title": "[BUG] page always shows loading screen even though it’s loaded before",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6",
-      "created_at": "2026-03-01T07:04:11Z",
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/33a6854c-605f-464c-be62-5c9bd724edcd"
     }
   ]
 }
