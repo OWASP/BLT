@@ -673,6 +673,7 @@ _INDEX_HTML_TEMPLATE = """\
           <code class="rounded text-xs px-2 py-0.5" style="background:#111827;color:#9ca3af;">/health</code>
         </div>
 
+{{SECRET_VARS_STATUS}}
       </div>
     </section>
 
@@ -775,14 +776,66 @@ _CALLBACK_HTML = """\
 """
 
 
-def _landing_html(app_slug: str) -> str:
+def _secret_vars_status_html(env) -> str:
+    """Generate HTML rows showing whether each secret/config variable is set."""
+    _SET_BADGE = (
+        '<span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">'
+        '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Set'
+        "</span>"
+    )
+    _MISSING_BADGE = (
+        '<span class="font-semibold flex items-center gap-1.5" style="color:#f87171;">'
+        '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Not set'
+        "</span>"
+    )
+    _OPTIONAL_BADGE = (
+        '<span class="font-semibold flex items-center gap-1.5" style="color:#9ca3af;">'
+        '<i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Not configured'
+        "</span>"
+    )
+
+    required_vars = ["APP_ID", "PRIVATE_KEY", "WEBHOOK_SECRET"]
+    optional_vars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
+
+    rows = [
+        '        <div style="border-top:1px solid #374151;margin-top:1rem;padding-top:0.5rem;">',
+        '          <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7280;">Secret Variables</p>',
+        "        </div>",
+    ]
+    for name in required_vars:
+        is_set = bool(getattr(env, name, ""))
+        badge = _SET_BADGE if is_set else _MISSING_BADGE
+        rows.append(
+            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
+            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code></span>'
+            f"{badge}</div>"
+        )
+    for name in optional_vars:
+        is_set = bool(getattr(env, name, ""))
+        badge = _SET_BADGE if is_set else _OPTIONAL_BADGE
+        rows.append(
+            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
+            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code>'
+            f' <span style="color:#6b7280;font-size:0.7rem;">(optional)</span></span>'
+            f"{badge}</div>"
+        )
+    return "\n".join(rows)
+
+
+def _landing_html(app_slug: str, env=None) -> str:
     install_url = (
         f"https://github.com/apps/{app_slug}/installations/new"
         if app_slug
         else "https://github.com/apps/blt-github-app/installations/new"
     )
     year = time.gmtime().tm_year
-    return _INDEX_HTML_TEMPLATE.replace("{{INSTALL_URL}}", install_url).replace("{{YEAR}}", str(year))
+    secret_vars_html = _secret_vars_status_html(env) if env is not None else ""
+    return (
+        _INDEX_HTML_TEMPLATE
+        .replace("{{INSTALL_URL}}", install_url)
+        .replace("{{YEAR}}", str(year))
+        .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
+    )
 
 
 def _callback_html() -> str:
@@ -824,7 +877,7 @@ async def on_fetch(request, env) -> Response:
 
     if method == "GET" and path == "/":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
-        return _html(_landing_html(app_slug))
+        return _html(_landing_html(app_slug, env))
 
     if method == "GET" and path == "/health":
         return _json({"status": "ok", "service": "BLT GitHub App"})
