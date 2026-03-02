@@ -206,26 +206,31 @@
   } catch (e) { return '#'; }
   }
     const slackConfigured = true;
+    let chartInstance = null;
 
     // Get monitor ID from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const monitorId = urlParams.get('id') || 'owaspblt';
+    const monitorId = sanitizeId(urlParams.get('id') || 'owaspblt');
 
     // Load monitor configuration
     fetch('monitors.json')
       .then(r => r.json())
       .then(monitors => {
-        const monitor = monitors.find(m => m.id === monitorId);
+        const monitor = monitors.find(
+          m => sanitizeId(m.id) === monitorId
+        );
         if (!monitor) throw new Error('Monitor not found');
-
+        
+        const safeId = sanitizeId(monitor.id);
         document.getElementById('monitor-name').textContent = monitor.name;
-        document.getElementById('monitor-url').textContent = monitor.url;
+
         const safe = safeUrl(monitor.url);
+        document.getElementById('monitor-url').textContent = safe;
         document.getElementById('monitor-url').href = safe;
 
         document.title = `${monitor.name} Monitor`;
 
-        const csvFile = monitors.length > 1 ? `status-${monitor.id}.csv` : 'status.csv';
+        const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
         document.getElementById('csv-link').href = `https://github.com/OWASP-BLT/BLT-Monitor/blob/main/${csvFile}`;
 
         loadMonitorData(monitor, csvFile);
@@ -237,7 +242,7 @@
       });
 
     function loadMonitorData(monitor, csvFile) {
-      const keywordText = monitor.keyword;
+      const keywordText = monitor.keyword || '';
 
       function timeAgo(date) {
           const now = new Date();
@@ -307,7 +312,11 @@ function parseCSV(csv) {
           const data = rows.map(r => parseInt(r[1]));
           const bgColors = rows.map(r => (r[2]==='success' && r[3]==='found') ? '#4CAF50' : (r[2]==='success' ? '#FFC107' : '#f44336'));
 
-          new Chart(document.getElementById('statusChart').getContext('2d'), {
+          if (chartInstance) {  
+            chartInstance.destroy();
+          }
+          chartInstance = new Chart(
+            document.getElementById('statusChart').getContext('2d'),{
               type: 'line',
               data: {
                   labels: labels,
@@ -398,18 +407,22 @@ function parseCSV(csv) {
     document.getElementById('gh-forks').textContent = '—';
   });
 
-  function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function (match) {
-    const escape = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;',
-    };
-    return escape[match];
-  });
+  function escapeHTML(str = '') {
+  return String(str).replace(/[&<>"']/g, (match) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  }[match]));
 }
+
+function sanitizeId(id) {
+  return String(id || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '');
+}
+
 </script>
 </body>
 </html>

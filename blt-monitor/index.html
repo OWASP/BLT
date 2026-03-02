@@ -65,23 +65,29 @@
 </div>
 
 <script>
+  function sanitizeId(id) {
+  return String(id || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '');
+}
 fetch('monitors.json')
   .then(r => r.json())
   .then(monitors => {
     const container = document.getElementById('monitors-list');
     monitors.forEach(monitor => {
-      const csvFile = monitors.length > 1 ? `status-${monitor.id}.csv` : 'status.csv';
+      const safeId = sanitizeId(monitor.id);
+      const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
       fetch(csvFile)
         .then(r => r.text())
         .then(csv => {
           const rows = parseCSV(csv);
           const lastRow = rows[rows.length - 1];
-          const card = createMonitorCard(monitor, rows, lastRow, csvFile);
+          const card = createMonitorCard(monitor, safeId, rows, lastRow, csvFile);
           container.appendChild(card);
         })
         .catch(err => {
           console.error(`Failed to load data for ${monitor.id}:`, err);
-          const card = createMonitorCard(monitor, [], null, csvFile);
+          const card = createMonitorCard(monitor, safeId, [], null, csvFile);
           container.appendChild(card);
         });
     });
@@ -110,10 +116,10 @@ function safeUrl(url) {
   } catch (e) { return '#'; }
 }
 
-function createMonitorCard(monitor, rows, lastRow, csvFile) {
+function createMonitorCard(monitor, safeId, rows, lastRow, csvFile) {
   const card = document.createElement('div');
-  card.onclick = () => { window.location.href = `monitor.html?id=${monitor.id}`; };
-  card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${monitor.id}`; } };
+  card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
+  card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
   card.setAttribute('tabindex', '0');
   card.setAttribute('role', 'link');
   card.setAttribute('aria-label', `View details for ${monitor.name}`);
@@ -141,11 +147,12 @@ function createMonitorCard(monitor, rows, lastRow, csvFile) {
       statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
     }
 
-    responseTime = parseInt(lastRow[1]).toLocaleString() + ' ms';
+    const ms = parseInt(lastRow[1]);
+    responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
     lastCheck = timeAgo(new Date(lastRow[0]));
   }
 
-  const canvasId = `chart-${monitor.id}`;
+  const canvasId = `chart-${safeId}`;
 
   card.innerHTML = `
     <div class="flex items-start gap-4">
