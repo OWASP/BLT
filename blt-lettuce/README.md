@@ -127,7 +127,7 @@ View real-time statistics at our **[Stats Dashboard](https://owasp-blt.github.io
 
 ## ☁️ Cloudflare Worker
 
-BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** that serves as the complete backend:
+BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** (`src/worker.py`) that serves as the complete backend:
 
 - **Homepage**: Serves the dashboard at the root URL
 - **Slack Events**: Handles all webhook events (team joins, messages, mentions)
@@ -138,8 +138,6 @@ BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** that serves a
 - **Stats API**: Provides a JSON endpoint for live statistics
 - **Multi-Org Support**: Can be installed in any Slack organization
 
-See [cloudflare-worker/README.md](cloudflare-worker/README.md) for detailed setup instructions.
-
 ### API Endpoints
 
 | Endpoint | Method | Description |
@@ -148,6 +146,63 @@ See [cloudflare-worker/README.md](cloudflare-worker/README.md) for detailed setu
 | `/webhook` | POST | Slack webhook for events |
 | `/stats` | GET | Returns statistics JSON |
 | `/health` | GET | Health check endpoint |
+
+### Slack App Setup
+
+1. Go to [Slack API](https://api.slack.com/apps) and create a new app or use the `manifest.yaml`
+2. If creating manually:
+   - Enable Event Subscriptions and add the webhook URL: `https://your-worker.workers.dev/webhook`
+   - Subscribe to these bot events: `team_join`, `message.channels`, `message.im`, `app_mention`
+   - Enable Interactivity and set Request URL to: `https://your-worker.workers.dev/webhook`
+3. Install the app to your workspace
+4. Copy the Bot User OAuth Token and use it for `SLACK_TOKEN`
+5. Copy the Signing Secret and use it for `SIGNING_SECRET`
+
+### Required Bot Permissions
+
+- `chat:write` - Send messages
+- `im:write` - Open DM conversations
+- `im:read` - Read direct messages
+- `im:history` - Read DM history
+- `channels:history` - Read channel messages
+- `channels:read` - View basic channel information
+- `users:read` - Read user information
+- `team:read` - Read workspace information
+
+### Environment Variables
+
+**Required**
+- `SLACK_TOKEN` - Bot User OAuth Token (xoxb-...)
+- `SIGNING_SECRET` - Slack App Signing Secret
+
+**Optional Channel Configuration**
+
+For multi-organization deployments, you can configure custom channel IDs:
+- `JOINS_CHANNEL_ID` - Channel ID where join notifications are posted (optional)
+- `CONTRIBUTE_ID` - Channel ID for contribution guidelines link (optional)
+- `DEPLOYS_CHANNEL` - Channel name for deployment notifications (optional)
+
+> **Note**: If these are not set, the bot will skip channel-specific features (like posting join notifications to a monitoring channel) but all core functionality (welcome DMs, keyword detection) will still work.
+
+To find a channel ID in Slack:
+1. Right-click on the channel name → "Copy link"
+2. The ID is the last part: `https://workspace.slack.com/archives/C06RMMRMGHE`
+
+### Stats
+
+Stats are stored in Cloudflare KV and include:
+- `joins`: Number of new team members who have joined
+- `commands`: Number of commands run
+- `last_updated`: Timestamp of last update
+
+Stats are workspace-specific and use optimistic locking to handle concurrent updates.
+
+### Security
+
+- All Slack requests are verified using HMAC signature validation
+- Replay attacks are prevented with timestamp checking (5-minute window)
+- The bot ignores its own messages to prevent loops
+- Error messages are sanitized to avoid exposing internal details
 
 ---
 
@@ -164,7 +219,7 @@ See [cloudflare-worker/README.md](cloudflare-worker/README.md) for detailed setu
 1. **Clone the repository**
    ```bash
    git clone https://github.com/OWASP-BLT/BLT-Lettuce.git
-   cd BLT-Lettuce/cloudflare-worker
+   cd BLT-Lettuce
    ```
 
 2. **Install Wrangler and login**
@@ -212,10 +267,10 @@ Each organization will have its own isolated statistics and configuration.
 
 ```
 BLT-Lettuce/
-├── cloudflare-worker/      # Cloudflare Worker (Main Application)
+├── src/
 │   ├── worker.py           # Complete Python worker with all bot logic
-│   ├── wrangler.toml       # Worker configuration
-│   └── README.md           # Worker documentation
+│   └── lettuce/            # Bot plugins and modules (for reference)
+├── wrangler.toml           # Worker configuration
 ├── manifest.yaml           # Slack App manifest for easy setup
 ├── docs/
 │   └── index.html          # GitHub Pages dashboard (reference)
@@ -223,13 +278,12 @@ BLT-Lettuce/
 ├── data/
 │   ├── projects.json       # OWASP project metadata cache
 │   └── repos.json          # Repository categorization
-├── src/lettuce/            # Bot plugins and modules (for reference)
 ├── tests/                  # Test suite
 ├── pyproject.toml          # Python dependencies
 └── README.md               # This file
 ```
 
-**Note**: The primary application is now the Cloudflare Worker in `cloudflare-worker/`. The Flask app (`app.py`) and related plugins are kept for historical reference and may be removed in a future release. All new development should focus on the Cloudflare Worker implementation.
+**Note**: The primary application is now the Cloudflare Worker in `src/worker.py`. The Flask app (`app.py`) and related plugins are kept for historical reference and may be removed in a future release. All new development should focus on the Cloudflare Worker implementation.
 
 ---
 
