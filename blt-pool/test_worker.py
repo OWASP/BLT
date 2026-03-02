@@ -60,7 +60,7 @@ sys.modules.setdefault("js", _js_stub)
 import importlib.util
 import pathlib
 
-_worker_path = pathlib.Path(__file__).parent / "worker.py"
+_worker_path = pathlib.Path(__file__).parent / "src" / "worker.py"
 _spec = importlib.util.spec_from_file_location("worker", _worker_path)
 _worker = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_worker)
