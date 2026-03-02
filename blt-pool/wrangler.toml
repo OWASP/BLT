@@ -23,3 +23,19 @@ GITHUB_APP_SLUG = "blt-github-app"
 # WEBHOOK_SECRET       — GitHub App webhook secret
 # GITHUB_CLIENT_ID     — OAuth client ID     (optional)
 # GITHUB_CLIENT_SECRET — OAuth client secret (optional)
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
