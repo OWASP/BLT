@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-02T07:32:53.390Z",
+  "updated_at": "2026-03-02T08:27:45.321Z",
   "total_bugs": 2,
   "total_orgs": 0,
   "leaderboard": [
@@ -39,6 +39,13 @@
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
+    },
+    {
+      "rank": 5,
+      "login": "azizrebhi",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
+      "profile_url": "https://github.com/azizrebhi"
     }
   ],
   "top_domains": [
