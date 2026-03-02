@@ -34,7 +34,10 @@ def make_request(url: str) -> object:
         req.add_header("Authorization", f"Bearer {TOKEN}")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode())
+            body = resp.read().decode()
+            if not body:
+                return None
+            return json.loads(body)
     except urllib.error.HTTPError as exc:
         body = exc.read().decode(errors="replace")
         print(f"HTTP {exc.code} fetching {url}: {body[:200]}", file=sys.stderr)
