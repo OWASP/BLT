@@ -746,14 +746,20 @@ function renderTableView(repos, container) {
     else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
     else if (tableSortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
     else if (tableSortCol === 'latest_release') {
-      const ta = (a.latest_release && a.latest_release.published_at) ? a.latest_release.published_at : '';
-      const tb = (b.latest_release && b.latest_release.published_at) ? b.latest_release.published_at : '';
-      v = ta.localeCompare(tb);
+      const ta = (a.latest_release && a.latest_release.published_at) ? new Date(a.latest_release.published_at) : null;
+      const tb = (b.latest_release && b.latest_release.published_at) ? new Date(b.latest_release.published_at) : null;
+      if (!ta && !tb) v = 0;
+      else if (!ta) v = -1;
+      else if (!tb) v = 1;
+      else v = ta - tb;
     }
     else if (tableSortCol === 'latest_commit') {
-      const ta = (a.latest_commit && a.latest_commit.date) ? a.latest_commit.date : '';
-      const tb = (b.latest_commit && b.latest_commit.date) ? b.latest_commit.date : '';
-      v = ta.localeCompare(tb);
+      const ta = (a.latest_commit && a.latest_commit.date) ? new Date(a.latest_commit.date) : null;
+      const tb = (b.latest_commit && b.latest_commit.date) ? new Date(b.latest_commit.date) : null;
+      if (!ta && !tb) v = 0;
+      else if (!ta) v = -1;
+      else if (!tb) v = 1;
+      else v = ta - tb;
     }
     else if (tableSortCol === 'latest_issue') {
       v = (a.latest_issue ? a.latest_issue.number : 0) - (b.latest_issue ? b.latest_issue.number : 0);
