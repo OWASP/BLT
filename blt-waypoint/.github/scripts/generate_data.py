@@ -250,6 +250,35 @@ def fetch_latest_commit(repo_full_name: str, default_branch: str) -> dict | None
         return None
 
 
+def fetch_latest_pr(repo_full_name: str) -> dict | None:
+    """Return the most recent PR (any state) for a repo, including merged status."""
+    try:
+        data = make_request(
+            f"{API_BASE}/repos/{repo_full_name}/pulls?state=all&sort=updated&direction=desc&per_page=1"
+        )
+        if not isinstance(data, list) or not data:
+            return None
+        pr = data[0]
+        user = pr.get("user") or {}
+        state = pr.get("state", "open")
+        merged_at = pr.get("merged_at")
+        if merged_at:
+            state = "merged"
+        return {
+            "number": pr.get("number"),
+            "title": pr.get("title", ""),
+            "html_url": pr.get("html_url", ""),
+            "state": state,
+            "author": user.get("login", ""),
+            "author_avatar": user.get("avatar_url", ""),
+            "author_html_url": user.get("html_url", ""),
+            "updated_at": pr.get("updated_at", ""),
+        }
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch latest PR for {repo_full_name}: {exc}", file=sys.stderr)
+        return None
+
+
 def fetch_has_wrangler_toml(repo_full_name: str, default_branch: str) -> bool:
     """Return True if the repo contains a wrangler.toml in its root directory."""
     try:
@@ -471,6 +500,18 @@ def main() -> None:
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
+    # Fetch the most recent PR for each non-archived repo
+    print("Fetching latest PRs…", flush=True)
+    latest_pr_map: dict[str, dict | None] = {}
+    for i, repo in enumerate(repos):
+        if repo.get("archived"):
+            latest_pr_map[repo["full_name"]] = None
+        else:
+            latest_pr_map[repo["full_name"]] = fetch_latest_pr(repo["full_name"])
+            time.sleep(0.1)
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{len(repos)} done", flush=True)
+
     # Fetch the latest release for each non-archived repo
     print("Fetching latest releases…", flush=True)
     latest_release_map: dict[str, dict | None] = {}
@@ -526,6 +567,7 @@ def main() -> None:
              "agent_pr_count": agent_pr_count_map.get(repo["full_name"], 0),
              "latest_issue": latest_issue_map.get(repo["full_name"]),
              "latest_commit": latest_commit_map.get(repo["full_name"]),
+             "latest_pr": latest_pr_map.get(repo["full_name"]),
              "latest_release": latest_release_map.get(repo["full_name"]),
              "star_history": star_history_map.get(repo["full_name"], []),
              "has_wrangler_toml": has_wrangler_toml_map.get(repo["full_name"], False)}
