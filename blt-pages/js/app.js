@@ -163,7 +163,7 @@ function initPricing() {
 async function loadLeaderboard() {
   const container = document.getElementById("leaderboard-rows");
   const statBugs = document.getElementById("stat-total-bugs");
-  const statOrgs = document.getElementById("stat-orgs");
+  const statDomains = document.getElementById("stat-domains");
   const statReporters = document.getElementById("stat-reporters");
 
   if (!container) return;
@@ -178,11 +178,11 @@ async function loadLeaderboard() {
     renderTopDomains(document.getElementById("domains-rows"), data);
     if (statBugs) statBugs.textContent = formatNumber(data.total_bugs || 0);
     if (statReporters) statReporters.textContent = formatNumber(data.leaderboard?.length || 0);
-    if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs || 0);
+    if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
   } catch {
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
-      await loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporters);
+      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters);
     } catch (err) {
       container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
         <i class="fa-solid fa-circle-exclamation text-primary mr-2" aria-hidden="true"></i>
@@ -192,7 +192,7 @@ async function loadLeaderboard() {
   }
 }
 
-async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporters) {
+async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters) {
   const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100`;
   const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
@@ -200,7 +200,6 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
 
   // Build counts map
   const counts = {};
-  const orgs = new Set();
   const domainCounts = {};
 
   for (const issue of issues) {
@@ -208,10 +207,6 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
     const user = issue.user.login;
     counts[user] = (counts[user] || { count: 0, avatar_url: issue.user.avatar_url, profile_url: issue.user.html_url });
     counts[user].count++;
-
-    // Extract org from body (ORG_NAME field)
-    const orgMatch = issue.body?.match(/### Organization Name.*?\n\n(.+)/s);
-    if (orgMatch) orgs.add(orgMatch[1].trim().split("\n")[0]);
 
     // Extract domain from URL field
     const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
@@ -240,7 +235,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
     top_commenters: [],
     top_domains: topDomains,
     total_bugs: issues.filter((i) => !i.pull_request).length,
-    total_orgs: orgs.size,
+    total_domains: Object.keys(domainCounts).length,
     updated_at: new Date().toISOString(),
   };
 
@@ -248,7 +243,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statOrgs, statReporte
   renderTopCommenters(document.getElementById("commenters-rows"), data);
   renderTopDomains(document.getElementById("domains-rows"), data);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
-  if (statOrgs) statOrgs.textContent = formatNumber(data.total_orgs);
+  if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
 }
 

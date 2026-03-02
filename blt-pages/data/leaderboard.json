@@ -1,12 +1,13 @@
 {
-  "updated_at": "2026-03-02T22:16:13.536Z",
-  "total_bugs": 7,
+  "updated_at": "2026-03-02T22:36:44.984Z",
+  "total_bugs": 8,
+  "total_domains": 2,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 5,
+      "count": 6,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -73,7 +74,7 @@
     {
       "rank": 1,
       "domain": "owaspblt.org",
-      "count": 4
+      "count": 5
     },
     {
       "rank": 2,
@@ -82,6 +83,18 @@
     }
   ],
   "recent_bugs": [
+    {
+      "number": 25,
+      "title": "[BUG] google domain icon is missing from the title in the cards, please add it",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/25",
+      "created_at": "2026-03-02T22:34:03Z",
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/895397a0-de6a-4358-ba42-4b174fb783ea"
+    },
     {
       "number": 21,
       "title": "[FEATURE] Add favicon",
@@ -105,18 +118,6 @@
         "profile_url": "https://github.com/DonnieBLT"
       },
       "image_url": "https://github.com/user-attachments/assets/352c125a-b3c1-4309-8381-80674c1b30a6"
-    },
-    {
-      "number": 19,
-      "title": "[FEATURE] make sure reactions are showing up",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19",
-      "created_at": "2026-03-02T21:04:11Z",
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/507176e7-0a58-4df4-b3e9-72e430f1b834"
     }
   ]
 }
