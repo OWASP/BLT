@@ -16,6 +16,13 @@ This is a **security-first, zero-data-retention system** where:
 - ✅ Works fully offline when needed
 - ✅ Open-source and independently verifiable
 
+The architecture is built around:
+- ✅ **Cloudflare Workers** for automation, scanning, and re-checks
+- ✅ **A local Flutter app** for **all sensitive personal data handling**
+- ❌ No reliance on GitHub Pages for storing or processing personal data
+- ➡️ GitHub hosts *code only*, never user data
+- ⬇️ Optional "portable mode" via downloadable ZIP the user can run locally
+
 ## 🏗️ Architecture
 
 BLT-Vanish uses a **hybrid model** that combines local security with edge automation:
@@ -77,6 +84,47 @@ Workers compute and serve **public information only**, like:
 - Opt-out instructions and form templates
 - Broker API availability tests
 - Update notifications
+
+## 💡 Why This Architecture Works
+
+### 1. Cloudflare Workers Handle Automation
+
+Cloudflare Workers perform tasks that *don't require user PII*, such as:
+
+- Checking if data broker pages are online or changed
+- Monitoring broker API changes
+- Providing lists of brokers and opt-out methods
+- Scheduling re-scan suggestions (no PII included)
+
+Workers compute and serve only **public metadata**, like:
+`brokers.json`, opt-out instructions, form templates, and availability tests.
+
+### 2. Flutter App Handles All Personal Data
+
+The Flutter app (runs on iOS, Android, macOS, Windows, Linux) will:
+
+- Store **all user PII locally**, encrypted
+- Construct opt-out requests
+- Generate emails, form submissions, or automated scripts
+- Organize the user's personal "exposure map"
+- Talk to Cloudflare Workers only for public data (no PII passes through)
+
+**No personal data ever leaves the device** except when the user manually sends deletion/opt-out requests to brokers.
+
+### 3. Optional ZIP Download / Portable Mode
+
+For users who want a fully offline solution, no app store, self-verifiable code, or maximum privacy, SelfErase offers a **portable ZIP download** containing a self-contained Flutter desktop app.
+
+Users can:
+
+- Build it from source
+- Download a GitHub release
+- Verify signatures
+- Run locally with no installation
+
+### 4. GitHub Hosts Only Static Files
+
+GitHub hosts documentation, the website, the open-source code, guides, and broker metadata—no dynamic data, no PII, no user uploads. That keeps GitHub simple, safe, and fully open-source.
 
 ## 🔒 Security Model
 
