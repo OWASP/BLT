@@ -1,171 +1,418 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SelfErase - Privacy-First Data Broker Management</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'blt': '#E10101' }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* ── Styles for JavaScript-injected elements ── */
+
+        /* Modal overlay */
+        #brokerModal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: #ffffff;
+            margin: 5% auto;
+            padding: 1.75rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 680px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+        .close {
+            color: #9ca3af;
+            float: right;
+            font-size: 1.75rem;
+            line-height: 1;
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+        .close:hover { color: #111827; }
+
+        /* Broker items (created via JS) */
+        .broker-item {
+            background: #f9fafb;
+            padding: 1.125rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #E5E5E5;
+            margin-bottom: 0.75rem;
+        }
+        .broker-item:hover {
+            border-color: #E10101;
+            box-shadow: 0 4px 14px rgba(225, 1, 1, 0.1);
+            transform: translateX(4px);
+        }
+        .broker-item h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            color: #111827;
+        }
+        .broker-item p { color: #6b7280; font-size: 0.875rem; }
+        .broker-tags { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .broker-tag {
+            background: #E10101;
+            color: #ffffff;
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
+
+        /* Broker detail modal content (injected via JS) */
+        .broker-details h3 {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: #E10101;
+            margin-bottom: 0.75rem;
+        }
+        .detail-section { margin: 1rem 0; }
+        .detail-section h4 { font-weight: 600; margin-bottom: 0.4rem; color: #111827; }
+        .detail-section ol, .detail-section ul { margin-left: 1.5rem; }
+        .detail-section li { margin-bottom: 0.35rem; color: #374151; font-size: 0.9rem; }
+        .detail-section a { color: #E10101; text-decoration: none; }
+        .detail-section a:hover { text-decoration: underline; }
+
+        /* Buttons used inside modal (injected via JS) */
+        .btn {
+            display: inline-block;
+            padding: 0.55rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .btn-primary {
+            background-color: #E10101;
+            color: #ffffff;
+            border-color: #E10101;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #E10101;
+            border-color: #E10101;
+        }
+        .btn-outline:hover {
+            background-color: #E10101;
+            color: #ffffff;
+        }
+
+        /* Alert messages (injected via JS) */
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .alert-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #E10101; }
+        .alert-info    { background: #feeae9; color: #7f1d1d; border-left: 4px solid #E10101; }
+
+        /* Helper used in JS-generated content */
+        .info-text { color: #6b7280; font-size: 0.875rem; }
+
+        /* Active nav link */
+        .nav-link.active { color: #E10101 !important; }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <h1>🔒 SelfErase</h1>
+<body class="bg-gray-50 text-gray-900 antialiased" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+
+    <!-- ── Navigation ── -->
+    <nav class="bg-[#111827] sticky top-0 z-50 shadow-md" aria-label="Main navigation">
+        <div class="max-w-6xl mx-auto px-5">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand -->
+                <a href="#home" class="flex items-center gap-2 text-white no-underline">
+                    <i class="fa-solid fa-shield-halved text-[#E10101] text-xl" aria-hidden="true"></i>
+                    <span class="text-xl font-bold tracking-tight">SelfErase</span>
+                </a>
+                <!-- Links -->
+                <ul class="flex items-center gap-6 list-none m-0 p-0">
+                    <li><a href="#home" class="nav-link active text-white text-sm font-medium hover:text-[#E10101] transition-colors no-underline">Home</a></li>
+                    <li><a href="#app"   class="nav-link text-white text-sm font-medium hover:text-[#E10101] transition-colors no-underline">App</a></li>
+                    <li><a href="#setup" class="nav-link text-white text-sm font-medium hover:text-[#E10101] transition-colors no-underline">Setup</a></li>
+                    <li><a href="#docs"  class="nav-link text-white text-sm font-medium hover:text-[#E10101] transition-colors no-underline">Docs</a></li>
+                    <li>
+                        <a href="https://github.com/OWASP-BLT/SelfErase" target="_blank" rel="noopener noreferrer"
+                           class="nav-link flex items-center gap-1.5 text-white text-sm font-medium hover:text-[#E10101] transition-colors no-underline">
+                            <i class="fa-brands fa-github" aria-hidden="true"></i>
+                            GitHub
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link active">Home</a></li>
-                <li><a href="#app" class="nav-link">App</a></li>
-                <li><a href="#setup" class="nav-link">Setup</a></li>
-                <li><a href="#docs" class="nav-link">Docs</a></li>
-                <li><a href="https://github.com/OWASP-BLT/SelfErase" target="_blank" class="nav-link">GitHub</a></li>
-            </ul>
         </div>
     </nav>
 
-    <section id="home" class="hero">
-        <div class="container">
-            <h1>Take Control of Your Privacy</h1>
-            <p class="hero-subtitle">An open-source, privacy-first toolkit for managing and deleting personal data from data brokers</p>
-            <div class="hero-features">
-                <div class="feature">
-                    <span class="feature-icon">✅</span>
-                    <p>All data stays on your device</p>
+    <!-- ── Hero ── -->
+    <section id="home" class="bg-[#111827] text-white py-20">
+        <div class="max-w-6xl mx-auto px-5 text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 bg-[#1F2937] border border-[#E10101]/40 text-[#E10101] text-xs font-semibold px-4 py-1.5 rounded-full mb-6 uppercase tracking-wide">
+                <i class="fa-solid fa-lock text-xs" aria-hidden="true"></i>
+                Open Source · Privacy-First
+            </div>
+            <h1 class="text-5xl font-bold mb-4 leading-tight">
+                Take Control of Your <span class="text-[#E10101]">Privacy</span>
+            </h1>
+            <p class="text-gray-300 text-lg mb-12 max-w-2xl mx-auto">
+                An open-source toolkit for managing and deleting personal data from data brokers.
+                Your data never leaves your device.
+            </p>
+
+            <!-- Feature cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-3xl mx-auto">
+                <div class="bg-[#1F2937] rounded-xl p-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-hard-drive text-[#E10101] text-2xl" aria-hidden="true"></i>
+                    <p class="text-sm text-gray-300">All data stays on your device</p>
                 </div>
-                <div class="feature">
-                    <span class="feature-icon">🔐</span>
-                    <p>AES-256 encryption</p>
+                <div class="bg-[#1F2937] rounded-xl p-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-key text-[#E10101] text-2xl" aria-hidden="true"></i>
+                    <p class="text-sm text-gray-300">AES-256 encryption</p>
                 </div>
-                <div class="feature">
-                    <span class="feature-icon">📱</span>
-                    <p>Works offline</p>
+                <div class="bg-[#1F2937] rounded-xl p-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-[#E10101] text-2xl" aria-hidden="true"></i>
+                    <p class="text-sm text-gray-300">Works offline</p>
                 </div>
-                <div class="feature">
-                    <span class="feature-icon">🆓</span>
-                    <p>100% Free & Open Source</p>
+                <div class="bg-[#1F2937] rounded-xl p-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-code-branch text-[#E10101] text-2xl" aria-hidden="true"></i>
+                    <p class="text-sm text-gray-300">100% Free &amp; Open Source</p>
                 </div>
             </div>
-            <div class="hero-actions">
-                <a href="#app" class="btn btn-primary">Use Web App</a>
-                <a href="#setup" class="btn btn-secondary">Get Started</a>
+
+            <!-- CTA buttons -->
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="#app"
+                   class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition-colors no-underline">
+                    <i class="fa-solid fa-play" aria-hidden="true"></i>
+                    Use Web App
+                </a>
+                <a href="#setup"
+                   class="inline-flex items-center gap-2 border-2 border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white font-semibold px-6 py-3 rounded-md transition-colors no-underline">
+                    <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+                    Get Started
+                </a>
             </div>
         </div>
     </section>
 
-    <section id="app" class="app-section">
-        <div class="container">
-            <h2>Privacy Profile Manager</h2>
-            <p class="section-subtitle">Upload and manage your encrypted privacy profile entirely in your browser. Your data never leaves your device.</p>
-            
-            <div class="app-container">
-                <!-- Profile Upload/Download -->
-                <div class="card">
-                    <h3>📁 Your Privacy Profile</h3>
-                    <div id="profileStatus" class="profile-status">
+    <!-- ── App Section ── -->
+    <section id="app" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-5">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-3">Privacy Profile Manager</h2>
+            <p class="text-center text-gray-500 text-base mb-10 max-w-xl mx-auto">
+                Upload and manage your encrypted privacy profile entirely in your browser.
+                Your data never leaves your device.
+            </p>
+
+            <div class="app-container max-w-3xl mx-auto">
+
+                <!-- Profile card -->
+                <div class="bg-white border border-[#E5E5E5] rounded-xl p-6 mb-6 shadow-sm">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-open text-[#E10101]" aria-hidden="true"></i>
+                        Your Privacy Profile
+                    </h3>
+                    <div id="profileStatus" class="bg-gray-50 border-l-4 border-[#E10101] rounded-r-md px-4 py-3 mb-4 text-gray-600 text-sm">
                         <p>No profile loaded. Create a new profile or upload an existing one.</p>
                     </div>
-                    
-                    <div class="profile-actions">
-                        <label for="fileUpload" class="btn btn-secondary">
-                            📤 Upload Profile
-                            <input type="file" id="fileUpload" accept=".json,.enc" style="display: none;">
+
+                    <div class="profile-actions flex flex-wrap gap-3 mb-4">
+                        <label for="fileUpload"
+                               class="inline-flex items-center gap-2 border-2 border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer text-sm">
+                            <i class="fa-solid fa-upload" aria-hidden="true"></i>
+                            Upload Profile
+                            <input type="file" id="fileUpload" accept=".json,.enc" class="hidden">
                         </label>
-                        <button id="createProfile" class="btn btn-primary">✨ Create New Profile</button>
-                        <button id="downloadProfile" class="btn btn-secondary" disabled>💾 Download Profile</button>
+                        <button id="createProfile"
+                                class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                            Create New Profile
+                        </button>
+                        <button id="downloadProfile"
+                                class="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-400 font-semibold px-4 py-2 rounded-md text-sm cursor-not-allowed opacity-50" disabled>
+                            <i class="fa-solid fa-download" aria-hidden="true"></i>
+                            Download Profile
+                        </button>
                     </div>
 
-                    <div id="passwordSection" class="password-section" style="display: none;">
-                        <h4>Secure Your Profile</h4>
-                        <input type="password" id="password" placeholder="Enter encryption password" class="form-input">
-                        <button id="encryptProfile" class="btn btn-primary">🔐 Encrypt & Save</button>
+                    <div id="passwordSection" class="border-t border-[#E5E5E5] pt-5 mt-2" style="display: none;">
+                        <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-lock text-[#E10101]" aria-hidden="true"></i>
+                            Secure Your Profile
+                        </h4>
+                        <div class="relative mb-3">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-key text-gray-400 text-sm" aria-hidden="true"></i>
+                            </div>
+                            <input type="password" id="password" placeholder="Enter encryption password"
+                                   class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                        </div>
+                        <button id="encryptProfile"
+                                class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-sm">
+                            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                            Encrypt &amp; Save
+                        </button>
                     </div>
                 </div>
 
-                <!-- Profile Information -->
-                <div id="profileInfo" class="card" style="display: none;">
-                    <h3>👤 Your Information</h3>
+                <!-- Profile information -->
+                <div id="profileInfo" class="bg-white border border-[#E5E5E5] rounded-xl p-6 mb-6 shadow-sm" style="display: none;">
+                    <h3 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-circle text-[#E10101]" aria-hidden="true"></i>
+                        Your Information
+                    </h3>
                     <form id="profileForm">
-                        <div class="form-group">
-                            <label>First Name</label>
-                            <input type="text" id="firstName" class="form-input" required>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">First Name</label>
+                                <input type="text" id="firstName" required
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="lastName">Last Name</label>
+                                <input type="text" id="lastName" required
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email</label>
+                                <input type="email" id="email"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="phone">Phone</label>
+                                <input type="tel" id="phone"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="address">Address</label>
+                                <input type="text" id="address"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="city">City</label>
+                                <input type="text" id="city"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="state">State</label>
+                                <input type="text" id="state"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="age">Age</label>
+                                <input type="number" id="age" min="18" max="120"
+                                       class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Last Name</label>
-                            <input type="text" id="lastName" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="email" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Phone</label>
-                            <input type="tel" id="phone" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Address</label>
-                            <input type="text" id="address" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>City</label>
-                            <input type="text" id="city" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>State</label>
-                            <input type="text" id="state" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Age</label>
-                            <input type="number" id="age" class="form-input" min="18" max="120">
-                        </div>
-                        <button type="submit" class="btn btn-primary">💾 Save Profile</button>
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-md transition-colors text-sm">
+                            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                            Save Profile
+                        </button>
                     </form>
                 </div>
 
-                <!-- Data Brokers -->
-                <div id="brokersSection" class="card" style="display: none;">
-                    <h3>🎯 Data Brokers</h3>
-                    <p class="info-text">These brokers may have your information. Click to see opt-out instructions.</p>
+                <!-- Data brokers -->
+                <div id="brokersSection" class="bg-white border border-[#E5E5E5] rounded-xl p-6 mb-6 shadow-sm" style="display: none;">
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-[#E10101]" aria-hidden="true"></i>
+                        Data Brokers
+                    </h3>
+                    <p class="info-text mb-4">These brokers may have your information. Click to see opt-out instructions.</p>
                     <div id="brokersList" class="brokers-list"></div>
                 </div>
-            </div>
+            </div><!-- /.app-container -->
 
-            <!-- Broker Details Modal -->
-            <div id="brokerModal" class="modal">
+            <!-- Broker details modal -->
+            <div id="brokerModal">
                 <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <div id="brokerDetails"></div>
+                    <button class="close" aria-label="Close">&times;</button>
+                    <div id="brokerDetails" class="broker-details"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="setup" class="setup-section">
-        <div class="container">
-            <h2>Getting Started</h2>
-            <div class="setup-grid">
-                <div class="card">
-                    <h3>🌐 Option 1: Web App</h3>
-                    <p>Use the web-based version directly in your browser:</p>
-                    <ol>
-                        <li>Scroll up to the <a href="#app">App section</a></li>
+    <!-- ── Setup Section ── -->
+    <section id="setup" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-5">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">Getting Started</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Web App -->
+                <div class="bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-[#feeae9] rounded-lg flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-globe text-[#E10101]" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-900">Option 1: Web App</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Use the web-based version directly in your browser:</p>
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm text-gray-600 mb-4">
+                        <li>Scroll up to the <a href="#app" class="text-[#E10101] hover:underline">App section</a></li>
                         <li>Create a new privacy profile</li>
                         <li>Enter your information (stays on your device)</li>
                         <li>Review data brokers and opt-out instructions</li>
                         <li>Download your encrypted profile for safekeeping</li>
                     </ol>
-                    <p class="info-text">💡 Your data never leaves your browser!</p>
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info text-[#E10101]" aria-hidden="true"></i>
+                        Your data never leaves your browser!
+                    </p>
                 </div>
 
-                <div class="card">
-                    <h3>📱 Option 2: Native App</h3>
-                    <p>Install the full Flutter application:</p>
-                    <ol>
-                        <li>Visit the <a href="https://github.com/OWASP-BLT/SelfErase/releases" target="_blank">GitHub Releases</a> page</li>
-                        <li>Download the installer for your platform:
-                            <ul>
-                                <li>Windows: <code>.exe</code> installer</li>
-                                <li>macOS: <code>.dmg</code> file</li>
-                                <li>Linux: <code>.AppImage</code> or <code>.deb</code></li>
-                                <li>Android: <code>.apk</code> file</li>
+                <!-- Native App -->
+                <div class="bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-[#feeae9] rounded-lg flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-mobile-screen-button text-[#E10101]" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-900">Option 2: Native App</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Install the full Flutter application:</p>
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm text-gray-600">
+                        <li>Visit the <a href="https://github.com/OWASP-BLT/SelfErase/releases" target="_blank" rel="noopener noreferrer" class="text-[#E10101] hover:underline">GitHub Releases</a> page</li>
+                        <li>Download for your platform:
+                            <ul class="list-none ml-4 mt-1 space-y-0.5 text-xs">
+                                <li><code class="bg-gray-100 px-1 py-0.5 rounded">.exe</code> Windows</li>
+                                <li><code class="bg-gray-100 px-1 py-0.5 rounded">.dmg</code> macOS</li>
+                                <li><code class="bg-gray-100 px-1 py-0.5 rounded">.AppImage</code> Linux</li>
+                                <li><code class="bg-gray-100 px-1 py-0.5 rounded">.apk</code> Android</li>
                                 <li>iOS: Coming soon</li>
                             </ul>
                         </li>
@@ -174,10 +421,16 @@
                     </ol>
                 </div>
 
-                <div class="card">
-                    <h3>🔧 Option 3: Build from Source</h3>
-                    <p>For developers who want to build themselves:</p>
-                    <pre><code># Clone the repository
+                <!-- Build from Source -->
+                <div class="bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-[#feeae9] rounded-lg flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-code text-[#E10101]" aria-hidden="true"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-900">Option 3: Build from Source</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">For developers who want to build themselves:</p>
+                    <pre class="bg-[#111827] text-gray-100 text-xs rounded-lg p-4 overflow-x-auto mb-3 font-mono leading-relaxed"><code># Clone the repository
 git clone https://github.com/OWASP-BLT/SelfErase.git
 cd SelfErase
 
@@ -187,53 +440,107 @@ flutter pub get
 
 # Run on your platform
 flutter run -d windows  # or macos, linux, android, ios</code></pre>
-                    <p>See <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a> for detailed build instructions.</p>
+                    <p class="text-sm text-gray-600">
+                        See <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="text-[#E10101] hover:underline">CONTRIBUTING.md</a> for detailed build instructions.
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="docs" class="docs-section">
-        <div class="container">
-            <h2>Documentation</h2>
-            <div class="docs-grid">
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/README.md" target="_blank" class="doc-card">
-                    <h3>📖 Overview</h3>
-                    <p>Learn about SelfErase's architecture and design principles</p>
+    <!-- ── Docs Section ── -->
+    <section id="docs" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-5">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">Documentation</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/README.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-book-open text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Overview</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Learn about SelfErase's architecture and design principles</p>
                 </a>
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/SECURITY.md" target="_blank" class="doc-card">
-                    <h3>🔒 Security</h3>
-                    <p>Understand our security model and encryption implementation</p>
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-shield-halved text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Security</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Understand our security model and encryption implementation</p>
                 </a>
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/docs/architecture.md" target="_blank" class="doc-card">
-                    <h3>🏗️ Architecture</h3>
-                    <p>Deep dive into the technical architecture</p>
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/docs/architecture.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-sitemap text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Architecture</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Deep dive into the technical architecture</p>
                 </a>
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/docs/broker-guide.md" target="_blank" class="doc-card">
-                    <h3>📚 Broker Guide</h3>
-                    <p>Learn how to add new data brokers to the database</p>
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/docs/broker-guide.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-database text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Broker Guide</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Learn how to add new data brokers to the database</p>
                 </a>
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CONTRIBUTING.md" target="_blank" class="doc-card">
-                    <h3>🤝 Contributing</h3>
-                    <p>Guidelines for contributing to the project</p>
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-handshake text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Contributing</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Guidelines for contributing to the project</p>
                 </a>
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CHANGELOG.md" target="_blank" class="doc-card">
-                    <h3>📝 Changelog</h3>
-                    <p>Version history and release notes</p>
+
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer"
+                   class="block bg-white border-2 border-[#E5E5E5] hover:border-[#E10101] rounded-xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md no-underline">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-clock-rotate-left text-[#E10101] text-lg" aria-hidden="true"></i>
+                        <h3 class="font-semibold text-gray-900">Changelog</h3>
+                    </div>
+                    <p class="text-sm text-gray-500">Version history and release notes</p>
                 </a>
             </div>
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 SelfErase - Open Source Privacy Toolkit</p>
-            <p>Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0" target="_blank">AGPL v3</a></p>
-            <p>
-                <a href="https://github.com/OWASP-BLT/SelfErase" target="_blank">GitHub</a> | 
-                <a href="https://github.com/OWASP-BLT/SelfErase/issues" target="_blank">Report Issues</a> | 
-                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/SECURITY.md" target="_blank">Security</a>
+    <!-- ── Footer ── -->
+    <footer class="bg-[#111827] text-white py-8">
+        <div class="max-w-6xl mx-auto px-5 text-center">
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+                <span class="font-bold">SelfErase</span>
+            </div>
+            <p class="text-gray-400 text-sm mb-1">&copy; 2024 SelfErase &mdash; Open Source Privacy Toolkit</p>
+            <p class="text-gray-400 text-sm mb-5">
+                Licensed under
+                <a href="https://www.gnu.org/licenses/agpl-3.0" target="_blank" rel="noopener noreferrer"
+                   class="text-[#E10101] hover:underline">AGPL v3</a>
             </p>
+            <div class="flex items-center justify-center gap-6 text-sm">
+                <a href="https://github.com/OWASP-BLT/SelfErase" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center gap-1.5 text-gray-400 hover:text-[#E10101] transition-colors no-underline">
+                    <i class="fa-brands fa-github" aria-hidden="true"></i>
+                    GitHub
+                </a>
+                <a href="https://github.com/OWASP-BLT/SelfErase/issues" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center gap-1.5 text-gray-400 hover:text-[#E10101] transition-colors no-underline">
+                    <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                    Report Issues
+                </a>
+                <a href="https://github.com/OWASP-BLT/SelfErase/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center gap-1.5 text-gray-400 hover:text-[#E10101] transition-colors no-underline">
+                    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                    Security
+                </a>
+            </div>
         </div>
     </footer>
 
