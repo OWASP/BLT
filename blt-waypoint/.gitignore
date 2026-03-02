@@ -14,7 +14,6 @@ nohup.out
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Temporary files
 tmp/
