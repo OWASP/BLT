@@ -7,3 +7,31 @@ __pycache__/
 .DS_Store
 Thumbs.db
 nohup.out
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+dist/
+build/
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.local
