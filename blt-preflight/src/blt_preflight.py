@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
 BLT Preflight CLI - Command-line interface for the advisory engine.
+
+Run as a pre-commit check with: pf
 """
 
 import argparse
 import json
+import subprocess
 import sys
 import os
 
-# Add parent directory to path
+# Add parent directory to path so the package is importable both when run
+# directly (python3 src/blt_preflight.py) and when installed via setup.py.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from advisory_engine.core import AdvisoryEngine, AdvisoryContext
 from advisory_engine.github_integration import GitHubIntegration
@@ -133,28 +138,103 @@ def cmd_dashboard(args):
         print(dashboard.generate_dashboard())
 
 
+def _get_staged_files():
+    """Return a list of files staged for commit (git diff --cached)."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        return files
+    except subprocess.CalledProcessError:
+        return []
+    except FileNotFoundError:
+        # git not available
+        return []
+
+
+def cmd_check(args):
+    """Run a pre-commit security check on staged (or specified) files.
+
+    Exits with code 0 when there are no critical advisories, or 1 when
+    critical issues are found, matching the behaviour expected by git hooks
+    and CI pipelines.
+    """
+    # Resolve the files to check
+    if args.files:
+        files = [f.strip() for f in args.files.split(',') if f.strip()]
+    else:
+        files = _get_staged_files()
+
+    if not files:
+        print("pf: no staged files found – nothing to check.")
+        sys.exit(0)
+
+    print(f"pf: checking {len(files)} file(s)…\n")
+
+    engine = AdvisoryEngine(args.config)
+
+    context = AdvisoryContext(
+        issue_labels=[],
+        repo_metadata={},
+        file_patterns=files,
+    )
+
+    advice_list = engine.evaluate_context(context)
+    report = engine.generate_report(advice_list)
+    print(report)
+
+    # Mirror pre-commit behaviour: non-zero exit when critical issues exist
+    has_critical = any(a.severity == "critical" for a in advice_list)
+    if has_critical:
+        print("\npf: ⚠️  critical security advisories found – please review before committing.")
+        sys.exit(1)
+
+    print("\npf: ✅ no critical security issues detected.")
+    sys.exit(0)
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='BLT Preflight Advisory Engine CLI',
+        description='BLT Preflight - pre-commit security advisory check',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Run as a pre-commit check on all staged files (default when no command given)
+  pf
+
+  # Check specific files
+  pf check --files "src/auth.py,src/login.py"
+
   # Generate advisory for authentication changes
-  blt-preflight advise --labels security,authentication --files "src/auth.py,src/login.py"
+  pf advise --labels security,authentication --files "src/auth.py,src/login.py"
   
   # Run GitHub integration
-  blt-preflight github
+  pf github
   
   # Record feedback
-  blt-preflight feedback --pattern "Security Advisory: Authentication" --helpful yes
+  pf feedback --pattern "Security Advisory: Authentication" --helpful yes
   
   # Generate dashboard
-  blt-preflight dashboard --output docs/MAINTAINER_DASHBOARD.md
+  pf dashboard --output docs/MAINTAINER_DASHBOARD.md
         """
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
+
+    # Check command (pre-commit style)
+    check_parser = subparsers.add_parser(
+        'check',
+        help='Run pre-commit security check on staged (or specified) files'
+    )
+    check_parser.add_argument('--files', help='Comma-separated file paths to check (defaults to git staged files)')
+    check_parser.add_argument('--config', default='config/security_patterns.json',
+                              help='Path to configuration file')
+    check_parser.set_defaults(func=cmd_check)
     
     # Advise command
     advise_parser = subparsers.add_parser('advise', help='Generate security advisory')
@@ -199,10 +279,13 @@ Examples:
     
     args = parser.parse_args()
     
+    # Default behaviour: run the pre-commit check when no sub-command is given.
     if not args.command:
-        parser.print_help()
-        sys.exit(1)
-    
+        args.files = None
+        args.config = 'config/security_patterns.json'
+        cmd_check(args)
+        return
+
     args.func(args)
 
 

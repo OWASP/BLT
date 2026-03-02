@@ -166,6 +166,47 @@ def test_pattern_matching():
     print("✓ Pattern matching test passed")
 
 
+def test_pf_check_command():
+    """Test the 'pf check' CLI entry point."""
+    import subprocess
+
+    print("\nTesting 'pf check' command…")
+
+    # Checking auth files should exit 1 (critical advisories)
+    result = subprocess.run(
+        ["pf", "check", "--files", "src/auth/login.py"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1, "pf check with auth files should exit 1"
+    assert "critical" in result.stdout.lower() or "Critical" in result.stdout, \
+        "Output should mention critical advisories"
+
+    print("✓ pf check exits 1 for critical files")
+
+    # Checking a non-sensitive file should exit 0
+    result = subprocess.run(
+        ["pf", "check", "--files", "src/utils.py"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, "pf check with non-sensitive file should exit 0"
+
+    print("✓ pf check exits 0 for non-critical files")
+
+    # Running 'pf' with no arguments and no staged files should exit 0
+    result = subprocess.run(
+        ["pf"],
+        capture_output=True,
+        text=True,
+        # Use /tmp so there are no git staged files
+        cwd="/tmp",
+    )
+    assert result.returncode == 0, "pf with no staged files should exit 0"
+
+    print("✓ pf (no args) exits 0 when no staged files")
+
+
 def main():
     """Run all tests."""
     print("=" * 60)
@@ -179,6 +220,7 @@ def main():
         test_intent_capture()
         test_dashboard()
         test_pattern_matching()
+        test_pf_check_command()
         
         print("\n" + "=" * 60)
         print("✅ All tests passed!")
