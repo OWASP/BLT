@@ -66,9 +66,10 @@
 
 <script>
   function sanitizeId(id) {
-  return String(id || '')
+  const cleaned = String(id || '')
     .toLowerCase()
     .replace(/[^a-z0-9-_]/g, '');
+  return cleaned || 'monitor';
 }
 fetch('monitors.json')
   .then(r => r.json())
@@ -78,7 +79,10 @@ fetch('monitors.json')
       const safeId = sanitizeId(monitor.id);
       const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
       fetch(csvFile)
-        .then(r => r.text())
+        .then(r => {
+    if (!r.ok) throw new Error('CSV fetch failed');
+    return r.text();
+  })
         .then(csv => {
           const rows = parseCSV(csv);
           const lastRow = rows[rows.length - 1];
@@ -93,10 +97,10 @@ fetch('monitors.json')
     });
   })
   .catch(err => {
-    console.error('Failed to load monitors configuration:', err);
-    document.getElementById('monitors-list').innerHTML =
-      '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
-  });
+  console.error('Failed to load monitors configuration:', err);
+  document.getElementById('monitors-list').innerHTML =
+    '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
+});
 
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
