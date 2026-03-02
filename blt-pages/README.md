@@ -15,7 +15,7 @@ Community-powered bug-reporting platform built on GitHub Pages, part of the
 |---|---|
 | 🐛 **Public bug reports** | 404/500 errors, functional, performance, typos, design, IP violations |
 | 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no GitHub account required |
-| 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://blt-zero.owasp.org) |
+| 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://zero.owaspblt.org) |
 | 🏆 **Leaderboard** | Auto-updated every 6 h by GitHub Actions |
 | 💰 **Pricing** (optional) | Toggleable — off for the OWASP instance, on for commercial forks |
 | 🔄 **Revenue sharing** | 10 % of subscription revenue shared with reporters (commercial plans) |
@@ -42,7 +42,7 @@ const BLT_CONFIG = {
   LOGO_URL: "…",
   REPO_OWNER: "OWASP-BLT",
   REPO_NAME: "BLT-Pages",
-  BLT_ZERO_URL: "https://blt-zero.owasp.org",
+  BLT_ZERO_URL: "https://zero.owaspblt.org",
   BLT_API_URL:  "https://blt.owasp.org/api",
   REVENUE_SHARE_PERCENT: 10,
   PRICING_PLANS: [ … ],
