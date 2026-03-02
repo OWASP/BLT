@@ -208,21 +208,14 @@
             }
         }
 
-        // Simple markdown-like formatting
-        function formatMessage(text) {
-            if (!text) return '';
-            
-            // Convert markdown-style formatting to HTML
-            let formatted = text
-                // Bold: **text** or __text__
+        // Apply inline markdown (bold, italic, code, links) to a text fragment
+        function formatInline(text) {
+            return text
                 .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold">$1</strong>')
                 .replace(/__(.+?)__/g, '<strong class="font-bold">$1</strong>')
-                // Italic: *text* or _text_
                 .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
                 .replace(/_(.+?)_/g, '<em class="italic">$1</em>')
-                // Code: `code`
                 .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">$1</code>')
-                // Links: [text](url)
                 .replace(/\[(.+?)\]\((.+?)\)/g, function(match, linkText, url) {
                     let safeUrl = '#';
                     try {
@@ -234,12 +227,71 @@
                         // If URL parsing fails, fall back to a safe placeholder.
                     }
                     return '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">'+linkText+'</a>';
-                })
+                });
+        }
+
+        // Build an HTML table from a markdown table block
+        function buildTable(tableBlock) {
+            const lines = tableBlock.split('\n').filter(l => l.trim());
+            if (lines.length < 2) return tableBlock;
+
+            const parseRow = line => line.split('|').slice(1, -1).map(c => c.trim());
+            const headerCells = parseRow(lines[0]);
+            const dataRows = lines.slice(2).map(parseRow);
+
+            let html = '<div class="overflow-x-auto my-3"><table class="min-w-full border-collapse text-sm">';
+            html += '<thead><tr>';
+            headerCells.forEach(function(cell) {
+                html += '<th class="border border-gray-300 bg-gray-100 px-3 py-2 text-left font-semibold text-gray-700">' + formatInline(cell) + '</th>';
+            });
+            html += '</tr></thead><tbody>';
+            dataRows.forEach(function(row, i) {
+                html += '<tr' + (i % 2 === 1 ? ' class="bg-gray-50"' : '') + '>';
+                row.forEach(function(cell) {
+                    html += '<td class="border border-gray-300 px-3 py-2 text-gray-600">' + formatInline(cell) + '</td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+            return html;
+        }
+
+        // Simple markdown-like formatting
+        function formatMessage(text) {
+            if (!text) return '';
+
+            // Extract markdown tables first to prevent newline conversion inside them.
+            // Pattern: header row | separator row (dashes/colons) | zero-or-more data rows
+            const tables = [];
+            let formatted = text.replace(
+                /\|[^\n]+\|\n\|[-| :]+\|\n(?:\|[^\n]+\|(?:\n|$))*/g,
+                function(tableBlock) {
+                    const idx = tables.length;
+                    tables.push(buildTable(tableBlock.trim()));
+                    return '__MDTABLE_' + idx + '__';
+                }
+            );
+
+            // Convert markdown-style formatting to HTML
+            formatted = formatted
+                // Headings: ###, ##, #
+                .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-gray-900 mt-3 mb-1">$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-gray-900 mt-4 mb-1">$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-gray-900 mt-4 mb-2">$1</h1>');
+            // Apply inline formatting and line breaks
+            formatted = formatInline(formatted)
                 // Line breaks
                 .replace(/\n\n/g, '</p><p class="mb-2">')
                 .replace(/\n/g, '<br>');
-            
-            return '<p class="mb-2">' + formatted + '</p>';
+
+            formatted = '<p class="mb-2">' + formatted + '</p>';
+
+            // Restore tables (break out of paragraph context)
+            tables.forEach(function(tableHtml, i) {
+                formatted = formatted.replace('__MDTABLE_' + i + '__', '</p>' + tableHtml + '<p class="mb-2">');
+            });
+
+            return formatted;
         }
 
         // Add message to chat
@@ -261,7 +313,7 @@
             }`;
             
             // For assistant messages, render HTML formatting
-            if (!isUser && (content.includes('**') || content.includes('*') || content.includes('`') || content.includes('['))) {
+            if (!isUser && /[*`\[|#]/.test(content)) {
                 messageContent.innerHTML = formatMessage(content);
             } else {
                 messageContent.textContent = content;
