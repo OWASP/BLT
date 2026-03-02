@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-02T21:09:02.196Z",
-  "total_bugs": 6,
+  "updated_at": "2026-03-02T21:25:35.094Z",
+  "total_bugs": 7,
   "total_orgs": 0,
   "leaderboard": [
     {
@@ -12,6 +12,13 @@
     },
     {
       "rank": 2,
+      "login": "ananya-09",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "profile_url": "https://github.com/ananya-09"
+    },
+    {
+      "rank": 3,
       "login": "sidd190",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
@@ -66,7 +73,7 @@
     {
       "rank": 1,
       "domain": "owaspblt.org",
-      "count": 3
+      "count": 4
     },
     {
       "rank": 2,
@@ -75,6 +82,18 @@
     }
   ],
   "recent_bugs": [
+    {
+      "number": 21,
+      "title": "[FEATURE] Add favicon",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/21",
+      "created_at": "2026-03-02T21:25:22Z",
+      "user": {
+        "login": "ananya-09",
+        "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
+        "profile_url": "https://github.com/ananya-09"
+      },
+      "image_url": "https://github.com/user-attachments/assets/3bcaf1e6-5a9d-4460-9496-8d6f800aede9"
+    },
     {
       "number": 20,
       "title": "[BUG] this should be a domain count",
@@ -98,18 +117,6 @@
         "profile_url": "https://github.com/DonnieBLT"
       },
       "image_url": "https://github.com/user-attachments/assets/507176e7-0a58-4df4-b3e9-72e430f1b834"
-    },
-    {
-      "number": 17,
-      "title": "[BUG] video bugs are not showing up",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
-      "created_at": "2026-03-02T20:50:49Z",
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45"
     }
   ]
 }
