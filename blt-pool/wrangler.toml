@@ -8,7 +8,7 @@ compatibility_flags = ["python_workers"]
 # ---------------------------------------------------------------------------
 [vars]
 # BLT API base URL
-BLT_API_URL = "https://blt-api.owasp-blt.workers.dev"
+BLT_API_URL = "https://github-app.owaspblt.org"
 
 # GitHub App slug — the URL-friendly name shown in GitHub App URLs.
 # Example: if your app lives at https://github.com/apps/my-blt-app
