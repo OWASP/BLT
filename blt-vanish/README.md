@@ -1,4 +1,4 @@
-# SelfErase
+# BLT-Vanish
 
 **An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.**
 
@@ -7,7 +7,7 @@
 
 ## 🎯 Design Goal
 
-SelfErase helps individuals identify, manage, and remove their personal data from data brokers—**without ever sharing personal information with any external service.**
+BLT-Vanish helps individuals identify, manage, and remove their personal data from data brokers—**without ever sharing personal information with any external service.**
 
 This is a **security-first, zero-data-retention system** where:
 - ✅ All personal data stays encrypted on your local device
@@ -18,7 +18,7 @@ This is a **security-first, zero-data-retention system** where:
 
 ## 🏗️ Architecture
 
-SelfErase uses a **hybrid model** that combines local security with edge automation:
+BLT-Vanish uses a **hybrid model** that combines local security with edge automation:
 
 ```
 ┌─────────────────────────────┐
@@ -112,9 +112,9 @@ For detailed security information, see [SECURITY.md](./SECURITY.md).
 
 ### Option 1: Web App (Easiest)
 
-**Try SelfErase directly in your browser** without installing anything:
+**Try BLT-Vanish directly in your browser** without installing anything:
 
-👉 **[Launch Web App](https://owasp-blt.github.io/SelfErase/)**
+👉 **[Launch Web App](https://owasp-blt.github.io/BLT-Vanish-Web/)**
 
 The web app provides:
 - 📝 Privacy profile creation and management
@@ -123,7 +123,7 @@ The web app provides:
 - 🎯 Data broker information and opt-out guides
 - 🛡️ All data stays in your browser - nothing sent to servers
 
-Perfect for quick use or trying out SelfErase before installing the native app.
+Perfect for quick use or trying out BLT-Vanish before installing the native app.
 
 ### Option 2: Native App (Full Features)
 
@@ -137,8 +137,8 @@ Perfect for quick use or trying out SelfErase before installing the native app.
 
 ```bash
 # Clone the repository
-git clone https://github.com/OWASP-BLT/SelfErase.git
-cd SelfErase
+git clone https://github.com/OWASP-BLT/BLT-Vanish-Web.git
+cd BLT-Vanish-Web
 
 # Navigate to Flutter app
 cd flutter_app
@@ -154,7 +154,7 @@ flutter run
 
 Download a pre-built, self-contained desktop app:
 
-1. Visit [Releases](https://github.com/OWASP-BLT/SelfErase/releases)
+1. Visit [Releases](https://github.com/OWASP-BLT/BLT-Vanish-Web/releases)
 2. Download the ZIP for your platform
 3. Extract and run - no installation needed
 4. Verify the signature (optional but recommended)
@@ -187,7 +187,7 @@ npm run deploy
 ## 🗂️ Project Structure
 
 ```
-SelfErase/
+BLT-Vanish-Web/
 ├── flutter_app/           # Local Flutter application
 │   ├── lib/
 │   │   ├── models/        # Data models (brokers, requests, etc.)
@@ -290,7 +290,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 
 If you discover a security vulnerability, please see our [Security Policy](./SECURITY.md) for reporting instructions.
 
-## 💡 Why SelfErase?
+## 💡 Why BLT-Vanish?
 
 Most privacy tools either:
 - ❌ Require you to trust them with your personal data
@@ -298,7 +298,7 @@ Most privacy tools either:
 - ❌ Use opaque, closed-source methods
 - ❌ Store your data on their servers
 
-SelfErase is different:
+BLT-Vanish is different:
 - ✅ **Zero-trust architecture** - your data never leaves your device
 - ✅ **Free and open-source** - audit the code yourself
 - ✅ **Privacy by design** - impossible for us to access your data
@@ -321,12 +321,12 @@ SelfErase is different:
 ## 📞 Support
 
 - **Documentation**: Check our [docs/](./docs/) directory
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/SelfErase/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/SelfErase/discussions)
+- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Vanish-Web/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
 
 ## 🏆 Acknowledgments
 
-SelfErase is part of the [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/) ecosystem.
+BLT-Vanish is part of the [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/) ecosystem.
 
 Special thanks to:
 - Privacy advocates and researchers
@@ -336,4 +336,4 @@ Special thanks to:
 
 ---
 
-**Remember**: Your privacy is a right, not a privilege. Take control with SelfErase.
+**Remember**: Your privacy is a right, not a privilege. Take control with BLT-Vanish.

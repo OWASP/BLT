@@ -1,8 +1,8 @@
-# SelfErase Architecture
+# BLT-Vanish Architecture
 
 ## Overview
 
-SelfErase uses a **hybrid local+edge architecture** designed for maximum privacy and zero trust.
+BLT-Vanish uses a **hybrid local+edge architecture** designed for maximum privacy and zero trust.
 
 ## Core Principles
 
@@ -185,8 +185,8 @@ npm run deploy
 ```
 
 **Endpoints**:
-- Production: `https://selferase.workers.dev`
-- Custom domain: `https://api.selferase.org` (optional)
+- Production: `https://blt-vanish.workers.dev`
+- Custom domain: `https://api.blt-vanish.org` (optional)
 
 ### GitHub Pages
 

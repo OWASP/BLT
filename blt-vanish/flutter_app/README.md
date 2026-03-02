@@ -1,6 +1,6 @@
-# SelfErase Flutter App
+# BLT-Vanish Flutter App
 
-The local Flutter application for SelfErase - handles all sensitive personal data locally and encrypted.
+The local Flutter application for BLT-Vanish - handles all sensitive personal data locally and encrypted.
 
 ## Features
 

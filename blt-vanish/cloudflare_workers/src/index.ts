@@ -1,5 +1,5 @@
 /**
- * SelfErase Cloudflare Workers
+ * BLT-Vanish Cloudflare Workers
  * 
  * Stateless edge functions that serve PUBLIC data only.
  * NO USER PII IS EVER PROCESSED OR STORED.
@@ -93,7 +93,7 @@ export default {
 
 function handleRootRequest(): Response {
   const info = {
-    name: 'SelfErase Workers API',
+    name: 'BLT-Vanish Workers API',
     version: '1.0.0',
     description: 'Stateless edge functions for public broker data',
     privacy: 'NO USER PII IS PROCESSED OR STORED',
@@ -104,7 +104,7 @@ function handleRootRequest(): Response {
       template: '/api/templates/:id',
       categories: '/api/categories',
     },
-    documentation: 'https://github.com/OWASP-BLT/SelfErase',
+    documentation: 'https://github.com/OWASP-BLT/BLT-Vanish-Web',
   };
 
   return new Response(JSON.stringify(info, null, 2), {

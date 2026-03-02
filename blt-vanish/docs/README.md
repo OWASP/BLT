@@ -1,9 +1,9 @@
-# SelfErase Web App
+# BLT-Vanish Web App
 
-This directory contains the GitHub Pages site for SelfErase, which includes:
+This directory contains the GitHub Pages site for BLT-Vanish, which includes:
 
 1. **Documentation**: Setup guides, architecture overview, and security information
-2. **Web App**: A browser-based version of SelfErase that allows users to:
+2. **Web App**: A browser-based version of BLT-Vanish that allows users to:
    - Create and manage privacy profiles locally
    - Upload and download encrypted privacy files
    - View data broker information and opt-out instructions

@@ -1,6 +1,6 @@
 # Security Whitepaper
 
-## SelfErase: A Zero-Trust Privacy Toolkit
+## BLT-Vanish: A Zero-Trust Privacy Toolkit
 
 **Version**: 1.0  
 **Last Updated**: November 2025  
@@ -10,9 +10,9 @@
 
 ## Executive Summary
 
-SelfErase is designed from the ground up with a **zero-trust, zero-retention** security model. Unlike traditional privacy services that require users to trust a third party with their personal data, SelfErase ensures that **no personal information ever leaves the user's device** unless explicitly sent by the user to a data broker for removal.
+BLT-Vanish is designed from the ground up with a **zero-trust, zero-retention** security model. Unlike traditional privacy services that require users to trust a third party with their personal data, BLT-Vanish ensures that **no personal information ever leaves the user's device** unless explicitly sent by the user to a data broker for removal.
 
-This document details the security architecture, threat model, and privacy guarantees of the SelfErase system.
+This document details the security architecture, threat model, and privacy guarantees of the BLT-Vanish system.
 
 ---
 
@@ -20,7 +20,7 @@ This document details the security architecture, threat model, and privacy guara
 
 ### 1. Zero PII Transmission
 
-**Principle**: Personal Identifiable Information (PII) never transits through any SelfErase-controlled infrastructure.
+**Principle**: Personal Identifiable Information (PII) never transits through any BLT-Vanish-controlled infrastructure.
 
 **Implementation**:
 - All personal data (names, addresses, emails, phone numbers, etc.) is stored exclusively on the user's local device
@@ -93,7 +93,7 @@ Encrypted Local Database
 **Build Verification Process**:
 ```bash
 # Clone repository at specific tag
-git clone --depth 1 --branch v1.0.0 https://github.com/OWASP-BLT/SelfErase.git
+git clone --depth 1 --branch v1.0.0 https://github.com/OWASP-BLT/BLT-Vanish-Web.git
 
 # Build with fixed environment
 docker run --rm -v $(pwd):/app flutter-builder:stable build apk
@@ -231,11 +231,11 @@ sha256sum build/app/outputs/flutter-apk/app-release.apk
 
 4. User sends request to broker
    └─> Email/form submitted directly to broker
-   └─> No SelfErase infrastructure involved
+   └─> No BLT-Vanish infrastructure involved
    └─> Status saved locally (encrypted)
 ```
 
-**Privacy Guarantee**: At no point does PII leave the device through SelfErase infrastructure.
+**Privacy Guarantee**: At no point does PII leave the device through BLT-Vanish infrastructure.
 
 ### Scenario 2: User Exports Data Backup
 
@@ -282,7 +282,7 @@ sha256sum build/app/outputs/flutter-apk/app-release.apk
 
 ## Threat Scenarios & Responses
 
-### Threat 1: Malicious Insider at SelfErase
+### Threat 1: Malicious Insider at BLT-Vanish
 
 **Scenario**: A maintainer attempts to add code that exfiltrates user PII.
 
@@ -352,7 +352,7 @@ sha256sum build/app/outputs/flutter-apk/app-release.apk
 - ✅ Clear warnings about password security
 - ✅ Strong password requirements
 - ✅ Biometric option reduces password exposure
-- ✅ No legitimate reason for SelfErase to ask for password
+- ✅ No legitimate reason for BLT-Vanish to ask for password
 
 **Result**: Requires user education and awareness.
 
@@ -360,7 +360,7 @@ sha256sum build/app/outputs/flutter-apk/app-release.apk
 
 ## Privacy Guarantees
 
-SelfErase provides the following guarantees:
+BLT-Vanish provides the following guarantees:
 
 ### Strong Guarantees (Architectural)
 
@@ -427,7 +427,7 @@ SelfErase provides the following guarantees:
 
 ### Privacy Regulations
 
-SelfErase helps users exercise rights under:
+BLT-Vanish helps users exercise rights under:
 - **GDPR** (EU): Right to erasure, data portability
 - **CCPA** (California): Right to deletion, opt-out
 - **PIPEDA** (Canada): Right to deletion
@@ -435,7 +435,7 @@ SelfErase helps users exercise rights under:
 
 ### Security Standards
 
-SelfErase follows:
+BLT-Vanish follows:
 - **OWASP Mobile Security**: Top 10 mitigations
 - **NIST Cybersecurity Framework**: Best practices
 - **CIS Controls**: Security baseline implementation
@@ -488,7 +488,7 @@ If you discover a security vulnerability:
 
 ## Conclusion
 
-SelfErase's security model is based on a simple principle: **we can't compromise data we never have access to**.
+BLT-Vanish's security model is based on a simple principle: **we can't compromise data we never have access to**.
 
 By keeping all personal data encrypted on user devices and using external services only for public metadata, we eliminate entire categories of security risks.
 
@@ -504,8 +504,8 @@ Users don't have to trust us—they can verify our claims through:
 
 ## Contact
 
-- **Security Issues**: [Create private security advisory](https://github.com/OWASP-BLT/SelfErase/security/advisories/new)
-- **General Security Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/SelfErase/discussions)
+- **Security Issues**: [Create private security advisory](https://github.com/OWASP-BLT/BLT-Vanish-Web/security/advisories/new)
+- **General Security Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Vanish-Web/discussions)
 - **Documentation**: [docs/security/](./docs/security/)
 
 ---

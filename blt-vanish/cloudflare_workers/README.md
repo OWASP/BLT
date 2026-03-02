@@ -1,4 +1,4 @@
-# SelfErase Cloudflare Workers
+# BLT-Vanish Cloudflare Workers
 
 Stateless edge functions that serve **public data only**. No user PII is ever processed or stored.
 
