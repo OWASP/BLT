@@ -2,16 +2,6 @@
 
 # 1. Architecture Overview (Cloudflare Native)
 
-## High-Level System Design
-
-![Image](https://developers.cloudflare.com/_astro/diagram.DEMTm7TJ_Z29E9sM.svg)
-
-![Image](https://raw.githubusercontent.com/InternetFreedomFoundation/internetfreedom.in/main/Iff-JamStack.png)
-
-![Image](https://www.tenupsoft.com/images/blogs/Edge_Computing_Main_Image_Blog.webp)
-
-![Image](https://dl.acm.org/cms/attachment/html/10.1145/3437378.3444367/assets/html/images/acsw21-27-fig1.jpg)
-
 ### Core Flow
 
 1. GitHub sends webhook → Cloudflare Worker
