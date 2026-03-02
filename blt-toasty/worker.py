@@ -283,7 +283,7 @@ def create_json_response(data, status_code=200):
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Access-Control-Allow-Origin", "*")
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
     headers.set("Access-Control-Allow-Headers", "Content-Type")
     
     return Response.new(

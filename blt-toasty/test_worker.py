@@ -3,7 +3,10 @@ Test file for Toasty Cloudflare Worker
 
 Note: These are example tests to demonstrate the worker's expected behavior.
 Actual testing would require the Cloudflare Workers runtime or a test harness.
-The parse_path function is duplicated here for testing without runtime dependencies.
+
+IMPORTANT: The parse_path function is duplicated here because worker.py requires
+the Cloudflare Workers runtime (js module) and cannot be imported in standard Python.
+If you modify the parse_path logic in worker.py, you MUST update this copy to match.
 """
 
 
@@ -11,6 +14,8 @@ def parse_path(url):
     """
     Extract clean path from URL, handling query params and fragments.
     This is a copy of the function from worker.py for testing purposes.
+    
+    ⚠️  KEEP IN SYNC WITH worker.py parse_path() ⚠️
     
     Args:
         url: The full URL string
