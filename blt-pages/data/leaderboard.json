@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-03-02T21:04:57.388Z",
-  "total_bugs": 5,
+  "updated_at": "2026-03-02T21:06:11.769Z",
+  "total_bugs": 6,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 4,
+      "count": 5,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -76,6 +76,18 @@
   ],
   "recent_bugs": [
     {
+      "number": 20,
+      "title": "[BUG] this should be a domain count",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/20",
+      "created_at": "2026-03-02T21:06:01Z",
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/352c125a-b3c1-4309-8381-80674c1b30a6"
+    },
+    {
       "number": 19,
       "title": "[FEATURE] make sure reactions are showing up",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19",
@@ -98,18 +110,6 @@
         "profile_url": "https://github.com/DonnieBLT"
       },
       "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45"
-    },
-    {
-      "number": 15,
-      "title": "[BUG] : Gradient background should be fixed and transition should not be visible.",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/15",
-      "created_at": "2026-03-02T20:45:00Z",
-      "user": {
-        "login": "sidd190",
-        "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
-        "profile_url": "https://github.com/sidd190"
-      },
-      "image_url": null
     }
   ]
 }
