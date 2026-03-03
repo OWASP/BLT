@@ -118,6 +118,21 @@
         <span>Allow camera and microphone access when prompted. Your media stays peer-to-peer and is only shared with your selected participant.</span>
       </div>
 
+      <!-- ── Camera Denied Instructions ── -->
+      <div id="camera-denied" style="display:none;flex-direction:column;gap:0.85rem" class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-gray-900" role="alert" aria-live="assertive">
+        <div class="flex items-center gap-2 font-bold text-base text-red-700">
+          <i class="fa-solid fa-video-slash" aria-hidden="true"></i>
+          Camera &amp; microphone access was blocked
+        </div>
+        <div id="camera-denied-instructions" class="text-sm leading-relaxed"></div>
+        <div>
+          <button id="btn-camera-retry" class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+            Try Again
+          </button>
+        </div>
+      </div>
+
       <div class="grid gap-6 lg:grid-cols-[1fr_320px]" id="main-grid">
         <div>
           <div class="grid gap-4 sm:grid-cols-2" aria-label="Video feeds">
