@@ -368,7 +368,7 @@ async function loadRecentBugs() {
     return;
   }
 
-  // 2. Try static JSON (already contains reactions after PR 1)
+  // 2. Try static JSON 
   try {
     const res = await fetch("data/leaderboard.json");
     if (!res.ok) throw new Error("No static data");
