@@ -233,23 +233,44 @@ jobs:
               return null;
             }
 
+            // Build a map from issue number to its fetched comments
+            const issueCommentsMap = {};
+            for (let i = 0; i < bugIssues.length; i++) {
+              issueCommentsMap[bugIssues[i].number] = allCommentArrays[i];
+            }
+
             // Collect the 3 most-recently-created open bug issues
             const sortedByDate = [...bugIssues].filter(i => i.state === 'open').sort(
               (a, b) => new Date(b.created_at) - new Date(a.created_at)
             );
-            const recentBugs = sortedByDate.slice(0, 3).map(issue => ({
-              number:     issue.number,
-              title:      issue.title,
-              html_url:   issue.html_url,
-              created_at: issue.created_at,
-              user: {
-                login:       issue.user.login,
-                avatar_url:  issue.user.avatar_url,
-                profile_url: issue.user.html_url,
-              },
-              image_url: extractFirstImage(issue.body),
-              domain:    extractDomain(issue.body),
-            }));
+            const recentBugs = sortedByDate.slice(0, 3).map(issue => {
+              const comments = issueCommentsMap[issue.number] || [];
+              const latestComment = comments.length > 0 ? comments[comments.length - 1] : null;
+              return {
+                number:        issue.number,
+                title:         issue.title,
+                html_url:      issue.html_url,
+                created_at:    issue.created_at,
+                comment_count: issue.comments,
+                user: {
+                  login:       issue.user.login,
+                  avatar_url:  issue.user.avatar_url,
+                  profile_url: issue.user.html_url,
+                },
+                image_url: extractFirstImage(issue.body),
+                domain:    extractDomain(issue.body),
+                latest_comment: latestComment ? {
+                  body:       latestComment.body,
+                  created_at: latestComment.created_at,
+                  html_url:   latestComment.html_url,
+                  user: {
+                    login:       latestComment.user.login,
+                    avatar_url:  latestComment.user.avatar_url,
+                    profile_url: latestComment.user.html_url,
+                  },
+                } : null,
+              };
+            });
 
             const payload = {
               updated_at:     new Date().toISOString(),
