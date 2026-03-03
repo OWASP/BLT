@@ -187,7 +187,7 @@ async function loadRepos() {
       allRepos = payload.repos || [];
       buildLangFilter(allRepos);
       buildLabelFilter(allRepos);
-      buildStats(allRepos, payload.cumulative);
+      document.getElementById('search-input').placeholder = `Search ${allRepos.length} repositories…`;
       applyFilters();
       const generatedAt = payload.generated_at
         ? new Date(payload.generated_at).toLocaleString()
@@ -208,7 +208,7 @@ async function loadRepos() {
     allRepos = repos;
     buildLangFilter(repos);
     buildLabelFilter(repos);
-    buildStats(repos, null);
+    document.getElementById('search-input').placeholder = `Search ${allRepos.length} repositories…`;
     applyFilters();
     document.getElementById('footer-ts').textContent =
       'Live data fetched at ' + new Date().toLocaleString() +
@@ -219,59 +219,12 @@ async function loadRepos() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  STATS BAR                                                           */
+/*  ISSUE COUNT HELPER                                                  */
 /* ------------------------------------------------------------------ */
 
 /** Returns the number of real open issues (excluding PRs) for a repo. */
 function repoIssueCount(r) {
   return Math.max(0, (r.open_issues_count || 0) - (r.open_pr_count || 0));
-}
-
-/**
- * @param {Array}  repos       - repo list
- * @param {object|null} cumulative - pre-computed cumulative block from data.json
- */
-function buildStats(repos, cumulative) {
-  // Prefer richer pre-computed totals; fall back to summing repo fields.
-  const totalRepos    = cumulative ? cumulative.total_repos      : repos.length;
-  const totalStars    = cumulative ? cumulative.total_stars      : repos.reduce((s, r) => s + r.stargazers_count, 0);
-  const totalForks    = cumulative ? cumulative.total_forks      : repos.reduce((s, r) => s + r.forks_count, 0);
-  const totalIssues   = cumulative ? cumulative.total_open_issues: repos.reduce((s, r) => s + repoIssueCount(r), 0);
-  const totalPRs      = cumulative ? (cumulative.total_open_prs || 0) : repos.reduce((s, r) => s + (r.open_pr_count || 0), 0);
-  const totalSizeKb   = cumulative ? cumulative.total_size_kb    : repos.reduce((s, r) => s + (r.size || 0), 0);
-  const totalTopics   = cumulative ? cumulative.total_topics     : new Set(repos.flatMap(r => r.topics || [])).size;
-  const totalReadmeChars = cumulative ? cumulative.total_readme_chars : repos.reduce((s, r) => s + (r.readme_chars || 0), 0);
-  const totalBranches    = cumulative ? cumulative.total_branches     : repos.reduce((s, r) => s + (r.branch_count || 0), 0);
-  // Use lang_bytes for an accurate count of all languages used (lang_repo_count only lists primary languages)
-  const langCount     = cumulative
-    ? Object.keys(cumulative.lang_bytes || cumulative.lang_repo_count || {}).length
-    : new Set(repos.map(r => r.language).filter(Boolean)).size;
-
-  const sizeMb = totalSizeKb > 0 ? `${(totalSizeKb / 1024).toFixed(1)} MB` : '—';
-
-  const stats = [
-    { icon: 'fa-solid fa-box',         label: 'Repos',       value: formatNumber(totalRepos),        color: 'text-indigo-500', href: `https://github.com/orgs/${ORG}/repositories` },
-    { icon: 'fa-solid fa-star',        label: 'Stars',        value: formatNumber(totalStars),        color: 'text-yellow-500', href: `https://github.com/orgs/${ORG}/repositories?sort=stargazers` },
-    { icon: 'fa-solid fa-code-fork',   label: 'Forks',        value: formatNumber(totalForks),        color: 'text-green-500',  href: `https://github.com/orgs/${ORG}/repositories?type=fork` },
-    { icon: 'fa-solid fa-circle-dot',  label: 'Issues',       value: formatNumber(totalIssues),       color: 'text-brand',      href: `https://github.com/search?q=org%3A${ORG}+is%3Aissue+is%3Aopen&type=issues` },
-    { icon: 'fa-solid fa-code-pull-request', label: 'PRs',         value: formatNumber(totalPRs),          color: 'text-teal-500',   href: `https://github.com/search?q=org%3A${ORG}+is%3Apr+is%3Aopen&type=pullrequests` },
-    { icon: 'fa-solid fa-code',        label: 'Languages',    value: formatNumber(langCount),         color: 'text-purple-500', href: null },
-    { icon: 'fa-solid fa-tags',        label: 'Topics',       value: formatNumber(totalTopics),       color: 'text-orange-500', href: null },
-    { icon: 'fa-solid fa-database',    label: 'Size',         value: sizeMb,                          color: 'text-cyan-500',   href: null },
-    { icon: 'fa-solid fa-file-lines',  label: 'README',       value: formatNumber(totalReadmeChars),  color: 'text-pink-500',   href: null },
-    { icon: 'fa-solid fa-code-branch', label: 'Branches',     value: formatNumber(totalBranches),     color: 'text-violet-500', href: null },
-  ];
-
-  document.getElementById('stats-bar').innerHTML = stats.map(s => {
-    const inner = `
-      <i class="${s.icon} ${s.color} text-sm" aria-hidden="true"></i>
-      <span class="text-xs font-bold text-gray-900 dark:text-white">${s.value}</span>
-      <span class="text-xs text-gray-500 dark:text-gray-400">${s.label}</span>`;
-    const cls = `bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 flex items-center gap-1.5 shadow-sm ${s.href ? 'hover:border-brand hover:shadow-md transition-all cursor-pointer' : 'opacity-60 cursor-default'}`;
-    return s.href
-      ? `<a href="${s.href}" target="_blank" rel="noopener noreferrer" class="${cls}" aria-label="${s.label}: ${s.value}">${inner}</a>`
-      : `<div class="${cls}" title="No link available">${inner}</div>`;
-  }).join('');
 }
 
 /* ------------------------------------------------------------------ */
@@ -460,18 +413,15 @@ function renderRepos(repos) {
   const grid  = document.getElementById('repo-grid');
   const table = document.getElementById('repo-table');
   const empty = document.getElementById('empty-state');
-  const count = document.getElementById('results-count');
 
   if (repos.length === 0) {
     grid.innerHTML  = '';
     table.innerHTML = '';
     empty.classList.remove('hidden');
-    count.textContent = '';
     return;
   }
 
   empty.classList.add('hidden');
-  count.textContent = `Showing ${repos.length} of ${allRepos.length} repositories`;
 
   if (currentView === 'table') {
     grid.classList.add('hidden');
@@ -796,12 +746,30 @@ function renderTableView(repos, container) {
     return tableSortDir === 'asc' ? v : -v;
   });
 
+  // Compute column totals for headers
+  const colTotals = {
+    name:               repos.length,
+    stargazers_count:   repos.reduce((s, r) => s + (r.stargazers_count || 0), 0),
+    forks_count:        repos.reduce((s, r) => s + (r.forks_count || 0), 0),
+    open_issues_count:  repos.reduce((s, r) => s + repoIssueCount(r), 0),
+    open_pr_count:      repos.reduce((s, r) => s + (r.open_pr_count || 0), 0),
+    agent_pr_count:     repos.reduce((s, r) => s + (r.agent_pr_count || 0), 0),
+    total_commits:      repos.reduce((s, r) => s + (r.total_commits || 0), 0),
+    branch_count:       repos.reduce((s, r) => s + (r.branch_count || 0), 0),
+    size:               repos.reduce((s, r) => s + (r.size || 0), 0),
+    readme_chars:       repos.reduce((s, r) => s + (r.readme_chars || 0), 0),
+    language:           new Set(repos.map(r => r.language).filter(Boolean)).size,
+    topics:             new Set(repos.flatMap(r => r.topics || [])).size,
+  };
+
   // Build header cells
   const headerCells = TABLE_COLS.map(col => {
     const isActive = tableSortCol === col.key;
     const arrow = isActive ? (tableSortDir === 'asc' ? ' ▲' : ' ▼') : '';
     const activeCls = isActive ? ' text-brand dark:text-red-400 font-bold' : '';
-    return `<th data-col="${col.key}" class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap transition-colors${activeCls}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}<span class="ml-1">${arrow}</span></th>`;
+    const total = colTotals[col.key];
+    const totalStr = total !== undefined ? ` (${formatNumber(total)})` : '';
+    return `<th data-col="${col.key}" class="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap transition-colors${activeCls}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}${totalStr}<span class="ml-1">${arrow}</span></th>`;
   }).join('');
 
   // Build rows
