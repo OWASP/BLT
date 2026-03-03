@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OSSH Community - Connect with developers, share your profile, and discover open source contributors" />
+  <meta property="og:title" content="OSSH Community - Developer Profiles" />
+  <meta property="og:description" content="Join the OSSH community and connect with open source developers worldwide" />
+  <meta property="og:type" content="website" />
+  <title>Community - OSSH by BLT</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#dc2626',
+            'primary-dark': '#b91c1c',
+            'neutral-border': '#e5e7eb',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    :root {
+      --blt-primary: #dc2626;
+      --blt-border: #e5e7eb;
+      --blt-surface: #ffffff;
+      --blt-background: #f8fafc;
+    }
+
+    .dark {
+      --blt-primary: #ef4444;
+      --blt-border: #374151;
+      --blt-surface: #1F2937;
+      --blt-background: #111827;
+    }
+
+    body {
+      background: var(--blt-background);
+      transition: background-color 0.3s ease;
+    }
+
+    .hero-glow {
+      background:
+        radial-gradient(circle at 50% 10%, rgba(220, 38, 38, 0.15), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.1), transparent 40%),
+        linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+      transition: background 0.3s ease;
+    }
+
+    .dark .hero-glow {
+      background:
+        radial-gradient(circle at 50% 10%, rgba(239, 68, 68, 0.12), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08), transparent 40%),
+        linear-gradient(to bottom, #1F2937 0%, #111827 100%);
+    }
+
+    .surface-card {
+      background: var(--blt-surface);
+      border: 1px solid var(--blt-border);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .surface-card:hover {
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+      transform: translateY(-2px);
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    .dark ::-webkit-scrollbar-track { background: #1F2937; }
+    ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #ef4444; }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    .dark .skeleton {
+      background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+      background-size: 200% 100%;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
+  <!-- Background Glow Effect -->
+  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="OSSH home">
+        <img
+          src="static/logo.png"
+          alt="BLT logo"
+          class="h-9 w-9 rounded-lg object-contain"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <span class="hidden h-9 w-9 items-center justify-center rounded-lg bg-red-600 text-sm font-extrabold text-white">
+          <i class="fas fa-hat-wizard"></i>
+        </span>
+        <div>
+          <p class="text-base font-extrabold leading-none dark:text-gray-100">OSSH Community</p>
+          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Developer Profiles</p>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <a href="/" class="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-neutral-border px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+          <i class="fas fa-home" aria-hidden="true"></i>
+          <span>Home</span>
+        </a>
+        <button
+          id="dark-toggle"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          aria-label="Toggle dark mode"
+          type="button"
+        >
+          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun hidden dark:inline-block" aria-hidden="true"></i>
+        </button>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-OSSH"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-neutral-border px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <!-- Hero Section -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-2xl mb-6">
+          <i class="fas fa-users text-red-600 dark:text-red-400 text-5xl"></i>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+          OSSH Community
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Connect with open source developers worldwide. Share your profile, discover collaborators, and grow together.
+        </p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-2" id="stat-profiles">0</div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Community Members</p>
+        </div>
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-2" id="stat-languages">0</div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Languages</p>
+        </div>
+        <div class="surface-card rounded-xl p-6 text-center">
+          <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-2" id="stat-countries">0</div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Countries</p>
+        </div>
+      </div>
+
+      <!-- Create Profile CTA -->
+      <div class="surface-card rounded-2xl p-8 sm:p-10 mb-12 bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-dark-surface">
+        <div class="text-center">
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            Join Our Community
+          </h2>
+          <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+            Create your developer profile and let the community know what you're passionate about. Connect with other developers, find mentors, and discover collaboration opportunities.
+          </p>
+          <button
+            id="create-profile-btn"
+            class="inline-flex items-center gap-3 px-8 py-4 bg-red-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-red-700 transition transform hover:scale-105"
+          >
+            <i class="fas fa-user-plus"></i>
+            Create Your Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Profiles Section -->
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Community Profiles</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            <span id="profiles-count">Loading...</span>
+          </p>
+        </div>
+        
+        <!-- Filter/Search -->
+        <div class="flex gap-2">
+          <div class="relative">
+            <input
+              type="text"
+              id="search-profiles"
+              placeholder="Search profiles..."
+              class="pl-10 pr-4 py-2 text-sm border border-neutral-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:border-red-600"
+            />
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          </div>
+          <select
+            id="filter-experience"
+            class="px-4 py-2 text-sm border border-neutral-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:border-red-600"
+          >
+            <option value="">All Levels</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+            <option value="Expert">Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Profiles Grid -->
+      <div id="profiles-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <!-- Loading skeletons -->
+        <div class="surface-card rounded-xl p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-16 h-16 rounded-full skeleton"></div>
+            <div class="flex-1">
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2 w-32"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-24"></div>
+            </div>
+          </div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-3/4"></div>
+        </div>
+        <div class="surface-card rounded-xl p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-16 h-16 rounded-full skeleton"></div>
+            <div class="flex-1">
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2 w-32"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-24"></div>
+            </div>
+          </div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-3/4"></div>
+        </div>
+        <div class="surface-card rounded-xl p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-16 h-16 rounded-full skeleton"></div>
+            <div class="flex-1">
+              <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2 w-32"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-24"></div>
+            </div>
+          </div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton mb-2"></div>
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded skeleton w-3/4"></div>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div class="text-center">
+        <button
+          id="load-more-btn"
+          class="hidden inline-flex items-center gap-2 px-6 py-3 border border-red-600 text-red-600 dark:border-red-500 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+        >
+          <i class="fas fa-arrow-down"></i>
+          Load More Profiles
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface mt-20">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          &copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors
+        </p>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
+            <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+          </a>
+          <a href="https://twitter.com/owasp_blt" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
+            <i class="fa-brands fa-twitter text-xl" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const REPO_OWNER = 'OWASP-BLT';
+    const REPO_NAME = 'BLT-OSSH';
+    
+    let allProfiles = [];
+    let displayedProfiles = [];
+    const profilesPerPage = 12;
+    let currentPage = 1;
+
+    // Dark mode toggle
+    const darkToggle = document.getElementById('dark-toggle');
+    const html = document.documentElement;
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      html.classList.add('dark');
+    }
+
+    darkToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const theme = html.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
+    });
+
+    // Create profile button
+    document.getElementById('create-profile-btn').addEventListener('click', () => {
+      window.open(`https://github.com/${REPO_OWNER}/${REPO_NAME}/issues/new?template=user_profile.yml`, '_blank');
+    });
+
+    // Load profiles on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadProfiles();
+      setupFilters();
+      document.getElementById('footer-year').textContent = new Date().getFullYear();
+    });
+
+    async function loadProfiles() {
+      try {
+        const response = await fetch('data/profiles.json');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profiles');
+        }
+
+        const data = await response.json();
+        allProfiles = data.profiles || [];
+        
+        updateStats();
+        displayProfiles(allProfiles);
+        
+      } catch (error) {
+        console.error('Error loading profiles:', error);
+        displayEmptyState();
+      }
+    }
+
+    function parseProfileFromIssue(issue) {
+      const body = issue.body || '';
+      
+      // Parse the issue body to extract profile information
+      const extractField = (fieldName) => {
+        const regex = new RegExp(`### ${fieldName}\\s*\\n\\s*(.+?)(?=\\n###|$)`, 's');
+        const match = body.match(regex);
+        return match ? match[1].trim() : '';
+      };
+
+      const extractCheckboxes = (fieldName) => {
+        const regex = new RegExp(`### ${fieldName}[\\s\\S]*?(?=\\n###|$)`, 's');
+        const match = body.match(regex);
+        if (!match) return [];
+        
+        const checkboxes = [...match[0].matchAll(/- \[x\] (.+)/gi)];
+        return checkboxes.map(m => m[1].trim());
+      };
+
+      const githubUsername = extractField('GitHub Username');
+      const displayName = extractField('Display Name');
+      
+      // Skip invalid profiles
+      if (!githubUsername || !displayName) {
+        console.warn(`Skipping issue #${issue.number}: Missing required fields`);
+        return null;
+      }
+
+      return {
+        id: issue.number,
+        github_username: githubUsername,
+        display_name: displayName,
+        bio: extractField('Bio'),
+        avatar_url: `https://github.com/${githubUsername}.png`,
+        experience_level: extractField('Experience Level'),
+        interests: extractCheckboxes('Areas of Interest'),
+        skills: extractField('Skills & Technologies')?.split(',').map(s => s.trim()).filter(Boolean) || [],
+        looking_for: extractField('What are you looking for\\?'),
+        location: extractField('Location \\(Optional\\)'),
+        website: extractField('Website/Portfolio \\(Optional\\)'),
+        twitter: extractField('Twitter/X Handle \\(Optional\\)'),
+        linkedin: extractField('LinkedIn Profile \\(Optional\\)'),
+        recommended_projects: extractField('Recommended Projects \\(Optional\\)'),
+        recommended_communities: extractField('Recommended Communities \\(Optional\\)'),
+        recommended_reading: extractField('Recommended Reading \\(Optional\\)'),
+        created_at: issue.created_at,
+        url: issue.html_url
+      };
+    }
+
+    function updateStats() {
+      document.getElementById('stat-profiles').textContent = allProfiles.length;
+      
+      const allLanguages = new Set();
+      allProfiles.forEach(p => p.skills.forEach(s => allLanguages.add(s)));
+      document.getElementById('stat-languages').textContent = allLanguages.size;
+      
+      const allCountries = new Set();
+      allProfiles.forEach(p => {
+        if (p.location) {
+          const country = p.location.split(',').pop().trim();
+          if (country) allCountries.add(country);
+        }
+      });
+      document.getElementById('stat-countries').textContent = allCountries.size || '10+';
+      
+      document.getElementById('profiles-count').textContent = 
+        `${allProfiles.length} ${allProfiles.length === 1 ? 'developer' : 'developers'} in our community`;
+    }
+
+    function displayProfiles(profiles) {
+      const grid = document.getElementById('profiles-grid');
+      
+      if (profiles.length === 0) {
+        displayEmptyState();
+        return;
+      }
+
+      displayedProfiles = profiles.slice(0, currentPage * profilesPerPage);
+      
+      grid.innerHTML = displayedProfiles.map(profile => `
+        <div class="surface-card rounded-xl p-6 relative">
+          <!-- Experience Badge -->\n          <div class="absolute top-4 right-4">
+            <span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full font-semibold text-xs">
+              ${escapeHtml(profile.experience_level || 'Developer')}
+            </span>
+          </div>
+          
+          <div class="flex items-start gap-4 mb-4">
+            <img 
+              src="https://github.com/${escapeHtml(profile.github_username)}.png" 
+              alt="${escapeHtml(profile.display_name)}" 
+              class="w-20 h-20 rounded-full border-4 border-red-100 dark:border-red-900/30 shadow-md"
+              onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name)}&background=dc2626&color=fff&size=128'"
+            />
+            <div class="flex-1 min-w-0 pt-1">
+              <h3 class="font-bold text-xl text-gray-900 dark:text-white truncate mb-1">${escapeHtml(profile.display_name)}</h3>
+              <a href="https://github.com/${escapeHtml(profile.github_username)}" 
+                 target="_blank" 
+                 class="text-sm text-red-600 dark:text-red-400 hover:underline inline-flex items-center gap-1 mb-2">
+                <i class="fab fa-github"></i>
+                @${escapeHtml(profile.github_username)}
+              </a>
+              ${profile.location ? `
+                <div class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>${escapeHtml(profile.location)}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 leading-relaxed">${escapeHtml(profile.bio)}</p>
+          
+          ${profile.skills.length > 0 ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Skills</p>
+              <div class="flex flex-wrap gap-1.5">
+                ${profile.skills.slice(0, 5).map(skill => `
+                  <span class="text-xs px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md font-medium">
+                    ${escapeHtml(skill)}
+                  </span>
+                `).join('')}
+                ${profile.skills.length > 5 ? `<span class="text-xs px-2 py-1 text-gray-500 font-medium">+${profile.skills.length - 5} more</span>` : ''}
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.interests && profile.interests.length > 0 ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Interests</p>
+              <div class="flex flex-wrap gap-1.5">
+                ${profile.interests.slice(0, 3).map(interest => `
+                  <span class="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+                    ${escapeHtml(interest)}
+                  </span>
+                `).join('')}
+                ${profile.interests.length > 3 ? `<span class="text-xs text-gray-500">+${profile.interests.length - 3}</span>` : ''}
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.looking_for ? `
+            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
+                <i class="fas fa-bullseye"></i>
+                Looking For
+              </p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">${escapeHtml(profile.looking_for)}</p>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_projects ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-code-branch"></i>
+                Recommended Projects
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_projects)}</pre>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_communities ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-users"></i>
+                Recommended Communities
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_communities)}</pre>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_reading ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-book-open"></i>
+                Recommended Reading
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_reading)}</pre>
+              </div>
+            </div>
+          ` : ''}
+          
+          <div class="flex gap-2 pt-4 border-t border-neutral-border dark:border-gray-700">
+            <a href="${escapeHtml(profile.url)}" 
+               target="_blank"
+               class="flex-1 text-center px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg transition shadow-sm">
+              <i class="fas fa-eye mr-1"></i>
+              View Full Profile
+            </a>
+            ${profile.website || profile.linkedin || profile.twitter ? `
+              <div class="flex gap-2">
+                ${profile.website ? `
+                  <a href="${escapeHtml(profile.website)}" 
+                     target="_blank" 
+                     class="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                     title="Website">
+                    <i class="fas fa-globe"></i>
+                  </a>
+                ` : ''}
+                ${profile.linkedin ? `
+                  <a href="${escapeHtml(profile.linkedin)}" 
+                     target="_blank" 
+                     class="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                     title="LinkedIn">
+                    <i class="fab fa-linkedin"></i>
+                  </a>
+                ` : ''}
+                ${profile.twitter ? `
+                  <a href="https://twitter.com/${escapeHtml(profile.twitter)}" 
+                     target="_blank" 
+                     class="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                     title="Twitter/X">
+                    <i class="fab fa-twitter"></i>
+                  </a>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Show/hide load more button
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      if (displayedProfiles.length < profiles.length) {
+        loadMoreBtn.classList.remove('hidden');
+        loadMoreBtn.onclick = () => {
+          currentPage++;
+          displayProfiles(profiles);
+        };
+      } else {
+        loadMoreBtn.classList.add('hidden');
+      }
+    }
+
+    function displayEmptyState() {
+      const grid = document.getElementById('profiles-grid');
+      grid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+            <i class="fas fa-users text-4xl text-gray-400 dark:text-gray-600"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No Profiles Yet</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">Be the first to join our community!</p>
+          <button 
+            onclick="document.getElementById('create-profile-btn').click()"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition">
+            <i class="fas fa-user-plus"></i>
+            Create Your Profile
+          </button>
+        </div>
+      `;
+      document.getElementById('load-more-btn').classList.add('hidden');
+    }
+
+    function setupFilters() {
+      const searchInput = document.getElementById('search-profiles');
+      const experienceFilter = document.getElementById('filter-experience');
+
+      const applyFilters = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const experienceLevel = experienceFilter.value;
+
+        const filtered = allProfiles.filter(profile => {
+          const matchesSearch = !searchTerm || 
+            profile.display_name.toLowerCase().includes(searchTerm) ||
+            profile.bio.toLowerCase().includes(searchTerm) ||
+            profile.github_username.toLowerCase().includes(searchTerm) ||
+            profile.skills.some(skill => skill.toLowerCase().includes(searchTerm));
+
+          const matchesExperience = !experienceLevel || 
+            profile.experience_level.includes(experienceLevel);
+
+          return matchesSearch && matchesExperience;
+        });
+
+        currentPage = 1;
+        displayProfiles(filtered);
+      };
+
+      searchInput.addEventListener('input', applyFilters);
+      experienceFilter.addEventListener('change', applyFilters);
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

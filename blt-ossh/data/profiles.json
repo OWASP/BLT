@@ -1,0 +1,35 @@
+{
+  "updated_at": "2026-03-03T10:48:36.783Z",
+  "total_profiles": 1,
+  "profiles": [
+{
+  "id": 4,
+  "github_username": "mdkaifansari04",
+  "display_name": "Md Kaif Ansari",
+  "bio": "Cracked dev @ 20 | Breaking the INTERNET",
+  "avatar_url": "https://github.com/mdkaifansari04.png",
+  "experience_level": "Beginner (< 1 year)",
+  "interests": [],
+  "skills": [
+    "TypeScript",
+    "JavaScript",
+    "Python",
+    "HTML",
+    "Rust",
+    "Go",
+    "CSS"
+  ],
+  "looking_for": "Looking to contribute to open source projects in TypeScript, JavaScript, Python. Interested in OWASP BLT, OWASP Foundation.",
+  "location": null,
+  "website": null,
+  "twitter": null,
+  "linkedin": null,
+  "recommended_projects": "**mdkaifansari04/Zapher** ⭐ 7\nZapher a dynamic web application, brings discussions to life with Next.js 14, MongoDB, and Clerk for authentication. Evolving from a messy inception, the project showcases optimized architecture, polished code, and a sleek UI. Join the conversation seamlessly and explore the world of interactive discussions! 💬🌐\n🔗 [View](https://github.com/mdkaifansari04/Zapher)\n\n**mdkaifansari04/NODE_BACKEND_TEMPLATE** ⭐ 5\nA scalable Node.js backend template using TypeScript. Includes essential middleware, environment configuration, and testing tools to kickstart your projects.\n🔗 [View](https://github.com/mdkaifansari04/NODE_BACKEND_TEMPLATE)\n\n**mdkaifansari04/nirvana-ai** ⭐ 5\nYour personal AI-powered mental wellness companion. Manage stress, practice mindfulness, and feel better every day.\n🔗 [View](https://github.com/mdkaifansari04/nirvana-ai)\n\n**mdkaifansari04/ContentAce** ⭐ 2\nContentAce is a content generator platform built with insane technologies such as Next.js, node and express. It has features such as YouTube content, blog, and email generator. Having the feature of generating blog content and even blogs. Which actually solves a real problem!\n🔗 [View](https://github.com/mdkaifansari04/ContentAce)\n\n**mdkaifansari04/pdf-chat** ⭐ 1\nA seemless application to chat with any pdf. Supported by admin dashboard to track application state, user and pdf.\n🔗 [View](https://github.com/mdkaifansari04/pdf-chat)\n\n**mdkaifansari04/qlio** ⭐ 1\nAsynchronous Script Execution Engine\n🔗 [View](https://github.com/mdkaifansari04/qlio)",
+  "recommended_communities": "**OWASP BLT** (1,000+ members)\nBug Logging Tool — an open source security platform\n🔗 [Visit](https://github.com/OWASP-BLT/BLT)\n\n**OWASP Foundation** (50,000+ members)\nThe Open Web Application Security Project\n🔗 [Visit](https://owasp.org/)",
+  "recommended_reading": "**How to Contribute to Open Source** - Open Source\n🔗 [Read](https://opensource.guide/how-to-contribute/)\n\n**GitHub Skills** - GitHub\n🔗 [Read](https://skills.github.com/)",
+  "created_at": "2026-03-03T10:48:56.469Z",
+  "updated_at": "2026-03-03T10:48:56.470Z",
+  "url": "https://github.com/mdkaifansari04/BLT-OSSH/issues/4"
+}
+  ]
+}
