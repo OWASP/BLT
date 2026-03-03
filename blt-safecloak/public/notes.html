@@ -38,213 +38,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     referrerpolicy="no-referrer"
   />
-
-  <style>
-    :root {
-      --blt-primary: #E10101;
-      --blt-neutral-border: #E5E5E5;
-    }
-
-    body {
-      background-color: #f8fafc;
-      color: #111827;
-    }
-
-    .hero-glow {
-      background:
-        radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.10), transparent 35%),
-        radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.08), transparent 30%),
-        linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
-    }
-
-    .nav-link.active {
-      color: var(--blt-primary);
-      background: #feeae9;
-    }
-
-    .navbar-nav.open {
-      display: flex;
-    }
-
-    .surface-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .surface-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 26px rgba(225, 1, 1, 0.10);
-    }
-
-    .notes-layout {
-      display: grid;
-      grid-template-columns: 290px 1fr;
-      gap: 1rem;
-      min-height: 560px;
-    }
-
-    .notes-sidebar {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .notes-list {
-      padding: 0.55rem;
-      overflow-y: auto;
-      flex: 1;
-      max-height: 660px;
-    }
-
-    .note-item {
-      border: 1px solid transparent;
-      border-radius: 0.5rem;
-      padding: 0.7rem;
-      margin-bottom: 0.35rem;
-      cursor: pointer;
-      background: #ffffff;
-      transition: all 0.15s ease;
-    }
-
-    .note-item:hover {
-      background: #fff5f5;
-      border-color: #fecaca;
-    }
-
-    .note-item.active {
-      background: #feeae9;
-      border-color: var(--blt-primary);
-    }
-
-    .note-item-title {
-      font-size: 0.86rem;
-      font-weight: 700;
-      color: #111827;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 0.2rem;
-    }
-
-    .note-item-preview {
-      font-size: 0.78rem;
-      color: #6b7280;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .note-item-date {
-      font-size: 0.72rem;
-      color: #6b7280;
-      margin-top: 0.28rem;
-    }
-
-    .note-editor {
-      display: flex;
-      flex-direction: column;
-      min-height: 560px;
-      overflow: hidden;
-    }
-
-    .editor-toolbar {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-    }
-
-    .editor-title {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid #f1f5f9;
-      background: #ffffff;
-      color: #111827;
-      font-size: 1.05rem;
-      font-weight: 700;
-      padding: 0.8rem 1rem;
-      outline: none;
-    }
-
-    .editor-title:focus {
-      border-color: #fecaca;
-      box-shadow: inset 0 -1px 0 #dc2626;
-    }
-
-    .editor-body {
-      width: 100%;
-      flex: 1;
-      border: 0;
-      background: #ffffff;
-      color: #111827;
-      font-size: 0.9rem;
-      line-height: 1.7;
-      padding: 0.9rem 1rem;
-      resize: none;
-      outline: none;
-      min-height: 230px;
-    }
-
-    .editor-body:focus {
-      box-shadow: inset 0 0 0 1px #dc2626;
-    }
-
-    .ai-panel {
-      border-top: 1px solid #f1f5f9;
-      padding: 0.9rem 1rem;
-      background: #fffafa;
-    }
-
-    .ai-panel-title {
-      margin-bottom: 0.6rem;
-      font-size: 0.78rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: #b91c1c;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .ai-output {
-      border: 1px solid #E5E5E5;
-      border-radius: 0.5rem;
-      background: #ffffff;
-      color: #374151;
-      min-height: 70px;
-      padding: 0.7rem;
-      font-size: 0.84rem;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    #toast-container {
-      position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 60;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .toast {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
-    }
-
-    @media (max-width: 900px) {
-      .notes-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .note-editor {
-        min-height: 460px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body class="font-sans antialiased">
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
@@ -307,33 +101,33 @@
         <p class="mt-1 text-sm text-gray-600">Private notes with in-browser encryption and practical AI helpers.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <span class="badge badge-success">
+        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-700">
           <i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>AES-256-GCM Encrypted
         </span>
-        <span class="badge badge-primary">
+        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">
           <i class="fa-solid fa-hard-drive mr-1" aria-hidden="true"></i>Stored Locally
         </span>
-        <button class="btn btn-primary btn-sm" id="btn-new-note" aria-label="Create new note">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-3 py-1.5 text-xs font-bold text-white transition hover:bg-primary-hover" id="btn-new-note" aria-label="Create new note">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>New Note
         </button>
       </div>
     </header>
 
     <main>
-      <div class="alert alert-success mb-4">
+      <div class="mb-4 flex gap-2.5 rounded-lg border border-green-300 bg-green-50 px-4 py-3.5 text-sm text-green-800">
         <i class="fa-solid fa-shield-halved mt-0.5" aria-hidden="true"></i>
         <span>All notes are encrypted with AES-256-GCM and stored only in your browser localStorage. They never leave your device.</span>
       </div>
 
       <div class="notes-layout" role="main" aria-label="Notes application">
-        <aside class="notes-sidebar" aria-label="Notes list">
-          <div class="card-header">
-            <h2 class="card-title">Your Notes</h2>
+        <aside class="notes-sidebar border border-neutral-border rounded-xl bg-white shadow-md" aria-label="Notes list">
+          <div class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3">
+            <h2 class="text-sm font-extrabold text-gray-700 uppercase tracking-wide">Your Notes</h2>
             <div class="flex gap-1.5">
-              <button class="btn btn-sm btn-primary" id="btn-new-note-2" onclick="NotesApp.createNote()" aria-label="Create new note">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-3 py-1.5 text-xs font-bold text-white transition hover:bg-primary-hover" id="btn-new-note-2" onclick="NotesApp.createNote()" aria-label="Create new note">
                 <i class="fa-solid fa-plus" aria-hidden="true"></i>
               </button>
-              <button class="btn btn-sm btn-secondary" id="btn-export-all" aria-label="Export all notes" title="Export all notes as JSON">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-export-all" aria-label="Export all notes" title="Export all notes as JSON">
                 <i class="fa-solid fa-download" aria-hidden="true"></i>
               </button>
             </div>
@@ -341,26 +135,26 @@
           <div class="notes-list" id="notes-list" role="list" aria-label="Notes list"></div>
         </aside>
 
-        <div class="note-editor" aria-label="Note editor">
+        <div class="note-editor border border-neutral-border rounded-xl bg-white shadow-md" aria-label="Note editor">
           <div id="editor-empty" class="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10 text-gray-500">
             <i class="fa-regular fa-note-sticky text-5xl text-primary" aria-hidden="true"></i>
             <p class="max-w-sm text-center text-sm">Select a note from the sidebar or create a new one to get started.</p>
-            <button class="btn btn-primary" onclick="NotesApp.createNote()">
+            <button class="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-hover" onclick="NotesApp.createNote()">
               <i class="fa-solid fa-plus" aria-hidden="true"></i>
               Create Your First Note
             </button>
           </div>
 
           <div id="editor-wrapper" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-            <div class="editor-toolbar" role="toolbar" aria-label="Note toolbar">
-              <button class="btn btn-sm btn-danger" id="btn-delete-note" title="Delete note" aria-label="Delete note">
+            <div class="editor-toolbar border-b border-gray-100 px-4 py-3 bg-gray-50" role="toolbar" aria-label="Note toolbar">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-600 hover:text-white hover:border-red-600" id="btn-delete-note" title="Delete note" aria-label="Delete note">
                 <i class="fa-solid fa-trash" aria-hidden="true"></i>
               </button>
               <div class="mx-1 h-4 w-px bg-gray-300" aria-hidden="true"></div>
               <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Export</span>
-              <button class="btn btn-sm btn-secondary" id="btn-export-txt" title="Export as .txt" aria-label="Export as text">.txt</button>
-              <button class="btn btn-sm btn-secondary" id="btn-export-md" title="Export as .md" aria-label="Export as Markdown">.md</button>
-              <button class="btn btn-sm btn-secondary" id="btn-export-json" title="Export as .json" aria-label="Export as JSON">.json</button>
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-export-txt" title="Export as .txt" aria-label="Export as text">.txt</button>
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-export-md" title="Export as .md" aria-label="Export as Markdown">.md</button>
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-export-json" title="Export as .json" aria-label="Export as JSON">.json</button>
               <div style="margin-left:auto;font-size:0.75rem;color:#6b7280" id="word-count" aria-live="polite">0 words - 0 chars</div>
             </div>
 
@@ -374,16 +168,16 @@
                 AI Features
               </div>
               <div class="mb-3 flex flex-wrap gap-2" role="toolbar" aria-label="AI analysis tools">
-                <button class="btn btn-sm btn-secondary" id="btn-summarize" aria-label="Summarize note">
+                <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-summarize" aria-label="Summarize note">
                   <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Summarize
                 </button>
-                <button class="btn btn-sm btn-secondary" id="btn-keypoints" aria-label="Extract key points">
+                <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-keypoints" aria-label="Extract key points">
                   <i class="fa-solid fa-key" aria-hidden="true"></i>Key Points
                 </button>
-                <button class="btn btn-sm btn-secondary" id="btn-actions" aria-label="Find action items">
+                <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-actions" aria-label="Find action items">
                   <i class="fa-solid fa-list-check" aria-hidden="true"></i>Action Items
                 </button>
-                <button class="btn btn-sm btn-secondary" id="btn-keywords" aria-label="Analyze keywords">
+                <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-keywords" aria-label="Analyze keywords">
                   <i class="fa-solid fa-chart-column" aria-hidden="true"></i>Keywords
                 </button>
               </div>
@@ -393,7 +187,7 @@
         </div>
       </div>
 
-      <div class="surface-card mt-6 rounded-xl p-4">
+      <div class="surface-card border border-neutral-border bg-white shadow-md mt-6 rounded-xl p-4">
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Encryption</div>

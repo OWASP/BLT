@@ -1,0 +1,542 @@
+/* ============================================
+   BLT-SafeCloak - Consolidated Styles
+   ============================================ */
+
+/* === Root Variables === */
+:root {
+    --blt-primary: #E10101;
+    --blt-neutral-border: #E5E5E5;
+    --blt-dark-base: #111827;
+    --blt-dark-surface: #1F2937;
+}
+
+/* === Base Styles === */
+body {
+    background-color: #f8fafc;
+    color: #111827;
+}
+
+/* === Hero Background === */
+.hero-glow {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.12), transparent 38%),
+        radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.09), transparent 30%),
+        linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
+}
+
+/* === Navigation === */
+.nav-link.active {
+    color: var(--blt-primary);
+    background: #feeae9;
+}
+
+.navbar-nav.open {
+    display: flex;
+}
+
+/* === Cards === */
+.surface-card {
+    border: 1px solid var(--blt-neutral-border);
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.surface-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(225, 1, 1, 0.12);
+}
+
+/* === Buttons (Index Page) === */
+.btn-primary-blt {
+    background: var(--blt-primary);
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+.btn-primary-blt:hover {
+    background: #b91c1c;
+}
+
+.btn-outline-blt {
+    background: #ffffff;
+    color: var(--blt-primary);
+    border: 1px solid var(--blt-primary);
+}
+
+.btn-outline-blt:hover {
+    background: var(--blt-primary);
+    color: #ffffff;
+}
+
+/* === Side Links (Index Page) === */
+.side-link.active {
+    background: #feeae9;
+    color: var(--blt-primary);
+    font-weight: 700;
+}
+
+/* === Toast Notifications === */
+#toast-container {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
+}
+
+.toast-info {
+    background: #111827;
+}
+
+.toast-success {
+    background: #166534;
+}
+
+.toast-error {
+    background: #991b1b;
+}
+
+/* ============================================
+   VIDEO CHAT PAGE STYLES
+   ============================================ */
+
+/* === Status Indicators === */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.status-dot.online {
+    background: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.status-dot.offline {
+    background: #9ca3af;
+}
+
+.status-dot.connecting {
+    background: #f59e0b;
+    animation: pulse-dot 1.4s infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.45;
+    }
+}
+
+/* === Video Components === */
+.video-wrapper {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-label {
+    position: absolute;
+    left: 0.65rem;
+    bottom: 0.65rem;
+}
+
+/* === Video Controls === */
+.control-btn {
+    width: 44px;
+    height: 44px;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    color: var(--blt-primary);
+    border-color: var(--blt-primary);
+    background: #fff5f5;
+}
+
+.control-btn.active {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+.control-btn.end-call {
+    width: 50px;
+    height: 50px;
+}
+
+.control-btn.end-call:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+/* === Voice Meter === */
+.voice-meter {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 24px;
+}
+
+.voice-bar {
+    width: 4px;
+    min-height: 4px;
+    height: 5px;
+    background: var(--blt-primary);
+    border-radius: 9999px;
+    transition: height 0.1s ease;
+}
+
+/* === Modal === */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+}
+
+/* ============================================
+   NOTES PAGE STYLES
+   ============================================ */
+
+/* === Notes Layout === */
+.notes-layout {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 1rem;
+    min-height: 560px;
+}
+
+.notes-sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.notes-list {
+    padding: 0.55rem;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 660px;
+}
+
+/* === Note Items === */
+.note-item {
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    padding: 0.7rem;
+    margin-bottom: 0.35rem;
+    cursor: pointer;
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.note-item:hover {
+    background: #fff5f5;
+    border-color: #fecaca;
+}
+
+.note-item.active {
+    background: #feeae9;
+    border-color: var(--blt-primary);
+}
+
+.note-item-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.2rem;
+}
+
+.note-item-preview {
+    font-size: 0.78rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-item-date {
+    font-size: 0.72rem;
+    color: #6b7280;
+    margin-top: 0.28rem;
+}
+
+/* === Note Editor === */
+.note-editor {
+    display: flex;
+    flex-direction: column;
+    min-height: 560px;
+    overflow: hidden;
+}
+
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.editor-title {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    outline: none;
+}
+
+.editor-title:focus {
+    border-color: #fecaca;
+    box-shadow: inset 0 -1px 0 #dc2626;
+}
+
+.editor-body {
+    width: 100%;
+    flex: 1;
+    border: 0;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    padding: 0.9rem 1rem;
+    resize: none;
+    outline: none;
+    min-height: 230px;
+}
+
+.editor-body:focus {
+    box-shadow: inset 0 0 0 1px #dc2626;
+}
+
+/* === AI Panel === */
+.ai-panel {
+    border-top: 1px solid #f1f5f9;
+    padding: 0.9rem 1rem;
+    background: #fffafa;
+}
+
+.ai-panel-title {
+    margin-bottom: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #b91c1c;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.ai-output {
+    border: 1px solid #E5E5E5;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    color: #374151;
+    min-height: 70px;
+    padding: 0.7rem;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* === Notes Media Queries === */
+@media (max-width: 900px) {
+    .notes-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .note-editor {
+        min-height: 460px;
+    }
+}
+
+/* ============================================
+   CONSENT PAGE STYLES
+   ============================================ */
+
+/* === Checkbox Wrapper === */
+.checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--blt-primary);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.checkbox-wrapper span {
+    font-size: 0.875rem;
+    color: #374151;
+    line-height: 1.5;
+}
+
+/* === Consent Layout === */
+.consent-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.consent-log {
+    max-height: 760px;
+    overflow-y: auto;
+}
+
+/* === Consent Entry === */
+.consent-entry {
+    border: 1px solid #E5E5E5;
+    border-radius: 0.6rem;
+    padding: 0.9rem;
+    margin-bottom: 0.7rem;
+    background: #ffffff;
+}
+
+.consent-entry-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.consent-entry-type {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 0.35rem;
+    padding: 0.2rem 0.45rem;
+}
+
+.consent-entry-type.given {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.consent-entry-type.withdrawn {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.consent-entry-type.recorded {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.consent-entry-time {
+    color: #6b7280;
+    font-size: 0.72rem;
+}
+
+.consent-entry-name {
+    color: #111827;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.consent-entry-details {
+    color: #6b7280;
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+.consent-entry-hash {
+    margin-top: 0.45rem;
+    color: #6b7280;
+    font-size: 0.7rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    word-break: break-all;
+}
+
+/* === Statistics Grid === */
+.stats-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+    border: 1px solid #E5E5E5;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
+}
+
+.stat-value {
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--blt-primary);
+}
+
+.stat-label {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 700;
+}
+
+/* === Consent Media Queries === */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .consent-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

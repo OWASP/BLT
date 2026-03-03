@@ -38,204 +38,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     referrerpolicy="no-referrer"
   />
-
-  <style>
-    :root {
-      --blt-primary: #E10101;
-      --blt-neutral-border: #E5E5E5;
-    }
-
-    body {
-      background-color: #f8fafc;
-      color: #111827;
-    }
-
-    .hero-glow {
-      background:
-        radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.10), transparent 35%),
-        radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.08), transparent 30%),
-        linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
-    }
-
-    .nav-link.active {
-      color: var(--blt-primary);
-      background: #feeae9;
-    }
-
-    .navbar-nav.open {
-      display: flex;
-    }
-
-    .surface-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .surface-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 26px rgba(225, 1, 1, 0.10);
-    }
-
-    .checkbox-wrapper {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.6rem;
-    }
-
-    .checkbox-wrapper input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--blt-primary);
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .checkbox-wrapper span {
-      font-size: 0.875rem;
-      color: #374151;
-      line-height: 1.5;
-    }
-
-    .consent-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .consent-log {
-      max-height: 760px;
-      overflow-y: auto;
-    }
-
-    .consent-entry {
-      border: 1px solid #E5E5E5;
-      border-radius: 0.6rem;
-      padding: 0.9rem;
-      margin-bottom: 0.7rem;
-      background: #ffffff;
-    }
-
-    .consent-entry-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.5rem;
-      margin-bottom: 0.45rem;
-    }
-
-    .consent-entry-type {
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      border-radius: 0.35rem;
-      padding: 0.2rem 0.45rem;
-    }
-
-    .consent-entry-type.given {
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .consent-entry-type.withdrawn {
-      color: #b91c1c;
-      background: #fee2e2;
-    }
-
-    .consent-entry-type.recorded {
-      color: #1d4ed8;
-      background: #dbeafe;
-    }
-
-    .consent-entry-time {
-      color: #6b7280;
-      font-size: 0.72rem;
-    }
-
-    .consent-entry-name {
-      color: #111827;
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-    }
-
-    .consent-entry-details {
-      color: #6b7280;
-      font-size: 0.83rem;
-      line-height: 1.5;
-    }
-
-    .consent-entry-hash {
-      margin-top: 0.45rem;
-      color: #6b7280;
-      font-size: 0.7rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      word-break: break-all;
-    }
-
-    .stats-grid {
-      display: grid;
-      gap: 0.8rem;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .stat-card {
-      border: 1px solid #E5E5E5;
-      border-radius: 0.75rem;
-      background: #ffffff;
-      padding: 1rem;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
-    }
-
-    .stat-value {
-      font-size: 1.9rem;
-      font-weight: 800;
-      line-height: 1;
-      color: var(--blt-primary);
-    }
-
-    .stat-label {
-      margin-top: 0.25rem;
-      font-size: 0.8rem;
-      color: #6b7280;
-      font-weight: 700;
-    }
-
-    #toast-container {
-      position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 60;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .toast {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
-    }
-
-    @media (max-width: 1024px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 900px) {
-      .consent-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body class="font-sans antialiased">
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
@@ -304,13 +107,13 @@
         <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">
           <i class="fa-solid fa-file-shield mr-1" aria-hidden="true"></i>GDPR Ready
         </span>
-        <button class="btn btn-sm btn-secondary" id="btn-export-json" aria-label="Export consent log as JSON">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-3 py-1.5 text-xs font-bold text-white transition hover:bg-primary-hover" id="btn-export-json" aria-label="Export consent log as JSON">
           <i class="fa-solid fa-download" aria-hidden="true"></i>JSON
         </button>
-        <button class="btn btn-sm btn-secondary" id="btn-export-csv" aria-label="Export consent log as CSV">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" id="btn-export-csv" aria-label="Export consent log as CSV">
           <i class="fa-solid fa-download" aria-hidden="true"></i>CSV
         </button>
-        <button class="btn btn-sm btn-danger" id="btn-clear-log" aria-label="Clear all consent records">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-600 hover:text-white hover:border-red-600" id="btn-clear-log" aria-label="Clear all consent records">
           <i class="fa-solid fa-trash" aria-hidden="true"></i>Clear All
         </button>
       </div>
@@ -338,18 +141,18 @@
 
       <div class="consent-layout">
         <section aria-label="Record new consent event" class="space-y-4">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md">
+            <div class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3">
+              <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
                 <i class="fa-solid fa-clipboard-check text-primary" aria-hidden="true"></i>
                 Record Consent Event
               </h2>
             </div>
-            <div class="card-body">
+            <div class="p-4">
               <form id="consent-form" novalidate aria-label="Consent recording form">
                 <div class="mb-4">
-                  <label class="form-label" for="consent-type">Consent Type *</label>
-                  <select class="form-input" id="consent-type" name="consent-type" required aria-required="true">
+                  <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-600" for="consent-type">Consent Type *</label>
+                  <select class="w-full border border-gray-400 rounded-md px-4 py-2 bg-white text-gray-900 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%2712%27%20viewBox=%270%200%2012%2012%27%3E%3Cpath%20fill=%27%236b7280%27%20d=%27M6%208L1%203h10z%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] pr-10" id="consent-type" name="consent-type" required aria-required="true">
                     <option value="given">Consent Given</option>
                     <option value="withdrawn">Consent Withdrawn</option>
                     <option value="recorded">Event Recorded</option>
@@ -357,18 +160,18 @@
                 </div>
 
                 <div class="mb-4">
-                  <label class="form-label" for="participant-name">Participant Name / ID *</label>
-                  <input type="text" class="form-input" id="participant-name" name="participant-name" placeholder="e.g. Jane Doe or user@example.com" required aria-required="true" autocomplete="off" />
+                  <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-600" for="participant-name">Participant Name / ID *</label>
+                  <input type="text" class="w-full border border-gray-400 rounded-md px-4 py-2 bg-white text-gray-900 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600" id="participant-name" name="participant-name" placeholder="e.g. Jane Doe or user@example.com" required aria-required="true" autocomplete="off" />
                 </div>
 
                 <div class="mb-4">
-                  <label class="form-label" for="purpose">Purpose of Processing</label>
-                  <input type="text" class="form-input" id="purpose" name="purpose" placeholder="e.g. Video call recording, AI note-taking" autocomplete="off" />
+                  <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-600" for="purpose">Purpose of Processing</label>
+                  <input type="text" class="w-full border border-gray-400 rounded-md px-4 py-2 bg-white text-gray-900 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600" id="purpose" name="purpose" placeholder="e.g. Video call recording, AI note-taking" autocomplete="off" />
                 </div>
 
                 <div class="mb-5">
-                  <label class="form-label" for="details">Additional Details</label>
-                  <textarea class="form-input" id="details" name="details" placeholder="Optional notes about this consent event..." rows="3"></textarea>
+                  <label class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-600" for="details">Additional Details</label>
+                  <textarea class="w-full border border-gray-400 rounded-md px-4 py-2 bg-white text-gray-900 text-sm outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 min-h-[100px] resize-y" id="details" name="details" placeholder="Optional notes about this consent event..." rows="3"></textarea>
                 </div>
 
                 <div class="checkbox-wrapper mb-5">
@@ -378,7 +181,7 @@
                   </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-full" aria-label="Record consent">
+                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-hover" aria-label="Record consent">
                   <i class="fa-solid fa-fingerprint" aria-hidden="true"></i>
                   Record and Hash Consent
                 </button>
@@ -386,37 +189,37 @@
             </div>
           </div>
 
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md">
+            <div class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3">
+              <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
                 <i class="fa-solid fa-bolt text-primary" aria-hidden="true"></i>
                 Quick Templates
               </h2>
             </div>
-            <div class="card-body flex flex-col gap-2">
-              <button class="btn btn-secondary" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'Video call recording',details:'Explicit consent given before session start via in-app prompt'}).then(()=>{renderConsentPage()})" aria-label="Record session consent">
+            <div class="p-4 flex flex-col gap-2">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'Video call recording',details:'Explicit consent given before session start via in-app prompt'}).then(()=>{renderConsentPage()})" aria-label="Record session consent">
                 Session Consent (All)
               </button>
-              <button class="btn btn-secondary" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'AI meeting notes',details:'Consent to generate encrypted AI notes from meeting content'}).then(()=>{renderConsentPage()})" aria-label="Record AI notes consent">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" onclick="ConsentManager.record({type:'given',name:'All Participants',purpose:'AI meeting notes',details:'Consent to generate encrypted AI notes from meeting content'}).then(()=>{renderConsentPage()})" aria-label="Record AI notes consent">
                 Consent to AI Notes
               </button>
-              <button class="btn btn-secondary" onclick="ConsentManager.record({type:'recorded',name:'System',purpose:'Session metadata',details:'Secure session initiated; all participants anonymized'}).then(()=>{renderConsentPage()})" aria-label="Record session start">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" onclick="ConsentManager.record({type:'recorded',name:'System',purpose:'Session metadata',details:'Secure session initiated; all participants anonymized'}).then(()=>{renderConsentPage()})" aria-label="Record session start">
                 Session Started
               </button>
-              <button class="btn btn-secondary" onclick="ConsentManager.record({type:'withdrawn',name:'Participant',purpose:'Right to erasure',details:'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)'}).then(()=>{renderConsentPage()})" aria-label="Record consent withdrawal">
+              <button class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50" onclick="ConsentManager.record({type:'withdrawn',name:'Participant',purpose:'Right to erasure',details:'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)'}).then(()=>{renderConsentPage()})" aria-label="Record consent withdrawal">
                 Withdraw Consent (GDPR Art. 17)
               </button>
             </div>
           </div>
 
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md">
+            <div class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3">
+              <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
                 <i class="fa-solid fa-scale-balanced text-primary" aria-hidden="true"></i>
                 Legal Basis
               </h2>
             </div>
-            <div class="card-body text-sm text-gray-600">
+            <div class="p-4 text-sm text-gray-600">
               <p class="mb-3">SafeCloak consent tooling supports compliance workflows by providing:</p>
               <ul class="space-y-1.5" role="list">
                 <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Explicit informed consent capture</li>
@@ -432,15 +235,15 @@
         </section>
 
         <section aria-label="Consent event log">
-          <div class="card h-full">
-            <div class="card-header">
-              <h2 class="card-title">
+          <div class="border border-neutral-border rounded-xl bg-white shadow-md h-full">
+            <div class="border-b border-gray-100 px-4 py-3.5 flex items-center justify-between gap-3">
+              <h2 class="text-base font-extrabold text-gray-900 inline-flex items-center gap-2">
                 <i class="fa-solid fa-list-check text-primary" aria-hidden="true"></i>
                 Consent Log
               </h2>
-              <span class="text-muted text-small">SHA-256 integrity hashed</span>
+              <span class="text-gray-500 text-xs">SHA-256 integrity hashed</span>
             </div>
-            <div class="card-body consent-log" id="consent-log" aria-live="polite" aria-label="Consent records list"></div>
+            <div class="p-4 consent-log" id="consent-log" aria-live="polite" aria-label="Consent records list"></div>
           </div>
         </section>
       </div>
