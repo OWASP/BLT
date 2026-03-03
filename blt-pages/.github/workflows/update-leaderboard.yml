@@ -106,9 +106,15 @@ jobs:
             // Extract domain from the URL field in an issue body
             function extractDomain(body) {
               if (!body) return null;
-              const match = body.match(/### URL\s*\n\n(https?:\/\/([^/\s\n]+))/);
+              const match = body.match(/### URL\s*\n\n(\S+)/);
               if (!match) return null;
-              try { return new URL(match[1]).hostname; } catch { return null; }
+              let rawUrl = match[1].trim();
+              if (rawUrl.startsWith('//')) {
+                rawUrl = 'https:' + rawUrl;
+              } else if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+                rawUrl = 'https://' + rawUrl;
+              }
+              try { return new URL(rawUrl).hostname || null; } catch { return null; }
             }
 
             // Build top-domains leaderboard

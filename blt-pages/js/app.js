@@ -209,11 +209,19 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     counts[user].count++;
 
     // Extract domain from URL field
-    const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+    const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
     if (urlMatch) {
       try {
-        const domain = new URL(urlMatch[1]).hostname;
-        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        let rawUrl = urlMatch[1].trim();
+        if (rawUrl.startsWith("//")) {
+          rawUrl = "https:" + rawUrl;
+        } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+          rawUrl = "https://" + rawUrl;
+        }
+        const domain = new URL(rawUrl).hostname;
+        if (domain) {
+          domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        }
       } catch { /* ignore malformed URLs */ }
     }
   }
