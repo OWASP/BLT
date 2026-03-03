@@ -8,7 +8,7 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:8080',
   },
   webServer: {
-    command: 'python3 -m http.server 8080',
+    command: 'python -m http.server 8080 --bind 127.0.0.1',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
   },

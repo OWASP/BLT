@@ -11,8 +11,14 @@ test('homepage loads without JavaScript errors', async ({ page }) => {
 
   await page.goto('/');
 
-  // Wait for the page to be fully loaded
+  // Wait for the page to load, then wait until the leaderboard-rows tbody
+  // has been populated — this indicates async initialization (JSON fetch +
+  // render, or the API-fallback + error-row path) has fully settled.
   await page.waitForLoadState('load');
+  await page.waitForFunction(
+    () => document.getElementById('leaderboard-rows')?.childElementCount > 0,
+    { timeout: 15000 }
+  );
 
   expect(
     jsErrors,
