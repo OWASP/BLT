@@ -312,16 +312,23 @@ function renderLeaderboard(container, data) {
     .join("");
 
   // Update timestamps if present
-  const formattedDate = data.updated_at
-    ? new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    : null;
   const ts = document.getElementById("leaderboard-updated");
-  if (ts && formattedDate) {
-    ts.textContent = `Updated ${formattedDate}`;
+  if (ts && data.updated_at) {
+    ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
   }
   const homepageTs = document.getElementById("homepage-updated");
-  if (homepageTs && formattedDate) {
-    homepageTs.textContent = `Last updated: ${formattedDate}`;
+  if (homepageTs && data.updated_at) {
+    const ago = timeAgo(data.updated_at);
+    const sha = typeof data.commit_sha === "string" && /^[0-9a-f]{7,40}$/i.test(data.commit_sha)
+      ? data.commit_sha
+      : null;
+    if (sha) {
+      const commitUrl = `https://github.com/${encodeURIComponent(BLT_CONFIG.REPO_OWNER)}/${encodeURIComponent(BLT_CONFIG.REPO_NAME)}/commit/${sha}`;
+      const shortSha = escapeHtml(sha.slice(0, 7));
+      homepageTs.innerHTML = `Last updated: ${escapeHtml(ago)} &mdash; <a href="${escapeHtml(commitUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${shortSha}</a>`;
+    } else {
+      homepageTs.textContent = `Last updated: ${ago}`;
+    }
   }
 }
 
@@ -631,4 +638,21 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function timeAgo(dateString) {
+  const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  const years = Math.floor(days / 365);
+  return `${years} year${years === 1 ? "" : "s"} ago`;
 }
