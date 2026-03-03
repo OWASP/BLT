@@ -111,7 +111,7 @@ function initPricing() {
       .map(
         (f) =>
           `<li class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-             <i class="fa-solid fa-check text-primary mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+             <svg class="fa-icon text-primary mt-0.5 flex-shrink-0" aria-hidden="true"><use href="#fa-check"></use></svg>
              <span>${f}</span>
            </li>`
       )
@@ -132,7 +132,7 @@ function initPricing() {
     const shareHtml =
       plan.id === "pro"
         ? `<p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
-             <i class="fa-solid fa-hand-holding-dollar text-primary mr-1" aria-hidden="true"></i>
+             <svg class="fa-icon text-primary mr-1" aria-hidden="true"><use href="#fa-hand-holding-dollar"></use></svg>
              Reporters earn <strong class="text-primary">${BLT_CONFIG.REVENUE_SHARE_PERCENT}%</strong> of your subscription
            </p>`
         : "";
@@ -204,7 +204,7 @@ async function loadLeaderboard() {
       await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters);
     } catch (err) {
       container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
-        <i class="fa-solid fa-circle-exclamation text-primary mr-2" aria-hidden="true"></i>
+        <svg class="fa-icon text-primary mr-2" aria-hidden="true"><use href="#fa-circle-exclamation"></use></svg>
         Could not load leaderboard. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
       </td></tr>`;
     }
@@ -278,7 +278,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
 function renderLeaderboard(container, data) {
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <i class="fa-solid fa-trophy text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
       No reports yet. Be the first to <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">report a bug</a>!
     </td></tr>`;
     return;
@@ -317,7 +317,7 @@ function renderLeaderboard(container, data) {
           </a>
           <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
-              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
               ${formatNumber(entry.count)}
             </span>
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
@@ -327,7 +327,7 @@ function renderLeaderboard(container, data) {
         </td>
         <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
             ${formatNumber(entry.count)}
           </span>
         </td>
@@ -532,7 +532,7 @@ function renderRecentBugs(bugs) {
 
   if (!bugs || bugs.length === 0) {
     grid.innerHTML = `<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">
-      <i class="fa-solid fa-bug text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-bug"></use></svg>
       No bug reports yet. <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary hover:underline">Be the first to report!</a>
     </div>`;
     return;
@@ -549,7 +549,7 @@ function renderRecentBugs(bugs) {
                   onerror="this.parentElement.classList.add('hidden')" />
            </div>`
         : `<div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 flex items-center justify-center flex-shrink-0">
-             <i class="fa-solid fa-bug text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"></i>
+             <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-bug"></use></svg>
            </div>`;
 
       const date = new Date(bug.created_at).toLocaleDateString(undefined, {
@@ -576,7 +576,7 @@ function renderRecentBugs(bugs) {
                 class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1"
                 loading="lazy"
                 referrerpolicy="no-referrer"
-                onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>'" />`
+                onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-4 h-4\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />`
         : "";
 
       // Comment section
@@ -602,7 +602,7 @@ function renderRecentBugs(bugs) {
               <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${commentBody}</p>
               <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
                  class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors">
-                <i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>
+                <svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
                 ${commentCountLabel}
               </a>
             </div>
@@ -612,7 +612,7 @@ function renderRecentBugs(bugs) {
         commentHtml = `<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700">
           <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
              class="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-            <i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>
+            <svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
             Be the first to comment
           </a>
         </div>`;
@@ -658,7 +658,7 @@ function renderTopCommenters(container, data) {
   const commenters = data.top_commenters || [];
   if (commenters.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <i class="fa-solid fa-comment text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>
       No comments yet. Start a conversation on a <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!
     </td></tr>`;
     return;
@@ -697,7 +697,7 @@ function renderTopCommenters(container, data) {
           </a>
           <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
-              <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
+              <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
               ${formatNumber(entry.count)}
             </span>
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
@@ -707,7 +707,7 @@ function renderTopCommenters(container, data) {
         </td>
         <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
+            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
             ${formatNumber(entry.count)}
           </span>
         </td>
@@ -732,7 +732,7 @@ function renderTopDomains(container, data) {
   const domains = data.top_domains || [];
   if (domains.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <i class="fa-solid fa-globe text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>
+      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>
       No domain data yet. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">Be the first to report a bug!</a>
     </td></tr>`;
     return;
@@ -766,14 +766,14 @@ function renderTopDomains(container, data) {
                  alt="${escapeHtml(entry.domain)} favicon"
                  class="w-5 h-5 rounded flex-shrink-0"
                  loading="lazy"
-                 onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\\' aria-hidden=\\'true\\'></i>'" />
+                 onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-5 h-5 flex-shrink-0\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />
             <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.domain)}
             </span>
           </a>
           <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
-              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
               ${formatNumber(entry.count)}
             </span>
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
@@ -783,7 +783,7 @@ function renderTopDomains(container, data) {
         </td>
         <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
             ${formatNumber(entry.count)}
           </span>
         </td>
