@@ -283,13 +283,13 @@ function renderLeaderboard(container, data) {
         <td class="px-4 py-3">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
-                 alt="${entry.login}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700"
+                 alt="${escapeHtml(entry.login)}'s avatar"
+                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
-                 onerror="this.src='https://github.com/identicons/${entry.login}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                 onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.login)}
             </span>
           </a>
@@ -499,13 +499,13 @@ function renderTopCommenters(container, data) {
         <td class="px-4 py-3">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700"
+                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.login)}
             </span>
           </a>
@@ -565,13 +565,13 @@ function renderTopDomains(container, data) {
         <td class="px-4 py-3">
           <a href="https://${escapeHtml(entry.domain)}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${faviconUrl}"
                  alt="${escapeHtml(entry.domain)} favicon"
                  class="w-5 h-5 rounded flex-shrink-0"
                  loading="lazy"
                  onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\\' aria-hidden=\\'true\\'></i>'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.domain)}
             </span>
           </a>
