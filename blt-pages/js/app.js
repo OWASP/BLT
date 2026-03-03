@@ -344,23 +344,42 @@ async function loadRecentBugsFromAPI(grid) {
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
   const issues = await res.json();
 
-  const bugs = issues
-    .filter((i) => !i.pull_request)
-    .slice(0, 3)
-    .map((issue) => ({
-      number: issue.number,
-      title: issue.title,
-      html_url: issue.html_url,
-      created_at: issue.created_at,
-      user: {
-        login: issue.user.login,
-        avatar_url: issue.user.avatar_url,
-        profile_url: issue.user.html_url,
-      },
-      image_url: extractFirstImage(issue.body),
-    }));
+  // Fetch reactions for each issue in parallel
+  const bugsWithReactions = await Promise.all(
+    issues
+      .filter((i) => !i.pull_request)
+      .slice(0, 3)
+      .map(async (issue) => {
+        let reactions = [];
+        try {
+          const reactionsUrl = `${issue.url}/reactions`;
+          const reactionsRes = await fetch(reactionsUrl, {
+            headers: { Accept: "application/vnd.github+json" },
+          });
+          if (reactionsRes.ok) {
+            reactions = await reactionsRes.json();
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch reactions for issue #${issue.number}:`, error);
+        }
 
-  renderRecentBugs(bugs);
+        return {
+          number: issue.number,
+          title: issue.title,
+          html_url: issue.html_url,
+          created_at: issue.created_at,
+          user: {
+            login: issue.user.login,
+            avatar_url: issue.user.avatar_url,
+            profile_url: issue.user.html_url,
+          },
+          image_url: extractFirstImage(issue.body),
+          reactions: aggregateReactions(reactions),
+        };
+      })
+  );
+
+  renderRecentBugs(bugsWithReactions);
 }
 
 function extractFirstImage(body) {
@@ -412,6 +431,8 @@ function renderRecentBugs(bugs) {
       );
       const login = escapeHtml(bug.user.login);
 
+      const reactionsHtml = bug.reactions ? formatReactions(bug.reactions) : '';
+
       return `<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
         ${imgHtml}
         <h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">
@@ -420,6 +441,7 @@ function renderRecentBugs(bugs) {
             ${escapeHtml(bug.title)}
           </a>
         </h3>
+        ${reactionsHtml}
         <div class="flex items-center justify-between mt-auto pt-3 border-t border-neutral-border dark:border-gray-700">
           <a href="${profileUrl}" target="_blank" rel="noopener noreferrer"
              class="flex items-center gap-2 group">
@@ -599,4 +621,42 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/* ────────────────────────────────────────────────────────────
+   Reactions Helpers
+──────────────────────────────────────────────────────────── */
+function aggregateReactions(reactions) {
+  const counts = {};
+  reactions.forEach((reaction) => {
+    const type = reaction.content;
+    counts[type] = (counts[type] || 0) + 1;
+  });
+  return counts;
+}
+
+function formatReactions(reactions) {
+  const reactionEmojis = {
+    "+1": "👍",
+    "-1": "👎",
+    "laugh": "😄",
+    "hooray": "🎉",
+    "confused": "😕",
+    "heart": "❤️",
+    "rocket": "🚀",
+    "eyes": "👀"
+  };
+
+  const items = Object.entries(reactions)
+    .filter(([_, count]) => count > 0)
+    .map(([type, count]) => 
+      `<span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="${type}">
+        <span>${reactionEmojis[type] || "❓"}</span>
+        <span class="font-medium">${count}</span>
+      </span>`
+    );
+
+  if (items.length === 0) return '';
+
+  return `<div class="flex flex-wrap gap-1.5 mb-3">${items.join('')}</div>`;
 }
