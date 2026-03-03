@@ -554,22 +554,27 @@ jobs:
               `${topCommenters.length} commenters, ${payload.total_domains} domains`
             );
 
-      - name: Commit updated leaderboard
-        if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/leaderboard.json index.html
-          if git diff --quiet --cached; then
-            echo "No changes detected – skipping commit."
-          else
-            git commit -m "chore: update leaderboard data"
-            for i in 1 2 3; do
-              git pull --rebase origin main && git push && break
-              echo "Push attempt $i failed, retrying..."
-              sleep $((i * 5))
-            done
-          fi
+            // Commit and push the updated files
+            const { execSync } = require('child_process');
+            execSync('git config user.name "github-actions[bot]"');
+            execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
+            execSync('git add data/leaderboard.json index.html');
+            let hasChanges = true;
+            try { execSync('git diff --quiet --cached'); hasChanges = false; } catch (e) {}
+            if (!hasChanges) {
+              console.log('No changes detected – skipping commit.');
+            } else {
+              execSync('git commit -m "chore: update leaderboard data"', { stdio: 'inherit' });
+              for (let i = 1; i <= 3; i++) {
+                try {
+                  execSync('git pull --rebase origin main && git push', { stdio: 'inherit', shell: true });
+                  break;
+                } catch (e) {
+                  console.log(`Push attempt ${i} failed, retrying...`);
+                  if (i < 3) execSync(`sleep ${i * 5}`);
+                }
+              }
+            }
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
