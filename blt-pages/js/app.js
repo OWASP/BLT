@@ -353,12 +353,8 @@ async function loadRecentBugs() {
 }
 
 async function loadRecentBugsFromAPI(grid) {
-  const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=3&sort=created&direction=desc`;
-  
-  const res = await fetch(url, {
-    headers: { Accept: "application/vnd.github+json" },
-  });
-
+  const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=open&labels=bug&per_page=3&sort=created&direction=desc`;
+  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
   const issues = await res.json();
 
