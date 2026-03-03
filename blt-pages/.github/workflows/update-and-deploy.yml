@@ -564,7 +564,11 @@ jobs:
             echo "No changes detected – skipping commit."
           else
             git commit -m "chore: update leaderboard data"
-            git push
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying..."
+              sleep $((i * 5))
+            done
           fi
 
       - name: Configure GitHub Pages
