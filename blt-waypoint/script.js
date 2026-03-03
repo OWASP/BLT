@@ -1018,10 +1018,10 @@ on('view-card-btn', 'click', () => {
 updateViewButtons();
 
 // Initialize sort UI to reflect stored preference
-const _sortSelect = document.getElementById('sort-select');
-const _sortSelectMobile = document.getElementById('sort-select-mobile');
-if (_sortSelect) _sortSelect.value = currentSort;
-if (_sortSelectMobile) _sortSelectMobile.value = currentSort;
+const sortSelect = document.getElementById('sort-select');
+const sortSelectMobile = document.getElementById('sort-select-mobile');
+if (sortSelect) sortSelect.value = currentSort;
+if (sortSelectMobile) sortSelectMobile.value = currentSort;
 document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
 
 // Search (debounced)
