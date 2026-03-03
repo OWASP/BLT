@@ -79,7 +79,7 @@ const BLT_CONFIG = {
         "Custom revenue share",
       ],
       cta: "Contact Us",
-      cta_href: "mailto:contact@owasp.org",
+      cta_href: "mailto:contact@commercial-company-with-fork.org",
       highlighted: false,
     },
   ],
