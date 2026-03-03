@@ -258,7 +258,7 @@ npx serve
 ### File Structure
 
 ```
-BLT-Hackathon/
+BLT-Hackathons/
 ├── index.html                  # Main page listing all hackathons
 ├── hackathon.html              # Individual hackathon dashboard
 ├── js/

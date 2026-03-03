@@ -53,7 +53,7 @@ const EXAMPLE_CONFIG = {
         repositories: [
             "OWASP-BLT/BLT",
             "OWASP-BLT/BLT-Flutter",
-            "OWASP-BLT/BLT-Bacon",
+            "OWASP-BLT/BLT-Rewards",
             "OWASP-BLT/BLT-Action",
             "OWASP-BLT/BLT-Extension",
             "OWASP-BLT/OWASP-BLT-Website-Monitor",
