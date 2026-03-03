@@ -44,6 +44,60 @@ jobs:
               content: 'eyes',
             });
 
+      - name: Add domain label to new issue
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            // Use the same two-newline pattern as extractDomain() in the leaderboard step
+            const match = body.match(/### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/);
+            if (!match) return;
+
+            let hostname = null;
+            try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
+            if (!hostname) return;
+
+            // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
+            const labelName = `domain: ${hostname}`.slice(0, 50);
+
+            // Ensure the label exists (create if missing)
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                name:  labelName,
+              });
+            } catch (e) {
+              if (e.status === 404) {
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo:  context.repo.repo,
+                    name:  labelName,
+                    color: '0075ca',
+                    description: `Issues related to ${hostname}`,
+                  });
+                } catch (createError) {
+                  // If the label was created concurrently by another workflow run,
+                  // GitHub may return 422 "Unprocessable Entity" (already exists).
+                  if (createError.status !== 422) {
+                    throw createError;
+                  }
+                }
+              } else {
+                throw e;
+              }
+            }
+
+            // Apply the label to the issue
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: [labelName],
+            });
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
