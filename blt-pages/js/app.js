@@ -89,11 +89,13 @@ function initPricing() {
   if (!section) return;
 
   if (!BLT_CONFIG.SHOW_PRICING) {
-    section.classList.add("hidden");
-    if (navLink) navLink.classList.add("hidden");
-    if (navLinkMobile) navLinkMobile.classList.add("hidden");
     return;
   }
+
+  section.classList.remove("hidden");
+  section.style.display = "";
+  if (navLink) { navLink.classList.remove("hidden"); navLink.style.display = ""; }
+  if (navLinkMobile) { navLinkMobile.classList.remove("hidden"); navLinkMobile.style.display = ""; }
 
   // Render pricing plans dynamically
   const grid = document.getElementById("pricing-grid");
