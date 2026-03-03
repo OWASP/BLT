@@ -253,6 +253,7 @@ jobs:
 
             const payload = {
               updated_at:     new Date().toISOString(),
+              commit_sha:     context.sha,
               total_bugs:     bugIssues.length,
               total_domains:  Object.keys(domainCounts).length,
               total_orgs:     orgSet.size,
