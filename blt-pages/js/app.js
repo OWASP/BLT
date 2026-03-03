@@ -311,10 +311,17 @@ function renderLeaderboard(container, data) {
     })
     .join("");
 
-  // Update timestamp if present
+  // Update timestamps if present
+  const formattedDate = data.updated_at
+    ? new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
   const ts = document.getElementById("leaderboard-updated");
-  if (ts && data.updated_at) {
-    ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+  if (ts && formattedDate) {
+    ts.textContent = `Updated ${formattedDate}`;
+  }
+  const homepageTs = document.getElementById("homepage-updated");
+  if (homepageTs && formattedDate) {
+    homepageTs.textContent = `Last updated: ${formattedDate}`;
   }
 }
 
