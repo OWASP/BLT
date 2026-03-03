@@ -1,5 +1,5 @@
 /**
- * BLT Pages – Configuration
+ * OWASP BLT – Configuration
  *
  * Fork-friendly configuration file. Commercial forks may set
  * SHOW_PRICING = true and customise the PRICING_PLANS array.
