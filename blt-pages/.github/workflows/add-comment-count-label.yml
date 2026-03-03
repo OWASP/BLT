@@ -214,9 +214,10 @@ jobs:
               );
               
               const conversationWord = count === 1 ? 'conversation' : 'conversations';
+              const prAuthor = pr.user.login;
               const commentBody = notificationMarker + '\n' +
                 '## 💬 Unresolved Conversations Detected\n\n' +
-                `This pull request currently has **${count} unresolved ${conversationWord}** that need to be addressed.\n\n` +
+                `@${prAuthor} This pull request currently has **${count} unresolved ${conversationWord}** that need to be addressed.\n\n` +
                 '### Action Required\n' +
                 '- Review the pending discussions in the "Files changed" tab\n' +
                 '- Address or respond to each conversation\n' +
