@@ -265,6 +265,7 @@ function renderLeaderboard(container, data) {
   }
 
   const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = data.leaderboard[0]?.count || 1;
 
   container.innerHTML = data.leaderboard
     .map((entry) => {
@@ -278,6 +279,7 @@ function renderLeaderboard(container, data) {
           ? "bg-active-bg dark:bg-red-900/10"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
         <td class="px-4 py-3">
@@ -293,8 +295,17 @@ function renderLeaderboard(container, data) {
               ${escapeHtml(entry.login)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -303,7 +314,7 @@ function renderLeaderboard(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, data.leaderboard[0]?.count ? (entry.count / data.leaderboard[0].count) * 100 : 0)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
@@ -312,16 +323,23 @@ function renderLeaderboard(container, data) {
     .join("");
 
   // Update timestamps if present
-  const formattedDate = data.updated_at
-    ? new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    : null;
   const ts = document.getElementById("leaderboard-updated");
-  if (ts && formattedDate) {
-    ts.textContent = `Updated ${formattedDate}`;
+  if (ts && data.updated_at) {
+    ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
   }
   const homepageTs = document.getElementById("homepage-updated");
-  if (homepageTs && formattedDate) {
-    homepageTs.textContent = `Last updated: ${formattedDate}`;
+  if (homepageTs && data.updated_at) {
+    const ago = timeAgo(data.updated_at);
+    const sha = typeof data.commit_sha === "string" && /^[0-9a-f]{7,40}$/i.test(data.commit_sha)
+      ? data.commit_sha
+      : null;
+    if (sha) {
+      const commitUrl = `https://github.com/${encodeURIComponent(BLT_CONFIG.REPO_OWNER)}/${encodeURIComponent(BLT_CONFIG.REPO_NAME)}/commit/${sha}`;
+      const shortSha = escapeHtml(sha.slice(0, 7));
+      homepageTs.innerHTML = `Last updated: ${escapeHtml(ago)} &mdash; <a href="${escapeHtml(commitUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${shortSha}</a>`;
+    } else {
+      homepageTs.textContent = `Last updated: ${ago}`;
+    }
   }
 }
 
@@ -535,6 +553,7 @@ function renderTopCommenters(container, data) {
           ? "bg-active-bg dark:bg-red-900/10"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
         <td class="px-4 py-3">
@@ -550,8 +569,17 @@ function renderTopCommenters(container, data) {
               ${escapeHtml(entry.login)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -560,7 +588,7 @@ function renderTopCommenters(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
@@ -600,6 +628,7 @@ function renderTopDomains(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(entry.domain)}&sz=32`;
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
 
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
@@ -616,8 +645,17 @@ function renderTopDomains(container, data) {
               ${escapeHtml(entry.domain)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -626,7 +664,7 @@ function renderTopDomains(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
@@ -705,4 +743,19 @@ function formatReactions(reactions) {
   if (items.length === 0) return '';
 
   return items.join(' ');
+function timeAgo(dateString) {
+  const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  const years = Math.floor(days / 365);
+  return `${years} year${years === 1 ? "" : "s"} ago`;
 }
