@@ -50,14 +50,16 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            const match = body.match(/### URL\s*\n+\s*(https?:\/\/[^\s]+)/);
+            // Use the same two-newline pattern as extractDomain() in the leaderboard step
+            const match = body.match(/### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/);
             if (!match) return;
 
             let hostname = null;
             try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
             if (!hostname) return;
 
-            const labelName = `domain: ${hostname}`;
+            // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
+            const labelName = `domain: ${hostname}`.slice(0, 50);
 
             // Ensure the label exists (create if missing)
             try {
@@ -68,13 +70,21 @@ jobs:
               });
             } catch (e) {
               if (e.status === 404) {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo:  context.repo.repo,
-                  name:  labelName,
-                  color: '0075ca',
-                  description: `Issues related to ${hostname}`,
-                });
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo:  context.repo.repo,
+                    name:  labelName,
+                    color: '0075ca',
+                    description: `Issues related to ${hostname}`,
+                  });
+                } catch (createError) {
+                  // If the label was created concurrently by another workflow run,
+                  // GitHub may return 422 "Unprocessable Entity" (already exists).
+                  if (createError.status !== 422) {
+                    throw createError;
+                  }
+                }
               } else {
                 throw e;
               }
