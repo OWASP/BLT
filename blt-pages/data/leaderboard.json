@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-03T01:31:20.345Z",
+  "updated_at": "2026-03-03T01:57:34.000Z",
   "total_bugs": 8,
   "total_domains": 2,
   "total_orgs": 0,
@@ -74,7 +74,7 @@
     {
       "rank": 1,
       "domain": "owaspblt.org",
-      "count": 5
+      "count": 6
     },
     {
       "rank": 2,
