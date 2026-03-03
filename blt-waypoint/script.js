@@ -53,14 +53,17 @@ let allLabels     = [];
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (saved === 'dark' || (!saved && prefersDark)) {
     document.documentElement.classList.add('dark');
-    document.getElementById('dark-icon').className = 'fa-solid fa-sun text-sm';
+    const icon = document.getElementById('dark-icon');
+    if (icon) icon.className = 'fa-solid fa-sun text-sm';
   }
 })();
 
-document.getElementById('dark-toggle').addEventListener('click', () => {
+const darkToggle = document.getElementById('dark-toggle');
+if (darkToggle) darkToggle.addEventListener('click', () => {
   const isDark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('blt-dark', isDark ? 'dark' : 'light');
-  document.getElementById('dark-icon').className = isDark
+  const icon = document.getElementById('dark-icon');
+  if (icon) icon.className = isDark
     ? 'fa-solid fa-sun text-sm'
     : 'fa-solid fa-moon text-sm';
 });
@@ -177,7 +180,8 @@ async function fetchAllPages(url) {
  * Falls back to live GitHub API calls if the file is missing or stale.
  */
 async function loadRepos() {
-  document.getElementById('error-state').classList.add('hidden');
+  const errorEl = document.getElementById('error-state');
+  if (errorEl) errorEl.classList.add('hidden');
 
   // Track whether data.json was successfully fetched and parsed so that any
   // downstream processing error is not silently swallowed and the live-API
@@ -237,7 +241,8 @@ async function loadRepos() {
         ' (data.json not yet available – action may not have run)';
     }
   } catch (err) {
-    showError(err.message);
+    console.error('Failed to load repositories:', err);
+    showError('Unable to load repositories. Please try again later.');
   }
 }
 
@@ -983,18 +988,26 @@ function showError(msg) {
 
 // View toggle
 function updateViewButtons() {
-  document.getElementById('view-table-btn').classList.toggle('view-btn-active', currentView === 'table');
-  document.getElementById('view-card-btn').classList.toggle('view-btn-active', currentView === 'card');
+  const tableBtn = document.getElementById('view-table-btn');
+  const cardBtn = document.getElementById('view-card-btn');
+  if (tableBtn) tableBtn.classList.toggle('view-btn-active', currentView === 'table');
+  if (cardBtn) cardBtn.classList.toggle('view-btn-active', currentView === 'card');
 }
 
-document.getElementById('view-table-btn').addEventListener('click', () => {
+/** Safely add an event listener to an element selected by ID. */
+function on(id, event, handler) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(event, handler);
+}
+
+on('view-table-btn', 'click', () => {
   currentView = 'table';
   localStorage.setItem('blt-view', 'table');
   updateViewButtons();
   applyFilters();
 });
 
-document.getElementById('view-card-btn').addEventListener('click', () => {
+on('view-card-btn', 'click', () => {
   currentView = 'card';
   localStorage.setItem('blt-view', 'card');
   updateViewButtons();
@@ -1005,13 +1018,15 @@ document.getElementById('view-card-btn').addEventListener('click', () => {
 updateViewButtons();
 
 // Initialize sort UI to reflect stored preference
-document.getElementById('sort-select').value = currentSort;
-document.getElementById('sort-select-mobile').value = currentSort;
+const sortSelect = document.getElementById('sort-select');
+const sortSelectMobile = document.getElementById('sort-select-mobile');
+if (sortSelect) sortSelect.value = currentSort;
+if (sortSelectMobile) sortSelectMobile.value = currentSort;
 document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
 
 // Search (debounced)
 let searchTimer;
-document.getElementById('search-input').addEventListener('input', e => {
+on('search-input', 'input', e => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     currentSearch = e.target.value.trim();
@@ -1020,25 +1035,27 @@ document.getElementById('search-input').addEventListener('input', e => {
 });
 
 // Sort (header select)
-document.getElementById('sort-select').addEventListener('change', e => {
+on('sort-select', 'change', e => {
   currentSort = e.target.value;
   localStorage.setItem('blt-sort', currentSort);
-  document.getElementById('sort-select-mobile').value = currentSort;
+  const mob = document.getElementById('sort-select-mobile');
+  if (mob) mob.value = currentSort;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
 });
 
 // Sort (mobile select)
-document.getElementById('sort-select-mobile').addEventListener('change', e => {
+on('sort-select-mobile', 'change', e => {
   currentSort = e.target.value;
   localStorage.setItem('blt-sort', currentSort);
-  document.getElementById('sort-select').value = currentSort;
+  const desk = document.getElementById('sort-select');
+  if (desk) desk.value = currentSort;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
   applyFilters();
 });
 
 // Filter (mobile select)
-document.getElementById('filter-select-mobile').addEventListener('change', e => {
+on('filter-select-mobile', 'change', e => {
   currentFilter = e.target.value;
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.classList.toggle('nav-active', b.dataset.filter === currentFilter);
@@ -1052,7 +1069,8 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     currentFilter = btn.dataset.filter;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('nav-active'));
     btn.classList.add('nav-active');
-    document.getElementById('filter-select-mobile').value = currentFilter;
+    const mob = document.getElementById('filter-select-mobile');
+    if (mob) mob.value = currentFilter;
     applyFilters();
   });
 });
@@ -1062,8 +1080,10 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     currentSort = btn.dataset.sort;
     localStorage.setItem('blt-sort', currentSort);
-    document.getElementById('sort-select').value = currentSort;
-    document.getElementById('sort-select-mobile').value = currentSort;
+    const desk = document.getElementById('sort-select');
+    const mob = document.getElementById('sort-select-mobile');
+    if (desk) desk.value = currentSort;
+    if (mob) mob.value = currentSort;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('nav-active'));
     btn.classList.add('nav-active');
     applyFilters();
@@ -1071,9 +1091,11 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
 });
 
 // Retry button
-document.getElementById('retry-btn').addEventListener('click', () => {
-  document.getElementById('error-state').classList.add('hidden');
-  document.getElementById('repo-grid').innerHTML = `
+on('retry-btn', 'click', () => {
+  const errEl = document.getElementById('error-state');
+  const gridEl = document.getElementById('repo-grid');
+  if (errEl) errEl.classList.add('hidden');
+  if (gridEl) gridEl.innerHTML = `
     <div class="skeleton h-48 rounded-xl"></div>
     <div class="skeleton h-48 rounded-xl"></div>
     <div class="skeleton h-48 rounded-xl"></div>
@@ -1082,28 +1104,35 @@ document.getElementById('retry-btn').addEventListener('click', () => {
 });
 
 // Clear filters
-document.getElementById('clear-btn').addEventListener('click', () => {
+on('clear-btn', 'click', () => {
   currentSearch = '';
   currentFilter = 'all';
   currentLang = '';
   currentLabel = '';
-  document.getElementById('search-input').value = '';
-  document.getElementById('label-search-input').value = '';
-  document.getElementById('sort-select').value = currentSort;
-  document.getElementById('filter-select-mobile').value = 'all';
+  const si = document.getElementById('search-input');
+  const lsi = document.getElementById('label-search-input');
+  const ss = document.getElementById('sort-select');
+  const fm = document.getElementById('filter-select-mobile');
+  const ld = document.getElementById('label-dropdown');
+  if (si) si.value = '';
+  if (lsi) lsi.value = '';
+  if (ss) ss.value = currentSort;
+  if (fm) fm.value = 'all';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
   document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-  document.getElementById('label-dropdown').classList.add('hidden');
+  if (ld) ld.classList.add('hidden');
   applyFilters();
 });
 
 // Clear label filter
-document.getElementById('clear-label-btn').addEventListener('click', () => {
+on('clear-label-btn', 'click', () => {
   currentLabel = '';
-  document.getElementById('label-search-input').value = '';
+  const lsi = document.getElementById('label-search-input');
+  const ld = document.getElementById('label-dropdown');
+  if (lsi) lsi.value = '';
   document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
-  document.getElementById('label-dropdown').classList.add('hidden');
+  if (ld) ld.classList.add('hidden');
   applyFilters();
 });
 

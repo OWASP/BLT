@@ -271,11 +271,16 @@
       (function () {
         const v = localStorage.getItem('blt-view') || 'table';
         if (v === 'table') {
-          document.getElementById('repo-grid').classList.add('hidden');
-          document.getElementById('repo-table').classList.remove('hidden');
-          document.getElementById('main-sidebar').classList.add('force-hidden');
-          document.getElementById('main-layout').classList.add('table-view');
-          document.querySelector('header').classList.add('table-view-header');
+          const g = document.getElementById('repo-grid');
+          const t = document.getElementById('repo-table');
+          const s = document.getElementById('main-sidebar');
+          const l = document.getElementById('main-layout');
+          const h = document.querySelector('header');
+          if (g) g.classList.add('hidden');
+          if (t) t.classList.remove('hidden');
+          if (s) s.classList.add('force-hidden');
+          if (l) l.classList.add('table-view');
+          if (h) h.classList.add('table-view-header');
         }
       })();
     </script>
