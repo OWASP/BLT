@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-03T22:09:54.174Z",
-  "commit_sha": "f6a55d516a91712c46c3b1340d3b4cc12b960971",
+  "updated_at": "2026-03-03T22:10:42.624Z",
+  "commit_sha": "997130bd18fefaece4b97990aaf779d7f68d802b",
   "total_bugs": 12,
   "total_domains": 2,
   "total_orgs": 0,
@@ -37,24 +37,24 @@
   "top_commenters": [
     {
       "rank": 1,
+      "login": "ananya-09",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "profile_url": "https://github.com/ananya-09"
+    },
+    {
+      "rank": 2,
       "login": "sidd190",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
       "profile_url": "https://github.com/sidd190"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "login": "azizrebhi",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
       "profile_url": "https://github.com/azizrebhi"
-    },
-    {
-      "rank": 3,
-      "login": "ananya-09",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
-      "profile_url": "https://github.com/ananya-09"
     },
     {
       "rank": 4,
@@ -103,7 +103,7 @@
       "title": "[BUG] The BLT Pages is not changes to OWASP BLT in the footer",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/63",
       "created_at": "2026-03-03T22:09:15Z",
-      "comment_count": 0,
+      "comment_count": 1,
       "user": {
         "login": "ananya-09",
         "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
@@ -114,7 +114,16 @@
       "reactions": {
         "eyes": 1
       },
-      "latest_comment": null
+      "latest_comment": {
+        "body": "Is it intentional or really a bug?",
+        "created_at": "2026-03-03T22:10:27Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/63#issuecomment-3993881391",
+        "user": {
+          "login": "ananya-09",
+          "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
+          "profile_url": "https://github.com/ananya-09"
+        }
+      }
     },
     {
       "number": 61,
