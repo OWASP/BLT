@@ -111,12 +111,14 @@ jobs:
                 throw e;
               }
             }
+            const issueNumber = context.payload.issue?.number;
+            if (!issueNumber) return;
 
             // Apply the label to the issue
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo:  context.repo.repo,
-              issue_number: context.payload.issue.number,
+              issue_number: issueNumber,
               labels: [labelName],
             });
 
