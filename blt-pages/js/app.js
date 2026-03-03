@@ -168,6 +168,14 @@ async function loadLeaderboard() {
 
   if (!container) return;
 
+  // Skip re-render when content has already been server-side rendered into the HTML,
+  // but still update the relative timestamps from the embedded inline data.
+  if (container.dataset.preRendered === "true") {
+    const inlineData = window.__BLT_LEADERBOARD__;
+    if (inlineData) updateTimestamps(inlineData);
+    return;
+  }
+
   try {
     // Use inline data embedded by GitHub Action if available
     const inlineData = window.__BLT_LEADERBOARD__;
@@ -220,6 +228,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     counts[user].count++;
 
     // Extract domain from URL field
+    // Extract domain from URL field using the standard pattern
     const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
     if (urlMatch) {
       try {
@@ -334,6 +343,10 @@ function renderLeaderboard(container, data) {
     .join("");
 
   // Update timestamps if present
+  updateTimestamps(data);
+}
+
+function updateTimestamps(data) {
   const ts = document.getElementById("leaderboard-updated");
   if (ts && data.updated_at) {
     ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
@@ -361,41 +374,46 @@ async function loadRecentBugs() {
   const grid = document.getElementById("recent-bugs-grid");
   if (!grid) return;
 
-  // 1. Try inlined data first (best performance, no API hits)
-  const inlineData = window.__BLT_LEADERBOARD__;
-  if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
-    renderRecentBugs(inlineData.recent_bugs);
-    return;
-  }
+  // Skip re-render when content has already been server-side rendered into the HTML
+  if (grid.dataset.preRendered === "true") return;
 
-  // 2. Try static JSON 
-  try {
-    const res = await fetch("data/leaderboard.json");
-    if (!res.ok) throw new Error("No static data");
-    const data = await res.json();
-    if (data.recent_bugs && data.recent_bugs.length > 0) {
-      renderRecentBugs(data.recent_bugs);
-      return;
-    }
-  } catch (err) {
-    console.warn("Could not load static leaderboard.json", err);
-  }
-
-  // 3. Fall back to GitHub API (only if static data is missing)
+  // In the non-SSR path, first try the API to fetch reactions
   try {
     await loadRecentBugsFromAPI(grid);
-  } catch (err) {
-    console.error("Critical: Could not load recent bugs from API", err);
-    renderRecentBugs([]);
+  } catch {
+    // Fall back to inline data if available (no reactions, but no extra request)
+    const inlineData = window.__BLT_LEADERBOARD__;
+    if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
+      renderRecentBugs(inlineData.recent_bugs);
+      return;
+    }
+    // Fall back to static JSON if API fails (but without reactions)
+    try {
+      const res = await fetch("data/leaderboard.json");
+      if (!res.ok) throw new Error("No static data");
+      const data = await res.json();
+
+      if (data.recent_bugs && data.recent_bugs.length > 0) {
+        renderRecentBugs(data.recent_bugs);
+        return;
+      }
+    } catch {
+      renderRecentBugs([]);
+    }
   }
 }
 
 async function loadRecentBugsFromAPI(grid) {
   const baseUrl = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}`;
+
   const issuesUrl = `${baseUrl}/issues?state=open&labels=bug&per_page=3&sort=created&direction=desc`;
 
-  const res = await fetch(issuesUrl, { headers: { Accept: "application/vnd.github+json" } });
+  const res = await fetch(issuesUrl, {
+    headers: { Accept: "application/vnd.github+json" },
+  });
+
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+
   const issues = await res.json();
 
   const bugs = await Promise.all(
@@ -403,16 +421,80 @@ async function loadRecentBugsFromAPI(grid) {
       .filter((i) => !i.pull_request)
       .slice(0, 3)
       .map(async (issue) => {
-        // Extract domain
+        // -------------------------
+        // Extract domain using standard pattern
+        // -------------------------
         let domain = null;
-        const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+        const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
         if (urlMatch) {
-          try { domain = new URL(urlMatch[1]).hostname; } catch { /* ignore */ }
+          try {
+            let rawUrl = urlMatch[1].trim();
+            if (rawUrl.startsWith("//")) {
+              rawUrl = "https:" + rawUrl;
+            } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+              rawUrl = "https://" + rawUrl;
+            }
+            domain = new URL(rawUrl).hostname;
+          } catch {
+            /* ignore invalid URLs */
+          }
         }
 
-        // Aggregate reactions from issue payload if available (or empty)
-        // In the fallback, we don't do extra per-issue calls to fetch comments/reactions
-        // to avoid rate limits. The static generation handles the heavy lifting.
+        // -------------------------
+        // Fetch latest comment
+        // -------------------------
+        let latestComment = null;
+        if (issue.comments > 0) {
+          try {
+            const commentsRes = await fetch(
+              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
+              { headers: { Accept: "application/vnd.github+json" } }
+            );
+
+            if (commentsRes.ok) {
+              const commentsData = await commentsRes.json();
+              if (commentsData.length > 0) {
+                const c = commentsData[0];
+                latestComment = {
+                  body: c.body,
+                  created_at: c.created_at,
+                  html_url: c.html_url,
+                  user: {
+                    login: c.user.login,
+                    avatar_url: c.user.avatar_url,
+                    profile_url: c.user.html_url,
+                  },
+                };
+              }
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to fetch latest comment for issue #${issue.number}`,
+              error
+            );
+          }
+        }
+
+        // -------------------------
+        // Fetch reactions
+        // -------------------------
+        let reactions = [];
+        try {
+          const reactionsRes = await fetch(`${issue.url}/reactions`, {
+            headers: { Accept: "application/vnd.github+json" },
+          });
+
+          if (reactionsRes.ok) {
+            const reactionsData = await reactionsRes.json();
+            reactions = aggregateReactions(reactionsData);
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to fetch reactions for issue #${issue.number}`,
+            error
+          );
+        }
+
         return {
           number: issue.number,
           title: issue.title,
@@ -426,8 +508,8 @@ async function loadRecentBugsFromAPI(grid) {
           },
           image_url: extractFirstImage(issue.body),
           domain,
-          reactions: issue.reactions || {}, // GitHub REST API includes summarizing reaction counts here
-          latest_comment: null,
+          latest_comment: latestComment,
+          reactions,
         };
       })
   );

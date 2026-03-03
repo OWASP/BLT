@@ -62,7 +62,8 @@ jobs:
                 content: 'eyes',
               });
             } catch (e) {
-              if (e.status !== 422 && e.status !== 409) throw e;
+              // Ignore if already reacted or other minor error
+              console.log('Reaction failed:', e.message);
             }
 
       - name: Add domain label to new issue
@@ -71,13 +72,12 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            // Centralized domain extraction regex
-            const domainRegex = /### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/;
-            const matchList = body.match(domainRegex);
-            if (!matchList) return;
+            // Use the standard pattern for URL extraction
+            const match = body.match(/### URL\s*\n\n(\S+)/);
+            if (!match) return;
 
             let hostname = null;
-            try { hostname = new URL(matchList[1]).hostname; } catch { /* ignore */ }
+            try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
             if (!hostname) return;
 
             // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
@@ -187,8 +187,7 @@ jobs:
             // Extract domain from the URL field in an issue body
             function extractDomain(body) {
               if (!body) return null;
-              const domainRegex = /### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/;
-              const match = body.match(domainRegex);
+              const match = body.match(/### URL\s*\n\n(\S+)/);
               if (!match) return null;
               let rawUrl = match[1].trim();
               if (rawUrl.startsWith('//')) {
@@ -212,12 +211,8 @@ jobs:
 
             // Build top-commenters leaderboard (fetch all issues' comments in parallel)
             const commentCounts = {};
-            // Issue 5: Prevent massive API calls if there are many issues
-            // For now, we only fetch for the last 100 bug issues to stay within rate limits
-            // A long-term fix should use GraphQL or server-side incremental updates.
-            const issuesToFetchComments = bugIssues.slice(0, 100); 
             const allCommentArrays = await Promise.all(
-              issuesToFetchComments.map(issue =>
+              bugIssues.map(issue =>
                 github.paginate(
                   github.rest.issues.listComments,
                   {
@@ -275,23 +270,9 @@ jobs:
             const sortedByDate = [...bugIssues].filter(i => i.state === 'open').sort(
               (a, b) => new Date(b.created_at) - new Date(a.created_at)
             );
-            const recentBugs = await Promise.all(sortedByDate.slice(0, 3).map(async issue => {
+            const recentBugs = sortedByDate.slice(0, 3).map(issue => {
               const comments = issueCommentsMap[issue.number] || [];
               const latestComment = comments.length > 0 ? comments[comments.length - 1] : null;
-
-              // Fetch reactions for this issue
-              const reactionsRes = await github.rest.reactions.listForIssue({
-                owner: context.repo.owner,
-                repo:  context.repo.repo,
-                issue_number: issue.number,
-                per_page: 100,
-              });
-
-              const reactionCounts = {};
-              for (const r of reactionsRes.data) {
-                reactionCounts[r.content] = (reactionCounts[r.content] || 0) + 1;
-              }
-
               return {
                 number:        issue.number,
                 title:         issue.title,
@@ -305,7 +286,14 @@ jobs:
                 },
                 image_url: extractFirstImage(issue.body),
                 domain:    extractDomain(issue.body),
-                reactions: reactionCounts,
+                reactions: (function() {
+                  const r = issue.reactions || {};
+                  const out = {};
+                  for (const k of ['+1','-1','laugh','hooray','confused','heart','rocket','eyes']) {
+                    if (r[k] > 0) out[k] = r[k];
+                  }
+                  return out;
+                })(),
                 latest_comment: latestComment ? {
                   body:       latestComment.body,
                   created_at: latestComment.created_at,
@@ -317,7 +305,7 @@ jobs:
                   },
                 } : null,
               };
-            }));
+            });
 
             const payload = {
               updated_at:     new Date().toISOString(),
@@ -342,17 +330,220 @@ jobs:
             const indexPath = 'index.html';
             let html = fs.readFileSync(indexPath, 'utf8');
             const inlineScript = `<script id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = ${JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>')};</script>`;
-            
-            if (html.includes('id="leaderboard-inline-data"')) {
-              html = html.replace(
-                /<script id="leaderboard-inline-data">[\s\S]*?<\/script>/,
-                inlineScript
-              );
-            } else if (html.includes('</body>')) {
-              html = html.replace('</body>', inlineScript + '\n</body>');
-            } else {
-              html += '\n' + inlineScript;
+            html = html.replace(
+              /<script id="leaderboard-inline-data">[\s\S]*?<\/script>/,
+              inlineScript
+            );
+
+            // ── Server-side rendering helpers ──────────────────────────────
+            function escHtml(str) {
+              return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
             }
+            function fmtNum(n) {
+              if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+              return String(n);
+            }
+            function ssrTimeAgo(dateString) {
+              const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
+              if (seconds < 60) return 'just now';
+              const minutes = Math.floor(seconds / 60);
+              if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+              const hours = Math.floor(minutes / 60);
+              if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+              const days = Math.floor(hours / 24);
+              if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+              const weeks = Math.floor(days / 7);
+              if (weeks < 5) return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
+              const months = Math.floor(days / 30);
+              if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`;
+              const years = Math.floor(days / 365);
+              return `${years} year${years === 1 ? '' : 's'} ago`;
+            }
+            const REACTION_EMOJIS = { '+1':'👍','-1':'👎','laugh':'😄','hooray':'🎉','confused':'😕','heart':'❤️','rocket':'🚀','eyes':'👀' };
+            function ssrReactions(reactions) {
+              if (!reactions) return '';
+              return Object.entries(reactions)
+                .filter(([, c]) => c > 0)
+                .map(([type, count]) => {
+                  const emoji = REACTION_EMOJIS[type] || '❓';
+                  const label = `${type}: ${count}`;
+                  return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="${label}" aria-label="${label}"><span aria-hidden="true">${emoji}</span><span class="font-medium">${count}</span></span>`;
+                })
+                .join(' ');
+            }
+            const rankIcons = ['🥇','🥈','🥉'];
+            const SAFE_HOSTNAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]?(?:\.[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]?)*$/;
+
+            // ── Pre-render stat numbers ────────────────────────────────────
+            html = html.replace(
+              /(<dd id="stat-total-bugs"[^>]*>)[^<]*/,
+              `$1${fmtNum(payload.total_bugs)}`
+            );
+            html = html.replace(
+              /(<dd id="stat-domains"[^>]*>)[^<]*/,
+              `$1${payload.total_domains != null ? fmtNum(payload.total_domains) : '-'}`
+            );
+            html = html.replace(
+              /(<dd id="stat-reporters"[^>]*>)[^<]*/,
+              `$1${fmtNum(payload.leaderboard.length)}`
+            );
+
+            // ── Pre-render leaderboard-updated timestamp ───────────────────
+            if (payload.updated_at) {
+              const updatedDate = new Date(payload.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              html = html.replace(
+                /(<p id="leaderboard-updated")([^>]*>)[\s\S]*?(<\/p>)/,
+                `$1$2Updated ${escHtml(updatedDate)}$3`
+              );
+            }
+
+            // ── Pre-render homepage-updated timestamp ──────────────────────
+            if (payload.updated_at) {
+              const updatedDate = new Date(payload.updated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short' });
+              const sha = typeof payload.commit_sha === 'string' && /^[0-9a-f]{7,40}$/i.test(payload.commit_sha) ? payload.commit_sha : null;
+              let homepageTsHtml = `Last updated: ${escHtml(updatedDate)}`;
+              if (sha) {
+                const repo = process.env.GITHUB_REPOSITORY || 'OWASP-BLT/BLT-Pages';
+                const commitUrl = `https://github.com/${repo}/commit/${sha}`;
+                homepageTsHtml += ` &mdash; <a href="${escHtml(commitUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${escHtml(sha.slice(0, 7))}</a>`;
+              }
+              html = html.replace(
+                /(<p id="homepage-updated")([^>]*>)[\s\S]*?(<\/p>)/,
+                `$1$2${homepageTsHtml}$3`
+              );
+            }
+
+            // ── Pre-render leaderboard rows ────────────────────────────────
+            let leaderboardRowsHtml;
+            if (!payload.leaderboard || payload.leaderboard.length === 0) {
+              leaderboardRowsHtml = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-trophy text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>No reports yet. Be the first to <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">report a bug</a>!</td></tr>`;
+            } else {
+              const maxLb = payload.leaderboard[0].count || 1;
+              leaderboardRowsHtml = payload.leaderboard.map(entry => {
+                const rankDisplay = entry.rank <= 3
+                  ? `<span class="text-xl" aria-label="Rank ${entry.rank}">${rankIcons[entry.rank-1]}</span>`
+                  : `<span class="font-bold text-gray-500 dark:text-gray-400">#${entry.rank}</span>`;
+                const rowClass = entry.rank <= 3 ? 'bg-active-bg dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50';
+                const pct = Math.min(100, (entry.count / maxLb) * 100);
+                const profileUrl = escHtml(entry.profile_url || `https://github.com/${entry.login}`);
+                const avatarUrl = escHtml(entry.avatar_url || `https://github.com/${entry.login}.png`);
+                const login = escHtml(entry.login);
+                return `<tr class="${rowClass} transition-colors"><td class="px-4 py-3 text-center w-12">${rankDisplay}</td><td class="px-4 py-3"><a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="${avatarUrl}" alt="${login}&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/${login}.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">${login}</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:${pct}%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:${pct}%"></div></div></div></td></tr>`;
+              }).join('');
+            }
+            html = html.replace(
+              /<!-- SSR:leaderboard-rows -->[\s\S]*?<!-- \/SSR:leaderboard-rows -->/,
+              `<!-- SSR:leaderboard-rows -->${leaderboardRowsHtml}<!-- /SSR:leaderboard-rows -->`
+            );
+            html = html.replace(
+              /(<tbody id="leaderboard-rows")(?:\s+data-pre-rendered="true")?([^>]*>)/,
+              '$1 data-pre-rendered="true"$2'
+            );
+
+            // ── Pre-render commenters rows ─────────────────────────────────
+            let commentersRowsHtml;
+            const commenters = payload.top_commenters || [];
+            if (commenters.length === 0) {
+              commentersRowsHtml = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-comment text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>No comments yet. Start a conversation on a <a href="https://github.com/OWASP-BLT/BLT-Pages/issues" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!</td></tr>`;
+            } else {
+              const maxCm = commenters[0].count || 1;
+              commentersRowsHtml = commenters.map(entry => {
+                const rankDisplay = entry.rank <= 3
+                  ? `<span class="text-xl" aria-label="Rank ${entry.rank}">${rankIcons[entry.rank-1]}</span>`
+                  : `<span class="font-bold text-gray-500 dark:text-gray-400">#${entry.rank}</span>`;
+                const rowClass = entry.rank <= 3 ? 'bg-active-bg dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50';
+                const pct = Math.min(100, (entry.count / maxCm) * 100);
+                const profileUrl = escHtml(entry.profile_url || `https://github.com/${entry.login}`);
+                const avatarUrl = escHtml(entry.avatar_url || `https://github.com/${entry.login}.png`);
+                const login = escHtml(entry.login);
+                return `<tr class="${rowClass} transition-colors"><td class="px-4 py-3 text-center w-12">${rankDisplay}</td><td class="px-4 py-3"><a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="${avatarUrl}" alt="${login}&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/${login}.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">${login}</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:${pct}%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:${pct}%"></div></div></div></td></tr>`;
+              }).join('');
+            }
+            html = html.replace(
+              /<!-- SSR:commenters-rows -->[\s\S]*?<!-- \/SSR:commenters-rows -->/,
+              `<!-- SSR:commenters-rows -->${commentersRowsHtml}<!-- /SSR:commenters-rows -->`
+            );
+            html = html.replace(
+              /(<tbody id="commenters-rows")(?:\s+data-pre-rendered="true")?([^>]*>)/,
+              '$1 data-pre-rendered="true"$2'
+            );
+
+            // ── Pre-render domains rows ────────────────────────────────────
+            let domainsRowsHtml;
+            const domains = payload.top_domains || [];
+            if (domains.length === 0) {
+              domainsRowsHtml = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-globe text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>No domain data yet. <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">Be the first to report a bug!</a></td></tr>`;
+            } else {
+              const maxDm = domains[0].count || 1;
+              domainsRowsHtml = domains.map(entry => {
+                const rankDisplay = entry.rank <= 3
+                  ? `<span class="text-xl" aria-label="Rank ${entry.rank}">${rankIcons[entry.rank-1]}</span>`
+                  : `<span class="font-bold text-gray-500 dark:text-gray-400">#${entry.rank}</span>`;
+                const rowClass = entry.rank <= 3 ? 'bg-active-bg dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50';
+                const pct = Math.min(100, (entry.count / maxDm) * 100);
+                const domain = escHtml(entry.domain);
+                const safeHref = SAFE_HOSTNAME_RE.test(entry.domain) ? `https://${domain}` : '#';
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(entry.domain)}&sz=32`;
+                return `<tr class="${rowClass} transition-colors"><td class="px-4 py-3 text-center w-12">${rankDisplay}</td><td class="px-4 py-3"><a href="${safeHref}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="${escHtml(faviconUrl)}" alt="${domain} favicon" class="w-5 h-5 rounded flex-shrink-0" loading="lazy" onerror="this.outerHTML=&#039;<i class=\\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\\' aria-hidden=\\'true\\'></i>&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">${domain}</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-8"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:${pct}%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>${fmtNum(entry.count)}</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:${pct}%"></div></div></div></td></tr>`;
+              }).join('');
+            }
+            html = html.replace(
+              /<!-- SSR:domains-rows -->[\s\S]*?<!-- \/SSR:domains-rows -->/,
+              `<!-- SSR:domains-rows -->${domainsRowsHtml}<!-- /SSR:domains-rows -->`
+            );
+            html = html.replace(
+              /(<tbody id="domains-rows")(?:\s+data-pre-rendered="true")?([^>]*>)/,
+              '$1 data-pre-rendered="true"$2'
+            );
+
+            // ── Pre-render recent bugs grid ────────────────────────────────
+            let recentBugsHtml;
+            const bugs = payload.recent_bugs || [];
+            if (bugs.length === 0) {
+              recentBugsHtml = `<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500"><i class="fa-solid fa-bug text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"></i>No bug reports yet. <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-primary hover:underline">Be the first to report!</a></div>`;
+            } else {
+              recentBugsHtml = bugs.map(bug => {
+                const imgHtml = bug.image_url
+                  ? `<div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="${escHtml(bug.image_url)}" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div>`
+                  : `<div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-bug text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"></i></div>`;
+                const date = new Date(bug.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const avatarUrl = escHtml(bug.user.avatar_url || `https://github.com/${bug.user.login}.png`);
+                const profileUrl = escHtml(bug.user.profile_url || `https://github.com/${bug.user.login}`);
+                const login = escHtml(bug.user.login);
+                const reactionsHtml = ssrReactions(bug.reactions);
+                const faviconHtml = bug.domain
+                  ? `<img src="${escHtml(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(bug.domain)}&sz=32`)}" alt="${escHtml(bug.domain)} favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>&#039;" />`
+                  : '';
+                const commentCount = bug.comment_count;
+                let commentHtml = '';
+                if (typeof commentCount === 'number' && commentCount > 0 && bug.latest_comment) {
+                  const c = bug.latest_comment.user;
+                  const cAvatar = escHtml(c.avatar_url || `https://github.com/${c.login}.png`);
+                  const cProfile = escHtml(c.profile_url || `https://github.com/${c.login}`);
+                  const cLogin = escHtml(c.login);
+                  const cBody = escHtml((bug.latest_comment.body || '').replace(/\s+/g, ' ').trim());
+                  const cLabel = commentCount === 1 ? '1 comment' : `${fmtNum(commentCount)} comments`;
+                  commentHtml = `<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="${cProfile}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="${cAvatar}" alt="${cLogin}&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/${cLogin}.png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${cBody}</p><a href="${escHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>${cLabel}</a></div></div></div>`;
+                } else if (typeof commentCount === 'number' && commentCount === 0) {
+                  commentHtml = `<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><a href="${escHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-primary hover:underline"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>Be the first to comment</a></div>`;
+                }
+                return `<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">${imgHtml}<h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="${escHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">${faviconHtml}${escHtml(bug.title)}</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="${avatarUrl}" alt="${login}&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/${login}.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">${login}</span></a>${reactionsHtml}</div><span class="text-xs text-gray-400 dark:text-gray-500">${date}</span></div>${commentHtml}</div>`;
+              }).join('');
+            }
+            html = html.replace(
+              /<!-- SSR:recent-bugs -->[\s\S]*?<!-- \/SSR:recent-bugs -->/,
+              `<!-- SSR:recent-bugs -->${recentBugsHtml}<!-- /SSR:recent-bugs -->`
+            );
+            html = html.replace(
+              /(<div id="recent-bugs-grid")(?:\s+data-pre-rendered="true")?([^>]*>)/,
+              '$1 data-pre-rendered="true"$2'
+            );
+
             fs.writeFileSync(indexPath, html);
 
             console.log(
