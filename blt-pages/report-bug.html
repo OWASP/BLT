@@ -69,23 +69,14 @@
         radial-gradient(circle at 14% 0%, rgba(225, 1, 1, 0.12), transparent 35%),
         radial-gradient(circle at 88% 0%, rgba(225, 1, 1, 0.09), transparent 28%),
         linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%);
+      transition: background 0.3s ease;
     }
 
-    .hero-glow::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
+    .dark .hero-glow {
       background:
         radial-gradient(circle at 14% 0%, rgba(239, 68, 68, 0.12), transparent 35%),
         radial-gradient(circle at 88% 0%, rgba(239, 68, 68, 0.08), transparent 28%),
         linear-gradient(to bottom, #1F2937 0%, #111827 72%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .dark .hero-glow::after {
-      opacity: 1;
     }
 
     .surface-card {
