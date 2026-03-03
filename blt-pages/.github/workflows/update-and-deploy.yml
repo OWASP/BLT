@@ -51,12 +51,19 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.reactions.createForIssue({
-              owner: context.repo.owner,
-              repo:  context.repo.repo,
-              issue_number: context.issue.number,
-              content: 'eyes',
-            });
+            const issueNumber = context.payload.issue?.number;
+            if (!issueNumber) return;
+
+            try {
+              await github.rest.reactions.createForIssue({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: issueNumber,
+                content: 'eyes',
+              });
+            } catch (e) {
+              if (e.status !== 422 && e.status !== 409) throw e;
+            }
 
       - name: Add domain label to new issue
         if: github.event_name == 'issues' && github.event.action == 'opened'
@@ -64,12 +71,13 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            // Use the same two-newline pattern as extractDomain() in the leaderboard step
-            const match = body.match(/### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/);
-            if (!match) return;
+            // Centralized domain extraction regex
+            const domainRegex = /### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/;
+            const matchList = body.match(domainRegex);
+            if (!matchList) return;
 
             let hostname = null;
-            try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
+            try { hostname = new URL(matchList[1]).hostname; } catch { /* ignore */ }
             if (!hostname) return;
 
             // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
@@ -179,7 +187,8 @@ jobs:
             // Extract domain from the URL field in an issue body
             function extractDomain(body) {
               if (!body) return null;
-              const match = body.match(/### URL\s*\n\n(\S+)/);
+              const domainRegex = /### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/;
+              const match = body.match(domainRegex);
               if (!match) return null;
               let rawUrl = match[1].trim();
               if (rawUrl.startsWith('//')) {
@@ -203,8 +212,12 @@ jobs:
 
             // Build top-commenters leaderboard (fetch all issues' comments in parallel)
             const commentCounts = {};
+            // Issue 5: Prevent massive API calls if there are many issues
+            // For now, we only fetch for the last 100 bug issues to stay within rate limits
+            // A long-term fix should use GraphQL or server-side incremental updates.
+            const issuesToFetchComments = bugIssues.slice(0, 100); 
             const allCommentArrays = await Promise.all(
-              bugIssues.map(issue =>
+              issuesToFetchComments.map(issue =>
                 github.paginate(
                   github.rest.issues.listComments,
                   {
@@ -329,10 +342,17 @@ jobs:
             const indexPath = 'index.html';
             let html = fs.readFileSync(indexPath, 'utf8');
             const inlineScript = `<script id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = ${JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>')};</script>`;
-            html = html.replace(
-              /<script id="leaderboard-inline-data">[\s\S]*?<\/script>/,
-              inlineScript
-            );
+            
+            if (html.includes('id="leaderboard-inline-data"')) {
+              html = html.replace(
+                /<script id="leaderboard-inline-data">[\s\S]*?<\/script>/,
+                inlineScript
+              );
+            } else if (html.includes('</body>')) {
+              html = html.replace('</body>', inlineScript + '\n</body>');
+            } else {
+              html += '\n' + inlineScript;
+            }
             fs.writeFileSync(indexPath, html);
 
             console.log(
