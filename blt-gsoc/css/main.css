@@ -37,7 +37,6 @@ html {
         opacity: 0;
         transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -62,7 +61,6 @@ a {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
-
 /* Scrollbar dark mode compatibility */
 :root {
     --sb-track: #f1f1f1;
