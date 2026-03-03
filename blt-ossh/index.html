@@ -297,6 +297,28 @@
           <div id="discussion-channels" class="grid gap-4 grid-cols-2 md:grid-cols-4"></div>
         </div>
 
+        <!-- Create Profile CTA -->
+        <div class="surface-card rounded-2xl p-8 mb-6 bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-dark-surface">
+          <div class="text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+              <i class="fas fa-user-plus text-red-600 dark:text-red-400 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              Join the OSSH Community!
+            </h3>
+            <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+              Create your profile and connect with other open source developers. Your analyzed data will be pre-filled to make it easy!
+            </p>
+            <button
+              id="create-profile-btn"
+              class="inline-flex items-center gap-3 px-8 py-4 bg-red-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-red-700 transition transform hover:scale-105"
+            >
+              <i class="fas fa-user-plus"></i>
+              Create My Community Profile
+            </button>
+          </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="flex justify-center gap-4 mt-8">
           <button
@@ -307,10 +329,17 @@
             Analyze Another Profile
           </button>
           <a
+            href="/community"
+            class="inline-flex items-center gap-2 px-6 py-3 border border-red-600 text-red-600 dark:border-red-500 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+          >
+            <i class="fas fa-users"></i>
+            Browse Community
+          </a>
+          <a
             id="view-github-profile"
             href="#"
             target="_blank"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 dark:bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-900 dark:hover:bg-gray-600 transition"
           >
             <i class="fab fa-github"></i>
             View GitHub Profile
@@ -613,6 +642,9 @@
       const resultsSection = document.getElementById('results-section');
       const githubStats = data.github_stats;
 
+      // Store data globally for profile creation
+      window.currentUserData = data;
+
       // Populate GitHub Stats
       document.getElementById('user-avatar').src = githubStats.avatar_url || 'static/logo.png';
       document.getElementById('user-name').textContent = githubStats.name || githubStats.username;
@@ -720,6 +752,9 @@
       // Update GitHub profile link
       document.getElementById('view-github-profile').href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
 
+      // Setup create profile button
+      setupCreateProfileButton(data);
+
       // Show results section and scroll to it
       resultsSection.classList.remove('hidden');
       resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -737,6 +772,100 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function setupCreateProfileButton(data) {
+      const createProfileBtn = document.getElementById('create-profile-btn');
+      if (!createProfileBtn) return;
+
+      // Remove existing listener by cloning
+      const newBtn = createProfileBtn.cloneNode(true);
+      createProfileBtn.parentNode.replaceChild(newBtn, createProfileBtn);
+
+      // Add click handler
+      newBtn.addEventListener('click', () => {
+        const profileUrl = buildProfileIssueUrl(data);
+        console.log('Opening profile creation URL:', profileUrl);
+        window.open(profileUrl, '_blank');
+      });
+    }
+
+    function buildProfileIssueUrl(data) {
+      const githubStats = data.github_stats;
+      const baseUrl = 'https://github.com/mdkaifansari04/BLT-OSSH/issues/new';
+      
+      // Build skills list from languages
+      const skills = githubStats.languages.slice(0, 10).join(', ');
+
+      // Build looking_for text based on recommendations
+      const topLanguages = githubStats.languages.slice(0, 3).join(', ');
+      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => c.name).join(', ')}.`;
+
+      // Build recommended projects list
+      const recommendedProjects = data.recommended_repos
+        .slice(0, 5)
+        .map(r => `- [${r.name}](${r.url}) ⭐ ${r.stars} - ${r.description}`)
+        .join('\n');
+
+      // Build recommended communities list
+      const recommendedCommunities = data.recommended_communities
+        .map(c => `- [${c.name}](${c.url}) - ${c.description} (${c.members} members)`)
+        .join('\n');
+
+      // Build recommended articles list
+      const recommendedArticles = data.recommended_articles
+        .map(a => `- [${a.title}](${a.url}) - ${a.category}`)
+        .join('\n');
+
+      // Build issue body content with full analysis
+      const bodyContent = `# 🎯 OSSH Analysis Summary
+
+> **Profile analyzed on:** ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## 📊 GitHub Stats
+- **Username:** [@${githubStats.username}](https://github.com/${githubStats.username})
+- **Name:** ${githubStats.name || githubStats.username}
+- **Bio:** ${githubStats.bio || 'No bio provided'}
+- **Repositories:** ${githubStats.public_repos}
+- **Followers:** ${githubStats.followers}
+- **Following:** ${githubStats.following}
+- **Top Languages:** ${githubStats.languages.slice(0, 5).join(', ')}
+
+## 🌟 Your Top Recommended Projects
+${recommendedProjects}
+
+## 👥 Recommended Communities to Join
+${recommendedCommunities}
+
+## 📚 Recommended Articles for You
+${recommendedArticles}
+
+## 💬 Discussion Channels
+${data.recommended_discussion_channels.map(ch => `- [${ch.name}](${ch.url}) - ${ch.platform}`).join('\n')}
+
+---
+
+**🤖 Generated by:** [OSSH - Open Source Sorting Hat](https://github.com/mdkaifansari04/BLT-OSSH)
+
+**✏️ Note:** The information above has been automatically populated based on your GitHub profile analysis. Please review and edit the profile fields below before submitting. You can modify your bio, add interests, specify what you're looking for, and fill in optional fields like location and social links.`;
+
+      // Construct query parameters for the issue template
+      const params = new URLSearchParams({
+        template: 'user_profile.yml',
+        title: `[PROFILE] ${githubStats.name || githubStats.username}`,
+        labels: 'profile',
+        // Pre-fill template fields
+        'github_username': githubStats.username,
+        'display_name': githubStats.name || githubStats.username,
+        'bio': githubStats.bio || `Open source developer passionate about ${topLanguages}`,
+        'skills': skills,
+        'looking_for': lookingFor,
+      });
+
+      // Add the body content
+      params.append('body', bodyContent);
+
+      return `${baseUrl}?${params.toString()}`;
     }
 
     // Analyze another profile button handler

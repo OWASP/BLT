@@ -1,0 +1,32 @@
+{
+    "name": "blt-ossh",
+    "version": "1.0.0",
+    "description": "Open Source Sorting Hat - AI-powered GitHub profile analyzer with community profiles",
+    "main": "index.html",
+    "scripts": {
+        "dev": "python -m http.server 8000",
+        "sync": "node scripts/sync-profiles.js",
+        "test": "echo \"No tests yet\" && exit 0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/OWASP-BLT/BLT-OSSH.git"
+    },
+    "keywords": [
+        "open-source",
+        "github",
+        "profile-analyzer",
+        "community",
+        "owasp",
+        "blt"
+    ],
+    "author": "OWASP BLT Community",
+    "license": "SEE LICENSE IN LICENSE",
+    "bugs": {
+        "url": "https://github.com/OWASP-BLT/BLT-OSSH/issues"
+    },
+    "homepage": "https://github.com/OWASP-BLT/BLT-OSSH#readme",
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
