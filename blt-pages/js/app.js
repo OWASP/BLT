@@ -213,11 +213,15 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     if (urlMatch) {
       try {
         let rawUrl = urlMatch[1].trim();
-        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+        if (rawUrl.startsWith("//")) {
+          rawUrl = "https:" + rawUrl;
+        } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
           rawUrl = "https://" + rawUrl;
         }
         const domain = new URL(rawUrl).hostname;
-        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        if (domain) {
+          domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        }
       } catch { /* ignore malformed URLs */ }
     }
   }
