@@ -1,4 +1,4 @@
-name: Update Leaderboard
+name: Update Leaderboard and Deploy
 
 on:
   # Regenerate every 6 hours
@@ -19,17 +19,31 @@ on:
       - created
       - edited
 
+  # Deploy when code is pushed to main
+  push:
+    branches:
+      - main
+
   # Allow manual runs from the Actions UI
   workflow_dispatch:
 
 permissions:
   contents: write
   issues: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  update-leaderboard:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Add eyes reaction to new issue
@@ -101,7 +115,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Skip leaderboard data generation when this run was triggered by the
+      # bot's own leaderboard-update commit (push by github-actions[bot]).
+      # This prevents an infinite trigger loop while still deploying the
+      # freshly-committed content.
       - name: Generate leaderboard data
+        if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
         uses: actions/github-script@v7
         with:
           script: |
@@ -308,6 +327,7 @@ jobs:
             );
 
       - name: Commit updated leaderboard
+        if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -318,3 +338,50 @@ jobs:
             git commit -m "chore: update leaderboard data"
             git push
           fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload the entire repository root (static HTML site)
+          path: "."
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Report deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployUrl = '${{ steps.deployment.outputs.page_url }}';
+            const status    = '${{ job.status }}';
+            const icon      = status === 'success' ? '✅' : status === 'cancelled' ? '⚠️' : '❌';
+            const eventName = context.eventName;
+            const actor     = context.actor;
+            const sha       = context.sha.slice(0, 7);
+
+            let triggerLine = `**Trigger:** \`${eventName}\``;
+            if (eventName === 'push') {
+              triggerLine += ` by **${actor}** (${sha})`;
+            } else if (eventName === 'schedule') {
+              triggerLine += ` (scheduled)`;
+            }
+
+            const lines = [
+              `## ${icon} GitHub Pages Deployment`,
+              '',
+              `**Status:** ${status}`,
+              triggerLine,
+            ];
+
+            if (deployUrl) {
+              lines.push(`**URL:** ${deployUrl}`);
+            }
+
+            await core.summary
+              .addRaw(lines.join('\n'))
+              .write();
