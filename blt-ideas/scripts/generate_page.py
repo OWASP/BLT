@@ -667,14 +667,20 @@ def generate_html(ideas, overlap_matrix):
                 <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Cross-idea dependencies</span>
               </div>
             </div>
-            <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-80">
-              <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-red-50 p-4">
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Ideas</p>
-                <p class="mt-2 text-3xl font-extrabold text-primary">{total_ideas}</p>
+            <div class="flex w-full shrink-0 flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
+              <div class="flex min-w-[180px] flex-1 flex-col justify-between rounded-xl border border-neutral-border bg-white p-5 shadow-sm lg:flex-none">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Total Ideas</p>
+                <p class="mt-3 text-4xl font-extrabold leading-none text-primary">{total_ideas}</p>
+                <p class="mt-1.5 text-xs text-gray-400">Active proposals</p>
               </div>
-              <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-gray-50 p-4">
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Repository</p>
-                <p class="mt-2 text-sm font-bold text-gray-900">OWASP-BLT/BLT-Ideas</p>
+              <div class="flex min-w-[180px] flex-1 flex-col justify-between rounded-xl border border-neutral-border bg-white p-5 shadow-sm lg:flex-none">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gray-400">Repository</p>
+                <a href="https://github.com/OWASP-BLT/BLT-Ideas" target="_blank" rel="noopener noreferrer"
+                   class="mt-3 flex items-center gap-2 font-bold text-primary transition-opacity hover:opacity-70">
+                  <i class="fa-brands fa-github text-lg leading-none" aria-hidden="true"></i>
+                  <span class="text-sm leading-none">OWASP-BLT/BLT-Ideas</span>
+                </a>
+                <p class="mt-1.5 text-xs text-gray-400">View on GitHub</p>
               </div>
             </div>
           </div>
