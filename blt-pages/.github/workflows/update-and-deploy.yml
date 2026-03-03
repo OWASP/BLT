@@ -396,11 +396,12 @@ jobs:
 
             // ── Pre-render homepage-updated timestamp ──────────────────────
             if (payload.updated_at) {
-              const ago = ssrTimeAgo(payload.updated_at);
+              const updatedDate = new Date(payload.updated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short' });
               const sha = typeof payload.commit_sha === 'string' && /^[0-9a-f]{7,40}$/i.test(payload.commit_sha) ? payload.commit_sha : null;
-              let homepageTsHtml = `Last updated: ${escHtml(ago)}`;
+              let homepageTsHtml = `Last updated: ${escHtml(updatedDate)}`;
               if (sha) {
-                const commitUrl = `https://github.com/OWASP-BLT/BLT-Pages/commit/${sha}`;
+                const repo = process.env.GITHUB_REPOSITORY || 'OWASP-BLT/BLT-Pages';
+                const commitUrl = `https://github.com/${repo}/commit/${sha}`;
                 homepageTsHtml += ` &mdash; <a href="${escHtml(commitUrl)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${escHtml(sha.slice(0, 7))}</a>`;
               }
               html = html.replace(

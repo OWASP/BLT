@@ -168,8 +168,13 @@ async function loadLeaderboard() {
 
   if (!container) return;
 
-  // Skip re-render when content has already been server-side rendered into the HTML
-  if (container.dataset.preRendered === "true") return;
+  // Skip re-render when content has already been server-side rendered into the HTML,
+  // but still update the relative timestamps from the embedded inline data.
+  if (container.dataset.preRendered === "true") {
+    const inlineData = window.__BLT_LEADERBOARD__;
+    if (inlineData) updateTimestamps(inlineData);
+    return;
+  }
 
   try {
     // Use inline data embedded by GitHub Action if available
@@ -337,6 +342,10 @@ function renderLeaderboard(container, data) {
     .join("");
 
   // Update timestamps if present
+  updateTimestamps(data);
+}
+
+function updateTimestamps(data) {
   const ts = document.getElementById("leaderboard-updated");
   if (ts && data.updated_at) {
     ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
@@ -367,7 +376,7 @@ async function loadRecentBugs() {
   // Skip re-render when content has already been server-side rendered into the HTML
   if (grid.dataset.preRendered === "true") return;
 
-  // Always use API to fetch reactions
+  // In the non-SSR path, first try the API to fetch reactions
   try {
     await loadRecentBugsFromAPI(grid);
   } catch {

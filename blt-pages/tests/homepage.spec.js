@@ -42,8 +42,7 @@ test('dynamic sections are pre-rendered in HTML without waiting for JS', async (
   // Intercept JS files to ensure content is already in the HTML, not added by JS
   await page.route('**/js/app.js', route => route.abort());
 
-  await page.goto('/');
-  await page.waitForLoadState('domcontentloaded');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   // Leaderboard rows should already be present in HTML (pre-rendered by workflow)
   const leaderboardRows = page.locator('#leaderboard-rows[data-pre-rendered="true"]');
