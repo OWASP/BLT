@@ -849,6 +849,22 @@ ${data.recommended_discussion_channels.map(ch => `- [${ch.name}](${ch.url}) - ${
 
 **✏️ Note:** The information above has been automatically populated based on your GitHub profile analysis. Please review and edit the profile fields below before submitting. You can modify your bio, add interests, specify what you're looking for, and fill in optional fields like location and social links.`;
 
+      // Build recommended projects list for display
+      const recommendedProjectsDisplay = data.recommended_repos
+        .slice(0, 6)
+        .map(r => `**${r.name}** ⭐ ${r.stars}\n${r.description}\n🔗 [View](${r.url})`)
+        .join('\n\n');
+
+      // Build recommended communities list for display
+      const recommendedCommunitiesDisplay = data.recommended_communities
+        .map(c => `**${c.name}** (${c.members} members)\n${c.description}\n🔗 [Visit](${c.url})`)
+        .join('\n\n');
+
+      // Build recommended articles list for display
+      const recommendedArticlesDisplay = data.recommended_articles
+        .map(a => `**${a.title}** - ${a.category}\n🔗 [Read](${a.url})`)
+        .join('\n\n');
+
       // Construct query parameters for the issue template
       const params = new URLSearchParams({
         template: 'user_profile.yml',
@@ -860,6 +876,10 @@ ${data.recommended_discussion_channels.map(ch => `- [${ch.name}](${ch.url}) - ${
         'bio': githubStats.bio || `Open source developer passionate about ${topLanguages}`,
         'skills': skills,
         'looking_for': lookingFor,
+        // Add recommended sections
+        'recommended_projects': recommendedProjectsDisplay,
+        'recommended_communities': recommendedCommunitiesDisplay,
+        'recommended_reading': recommendedArticlesDisplay,
       });
 
       // Add the body content

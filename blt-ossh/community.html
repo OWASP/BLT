@@ -417,6 +417,9 @@
         website: extractField('Website/Portfolio \\(Optional\\)'),
         twitter: extractField('Twitter/X Handle \\(Optional\\)'),
         linkedin: extractField('LinkedIn Profile \\(Optional\\)'),
+        recommended_projects: extractField('Recommended Projects \\(Optional\\)'),
+        recommended_communities: extractField('Recommended Communities \\(Optional\\)'),
+        recommended_reading: extractField('Recommended Reading \\(Optional\\)'),
         created_at: issue.created_at,
         url: issue.html_url
       };
@@ -521,6 +524,42 @@
                 Looking For
               </p>
               <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">${escapeHtml(profile.looking_for)}</p>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_projects ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-code-branch"></i>
+                Recommended Projects
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_projects)}</pre>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_communities ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-users"></i>
+                Recommended Communities
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_communities)}</pre>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${profile.recommended_reading ? `
+            <div class="mb-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                <i class="fas fa-book-open"></i>
+                Recommended Reading
+              </p>
+              <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2 max-h-32 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-xs">${escapeHtml(profile.recommended_reading)}</pre>
+              </div>
             </div>
           ` : ''}
           

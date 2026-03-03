@@ -131,6 +131,42 @@ body:
       value: |
         ---
         
+        ## 🎯 OSSH Analysis Results
+        
+        If you analyzed your GitHub profile with OSSH, the following sections will be pre-filled with personalized recommendations.
+
+  - type: textarea
+    id: recommended_projects
+    attributes:
+      label: Recommended Projects (Optional)
+      description: Projects that match your skills and interests (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommended_communities
+    attributes:
+      label: Recommended Communities (Optional)
+      description: Communities you might want to join (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: textarea
+    id: recommended_reading
+    attributes:
+      label: Recommended Reading (Optional)
+      description: Articles and resources for you (auto-generated from OSSH analysis)
+      placeholder: "Leave blank if not analyzed with OSSH"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
         ## 📊 GitHub Stats (Auto-generated)
         
         After submitting your profile, your GitHub stats will be displayed on the community page based on your username.
