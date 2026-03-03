@@ -4,7 +4,7 @@ This directory contains the GitHub Pages website for the BACON (Blockchain Assis
 
 ## 🌐 Live Site
 
-Visit the site at: https://owasp-blt.github.io/BLT-Bacon
+Visit the site at: https://owasp-blt.github.io/BLT-Rewards
 
 ## 📚 Documentation
 
