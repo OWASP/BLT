@@ -1,5 +1,4 @@
 datetime,duration_ms,status,keyword_status
-2026-03-02T17:23:50+00:00,60201,failure,not_found
 2026-03-02T17:42:30+00:00,138,success,found
 2026-03-02T18:00:30+00:00,128,success,found
 2026-03-02T18:23:27+00:00,113,success,found
@@ -29,3 +28,4 @@ datetime,duration_ms,status,keyword_status
 2026-03-03T00:00:42+00:00,344,success,found
 2026-03-03T00:48:51+00:00,198,success,found
 2026-03-03T01:21:46+00:00,401,success,found
+2026-03-03T02:09:10+00:00,404,success,found
