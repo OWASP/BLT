@@ -104,8 +104,8 @@ function initPricing() {
       plan.price === null
         ? "Custom"
         : plan.price === 0
-        ? "Free"
-        : `$${plan.price}`;
+          ? "Free"
+          : `$${plan.price}`;
 
     const featuresHtml = plan.features
       .map(
@@ -361,43 +361,41 @@ async function loadRecentBugs() {
   const grid = document.getElementById("recent-bugs-grid");
   if (!grid) return;
 
-  // Always use API to fetch reactions
+  // 1. Try inlined data first (best performance, no API hits)
+  const inlineData = window.__BLT_LEADERBOARD__;
+  if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
+    renderRecentBugs(inlineData.recent_bugs);
+    return;
+  }
+
+  // 2. Try static JSON (already contains reactions after PR 1)
   try {
-    await loadRecentBugsFromAPI(grid);
-  } catch {
-    // Fall back to inline data if available (no reactions, but no extra request)
-    const inlineData = window.__BLT_LEADERBOARD__;
-    if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
-      renderRecentBugs(inlineData.recent_bugs);
+    const res = await fetch("data/leaderboard.json");
+    if (!res.ok) throw new Error("No static data");
+    const data = await res.json();
+    if (data.recent_bugs && data.recent_bugs.length > 0) {
+      renderRecentBugs(data.recent_bugs);
       return;
     }
-    // Fall back to static JSON if API fails (but without reactions)
-    try {
-      const res = await fetch("data/leaderboard.json");
-      if (!res.ok) throw new Error("No static data");
-      const data = await res.json();
+  } catch (err) {
+    console.warn("Could not load static leaderboard.json", err);
+  }
 
-      if (data.recent_bugs && data.recent_bugs.length > 0) {
-        renderRecentBugs(data.recent_bugs);
-        return;
-      }
-    } catch {
-      renderRecentBugs([]);
-    }
+  // 3. Fall back to GitHub API (only if static data is missing)
+  try {
+    await loadRecentBugsFromAPI(grid);
+  } catch (err) {
+    console.error("Critical: Could not load recent bugs from API", err);
+    renderRecentBugs([]);
   }
 }
 
 async function loadRecentBugsFromAPI(grid) {
   const baseUrl = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}`;
-
   const issuesUrl = `${baseUrl}/issues?state=open&labels=bug&per_page=3&sort=created&direction=desc`;
 
-  const res = await fetch(issuesUrl, {
-    headers: { Accept: "application/vnd.github+json" },
-  });
-
+  const res = await fetch(issuesUrl, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
-
   const issues = await res.json();
 
   const bugs = await Promise.all(
@@ -405,74 +403,16 @@ async function loadRecentBugsFromAPI(grid) {
       .filter((i) => !i.pull_request)
       .slice(0, 3)
       .map(async (issue) => {
-        // -------------------------
         // Extract domain
-        // -------------------------
         let domain = null;
         const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
         if (urlMatch) {
-          try {
-            domain = new URL(urlMatch[1]).hostname;
-          } catch {
-            /* ignore invalid URLs */
-          }
+          try { domain = new URL(urlMatch[1]).hostname; } catch { /* ignore */ }
         }
 
-        // -------------------------
-        // Fetch latest comment
-        // -------------------------
-        let latestComment = null;
-        if (issue.comments > 0) {
-          try {
-            const commentsRes = await fetch(
-              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
-              { headers: { Accept: "application/vnd.github+json" } }
-            );
-
-            if (commentsRes.ok) {
-              const commentsData = await commentsRes.json();
-              if (commentsData.length > 0) {
-                const c = commentsData[0];
-                latestComment = {
-                  body: c.body,
-                  created_at: c.created_at,
-                  html_url: c.html_url,
-                  user: {
-                    login: c.user.login,
-                    avatar_url: c.user.avatar_url,
-                    profile_url: c.user.html_url,
-                  },
-                };
-              }
-            }
-          } catch (error) {
-            console.warn(
-              `Failed to fetch latest comment for issue #${issue.number}`,
-              error
-            );
-          }
-        }
-
-        // -------------------------
-        // Fetch reactions
-        // -------------------------
-        let reactions = [];
-        try {
-          const reactionsRes = await fetch(`${issue.url}/reactions`, {
-            headers: { Accept: "application/vnd.github+json" },
-          });
-
-          if (reactionsRes.ok) {
-            const reactionsData = await reactionsRes.json();
-            reactions = aggregateReactions(reactionsData);
-          }
-        } catch (error) {
-          console.warn(
-            `Failed to fetch reactions for issue #${issue.number}`,
-            error
-          );
-        }
-
+        // Aggregate reactions from issue payload if available (or empty)
+        // In the fallback, we don't do extra per-issue calls to fetch comments/reactions
+        // to avoid rate limits. The static generation handles the heavy lifting.
         return {
           number: issue.number,
           title: issue.title,
@@ -486,8 +426,8 @@ async function loadRecentBugsFromAPI(grid) {
           },
           image_url: extractFirstImage(issue.body),
           domain,
-          latest_comment: latestComment,
-          reactions,
+          reactions: issue.reactions || {}, // GitHub REST API includes summarizing reaction counts here
+          latest_comment: null,
         };
       })
   );

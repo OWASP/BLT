@@ -262,9 +262,23 @@ jobs:
             const sortedByDate = [...bugIssues].filter(i => i.state === 'open').sort(
               (a, b) => new Date(b.created_at) - new Date(a.created_at)
             );
-            const recentBugs = sortedByDate.slice(0, 3).map(issue => {
+            const recentBugs = await Promise.all(sortedByDate.slice(0, 3).map(async issue => {
               const comments = issueCommentsMap[issue.number] || [];
               const latestComment = comments.length > 0 ? comments[comments.length - 1] : null;
+
+              // Fetch reactions for this issue
+              const reactionsRes = await github.rest.reactions.listForIssue({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+
+              const reactionCounts = {};
+              for (const r of reactionsRes.data) {
+                reactionCounts[r.content] = (reactionCounts[r.content] || 0) + 1;
+              }
+
               return {
                 number:        issue.number,
                 title:         issue.title,
@@ -278,6 +292,7 @@ jobs:
                 },
                 image_url: extractFirstImage(issue.body),
                 domain:    extractDomain(issue.body),
+                reactions: reactionCounts,
                 latest_comment: latestComment ? {
                   body:       latestComment.body,
                   created_at: latestComment.created_at,
@@ -289,7 +304,7 @@ jobs:
                   },
                 } : null,
               };
-            });
+            }));
 
             const payload = {
               updated_at:     new Date().toISOString(),
