@@ -1,7 +1,7 @@
 # BACON GitHub Pages Configuration
 title: BACON - Blockchain Assisted Contribution Network
 description: Incentivize open source contributions with Bitcoin and Solana blockchain rewards
-url: https://owasp-blt.github.io/BLT-Rewards
+url: https://owasp-blt.github.io
 baseurl: /BLT-Rewards
 
 # Theme
