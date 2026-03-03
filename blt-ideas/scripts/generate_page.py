@@ -20,6 +20,16 @@ ORG = "OWASP-BLT"
 # Maximum number of contributors to display per idea row before truncating
 MAX_DISPLAY_CONTRIBUTORS = 10
 
+# Table column indices (0-based) — keep in sync with thead and row generation
+COL_IDEA = 0
+COL_TITLE = 1
+COL_ONELINER = 2
+COL_REPO = 3
+COL_DISCUSSION = 4
+COL_UPVOTES = 5
+COL_OVERLAPS = 6
+COL_CONTRIBUTORS = 7
+
 # Known BLT org repos for each idea (from file content "Repository:" lines and README)
 IDEA_REPO_MAP = {
     "A": "OWASP-BLT/BLT",
@@ -117,15 +127,19 @@ def get_file_contributors(filepath):
         return []
 
 
-def get_discussion_participants(discussion_num):
-    """Fetch participants from an OWASP-BLT org discussion via GraphQL."""
+def get_discussion_data(discussion_num):
+    """Fetch participants and upvote count from an OWASP-BLT org discussion via GraphQL.
+
+    Returns a tuple (participants: list[str], upvotes: int).
+    """
     if not discussion_num or not GITHUB_TOKEN:
-        return []
+        return [], 0
 
     query = """
     {
       organization(login: "OWASP-BLT") {
         discussion(number: %s) {
+          upvoteCount
           author { login }
           comments(first: 100) {
             nodes {
@@ -139,17 +153,18 @@ def get_discussion_participants(discussion_num):
 
     data = github_graphql(query)
     if not data or "data" not in data:
-        return []
+        return [], 0
 
     participants = set()
     disc = (data.get("data") or {}).get("organization") or {}
     disc = disc.get("discussion") or {}
+    upvotes = disc.get("upvoteCount") or 0
     if disc.get("author"):
         participants.add(disc["author"]["login"])
     for comment in (disc.get("comments") or {}).get("nodes") or []:
         if comment.get("author"):
             participants.add(comment["author"]["login"])
-    return sorted(participants)
+    return sorted(participants), upvotes
 
 
 def get_pr_participants():
@@ -244,6 +259,7 @@ def parse_idea_file(path):
         "related": sorted(related),
         "git_contributors": [],
         "discussion_participants": [],
+        "upvotes": 0,
     }
 
 
@@ -358,6 +374,15 @@ def generate_html(ideas, overlap_matrix):
             1 for other_id, v in overlap_matrix.get(idea_id, {}).items() if v and other_id != idea_id
         )
 
+        # Upvotes
+        upvotes = idea.get("upvotes", 0)
+        if upvotes:
+            upvotes_html = f'<span class="upvote-count">👍 {upvotes}</span>'
+        elif idea["discussion_url"]:
+            upvotes_html = '<span class="muted">0</span>'
+        else:
+            upvotes_html = '<span class="muted">—</span>'
+
         rows_html.append(
             f"""      <tr>
         <td data-sort="{html_escape(idea_id)}">{idea_link}</td>
@@ -365,6 +390,7 @@ def generate_html(ideas, overlap_matrix):
         <td class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
         <td data-sort="{html_escape(blt_repo)}">{repo_link}</td>
         <td data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
+        <td data-sort="{upvotes:06d}" class="upvotes-cell">{upvotes_html}</td>
         <td data-sort="{overlap_count:03d}">{related_html}</td>
         <td data-sort="{len(all_contributors):03d}">{contrib_html}</td>
       </tr>"""
@@ -477,6 +503,8 @@ def generate_html(ideas, overlap_matrix):
       padding: 9px 12px; vertical-align: top; font-size: 13px;
     }}
     td.oneliner {{ max-width: 280px; color: #8b949e; }}
+    td.upvotes-cell {{ text-align: center; white-space: nowrap; }}
+    .upvote-count {{ color: #3fb950; font-weight: 600; }}
     .muted {{ color: #484f58; }}
     .badge {{
       display: inline-block; background: #1f3a5f; color: #79c0ff;
@@ -534,6 +562,10 @@ def generate_html(ideas, overlap_matrix):
         <div class="label">Total Ideas</div>
       </div>
       <div class="stat-card">
+        <div class="num" id="stat-total-upvotes">0</div>
+        <div class="label">Total Discussion Upvotes</div>
+      </div>
+      <div class="stat-card">
         <div class="num" id="stat-with-discussion">0</div>
         <div class="label">With Discussion Post</div>
       </div>
@@ -561,13 +593,14 @@ def generate_html(ideas, overlap_matrix):
       <table id="ideas-table">
         <thead>
           <tr>
-            <th data-col="0">Idea</th>
-            <th data-col="1">Title</th>
-            <th data-col="2">One-Liner</th>
-            <th data-col="3">BLT Repo</th>
-            <th data-col="4">Discussion</th>
-            <th data-col="5">Overlapping Ideas</th>
-            <th data-col="6">Interested Contributors</th>
+            <th data-col="{COL_IDEA}">Idea</th>
+            <th data-col="{COL_TITLE}">Title</th>
+            <th data-col="{COL_ONELINER}">One-Liner</th>
+            <th data-col="{COL_REPO}">BLT Repo</th>
+            <th data-col="{COL_DISCUSSION}">Discussion</th>
+            <th data-col="{COL_UPVOTES}">👍 Upvotes</th>
+            <th data-col="{COL_OVERLAPS}">Overlapping Ideas</th>
+            <th data-col="{COL_CONTRIBUTORS}">Interested Contributors</th>
           </tr>
         </thead>
         <tbody>
@@ -635,7 +668,9 @@ def generate_html(ideas, overlap_matrix):
     document.querySelectorAll('thead th[data-col]').forEach(th => {{
       th.addEventListener('click', () => sortTable(parseInt(th.dataset.col)));
     }});
-    sortTable(0); // default sort by idea ID
+    // Default: sort by upvotes (col {COL_UPVOTES}) descending
+    sortCol = {COL_UPVOTES}; sortDir = -1;
+    sortTable({COL_UPVOTES});
 
     // ── Search / filter ──────────────────────────────────────────────────
     const searchInput = document.getElementById('search');
@@ -643,7 +678,7 @@ def generate_html(ideas, overlap_matrix):
 
     // Populate repo dropdown
     const repos = [...new Set(
-      Array.from(tbody.rows).map(r => r.cells[3].textContent.trim())
+      Array.from(tbody.rows).map(r => r.cells[{COL_REPO}].textContent.trim())
     )].sort();
     repos.forEach(r => {{
       const opt = document.createElement('option');
@@ -657,7 +692,7 @@ def generate_html(ideas, overlap_matrix):
       let visible = 0;
       Array.from(tbody.rows).forEach(row => {{
         const text = row.textContent.toLowerCase();
-        const rowRepo = row.cells[3].textContent.trim().toLowerCase();
+        const rowRepo = row.cells[{COL_REPO}].textContent.trim().toLowerCase();
         const show = (!q || text.includes(q)) && (!repo || rowRepo === repo);
         row.style.display = show ? '' : 'none';
         if (show) visible++;
@@ -670,13 +705,20 @@ def generate_html(ideas, overlap_matrix):
     // ── Stats ────────────────────────────────────────────────────────────
     const rows = Array.from(tbody.rows);
     document.getElementById('stat-with-discussion').textContent =
-      rows.filter(r => r.cells[4].textContent.trim() !== '—').length;
+      rows.filter(r => r.cells[{COL_DISCUSSION}].textContent.trim() !== '—').length;
+
+    const totalUpvotes = rows.reduce((sum, r) => {{
+      const v = parseInt(r.cells[{COL_UPVOTES}].dataset.sort, 10);
+      return sum + (isNaN(v) ? 0 : v);
+    }}, 0);
+    document.getElementById('stat-total-upvotes').textContent = totalUpvotes;
+
     document.getElementById('stat-with-overlaps').textContent =
-      rows.filter(r => r.cells[5].textContent.trim() !== '—').length;
+      rows.filter(r => r.cells[{COL_OVERLAPS}].textContent.trim() !== '—').length;
 
     const allContribs = new Set();
     rows.forEach(r => {{
-      r.cells[6].textContent.split(',').forEach(c => {{
+      r.cells[{COL_CONTRIBUTORS}].textContent.split(',').forEach(c => {{
         const t = c.trim();
         if (t && t !== '—') allContribs.add(t);
       }});
@@ -714,15 +756,16 @@ def main():
         if idea["git_contributors"]:
             print(f"  {idea['filename']}: {idea['git_contributors']}")
 
-    print("Fetching discussion participants…")
+    print("Fetching discussion participants and upvotes…")
     for idea in ideas:
         if idea["discussion_num"]:
             print(f"  Fetching discussion #{idea['discussion_num']} for Idea {idea['id']}…")
-            idea["discussion_participants"] = get_discussion_participants(
-                idea["discussion_num"]
-            )
+            participants, upvotes = get_discussion_data(idea["discussion_num"])
+            idea["discussion_participants"] = participants
+            idea["upvotes"] = upvotes
             if idea["discussion_participants"]:
                 print(f"    Participants: {idea['discussion_participants']}")
+            print(f"    Upvotes: {upvotes}")
 
     print("Building overlap matrix…")
     overlap_matrix = build_overlap_matrix(ideas)
