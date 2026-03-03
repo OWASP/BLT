@@ -1,143 +1,432 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secure AI Notes — BLT-SafeCloak</title>
-  <meta name="description" content="AES-256-GCM encrypted meeting notes with AI-powered summarization, key-point extraction, and action-item detection." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>" />
+  <title>Secure AI Notes - BLT-SafeCloak</title>
+  <meta
+    name="description"
+    content="AES-256-GCM encrypted meeting notes with client-side summarization, key-point extraction, and action-item detection."
+  />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#E10101",
+            "primary-hover": "#b91c1c",
+            "neutral-border": "#E5E5E5",
+            "dark-base": "#111827",
+            "dark-surface": "#1F2937"
+          },
+          fontFamily: {
+            sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    :root {
+      --blt-primary: #E10101;
+      --blt-neutral-border: #E5E5E5;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #111827;
+    }
+
+    .hero-glow {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.10), transparent 35%),
+        radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.08), transparent 30%),
+        linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
+    }
+
+    .nav-link.active {
+      color: var(--blt-primary);
+      background: #feeae9;
+    }
+
+    .navbar-nav.open {
+      display: flex;
+    }
+
+    .surface-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .surface-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(225, 1, 1, 0.10);
+    }
+
+    .notes-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 1rem;
+      min-height: 560px;
+    }
+
+    .notes-sidebar {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .notes-list {
+      padding: 0.55rem;
+      overflow-y: auto;
+      flex: 1;
+      max-height: 660px;
+    }
+
+    .note-item {
+      border: 1px solid transparent;
+      border-radius: 0.5rem;
+      padding: 0.7rem;
+      margin-bottom: 0.35rem;
+      cursor: pointer;
+      background: #ffffff;
+      transition: all 0.15s ease;
+    }
+
+    .note-item:hover {
+      background: #fff5f5;
+      border-color: #fecaca;
+    }
+
+    .note-item.active {
+      background: #feeae9;
+      border-color: var(--blt-primary);
+    }
+
+    .note-item-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+
+    .note-item-preview {
+      font-size: 0.78rem;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .note-item-date {
+      font-size: 0.72rem;
+      color: #6b7280;
+      margin-top: 0.28rem;
+    }
+
+    .note-editor {
+      display: flex;
+      flex-direction: column;
+      min-height: 560px;
+      overflow: hidden;
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .editor-title {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #f1f5f9;
+      background: #ffffff;
+      color: #111827;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 0.8rem 1rem;
+      outline: none;
+    }
+
+    .editor-title:focus {
+      border-color: #fecaca;
+      box-shadow: inset 0 -1px 0 #dc2626;
+    }
+
+    .editor-body {
+      width: 100%;
+      flex: 1;
+      border: 0;
+      background: #ffffff;
+      color: #111827;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      padding: 0.9rem 1rem;
+      resize: none;
+      outline: none;
+      min-height: 230px;
+    }
+
+    .editor-body:focus {
+      box-shadow: inset 0 0 0 1px #dc2626;
+    }
+
+    .ai-panel {
+      border-top: 1px solid #f1f5f9;
+      padding: 0.9rem 1rem;
+      background: #fffafa;
+    }
+
+    .ai-panel-title {
+      margin-bottom: 0.6rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #b91c1c;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .ai-output {
+      border: 1px solid #E5E5E5;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      color: #374151;
+      min-height: 70px;
+      padding: 0.7rem;
+      font-size: 0.84rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    #toast-container {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
+    }
+
+    @media (max-width: 900px) {
+      .notes-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .note-editor {
+        min-height: 460px;
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="font-sans antialiased">
+  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
 
-<!-- ── Navbar ── -->
-<nav class="navbar" role="navigation" aria-label="Main navigation">
-  <a class="navbar-brand" href="index.html">
-    <div class="shield-icon" aria-hidden="true">🛡️</div>
-    BLT-SafeCloak
-  </a>
-  <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle menu">☰</button>
-  <ul class="navbar-nav" id="navbar-nav" role="list">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="video-chat.html">Video Chat</a></li>
-    <li><a href="notes.html" class="active">Secure Notes</a></li>
-    <li><a href="consent.html">Consent</a></li>
-    <li><a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a></li>
-  </ul>
-</nav>
-
-<div class="page-container">
-  <!-- ── Page Header ── -->
-  <header class="page-header">
-    <h1 class="page-title">📝 Secure AI Notes</h1>
-    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
-      <span class="badge badge-success">🔐 AES-256-GCM Encrypted</span>
-      <span class="badge badge-primary">💾 Stored Locally</span>
-      <button class="btn btn-primary btn-sm" id="btn-new-note" aria-label="Create new note">+ New Note</button>
-    </div>
-  </header>
-
-  <main class="page-content">
-    <div class="alert alert-success" style="margin-bottom:1rem">
-      <span aria-hidden="true">🔒</span>
-      <span>All notes are encrypted with AES-256-GCM and stored only in your browser's localStorage. They never leave your device.</span>
-    </div>
-
-    <div class="notes-layout" role="main" aria-label="Notes application">
-      <!-- ── Sidebar ── -->
-      <aside class="notes-sidebar" aria-label="Notes list">
-        <div class="card-header" style="background:var(--bg-medium)">
-          <h2 class="card-title" style="font-size:0.85rem">YOUR NOTES</h2>
-          <div style="display:flex;gap:0.35rem">
-            <button class="btn btn-sm btn-primary" id="btn-new-note-2" onclick="NotesApp.createNote()" aria-label="Create new note">+</button>
-            <button class="btn btn-sm btn-secondary" id="btn-export-all" aria-label="Export all notes" title="Export all notes as JSON">⬇</button>
-          </div>
+  <nav class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur" role="navigation" aria-label="Main navigation">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a class="flex items-center gap-3" href="index.html" aria-label="BLT-SafeCloak Home">
+        <img
+          src="img/logo.png"
+          alt="BLT-SafeCloak logo"
+          class="h-10 w-10 rounded-md object-contain"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div>
+          <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
+          <p class="text-xs font-medium text-gray-500">OWASP BLT Extension</p>
         </div>
-        <div class="notes-list" id="notes-list" role="list" aria-label="Notes list"></div>
-      </aside>
+      </a>
 
-      <!-- ── Editor ── -->
-      <div class="note-editor" aria-label="Note editor">
-        <!-- Empty state -->
-        <div id="editor-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text-muted);gap:1rem;padding:2rem">
-          <div style="font-size:3rem" aria-hidden="true">📝</div>
-          <p style="text-align:center;max-width:300px">Select a note from the sidebar or create a new one to get started.</p>
-          <button class="btn btn-primary" onclick="NotesApp.createNote()">+ Create Your First Note</button>
-        </div>
+      <button
+        class="rounded-md border border-neutral-border p-2 text-gray-700 md:hidden"
+        id="navbar-toggle"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        type="button"
+      >
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
 
-        <!-- Editor wrapper -->
-        <div id="editor-wrapper" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-          <!-- Toolbar -->
-          <div class="editor-toolbar" role="toolbar" aria-label="Note toolbar">
-            <button class="btn btn-sm btn-secondary" id="btn-delete-note" title="Delete note" aria-label="Delete note">🗑️</button>
-            <div style="height:16px;width:1px;background:var(--stroke-dark)" aria-hidden="true"></div>
-            <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Export:</span>
-            <button class="btn btn-sm btn-secondary" id="btn-export-txt" title="Export as .txt" aria-label="Export as text">.txt</button>
-            <button class="btn btn-sm btn-secondary" id="btn-export-md" title="Export as .md" aria-label="Export as Markdown">.md</button>
-            <button class="btn btn-sm btn-secondary" id="btn-export-json" title="Export as .json" aria-label="Export as JSON">.json</button>
-            <div style="margin-left:auto;font-size:0.75rem;color:var(--text-muted)" id="word-count" aria-live="polite">0 words · 0 chars</div>
+      <ul
+        class="navbar-nav hidden absolute left-4 right-4 top-[4.2rem] flex-col gap-2 rounded-lg border border-neutral-border bg-white p-3 md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0"
+        id="navbar-nav"
+        role="list"
+      >
+        <li><a href="index.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Home</a></li>
+        <li><a href="video-chat.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Video Chat</a></li>
+        <li><a href="notes.html" class="nav-link active block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Secure Notes</a></li>
+        <li><a href="consent.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Consent</a></li>
+        <li>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-SafeCloak"
+            target="_blank"
+            rel="noopener"
+            class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+          >
+            <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="mx-auto w-full max-w-6xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+    <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+          <i class="fa-solid fa-note-sticky mr-2 text-primary" aria-hidden="true"></i>
+          Secure AI Notes
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">Private notes with in-browser encryption and practical AI helpers.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="badge badge-success">
+          <i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>AES-256-GCM Encrypted
+        </span>
+        <span class="badge badge-primary">
+          <i class="fa-solid fa-hard-drive mr-1" aria-hidden="true"></i>Stored Locally
+        </span>
+        <button class="btn btn-primary btn-sm" id="btn-new-note" aria-label="Create new note">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>New Note
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="alert alert-success mb-4">
+        <i class="fa-solid fa-shield-halved mt-0.5" aria-hidden="true"></i>
+        <span>All notes are encrypted with AES-256-GCM and stored only in your browser localStorage. They never leave your device.</span>
+      </div>
+
+      <div class="notes-layout" role="main" aria-label="Notes application">
+        <aside class="notes-sidebar" aria-label="Notes list">
+          <div class="card-header">
+            <h2 class="card-title">Your Notes</h2>
+            <div class="flex gap-1.5">
+              <button class="btn btn-sm btn-primary" id="btn-new-note-2" onclick="NotesApp.createNote()" aria-label="Create new note">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+              </button>
+              <button class="btn btn-sm btn-secondary" id="btn-export-all" aria-label="Export all notes" title="Export all notes as JSON">
+                <i class="fa-solid fa-download" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div class="notes-list" id="notes-list" role="list" aria-label="Notes list"></div>
+        </aside>
+
+        <div class="note-editor" aria-label="Note editor">
+          <div id="editor-empty" class="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10 text-gray-500">
+            <i class="fa-regular fa-note-sticky text-5xl text-primary" aria-hidden="true"></i>
+            <p class="max-w-sm text-center text-sm">Select a note from the sidebar or create a new one to get started.</p>
+            <button class="btn btn-primary" onclick="NotesApp.createNote()">
+              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+              Create Your First Note
+            </button>
           </div>
 
-          <!-- Title -->
-          <input type="text" class="editor-title" id="note-title" placeholder="Note title…" aria-label="Note title" />
-
-          <!-- Body -->
-          <textarea class="editor-body" id="note-body" placeholder="Start typing your secure note here…&#10;&#10;Try the AI features below to summarize, extract key points, find action items, or analyze keywords." aria-label="Note content"></textarea>
-
-          <!-- AI Panel -->
-          <div class="ai-panel">
-            <div class="ai-panel-title" aria-label="AI features">
-              ✨ AI Features
+          <div id="editor-wrapper" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+            <div class="editor-toolbar" role="toolbar" aria-label="Note toolbar">
+              <button class="btn btn-sm btn-danger" id="btn-delete-note" title="Delete note" aria-label="Delete note">
+                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+              </button>
+              <div class="mx-1 h-4 w-px bg-gray-300" aria-hidden="true"></div>
+              <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Export</span>
+              <button class="btn btn-sm btn-secondary" id="btn-export-txt" title="Export as .txt" aria-label="Export as text">.txt</button>
+              <button class="btn btn-sm btn-secondary" id="btn-export-md" title="Export as .md" aria-label="Export as Markdown">.md</button>
+              <button class="btn btn-sm btn-secondary" id="btn-export-json" title="Export as .json" aria-label="Export as JSON">.json</button>
+              <div style="margin-left:auto;font-size:0.75rem;color:#6b7280" id="word-count" aria-live="polite">0 words - 0 chars</div>
             </div>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem" role="toolbar" aria-label="AI analysis tools">
-              <button class="btn btn-sm" id="btn-summarize" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Summarize note">📝 Summarize</button>
-              <button class="btn btn-sm" id="btn-keypoints" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Extract key points">🔑 Key Points</button>
-              <button class="btn btn-sm" id="btn-actions" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Find action items">✅ Action Items</button>
-              <button class="btn btn-sm" id="btn-keywords" style="background:rgba(128,202,238,0.1);color:var(--secondary);border:1px solid rgba(128,202,238,0.2)" aria-label="Analyze keywords">📊 Keywords</button>
+
+            <input type="text" class="editor-title" id="note-title" placeholder="Note title..." aria-label="Note title" />
+
+            <textarea class="editor-body" id="note-body" placeholder="Start typing your secure note here...&#10;&#10;Use AI features below to summarize, extract key points, find action items, or analyze keywords." aria-label="Note content"></textarea>
+
+            <div class="ai-panel">
+              <div class="ai-panel-title" aria-label="AI features">
+                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                AI Features
+              </div>
+              <div class="mb-3 flex flex-wrap gap-2" role="toolbar" aria-label="AI analysis tools">
+                <button class="btn btn-sm btn-secondary" id="btn-summarize" aria-label="Summarize note">
+                  <i class="fa-solid fa-file-lines" aria-hidden="true"></i>Summarize
+                </button>
+                <button class="btn btn-sm btn-secondary" id="btn-keypoints" aria-label="Extract key points">
+                  <i class="fa-solid fa-key" aria-hidden="true"></i>Key Points
+                </button>
+                <button class="btn btn-sm btn-secondary" id="btn-actions" aria-label="Find action items">
+                  <i class="fa-solid fa-list-check" aria-hidden="true"></i>Action Items
+                </button>
+                <button class="btn btn-sm btn-secondary" id="btn-keywords" aria-label="Analyze keywords">
+                  <i class="fa-solid fa-chart-column" aria-hidden="true"></i>Keywords
+                </button>
+              </div>
+              <div class="ai-output" id="ai-output" aria-live="polite" aria-label="AI analysis output">AI output will appear here...</div>
             </div>
-            <div class="ai-output" id="ai-output" aria-live="polite" aria-label="AI analysis output">AI output will appear here…</div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Encryption info -->
-    <div style="margin-top:1.5rem">
-      <div class="card">
-        <div class="card-body" style="display:flex;gap:2rem;flex-wrap:wrap">
+      <div class="surface-card mt-6 rounded-xl p-4">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Encryption</div>
-            <div style="font-size:0.9rem;color:#fff">AES-256-GCM</div>
+            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Encryption</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">AES-256-GCM</div>
           </div>
           <div>
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Key Derivation</div>
-            <div style="font-size:0.9rem;color:#fff">PBKDF2 / SHA-256 / 100k iterations</div>
+            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Key Derivation</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">PBKDF2 / SHA-256 / 100k</div>
           </div>
           <div>
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">Storage</div>
-            <div style="font-size:0.9rem;color:#fff">Browser localStorage (encrypted)</div>
+            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Storage</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">Encrypted localStorage</div>
           </div>
           <div>
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.35rem">AI Processing</div>
-            <div style="font-size:0.9rem;color:#fff">100% client-side (offline capable)</div>
+            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">AI Processing</div>
+            <div class="mt-1 text-sm font-semibold text-gray-900">100% client-side</div>
           </div>
         </div>
       </div>
+    </main>
+  </div>
+
+  <footer class="border-t border-neutral-border bg-white py-7" role="contentinfo">
+    <div class="mx-auto max-w-6xl px-4 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      BLT-SafeCloak -
+      <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT Project</a>
     </div>
-  </main>
-</div>
+  </footer>
 
-<!-- ── Footer ── -->
-<footer class="footer" role="contentinfo">
-  <p>BLT-SafeCloak — <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">OWASP BLT Project</a></p>
-</footer>
+  <div id="toast-container" role="status" aria-live="polite"></div>
 
-<div id="toast-container" role="status" aria-live="polite"></div>
-
-<script src="js/crypto.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/notes.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/notes.js"></script>
 </body>
 </html>
