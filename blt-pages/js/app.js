@@ -425,6 +425,7 @@ function renderRecentBugs(bugs) {
                 alt="${escapeHtml(bug.domain)} favicon"
                 class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1"
                 loading="lazy"
+                referrerpolicy="no-referrer"
                 onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>'" />`
         : "";
 
@@ -432,7 +433,7 @@ function renderRecentBugs(bugs) {
         ${imgHtml}
         <h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">
           <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
-             class="hover:text-primary transition-colors inline-flex items-center gap-1 flex-wrap">
+             class="hover:text-primary transition-colors">
             ${faviconHtml}${escapeHtml(bug.title)}
           </a>
         </h3>
