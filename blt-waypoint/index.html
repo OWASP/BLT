@@ -269,13 +269,18 @@
     <!-- Set initial view immediately to avoid skeleton flash -->
     <script>
       (function () {
-        const v = localStorage.getItem('blt-view') || 'table';
+        var v = localStorage.getItem('blt-view') || 'table';
         if (v === 'table') {
-          document.getElementById('repo-grid').classList.add('hidden');
-          document.getElementById('repo-table').classList.remove('hidden');
-          document.getElementById('main-sidebar').classList.add('force-hidden');
-          document.getElementById('main-layout').classList.add('table-view');
-          document.querySelector('header').classList.add('table-view-header');
+          var g = document.getElementById('repo-grid');
+          var t = document.getElementById('repo-table');
+          var s = document.getElementById('main-sidebar');
+          var l = document.getElementById('main-layout');
+          var h = document.querySelector('header');
+          if (g) g.classList.add('hidden');
+          if (t) t.classList.remove('hidden');
+          if (s) s.classList.add('force-hidden');
+          if (l) l.classList.add('table-view');
+          if (h) h.classList.add('table-view-header');
         }
       })();
     </script>
