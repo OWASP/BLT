@@ -57,70 +57,6 @@
         linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      border-radius: 0.375rem;
-      padding: 0.625rem 1rem;
-      font-size: 0.875rem;
-      font-weight: 700;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: var(--blt-primary);
-      color: #ffffff;
-    }
-
-    .btn-primary:hover {
-      background: #b91c1c;
-    }
-
-    .btn-secondary {
-      background: #ffffff;
-      color: #1f2937;
-      border-color: #E5E5E5;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--blt-primary);
-      color: var(--blt-primary);
-      background: #fff5f5;
-    }
-
-    .btn-danger {
-      background: #ffffff;
-      color: #b91c1c;
-      border-color: #fca5a5;
-    }
-
-    .btn-danger:hover {
-      background: #b91c1c;
-      color: #ffffff;
-      border-color: #b91c1c;
-    }
-
-    .btn-outline-primary {
-      background: #ffffff;
-      color: var(--blt-primary);
-      border-color: var(--blt-primary);
-    }
-
-    .btn-outline-primary:hover {
-      background: var(--blt-primary);
-      color: #ffffff;
-    }
-
-    .btn-sm {
-      padding: 0.4rem 0.7rem;
-      font-size: 0.75rem;
-    }
-
     .nav-link.active {
       color: var(--blt-primary);
       background: #feeae9;
@@ -131,83 +67,12 @@
     }
 
     .surface-card {
-      border: 1px solid var(--blt-neutral-border);
-      background: #ffffff;
-      box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .surface-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 26px rgba(225, 1, 1, 0.10);
-    }
-
-    .card {
-      border: 1px solid #E5E5E5;
-      border-radius: 0.75rem;
-      background: #ffffff;
-      box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
-    }
-
-    .card-header {
-      border-bottom: 1px solid #f1f5f9;
-      padding: 0.85rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #111827;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card-body {
-      padding: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.375rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #4b5563;
-    }
-
-    .form-input {
-      width: 100%;
-      border: 1px solid #9ca3af;
-      border-radius: 0.375rem;
-      padding: 0.5rem 1rem;
-      background: #ffffff;
-      color: #111827;
-      font-size: 0.875rem;
-      outline: none;
-    }
-
-    .form-input:focus {
-      border-color: #dc2626;
-      box-shadow: 0 0 0 1px #dc2626;
-    }
-
-    select.form-input {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      padding-right: 2.5rem;
-    }
-
-    textarea.form-input {
-      min-height: 100px;
-      resize: vertical;
     }
 
     .checkbox-wrapper {
@@ -336,10 +201,6 @@
       font-weight: 700;
     }
 
-    .text-muted { color: #6b7280; }
-    .text-small { font-size: 0.82rem; }
-    .text-secondary { color: #1d4ed8; }
-
     #toast-container {
       position: fixed;
       right: 1rem;
@@ -354,15 +215,8 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      border-radius: 0.5rem;
-      padding: 0.625rem 0.875rem;
-      color: #ffffff;
       box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
     }
-
-    .toast-info { background: #111827; }
-    .toast-success { background: #166534; }
-    .toast-error { background: #991b1b; }
 
     @media (max-width: 1024px) {
       .stats-grid {
