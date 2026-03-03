@@ -1,0 +1,276 @@
+name: Add Unresolved Conversations Label
+
+# Uses pull_request_target so it runs with base repo permissions for forked PRs.
+# SECURITY: We do NOT check out or execute PR code. We only use the GitHub API.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - edited
+  issue_comment:
+    types:
+      - created
+      - edited
+      - deleted
+  pull_request_review:
+    types:
+      - submitted
+      - edited
+      - dismissed
+  pull_request_review_comment:
+    types:
+      - created
+      - edited
+      - deleted
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  add_unresolved_conversations_label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Unresolved Conversations Label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            let pr = context.payload.pull_request;
+            let pull_number;
+            
+            // Handle different event types
+            // pull_request_target, pull_request_review, and pull_request_review_comment all include pull_request
+            if (pr) {
+              pull_number = pr.number;
+            } else if (context.payload.issue && context.payload.issue.pull_request) {
+              // This is an issue_comment on a PR
+              pull_number = context.payload.issue.number;
+              // Fetch the PR details
+              const { data: prData } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              pr = prData;
+            } else {
+              core.info('Not a pull request event. Skipping.');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Get all review threads (conversations) using GraphQL
+            const query = `
+              query($owner: String!, $repo: String!, $pull_number: Int!, $after: String) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pull_number) {
+                    reviewThreads(first: 100, after: $after) {
+                      nodes {
+                        isResolved
+                        isOutdated
+                      }
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            let allThreads = [];
+            let hasNextPage = true;
+            let cursor = null;
+
+            // Paginate through all review threads
+            while (hasNextPage) {
+              const variables = {
+                owner,
+                repo,
+                pull_number,
+                after: cursor
+              };
+              
+              const result = await github.graphql(query, variables);
+              const threads = result.repository.pullRequest.reviewThreads;
+              
+              allThreads = allThreads.concat(threads.nodes);
+              hasNextPage = threads.pageInfo.hasNextPage;
+              cursor = threads.pageInfo.endCursor;
+            }
+
+            // Count unresolved conversations (excluding outdated ones)
+            const unresolvedThreads = allThreads.filter(thread => !thread.isResolved && !thread.isOutdated);
+            const count = unresolvedThreads.length;
+            
+            // Determine the label based on the number of unresolved conversations
+            const newLabel = `unresolved-conversations: ${count}`;
+            
+            // Set color based on the number of unresolved conversations
+            let labelColor;
+            if (count === 0) {
+              labelColor = '0e8a16'; // Green - no unresolved conversations
+            } else {
+              labelColor = 'e74c3c'; // Red - has unresolved conversations
+            }
+            
+            // Set grammatically correct description
+            const description = count === 1 ? 'PR has 1 unresolved conversation' : `PR has ${count} unresolved conversations`;
+
+            // Get current labels on the PR
+            const { data: current } = await github.rest.issues.listLabelsOnIssue({ 
+              owner, 
+              repo, 
+              issue_number: pull_number, 
+              per_page: 100 
+            });
+            const currentNames = new Set(current.map(l => l.name));
+
+            // Remove any existing unresolved conversation labels
+            const commentsRegex = /^unresolved-conversations:/i;
+            for (const name of currentNames) {
+              if (commentsRegex.test(name) && name !== newLabel) {
+                try {
+                  await github.rest.issues.removeLabel({ 
+                    owner, 
+                    repo, 
+                    issue_number: pull_number, 
+                    name 
+                  });
+                  core.info(`Removed label ${name}`);
+                } catch (err) {
+                  core.warning(`Failed to remove label ${name}: ${err.message}`);
+                }
+              }
+            }
+
+            // Ensure the new label exists with the correct color/description (create or update as needed)
+            async function ensureLabelExists(labelName) {
+              try {
+                const { data: existing } = await github.rest.issues.getLabel({ owner, repo, name: labelName });
+                if (existing.color !== labelColor || existing.description !== description) {
+                  await github.rest.issues.updateLabel({
+                    owner,
+                    repo,
+                    name: labelName,
+                    color: labelColor,
+                    description: description,
+                  });
+                  core.info(`Updated label ${labelName} color/description`);
+                }
+              } catch (e) {
+                if (e.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name: labelName,
+                    color: labelColor,
+                    description: description,
+                  });
+                  core.info(`Created label ${labelName}`);
+                } else {
+                  throw e;
+                }
+              }
+            }
+
+            await ensureLabelExists(newLabel);
+
+            // Add the label if it isn't already present
+            if (!currentNames.has(newLabel)) {
+              await github.rest.issues.addLabels({ 
+                owner, 
+                repo, 
+                issue_number: pull_number, 
+                labels: [newLabel] 
+              });
+              core.info(`Applied label ${newLabel} to PR #${pull_number}`);
+            } else {
+              core.info(`Label ${newLabel} already present on PR #${pull_number}`);
+            }
+
+            // Add a comment to notify the developer if there are unresolved conversations
+            if (count > 0) {
+              // Check if we already posted a notification comment
+              // Use pagination to handle PRs with >100 comments
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: pull_number,
+                per_page: 100,
+              });
+              
+              // Find our notification comment (using a unique marker)
+              const notificationMarker = '<!-- unresolved-conversations-notification -->';
+              const existingNotification = comments.find(comment => 
+                comment.body && comment.body.includes(notificationMarker) && comment.user.login === 'github-actions[bot]'
+              );
+              
+              const conversationWord = count === 1 ? 'conversation' : 'conversations';
+              const commentBody = notificationMarker + '\n' +
+                '## 💬 Unresolved Conversations Detected\n\n' +
+                `This pull request currently has **${count} unresolved ${conversationWord}** that need to be addressed.\n\n` +
+                '### Action Required\n' +
+                '- Review the pending discussions in the "Files changed" tab\n' +
+                '- Address or respond to each conversation\n' +
+                '- Mark conversations as resolved (if you have permission), or ask a maintainer/reviewer to resolve them once they are addressed\n\n' +
+                'The label on this PR will automatically update as conversations are resolved. Thank you! 🙏';
+              
+              if (!existingNotification) {
+                // Post a new notification comment
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pull_number,
+                  body: commentBody,
+                });
+                core.info(`Posted notification comment for ${count} unresolved ${conversationWord}`);
+              } else {
+                // Update the existing notification comment if the count changed
+                const currentCount = existingNotification.body.match(/\*\*(\d+) unresolved/);
+                if (!currentCount || parseInt(currentCount[1]) !== count) {
+                  await github.rest.issues.updateComment({
+                    owner,
+                    repo,
+                    comment_id: existingNotification.id,
+                    body: commentBody,
+                  });
+                  core.info(`Updated notification comment with new count: ${count} unresolved ${conversationWord}`);
+                } else {
+                  core.info(`Notification comment already exists with correct count (${count})`);
+                }
+              }
+            } else if (count === 0) {
+              // If all conversations are resolved, remove the notification comment
+              // Use pagination to handle PRs with >100 comments
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: pull_number,
+                per_page: 100,
+              });
+              
+              const notificationMarker = '<!-- unresolved-conversations-notification -->';
+              const existingNotification = comments.find(comment => 
+                comment.body && comment.body.includes(notificationMarker) && comment.user.login === 'github-actions[bot]'
+              );
+              
+              if (existingNotification) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existingNotification.id,
+                });
+                core.info(`Removed notification comment as all conversations are resolved`);
+              }
+            }
+
+            // Log the count for transparency
+            core.info(`PR #${pull_number} has ${count} unresolved conversation(s) (out of ${allThreads.length} total review threads).`);
