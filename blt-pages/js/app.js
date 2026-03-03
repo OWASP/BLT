@@ -371,9 +371,16 @@ async function loadRecentBugs() {
 }
 
 async function loadRecentBugsFromAPI(grid) {
-  const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=open&labels=bug&per_page=3&sort=created&direction=desc`;
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  const baseUrl = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}`;
+
+  const issuesUrl = `${baseUrl}/issues?state=open&labels=bug&per_page=3&sort=created&direction=desc`;
+
+  const res = await fetch(issuesUrl, {
+    headers: { Accept: "application/vnd.github+json" },
+  });
+
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+
   const issues = await res.json();
 
   const bugs = await Promise.all(
@@ -381,8 +388,9 @@ async function loadRecentBugsFromAPI(grid) {
       .filter((i) => !i.pull_request)
       .slice(0, 3)
       .map(async (issue) => {
-
-        // ---- Extract domain (from main) ----
+        // -------------------------
+        // Extract domain
+        // -------------------------
         let domain = null;
         const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
         if (urlMatch) {
@@ -393,20 +401,57 @@ async function loadRecentBugsFromAPI(grid) {
           }
         }
 
-        // ---- Fetch reactions (from feature/show-reactions) ----
+        // -------------------------
+        // Fetch latest comment
+        // -------------------------
+        let latestComment = null;
+        if (issue.comments > 0) {
+          try {
+            const commentsRes = await fetch(
+              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
+              { headers: { Accept: "application/vnd.github+json" } }
+            );
+
+            if (commentsRes.ok) {
+              const commentsData = await commentsRes.json();
+              if (commentsData.length > 0) {
+                const c = commentsData[0];
+                latestComment = {
+                  body: c.body,
+                  created_at: c.created_at,
+                  html_url: c.html_url,
+                  user: {
+                    login: c.user.login,
+                    avatar_url: c.user.avatar_url,
+                    profile_url: c.user.html_url,
+                  },
+                };
+              }
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to fetch latest comment for issue #${issue.number}`,
+              error
+            );
+          }
+        }
+
+        // -------------------------
+        // Fetch reactions
+        // -------------------------
         let reactions = [];
         try {
-          const reactionsUrl = `${issue.url}/reactions`;
-          const reactionsRes = await fetch(reactionsUrl, {
+          const reactionsRes = await fetch(`${issue.url}/reactions`, {
             headers: { Accept: "application/vnd.github+json" },
           });
 
           if (reactionsRes.ok) {
-            reactions = await reactionsRes.json();
+            const reactionsData = await reactionsRes.json();
+            reactions = aggregateReactions(reactionsData);
           }
         } catch (error) {
           console.warn(
-            `Failed to fetch reactions for issue #${issue.number}:`,
+            `Failed to fetch reactions for issue #${issue.number}`,
             error
           );
         }
@@ -416,14 +461,16 @@ async function loadRecentBugsFromAPI(grid) {
           title: issue.title,
           html_url: issue.html_url,
           created_at: issue.created_at,
+          comment_count: issue.comments,
           user: {
             login: issue.user.login,
             avatar_url: issue.user.avatar_url,
             profile_url: issue.user.html_url,
           },
           image_url: extractFirstImage(issue.body),
-          domain, // ✅ kept from main
-          reactions: aggregateReactions(reactions), // ✅ kept from feature
+          domain,
+          latest_comment: latestComment,
+          reactions,
         };
       })
   );
@@ -493,6 +540,45 @@ function renderRecentBugs(bugs) {
                 onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>'" />`
         : "";
 
+      // Comment section
+      let commentHtml = "";
+      const commentCount = bug.comment_count;
+      if (typeof commentCount === "number" && commentCount > 0 && bug.latest_comment) {
+        const commenter = bug.latest_comment.user;
+        const commenterAvatar = escapeHtml(commenter.avatar_url || `https://github.com/${commenter.login}.png`);
+        const commenterProfile = escapeHtml(commenter.profile_url || `https://github.com/${commenter.login}`);
+        const commenterLogin = escapeHtml(commenter.login);
+        const commentBody = escapeHtml((bug.latest_comment.body || "").replace(/\s+/g, " ").trim());
+        const commentCountLabel = commentCount === 1 ? "1 comment" : `${formatNumber(commentCount)} comments`;
+        commentHtml = `<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700">
+          <div class="flex items-start gap-2">
+            <a href="${commenterProfile}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0">
+              <img src="${commenterAvatar}"
+                   alt="${commenterLogin}'s avatar"
+                   class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700"
+                   loading="lazy"
+                   onerror="this.src='https://github.com/identicons/${commenterLogin}.png'" />
+            </a>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${commentBody}</p>
+              <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors">
+                <i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>
+                ${commentCountLabel}
+              </a>
+            </div>
+          </div>
+        </div>`;
+      } else if (typeof commentCount === "number" && commentCount === 0) {
+        commentHtml = `<div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700">
+          <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>
+            Be the first to comment
+          </a>
+        </div>`;
+      }
+
       return `<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
         ${imgHtml}
         <h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">
@@ -518,6 +604,7 @@ function renderRecentBugs(bugs) {
           </div>
           <span class="text-xs text-gray-400 dark:text-gray-500">${date}</span>
         </div>
+        ${commentHtml}
       </div>`;
     })
     .join("");
