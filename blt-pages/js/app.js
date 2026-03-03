@@ -743,6 +743,8 @@ function formatReactions(reactions) {
   if (items.length === 0) return '';
 
   return items.join(' ');
+}
+
 function timeAgo(dateString) {
   const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
   if (seconds < 60) return "just now";
