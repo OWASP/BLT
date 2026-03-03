@@ -37,6 +37,65 @@ const VideoChat = (() => {
     if (dot) dot.className = `status-dot ${status}`;
   }
 
+  /* ── Browser detection ── */
+  function detectBrowser() {
+    const ua = navigator.userAgent;
+    if (/Edg\//.test(ua)) return 'edge';
+    if (/OPR\/|Opera/.test(ua)) return 'opera';
+    if (/Chrome\//.test(ua)) return 'chrome';
+    if (/Firefox\//.test(ua)) return 'firefox';
+    if (/Safari\//.test(ua) && !/Chrome\/|Chromium\//.test(ua)) return 'safari';
+    return 'other';
+  }
+
+  function getCameraInstructions(browser) {
+    const steps = {
+      chrome: `<strong>Google Chrome:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Select <strong>Always allow</strong> for the camera and microphone, then click <strong>Done</strong>.</li>
+        <li>Or go to <strong>Settings → Privacy and security → Site settings → Camera</strong> and allow this site.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+      edge: `<strong>Microsoft Edge:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Set Camera and Microphone permissions to <strong>Allow</strong>, then click <strong>Save</strong>.</li>
+        <li>Or go to <strong>Settings → Cookies and site permissions → Camera</strong> and add this site to the allow list.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+      firefox: `<strong>Mozilla Firefox:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>Click the <strong>camera blocked</strong> icon (🎥 with a slash) in the address bar.</li>
+        <li>Click <strong>Blocked Temporarily</strong> or <strong>Blocked</strong> next to Camera and Microphone and choose <strong>Allow</strong>.</li>
+        <li>Or go to <strong>about:preferences#privacy</strong> → Permissions → Camera → Settings, and allow this site.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+      safari: `<strong>Safari:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>In the menu bar, go to <strong>Safari → Settings for This Website</strong> (or <strong>Preferences → Websites → Camera</strong>).</li>
+        <li>Set Camera and Microphone to <strong>Allow</strong>.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+      opera: `<strong>Opera:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Select <strong>Always allow</strong> for the camera and microphone, then click <strong>Done</strong>.</li>
+        <li>Or go to <strong>Settings → Privacy &amp; security → Site settings → Camera</strong> and allow this site.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+      other: `<strong>Your browser:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
+        <li>Look for a <strong>camera or lock icon</strong> in the address bar and click it.</li>
+        <li>Set Camera and Microphone permissions to <strong>Allow</strong>.</li>
+        <li>Check your browser's <strong>site settings / permissions</strong> page and ensure this site is not blocked.</li>
+        <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
+    };
+    return steps[browser] || steps.other;
+  }
+
+  function showCameraDenied() {
+    const denied = $('camera-denied');
+    const instructions = $('camera-denied-instructions');
+    const mainGrid = $('main-grid');
+    const permAlert = $('perm-alert');
+    if (instructions) instructions.innerHTML = getCameraInstructions(detectBrowser());
+    if (denied) denied.style.display = 'flex';
+    if (mainGrid) mainGrid.style.display = 'none';
+    if (permAlert) permAlert.style.display = 'none';
+    const retryBtn = $('btn-camera-retry');
+    if (retryBtn) retryBtn.addEventListener('click', () => location.reload());
+  }
+
   /* ── Media ── */
   async function startLocalMedia() {
     try {
@@ -46,7 +105,11 @@ const VideoChat = (() => {
       startVoiceMeter(localStream);
       return true;
     } catch (err) {
-      showToast('Camera/mic access denied: ' + err.message, 'error');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.name === 'SecurityError') {
+        showCameraDenied();
+      } else {
+        showToast('Camera/mic access denied: ' + err.message, 'error');
+      }
       return false;
     }
   }
