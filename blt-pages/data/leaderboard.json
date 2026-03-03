@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-03-03T05:24:07.255Z",
+  "updated_at": "2026-03-03T06:30:57.324Z",
   "total_bugs": 9,
   "total_domains": 2,
   "total_orgs": 0,
@@ -91,43 +91,43 @@
   ],
   "recent_bugs": [
     {
-      "number": 32,
-      "title": "[BUG] table cut off on homepage",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/32",
-      "created_at": "2026-03-03T03:53:58Z",
-      "user": {
-        "login": "kittenbytes",
-        "avatar_url": "https://avatars.githubusercontent.com/u/171991749?v=4",
-        "profile_url": "https://github.com/kittenbytes"
-      },
-      "image_url": "https://github.com/user-attachments/assets/ce1f659f-499a-4fd1-a951-28f377f7b188",
-      "domain": "owaspblt.org"
-    },
-    {
-      "number": 25,
-      "title": "[BUG] google domain icon is missing from the title in the cards, please add it",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/25",
-      "created_at": "2026-03-02T22:34:03Z",
+      "number": 19,
+      "title": "[FEATURE] make sure reactions are showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19",
+      "created_at": "2026-03-02T21:04:11Z",
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
         "profile_url": "https://github.com/DonnieBLT"
       },
-      "image_url": "https://github.com/user-attachments/assets/895397a0-de6a-4358-ba42-4b174fb783ea",
+      "image_url": "https://github.com/user-attachments/assets/507176e7-0a58-4df4-b3e9-72e430f1b834",
       "domain": "owaspblt.org"
     },
     {
-      "number": 21,
-      "title": "[FEATURE] Add favicon",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/21",
-      "created_at": "2026-03-02T21:25:22Z",
+      "number": 17,
+      "title": "[BUG] video bugs are not showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
+      "created_at": "2026-03-02T20:50:49Z",
       "user": {
-        "login": "ananya-09",
-        "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
-        "profile_url": "https://github.com/ananya-09"
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
       },
-      "image_url": "https://github.com/user-attachments/assets/3bcaf1e6-5a9d-4460-9496-8d6f800aede9",
+      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
       "domain": "owaspblt.org"
+    },
+    {
+      "number": 8,
+      "title": "[BUG] join chapter button does not work",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
+      "created_at": "2026-03-01T08:40:35Z",
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c",
+      "domain": "www.owasp.community"
     }
   ]
 }
