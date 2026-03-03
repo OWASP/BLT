@@ -37,3 +37,28 @@ test('homepage renders the main heading', async ({ page }) => {
   const h1 = page.locator('h1');
   await expect(h1).toBeVisible();
 });
+
+test('dynamic sections are pre-rendered in HTML without waiting for JS', async ({ page }) => {
+  // Intercept JS files to ensure content is already in the HTML, not added by JS
+  await page.route('**/js/app.js', route => route.abort());
+
+  await page.goto('/');
+  await page.waitForLoadState('domcontentloaded');
+
+  // Leaderboard rows should already be present in HTML (pre-rendered by workflow)
+  const leaderboardRows = page.locator('#leaderboard-rows[data-pre-rendered="true"]');
+  await expect(leaderboardRows).toBeAttached();
+  const leaderboardChildren = await page.evaluate(() => document.getElementById('leaderboard-rows')?.childElementCount ?? 0);
+  expect(leaderboardChildren, 'leaderboard rows should be pre-rendered').toBeGreaterThan(0);
+
+  // Recent bugs grid should already be present
+  const recentBugsGrid = page.locator('#recent-bugs-grid[data-pre-rendered="true"]');
+  await expect(recentBugsGrid).toBeAttached();
+  const recentBugsChildren = await page.evaluate(() => document.getElementById('recent-bugs-grid')?.childElementCount ?? 0);
+  expect(recentBugsChildren, 'recent bugs should be pre-rendered').toBeGreaterThan(0);
+
+  // Stat numbers should not show placeholder '-'
+  const statBugs = await page.evaluate(() => document.getElementById('stat-total-bugs')?.textContent?.trim());
+  expect(statBugs, 'stat-total-bugs should be pre-rendered (not "-")').not.toBe('-');
+  expect(statBugs, 'stat-total-bugs should not be empty').not.toBe('');
+});

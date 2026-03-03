@@ -168,6 +168,9 @@ async function loadLeaderboard() {
 
   if (!container) return;
 
+  // Skip re-render when content has already been server-side rendered into the HTML
+  if (container.dataset.preRendered === "true") return;
+
   try {
     // Use inline data embedded by GitHub Action if available
     const inlineData = window.__BLT_LEADERBOARD__;
@@ -360,6 +363,9 @@ function renderLeaderboard(container, data) {
 async function loadRecentBugs() {
   const grid = document.getElementById("recent-bugs-grid");
   if (!grid) return;
+
+  // Skip re-render when content has already been server-side rendered into the HTML
+  if (grid.dataset.preRendered === "true") return;
 
   // Always use API to fetch reactions
   try {
