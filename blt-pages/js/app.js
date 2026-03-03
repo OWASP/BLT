@@ -265,6 +265,7 @@ function renderLeaderboard(container, data) {
   }
 
   const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = data.leaderboard[0]?.count || 1;
 
   container.innerHTML = data.leaderboard
     .map((entry) => {
@@ -278,6 +279,7 @@ function renderLeaderboard(container, data) {
           ? "bg-active-bg dark:bg-red-900/10"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
         <td class="px-4 py-3">
@@ -293,8 +295,17 @@ function renderLeaderboard(container, data) {
               ${escapeHtml(entry.login)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -303,7 +314,7 @@ function renderLeaderboard(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, data.leaderboard[0]?.count ? (entry.count / data.leaderboard[0].count) * 100 : 0)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
@@ -501,6 +512,7 @@ function renderTopCommenters(container, data) {
           ? "bg-active-bg dark:bg-red-900/10"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
         <td class="px-4 py-3">
@@ -516,8 +528,17 @@ function renderTopCommenters(container, data) {
               ${escapeHtml(entry.login)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -526,7 +547,7 @@ function renderTopCommenters(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
@@ -566,6 +587,7 @@ function renderTopDomains(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(entry.domain)}&sz=32`;
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
 
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
@@ -582,8 +604,17 @@ function renderTopDomains(container, data) {
               ${escapeHtml(entry.domain)}
             </span>
           </a>
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
+            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
+              <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
+              ${formatNumber(entry.count)}
+            </span>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
+              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="px-4 py-3 text-right">
+        <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>
             ${formatNumber(entry.count)}
@@ -592,7 +623,7 @@ function renderTopDomains(container, data) {
         <td class="px-4 py-3 hidden sm:table-cell">
           <div class="flex justify-end">
             <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${Math.min(100, (entry.count / maxCount) * 100)}%"></div>
+              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
             </div>
           </div>
         </td>
