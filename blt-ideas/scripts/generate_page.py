@@ -30,38 +30,39 @@ COL_UPVOTES = 5
 COL_OVERLAPS = 6
 COL_CONTRIBUTORS = 7
 
-# Known BLT org repos for each idea (from file content "Repository:" lines and README)
+# Known BLT org repos for each idea (matched against OWASP-BLT GitHub org)
 IDEA_REPO_MAP = {
-    "A": "OWASP-BLT/BLT",
-    "B": "OWASP-BLT/BLT",
-    "C": "OWASP-BLT/BLT",
-    "D": "OWASP-BLT/BLT",
-    "E": "OWASP-BLT/BLT",
-    "E.1": "OWASP-BLT/BLT",
-    "E.2": "OWASP-BLT/BLT",
-    "F": "OWASP-BLT/BLT",
-    "G": "OWASP-BLT/BLT-NetGuardian",
-    "H": "OWASP-BLT/BLT",
-    "I": "OWASP-BLT/BLT",
-    "J": "OWASP-BLT/BLT",
-    "K": "OWASP-BLT/BLT",
-    "L": "OWASP-BLT/BLT",
-    "L2": "OWASP-BLT/BLT",
-    "M": "OWASP-BLT/BLT",
-    "N": "OWASP-BLT/BLT",
-    "O": "OWASP-BLT/BLT-Extension",
-    "P": "OWASP-BLT/BLT",
-    "Q": "OWASP-BLT/BLT",
-    "R": "OWASP-BLT/BLT-Flutter",
-    "RS": "OWASP-BLT/BLT",
-    "S": "OWASP-BLT/BLT-CVE",
-    "T": "OWASP-BLT/BLT-NetGuardian",
-    "U": "OWASP-BLT/BLT",
-    "V": "OWASP-BLT/BLT-API",
-    "W": "OWASP-BLT/BLT",
-    "X": "OWASP-BLT/BLT",
-    "Y": "OWASP-BLT/BLT",
-    "Z": "OWASP-BLT/BLT",
+    "A": "OWASP-BLT/BLT-CVE",          # CVE Detection & Validation Pipeline
+    "B": "OWASP-BLT/BLT-Rewards",       # Security Contribution Gamification & BACON
+    "C": "OWASP-BLT/BLT-University",    # Security Labs & Community Intelligence
+    "D": "OWASP-BLT/BLT",               # Knowledge Sharing & Community Impact
+    "E": "OWASP-BLT/BLT",               # Fallback for un-suffixed Idea E references
+    "E.1": "OWASP-BLT/BLT-Preflight",  # AI-Assisted Security Remediation Triage
+    "E.2": "OWASP-BLT/BLT-Leaf",       # PR Risk Intelligence & Readiness Dashboard
+    "F": "OWASP-BLT/BLT-Hackathons",   # Contributor Quality Leaderboards
+    "G": "OWASP-BLT/BLT-NetGuardian",  # Zero-Trust Encrypted Web Scanner
+    "H": "OWASP-BLT/BLT-Sizzle",       # Sizzle-First Contributor Growth
+    "I": "OWASP-BLT/BLT-docs",         # First-Time Contributor Experience
+    "J": "OWASP-BLT/BLT-CVE",          # Cybersecurity Intelligence Dashboard
+    "K": "OWASP-BLT/BLT-Next",         # BLT Migration to Next.js/Cloudflare
+    "L": "OWASP-BLT/BLT-Rewards",      # Automated Bounty & Reward Pipeline
+    "L2": "OWASP-BLT/BLT-Preflight",   # Pre-Contribution Security Intent & Guidance
+    "M": "OWASP-BLT/BLT-CVE",          # CVE Remediation Pipeline
+    "M-S": "OWASP-BLT/BLT",            # Security Knowledge Mining & Pattern Intelligence
+    "N": "OWASP-BLT/BLT",              # RAG AI Agent for Onboarding
+    "O": "OWASP-BLT/BLT-Extension",    # BLT Browser Extension
+    "P": "OWASP-BLT/BLT-API",          # API v2 — Django Ninja Migration
+    "Q": "OWASP-BLT/BLT-Toasty",       # Toasty AI Triage Assistant
+    "R": "OWASP-BLT/BLT-Flutter",      # BLT Flutter Mobile App
+    "RS": "OWASP-BLT/BLT",             # Report Signal Intelligence & Pre-Triage
+    "S": "OWASP-BLT/BLT-CVE",          # BLT-CVE Explorer
+    "T": "OWASP-BLT/BLT-NetGuardian",  # BLT Target Registry
+    "U": "OWASP-BLT/BLT-Preflight",    # Pre-Contribution Security Intent & Guidance
+    "V": "OWASP-BLT/BLT-API",          # Unified Event-Driven Gamification Engine
+    "W": "OWASP-BLT/BLT-Hackathons",   # BLT Security Campaigns
+    "X": "OWASP-BLT/BLT-OWASP-Bumper", # RepoTrust Score
+    "Y": "OWASP-BLT/BLT-SafeCloak",    # SecureCall: Privacy-First Video Note Taker
+    "Z": "OWASP-BLT/BLT-MCP",          # BLT Model Context Protocol Server
 }
 
 
@@ -265,11 +266,12 @@ def parse_idea_file(path):
 
 def sort_key(idea_id):
     """Sort ideas: single letters first, then compound IDs."""
-    # Map E.1 → E, E.2 → E Extended, RS → after R, L2 → after L
+    # Map E.1 → E, E.2 → E Extended, RS → after R, L2 → after L, M-S → after M
     mapping = {
         "E.1": ("E", 1),
         "E.2": ("E", 2),
         "L2": ("L", 2),
+        "M-S": ("M", 1),
         "RS": ("RS", 0),
     }
     if idea_id in mapping:
@@ -385,14 +387,14 @@ def generate_html(ideas, overlap_matrix):
 
         rows_html.append(
             f"""      <tr>
-        <td data-sort="{html_escape(idea_id)}">{idea_link}</td>
-        <td data-sort="{title}">{title}</td>
-        <td class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
-        <td data-sort="{html_escape(blt_repo)}">{repo_link}</td>
-        <td data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
-        <td data-sort="{upvotes:06d}" class="text-center">{upvotes_html}</td>
-        <td data-sort="{overlap_count:03d}">{related_html}</td>
-        <td data-sort="{len(all_contributors):03d}">{contrib_html}</td>
+        <td data-label="Idea" data-sort="{html_escape(idea_id)}">{idea_link}</td>
+        <td data-label="Title" data-sort="{title}">{title}</td>
+        <td data-label="One-Liner" class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
+        <td data-label="BLT Repo" data-sort="{html_escape(blt_repo)}">{repo_link}</td>
+        <td data-label="Discussion" data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
+        <td data-label="Upvotes" data-sort="{upvotes:06d}" class="text-center">{upvotes_html}</td>
+        <td data-label="Overlaps" data-sort="{overlap_count:03d}">{related_html}</td>
+        <td data-label="Contributors" data-sort="{len(all_contributors):03d}">{contrib_html}</td>
       </tr>"""
         )
 
@@ -605,6 +607,42 @@ def generate_html(ideas, overlap_matrix):
     }}
     .top-list li:last-child {{
       border-bottom: none;
+    }}
+    /* ── Mobile card layout ─────────────────────────────────────────── */
+    @media (max-width: 767px) {{
+      .table-wrap {{ border: none; background: transparent; box-shadow: none; }}
+      #ideas-table thead {{ display: none; }}
+      #ideas-table tbody tr {{
+        display: block;
+        margin-bottom: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }}
+      #ideas-table tbody tr:hover {{ background: #fff7f7; }}
+      #ideas-table tbody td {{
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.3rem 0;
+        border: none;
+        font-size: 0.85rem;
+        vertical-align: top;
+      }}
+      #ideas-table tbody td::before {{
+        content: attr(data-label);
+        font-weight: 700;
+        color: #9ca3af;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        min-width: 6.5rem;
+        flex-shrink: 0;
+        padding-top: 0.1rem;
+      }}
+      #ideas-table tbody td.oneliner {{ max-width: none; }}
     }}
   </style>
 </head>
