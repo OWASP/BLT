@@ -377,7 +377,7 @@ def generate_html(ideas, overlap_matrix):
         # Upvotes
         upvotes = idea.get("upvotes", 0)
         if upvotes:
-            upvotes_html = f'<span class="upvote-count">👍 {upvotes}</span>'
+            upvotes_html = f'<span class="font-semibold text-green-600">👍 {upvotes}</span>'
         elif idea["discussion_url"]:
             upvotes_html = '<span class="muted">0</span>'
         else:
@@ -390,7 +390,7 @@ def generate_html(ideas, overlap_matrix):
         <td class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
         <td data-sort="{html_escape(blt_repo)}">{repo_link}</td>
         <td data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
-        <td data-sort="{upvotes:06d}" class="upvotes-cell">{upvotes_html}</td>
+        <td data-sort="{upvotes:06d}" class="text-center">{upvotes_html}</td>
         <td data-sort="{overlap_count:03d}">{related_html}</td>
         <td data-sort="{len(all_contributors):03d}">{contrib_html}</td>
       </tr>"""
@@ -433,212 +433,416 @@ def generate_html(ideas, overlap_matrix):
     )
 
     html = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT Ideas — Analysis Dashboard</title>
+  <title>BLT Ideas | OWASP BLT</title>
+  <meta name="description" content="BLT Ideas landing page with searchable idea catalog, overlap matrix, and contributor context for OWASP BLT." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      theme: {{
+        extend: {{
+          colors: {{
+            primary: '#E10101',
+            'primary-hover': '#b91c1c',
+            'neutral-border': '#E5E5E5',
+            'dark-base': '#111827',
+            'dark-surface': '#1F2937'
+          }},
+          fontFamily: {{
+            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }}
+        }}
+      }}
+    }};
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
   <style>
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    :root {{
+      --blt-primary: #E10101;
+      --blt-primary-hover: #b91c1c;
+      --blt-neutral-border: #E5E5E5;
+      --blt-dark-base: #111827;
+      --blt-dark-surface: #1F2937;
+    }}
     body {{
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
-      font-size: 14px;
-      line-height: 1.5;
+      background:
+        radial-gradient(circle at 5% 0%, rgba(225, 1, 1, 0.08), transparent 24%),
+        radial-gradient(circle at 95% 8%, rgba(225, 1, 1, 0.06), transparent 20%),
+        #ffffff;
+      color: #111827;
     }}
-    a {{ color: #58a6ff; text-decoration: none; }}
-    a:hover {{ text-decoration: underline; }}
-    header {{
-      background: linear-gradient(135deg, #161b22 0%, #1f2937 100%);
-      border-bottom: 1px solid #30363d;
-      padding: 24px 32px;
+    a {{
+      color: #dc2626;
     }}
-    header h1 {{ font-size: 24px; color: #f0f6fc; font-weight: 700; }}
-    header p {{ color: #8b949e; margin-top: 6px; font-size: 13px; }}
-    .container {{ max-width: 1400px; margin: 0 auto; padding: 24px 16px; }}
-    .stats {{
-      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+    a:hover {{
+      text-decoration: underline;
     }}
-    .stat-card {{
-      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-      padding: 16px 20px; flex: 1; min-width: 140px;
+    .btn-link:hover {{
+      text-decoration: none;
     }}
-    .stat-card .num {{ font-size: 28px; font-weight: 700; color: #58a6ff; }}
-    .stat-card .label {{ font-size: 12px; color: #8b949e; margin-top: 4px; }}
-
-    /* Filter / search */
-    .toolbar {{
-      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
+    .input-core {{
+      border: 1px solid #9ca3af;
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      background: #ffffff;
     }}
-    .toolbar input {{
-      background: #161b22; border: 1px solid #30363d; border-radius: 6px;
-      color: #c9d1d9; padding: 7px 12px; font-size: 13px; width: 260px;
+    .input-core:focus {{
+      outline: none;
+      border-color: #dc2626;
+      box-shadow: 0 0 0 1px #dc2626;
     }}
-    .toolbar input:focus {{ outline: none; border-color: #58a6ff; }}
-    .toolbar select {{
-      background: #161b22; border: 1px solid #30363d; border-radius: 6px;
-      color: #c9d1d9; padding: 7px 10px; font-size: 13px;
+    .table-wrap {{
+      border: 1px solid var(--blt-neutral-border);
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      background: #ffffff;
     }}
-    .toolbar label {{ font-size: 13px; color: #8b949e; }}
-
-    /* Table */
-    .table-wrap {{ overflow-x: auto; border: 1px solid #30363d; border-radius: 8px; }}
-    table {{
-      width: 100%; border-collapse: collapse; background: #161b22;
+    #ideas-table thead th {{
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
     }}
-    thead th {{
-      background: #21262d; color: #8b949e; font-size: 12px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: .5px;
-      padding: 10px 12px; border-bottom: 1px solid #30363d;
-      cursor: pointer; user-select: none; white-space: nowrap;
+    #ideas-table td {{
+      padding: 0.75rem;
+      vertical-align: top;
     }}
-    thead th:hover {{ background: #2d333b; color: #c9d1d9; }}
-    thead th.sorted-asc::after {{ content: " ↑"; color: #58a6ff; }}
-    thead th.sorted-desc::after {{ content: " ↓"; color: #58a6ff; }}
-    tbody tr {{ border-bottom: 1px solid #21262d; transition: background .1s; }}
-    tbody tr:last-child {{ border-bottom: none; }}
-    tbody tr:hover {{ background: #1c2128; }}
-    td {{
-      padding: 9px 12px; vertical-align: top; font-size: 13px;
+    #ideas-table thead th.sorted-asc::after {{
+      content: " ↑";
+      color: #E10101;
     }}
-    td.oneliner {{ max-width: 280px; color: #8b949e; }}
-    td.upvotes-cell {{ text-align: center; white-space: nowrap; }}
-    .upvote-count {{ color: #3fb950; font-weight: 600; }}
-    .muted {{ color: #484f58; }}
+    #ideas-table thead th.sorted-desc::after {{
+      content: " ↓";
+      color: #E10101;
+    }}
+    #ideas-table tbody tr:hover {{
+      background: #fff7f7;
+    }}
+    td.oneliner {{
+      max-width: 300px;
+      color: #4b5563;
+      line-height: 1.45;
+    }}
     .badge {{
-      display: inline-block; background: #1f3a5f; color: #79c0ff;
-      border-radius: 4px; padding: 1px 6px; font-size: 11px;
-      margin: 1px; white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 2px 3px 2px 0;
+      white-space: nowrap;
     }}
-
-    /* Section headings */
-    h2 {{
-      font-size: 18px; font-weight: 600; color: #f0f6fc;
-      margin: 32px 0 12px; border-bottom: 1px solid #30363d; padding-bottom: 8px;
+    .muted {{
+      color: #6b7280;
     }}
-    h3 {{ font-size: 15px; font-weight: 600; color: #c9d1d9; margin: 24px 0 8px; }}
-
-    /* Overlap matrix */
-    .matrix-wrap {{ overflow-x: auto; margin-bottom: 24px; }}
+    .matrix-wrap {{
+      overflow-x: auto;
+      border: 1px solid var(--blt-neutral-border);
+      border-radius: 0.75rem;
+      background: #ffffff;
+    }}
     .matrix-wrap table {{
-      width: auto; background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      width: auto;
+      border-collapse: collapse;
     }}
     .matrix-wrap th, .matrix-wrap td {{
-      padding: 4px 6px; text-align: center; font-size: 11px; border: 1px solid #21262d;
+      border: 1px solid #f3f4f6;
+      text-align: center;
+      font-size: 11px;
+      padding: 0.3rem 0.35rem;
     }}
-    .matrix-head {{ background: #21262d; color: #8b949e; font-weight: 600; writing-mode: vertical-rl; white-space: nowrap; }}
-    .matrix-label {{ background: #21262d; color: #8b949e; font-weight: 600; text-align: left; padding: 4px 8px; white-space: nowrap; }}
-    .matrix-yes {{ background: #1a4a2e; color: #3fb950; font-weight: 700; }}
-    .matrix-no {{ background: #161b22; }}
-    .matrix-self {{ background: #21262d; color: #484f58; }}
-
-    /* Top connected */
-    .top-list {{ list-style: none; }}
-    .top-list li {{ padding: 6px 0; border-bottom: 1px solid #21262d; font-size: 13px; }}
-    .top-list li:last-child {{ border-bottom: none; }}
-
-    footer {{
-      text-align: center; color: #484f58; font-size: 12px;
-      padding: 32px 16px; border-top: 1px solid #21262d; margin-top: 40px;
+    .matrix-head {{
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      white-space: nowrap;
+    }}
+    .matrix-label {{
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.35rem 0.5rem;
+      white-space: nowrap;
+    }}
+    .matrix-yes {{
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 700;
+    }}
+    .matrix-no {{
+      background: #ffffff;
+    }}
+    .matrix-self {{
+      background: #f9fafb;
+      color: #9ca3af;
+      font-weight: 700;
+    }}
+    .top-list {{
+      list-style: none;
+    }}
+    .top-list li {{
+      border-bottom: 1px solid #f3f4f6;
+      padding: 0.65rem 0;
+      font-size: 0.95rem;
+      color: #374151;
+    }}
+    .top-list li:last-child {{
+      border-bottom: none;
     }}
   </style>
 </head>
-<body>
-  <header>
-    <h1>🔍 BLT Ideas — Analysis Dashboard</h1>
-    <p>
-      Auto-generated from
-      <a href="{REPO_URL}" target="_blank">OWASP-BLT/BLT-Ideas</a>
-      · {total_ideas} ideas · Sortable table · Overlap analysis · Discussion board links
-    </p>
+<body class="font-sans antialiased">
+  <header class="border-b border-neutral-border bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+      <a href="{REPO_URL}" target="_blank" class="btn-link flex items-center gap-3" aria-label="BLT Ideas repository">
+        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+        </span>
+        <span class="block">
+          <span class="block text-base font-extrabold text-gray-900">BLT Ideas</span>
+          <span class="block text-xs font-medium text-gray-500">OWASP BLT Extension Planning Hub</span>
+        </span>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a
+          href="{REPO_URL}"
+          target="_blank"
+          class="btn-link inline-flex items-center gap-2 rounded-md border border-[var(--blt-primary)] px-4 py-2 text-sm font-semibold text-[var(--blt-primary)] transition hover:bg-[var(--blt-primary)] hover:text-white"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          <span>Repository</span>
+        </a>
+        <a
+          href="#ideas-overview"
+          class="btn-link inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+        >
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <span>Explore Ideas</span>
+        </a>
+      </div>
+    </div>
   </header>
 
-  <div class="container">
-    <!-- Stats -->
-    <div class="stats" id="stats">
-      <div class="stat-card">
-        <div class="num" id="stat-total">{total_ideas}</div>
-        <div class="label">Total Ideas</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="stat-total-upvotes">0</div>
-        <div class="label">Total Discussion Upvotes</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="stat-with-discussion">0</div>
-        <div class="label">With Discussion Post</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="stat-with-overlaps">0</div>
-        <div class="label">With Overlapping Ideas</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="stat-contributors">0</div>
-        <div class="label">Unique Contributors</div>
-      </div>
-    </div>
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-12">
+      <aside class="lg:col-span-3">
+        <div class="sticky top-6 space-y-4">
+          <nav class="rounded-xl border border-neutral-border bg-white p-4" aria-label="Page navigation">
+            <p class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Navigate</p>
+            <ul class="space-y-1 text-sm font-semibold">
+              <li><a href="#landing" class="btn-link block rounded-md bg-[#feeae9] px-3 py-2 text-[#E10101]">Overview</a></li>
+              <li><a href="#ideas-overview" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Feature Catalog</a></li>
+              <li><a href="#overlap-matrix" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Overlap Matrix</a></li>
+              <li><a href="#top-ideas" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Most Connected</a></li>
+            </ul>
+          </nav>
+          <section class="rounded-xl border border-neutral-border bg-white p-4">
+            <p class="text-sm font-bold text-gray-900">How It Is Used</p>
+            <ul class="mt-3 space-y-3 text-sm text-gray-600">
+              <li class="flex gap-3">
+                <i class="fa-solid fa-magnifying-glass mt-1 text-primary" aria-hidden="true"></i>
+                <span>Discover scoped ideas quickly with searchable metadata.</span>
+              </li>
+              <li class="flex gap-3">
+                <i class="fa-solid fa-diagram-project mt-1 text-primary" aria-hidden="true"></i>
+                <span>Track dependencies using the overlap matrix before implementation.</span>
+              </li>
+              <li class="flex gap-3">
+                <i class="fa-solid fa-users mt-1 text-primary" aria-hidden="true"></i>
+                <span>Identify active contributors and discussion context for each idea.</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </aside>
 
-    <!-- Main sortable table -->
-    <h2>📋 Ideas Overview</h2>
-    <div class="toolbar">
-      <input type="text" id="search" placeholder="Search ideas…" />
-      <label>Filter repo:
-        <select id="filter-repo">
-          <option value="">All repos</option>
-        </select>
-      </label>
-    </div>
-    <div class="table-wrap">
-      <table id="ideas-table">
-        <thead>
-          <tr>
-            <th data-col="{COL_IDEA}">Idea</th>
-            <th data-col="{COL_TITLE}">Title</th>
-            <th data-col="{COL_ONELINER}">One-Liner</th>
-            <th data-col="{COL_REPO}">BLT Repo</th>
-            <th data-col="{COL_DISCUSSION}">Discussion</th>
-            <th data-col="{COL_UPVOTES}">👍 Upvotes</th>
-            <th data-col="{COL_OVERLAPS}">Overlapping Ideas</th>
-            <th data-col="{COL_CONTRIBUTORS}">Interested Contributors</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="space-y-8 lg:col-span-9">
+        <section id="landing" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-sm sm:p-8">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div class="max-w-2xl">
+              <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-700">
+                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                BLT Official Ideas Board
+              </p>
+              <h1 class="text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl">
+                Plan Better OWASP BLT Extensions With Clear, Actionable Ideas
+              </h1>
+              <p class="mt-4 text-base leading-relaxed text-gray-600">
+                This landing page brings all proposal specs, dependencies, and contributor signals into one practical workspace. Teams can evaluate why an idea matters, how it integrates with BLT, and where collaboration already exists.
+              </p>
+              <div class="mt-5 flex flex-wrap gap-2 text-sm font-semibold text-gray-600">
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Feature list visibility</span>
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Usage guidance</span>
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Cross-idea dependencies</span>
+              </div>
+            </div>
+            <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-80">
+              <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-red-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Ideas</p>
+                <p class="mt-2 text-3xl font-extrabold text-primary">{total_ideas}</p>
+              </div>
+              <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-gray-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Repository</p>
+                <p class="mt-2 text-sm font-bold text-gray-900">OWASP-BLT/BLT-Ideas</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Feature highlights" class="grid gap-4 sm:grid-cols-3">
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-table-list" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Complete Feature List</h2>
+            <p class="mt-2 text-sm text-gray-600">Every idea is indexed with title, one-liner, linked repo, discussions, and contributors.</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-link" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">Why It Matters</h2>
+            <p class="mt-2 text-sm text-gray-600">Overlap mapping clarifies integration points early, reducing duplicated effort.</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
+            <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <i class="fa-solid fa-route" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-base font-bold text-gray-900">How Teams Use It</h2>
+            <p class="mt-2 text-sm text-gray-600">Filter ideas by repo, inspect discussions, then prioritize the best-connected roadmap items.</p>
+          </article>
+        </section>
+
+        <section id="stats" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Idea statistics">
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Ideas</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-total">{total_ideas}</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">With Discussion Post</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-discussion">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Discussion Upvotes</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-total-upvotes">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">With Overlaps</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-overlaps">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Unique Contributors</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-contributors">0</p>
+          </article>
+        </section>
+
+        <section id="ideas-overview" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+              <i class="fa-solid fa-clipboard-list text-primary" aria-hidden="true"></i>
+              Ideas Overview
+            </h2>
+            <span class="text-sm font-medium text-gray-500">Sortable columns + repo filter</span>
+          </div>
+          <div class="toolbar mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label for="search" class="sr-only">Search ideas</label>
+            <div class="relative w-full sm:max-w-sm">
+              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-primary">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              </span>
+              <input
+                type="text"
+                id="search"
+                placeholder="Search ideas, titles, contributors..."
+                class="input-core w-full border-gray-400 pl-11 text-sm text-gray-900 placeholder-gray-400"
+              />
+            </div>
+            <label for="filter-repo" class="text-sm font-semibold text-gray-700">Filter repo</label>
+            <select id="filter-repo" class="input-core border-gray-400 text-sm text-gray-900">
+              <option value="">All repos</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table id="ideas-table" class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
+                <tr>
+                  <th data-col="{COL_IDEA}" class="px-3 py-3 text-left font-bold">Idea</th>
+                  <th data-col="{COL_TITLE}" class="px-3 py-3 text-left font-bold">Title</th>
+                  <th data-col="{COL_ONELINER}" class="px-3 py-3 text-left font-bold">One-Liner</th>
+                  <th data-col="{COL_REPO}" class="px-3 py-3 text-left font-bold">BLT Repo</th>
+                  <th data-col="{COL_DISCUSSION}" class="px-3 py-3 text-left font-bold">Discussion</th>
+                  <th data-col="{COL_UPVOTES}" class="px-3 py-3 text-center font-bold">👍 Upvotes</th>
+                  <th data-col="{COL_OVERLAPS}" class="px-3 py-3 text-left font-bold">Overlapping Ideas</th>
+                  <th data-col="{COL_CONTRIBUTORS}" class="px-3 py-3 text-left font-bold">Interested Contributors</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 bg-white text-gray-700">
 {table_rows}
-        </tbody>
-      </table>
-    </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-    <!-- Overlap Analysis -->
-    <h2>🔗 Idea Overlap Matrix</h2>
-    <p style="color:#8b949e; font-size:13px; margin-bottom:12px;">
-      ✓ = ideas reference each other (cross-cutting dependencies / integration points).
-      Click any idea ID to view its full spec.
-    </p>
-    <div class="matrix-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th class="matrix-label"></th>
-            {matrix_headers}
-          </tr>
-        </thead>
-        <tbody>
+        <section id="overlap-matrix" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <h2 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+            <i class="fa-solid fa-diagram-project text-primary" aria-hidden="true"></i>
+            Idea Overlap Matrix
+          </h2>
+          <p class="mt-2 text-sm text-gray-600">
+            <span class="font-semibold text-gray-800">✓</span> means two ideas reference each other as cross-cutting integration points.
+            Click an idea ID to open its full specification.
+          </p>
+          <div class="matrix-wrap mt-4">
+            <table>
+              <thead>
+                <tr>
+                  <th class="matrix-label"></th>
+                  {matrix_headers}
+                </tr>
+              </thead>
+              <tbody>
 {matrix_rows_html}
-        </tbody>
-      </table>
-    </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-    <h3>🏆 Most-Connected Ideas</h3>
-    <ul class="top-list">
+        <section id="top-ideas" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <h3 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+            <i class="fa-solid fa-ranking-star text-primary" aria-hidden="true"></i>
+            Most-Connected Ideas
+          </h3>
+          <ul class="top-list mt-3">
 {top_connected_html}
-    </ul>
-  </div>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
 
-  <footer>
-    Generated by the
-    <a href="{REPO_URL}/blob/main/.github/workflows/pages.yml" target="_blank">BLT Ideas Pages workflow</a>
-    · Data sourced from GitHub API and repository commit history
+  <footer class="mt-10 border-t border-neutral-border bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-7 text-center text-sm text-gray-500 sm:px-6 lg:px-8">
+      Generated by
+      <a href="{REPO_URL}/blob/main/.github/workflows/pages.yml" target="_blank">BLT Ideas Pages workflow</a>
+      with data from GitHub APIs and repository commit history.
+    </div>
   </footer>
 
   <script>
