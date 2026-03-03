@@ -1,199 +1,435 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secure Video Chat — BLT-SafeCloak</title>
-  <meta name="description" content="End-to-end encrypted peer-to-peer video chat with voice protection and consent management." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
+  <title>Secure Video Chat - BLT-SafeCloak</title>
+  <meta
+    name="description"
+    content="End-to-end encrypted peer-to-peer video chat with voice protection and consent management."
+  />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>" />
 
-<!-- ── Navbar ── -->
-<nav class="navbar" role="navigation" aria-label="Main navigation">
-  <a class="navbar-brand" href="index.html">
-    <div class="shield-icon" aria-hidden="true">🛡️</div>
-    BLT-SafeCloak
-  </a>
-  <button class="navbar-toggle" id="navbar-toggle" aria-label="Toggle menu">☰</button>
-  <ul class="navbar-nav" id="navbar-nav" role="list">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="video-chat.html" class="active">Video Chat</a></li>
-    <li><a href="notes.html">Secure Notes</a></li>
-    <li><a href="consent.html">Consent</a></li>
-    <li><a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">GitHub</a></li>
-  </ul>
-</nav>
-
-<div class="page-container">
-  <!-- ── Page Header ── -->
-  <header class="page-header">
-    <h1 class="page-title">🎥 Secure Video Chat</h1>
-    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem">
-        <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
-        <span id="connection-status" class="text-muted">Initializing…</span>
-      </div>
-      <div class="enc-badge" aria-label="Encryption status">
-        🔒 WebRTC E2E Encrypted
-      </div>
-    </div>
-  </header>
-
-  <main class="page-content" id="voice">
-    <!-- ── Permission Alert ── -->
-    <div class="alert alert-info" id="perm-alert">
-      <span aria-hidden="true">ℹ️</span>
-      <span>Allow camera and microphone access when prompted. Your media stays peer-to-peer — it never leaves your device except to the person you call.</span>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem" id="main-grid">
-
-      <!-- ── Video area ── -->
-      <div>
-        <!-- Videos -->
-        <div class="video-grid" aria-label="Video feeds">
-          <div class="video-wrapper">
-            <video id="local-video" autoplay muted playsinline aria-label="Your video"></video>
-            <div class="video-label">
-              <span class="status-dot online" aria-hidden="true"></span>
-              You (Local)
-            </div>
-          </div>
-          <div class="video-wrapper" style="background:var(--bg-medium)">
-            <video id="remote-video" autoplay playsinline aria-label="Remote participant video"></video>
-            <div class="video-label" id="remote-label">
-              <span class="status-dot offline" aria-hidden="true" id="remote-dot"></span>
-              Remote Participant
-            </div>
-          </div>
-        </div>
-
-        <!-- Call controls -->
-        <div class="video-controls" id="call-controls" role="toolbar" aria-label="Call controls">
-          <button class="control-btn" id="btn-mic" title="Mute mic" onclick="VideoChat.toggleMic()" aria-label="Toggle microphone">🎙️</button>
-          <button class="control-btn" id="btn-cam" title="Disable camera" onclick="VideoChat.toggleCamera()" aria-label="Toggle camera">🎥</button>
-          <button class="control-btn" id="btn-noise" title="Toggle noise suppression" onclick="VideoChat.toggleNoiseSuppression()" aria-label="Toggle noise suppression">🔈</button>
-          <button class="control-btn" id="btn-screen" title="Share screen" onclick="VideoChat.shareScreen()" aria-label="Share screen">🖥️</button>
-          <button class="control-btn end-call" id="btn-end" title="End call" onclick="VideoChat.hangup()" aria-label="End call">📵</button>
-        </div>
-
-        <!-- Voice meter -->
-        <div class="card" style="margin-top:1rem" aria-label="Voice activity meter">
-          <div class="card-body" style="display:flex;align-items:center;gap:1rem;padding:0.85rem 1rem">
-            <span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Voice Activity</span>
-            <div class="voice-meter" aria-hidden="true">
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-              <div class="voice-bar"></div>
-            </div>
-            <div style="margin-left:auto;display:flex;gap:0.5rem;flex-wrap:wrap">
-              <span class="badge badge-success" id="badge-noise-suppression">Noise Suppression</span>
-              <span class="badge badge-success">Echo Cancel</span>
-              <span class="badge badge-primary">Auto Gain</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Sidebar ── -->
-      <aside aria-label="Room setup and connection info">
-        <!-- Room ID -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header">
-            <h2 class="card-title">🔑 Your Room ID</h2>
-          </div>
-          <div class="card-body">
-            <div style="font-family:monospace;font-size:1.25rem;font-weight:700;letter-spacing:2px;color:#fff;background:var(--bg-medium);padding:0.75rem;border-radius:6px;text-align:center;margin-bottom:0.75rem" id="my-peer-id" aria-label="Your room ID">
-              Connecting…
-            </div>
-            <button class="btn btn-secondary" style="width:100%" onclick="copyToClipboard(document.getElementById('my-peer-id').textContent, 'Room ID')" aria-label="Copy room ID to clipboard">
-              📋 Copy Room ID
-            </button>
-          </div>
-        </div>
-
-        <!-- Connect to room -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header">
-            <h2 class="card-title">📞 Join a Room</h2>
-          </div>
-          <div class="card-body">
-            <label class="form-label" for="remote-id">Remote Room ID</label>
-            <input type="text" class="form-input" id="remote-id" placeholder="Enter Room ID…" autocomplete="off" aria-label="Remote room ID" />
-            <button class="btn btn-primary" style="width:100%;margin-top:0.75rem" id="btn-call"
-              onclick="VideoChat.callPeer(document.getElementById('remote-id').value.trim())" aria-label="Connect to room">
-              🔒 Connect Securely
-            </button>
-          </div>
-        </div>
-
-        <!-- Security info -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header">
-            <h2 class="card-title">🛡️ Security</h2>
-          </div>
-          <div class="card-body" style="font-size:0.82rem;color:var(--text-muted)">
-            <ul style="list-style:none;display:flex;flex-direction:column;gap:0.4rem">
-              <li>✅ DTLS/SRTP transport</li>
-              <li>✅ Peer-to-peer (no relay)</li>
-              <li>✅ Consent timestamped</li>
-              <li>✅ No server recording</li>
-              <li>✅ Open-source</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Quick links -->
-        <div style="display:flex;gap:0.5rem;flex-direction:column">
-          <a href="notes.html" class="btn btn-secondary" aria-label="Open secure notes">📝 Open Secure Notes</a>
-          <a href="consent.html" class="btn btn-secondary" aria-label="View consent log">⚖️ View Consent Log</a>
-        </div>
-      </aside>
-    </div>
-
-    <!-- Responsive: stack on mobile -->
-    <style>
-      @media (max-width: 900px) {
-        #main-grid { grid-template-columns: 1fr !important; }
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#E10101",
+            "primary-hover": "#b91c1c",
+            "neutral-border": "#E5E5E5",
+            "dark-base": "#111827",
+            "dark-surface": "#1F2937"
+          },
+          fontFamily: {
+            sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"]
+          }
+        }
       }
-    </style>
-  </main>
-</div>
+    };
+  </script>
 
-<!-- ── Footer ── -->
-<footer class="footer" role="contentinfo">
-  <p>BLT-SafeCloak — <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener">OWASP BLT Project</a></p>
-</footer>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    referrerpolicy="no-referrer"
+  />
 
-<div id="toast-container" role="status" aria-live="polite"></div>
+  <style>
+    :root {
+      --blt-primary: #E10101;
+      --blt-neutral-border: #E5E5E5;
+    }
 
-<!-- PeerJS for WebRTC signaling -->
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" crossorigin="anonymous"></script>
-<script src="js/crypto.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/consent.js"></script>
-<script src="js/video.js"></script>
-<script>
-  // Auto-hide permission alert after media is granted
-  document.addEventListener('DOMContentLoaded', async () => {
-    const ok = await VideoChat.init();
-    const alert = document.getElementById('perm-alert');
-    if (alert) setTimeout(() => { alert.style.display = 'none'; }, 5000);
-  });
+    body {
+      background-color: #f8fafc;
+      color: #111827;
+    }
 
-  // Allow Enter key to trigger call
-  document.getElementById('remote-id').addEventListener('keydown', e => {
-    if (e.key === 'Enter') VideoChat.callPeer(e.target.value.trim());
-  });
-</script>
+    .hero-glow {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.10), transparent 35%),
+        radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.08), transparent 30%),
+        linear-gradient(to bottom, #ffffff 0%, #f8fafc 72%, #ffffff 100%);
+    }
+
+    .surface-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .surface-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(225, 1, 1, 0.10);
+    }
+
+    .nav-link.active {
+      color: var(--blt-primary);
+      background: #feeae9;
+    }
+
+    .navbar-nav.open {
+      display: flex;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .status-dot.online {
+      background: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+    }
+
+    .status-dot.offline {
+      background: #9ca3af;
+    }
+
+    .status-dot.connecting {
+      background: #f59e0b;
+      animation: pulse-dot 1.4s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    .video-wrapper {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-label {
+      position: absolute;
+      left: 0.65rem;
+      bottom: 0.65rem;
+    }
+
+    .control-btn {
+      width: 44px;
+      height: 44px;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      color: var(--blt-primary);
+      border-color: var(--blt-primary);
+      background: #fff5f5;
+    }
+
+    .control-btn.active {
+      background: #b91c1c;
+      border-color: #b91c1c;
+      color: #ffffff;
+    }
+
+    .control-btn.end-call {
+      width: 50px;
+      height: 50px;
+    }
+
+    .control-btn.end-call:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+      color: #ffffff;
+    }
+
+    .voice-meter {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 24px;
+    }
+
+    .voice-bar {
+      width: 4px;
+      min-height: 4px;
+      height: 5px;
+      background: var(--blt-primary);
+      border-radius: 9999px;
+      transition: height 0.1s ease;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 1rem;
+    }
+
+    #toast-container {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 8px 20px rgba(17, 24, 39, 0.25);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+  <nav class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur" role="navigation" aria-label="Main navigation">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a class="flex items-center gap-3" href="index.html" aria-label="BLT-SafeCloak Home">
+        <img
+          src="img/logo.png"
+          alt="BLT-SafeCloak logo"
+          class="h-10 w-10 rounded-md object-contain"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div>
+          <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
+          <p class="text-xs font-medium text-gray-500">OWASP BLT Extension</p>
+        </div>
+      </a>
+
+      <button
+        class="rounded-md border border-neutral-border p-2 text-gray-700 md:hidden"
+        id="navbar-toggle"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        type="button"
+      >
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+
+      <ul
+        class="navbar-nav hidden absolute left-4 right-4 top-[4.2rem] flex-col gap-2 rounded-lg border border-neutral-border bg-white p-3 md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0"
+        id="navbar-nav"
+        role="list"
+      >
+        <li><a href="index.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Home</a></li>
+        <li><a href="video-chat.html" class="nav-link active block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Video Chat</a></li>
+        <li><a href="notes.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Secure Notes</a></li>
+        <li><a href="consent.html" class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary">Consent</a></li>
+        <li>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-SafeCloak"
+            target="_blank"
+            rel="noopener"
+            class="nav-link block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+          >
+            <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="mx-auto w-full max-w-6xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+    <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+          <i class="fa-solid fa-video mr-2 text-primary" aria-hidden="true"></i>
+          Secure Video Chat
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">Encrypted peer-to-peer communication with consent-first controls.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="inline-flex items-center gap-2 text-sm">
+          <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
+          <span id="connection-status" class="text-muted">Initializing...</span>
+        </div>
+        <div class="enc-badge" aria-label="Encryption status">
+          <i class="fa-solid fa-lock text-primary" aria-hidden="true"></i>
+          WebRTC E2E Encrypted
+        </div>
+      </div>
+    </header>
+
+    <main id="voice">
+      <div class="alert alert-info mb-4" id="perm-alert">
+        <i class="fa-solid fa-circle-info mt-0.5" aria-hidden="true"></i>
+        <span>Allow camera and microphone access when prompted. Your media stays peer-to-peer and is only shared with your selected participant.</span>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-[1fr_320px]" id="main-grid">
+        <div>
+          <div class="grid gap-4 sm:grid-cols-2" aria-label="Video feeds">
+            <div class="video-wrapper">
+              <video id="local-video" autoplay muted playsinline aria-label="Your video"></video>
+              <div class="video-label">
+                <span class="status-dot online" aria-hidden="true"></span>
+                You (Local)
+              </div>
+            </div>
+            <div class="video-wrapper bg-gray-900">
+              <video id="remote-video" autoplay playsinline aria-label="Remote participant video"></video>
+              <div class="video-label" id="remote-label">
+                <span class="status-dot offline" aria-hidden="true" id="remote-dot"></span>
+                Remote Participant
+              </div>
+            </div>
+          </div>
+
+          <div class="video-controls mt-4 hidden" id="call-controls" role="toolbar" aria-label="Call controls">
+            <button class="control-btn" id="btn-mic" title="Mute mic" onclick="VideoChat.toggleMic()" aria-label="Toggle microphone">
+              <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+            </button>
+            <button class="control-btn" id="btn-cam" title="Disable camera" onclick="VideoChat.toggleCamera()" aria-label="Toggle camera">
+              <i class="fa-solid fa-video" aria-hidden="true"></i>
+            </button>
+            <button class="control-btn" id="btn-noise" title="Toggle noise suppression" onclick="VideoChat.toggleNoiseSuppression()" aria-label="Toggle noise suppression">
+              <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            </button>
+            <button class="control-btn" id="btn-screen" title="Share screen" onclick="VideoChat.shareScreen()" aria-label="Share screen">
+              <i class="fa-solid fa-display" aria-hidden="true"></i>
+            </button>
+            <button class="control-btn end-call" id="btn-end" title="End call" onclick="VideoChat.hangup()" aria-label="End call">
+              <i class="fa-solid fa-phone-slash" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="card mt-4" aria-label="Voice activity meter">
+            <div class="card-body flex flex-wrap items-center gap-3">
+              <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Voice Activity</span>
+              <div class="voice-meter" aria-hidden="true">
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+              </div>
+              <div class="ml-auto flex flex-wrap gap-2">
+                <span class="badge badge-success" id="badge-noise-suppression">Noise Suppression</span>
+                <span class="badge badge-success">Echo Cancel</span>
+                <span class="badge badge-primary">Auto Gain</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside aria-label="Room setup and connection info" class="space-y-4">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-key text-primary" aria-hidden="true"></i>
+                Your Room ID
+              </h2>
+            </div>
+            <div class="card-body">
+              <div class="rounded-md border border-neutral-border bg-gray-50 px-3 py-3 text-center font-mono text-lg font-bold tracking-widest text-gray-900" id="my-peer-id" aria-label="Your room ID">
+                Connecting...
+              </div>
+              <button class="btn btn-secondary mt-3 w-full" onclick="copyToClipboard(document.getElementById('my-peer-id').textContent, 'Room ID')" aria-label="Copy room ID to clipboard">
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                Copy Room ID
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-phone text-primary" aria-hidden="true"></i>
+                Join a Room
+              </h2>
+            </div>
+            <div class="card-body">
+              <label class="form-label" for="remote-id">Remote Room ID</label>
+              <input type="text" class="form-input" id="remote-id" placeholder="Enter Room ID..." autocomplete="off" aria-label="Remote room ID" />
+              <button class="btn btn-primary mt-3 w-full" id="btn-call" onclick="VideoChat.callPeer(document.getElementById('remote-id').value.trim())" aria-label="Connect to room">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                Connect Securely
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-shield-halved text-primary" aria-hidden="true"></i>
+                Security
+              </h2>
+            </div>
+            <div class="card-body text-sm text-gray-600">
+              <ul class="space-y-1" role="list">
+                <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>DTLS/SRTP transport</li>
+                <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Peer-to-peer (no relay)</li>
+                <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Consent timestamped</li>
+                <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>No server recording</li>
+                <li><i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Open-source</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid gap-2">
+            <a href="notes.html" class="btn btn-secondary" aria-label="Open secure notes">
+              <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
+              Open Secure Notes
+            </a>
+            <a href="consent.html" class="btn btn-secondary" aria-label="View consent log">
+              <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+              View Consent Log
+            </a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <footer class="border-t border-neutral-border bg-white py-7" role="contentinfo">
+    <div class="mx-auto max-w-6xl px-4 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      BLT-SafeCloak -
+      <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT Project</a>
+    </div>
+  </footer>
+
+  <div id="toast-container" role="status" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" crossorigin="anonymous"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/consent.js"></script>
+  <script src="js/video.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const ok = await VideoChat.init();
+      const alert = document.getElementById("perm-alert");
+      if (ok && alert) {
+        setTimeout(() => {
+          alert.style.display = "none";
+        }, 5000);
+      }
+    });
+
+    document.getElementById("remote-id").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        VideoChat.callPeer(event.target.value.trim());
+      }
+    });
+  </script>
 </body>
 </html>
