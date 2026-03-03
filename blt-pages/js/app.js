@@ -265,6 +265,7 @@ function renderLeaderboard(container, data) {
   }
 
   const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = data.leaderboard[0]?.count || 1;
 
   container.innerHTML = data.leaderboard
     .map((entry) => {
@@ -278,7 +279,7 @@ function renderLeaderboard(container, data) {
           ? "bg-active-bg dark:bg-red-900/10"
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
-      const activityPct = Math.min(100, data.leaderboard[0]?.count ? (entry.count / data.leaderboard[0].count) * 100 : 0);
+      const activityPct = Math.min(100, (entry.count / maxCount) * 100);
       return `<tr class="${rowClass} transition-colors">
         <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
         <td class="px-4 py-3">
