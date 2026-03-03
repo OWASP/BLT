@@ -565,14 +565,31 @@ jobs:
               console.log('No changes detected – skipping commit.');
             } else {
               execSync('git commit -m "chore: update leaderboard data"', { stdio: 'inherit' });
+              let pushSucceeded = false;
               for (let i = 1; i <= 3; i++) {
                 try {
-                  execSync('git pull --rebase origin main && git push', { stdio: 'inherit', shell: true });
+                  execSync('git pull --rebase origin main', { stdio: 'inherit' });
+                  execSync('git push', { stdio: 'inherit' });
+                  pushSucceeded = true;
                   break;
                 } catch (e) {
-                  console.log(`Push attempt ${i} failed, retrying...`);
-                  if (i < 3) execSync(`sleep ${i * 5}`);
+                  const status = typeof e.status !== 'undefined' ? e.status : (typeof e.code !== 'undefined' ? e.code : 'unknown');
+                  const message = e && e.message ? e.message : String(e);
+                  console.log(`Push attempt ${i} failed (status/code: ${status}). Error: ${message}`);
+                  if (e && (e.stderr || e.stdout)) {
+                    if (e.stdout) console.log('git stdout:', e.stdout.toString());
+                    if (e.stderr) console.log('git stderr:', e.stderr.toString());
+                  }
+                  try {
+                    execSync('git rebase --abort', { stdio: 'inherit' });
+                  } catch (abortError) {
+                    // Ignore errors if no rebase is in progress
+                  }
+                  if (i < 3) execSync(`sleep ${i * 5}`, { shell: true });
                 }
+              }
+              if (!pushSucceeded) {
+                throw new Error('Failed to push updated leaderboard after 3 attempts');
               }
             }
 
