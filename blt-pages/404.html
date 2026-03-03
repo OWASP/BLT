@@ -7,6 +7,17 @@
   <title>404 – Page Not Found · OWASP BLT</title>
   <link rel="icon" type="image/png" href="/static/logo.png" />
 
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('blt-theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -22,7 +33,7 @@
             'active-bg': '#feeae9'
           },
           fontFamily: {
-            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            sans: ['Manrope', 'ManropeFallback', 'ui-sans-serif', 'system-ui', 'sans-serif']
           },
           boxShadow: {
             soft: '0 14px 40px -28px rgba(17, 24, 39, 0.35)'
@@ -34,7 +45,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=optional" rel="stylesheet" />
 
   <link
     rel="stylesheet"
@@ -84,6 +95,15 @@
     .dark ::-webkit-scrollbar-track { background: #1F2937; }
     ::-webkit-scrollbar-thumb { background: #E10101; border-radius: 999px; }
     .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
+
+    @font-face {
+      font-family: 'ManropeFallback';
+      src: local('ui-sans-serif'), local('system-ui'), local('Arial');
+      ascent-override: 93%;
+      descent-override: 23%;
+      line-gap-override: 0%;
+      size-adjust: 100%;
+    }
   </style>
 </head>
 

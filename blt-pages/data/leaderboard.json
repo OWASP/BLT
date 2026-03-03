@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-03T06:53:18.891Z",
-  "commit_sha": "9df2318cd688d51924b4c6eb5c0944491ff08447",
+  "updated_at": "2026-03-03T08:25:25.333Z",
+  "commit_sha": "3f6beae09d22a8729a68e4755d890cd606af60a1",
   "total_bugs": 9,
   "total_domains": 2,
   "total_orgs": 0,
@@ -92,34 +92,11 @@
   ],
   "recent_bugs": [
     {
-      "number": 19,
-      "title": "[FEATURE] make sure reactions are showing up",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19",
-      "created_at": "2026-03-02T21:04:11Z",
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/507176e7-0a58-4df4-b3e9-72e430f1b834",
-      "domain": "owaspblt.org",
-      "comment_count": 2,
-      "latest_comment": {
-        "body": "I can reproduce this issue on Chrome 122. The favicon does not load when the domain contains special characters.",
-        "created_at": "2026-03-02T22:00:00Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/19#issuecomment-1",
-        "user": {
-          "login": "DonnieBLT",
-          "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-          "profile_url": "https://github.com/DonnieBLT"
-        }
-      }
-    },
-    {
       "number": 17,
       "title": "[BUG] video bugs are not showing up",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
       "created_at": "2026-03-02T20:50:49Z",
+      "comment_count": 1,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -127,14 +104,23 @@
       },
       "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
       "domain": "owaspblt.org",
-      "comment_count": 0,
-      "latest_comment": null
+      "latest_comment": {
+        "body": "On it!",
+        "created_at": "2026-03-02T21:08:52Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-3986924492",
+        "user": {
+          "login": "sidd190",
+          "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
+          "profile_url": "https://github.com/sidd190"
+        }
+      }
     },
     {
       "number": 8,
       "title": "[BUG] join chapter button does not work",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
       "created_at": "2026-03-01T08:40:35Z",
+      "comment_count": 2,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -142,8 +128,40 @@
       },
       "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c",
       "domain": "www.owasp.community",
-      "comment_count": 0,
-      "latest_comment": null
+      "latest_comment": {
+        "body": "I'd like to work on this. I'll investigate the button's event handler and form submission logic and share my findings here before submitting a fix",
+        "created_at": "2026-03-02T07:32:41Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3982637901",
+        "user": {
+          "login": "Armaansaxena",
+          "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
+          "profile_url": "https://github.com/Armaansaxena"
+        }
+      }
+    },
+    {
+      "number": 6,
+      "title": "[BUG] page always shows loading screen even though it’s loaded before",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6",
+      "created_at": "2026-03-01T07:04:11Z",
+      "comment_count": 3,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/33a6854c-605f-464c-be62-5c9bd724edcd",
+      "domain": "www.owasp.community",
+      "latest_comment": {
+        "body": "Hi @DonnieBLT ! I'd like to work on this issue.\nI'll try reproducing the bug locally and investigate why the loading screen persists after refresh.",
+        "created_at": "2026-03-02T08:27:34Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6#issuecomment-3982889169",
+        "user": {
+          "login": "azizrebhi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
+          "profile_url": "https://github.com/azizrebhi"
+        }
+      }
     }
   ]
 }
