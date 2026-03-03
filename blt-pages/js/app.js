@@ -1,5 +1,5 @@
 /**
- * BLT Pages – Application JavaScript
+ * OWASP BLT – Application JavaScript
  * Pure vanilla JS, no framework dependencies.
  * License: AGPLv3
  */

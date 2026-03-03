@@ -1,4 +1,4 @@
-# BLT Pages — Bug Reporting Platform
+# OWASP BLT — Bug Reporting Platform
 
 [![OWASP](https://img.shields.io/badge/OWASP-Project-blue?logo=owasp)](https://owasp.org/www-project-bug-logging-tool/)
 [![License: AGPLv3](https://img.shields.io/badge/License-AGPL_v3-red.svg)](https://www.gnu.org/licenses/agpl-3.0)
