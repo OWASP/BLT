@@ -233,8 +233,8 @@ jobs:
               return null;
             }
 
-            // Collect the 3 most-recently-created bug issues
-            const sortedByDate = [...bugIssues].sort(
+            // Collect the 3 most-recently-created open bug issues
+            const sortedByDate = [...bugIssues].filter(i => i.state === 'open').sort(
               (a, b) => new Date(b.created_at) - new Date(a.created_at)
             );
             const recentBugs = sortedByDate.slice(0, 3).map(issue => ({
