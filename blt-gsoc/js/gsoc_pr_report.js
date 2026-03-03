@@ -17,19 +17,19 @@ function updateChartsForYearFilter() {
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const selectedYear = urlParams.get('year');
-    
+
     if (selectedYear) {
         // Update chart titles to show filtered year
         const yearlyChartTitle = document.querySelector('#yearlyPrChart').closest('.bg-white').querySelector('h2');
         if (yearlyChartTitle) {
             yearlyChartTitle.textContent = `PR Contributions for GSOC ${selectedYear}`;
         }
-        
+
         const topReposTitle = document.querySelector('#topReposChart').closest('.bg-white').querySelector('h2');
         if (topReposTitle) {
             topReposTitle.textContent = `Top Repositories for GSOC ${selectedYear}`;
         }
-        
+
         // Update the "All GSOC Periods" text
         const topReposSubtitle = document.querySelector('#topReposChart').closest('.bg-white').querySelector('.text-red-600');
         if (topReposSubtitle) {

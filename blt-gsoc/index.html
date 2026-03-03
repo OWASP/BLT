@@ -15,7 +15,7 @@
 
     <title>OWASP BLT GSoC | Landing Page</title>
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/images/favicon/favicon.ico">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -63,7 +63,7 @@
         class="sticky top-0 z-50 border-b border-neutral-border bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <a href="#main-content" class="flex items-center gap-3" aria-label="OWASP BLT GSoC Home">
-                <img src="./images/logo.png" alt="OWASP BLT Logo" class="h-8 w-8">
+                <img src="./images/logos/logo.png" alt="OWASP BLT Logo" class="h-8 w-8">
                 <div>
                     <p class="text-sm font-extrabold leading-none">OWASP BLT</p>
                     <p class="text-xs font-semibold text-gray-500">Google Summer of Code</p>
@@ -72,17 +72,20 @@
 
             <div class="flex items-center gap-2">
                 <button id="theme-toggle" type="button"
-                    class="theme-toggle-btn inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                    class="theme-toggle-btn inline-flex h-10 w-10 items-center justify-center rounded-md border
+                    border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                     aria-label="Toggle dark mode">
                     <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
                     <i class="fa-solid fa-sun hidden dark:block" aria-hidden="true"></i>
                 </button>
                 <a href="https://github.com/OWASP-BLT/BLT-GSOC" target="_blank" rel="noopener noreferrer"
-                    class="hidden items-center justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:inline-flex">
+                    class="hidden items-center justify-center
+                    rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:inline-flex">
                     <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>GitHub
                 </a>
-                <button id="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="mobile-drawer"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 lg:hidden dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                <button id="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="mobile-drawer" class="inline-flex h-10 w-10 items-center
+                    justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 lg:hidden dark:border-gray-700
+                    dark:text-gray-300 dark:hover:bg-gray-800">
                     <i class="fa-solid fa-bars" aria-hidden="true"></i>
                     <span class="sr-only">Open navigation menu</span>
                 </button>
@@ -92,13 +95,13 @@
 
     <div id="mobile-drawer" class="fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
         <div id="mobile-overlay" class="absolute inset-0 bg-black/35"></div>
-        <div
-            class="absolute right-0 top-0 h-full w-[92%] max-w-md overflow-y-auto border-l border-neutral-border bg-white p-4 shadow-2xl transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
+        <div class="absolute right-0 top-0 h-full w-[92%] max-w-md overflow-y-auto border-l border-neutral-border bg-white p-4 shadow-2xl transition-colors
+            duration-200 dark:border-gray-800 dark:bg-dark-surface">
             <div
                 class="mb-4 flex items-center justify-between border-b border-neutral-border pb-3 dark:border-gray-800">
                 <p class="text-sm font-extrabold uppercase tracking-[0.14em] text-brand">Open Menu</p>
-                <button id="mobile-close-btn" type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-border text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                <button id="mobile-close-btn" type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-border text-gray-600
+                    hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     <span class="sr-only">Close navigation menu</span>
                 </button>
@@ -125,20 +128,20 @@
         </div>
     </div>
 
-    <main id="main-content" class="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <main id="main-content" class="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 scroll-m-24">
         <div class="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="hidden lg:block">
-                <div
-                    class="sticky top-24 rounded-xl border border-neutral-border bg-white p-4 shadow-soft transition-colors duration-200 dark:border-gray-800 dark:bg-dark-surface">
-                    <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400">
+                <div class="sticky top-24 rounded-xl border border-neutral-border bg-white p-4 shadow-soft transition-colors duration-200
+                    dark:border-gray-800 dark:bg-dark-surface">
+                    <p class="mb-6 text-xs font-extrabold uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400">
                         Sections</p>
                     <div class="mb-5">
-                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
+                        <p class="mb-3 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
                             Overview</p>
                         <ul class="space-y-1 text-sm font-semibold">
                             <li>
-                                <a href="#hero"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                                <a href="#hero" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300
+                                    dark:hover:bg-gray-800">
                                     <i class="fa-solid fa-house" aria-hidden="true"></i>Main
                                 </a>
                             </li>
@@ -153,16 +156,16 @@
                     </div>
 
                     <div class="mb-5">
-                        <p class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
+                        <p class="mb-3 px-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500">
                             Community</p>
                         <ul class="space-y-1 text-sm font-semibold">
-                            <li><a href="#success-stories"
-                                    class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"><i
-                                        class="fa-solid fa-award" aria-hidden="true"></i>Success
-                                    Stories</a></li>
+                            <li><a href="#success-stories" class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 transition hover:bg-gray-50
+                                dark:text-gray-300 dark:hover:bg-gray-800"><i class="fa-solid fa-award"
+                                        aria-hidden="true"></i>Success Stories</a></li>
                             <li><a href="#current-mentors"
                                     class="flex items-center gap-2 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50"><i
-                                        class="fa-solid fa-users text-gray-400" aria-hidden="true"></i>Current Mentors</a></li>
+                                        class="fa-solid fa-users text-gray-400" aria-hidden="true"></i>Current
+                                    Mentors</a></li>
                         </ul>
                     </div>
 
@@ -179,12 +182,12 @@
             </aside>
 
             <div class="space-y-10">
-                <section id="hero"
-                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section id="hero" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800
+                    dark:bg-dark-surface scroll-m-32">
                     <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
                         <div>
-                            <span
-                                class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-extrabold uppercase tracking-[0.15em] text-brand dark:bg-red-950/30 dark:border-red-900/50">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-extrabold
+                                uppercase tracking-[0.15em] text-brand dark:bg-red-950/30 dark:border-red-900/50">
                                 <i class="fa-solid fa-rocket" aria-hidden="true"></i>Google Summer of Code
                             </span>
                             <h1
@@ -207,12 +210,13 @@
                                 100 countries have participated over past years.</p>
 
                             <div class="mt-6 flex flex-wrap gap-3">
-                                <a href="#project-ideas"
-                                    class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
+                                <a href="#project-ideas" class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-5 py-2.5 text-sm font-semibold
+                                text-white transition hover:bg-red-700">
                                     <i class="fa-solid fa-compass mr-2" aria-hidden="true"></i>Browse Projects
                                 </a>
                                 <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer"
-                                    class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-5 py-2.5 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
+                                    class="inline-flex items-center justify-center rounded-md border border-[#E10101] px-5 py-2.5 text-sm font-semibold
+                                    text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
                                     <i class="fa-solid fa-arrow-up-right-from-square mr-2"
                                         aria-hidden="true"></i>Official GSoC Site
                                 </a>
@@ -220,9 +224,9 @@
                         </div>
 
                         <div
-                            class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-800 dark:bg-dark-base">
-                            <img src="images/GSoC_logo.svg" alt="Google Summer of Code Logo"
-                                class="mx-auto w-40 rounded-lg border border-neutral-border bg-white p-3 dark:border-gray-700 dark:bg-dark-surface">
+                            class="rounded-xl border border-neutral-border bg-gray-50 p-5 dark:border-gray-800 dark:bg-dark-base flex justify-between flex-col">
+                            <img src="images/logos/GSoC_logo.svg" alt="Google Summer of Code Logo"
+                                class="mx-auto w-full h-44 rounded-lg border border-neutral-border bg-white p-3 dark:border-gray-700 dark:bg-dark-surface">
                             <div class="mt-5 space-y-3">
                                 <article
                                     class="rounded-lg border border-neutral-border bg-white px-4 py-3 dark:border-gray-700 dark:bg-dark-surface">
@@ -254,8 +258,8 @@
                 </section>
 
 
-                <section id="benefits"
-                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section id="benefits" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8
+                dark:border-gray-800 dark:bg-dark-surface scroll-m-24">
                     <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Program Benefits</h2>
                     <div class="mt-6 grid gap-6 lg:grid-cols-2">
                         <article
@@ -263,7 +267,7 @@
                             <h3 class="text-lg font-extrabold text-gray-900 dark:text-white"><i
                                     class="fa-solid fa-user-graduate mr-2 text-brand" aria-hidden="true"></i>For
                                 Students</h3>
-                            <ul class="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <ul class="mt-5 space-y-3.5 text-sm text-gray-700 dark:text-gray-300">
                                 <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Gaining
                                     exposure to real-world software development scenarios</li>
                                 <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>An
@@ -284,7 +288,7 @@
                             <h3 class="text-lg font-extrabold text-gray-900 dark:text-white"><i
                                     class="fa-solid fa-chalkboard-user mr-2 text-brand" aria-hidden="true"></i>For
                                 Mentors</h3>
-                            <ul class="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <ul class="mt-5 space-y-3.5 text-sm text-gray-700 dark:text-gray-300">
                                 <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Shape the
                                     next generation of open-source developers</li>
                                 <li><i class="fa-solid fa-circle-check mr-2 text-brand" aria-hidden="true"></i>Enhance
@@ -303,12 +307,35 @@
                     </div>
                 </section>
 
-                <section id="project-ideas"
-                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section id="partnership" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8
+                dark:border-gray-800 dark:bg-dark-surface scroll-m-24">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">OWASP BLT & GSOC
+                        Partnership</h2>
+                    <div class="mt-4 space-y-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                        <p>OWASP is an open community dedicated to enabling organizations to conceive, develop, acquire,
+                            operate, and maintain applications that can be trusted. OWASP has been an active participant
+                            in the
+                            Google Summer of Code program, providing students with opportunities to contribute to
+                            multiple OWASP projects.</p>
+                        <p>OWASP BLT (Bug Logging Tool) has participated in Google Summer of Code for 5 consecutive
+                            years,
+                            from 2020 to 2024. BLT is an open-source platform focused on making the internet safer
+                            through
+                            community-driven bug reporting and collaboration.</p>
+                        <p>All students currently enrolled in an accredited institution are welcome to participate in
+                            GSoC,
+                            hopefully along with the OWASP Foundation.</p>
+                    </div>
+                </section>
+
+                <section id="project-ideas" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8
+                    dark:border-gray-800 dark:bg-dark-surface scroll-m-24">
                     <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Project Ideas</h2>
 
-                    <div href="https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas" target="_blank" rel="noopener noreferrer"
-                        class="mt-6 block rounded-xl border-2 border-red-200 bg-rose-100 p-6 transition hover:border-red-300 dark:border-gray-700 dark:bg-dark-base dark:hover:border-red-300">
+                    <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas" target="_blank"
+                        rel="noopener noreferrer"
+                        class="mt-6 block rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-100 p-6
+                        transition hover:border-red-300 hover:shadow-lg dark:border-red-900/60 dark:from-red-950/40 dark:to-rose-950/30">
                         <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                             <div>
                                 <h3 class="text-xl font-extrabold text-red-700 dark:text-brand">OWASP BLT Project
@@ -316,31 +343,41 @@
                                 <p class="mt-1 text-sm text-red-700 dark:text-red-300">Explore exciting project
                                     opportunities with OWASP
                                     Bug Logging Tool</p>
-                                <span
-                                    class="mt-3 inline-flex rounded-full bg-gray-50 px-3 py-1 text-xs font-bold text-brand dark:bg-gray-800">Featured
+                                <span class="mt-5 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-bold text-brand
+                                    dark:bg-red-950 dark:text-red-300 dark:ring-1 dark:ring-red-700/40">Featured
                                     Projects</span>
                             </div>
-                            <div
-                                class="inline-flex items-center rounded-full bg-gray-50 px-4 py-2 text-sm font-bold text-brand dark:bg-gray-800">
+                            <div class="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-bold text-brand 
+                                dark:bg-red-950 dark:text-red-300 dark:ring-1 dark:ring-red-700/40">
                                 Browse Now <i class="fa-solid fa-arrow-right ml-2" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:bg-dark-base dark:text-white">GSOC Project Ideas 2026 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
-                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc_sat" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800 transition hover:bg-red-50 hover:text-brand dark:bg-dark-base dark:text-white">GSoC Student Application Template (SAT) <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
+                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas" target="_blank"
+                            rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800
+                            transition-all hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200
+                            dark:hover:bg-red-950/40 dark:hover:text-red-400 dark:hover:shadow-md">GSOC
+                            Project Ideas 2026 <i class="fa-solid fa-link ml-1 text-brand" aria-hidden="true"></i></a>
+                        <a href="https://owasp.org/www-community/initiatives/gsoc/gsoc_sat" target="_blank"
+                            rel="noopener noreferrer" class="rounded-lg border border-neutral-border bg-white p-4 text-sm font-semibold text-gray-800
+                            transition-all hover:bg-red-50 hover:text-brand dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200
+                            dark:hover:bg-red-950/40 dark:hover:text-red-400 dark:hover:shadow-md">GSoC
+                            Student Application Template (SAT) <i class="fa-solid fa-link ml-1 text-brand"
+                                aria-hidden="true"></i></a>
                     </div>
                 </section>
 
-                <section id="success-stories"
-                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section id="success-stories" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8
+                    dark:border-gray-800 dark:bg-dark-surface scroll-m-24">
                     <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Success Stories</h2>
-                    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="mt-6 grid gap-4 sm:grid-cols-2">
                         <article
                             class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
                             <h3 class="text-base font-extrabold dark:text-gray-100">Shirish Jain</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <p
+                                class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
                                 GSoC 2023</p>
                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Successfully implemented the Sizzle
                                 Time Tracking
@@ -352,7 +389,8 @@
                         <article
                             class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
                             <h3 class="text-base font-extrabold dark:text-gray-100">Aryan Ranjan</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <p
+                                class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
                                 GSoC 2023</p>
                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Developed the Discussion Room
                                 feature during GSoC
@@ -364,7 +402,8 @@
                         <article
                             class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
                             <h3 class="text-base font-extrabold dark:text-gray-100">Swapnil Shinde</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <p
+                                class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
                                 GSoC 2022</p>
                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Contributed to OWASP BLT
                                 development.</p>
@@ -375,7 +414,8 @@
                         <article
                             class="rounded-xl border border-neutral-border bg-gray-50 p-4 dark:border-gray-700 dark:bg-dark-base">
                             <h3 class="text-base font-extrabold dark:text-gray-100">Bishal Das</h3>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <p
+                                class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
                                 GSoC 2024</p>
                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">GSoC learning journey with OWASP
                                 BLT.</p>
@@ -387,8 +427,8 @@
                     </div>
                 </section>
 
-                <section id="current-mentors"
-                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section id="current-mentors" class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft transition-colors duration-200 sm:p-8
+                    dark:border-gray-800 dark:bg-dark-surface scroll-m-24">
                     <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">Current GSoC 2026
                         Contributors and interested mentors</h2>
 
@@ -422,8 +462,8 @@
                         </article>
 
                         <!-- Md Kaif Ansari -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -436,19 +476,20 @@
                                     </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/mdkaifansari04" target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm
+                                            text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://mdkaifansari04.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm
+                                            text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -511,8 +552,8 @@
                         </article>
 
                         <!-- Preetham -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -525,18 +566,20 @@
                                     </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Pritz395" target="_blank" rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white
+                                            transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://Pritz395.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -600,8 +643,8 @@
                         </article>
 
                         <!-- Siddharth Bansal -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -614,18 +657,20 @@
                                     </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white
+                                            transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://sidd190.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -638,7 +683,8 @@
                                                 class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
                                                 Vedant
                                                 Anand</h4>
-                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full Stack &amp; Web3 Developer
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Full Stack
+                                                &amp; Web3 Developer
                                             </p>
                                         </div>
                                     </div>
@@ -681,8 +727,8 @@
                         </article>
 
                         <!-- Sakshee Suman -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -695,18 +741,20 @@
                                     </p>
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/e-esakman" target="_blank" rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white
+                                            transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://e-esakman.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -742,8 +790,8 @@
                         </article>
 
                         <!-- Arnav Kirti -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -757,12 +805,14 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/arnavkirti" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://arnavkirti.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
@@ -771,8 +821,8 @@
                         </article>
 
                         <!-- Savio D'souza -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -786,18 +836,20 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/S3DFX-CYBER" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://S3DFX-CYBER.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -829,8 +881,8 @@
                         </article>
 
                         <!-- Jayant Malvi -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -844,18 +896,20 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Jayant2908" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://Jayant2908.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4">
                                 <div
                                     class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
                                     <div class="mb-3 flex items-center gap-3">
@@ -883,8 +937,8 @@
                         </article>
 
                         <!-- Manahil Afzal -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -898,12 +952,14 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Manahil-Afzal" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://manahil-afzal.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
@@ -912,8 +968,8 @@
                         </article>
 
                         <!-- Kunal Gupta -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -927,12 +983,14 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Kunal241207" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://kunal241207.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
@@ -941,8 +999,8 @@
                         </article>
 
                         <!-- Nachiket Roy -->
-                        <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                        <article class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-700/70
+                            dark:bg-dark-surface dark:shadow-2xl">
                             <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
@@ -956,12 +1014,14 @@
                                     <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-4">
                                         <a href="https://github.com/Nachiket-Roy" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5 text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#E10101] px-3 py-1.5
+                                            text-sm text-white transition hover:bg-red-700 sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fab fa-github mr-1.5 sm:mr-2"></i>GitHub Profile
                                         </a>
                                         <a href="https://nachiket-roy.github.io/MY-GSOC-TOOL/" target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5 text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
+                                            class="inline-flex items-center justify-center rounded-lg border-2 border-[#E10101] px-3 py-1.5
+                                            text-sm text-[#E10101] transition hover:bg-[#E10101] hover:text-white sm:px-4 sm:py-2 sm:text-base">
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
@@ -977,8 +1037,10 @@
                     </article>
                 </section>
 
-                <section class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:border-gray-800 dark:bg-dark-surface
-                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl">Page Views (Last 30 Days)</h2>
+                <section
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:bg-dark-surface dark:shadow-2xl dark:border-gray-700/70">
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white/90">Page Views (Last 30
+                        Days)</h2>
                     <div class="mt-5 grid gap-4 sm:grid-cols-2">
                         <article
                             class="rounded-xl border border-neutral-border bg-gray-50 p-5 text-center dark:border-gray-700 dark:bg-dark-base">
@@ -995,14 +1057,17 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                <section
+                    class="rounded-2xl border border-neutral-border bg-white p-6 shadow-soft sm:p-8 dark:bg-dark-surface dark:shadow-2xl dark:border-gray-700/70">
                     <div class="flex flex-wrap justify-center gap-2">
-                        <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer"
-                            class="inline-flex items-center justify-center rounded-md bg-dark-base border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white">
+                        <a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center
+                            justify-center rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold  text-[#E10101] transition hover:bg-[#E10101]
+                            hover:text-white">
                             <i class="fa-solid fa-arrow-up-right-from-square mr-2" aria-hidden="true"></i>Official GSoC
                         </a>
                         <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
-                            class="inline-flex items-center justify-center rounded-md bg-[#E10101] px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
+                            class="inline-flex items-center
+                            justify-center rounded-md bg-[#E10101] px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
                             <i class="fa-brands fa-github mr-2" aria-hidden="true"></i>BLT Repo
                         </a>
                     </div>
@@ -1023,87 +1088,13 @@
                     class="text-red-600 hover:underline">BLT-GSOC Repo</a>
                 <a href="https://owasp.org/" target="_blank" rel="noopener noreferrer"
                     class="text-red-600 hover:underline">OWASP</a>
-                <a href="pr-report.html" class="text-red-600 hover:underline">PR Analytics</a>
+                <a href="pages/pr-report.html" class="text-red-600 hover:underline">PR Analytics</a>
             </div>
         </div>
     </footer>
 
     <script src="js/theme.js"></script>
-    <script>
-        const mobileDrawer = document.getElementById('mobile-drawer');
-        const mobileBtn = document.getElementById('mobile-menu-btn');
-        const mobileCloseBtn = document.getElementById('mobile-close-btn');
-        const mobileOverlay = document.getElementById('mobile-overlay');
-
-        function openDrawer() {
-            mobileDrawer.classList.remove('hidden');
-            mobileDrawer.setAttribute('aria-hidden', 'false');
-            mobileBtn.setAttribute('aria-expanded', 'true');
-            document.body.classList.add('overflow-hidden');
-        }
-
-        function closeDrawer() {
-            mobileDrawer.classList.add('hidden');
-            mobileDrawer.setAttribute('aria-hidden', 'true');
-            mobileBtn.setAttribute('aria-expanded', 'false');
-            document.body.classList.remove('overflow-hidden');
-        }
-
-        mobileBtn.addEventListener('click', openDrawer);
-        mobileCloseBtn.addEventListener('click', closeDrawer);
-        mobileOverlay.addEventListener('click', closeDrawer);
-
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && !mobileDrawer.classList.contains('hidden')) {
-                closeDrawer();
-            }
-        });
-
-        document.querySelectorAll('#mobile-drawer a[href^="#"]').forEach(function (link) {
-            link.addEventListener('click', closeDrawer);
-        });
-
-        document.getElementById('year').textContent = new Date().getFullYear();
-
-        // Scroll-spy navigation highlighting
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('aside a[href^="#"]');
-
-        const observerOptions = {
-            root: null,
-            rootMargin: '-20% 0px -70% 0px',
-            threshold: 0
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    updateActiveLink(id);
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => observer.observe(section));
-
-        function updateActiveLink(id) {
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href').substring(1);
-                const isActive = href === id;
-
-                const activeClasses = ['bg-[#feeae9]', 'text-[#E10101]', 'dark:bg-red-950/30', 'dark:text-red-400'];
-                const inactiveClasses = ['text-gray-700', 'hover:bg-gray-50', 'dark:text-gray-300', 'dark:hover:bg-gray-800'];
-
-                if (isActive) {
-                    link.classList.add(...activeClasses);
-                    link.classList.remove(...inactiveClasses);
-                } else {
-                    link.classList.remove(...activeClasses);
-                    link.classList.add(...inactiveClasses);
-                }
-            });
-        }
-    </script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>
