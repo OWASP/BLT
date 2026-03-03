@@ -51,12 +51,20 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.reactions.createForIssue({
-              owner: context.repo.owner,
-              repo:  context.repo.repo,
-              issue_number: context.issue.number,
-              content: 'eyes',
-            });
+            const issueNumber = context.payload.issue?.number;
+            if (!issueNumber) return;
+
+            try {
+              await github.rest.reactions.createForIssue({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: issueNumber,
+                content: 'eyes',
+              });
+            } catch (e) {
+              // Ignore if already reacted or other minor error
+              console.log('Reaction failed:', e.message);
+            }
 
       - name: Add domain label to new issue
         if: github.event_name == 'issues' && github.event.action == 'opened'
@@ -64,8 +72,8 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            // Use the same two-newline pattern as extractDomain() in the leaderboard step
-            const match = body.match(/### URL\s*\n{2}\s*(https?:\/\/[^\s]+)/);
+            // Use the standard pattern for URL extraction
+            const match = body.match(/### URL\s*\n\n(\S+)/);
             if (!match) return;
 
             let hostname = null;
@@ -103,12 +111,14 @@ jobs:
                 throw e;
               }
             }
+            const issueNumber = context.payload.issue?.number;
+            if (!issueNumber) return;
 
             // Apply the label to the issue
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo:  context.repo.repo,
-              issue_number: context.payload.issue.number,
+              issue_number: issueNumber,
               labels: [labelName],
             });
 

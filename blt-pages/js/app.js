@@ -104,8 +104,8 @@ function initPricing() {
       plan.price === null
         ? "Custom"
         : plan.price === 0
-        ? "Free"
-        : `$${plan.price}`;
+          ? "Free"
+          : `$${plan.price}`;
 
     const featuresHtml = plan.features
       .map(
@@ -228,6 +228,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     counts[user].count++;
 
     // Extract domain from URL field
+    // Extract domain from URL field using the standard pattern
     const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
     if (urlMatch) {
       try {
@@ -421,13 +422,19 @@ async function loadRecentBugsFromAPI(grid) {
       .slice(0, 3)
       .map(async (issue) => {
         // -------------------------
-        // Extract domain
+        // Extract domain using standard pattern
         // -------------------------
         let domain = null;
-        const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+        const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
         if (urlMatch) {
           try {
-            domain = new URL(urlMatch[1]).hostname;
+            let rawUrl = urlMatch[1].trim();
+            if (rawUrl.startsWith("//")) {
+              rawUrl = "https:" + rawUrl;
+            } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+              rawUrl = "https://" + rawUrl;
+            }
+            domain = new URL(rawUrl).hostname;
           } catch {
             /* ignore invalid URLs */
           }
