@@ -8,6 +8,7 @@
   <meta property="og:description" content="Report public bugs, route vulnerabilities safely, and recognize your community contributors." />
   <meta property="og:type" content="website" />
   <title>BLT Pages - Bug Reporting Platform</title>
+  <link rel="icon" type="image/png" href="/static/logo.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -226,6 +227,7 @@
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Active reporters</dt>
               </div>
             </dl>
+            <p id="homepage-updated" class="mt-2 text-xs text-gray-400 dark:text-gray-500"></p>
           </div>
         </div>
       </div>
@@ -275,18 +277,18 @@
 
           <article class="surface-card rounded-2xl p-5">
             <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <i class="fa-solid fa-toggle-on" aria-hidden="true"></i>
+              <i class="fa-solid fa-globe" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Fork-friendly pricing toggle</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">OWASP deployments keep pricing hidden, while commercial forks can switch plans on in config.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Report issues on any website</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">BLT covers the entire internet — report bugs, broken pages, or security problems on any domain, not just your own.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
             <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
+              <i class="fa-solid fa-coins" aria-hidden="true"></i>
             </div>
-            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Reporter revenue sharing</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Commercial plan users can share a percentage of subscription value with contributing reporters.</p>
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Earn rewards for every report</h3>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Reporters earn BACON tokens for accepted bug reports, turning community contributions into tangible recognition.</p>
           </article>
         </div>
       </div>
@@ -470,13 +472,13 @@
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-          <table class="w-full" aria-label="Bug reporter leaderboard">
+          <table class="w-full table-fixed" aria-label="Bug reporter leaderboard">
             <thead>
               <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
                 <th scope="col" class="px-4 py-3">Reporter</th>
-                <th scope="col" class="px-4 py-3 text-right">Bugs</th>
-                <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
+                <th scope="col" class="w-16 px-4 py-3 text-right">Bugs</th>
+                <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
               </tr>
             </thead>
             <tbody id="leaderboard-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
@@ -502,13 +504,13 @@
             Top Commenters
           </h3>
           <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-            <table class="w-full" aria-label="Top commenters leaderboard">
+            <table class="w-full table-fixed" aria-label="Top commenters leaderboard">
               <thead>
                 <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
                   <th scope="col" class="px-4 py-3">Commenter</th>
-                  <th scope="col" class="px-4 py-3 text-right">Comments</th>
-                  <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
+                  <th scope="col" class="w-20 px-4 py-3 text-right">Comments</th>
+                  <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
                 </tr>
               </thead>
               <tbody id="commenters-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
@@ -530,13 +532,13 @@
             Top Domains
           </h3>
           <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-            <table class="w-full" aria-label="Top reported domains leaderboard">
+            <table class="w-full table-fixed" aria-label="Top reported domains leaderboard">
               <thead>
                 <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
                   <th scope="col" class="px-4 py-3">Domain</th>
-                  <th scope="col" class="px-4 py-3 text-right">Reports</th>
-                  <th scope="col" class="hidden px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
+                  <th scope="col" class="w-20 px-4 py-3 text-right">Reports</th>
+                  <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
                 </tr>
               </thead>
               <tbody id="domains-rows" class="divide-y divide-neutral-border dark:divide-gray-700">

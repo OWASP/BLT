@@ -209,11 +209,19 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     counts[user].count++;
 
     // Extract domain from URL field
-    const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+    const urlMatch = issue.body?.match(/### URL\s*\n\n(\S+)/);
     if (urlMatch) {
       try {
-        const domain = new URL(urlMatch[1]).hostname;
-        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        let rawUrl = urlMatch[1].trim();
+        if (rawUrl.startsWith("//")) {
+          rawUrl = "https:" + rawUrl;
+        } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+          rawUrl = "https://" + rawUrl;
+        }
+        const domain = new URL(rawUrl).hostname;
+        if (domain) {
+          domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+        }
       } catch { /* ignore malformed URLs */ }
     }
   }
@@ -275,13 +283,13 @@ function renderLeaderboard(container, data) {
         <td class="px-4 py-3">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
-                 alt="${entry.login}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700"
+                 alt="${escapeHtml(entry.login)}'s avatar"
+                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
-                 onerror="this.src='https://github.com/identicons/${entry.login}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                 onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.login)}
             </span>
           </a>
@@ -303,10 +311,17 @@ function renderLeaderboard(container, data) {
     })
     .join("");
 
-  // Update timestamp if present
+  // Update timestamps if present
+  const formattedDate = data.updated_at
+    ? new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
   const ts = document.getElementById("leaderboard-updated");
-  if (ts && data.updated_at) {
-    ts.textContent = `Updated ${new Date(data.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+  if (ts && formattedDate) {
+    ts.textContent = `Updated ${formattedDate}`;
+  }
+  const homepageTs = document.getElementById("homepage-updated");
+  if (homepageTs && formattedDate) {
+    homepageTs.textContent = `Last updated: ${formattedDate}`;
   }
 }
 
@@ -339,26 +354,47 @@ async function loadRecentBugs() {
 
 async function loadRecentBugsFromAPI(grid) {
   const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=3&sort=created&direction=desc`;
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  
+  const res = await fetch(url, {
+    headers: { Accept: "application/vnd.github+json" },
+  });
+
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
   const issues = await res.json();
 
-  const bugsWithReactions = await Promise.all(
+  const bugs = await Promise.all(
     issues
       .filter((i) => !i.pull_request)
       .slice(0, 3)
       .map(async (issue) => {
+
+        // ---- Extract domain (from main) ----
+        let domain = null;
+        const urlMatch = issue.body?.match(/### URL\s*\n\n(https?:\/\/[^\s\n]+)/);
+        if (urlMatch) {
+          try {
+            domain = new URL(urlMatch[1]).hostname;
+          } catch {
+            /* ignore invalid URLs */
+          }
+        }
+
+        // ---- Fetch reactions (from feature/show-reactions) ----
         let reactions = [];
         try {
           const reactionsUrl = `${issue.url}/reactions`;
           const reactionsRes = await fetch(reactionsUrl, {
             headers: { Accept: "application/vnd.github+json" },
           });
+
           if (reactionsRes.ok) {
             reactions = await reactionsRes.json();
           }
         } catch (error) {
-          console.warn(`Failed to fetch reactions for issue #${issue.number}:`, error);
+          console.warn(
+            `Failed to fetch reactions for issue #${issue.number}:`,
+            error
+          );
         }
 
         return {
@@ -372,12 +408,13 @@ async function loadRecentBugsFromAPI(grid) {
             profile_url: issue.user.html_url,
           },
           image_url: extractFirstImage(issue.body),
-          reactions: aggregateReactions(reactions),
+          domain, // ✅ kept from main
+          reactions: aggregateReactions(reactions), // ✅ kept from feature
         };
       })
   );
 
-  renderRecentBugs(bugsWithReactions);
+  renderRecentBugs(bugs);
 }
 
 function extractFirstImage(body) {
@@ -429,14 +466,25 @@ function renderRecentBugs(bugs) {
       );
       const login = escapeHtml(bug.user.login);
 
-      const reactionsHtml = bug.reactions ? formatReactions(bug.reactions) : '';
+      const reactionsHtml = bug.reactions
+        ? formatReactions(bug.reactions)
+        : "";
+
+      const faviconHtml = bug.domain
+        ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bug.domain)}&sz=32"
+                alt="${escapeHtml(bug.domain)} favicon"
+                class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-4 h-4\\' aria-hidden=\\'true\\'></i>'" />`
+        : "";
 
       return `<div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
         ${imgHtml}
         <h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1">
           <a href="${escapeHtml(bug.html_url)}" target="_blank" rel="noopener noreferrer"
              class="hover:text-primary transition-colors">
-            ${escapeHtml(bug.title)}
+            ${faviconHtml}${escapeHtml(bug.title)}
           </a>
         </h3>
         <div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap">
@@ -496,13 +544,13 @@ function renderTopCommenters(container, data) {
         <td class="px-4 py-3">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700"
+                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.login)}
             </span>
           </a>
@@ -562,13 +610,13 @@ function renderTopDomains(container, data) {
         <td class="px-4 py-3">
           <a href="https://${escapeHtml(entry.domain)}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group">
+             class="flex items-center gap-3 group min-w-0">
             <img src="${faviconUrl}"
                  alt="${escapeHtml(entry.domain)} favicon"
                  class="w-5 h-5 rounded flex-shrink-0"
                  loading="lazy"
                  onerror="this.outerHTML='<i class=\\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\\' aria-hidden=\\'true\\'></i>'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
               ${escapeHtml(entry.domain)}
             </span>
           </a>

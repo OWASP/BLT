@@ -17,8 +17,6 @@ Community-powered bug-reporting platform built on GitHub Pages, part of the
 | 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no GitHub account required |
 | 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://zero.owaspblt.org) |
 | 🏆 **Leaderboard** | Auto-updated every 6 h by GitHub Actions |
-| 💰 **Pricing** (optional) | Toggleable — off for the OWASP instance, on for commercial forks |
-| 🔄 **Revenue sharing** | 10 % of subscription revenue shared with reporters (commercial plans) |
 
 ---
 
@@ -28,26 +26,6 @@ Community-powered bug-reporting platform built on GitHub Pages, part of the
 - **Font Awesome** (CDN)
 - **GitHub Actions** for leaderboard generation
 - **BLT-API** for anonymous report submission
-
----
-
-## Configuration
-
-Edit [`js/config.js`](js/config.js) to customise the deployment:
-
-```js
-const BLT_CONFIG = {
-  SHOW_PRICING: false,          // true for commercial forks
-  ORG_NAME: "OWASP BLT",
-  LOGO_URL: "…",
-  REPO_OWNER: "OWASP-BLT",
-  REPO_NAME: "BLT-Pages",
-  BLT_ZERO_URL: "https://zero.owaspblt.org",
-  BLT_API_URL:  "https://blt.owasp.org/api",
-  REVENUE_SHARE_PERCENT: 10,
-  PRICING_PLANS: [ … ],
-};
-```
 
 ---
 
