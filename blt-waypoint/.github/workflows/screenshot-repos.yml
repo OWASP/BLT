@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Playwright
         run: |
-          npm install playwright@1.44.1
+          npm install playwright@1.50.1
           npx playwright install --with-deps chromium
 
       - name: Take screenshots
