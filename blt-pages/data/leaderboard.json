@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-04T00:36:22.908Z",
-  "commit_sha": "a4df908952beff0c45fc148579f0423a450697ee",
+  "updated_at": "2026-03-04T00:49:45.890Z",
+  "commit_sha": "d1a29c6a32c9919307e6ab62243ae147c941f071",
   "total_bugs": 12,
   "open_bugs": 12,
   "closed_bugs": 0,
@@ -101,33 +101,6 @@
   ],
   "recent_bugs": [
     {
-      "number": 63,
-      "title": "[BUG] The BLT Pages is not changes to OWASP BLT in the footer",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/63",
-      "created_at": "2026-03-03T22:09:15Z",
-      "comment_count": 1,
-      "user": {
-        "login": "ananya-09",
-        "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
-        "profile_url": "https://github.com/ananya-09"
-      },
-      "image_url": "https://github.com/user-attachments/assets/30711d77-a7e4-4006-bb6c-77be99bdf3d3",
-      "domain": "owaspblt.org",
-      "reactions": {
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "Is it intentional or really a bug?",
-        "created_at": "2026-03-03T22:10:27Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/63#issuecomment-3993881391",
-        "user": {
-          "login": "ananya-09",
-          "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
-          "profile_url": "https://github.com/ananya-09"
-        }
-      }
-    },
-    {
       "number": 61,
       "title": "[BUG] report anonymously should go to Blt next",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/61",
@@ -169,6 +142,31 @@
           "login": "sidd190",
           "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
           "profile_url": "https://github.com/sidd190"
+        }
+      }
+    },
+    {
+      "number": 8,
+      "title": "[BUG] join chapter button does not work",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
+      "created_at": "2026-03-01T08:40:35Z",
+      "comment_count": 2,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c",
+      "domain": "www.owasp.community",
+      "reactions": {},
+      "latest_comment": {
+        "body": "I'd like to work on this. I'll investigate the button's event handler and form submission logic and share my findings here before submitting a fix",
+        "created_at": "2026-03-02T07:32:41Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3982637901",
+        "user": {
+          "login": "Armaansaxena",
+          "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
+          "profile_url": "https://github.com/Armaansaxena"
         }
       }
     }
