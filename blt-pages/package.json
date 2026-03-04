@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0"
+  },
+  "dependencies": {
+    "@fontsource/manrope": "^5.2.8"
   }
 }
