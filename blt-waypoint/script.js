@@ -475,6 +475,20 @@ function renderRepos(repos) {
     if (layout) layout.classList.remove('table-view');
     if (header) header.classList.remove('table-view-header');
     grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
+    // Attach error handlers for screenshot images to show placeholder on load failure
+    grid.querySelectorAll('img[data-screenshot-placeholder]').forEach(img => {
+      img.addEventListener('error', function() {
+        const link = this.closest('.card-screenshot-link');
+        if (!link) return;
+        const placeholder = document.createElement('div');
+        placeholder.className = 'w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-image text-2xl';
+        icon.setAttribute('aria-hidden', 'true');
+        placeholder.appendChild(icon);
+        link.replaceChildren(placeholder);
+      });
+    });
   }
 }
 
@@ -533,7 +547,24 @@ function repoCardHTML(r) {
   const projectUrl = PROJECT_URLS[r.name];
 
   return `
-  <article class="repo-card${hasGsoc ? ' gsoc-card' : ''} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 flex flex-col gap-3 shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
+  <article class="repo-card${hasGsoc ? ' gsoc-card' : ''} bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col shadow-sm" aria-label="Repository: ${escapeHtml(r.name)}">
+
+    ${r.homepage ? `
+    <!-- Screenshot thumbnail -->
+    <a href="${escapeHtml(r.homepage)}" target="_blank" rel="noopener noreferrer"
+       class="card-screenshot-link block overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0"
+       style="height:130px;" tabindex="-1" aria-hidden="true">
+      <img
+        src="./imgs/screenshots/${escapeHtml(r.name)}.png"
+        alt="Screenshot of ${escapeHtml(r.name)} website"
+        class="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+        data-screenshot-placeholder="1"
+      />
+    </a>
+    ` : ''}
+
+    <div class="p-5 flex flex-col gap-3 flex-1">
 
     <!-- Header -->
     <div class="flex items-start gap-3">
@@ -715,6 +746,7 @@ function repoCardHTML(r) {
       >
         <i class="fa-solid fa-robot mr-1" aria-hidden="true"></i>Agent Task
       </a>
+    </div>
     </div>
   </article>`;
 }
