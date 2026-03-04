@@ -1,0 +1,80 @@
+name: Screenshot Repo Websites
+
+on:
+  workflow_dispatch:
+    # Manually triggered from the GitHub Actions UI
+
+jobs:
+  screenshot:
+    name: Take screenshots of all repo websites
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # commit and push the screenshots
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm install playwright@1.44.1
+          npx playwright install --with-deps chromium
+
+      - name: Take screenshots
+        env:
+          DATA_FILE: data.json
+        run: |
+          node - <<'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const path = require('path');
+
+          const dataFile = process.env.DATA_FILE || 'data.json';
+          const outDir = path.join('imgs', 'screenshots');
+          fs.mkdirSync(outDir, { recursive: true });
+
+          const payload = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+          const repos = (payload.repos || payload).filter(r => r.homepage);
+
+          console.log(`Found ${repos.length} repos with a homepage URL.`);
+
+          (async () => {
+            const browser = await chromium.launch();
+            const context = await browser.newContext({
+              viewport: { width: 1280, height: 800 },
+              userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            });
+
+            for (const repo of repos) {
+              const url = repo.homepage;
+              const outFile = path.join(outDir, `${repo.name}.png`);
+              console.log(`Screenshotting ${repo.name} -> ${url}`);
+              try {
+                const page = await context.newPage();
+                await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+                // Wait a moment for any JS-driven rendering
+                await page.waitForTimeout(1500);
+                await page.screenshot({ path: outFile, clip: { x: 0, y: 0, width: 1280, height: 800 } });
+                await page.close();
+                console.log(`  ✓ Saved ${outFile}`);
+              } catch (err) {
+                console.warn(`  ✗ Failed to screenshot ${repo.name}: ${err.message}`);
+              }
+            }
+
+            await browser.close();
+            console.log('Done.');
+          })();
+          EOF
+
+      - name: Commit screenshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add imgs/screenshots/
+          git diff --cached --quiet || (git commit -m "chore: update website screenshots" && git push)
