@@ -313,6 +313,8 @@ jobs:
               updated_at:     new Date().toISOString(),
               commit_sha:     context.sha,
               total_bugs:     bugIssues.length,
+              open_bugs:      bugIssues.filter(i => i.state === 'open').length,
+              closed_bugs:    bugIssues.filter(i => i.state === 'closed').length,
               total_domains:  Object.keys(domainCounts).length,
               total_orgs:     orgSet.size,
               leaderboard,
@@ -393,6 +395,20 @@ jobs:
             html = html.replace(
               /(<dd id="stat-reporters"[^>]*>)[^<]*/,
               `$1${fmtNum(payload.leaderboard.length)}`
+            );
+
+            // ── Pre-render header bug counts ───────────────────────────────
+            html = html.replace(
+              /(<span id="header-stat-total"[^>]*>)[^<]*/,
+              `$1${fmtNum(payload.total_bugs)}`
+            );
+            html = html.replace(
+              /(<span id="header-stat-open"[^>]*>)[^<]*/,
+              `$1${fmtNum(payload.open_bugs)}`
+            );
+            html = html.replace(
+              /(<span id="header-stat-closed"[^>]*>)[^<]*/,
+              `$1${fmtNum(payload.closed_bugs)}`
             );
 
             // ── Pre-render leaderboard-updated timestamp ───────────────────
