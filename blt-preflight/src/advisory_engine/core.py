@@ -101,25 +101,28 @@ class AdvisoryEngine:
     def evaluate_context(self, context: AdvisoryContext) -> List[SecurityAdvice]:
         """Evaluate context and generate security advice."""
         advice_list = []
+        triggered_patterns = set()
         
         # Evaluate based on issue labels
         for label in context.issue_labels:
             label_lower = label.lower()
             for pattern_key, pattern_data in self.security_patterns.get("label_patterns", {}).items():
-                if pattern_key in label_lower:
+                if pattern_key in label_lower and pattern_key not in triggered_patterns:
                     advice = self._generate_advice_from_pattern(
                         pattern_key, pattern_data, "label", context
                     )
                     advice_list.append(advice)
+                    triggered_patterns.add(pattern_key)
         
         # Evaluate based on file patterns
         for file_path in context.file_patterns:
             for pattern_key, pattern_data in self.security_patterns.get("file_patterns", {}).items():
-                if self._matches_pattern(file_path, pattern_data.get("patterns", [])):
+                if self._matches_pattern(file_path, pattern_data.get("patterns", [])) and pattern_key not in triggered_patterns:
                     advice = self._generate_advice_from_pattern(
                         pattern_key, pattern_data, "file", context
                     )
                     advice_list.append(advice)
+                    triggered_patterns.add(pattern_key)
         
         # Add general security advice
         if not advice_list:
