@@ -10,59 +10,55 @@ Routes:
 """
 
 import json
+import traceback
+import pyodide
+import js
 from pathlib import Path
 
 from workers import Response, WorkerEntrypoint
+from pyodide.ffi import JsProxy
+
+# Enable deep debugging for proxy errors
+try:
+    pyodide.setDebug(True)
+except Exception:
+    pass
 
 # ---------------------------------------------------------------------------
 # BLT FAQ knowledge base
 # ---------------------------------------------------------------------------
 CLOUDFLARE_AI_MODEL = "@cf/openai/gpt-oss-120b"
 FAQ_CONTEXT = """
-You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool).
-OWASP BLT is a gamified, crowd-sourced QA testing and vulnerability disclosure
-platform. Key facts:
+You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool), a gamified QA and vulnerability disclosure platform.
 
-- Website: https://www.bugheist.com / https://owasp.org/www-project-bug-logging-tool/
+Key Information:
+- Websites: https://www.bugheist.com, https://owasp.org/www-project-bug-logging-tool/
 - GitHub: https://github.com/OWASP-BLT/BLT
-- Purpose: Help security researchers discover, report, and get rewarded for
-  finding bugs in websites, apps, and Git repositories.
-- Key features: bug reporting, gamification (points, badges), leaderboards,
-  organisation management, SIZZLE token rewards, Bacon (BLT's internal currency).
-- Tech stack: Python/Django backend, Cloudflare Workers AI for Byte.
-- Slack: https://owasp.org/slack/invite (channel #project-blt)
+- Features: Bug reporting, gamification (points, leaderboards), SIZZLE tokens, Bacon currency.
+- Tech: Python/Django backend, Cloudflare Workers AI.
+- Slack: #project-blt at https://owasp.org/slack/invite
 
-Onboarding steps for new contributors:
-  1. Fork https://github.com/OWASP-BLT/BLT and clone locally.
-  2. Copy .env.example to .env and fill in required credentials.
-  3. Run `docker-compose up` (or follow the manual Django setup in CONTRIBUTING.md).
-  4. Browse to http://localhost:8000.
-  5. Pick a good-first-issue and submit a PR.
+Contributor Onboarding:
+1. Fork & clone the BLT GitHub repo.
+2. Setup .env from .env.example.
+3. Run `docker-compose up` and visit http://localhost:8000.
+4. Claim a 'good-first-issue' and submit a PR.
 
-Onboarding steps for bug hunters:
-  1. Register at https://www.bugheist.com.
-  2. Choose a domain/project to test.
-  3. Find a bug, screenshot it, submit a report.
-  4. Earn points and climb the leaderboard.
+Bug Hunter Onboarding:
+1. Register at https://www.bugheist.com.
+2. Select a target, find bugs, and submit reports with screenshots.
+3. Earn points and climb the leaderboard.
 
-Security scanning capabilities (via /api/scan):
-  - Header analysis: checks for missing or misconfigured security headers.
-  - SSL/TLS check: verifies certificate validity and protocol versions.
-  - Open redirect detection hints.
-  - Exposed sensitive files check.
+Capabilities:
+- /api/scan: Header analysis, SSL/TLS checks, redirect detection, sensitive file checks.
+- /api/mcp: search_bugs, submit_bug, get_leaderboard, scan_url.
 
-MCP integration (/api/mcp):
-  - Exposes BLT tool capabilities as MCP tools so AI IDEs (Cursor, Zed, etc.)
-    can interact with BLT directly.
-  - Available tools: search_bugs, submit_bug, get_leaderboard, scan_url.
-
-Always be concise, friendly, and security-focused. If unsure, direct the user
-to the BLT GitHub repository or Slack.
+Be concise, friendly, and security-focused. **DO NOT include any internal monologue, thought process, or "We should respond as..." meta-commentary. Respond only as Byte speaking to the user.**
 """
 
 SCAN_SYSTEM_PROMPT = """
 You are a security analysis assistant for OWASP BLT. Given a URL or domain,
-provide a structured security assessment covering:
+provide a structured security assessment. **Respond ONLY with the final analysis. Do not include internal reasoning or thought processes.**
 1. Recommended security headers to check (CSP, HSTS, X-Frame-Options, etc.)
 2. Common vulnerabilities to test for (OWASP Top 10 relevant items)
 3. Suggested BLT report categories
@@ -165,7 +161,9 @@ def error_response(message: str, status: int = 400) -> Response:
 # ---------------------------------------------------------------------------
 async def handle_chat(request, env) -> Response:
     try:
-        body = await request.json()
+        # Avoid JsProxy for inputs by using text() + native json.loads()
+        body_text = await request.text()
+        body = json.loads(body_text) if body_text else {}
     except Exception:
         return error_response("Invalid JSON body")
 
@@ -174,62 +172,12 @@ async def handle_chat(request, env) -> Response:
         return error_response("'message' field is required")
 
     history = body.get("history", [])
-
-    # Build system instructions with context
-    system_instructions = FAQ_CONTEXT
+    result = await _run_chat(env, user_message, history)
     
-    # Add conversation history to instructions
-    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
-    history_list = list(history[-10:]) if history else []
-    if history_list:
-        system_instructions += "\n\nConversation history:\n"
-        for turn in history_list:
-            role = str(turn.get("role", "user"))
-            content = str(turn.get("content", ""))
-            if role in ("user", "assistant") and content:
-                system_instructions += f"{role}: {content}\n"
-
-    # Call Cloudflare AI
-    try:
-        ai_response = await env.AI.run(
-            CLOUDFLARE_AI_MODEL,
-            {
-                "instructions": system_instructions,
-                "input": user_message,
-            },
-        )
+    if "error" in result:
+        return error_response(result["error"])
         
-        # Extract the response - convert JsProxy to Python object
-        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
-        
-        # Convert JsProxy to Python object if needed
-        if hasattr(response_output, 'to_py'):
-            response_output = response_output.to_py()
-        
-        # The output is a list with reasoning and assistant message
-        # Find the assistant message (last item with role="assistant")
-        reply = "I'm having trouble generating a response."
-        
-        if isinstance(response_output, list):
-            # Find the assistant message object
-            for item in response_output:
-                if isinstance(item, dict) and item.get('role') == 'assistant':
-                    content = item.get('content', [])
-                    # Content is an array of objects, find the output_text
-                    if isinstance(content, list):
-                        for content_item in content:
-                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                reply = content_item.get('text', reply)
-                                break
-                    break
-        else:
-            print(f"Response output is not a list, it's: {type(response_output)}")
-    
-    except Exception as ai_error:
-        print(f"AI call error: {str(ai_error)}")
-        reply = "I'm having trouble connecting to the AI service. Please try again."
-
-    return json_response({"reply": reply, "model": CLOUDFLARE_AI_MODEL})
+    return json_response({**result, "model": CLOUDFLARE_AI_MODEL})
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +185,9 @@ async def handle_chat(request, env) -> Response:
 # ---------------------------------------------------------------------------
 async def handle_scan(request, env) -> Response:
     try:
-        body = await request.json()
+        # Avoid JsProxy for inputs by using text() + native json.loads()
+        body_text = await request.text()
+        body = json.loads(body_text) if body_text else {}
     except Exception:
         return error_response("Invalid JSON body")
 
@@ -265,12 +215,17 @@ async def handle_scan(request, env) -> Response:
         CLOUDFLARE_AI_MODEL,
         {"messages": messages, "max_tokens": 768},
     )
+    
+    # Explicit type checking for Pyodide proxies
+    if isinstance(ai_response, JsProxy):
+        ai_response = ai_response.to_py()
 
-    raw = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
+    # Extract response safely
+    output = ai_response.get("response") if isinstance(ai_response, dict) else ai_response
+    if isinstance(output, JsProxy):
+        output = output.to_py()
+        
+    raw = str(output) if output is not None else ""
 
     # Attempt to parse AI JSON output; fall back to plain text wrapper
     try:
@@ -296,7 +251,8 @@ async def handle_mcp(request, env) -> Response:
     # Tool invocation
     if method == "POST":
         try:
-            body = await request.json()
+            body_text = await request.text()
+            body = json.loads(body_text) if body_text else {}
         except Exception:
             return error_response("Invalid JSON body")
 
@@ -333,59 +289,88 @@ async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
         return {"error": "'message' is required"}
     
-    # Build system instructions with context
-    system_instructions = FAQ_CONTEXT
+    # Build message array for better model performance
+    messages = [
+        {"role": "system", "content": FAQ_CONTEXT}
+    ]
     
-    # Add conversation history to instructions
-    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
+    # Add conversation history
     history_list = list(history[-10:]) if history else []
-    if history_list:
-        system_instructions += "\n\nConversation history:\n"
-        for turn in history_list:
-            role = str(turn.get("role", "user"))
-            content = str(turn.get("content", ""))
-            if role in ("user", "assistant") and content:
-                system_instructions += f"{role}: {content}\n"
+    for turn in history_list:
+        role = str(turn.get("role", ""))
+        content = str(turn.get("content", ""))
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
     
-    # Call Cloudflare AI
+    # Add current user message
+    messages.append({"role": "user", "content": message})
+    
+            # Call Cloudflare AI using JS serialization to avoid proxy issues
     try:
-        ai_response = await env.AI.run(
+        # Convert Python options to pure JS to avoid proxy errors
+        ai_options = js.JSON.parse(json.dumps({
+            "messages": messages,
+            "max_tokens": 2048  # Give the model enough room to finish thinking AND answer
+        }))
+        
+        raw_ai_response = await env.AI.run(
             CLOUDFLARE_AI_MODEL,
-            {
-                "instructions": system_instructions,
-                "input": message,
-            },
+            ai_options
         )
         
-        # Extract the response - convert JsProxy to Python object
-        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+        # NUCLEAR EXTRACTION: Convert JS Result to pure Python tree via JSON bridge
+        # This is the only 100% reliable way to avoid nested "borrowed proxy" issues.
+        ai_response = json.loads(js.JSON.stringify(raw_ai_response))
         
-        # Convert JsProxy to Python object if needed
-        if hasattr(response_output, 'to_py'):
-            response_output = response_output.to_py()
-        
-        # The output is a list with reasoning and assistant message
-        # Find the assistant message (last item with role="assistant")
-        reply = "I'm having trouble generating a response."
-        
-        if isinstance(response_output, list):
-            # Find the assistant message object
-            for item in response_output:
-                if isinstance(item, dict) and item.get('role') == 'assistant':
-                    content = item.get('content', [])
-                    # Content is an array of objects, find the output_text
-                    if isinstance(content, list):
-                        for content_item in content:
-                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                reply = content_item.get('text', reply)
-                                break
-                    break
-        else:
-            print(f"Response output is not a list, it's: {type(response_output)}")
-    
+        print(f"AI Response Keys: {list(ai_response.keys()) if isinstance(ai_response, dict) else 'Not a dict'}")
+            
+        reply = None
+
+        # 1. Handle OpenAI-compatible format (choices[0].message.content)
+        if isinstance(ai_response, dict) and 'choices' in ai_response:
+            choices = ai_response['choices']
+            if isinstance(choices, list) and len(choices) > 0:
+                choice = choices[0]
+                if isinstance(choice, dict):
+                    msg = choice.get('message', {})
+                    if isinstance(msg, dict):
+                        # ONLY pick up 'content'. Do NOT show 'reasoning_content' (thought process) to the user.
+                        reply = msg.get('content')
+
+        # 2. Handle standard Workers AI format (output or response)
+        if reply is None:
+            response_output = ai_response.get('output') if isinstance(ai_response, dict) else ai_response
+            
+            if isinstance(response_output, list):
+                for item in response_output:
+                    if isinstance(item, dict) and item.get('role') == 'assistant':
+                        content = item.get('content', [])
+                        if isinstance(content, list):
+                            for content_item in content:
+                                if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
+                                    reply = content_item.get('text')
+                                    break
+                        elif isinstance(content, str):
+                            reply = content
+                        break
+            elif isinstance(response_output, str):
+                reply = response_output
+            elif isinstance(response_output, dict):
+                reply = (
+                    response_output.get('response') or 
+                    response_output.get('reply') or 
+                    response_output.get('text') or 
+                    response_output.get('content')
+                )
+            
+        if reply is None:
+            print(f"AI Fallback extraction needed. Full response: {ai_response}")
+            reply = "I received a response but couldn't parse the text. Please check the logs."
+            
     except Exception as ai_error:
-        print(f"AI call error: {str(ai_error)}")
-        reply = "I'm having trouble connecting to the AI service. Please try again."
+        print(f"AI call crash: {str(ai_error)}")
+        traceback.print_exc()
+        reply = f"AI Error: {str(ai_error)}. Traceback enabled in logs."
     
     return {"reply": reply}
 
@@ -402,19 +387,38 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         {"role": "system", "content": SCAN_SYSTEM_PROMPT},
         {"role": "user", "content": f"Analyse this target: {url}\n{depth_note}"},
     ]
-    ai_response = await env.AI.run(
+    # Call Cloudflare AI using JS serialization to avoid proxy issues
+    ai_options = js.JSON.parse(json.dumps({"messages": messages, "max_tokens": 768}))
+    
+    raw_ai_response = await env.AI.run(
         CLOUDFLARE_AI_MODEL,
-        {"messages": messages, "max_tokens": 768},
+        ai_options
     )
-    raw = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
+    
+    # Nuclear conversion
+    ai_response = json.loads(js.JSON.stringify(raw_ai_response))
+
+    reply = None
+    # 1. OpenAI-style
+    if isinstance(ai_response, dict) and 'choices' in ai_response:
+        choices = ai_response['choices']
+        if isinstance(choices, list) and len(choices) > 0:
+            choice = choices[0]
+            if isinstance(choice, dict):
+                msg = choice.get('message', {})
+                if isinstance(msg, dict):
+                    # Only final content
+                    reply = msg.get('content')
+
+    # 2. Standard style
+    if reply is None:
+        output = ai_response.get("response") or ai_response.get("output") if isinstance(ai_response, dict) else ai_response
+        reply = str(output) if output is not None else ""
+
     try:
-        return json.loads(raw)
+        return json.loads(reply)
     except (json.JSONDecodeError, ValueError):
-        return {"analysis": raw}
+        return {"analysis": reply}
 
 
 def _get_onboarding_guide(role: str) -> dict:

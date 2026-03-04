@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLT Byte - AI Security Assistant</title>
+  <meta name="description"
+    content="Byte is the AI-powered assistant for OWASP BLT. Get answers, onboarding guides, and security scans.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="/static/common.css">
+  <script src="/static/common.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .chat-container {
+      height: 400px;
+    }
+  </style>
+</head>
+
+<body
+  class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200 min-h-screen border-t-4 border-blt-red">
+
+  <!-- Navbar -->
+  <nav
+    class="sticky top-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <a class="flex items-center gap-3 group" href="/">
+        <img src="/static/logo.png" alt="BLT Logo"
+          class="w-8 h-8 object-contain transition-transform group-hover:scale-110">
+        <span class="font-extrabold text-xl tracking-tight">BLT <span class="text-blt-red">Byte</span></span>
+      </a>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features"
+          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">Features</a>
+        <a href="#chat" class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">Try
+          It</a>
+        <a href="#how-it-works"
+          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">How It Works</a>
+        <a href="#api"
+          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">API</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="dark-toggle"
+          class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+          aria-label="Toggle dark mode">
+          <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+            </path>
+          </svg>
+          <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+          </svg>
+        </button>
+        <a class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-blt-red text-white text-sm font-bold rounded-lg hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950"
+          href="https://github.com/OWASP-BLT/BLT" target="_blank">
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="relative overflow-hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div
+      class="absolute inset-0 bg-[radial-gradient(#E10101_1px,transparent_1px)] [background-size:20px_20px] opacity-5">
+    </div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-20 lg:py-32 relative text-center">
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-full text-blt-red text-xs font-bold tracking-widest uppercase mb-8 shadow-sm">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-2 rounded-full bg-red-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-blt-red"></span>
+        </span>
+        Powered by Cloudflare AI
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+        Meet <span class="text-blt-red">Byte</span>, Your Security <br class="hidden md:block"> Assistant for <span
+          class="underline decoration-red-100 dark:decoration-red-900">OWASP BLT</span>
+      </h1>
+      <p
+        class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+        Byte is an AI-powered security agent that helps you find bugs,
+        onboard quickly, and run security scans directly on the network edge.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a class="w-full sm:w-auto px-8 py-4 bg-blt-red text-white font-extrabold rounded-xl hover:bg-red-700 transition transform hover:-translate-y-1 shadow-xl shadow-red-200 dark:shadow-red-950 flex items-center justify-center gap-2"
+          href="#chat">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+            </path>
+          </svg>
+          Chat with Byte
+        </a>
+        <a class="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-extrabold rounded-xl hover:border-blt-red dark:hover:border-blt-red hover:text-blt-red transition flex items-center justify-center gap-2"
+          href="#features">
+          Explore Features
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features -->
+  <section class="py-20 max-w-6xl mx-auto px-4 sm:px-6" id="features">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-extrabold mb-4">Everything You Need</h2>
+      <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-medium">One AI assistant. Multiple
+        enterprise-grade capabilities.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          ❓</div>
+        <h3 class="text-lg font-bold mb-3">FAQ Agent</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Instant answers to common questions about
+          OWASP BLT, rewards, and participation rules.</p>
+      </div>
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          🚀</div>
+        <h3 class="text-lg font-bold mb-3">Onboarding Assistant</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Tailored guides for contributors, hunters,
+          and organisations joining the program.</p>
+      </div>
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          🔍</div>
+        <h3 class="text-lg font-bold mb-3">Security Scanner</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">AI-generated security checklists: headers,
+          OWASP Top 10 vectors, and severity guidance.</p>
+      </div>
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          🔗</div>
+        <h3 class="text-lg font-bold mb-3">MCP Server</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Expose BLT tools to AI IDEs like Cursor and
+          Zed natively via Model Context Protocol.</p>
+      </div>
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          🎭</div>
+        <h3 class="text-lg font-bold mb-3">Agent Orchestrator</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Byte manages complex multi-step tasks across
+          chat, scanning, and tool dispatch flows.</p>
+      </div>
+      <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blt-red dark:hover:border-blt-red transition duration-300 group">
+        <div
+          class="w-12 h-12 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+          ⚡</div>
+        <h3 class="text-lg font-bold mb-3">Edge-Native Speed</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Built on Cloudflare Workers – runs globally
+          at the network edge with near-zero latency.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chat Widget -->
+  <section class="bg-gray-100 dark:bg-gray-900/50 py-20 border-y border-gray-200 dark:border-gray-800" id="chat">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
+        <div class="text-center sm:text-left">
+          <h2 class="text-3xl font-extrabold mb-2">Try Byte Now</h2>
+          <p class="text-gray-600 dark:text-gray-400 font-medium">Chat with the live AI assistant powered by Cloudflare
+            Workers.</p>
+        </div>
+        <a href="/chat"
+          class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm hover:border-blt-red transition shadow-sm hover:shadow-md">
+          Open Full Chat →
+        </a>
+      </div>
+
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden flex flex-col h-[600px]">
+        <!-- Chat Header -->
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-blt-red text-white flex items-center justify-center font-bold rounded-xl shadow-lg shadow-red-200 dark:shadow-red-950">
+              B</div>
+            <div>
+              <div class="font-bold text-sm">Byte Assistant</div>
+              <div class="text-[10px] uppercase font-bold text-green-500 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                Online & Edge-Routed
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 chat-container">
+          <div class="flex gap-3">
+            <div
+              class="w-8 h-8 bg-blt-red text-white flex items-center justify-center text-xs font-bold rounded-lg flex-shrink-0">
+              B</div>
+            <div
+              class="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-tl-none text-sm shadow-sm max-w-[85%] prose dark:prose-invert">
+              👋 Hi! I'm <strong>Byte</strong>, the OWASP BLT AI assistant. Ask me anything about bug hunting,
+              contributing, or security scans!
+            </div>
+          </div>
+          <!-- Loading Indicator -->
+          <div class="hidden animate-fade-in" id="loadingIndicator">
+            <div class="flex gap-3">
+              <div
+                class="w-8 h-8 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
+                B
+              </div>
+              <div class="bg-gray-100 dark:bg-gray-700 rounded-xl px-4 py-3 shadow-sm rounded-tl-none">
+                <div class="flex gap-1.5 h-4 items-center">
+                  <span class="w-1.5 h-1.5 bg-blt-red rounded-full animate-bounce-dot"></span>
+                  <span class="w-1.5 h-1.5 bg-blt-red rounded-full animate-bounce-dot"></span>
+                  <span class="w-1.5 h-1.5 bg-blt-red rounded-full animate-bounce-dot"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Footer -->
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+          <div id="quick-prompts" class="flex flex-wrap gap-2 px-1">
+            <button
+              class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-blt-red hover:border-blt-red/30 border border-transparent rounded-full text-xs font-semibold transition">What
+              is BLT?</button>
+            <button
+              class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-blt-red hover:border-blt-red/30 border border-transparent rounded-full text-xs font-semibold transition">How
+              to report a bug?</button>
+            <button
+              class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-blt-red hover:border-blt-red/30 border border-transparent rounded-full text-xs font-semibold transition">Bug
+              categories</button>
+          </div>
+          <form id="chat-form" class="flex gap-2">
+            <input type="text" id="chat-input" placeholder="Ask Byte anything..."
+              class="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/30 outline-none transition"
+              autocomplete="off">
+            <button type="submit" id="send-btn"
+              class="px-6 py-3 bg-blt-red text-white font-bold rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950">
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="py-20 max-w-6xl mx-auto px-4 sm:px-6" id="how-it-works">
+    <h2 class="text-3xl font-extrabold text-center mb-16">How It Works</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="relative group">
+        <div
+          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
+          01</div>
+        <div
+          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+          <h3 class="font-bold mb-2">Ask Byte</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Type a question or use a quick prompt in the chat widget
+            above.</p>
+        </div>
+      </div>
+      <div class="relative group">
+        <div
+          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
+          02</div>
+        <div
+          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+          <h3 class="font-bold mb-2">Cloudflare Routing</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Request hits the network edge node closest to you for
+            minimum latency.</p>
+        </div>
+      </div>
+      <div class="relative group">
+        <div
+          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
+          03</div>
+        <div
+          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+          <h3 class="font-bold mb-2">LLM Orchestration</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Cloudflare Workers AI processes the prompt with BLT-tuned
+            context.</p>
+        </div>
+      </div>
+      <div class="relative group">
+        <div
+          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
+          04</div>
+        <div
+          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
+          <h3 class="font-bold mb-2">Instant Answer</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Structured, secure response is returned and rendered
+            instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Reference -->
+  <section class="py-20 bg-gray-900 text-gray-400" id="api">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <h2 class="text-3xl font-extrabold text-white text-center mb-16">API Reference</h2>
+      <div class="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-gray-800/50 text-gray-300 font-bold border-b border-gray-800">
+              <th class="px-6 py-4">Method</th>
+              <th class="px-6 py-4">Endpoint</th>
+              <th class="px-6 py-4">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            <tr class="hover:bg-gray-800/30 transition">
+              <td class="px-6 py-4"><span
+                  class="px-2 py-1 bg-green-500/20 text-green-500 rounded font-mono text-xs">GET</span></td>
+              <td class="px-6 py-4"><code class="text-gray-300">/api/health</code></td>
+              <td class="px-6 py-4">Check service availability</td>
+            </tr>
+            <tr class="hover:bg-gray-800/30 transition">
+              <td class="px-6 py-4"><span
+                  class="px-2 py-1 bg-blt-red/20 text-blt-red rounded font-mono text-xs">POST</span></td>
+              <td class="px-6 py-4"><code class="text-gray-300">/api/chat</code></td>
+              <td class="px-6 py-4">Chat endpoint supporting history</td>
+            </tr>
+            <tr class="hover:bg-gray-800/30 transition">
+              <td class="px-6 py-4"><span
+                  class="px-2 py-1 bg-blt-red/20 text-blt-red rounded font-mono text-xs">POST</span></td>
+              <td class="px-6 py-4"><code class="text-gray-300">/api/scan</code></td>
+              <td class="px-6 py-4">Request a security scan summary</td>
+            </tr>
+            <tr class="hover:bg-gray-800/30 transition">
+              <td class="px-6 py-4"><span
+                  class="px-2 py-1 bg-green-500/20 text-green-500 rounded font-mono text-xs">GET</span></td>
+              <td class="px-6 py-4"><code class="text-gray-300">/api/mcp</code></td>
+              <td class="px-6 py-4">Retrieve MCP tool manifest</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center">
+      <div class="flex gap-6 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
+        <a href="https://owasp.org" target="_blank" class="hover:text-blt-red transition">OWASP Org</a>
+        <a href="https://bugheist.com" target="_blank" class="hover:text-blt-red transition">BugHeist</a>
+        <a href="https://owasp.org/slack/invite" target="_blank" class="hover:text-blt-red transition">Slack</a>
+      </div>
+      <p class="text-xs text-gray-400 dark:text-gray-500">
+        &copy; <span id="year"></span> OWASP BLT Project. Licensed under AGPL-3.0.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const messagesContainer = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    let conversationHistory = [];
+
+    function appendMessage(content, isUser = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `flex gap-3 animate-fade-in ${isUser ? 'flex-row-reverse' : ''}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = `w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg flex-shrink-0 ${isUser ? 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200' : 'bg-blt-red text-white'}`;
+      avatar.textContent = isUser ? 'U' : 'B';
+
+      const inner = document.createElement('div');
+      inner.className = `p-4 rounded-2xl text-sm shadow-sm max-w-[85%] prose dark:prose-invert ${isUser ? 'bg-blt-red text-white prose-invert rounded-tr-none' : 'bg-gray-100 dark:bg-gray-700 rounded-tl-none'}`;
+      inner.innerHTML = isUser ? BLT.escHtml(content) : marked.parse(content);
+
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(inner);
+      messagesContainer.insertBefore(msgDiv, loadingIndicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      chatInput.value = '';
+      appendMessage(message, true);
+
+      sendBtn.disabled = true;
+      loadingIndicator.classList.remove('hidden');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, history: conversationHistory.slice(-5) })
+        });
+
+        const data = await response.json();
+        const reply = data.reply || "No response received.";
+        appendMessage(reply);
+
+        conversationHistory.push({ role: 'user', content: message });
+        conversationHistory.push({ role: 'assistant', content: reply });
+      } catch (err) {
+        appendMessage("⚠️ Error: Check network connection.");
+      } finally {
+        sendBtn.disabled = false;
+        loadingIndicator.classList.add('hidden');
+        chatInput.focus();
+      }
+    });
+
+    document.getElementById('quick-prompts').addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        chatInput.value = e.target.textContent;
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  </script>
+</body>
+
+</html>

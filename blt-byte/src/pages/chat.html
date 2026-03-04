@@ -1,61 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT Byte - AI Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'blt-red': '#E10101',
-                    },
-                    fontFamily: {
-                        sans: ['system-ui', '-apple-system', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-10px); }
-        }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in; }
-        .animate-fade-out { animation: fadeOut 0.3s ease-out forwards; }
-        .animate-bounce-dot { animation: bounce 1.4s infinite ease-in-out both; }
-        .animate-bounce-dot:nth-child(1) { animation-delay: -0.32s; }
-        .animate-bounce-dot:nth-child(2) { animation-delay: -0.16s; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/static/common.css">
+    <script src="/static/common.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans transition-colors duration-200">
     <!-- Gradient overlay -->
-    <div class="pointer-events-none fixed inset-0 -z-10 h-[460px] bg-gradient-to-b from-red-50 via-white to-transparent"></div>
-    
+    <div
+        class="pointer-events-none fixed inset-0 -z-10 h-[460px] bg-gradient-to-b from-red-50 via-white to-transparent dark:from-red-950/20 dark:via-gray-900 dark:to-transparent">
+    </div>
+
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/98 backdrop-blur border-b border-gray-200 shadow-sm">
+    <header
+        class="sticky top-0 z-50 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <img src="/logo.png" alt="BLT Byte Logo" class="w-10 h-10 object-contain">
+                <img src="/static/logo.png" alt="BLT Byte Logo" class="w-10 h-10 object-contain">
                 <div>
-                    <h1 class="text-xl font-extrabold text-gray-900 leading-tight">BLT Byte</h1>
-                    <p class="text-sm font-semibold text-gray-600">AI-Powered Bug Bounty Assistant</p>
+                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">BLT Byte</h1>
+                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">AI-Powered Bug Bounty Assistant
+                    </p>
                 </div>
             </div>
-            <a href="/" class="text-sm text-blt-red hover:text-red-700 font-medium transition">
-                ← Back
-            </a>
+            <div class="flex items-center gap-4">
+                <button id="dark-toggle"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    aria-label="Toggle dark mode">
+                    <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+                <a href="/" class="text-sm text-blt-red hover:text-red-700 font-bold transition">
+                    ← Back
+                </a>
+            </div>
         </div>
     </header>
 
@@ -63,12 +55,13 @@
     <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-6" id="chatMain">
         <div class="max-w-4xl mx-auto">
             <!-- Welcome Message -->
-            <div class="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm animate-fade-in" id="welcomeCard">
-                <h2 class="text-lg font-extrabold text-gray-900 mb-3">👋 Welcome to BLT Byte!</h2>
-                <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-4 shadow-sm animate-fade-in transition-colors duration-200"
+                id="welcomeCard">
+                <h2 class="text-lg font-extrabold text-gray-900 dark:text-gray-100 mb-3">👋 Welcome to BLT Byte!</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                     I'm your AI assistant for bug bounty hunting and security research. I can help you with:
                 </p>
-                <ul class="space-y-2 text-sm text-gray-700">
+                <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                     <li class="flex items-start">
                         <span class="text-blt-red font-bold mr-2">•</span>
                         <span class="font-medium">Understanding how to report bugs on BugHeist</span>
@@ -90,10 +83,11 @@
                         <span class="font-medium">Security research tips and techniques</span>
                     </li>
                 </ul>
-                
+
                 <!-- Quick Prompts in Welcome Card -->
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Quick Start</p>
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-500 mb-2 uppercase tracking-wide">Quick
+                        Start</p>
                     <div class="flex flex-wrap gap-2" id="welcomeQuickPrompts">
                         <button class="quick-prompt-btn">What is OWASP BLT?</button>
                         <button class="quick-prompt-btn">How do I report a bug?</button>
@@ -108,10 +102,12 @@
                 <!-- Loading Indicator -->
                 <div class="hidden animate-fade-in" id="loadingIndicator">
                     <div class="flex gap-3">
-                        <div class="w-9 h-9 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                        <div
+                            class="w-9 h-9 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
                             B
                         </div>
-                        <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+                        <div
+                            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 shadow-sm">
                             <div class="flex gap-1.5">
                                 <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
                                 <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
@@ -125,22 +121,17 @@
     </main>
 
     <!-- Input Area -->
-    <div class="sticky bottom-0 bg-white/98 backdrop-blur border-t border-gray-200 px-4 sm:px-6 py-4 shadow-lg">
+    <div
+        class="sticky bottom-0 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-lg transition-colors duration-200">
         <div class="max-w-4xl mx-auto">
             <form class="flex gap-3 items-end" id="chatForm">
                 <textarea
-                    class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 outline-none transition resize-none min-h-[48px] max-h-[120px] bg-white"
-                    id="messageInput"
-                    placeholder="Ask me anything about bug bounty hunting..."
-                    rows="1"
-                    autocomplete="off"
-                    required
-                ></textarea>
-                <button
-                    type="submit"
-                    class="px-7 py-3 bg-blt-red text-white rounded-xl font-bold text-sm hover:bg-red-700 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap h-[48px] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200"
-                    id="sendButton"
-                >
+                    class="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/40 outline-none transition resize-none min-h-[48px] max-h-[120px] bg-white dark:bg-gray-700 dark:text-gray-100"
+                    id="messageInput" placeholder="Ask me anything about bug bounty hunting..." rows="1"
+                    autocomplete="off" required></textarea>
+                <button type="submit"
+                    class="px-7 py-3 bg-blt-red text-white rounded-xl font-bold text-sm hover:bg-red-700 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap h-[48px] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950"
+                    id="sendButton">
                     Send
                 </button>
             </form>
@@ -159,10 +150,16 @@
             transition: all .2s;
             font-weight: 500;
         }
+
+        .dark .quick-prompt-btn {
+            border-color: #374151;
+            color: #9ca3af;
+        }
+
         .quick-prompt-btn:hover {
             border-color: #E10101;
             color: #E10101;
-            background: rgba(225,1,1,.05);
+            background: rgba(225, 1, 1, .05);
         }
     </style>
 
@@ -176,16 +173,16 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const welcomeCard = document.getElementById('welcomeCard');
         let hasStartedChat = false;
-        let conversationHistory = []; // Track conversation history
+        let conversationHistory = [];
 
         // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
+        messageInput.addEventListener('input', function () {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
         // Handle enter key
-        messageInput.addEventListener('keydown', function(e) {
+        messageInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 chatForm.dispatchEvent(new Event('submit'));
@@ -208,133 +205,39 @@
             }
         }
 
-        // Apply inline markdown (bold, italic, code, links) to a text fragment
-        function formatInline(text) {
-            return text
-                .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold">$1</strong>')
-                .replace(/__(.+?)__/g, '<strong class="font-bold">$1</strong>')
-                .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
-                .replace(/_(.+?)_/g, '<em class="italic">$1</em>')
-                .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">$1</code>')
-                .replace(/\[(.+?)\]\((.+?)\)/g, function(match, linkText, url) {
-                    let safeUrl = '#';
-                    try {
-                        const parsed = new URL(url, window.location.origin);
-                        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-                            safeUrl = parsed.href;
-                        }
-                    } catch (e) {
-                        // If URL parsing fails, fall back to a safe placeholder.
-                    }
-                    return '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">'+linkText+'</a>';
-                });
-        }
-
-        // Build an HTML table from a markdown table block
-        function buildTable(tableBlock) {
-            const lines = tableBlock.split('\n').filter(l => l.trim());
-            if (lines.length < 2) return tableBlock;
-
-            const parseRow = line => line.split('|').slice(1, -1).map(c => c.trim());
-            const headerCells = parseRow(lines[0]);
-            const dataRows = lines.slice(2).map(parseRow);
-
-            let html = '<div class="overflow-x-auto my-3"><table class="min-w-full border-collapse text-sm">';
-            html += '<thead><tr>';
-            headerCells.forEach(function(cell) {
-                html += '<th class="border border-gray-300 bg-gray-100 px-3 py-2 text-left font-semibold text-gray-700">' + formatInline(cell) + '</th>';
-            });
-            html += '</tr></thead><tbody>';
-            dataRows.forEach(function(row, i) {
-                html += '<tr' + (i % 2 === 1 ? ' class="bg-gray-50"' : '') + '>';
-                row.forEach(function(cell) {
-                    html += '<td class="border border-gray-300 px-3 py-2 text-gray-600">' + formatInline(cell) + '</td>';
-                });
-                html += '</tr>';
-            });
-            html += '</tbody></table></div>';
-            return html;
-        }
-
-        // Simple markdown-like formatting
-        function formatMessage(text) {
-            if (!text) return '';
-
-            // Extract markdown tables first to prevent newline conversion inside them.
-            // Pattern: header row | separator row (dashes/colons) | zero-or-more data rows
-            const tables = [];
-            let formatted = text.replace(
-                /\|[^\n]+\|\n\|[-| :]+\|\n(?:\|[^\n]+\|(?:\n|$))*/g,
-                function(tableBlock) {
-                    const idx = tables.length;
-                    tables.push(buildTable(tableBlock.trim()));
-                    return '__MDTABLE_' + idx + '__';
-                }
-            );
-
-            // Convert markdown-style formatting to HTML
-            formatted = formatted
-                // Headings: ###, ##, #
-                .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-gray-900 mt-3 mb-1">$1</h3>')
-                .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-gray-900 mt-4 mb-1">$1</h2>')
-                .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-gray-900 mt-4 mb-2">$1</h1>');
-            // Apply inline formatting and line breaks
-            formatted = formatInline(formatted)
-                // Line breaks
-                .replace(/\n\n/g, '</p><p class="mb-2">')
-                .replace(/\n/g, '<br>');
-
-            formatted = '<p class="mb-2">' + formatted + '</p>';
-
-            // Restore tables (break out of paragraph context)
-            tables.forEach(function(tableHtml, i) {
-                formatted = formatted.replace('__MDTABLE_' + i + '__', '</p>' + tableHtml + '<p class="mb-2">');
-            });
-
-            return formatted;
-        }
-
         // Add message to chat
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `flex gap-3 animate-fade-in ${isUser ? 'flex-row-reverse' : ''}`;
-            
+
             const avatar = document.createElement('div');
-            avatar.className = `w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${
-                isUser ? 'bg-gray-200 text-gray-700' : 'bg-blt-red text-white'
-            }`;
+            avatar.className = `w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${isUser ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' : 'bg-blt-red text-white'}`;
             avatar.textContent = isUser ? 'U' : 'B';
-            
+
             const messageContent = document.createElement('div');
-            messageContent.className = `flex-1 max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                isUser 
-                    ? 'bg-blt-red text-white font-medium shadow-sm' 
-                    : 'bg-white border border-gray-200 text-gray-700 shadow-sm'
-            }`;
-            
-            // For assistant messages, render HTML formatting
-            if (!isUser && /[*`\[|#]/.test(content)) {
-                messageContent.innerHTML = formatMessage(content);
-            } else {
-                messageContent.textContent = content;
-            }
-            
+            messageContent.className = `flex-1 max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed transition-colors duration-200 ${isUser
+                ? 'bg-blt-red text-white font-medium shadow-sm'
+                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm prose dark:prose-invert'
+                }`;
+
+            // Render markdown or escape text
+            messageContent.innerHTML = isUser ? BLT.escHtml(content) : marked.parse(content);
+
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(messageContent);
-            
+
             chatMessages.insertBefore(messageDiv, loadingIndicator);
-            
             setTimeout(scrollToBottom, 50);
         }
 
         // Show error
         function showError(message) {
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-200 text-sm font-medium animate-fade-in';
+            errorDiv.className = 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 px-4 py-3 rounded-xl border border-red-200 dark:border-red-900/50 text-sm font-medium animate-fade-in';
             errorDiv.textContent = `⚠ ${message}`;
             chatMessages.insertBefore(errorDiv, loadingIndicator);
             scrollToBottom();
-            
+
             setTimeout(() => {
                 errorDiv.style.opacity = '0';
                 errorDiv.style.transition = 'opacity 0.3s';
@@ -348,25 +251,20 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         message: message,
-                        history: conversationHistory 
+                        history: conversationHistory
                     })
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`Server error: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
-                if (data.reply) {
-                    return data.reply;
-                } else if (data.error) {
-                    throw new Error(data.error);
-                } else {
-                    throw new Error('Unknown error occurred');
-                }
+                if (data.reply) return data.reply;
+                if (data.error) throw new Error(data.error);
+                throw new Error('Unknown error occurred');
             } catch (error) {
                 console.error('Error:', error);
                 throw error;
@@ -376,38 +274,26 @@
         // Handle form submission
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const message = messageInput.value.trim();
             if (!message) return;
 
-            // Hide welcome card on first message
             hideWelcomeCard();
-
-            // Add user message
             addMessage(message, true);
-            
-            // Add to history
             conversationHistory.push({ role: 'user', content: message });
-            
+
             messageInput.value = '';
             messageInput.style.height = 'auto';
-            
-            // Disable input while processing
             messageInput.disabled = true;
             sendButton.disabled = true;
             loadingIndicator.classList.remove('hidden');
 
             try {
-                // Send message and get response
                 const response = await sendMessage(message);
                 addMessage(response, false);
-                
-                // Add assistant response to history
                 conversationHistory.push({ role: 'assistant', content: response });
             } catch (error) {
                 showError(error.message || 'Failed to send message. Please try again.');
             } finally {
-                // Re-enable input
                 messageInput.disabled = false;
                 sendButton.disabled = false;
                 loadingIndicator.classList.add('hidden');
@@ -428,5 +314,14 @@
             messageInput.focus();
         });
     </script>
+
+    // Handle quick prompt buttons
+    document.getElementById('welcomeQuickPrompts').addEventListener('click', (e) => {
+    if (e.target.classList.contains('quick-prompt-btn')) {
+    messageInput.value = e.target.textContent;
+    sendButton.click();
+    }
+    });
 </body>
+
 </html>
