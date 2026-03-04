@@ -48,7 +48,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=optional" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
 
   <style>
 
@@ -236,7 +236,7 @@
         <a href="#features" class="section-link text-sm font-semibold dark:text-gray-200">Features</a>
         <a href="#how-it-works" class="section-link text-sm font-semibold dark:text-gray-200">How it works</a>
         <a href="#leaderboard" class="section-link text-sm font-semibold dark:text-gray-200">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200">Pricing</a>
+        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200 hidden" style="display:none">Pricing</a>
         <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold dark:text-gray-200">
           <svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
         </a>
@@ -275,7 +275,7 @@
         <a href="#features" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Features</a>
         <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">How it works</a>
         <a href="#leaderboard" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Pricing</a>
+        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400 hidden" style="display:none">Pricing</a>
         <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">
           <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
         </a>
@@ -643,7 +643,7 @@
       </div>
     </section>
 
-    <section id="pricing" class="py-14 sm:py-16">
+    <section id="pricing" class="py-14 sm:py-16 hidden" style="display:none">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-3xl text-center">
           <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">Simple, transparent pricing</h2>
