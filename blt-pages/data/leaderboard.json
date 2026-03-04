@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-04T12:10:10.367Z",
-  "commit_sha": "71f4834882bd73aca4bacf4dc7f68337987ae74b",
+  "updated_at": "2026-03-04T17:04:54.696Z",
+  "commit_sha": "16182487e2b1b3f3dace4a9b5f4b1086906f618d",
   "total_bugs": 12,
   "open_bugs": 4,
   "closed_bugs": 8,
@@ -81,13 +81,20 @@
     },
     {
       "rank": 7,
+      "login": "swaparup36",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
+      "profile_url": "https://github.com/swaparup36"
+    },
+    {
+      "rank": 8,
       "login": "mdkaifansari04",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "profile_url": "https://github.com/mdkaifansari04"
     },
     {
-      "rank": 8,
+      "rank": 9,
       "login": "DonnieBLT",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -166,7 +173,7 @@
       "title": "[BUG] join chapter button does not work",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
       "created_at": "2026-03-01T08:40:35Z",
-      "comment_count": 2,
+      "comment_count": 3,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -176,13 +183,13 @@
       "domain": "www.owasp.community",
       "reactions": {},
       "latest_comment": {
-        "body": "I'd like to work on this. I'll investigate the button's event handler and form submission logic and share my findings here before submitting a fix",
-        "created_at": "2026-03-02T07:32:41Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3982637901",
+        "body": "@Armaansaxena @yogeshwarithombare  any of you working on this?",
+        "created_at": "2026-03-04T17:04:20Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3998884616",
         "user": {
-          "login": "Armaansaxena",
-          "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
-          "profile_url": "https://github.com/Armaansaxena"
+          "login": "swaparup36",
+          "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
+          "profile_url": "https://github.com/swaparup36"
         }
       }
     }
