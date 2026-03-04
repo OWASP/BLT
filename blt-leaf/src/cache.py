@@ -351,3 +351,83 @@ def get_rate_limit_cache():
     """Get the rate limit cache dict"""
     global _rate_limit_cache
     return _rate_limit_cache
+
+# Generic rate limiting buckets
+_generic_rate_limit = {
+    # Structure: {'bucket:ip': {'count': int, 'window_start': float}}
+}
+
+def check_rate_limit_bucket(bucket: str, ip_address: str, limit: int, window_seconds: int):
+    """
+    Generic sliding-window rate limiter per IP for a named bucket.
+    """
+    global _generic_rate_limit
+
+    now = time.time()
+    key = f"{bucket}:{ip_address}"
+    entry = _generic_rate_limit.get(key)
+
+    if not entry:
+        _generic_rate_limit[key] = {"count": 1, "window_start": now}
+        return (True, 0)
+
+    elapsed = now - entry["window_start"]
+
+    if elapsed >= window_seconds:
+        _generic_rate_limit[key] = {"count": 1, "window_start": now}
+        return (True, 0)
+
+    if entry["count"] < limit:
+        entry["count"] += 1
+        return (True, 0)
+
+    retry_after = int(window_seconds - elapsed) + 1
+    return (False, retry_after)
+
+# -----------------------------
+# Client-error dedupe + Slack cap
+# -----------------------------
+_client_error_dedupe = {
+    # key -> expiry_timestamp
+}
+_slack_global_budget = {
+    # Structure: {'count': int, 'window_start': float}
+    'count': 0,
+    'window_start': 0.0
+}
+
+def should_send_dedupe(key: str, ttl_seconds: int):
+    """
+    Returns True if this key has NOT been seen within ttl_seconds.
+    Stores it with expiry if allowed.
+    """
+    now = time.time()
+
+    # cleanup expired keys opportunistically
+    expiry = _client_error_dedupe.get(key)
+    if expiry and expiry > now:
+        return False
+
+    _client_error_dedupe[key] = now + ttl_seconds
+    return True
+
+def slack_budget_allow(limit: int, window_seconds: int):
+    """
+    Global Slack cap: allow only `limit` Slack sends per `window_seconds`.
+    Returns (allowed: bool, retry_after: int)
+    """
+    now = time.time()
+    ws = _slack_global_budget.get('window_start', 0.0)
+    cnt = _slack_global_budget.get('count', 0)
+
+    if ws == 0.0 or (now - ws) >= window_seconds:
+        _slack_global_budget['window_start'] = now
+        _slack_global_budget['count'] = 1
+        return True, 0
+
+    if cnt < limit:
+        _slack_global_budget['count'] = cnt + 1
+        return True, 0
+
+    retry_after = int(window_seconds - (now - ws)) + 1
+    return False, retry_after

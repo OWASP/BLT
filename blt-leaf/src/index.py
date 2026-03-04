@@ -1,8 +1,10 @@
 """Main entry point for BLT-Leaf PR Readiness Checker - Cloudflare Worker"""
-
-from js import Response, URL
+import json
+from js import Response, URL, Object
+from pyodide.ffi import to_js
 from slack_notifier import notify_slack_exception, notify_slack_error
 import json
+from cache import check_rate_limit_bucket,should_send_dedupe, slack_budget_allow
 # Import all handlers
 from handlers import (
     handle_add_pr,
@@ -22,7 +24,25 @@ from handlers import (
     handle_scheduled_refresh
 )
 
+def _get_client_ip(request):
+    return (
+        request.headers.get('cf-connecting-ip')
+        or (request.headers.get('x-forwarded-for') or '').split(',')[0].strip()
+        or request.headers.get('x-real-ip')
+        or 'unknown'
+    )
 
+def json_response(data: dict, status: int, extra_headers: dict | None = None):
+    headers = {'Content-Type': 'application/json'}
+    if extra_headers:
+        headers.update(extra_headers)
+
+    # Convert to a real JS init object so status is respected
+    init = to_js(
+        {'status': status, 'headers': headers},
+        dict_converter=Object.fromEntries
+    )
+    return Response.new(json.dumps(data), init)
 async def on_fetch(request, env):
     """Main request handler"""
     slack_webhook = getattr(env, 'SLACK_ERROR_WEBHOOK', '')
@@ -125,70 +145,135 @@ async def on_fetch(request, env):
             for key, value in cors_headers.items():
                 response.headers.set(key, value)
             return response
-        # Test error endpoint — deliberately raises to verify Slack error reporting
-        elif path == '/api/test-error' and request.method == 'POST':
-            raise RuntimeError('Slack test error — this exception was triggered intentionally from /api/test-error')
+        
         elif path == '/api/error-test' and request.method == 'POST':
+            ip = _get_client_ip(request)
+
+            # Rate limit (keep it strict; default 1/min/IP)
+            limit = int(getattr(env, 'ERROR_TEST_RATE_LIMIT', 1) or 1)
+            window = int(getattr(env, 'ERROR_TEST_RATE_WINDOW', 60) or 60)
+            allowed, retry_after = check_rate_limit_bucket('error-test', ip, limit, window)
+            if not allowed:
+                response = json_response(
+                    {'ok': False, 'reason': 'Rate limit exceeded'},
+                    429,
+                    extra_headers={'Retry-After': str(retry_after)}
+                )
+                for k, v in cors_headers.items():
+                    response.headers.set(k, v)
+                return response
+
             slack_webhook = (getattr(env, 'SLACK_ERROR_WEBHOOK', '') or '').strip()
             if not slack_webhook:
-                response = Response.new(
-                    json.dumps({'ok': False, 'reason': 'SLACK_ERROR_WEBHOOK not set'}),
-                    {'status': 500, 'headers': {'Content-Type': 'application/json'}},
-                )
-            else:
-                try:
-                    await notify_slack_error(
-                        slack_webhook,
-                        error_type='ErrorTest',
-                        error_message='Slack error-test triggered',
-                        context={
-                            'source': '/api/error-test',
-                            'url': str(request.url),
-                        },
-                        stack_trace=None,
-                    )
-                    response = Response.new(
-                        json.dumps({'ok': True, 'sent_to_slack': True}),
-                        {'status': 200, 'headers': {'Content-Type': 'application/json'}},
-                    )
-                except Exception as e:
-                    print(f'Error-test Slack send failed: {type(e).__name__}: {e}')
-                    response = Response.new(
-                        json.dumps({'ok': False, 'reason': 'Slack send failed (check worker logs)'}),
-                        {'status': 502, 'headers': {'Content-Type': 'application/json'}},
-                    )
+                response = json_response({'ok': False, 'reason': 'SLACK_ERROR_WEBHOOK not set'}, 500)
+                for k, v in cors_headers.items():
+                    response.headers.set(k, v)
+                return response
 
-            # keep existing CORS behavior consistent with other endpoints
-            for k, v in cors_headers.items():
-                response.headers.set(k, v)
-
-            return response
-        # Frontend client-error reporting endpoint
-        elif path == '/api/client-error' and request.method == 'POST':
-            try:
-                body = (await request.json()).to_py()
-            except Exception:
-                body = {}
-            error_type = str(body.get('error_type', 'FrontendError'))
-            error_message = str(body.get('message', 'Unknown frontend error'))
-            stack_trace = str(body.get('stack', '')) or None
-            ctx = {k: str(v) for k, v in body.items()
-                   if k not in ('error_type', 'message', 'stack')}
-            ctx['source'] = 'frontend'
             try:
                 await notify_slack_error(
                     slack_webhook,
-                    error_type=error_type,
-                    error_message=error_message,
-                    context=ctx,
-                    stack_trace=stack_trace,
+                    error_type='ErrorTest',
+                    error_message='Slack error-test triggered',
+                    context={'source': '/api/error-test', 'url': str(request.url), 'ip': ip},
+                    stack_trace=None,
                 )
-            except Exception as slack_err:
-                print(f'Slack: failed to report frontend error: {slack_err}')
-            response = Response.new(
-                '{"ok": true}',
-                {'status': 200, 'headers': {'Content-Type': 'application/json'}},
-            )
+                response = json_response({'ok': True, 'sent_to_slack': True}, 200)
+            except Exception as e:
+                print(f'Error-test Slack send failed: {type(e).__name__}: {e}')
+                response = json_response({'ok': False, 'reason': 'Slack send failed (check worker logs)'}, 502)
+
+            for k, v in cors_headers.items():
+                response.headers.set(k, v)
+            return response
+        # Frontend client-error reporting endpoint
+        elif path == '/api/client-error' and request.method == 'POST':
+            ip = _get_client_ip(request)
+
+            # Rate limit per IP (default 10/min)
+            limit = int(getattr(env, 'CLIENT_ERROR_RATE_LIMIT', 5) or 5)
+            window = int(getattr(env, 'CLIENT_ERROR_RATE_WINDOW', 60) or 60)
+            allowed, retry_after = check_rate_limit_bucket('client-error', ip, limit, window)
+            if not allowed:
+                response = json_response(
+                    {'error': 'Rate limit exceeded'},
+                    429,
+                    extra_headers={'Retry-After': str(retry_after)}
+                )
+                for k, v in cors_headers.items():
+                    response.headers.set(k, v)
+                return response
+
+            # Payload cap (default 8KB)
+            max_bytes = int(getattr(env, 'CLIENT_ERROR_MAX_BYTES', 8192) or 8192)
+            try:
+                content_len = int(request.headers.get('content-length') or '0')
+            except Exception:
+                content_len = 0
+            if content_len and content_len > max_bytes:
+                response = json_response({'error': 'Payload too large'}, 413)
+                for k, v in cors_headers.items():
+                    response.headers.set(k, v)
+                return response
+
+            # Parse JSON once (tolerate beacon text/plain too)
+            body = {}
+            try:
+                body = (await request.json()).to_py()
+            except Exception:
+                try:
+                    text = await request.text()
+                    body = json.loads(text) if text else {}
+                except Exception:
+                    body = {}
+
+            error_type = str(body.get('error_type', 'FrontendError'))[:80]
+            error_message = str(body.get('message', 'Unknown frontend error'))[:300]
+            stack_trace = (str(body.get('stack', ''))[:2000] or None)
+
+            url_here = str(body.get('url', ''))[:200] or ''
+            line = str(body.get('line', ''))[:20] or ''
+            col = str(body.get('col', ''))[:20] or ''
+            resource = str(body.get('resource', ''))[:200] or ''
+
+            # Dedupe key: same error signature shouldn't spam Slack
+            dedupe_ttl = int(getattr(env, 'CLIENT_ERROR_DEDUPE_TTL', 300) or 300)  # 5 min default
+            signature = f"{error_type}|{error_message}|{url_here}|{line}|{col}|{resource}"
+            should_slack = should_send_dedupe(signature, dedupe_ttl)
+
+            # Global Slack cap (default 20/min total)
+            slack_cap = int(getattr(env, 'SLACK_MAX_PER_MIN', 20) or 20)
+            slack_allowed, slack_retry = slack_budget_allow(slack_cap, 60)
+
+            ctx = {k: str(v)[:200] for k, v in body.items() if k not in ('error_type', 'message', 'stack')}
+            ctx['source'] = 'frontend'
+            ctx['ip'] = ip
+            ctx['dedupe'] = '1' if should_slack else '0'
+
+            slack_sent = False
+            if should_slack and slack_allowed:
+                try:
+                    await notify_slack_error(
+                        slack_webhook,
+                        error_type=error_type,
+                        error_message=error_message,
+                        context=ctx,
+                        stack_trace=stack_trace,
+                    )
+                    slack_sent = True
+                except Exception as slack_err:
+                    print(f'Slack: failed to report frontend error: {slack_err}')
+            else:
+                # Optional: log why we skipped Slack
+                if not should_slack:
+                    print("Slack: deduped client-error")
+                elif not slack_allowed:
+                    print(f"Slack: global cap reached, retry after {slack_retry}s")
+
+            response = json_response({'ok': True, 'slack_sent': slack_sent, 'deduped': (not should_slack)}, 200)
+            for k, v in cors_headers.items():
+                response.headers.set(k, v)
+            return response
         # Timeline endpoint - GET /api/prs/{id}/timeline
         elif path.startswith('/api/prs/') and path.endswith('/timeline') and request.method == 'GET':
             response = await handle_pr_timeline(request, env, path)
