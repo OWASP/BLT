@@ -6,13 +6,15 @@
 
 ## 📋 Table of Contents
 
-- [Features](#features)
-- [Architecture](#architecture)
-- [Setup](#setup)
-- [Slash Commands](#slash-commands)
-- [Comparison with Main BLT](#comparison-with-main-blt)
-- [Development](#development)
-- [Contributing](#contributing)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Setup](#-setup)
+- [Slack Commands](#-slack-commands)
+- [Local Development](#-local-development)
+- [Slash Commands](#-slash-commands)
+- [Comparison with Main BLT](#-comparison-with-main-blt)
+- [Development](#-development)
+- [Contributing](#-contributing)
 
 ## ✨ Features
 
@@ -245,6 +247,64 @@ In your Slack workspace, try:
 /repo python
 ```
 
+## 📚 Slack Commands
+
+This section documents each Slack command with purpose, example usage, and expected output.
+
+### /contributors
+
+**Purpose:** Displays contributor activity for the OWASP-BLT/Lettuce repository over the last 7 days. Shows PRs merged, issues resolved, and comments made in a formatted table view.
+
+**Example:**
+```
+/contributors
+```
+
+**Expected Output:** A formatted table showing contributor statistics including GitHub usernames, PRs merged, issues resolved, and comments made. Returns "No data available" if no activity in the period.
+
+---
+
+### /ghissue
+
+**Purpose:** Creates a new GitHub issue directly from Slack. Issues are created in the configured repository (default: OWASP-BLT/BLT-Sammich).
+
+**Example:**
+```
+/ghissue Fix login bug on mobile devices
+```
+
+**Expected Output:** A success message with a direct link to the created issue (e.g., `Issue created successfully: https://github.com/OWASP-BLT/BLT-Sammich/issues/123`). Returns an error message if creation fails.
+
+---
+
+### /project
+
+**Purpose:** Retrieves information about OWASP projects from the curated projects database. Supports direct lookup by name or interactive browsing when no name is specified.
+
+**Example:**
+```
+/project zap                    # Direct lookup for ZAP project
+/project                        # Browse all projects (interactive dropdown)
+```
+
+**Expected Output:** For direct lookup, displays project details including description and links. When used without arguments, shows an interactive dropdown to select from 800+ OWASP projects (100 per page).
+
+---
+
+### /repo
+
+**Purpose:** Finds repositories based on technology stack or programming language. Matches from the curated repos.json database of OWASP development resources.
+
+**Example:**
+```
+/repo python                    # Direct tech search
+/repo                           # Browse available technologies (interactive buttons)
+```
+
+**Expected Output:** For direct search, returns a list of repositories where you can apply that technology. When used without arguments, displays buttons to select from available technologies (e.g., Python, JavaScript, Go).
+
+---
+
 ## 📚 Slash Commands
 
 | Command | Description | Example | Available In |
@@ -254,6 +314,71 @@ In your Slack workspace, try:
 | `/project [name]` | Find OWASP project info | `/project zap` | BLT-Sammich only |
 | `/repo [tech]` | Find repos by technology | `/repo python` | BLT-Sammich only |
 | `/discover [term]` | Search all OWASP repos | `/discover security` | Main BLT only |
+
+## 🧑‍💻 Local Development
+
+This section explains how to run the BLT-Sammich Slack bot locally for development and testing.
+
+### Prerequisites
+
+- **Python 3.10+** — [Download Python](https://www.python.org/downloads/)
+- **Poetry** — For dependency management. Install via: `pip install poetry` or [official installer](https://python-poetry.org/docs/#installation)
+- **Slack workspace** with admin access to create and configure a Slack app
+- **GitHub account** with a Personal Access Token (for `/ghissue` and `/contributors` commands)
+
+### Steps to Run Locally
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/OWASP-BLT/BLT-Sammich.git
+cd BLT-Sammich
+```
+
+**2. Install dependencies**
+```bash
+poetry install
+```
+
+**3. Configure environment variables**
+
+Create a `.secrets` file in the project root (copy from the sample):
+```bash
+cp .secrets.sample .secrets
+```
+
+Edit `.secrets` with your credentials:
+```
+SLACK_APP_TOKEN=xapp-your-app-level-token
+SLACK_BOT_TOKEN=xoxb-your-bot-user-oauth-token
+GITHUB_TOKEN=ghp_your-github-personal-access-token
+```
+
+> **Note:** Never commit `.secrets` to version control. It is listed in `.gitignore`.
+
+**4. Start the bot**
+```bash
+poetry run python app.py
+```
+
+You should see:
+```
+⚡️ Bolt app is running!
+```
+
+The bot uses **Socket Mode**, so it connects to Slack without needing a public URL. You can run it entirely on your local machine.
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| **`poetry: command not found`** | Install Poetry: `pip install poetry` or use the [official installer](https://python-poetry.org/docs/#installation) |
+| **`ModuleNotFoundError` or import errors** | Run `poetry install` to ensure all dependencies are installed |
+| **`KeyError` when reading `.secrets`** | Ensure `.secrets` exists and contains all three variables: `SLACK_APP_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN` |
+| **Bot not responding in Slack** | Verify the bot is installed in your workspace (Install App → Install to Workspace). Check that Socket Mode is enabled in your Slack app settings |
+| **`/ghissue` fails with "Failed to create issue"** | Verify your `GITHUB_TOKEN` has `repo` scope. Ensure the token is valid and not expired |
+| **`/contributors` returns "No data available"** | This is normal if there has been no activity in OWASP-BLT/Lettuce in the last 7 days |
+
+For running tests and code formatting, see the [Development](#-development) section.
 
 ## 🔄 Comparison with Main BLT
 
