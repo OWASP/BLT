@@ -89,6 +89,10 @@ function initPricing() {
   if (!section) return;
 
   if (!BLT_CONFIG.SHOW_PRICING) {
+    section.classList.add("hidden");
+    section.style.display = "none";
+    if (navLink) { navLink.classList.add("hidden"); navLink.style.display = "none"; }
+    if (navLinkMobile) { navLinkMobile.classList.add("hidden"); navLinkMobile.style.display = "none"; }
     return;
   }
 
@@ -96,6 +100,12 @@ function initPricing() {
   section.style.display = "";
   if (navLink) { navLink.classList.remove("hidden"); navLink.style.display = ""; }
   if (navLinkMobile) { navLinkMobile.classList.remove("hidden"); navLinkMobile.style.display = ""; }
+
+  // If the page was loaded with #pricing in the URL, scroll to the
+  // now-visible pricing section so deep links keep working.
+  if (location.hash === "#pricing") {
+    section.scrollIntoView();
+  }
 
   // Render pricing plans dynamically
   const grid = document.getElementById("pricing-grid");
