@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-04T03:55:18.743Z",
-  "commit_sha": "a0e3082c6530cfc440ccb17a89e713384e15a250",
+  "updated_at": "2026-03-04T05:47:46.843Z",
+  "commit_sha": "f8934c2484dc31157669bab6ab146e099e634603",
   "total_bugs": 12,
   "open_bugs": 4,
   "closed_bugs": 8,
@@ -60,27 +60,34 @@
     },
     {
       "rank": 4,
+      "login": "Nachiket-Roy",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "profile_url": "https://github.com/Nachiket-Roy"
+    },
+    {
+      "rank": 5,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 5,
+      "rank": 6,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 6,
+      "rank": 7,
       "login": "mdkaifansari04",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "profile_url": "https://github.com/mdkaifansari04"
     },
     {
-      "rank": 7,
+      "rank": 8,
       "login": "DonnieBLT",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -105,7 +112,7 @@
       "title": "[BUG] report anonymously should go to Blt next",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/61",
       "created_at": "2026-03-03T22:01:53Z",
-      "comment_count": 0,
+      "comment_count": 1,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -116,7 +123,16 @@
       "reactions": {
         "eyes": 1
       },
-      "latest_comment": null
+      "latest_comment": {
+        "body": "WIP",
+        "created_at": "2026-03-04T05:47:32Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/61#issuecomment-3995461722",
+        "user": {
+          "login": "Nachiket-Roy",
+          "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
+          "profile_url": "https://github.com/Nachiket-Roy"
+        }
+      }
     },
     {
       "number": 17,
