@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-03-04T00:49:45.890Z",
-  "commit_sha": "d1a29c6a32c9919307e6ab62243ae147c941f071",
+  "updated_at": "2026-03-04T00:51:18.404Z",
+  "commit_sha": "2c98afdcba85bc69b760a3e54802b6c3b1df6bdd",
   "total_bugs": 12,
-  "open_bugs": 12,
-  "closed_bugs": 0,
+  "open_bugs": 4,
+  "closed_bugs": 8,
   "total_domains": 2,
   "total_orgs": 0,
   "leaderboard": [
