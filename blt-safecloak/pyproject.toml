@@ -24,3 +24,13 @@ build-backend = "setuptools.build_meta"
 based_on_style = "pep8"
 column_limit = 100
 indent_width = 4
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["js", "js.*", "workers", "workers.*"]
+ignore_missing_imports = true

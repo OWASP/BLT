@@ -1,8 +1,17 @@
-from js import Response, URL
-from workers import WorkerEntrypoint
+# pylint: disable=too-few-public-methods
+from workers import WorkerEntrypoint, Response
 from urllib.parse import urlparse
-
 from pathlib import Path
+
+from libs.utils import html_response, cors_response
+
+# Route to HTML page mapping
+PAGES_MAP = {
+    '/': 'index.html',
+    '/video-chat': 'video-chat.html',
+    '/notes': 'notes.html',
+    '/consent': 'consent.html',
+}
 
 
 class Default(WorkerEntrypoint):
@@ -13,20 +22,16 @@ class Default(WorkerEntrypoint):
         url = urlparse(request.url)
         path = url.path
 
-        # Handle CORS preflight if needed in the future
+        # Handle CORS preflight
         if request.method == 'OPTIONS':
-            return Response.new(
-                '', {
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                        'Access-Control-Allow-Headers': 'Content-Type',
-                    }
-                })
+            return cors_response()
 
-        if path == '/':
-            html_content = Path(__file__).parent / 'pages' / 'index.html'
-            return Response.new(html_content, {'headers': {'Content-Type': 'text/html'}})
+        # Handle GET requests for HTML pages
+        if request.method == 'GET' and path in PAGES_MAP:
+            html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
+            html_content = html_path.read_text()
+            return html_response(html_content)
+
         # Serving static files from the 'public' directory
         if hasattr(env, 'ASSETS'):
             return await env.ASSETS.fetch(request)
