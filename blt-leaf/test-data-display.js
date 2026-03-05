@@ -346,6 +346,180 @@ function testAPIRouting() {
   }
 }
 
+// Test 7: Verify OAuth authentication implementation and security controls
+function testAuthenticationImplementation() {
+  log('\n=== Testing Authentication Implementation ===\n', colors.blue);
+
+  const authPath = path.join(__dirname, 'src', 'auth.py');
+  const authHandlersPath = path.join(__dirname, 'src', 'auth_handlers.py');
+  const handlersPath = path.join(__dirname, 'src', 'handlers.py');
+  const swPath = path.join(__dirname, 'public', 'sw.js');
+  const htmlPath = path.join(__dirname, 'public', 'index.html');
+
+  try {
+    const authContent = fs.readFileSync(authPath, 'utf8');
+    const authHandlersContent = fs.readFileSync(authHandlersPath, 'utf8');
+    const handlersContent = fs.readFileSync(handlersPath, 'utf8');
+    const swContent = fs.readFileSync(swPath, 'utf8');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    testResult('auth.py exists', true, 'src/auth.py found');
+    testResult('auth_handlers.py exists', true, 'src/auth_handlers.py found');
+
+    // Cookie/session security expectations
+    testResult(
+      'OAuth session/state cookie constants defined',
+      /SESSION_COOKIE_NAME\s*=\s*['"]blt_oauth_session['"]/.test(authContent) &&
+      /STATE_COOKIE_NAME\s*=\s*['"]blt_oauth_state['"]/.test(authContent),
+      'Cookie names are defined'
+    );
+    testResult(
+      'Session and state TTL constants configured',
+      /SESSION_MAX_AGE\s*=\s*60\s*\*\s*60\s*\*\s*24\s*\*\s*30/.test(authContent) &&
+      /STATE_MAX_AGE\s*=\s*60\s*\*\s*10/.test(authContent),
+      '30d session and 10m state TTL are configured'
+    );
+    testResult(
+      'Cookie security flags enforced',
+      /SameSite=\{same_site\}/.test(authContent) &&
+      /parts\.append\('Secure'\)/.test(authContent) &&
+      /parts\.append\('HttpOnly'\)/.test(authContent),
+      'SameSite, Secure, and HttpOnly are set'
+    );
+
+    // Encryption expectations
+    testResult(
+      'OAuth session encryption uses AES-GCM',
+      /'AES-GCM'/.test(authContent) &&
+      /async\s+def\s+encrypt_session/.test(authContent) &&
+      /async\s+def\s+decrypt_session/.test(authContent),
+      'AES-GCM encrypt/decrypt helpers found'
+    );
+    testResult(
+      'Encryption key validation enforced',
+      /ENCRYPTION_KEY is required/.test(authContent) &&
+      /must decode to exactly 32 bytes/.test(authContent),
+      'ENCRYPTION_KEY validation found'
+    );
+
+    // Token resolution and precedence expectations
+    const idxUser = authContent.indexOf("'token_source': 'user_oauth'");
+    const idxHeader = authContent.indexOf("'token_source': 'header_token'");
+    const idxShared = authContent.indexOf("'token_source': 'shared_token'");
+    const idxUnauth = authContent.indexOf("'token_source': 'unauthenticated'");
+
+    testResult(
+      'Token sources are explicitly defined',
+      idxUser >= 0 && idxHeader >= 0 && idxShared >= 0 && idxUnauth >= 0,
+      'user_oauth/header_token/shared_token/unauthenticated present'
+    );
+    testResult(
+      'Token resolution precedence is correct',
+      idxUser < idxHeader && idxHeader < idxShared && idxShared < idxUnauth,
+      'Precedence: user_oauth -> header_token -> shared_token -> unauthenticated'
+    );
+
+    // OAuth flow expectations
+    testResult(
+      'OAuth login handler sets state and redirects to GitHub authorize',
+      /async\s+def\s+handle_auth_login/.test(authHandlersContent) &&
+      /generate_oauth_state/.test(authHandlersContent) &&
+      /build_state_cookie/.test(authHandlersContent) &&
+      /github\.com\/login\/oauth\/authorize/.test(authHandlersContent),
+      'Login flow wiring found'
+    );
+
+    const idxStateValidation = authHandlersContent.indexOf('validate_oauth_state');
+    const idxTokenExchange = authHandlersContent.indexOf('_exchange_code_for_token');
+    testResult(
+      'OAuth callback validates state before token exchange',
+      idxStateValidation >= 0 && idxTokenExchange >= 0 && idxStateValidation < idxTokenExchange,
+      'State validation appears before code exchange in callback flow'
+    );
+
+    testResult(
+      'OAuth callback performs server-side code exchange and user fetch',
+      /login\/oauth\/access_token/.test(authHandlersContent) &&
+      /https:\/\/api\.github\.com\/user/.test(authHandlersContent),
+      'Token exchange and user profile fetch found'
+    );
+
+    testResult(
+      'OAuth callback persists encrypted session cookie',
+      /encrypt_session/.test(authHandlersContent) &&
+      /build_session_cookie/.test(authHandlersContent),
+      'Encrypted session cookie write found'
+    );
+
+    testResult(
+      'Auth user/logout handlers implemented',
+      /async\s+def\s+handle_auth_user/.test(authHandlersContent) &&
+      /async\s+def\s+handle_auth_logout/.test(authHandlersContent) &&
+      /clear_session_cookie/.test(authHandlersContent) &&
+      /clear_state_cookie/.test(authHandlersContent),
+      'Auth user and logout handlers found'
+    );
+
+    // Handler integration expectations
+    const functionsRequiringTokenResolution = [
+      'handle_add_pr',
+      'handle_refresh_pr',
+      'handle_batch_refresh_prs',
+      'handle_pr_timeline',
+      'handle_pr_review_analysis',
+      'handle_pr_readiness',
+      'handle_rate_limit',
+    ];
+    const getAsyncFunctionBlock = (content, fnName) => {
+      const escaped = fnName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`async\\s+def\\s+${escaped}\\([\\s\\S]*?(?=\\nasync\\s+def\\s+|\\n\\Z)`, 'm');
+      const match = content.match(re);
+      return match ? match[0] : '';
+    };
+    const missingResolverFns = functionsRequiringTokenResolution.filter((fnName) => {
+      const fnBlock = getAsyncFunctionBlock(handlersContent, fnName);
+      return !fnBlock || !/resolve_github_token/.test(fnBlock);
+    });
+    testResult(
+      'Token resolver is used in all auth-sensitive handlers',
+      missingResolverFns.length === 0,
+      missingResolverFns.length === 0
+        ? 'All targeted handlers call resolve_github_token'
+        : `Missing in: ${missingResolverFns.join(', ')}`
+    );
+
+    testResult(
+      'Legacy direct header token reads removed from handlers',
+      !/request\.headers\.get\('x-github-token'\)/.test(handlersContent),
+      'No direct x-github-token reads in handlers.py'
+    );
+
+    // Frontend and caching expectations
+    testResult(
+      'Frontend auth UX uses OAuth endpoints',
+      /fetch\(['"`]\/api\/auth\/user/.test(htmlContent) &&
+      /href=["']\/api\/auth\/login["']/.test(htmlContent) &&
+      /fetch\(['"`]\/api\/auth\/logout/.test(htmlContent),
+      'Frontend sign-in/sign-out and auth state calls found'
+    );
+
+    testResult(
+      'No PAT prompt text present in frontend',
+      !/(personal access token|\bPAT\b)/i.test(htmlContent),
+      'No PAT prompt detected in public/index.html'
+    );
+
+    testResult(
+      'Service worker bypasses auth and rate-limit token-dependent routes',
+      /pathname\.startsWith\('\/api\/auth\/'\)/.test(swContent) &&
+      /pathname\s*===\s*'\/api\/rate-limit'/.test(swContent),
+      'SW bypass rules for auth/rate-limit found'
+    );
+  } catch (error) {
+    testResult('Authentication test files readable', false, error.message);
+  }
+}
+
 // Main test runner
 function runTests() {
   log('\n' + '='.repeat(60), colors.blue);
@@ -358,6 +532,7 @@ function runTests() {
   testWranglerConfig();
   testPackageJson();
   testAPIRouting();
+  testAuthenticationImplementation();
 
   // Summary
   log('\n' + '='.repeat(60), colors.blue);
