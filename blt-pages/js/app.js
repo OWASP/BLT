@@ -69,7 +69,7 @@ function initAnonymousToggle() {
 
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) {
-      btn.href = "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml&anonymous=true";
+      btn.href = "https://next.owaspblt.org/pages/report-bug";
       btn.querySelector(".btn-label").textContent = "Report Bug Anonymously";
     } else {
       btn.href = "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml";
