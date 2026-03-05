@@ -1168,6 +1168,35 @@
 
         document.getElementById('year').textContent = new Date().getFullYear();
 
+        function getContributorName(card) {
+            const contributorName = card.querySelector('h3');
+            return contributorName ? contributorName.textContent.trim().toLowerCase() : '';
+        }
+
+        function sortCurrentMentorsByGithubId() {
+            const mentorsSection = document.getElementById('current-mentors');
+            if (!mentorsSection) {
+                return;
+            }
+
+            const mentorsContainer = mentorsSection.querySelector('div.mt-6.space-y-6');
+            if (!mentorsContainer) {
+                return;
+            }
+
+            const mentorCards = Array.from(mentorsContainer.children).filter((child) => child.tagName === 'ARTICLE');
+
+            mentorCards.sort((firstCard, secondCard) => {
+                const firstName = getContributorName(firstCard);
+                const secondName = getContributorName(secondCard);
+                return firstName.localeCompare(secondName);
+            });
+
+            mentorCards.forEach((card) => mentorsContainer.appendChild(card));
+        }
+
+        sortCurrentMentorsByGithubId();
+
         // Scroll-spy navigation highlighting
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('aside a[href^="#"]');
