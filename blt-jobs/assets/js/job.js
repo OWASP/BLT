@@ -276,6 +276,7 @@ function renderJob(job) {
                              </a>`
                          : ""
                      }
+                     <div id="bookmark-button-container"></div>
                    </div>`
                 : `<div class="inline-flex items-center px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl font-medium border border-gray-200 dark:border-gray-600">
                      <svg class="w-5 h-5 mr-2"
@@ -349,6 +350,29 @@ function renderJob(job) {
       </div>
     </div>
   `;
+
+  // Add bookmark button
+  const bookmarkContainer = document.getElementById("bookmark-button-container");
+  if (bookmarkContainer && window.SavedJobs) {
+    const button = window.SavedJobs.createButton(job.id, { showLabel: true, size: "lg" });
+    bookmarkContainer.appendChild(button);
+  }
+
+  // Update saved count badge
+  updateSavedCountBadge();
+}
+
+function updateSavedCountBadge() {
+  const badge = document.getElementById("saved-count-badge");
+  if (badge && window.SavedJobs) {
+    const count = window.SavedJobs.count();
+    if (count > 0) {
+      badge.textContent = count;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  }
 }
 
 function initJobDetail() {
@@ -380,6 +404,22 @@ function initJobDetail() {
       }
 
       renderJob(job);
+
+      // Update saved jobs count badge
+      const updateBadge = () => {
+        const badge = document.getElementById("saved-count-badge");
+        if (badge && typeof SavedJobs !== "undefined") {
+          const count = SavedJobs.count();
+          if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove("hidden");
+          } else {
+            badge.classList.add("hidden");
+          }
+        }
+      };
+      updateBadge();
+      window.addEventListener("savedJobsChanged", updateBadge);
     })
     .catch((err) => {
       console.error("Error loading job details:", err);
@@ -388,4 +428,14 @@ function initJobDetail() {
 }
 
 document.addEventListener("DOMContentLoaded", initJobDetail);
+
+// Update badge when saved jobs change
+window.addEventListener("savedJobsChanged", updateSavedCountBadge);
+
+// Initial badge update
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", updateSavedCountBadge);
+} else {
+  updateSavedCountBadge();
+}
 
