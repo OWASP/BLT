@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-03-05T06:17:07.050Z",
-  "commit_sha": "caa312abf86b284b79c9841dc22aef26f2fdb643",
+  "updated_at": "2026-03-05T07:37:35.043Z",
+  "commit_sha": "5fa32b2fac24726486f4f2764bab41d8e16175af",
   "total_bugs": 12,
-  "open_bugs": 4,
-  "closed_bugs": 8,
+  "open_bugs": 3,
+  "closed_bugs": 9,
   "total_domains": 2,
   "total_orgs": 0,
   "leaderboard": [
@@ -115,33 +115,6 @@
   ],
   "recent_bugs": [
     {
-      "number": 61,
-      "title": "[BUG] report anonymously should go to Blt next",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/61",
-      "created_at": "2026-03-03T22:01:53Z",
-      "comment_count": 1,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/af58f298-babe-4ef3-ad29-ab81d7ec5967",
-      "domain": "owaspblt.org",
-      "reactions": {
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "WIP",
-        "created_at": "2026-03-04T05:47:32Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/61#issuecomment-3995461722",
-        "user": {
-          "login": "Nachiket-Roy",
-          "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
-          "profile_url": "https://github.com/Nachiket-Roy"
-        }
-      }
-    },
-    {
       "number": 17,
       "title": "[BUG] video bugs are not showing up",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
@@ -190,6 +163,31 @@
           "login": "swaparup36",
           "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
           "profile_url": "https://github.com/swaparup36"
+        }
+      }
+    },
+    {
+      "number": 6,
+      "title": "[BUG] page always shows loading screen even though it’s loaded before",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6",
+      "created_at": "2026-03-01T07:04:11Z",
+      "comment_count": 3,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/33a6854c-605f-464c-be62-5c9bd724edcd",
+      "domain": "www.owasp.community",
+      "reactions": {},
+      "latest_comment": {
+        "body": "Hi @DonnieBLT ! I'd like to work on this issue.\nI'll try reproducing the bug locally and investigate why the loading screen persists after refresh.",
+        "created_at": "2026-03-02T08:27:34Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6#issuecomment-3982889169",
+        "user": {
+          "login": "azizrebhi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
+          "profile_url": "https://github.com/azizrebhi"
         }
       }
     }
