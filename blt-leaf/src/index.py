@@ -21,6 +21,12 @@ from handlers import (
     handle_pr_readiness,
     handle_scheduled_refresh
 )
+from auth_handlers import (
+    handle_auth_login,
+    handle_auth_callback,
+    handle_auth_user,
+    handle_auth_logout,
+)
 
 
 async def on_fetch(request, env):
@@ -114,10 +120,30 @@ async def on_fetch(request, env):
         elif path == '/api/refresh-batch' and request.method == 'POST':
             response = await handle_batch_refresh_prs(request, env)
         elif path == '/api/rate-limit' and request.method == 'GET':
-            response = await handle_rate_limit(env)
+            response = await handle_rate_limit(request, env)
             for key, value in cors_headers.items():
                 response.headers.set(key, value)
             return response 
+        elif path == '/api/auth/login' and request.method == 'GET':
+            response = await handle_auth_login(request, env)
+            for key, value in cors_headers.items():
+                response.headers.set(key, value)
+            return response
+        elif path == '/api/auth/callback' and request.method == 'GET':
+            response = await handle_auth_callback(request, env)
+            for key, value in cors_headers.items():
+                response.headers.set(key, value)
+            return response
+        elif path == '/api/auth/user' and request.method == 'GET':
+            response = await handle_auth_user(request, env)
+            for key, value in cors_headers.items():
+                response.headers.set(key, value)
+            return response
+        elif path == '/api/auth/logout' and request.method == 'POST':
+            response = await handle_auth_logout(request, env)
+            for key, value in cors_headers.items():
+                response.headers.set(key, value)
+            return response
         elif path == '/api/status' and request.method == 'GET':
             response = await handle_status(env)
         elif path == '/api/github/webhook' and request.method == 'POST':

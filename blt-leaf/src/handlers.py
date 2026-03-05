@@ -23,6 +23,7 @@ from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
     verify_github_signature, fetch_multiple_prs_batch, fetch_org_repos
 )
+from auth import resolve_github_token, clear_session_cookie
 from slack_notifier import notify_slack_exception, notify_slack_error
 
 # SQL expression for computed field: issues_count
@@ -52,8 +53,8 @@ async def handle_add_pr(request, env):
         
         pr_url = data.get('pr_url')
         add_all = data.get('add_all', False)
-        # Capture token from header - fall back to env secret for GraphQL API
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
         
         # Type validation for pr_url
         if not pr_url or not isinstance(pr_url, str):
@@ -487,7 +488,8 @@ async def handle_refresh_pr(request, env):
             quick_refresh = raw_quick_refresh.strip().lower() in ('true', '1', 'yes', 'on')
         else:
             quick_refresh = bool(raw_quick_refresh)
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
         
         if not pr_id:
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
@@ -613,7 +615,8 @@ async def handle_batch_refresh_prs(request, env):
     try:
         data = (await request.json()).to_py()
         pr_ids = data.get('pr_ids', [])
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
         
         if not pr_ids or not isinstance(pr_ids, list):
             return Response.new(json.dumps({'error': 'pr_ids array is required'}), 
@@ -705,7 +708,7 @@ async def handle_batch_refresh_prs(request, env):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
-async def handle_rate_limit(env):
+async def handle_rate_limit(request, env):
     """
     GET /api/rate-limit
     Returns the most recent GitHub API rate limit data captured locally.
@@ -714,29 +717,62 @@ async def handle_rate_limit(env):
     try:
         # Pull the latest state from the cache module
         rate_data = get_rate_limit_cache()
-        token_configured = bool(getattr(env, 'GITHUB_TOKEN', None))
+        token_info = await resolve_github_token(request, env)
+        token_configured = bool(token_info.get('token'))
+        shared_token_configured = bool(getattr(env, 'GITHUB_TOKEN', None))
         
         # If no calls have been made yet, provide a friendly initial state
         if not rate_data or not rate_data.get('limit'):
-            return Response.new(
+            response = Response.new(
                 json.dumps({
                     'limit': 5000, 
                     'remaining': 5000, 
                     'reset': 0, 
                     'used': 0,
                     'status': 'waiting_for_first_request',
-                    'token_configured': token_configured
+                    'token_configured': token_configured,
+                    'shared_token_configured': shared_token_configured,
+                    'token_source': token_info.get('token_source', 'unauthenticated'),
+                    'oauth_authenticated': bool(token_info.get('oauth_authenticated')),
+                    'auth_reason': (
+                        'invalid_session_cookie'
+                        if token_info.get('invalid_oauth_cookie')
+                        else token_info.get('token_source', 'unauthenticated')
+                    )
                 }), 
-                {'headers': {'Content-Type': 'application/json'}}
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, private',
+                    'Vary': 'Cookie',
+                }}
             )
-        
-        return Response.new(
-            json.dumps({**rate_data, 'token_configured': token_configured}), 
+            if token_info.get('invalid_oauth_cookie'):
+                response.headers.append('Set-Cookie', clear_session_cookie())
+            return response
+
+        response_payload = {
+            **rate_data,
+            'token_configured': token_configured,
+            'shared_token_configured': shared_token_configured,
+            'token_source': token_info.get('token_source', 'unauthenticated'),
+            'oauth_authenticated': bool(token_info.get('oauth_authenticated')),
+            'auth_reason': (
+                'invalid_session_cookie'
+                if token_info.get('invalid_oauth_cookie')
+                else token_info.get('token_source', 'unauthenticated')
+            ),
+        }
+        response = Response.new(
+            json.dumps(response_payload),
             {'headers': {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-store, private',
+                'Vary': 'Cookie',
             }}
         )
+        if token_info.get('invalid_oauth_cookie'):
+            response.headers.append('Set-Cookie', clear_session_cookie())
+        return response
     except Exception as e:
         print(f"Error in handle_rate_limit: {str(e)}")
         await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_rate_limit'})
@@ -1298,7 +1334,8 @@ async def handle_pr_timeline(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
 
         timeline_data = await fetch_pr_timeline_data(
             env,
@@ -1388,7 +1425,8 @@ async def handle_pr_review_analysis(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
 
         timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
@@ -1581,7 +1619,8 @@ async def handle_pr_readiness(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
         
         # Run readiness analysis
         response_data = await _run_readiness_analysis(env, pr, pr_id, github_token)

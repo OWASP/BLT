@@ -55,6 +55,9 @@ function testHTMLStructure() {
       { pattern: /fetch\(['"`]\/api\/prs/, name: 'API fetch for PRs' },
       { pattern: /fetch\(['"`]\/api\/repos/, name: 'API fetch for repos' },
       { pattern: /fetch\(['"`]\/api\/authors/, name: 'API fetch for authors' },
+      { pattern: /fetch\(['"`]\/api\/auth\/user/, name: 'API fetch for auth user state' },
+      { pattern: /id=["']authControlsDesktop["']/, name: 'Desktop auth controls container' },
+      { pattern: /id=["']authControlsMobile["']/, name: 'Mobile auth controls container' },
       { pattern: /<table/, name: 'Table element for data display' },
     ];
 
@@ -114,6 +117,7 @@ function testPythonHandlers() {
       { pattern: /def\s+handle_list_authors/, name: 'handle_list_authors function' },
       { pattern: /def\s+handle_add_pr/, name: 'handle_add_pr function' },
       { pattern: /def\s+handle_refresh_pr/, name: 'handle_refresh_pr function' },
+      { pattern: /resolve_github_token/, name: 'centralized token resolver usage' },
     ];
 
     requiredHandlers.forEach(({ pattern, name }) => {
@@ -310,6 +314,17 @@ function testAPIRouting() {
     requiredRoutes.forEach(({ pattern, name }) => {
       const found = pattern.test(indexContent);
       testResult(name, found, found ? 'Route configured' : 'Route missing');
+    });
+
+    const authRoutes = [
+      { pattern: /\/api\/auth\/login/, name: '/api/auth/login endpoint' },
+      { pattern: /\/api\/auth\/callback/, name: '/api/auth/callback endpoint' },
+      { pattern: /\/api\/auth\/user/, name: '/api/auth/user endpoint' },
+      { pattern: /\/api\/auth\/logout/, name: '/api/auth/logout endpoint' },
+    ];
+    authRoutes.forEach(({ pattern, name }) => {
+      const found = pattern.test(indexContent);
+      testResult(name, found, found ? 'Auth route configured' : 'Auth route missing');
     });
 
     // Test for CORS headers (important for data display)
