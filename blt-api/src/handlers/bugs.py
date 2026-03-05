@@ -193,7 +193,7 @@ async def handle_bugs(
                 status=400
             )
         
-        # Validate URL length
+        
         # Validate URL length
         if len(body["url"]) > 200:
             return error_response("URL must be 200 characters or less", status=400)
