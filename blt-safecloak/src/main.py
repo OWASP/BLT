@@ -6,8 +6,10 @@ from pathlib import Path
 
 
 class Default(WorkerEntrypoint):
+    """Worker entrypoint for handling HTTP requests and serving content."""
 
     async def on_fetch(self, request, env):
+        """Handle incoming HTTP requests and route them to the appropriate response."""
         url = urlparse(request.url)
         path = url.path
 
@@ -22,7 +24,7 @@ class Default(WorkerEntrypoint):
                     }
                 })
 
-        if (path == '/'):
+        if path == '/':
             html_content = Path(__file__).parent / 'pages' / 'index.html'
             return Response.new(html_content, {'headers': {'Content-Type': 'text/html'}})
         # Serving static files from the 'public' directory
