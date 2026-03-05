@@ -58,8 +58,8 @@ CONTESTS = [
         "template": "logo-submission.yml",
         "description": "Design a new logo for OWASP BLT and all its repositories.",
         "prize": "$25",
-        "deadline": "2026-03-15T00:00:00Z",
-        "deadline_display": "March 15, 2026",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
         "icon": "fa-solid fa-brush",
     },
     {
@@ -70,8 +70,8 @@ CONTESTS = [
         "template": "homepage-submission.yml",
         "description": "Design the new homepage for the OWASP BLT website.",
         "prize": "$25",
-        "deadline": "2026-03-15T00:00:00Z",
-        "deadline_display": "March 15, 2026",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
         "icon": "fa-solid fa-house",
     },
 ]
