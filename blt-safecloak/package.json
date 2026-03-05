@@ -10,7 +10,7 @@
         "format:check": "yapf -d -r src/ && prettier --check \"src/**/*.html\" \"public/**/*.{js,css}\"",
         "typecheck": "mypy src/",
         "check": "npm run format:check && npm run typecheck",
-        "setup": "npm install && pip install -r requirements-dev.txt",
+        "setup": "npm install && python -m  pip install -r requirements-dev.txt",
         "clean": "find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true"
     },
     "keywords": [
