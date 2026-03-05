@@ -6,11 +6,11 @@
     "scripts": {
         "dev": "wrangler dev",
         "deploy": "wrangler deploy",
-        "format": "yapf -i -r src/",
-        "format:check": "yapf -d -r src/",
+        "format": "yapf -i -r src/ && prettier --write \"src/**/*.html\" \"public/**/*.{js,css}\"",
+        "format:check": "yapf -d -r src/ && prettier --check \"src/**/*.html\" \"public/**/*.{js,css}\"",
         "typecheck": "mypy src/",
         "check": "npm run format:check && npm run typecheck",
-        "setup": "pip install -r requirements-dev.txt",
+        "setup": "npm install && pip install -r requirements-dev.txt",
         "clean": "find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true"
     },
     "keywords": [
@@ -20,7 +20,9 @@
         "webrtc"
     ],
     "license": "MIT",
-    "devDependencies": {},
+    "devDependencies": {
+        "prettier": "^3.2.5"
+    },
     "engines": {
         "node": ">=18.0.0",
         "python": ">=3.11"
