@@ -36,4 +36,4 @@ class Default(WorkerEntrypoint):
         if hasattr(env, 'ASSETS'):
             return await env.ASSETS.fetch(request)
 
-        return Response.new('Asset server not configured', {'status': 500})
+        return Response('Asset server not configured')

@@ -38,18 +38,22 @@ Access the application at `http://localhost:8787`.
 Before submitting a PR, ensure your code passes all checks:
 
 ```bash
-# Auto-format Python code
+# Auto-format all code (Python + HTML/CSS/JS)
 npm run format
 
-# Check formatting without modifying
+# Check formatting without modifying files
 npm run format:check
 
-# Type checking
+# Type checking (Python)
 npm run typecheck
 
-# Run all checks
+# Run all checks (format check + type check)
 npm run check
 ```
+
+**Format Tools Used:**
+- **Python**: yapf (PEP 8, 100 char line limit)
+- **HTML/CSS/JS**: Prettier (consistent web formatting)
 
 ### Testing Changes
 
@@ -83,10 +87,16 @@ npm run check
 - Mobile-first responsive design
 - BEM naming convention for CSS classes
 
-## Project Structure
-
-### Adding New Pages
-
+## Project Structure (e.g., `feature.html`)
+2. Add route to `PAGES_MAP` dictionary in `src/main.py`:
+   ```python
+   PAGES_MAP = {
+       '/': 'index.html',
+       '/feature': 'feature.html',  # Add your route
+   }
+   ```
+3. Add corresponding JavaScript in `public/js/` if needed
+4. Update navigation in all HTML pages with clean URL (e.g., `/feature`)
 1. Create HTML file in `src/pages/`
 2. Add corresponding JavaScript in `public/js/`
 3. Add route handler in `src/main.py`
@@ -141,12 +151,33 @@ npm run check
 - [Static Site Hosting](https://developers.cloudflare.com/workers/static-assets/get-started/)
 
 ### Community Resources
+ - Add to PAGES_MAP dictionary
+PAGES_MAP = {
+    '/': 'index.html',
+    '/video-chat': 'video-chat.html',
+    '/notes': 'notes.html',
+    '/consent': 'consent.html',
+    '/new-page': 'new-page.html',  # Add your new route here
+}
+```
 
-- [Cloudflare Workers Discord](https://discord.gg/cloudflaredev)
-- [Cloudflare Community Forum](https://community.cloudflare.com/c/developers/workers/40)
-- [Workers GitHub Examples](https://github.com/cloudflare/workers-sdk/tree/main/templates)
+The routing is handled automatically by the `PAGES_MAP` dictionary. Create the HTML file in `src/pages/` and add the mapping.
 
-## Common Tasks
+### Creating Response Utilities
+
+Use helper functions from `src/libs/utils.py`:
+
+```python
+from libs.utils import html_response, json_response, cors_response
+
+# Return HTML
+return html_response("<h1>Hello</h1>")
+
+# Return JSON
+return json_response({"status": "success"})
+
+# CORS preflight
+return cors_response(mmon Tasks
 
 ### Adding a New Route
 

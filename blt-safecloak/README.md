@@ -39,36 +39,59 @@ npm run setup
 # Start local development server
 npm run dev
 
-# Format Python code
+# Format all code (Python + HTML/CSS/JS)
 npm run format
 
-# Check code quality
+# Check code quality (formatting + type checking)
 npm run check
 
-# Type checking
+# Type checking only
 npm run typecheck
+
+# Check formatting without modifying
+npm run format:check
 ```
 
 The development server runs on `http://localhost:8787` with hot reload enabled.
+
+### Code Formatting
+
+- **Python**: yapf (PEP 8 style, 100 char line limit)
+- **HTML/CSS/JS**: Prettier (consistent web formatting)
+- Run `npm run format` to format all files at once
 
 ## Deployment
 
 ```bash
 # Deploy to Cloudflare Workers
-npm run deploy
-```
-
-Ensure you have configured your Cloudflare credentials using `wrangler login`.
-
-## Project Structure
-
-```
-src/
-  main.py           # Python Worker entry point
+npm run deploy (routing)
+  libs/
+    utils.py        # Utility functions (html_response, json_response, etc.)
   pages/            # HTML pages
     index.html      # Landing page
     video-chat.html # Video chat interface
     notes.html      # Notes interface
+    consent.html    # Consent management
+public/
+  css/              # Stylesheets
+  js/               # Client-side JavaScript
+    crypto.js       # Cryptography utilities
+    video.js        # WebRTC implementation
+    notes.js        # Notes functionality
+    consent.js      # Consent logic
+    ui.js           # UI components and utilities
+pyproject.toml      # Python project configuration
+package.json        # NPM scripts and dependencies
+.prettierrc         # Prettier configuration
+```
+
+### URL Structure
+
+All pages use clean URLs without `.html` extensions:
+- `/` - Home page
+- `/video-chat` - Video chat interface
+- `/notes` - Secure notes
+- `/consent` - Consent management notes.html      # Notes interface
     consent.html    # Consent management
 public/
   css/              # Stylesheets
