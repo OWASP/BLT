@@ -1,0 +1,28 @@
+{
+    "name": "blt-safecloak",
+    "version": "0.1.0",
+    "description": "Privacy-focused peer-to-peer communication platform",
+    "private": true,
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "format": "yapf -i -r src/",
+        "format:check": "yapf -d -r src/",
+        "typecheck": "mypy src/",
+        "check": "npm run format:check && npm run typecheck",
+        "setup": "pip install -r requirements-dev.txt",
+        "clean": "find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true"
+    },
+    "keywords": [
+        "privacy",
+        "p2p",
+        "cloudflare-workers",
+        "webrtc"
+    ],
+    "license": "MIT",
+    "devDependencies": {},
+    "engines": {
+        "node": ">=18.0.0",
+        "python": ">=3.11"
+    }
+}
