@@ -258,7 +258,7 @@ npx serve
 ### File Structure
 
 ```
-BLT-Hackathon/
+BLT-Hackathons/
 ├── index.html                  # Main page listing all hackathons
 ├── hackathon.html              # Individual hackathon dashboard
 ├── js/
@@ -317,8 +317,8 @@ A: Absolutely! The HTML and CSS are fully customizable.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Hackathon/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Hackathon/discussions)
+- **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Hackathons/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-Hackathons/discussions)
 
 ---
 

@@ -1,6 +1,6 @@
-# Contributing to BLT-Hackathon
+# Contributing to BLT-Hackathons
 
-Thank you for your interest in contributing to BLT-Hackathon! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to BLT-Hackathons! This document provides guidelines for contributing to the project.
 
 ## Ways to Contribute
 
@@ -25,8 +25,8 @@ We welcome feature suggestions! Please:
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/your-username/BLT-Hackathon.git
-   cd BLT-Hackathon
+   git clone https://github.com/your-username/BLT-Hackathons.git
+   cd BLT-Hackathons
    ```
 
 2. **Create a feature branch**
@@ -104,4 +104,4 @@ Please be respectful and constructive in all interactions. We're here to build s
 
 Contributors will be recognized in the project README and release notes.
 
-Thank you for helping make BLT-Hackathon better! 🎉
+Thank you for helping make BLT-Hackathons better! 🎉
