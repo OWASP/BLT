@@ -3,3 +3,4 @@ __pycache__/
 *.pyo
 .dev.vars
 .DS_Store
+.wrangler/
