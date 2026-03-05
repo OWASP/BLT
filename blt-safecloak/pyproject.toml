@@ -1,0 +1,30 @@
+[project]
+name = "blt-safecloak"
+version = "0.1.0"
+description = "Privacy-focused peer-to-peer communication platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    # Add your production dependencies here
+]
+
+[project.optional-dependencies]
+dev = [
+    "yapf>=0.40.0",
+    "pylint>=3.0.0",
+    "mypy>=1.8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = 100
+indent_width = 4
+
+[tool.pylint.messages_control]
+max-line-length = 100

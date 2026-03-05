@@ -24,10 +24,7 @@ class Default(WorkerEntrypoint):
 
         if (path == '/'):
             html_content = Path(__file__).parent / 'pages' / 'index.html'
-            return Response.new(html_content,
-                                {'headers': {
-                                    'Content-Type': 'text/html'
-                                }})
+            return Response.new(html_content, {'headers': {'Content-Type': 'text/html'}})
         # Serving static files from the 'public' directory
         if hasattr(env, 'ASSETS'):
             return await env.ASSETS.fetch(request)
