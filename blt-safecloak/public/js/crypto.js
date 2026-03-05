@@ -4,26 +4,26 @@
  */
 
 const Crypto = (() => {
-  const ENC = 'AES-GCM';
+  const ENC = "AES-GCM";
   const KEY_BITS = 256;
   const enc = new TextEncoder();
   const dec = new TextDecoder();
 
   /** Generate a new AES-GCM key */
   async function generateKey() {
-    return crypto.subtle.generateKey({ name: ENC, length: KEY_BITS }, true, ['encrypt', 'decrypt']);
+    return crypto.subtle.generateKey({ name: ENC, length: KEY_BITS }, true, ["encrypt", "decrypt"]);
   }
 
   /** Export a CryptoKey to base64 string */
   async function exportKey(key) {
-    const raw = await crypto.subtle.exportKey('raw', key);
+    const raw = await crypto.subtle.exportKey("raw", key);
     return btoa(String.fromCharCode(...new Uint8Array(raw)));
   }
 
   /** Import a base64 key string to CryptoKey */
   async function importKey(b64) {
-    const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    return crypto.subtle.importKey('raw', raw, { name: ENC }, true, ['encrypt', 'decrypt']);
+    const raw = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    return crypto.subtle.importKey("raw", raw, { name: ENC }, true, ["encrypt", "decrypt"]);
   }
 
   /** Derive a CryptoKey from a passphrase using PBKDF2.
@@ -32,15 +32,28 @@ const Crypto = (() => {
    *                         The default 'blt-safecloak-v1' is only used as a last resort and weakens isolation.
    */
   async function deriveKey(passphrase, salt) {
-    if (!salt) console.warn('deriveKey: no salt provided — pass a context-specific salt for stronger key isolation');
+    if (!salt)
+      console.warn(
+        "deriveKey: no salt provided — pass a context-specific salt for stronger key isolation"
+      );
     const keyMaterial = await crypto.subtle.importKey(
-      'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+      "raw",
+      enc.encode(passphrase),
+      "PBKDF2",
+      false,
+      ["deriveKey"]
     );
     return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt: enc.encode(salt || 'blt-safecloak-v1'), iterations: 100000, hash: 'SHA-256' },
+      {
+        name: "PBKDF2",
+        salt: enc.encode(salt || "blt-safecloak-v1"),
+        iterations: 100000,
+        hash: "SHA-256",
+      },
       keyMaterial,
       { name: ENC, length: KEY_BITS },
-      true, ['encrypt', 'decrypt']
+      true,
+      ["encrypt", "decrypt"]
     );
   }
 
@@ -50,30 +63,33 @@ const Crypto = (() => {
     const ct = await crypto.subtle.encrypt({ name: ENC, iv }, key, enc.encode(plaintext));
     return {
       iv: btoa(String.fromCharCode(...iv)),
-      ciphertext: btoa(String.fromCharCode(...new Uint8Array(ct)))
+      ciphertext: btoa(String.fromCharCode(...new Uint8Array(ct))),
     };
   }
 
   /** Decrypt { iv, ciphertext } base64 pair, returns plaintext string */
   async function decrypt({ iv, ciphertext }, key) {
-    const ivBuf = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
-    const ctBuf = Uint8Array.from(atob(ciphertext), c => c.charCodeAt(0));
+    const ivBuf = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+    const ctBuf = Uint8Array.from(atob(ciphertext), (c) => c.charCodeAt(0));
     const pt = await crypto.subtle.decrypt({ name: ENC, iv: ivBuf }, key, ctBuf);
     return dec.decode(pt);
   }
 
   /** Compute SHA-256 hash of a string, returns hex string */
   async function sha256(text) {
-    const buf = await crypto.subtle.digest('SHA-256', enc.encode(text));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const buf = await crypto.subtle.digest("SHA-256", enc.encode(text));
+    return Array.from(new Uint8Array(buf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   }
 
   /** Generate a random session ID */
   function randomId(len = 8) {
     // chars.length is 32 (2^5), so the bitmask 0x1f gives an unbiased index (no modulo bias)
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     return Array.from(crypto.getRandomValues(new Uint8Array(len)))
-      .map(b => chars[b & 0x1f]).join('');
+      .map((b) => chars[b & 0x1f])
+      .join("");
   }
 
   /** Encrypt an object and store in localStorage */
@@ -98,5 +114,16 @@ const Crypto = (() => {
     }
   }
 
-  return { generateKey, exportKey, importKey, deriveKey, encrypt, decrypt, sha256, randomId, saveEncrypted, loadEncrypted };
+  return {
+    generateKey,
+    exportKey,
+    importKey,
+    deriveKey,
+    encrypt,
+    decrypt,
+    sha256,
+    randomId,
+    saveEncrypted,
+    loadEncrypted,
+  };
 })();
