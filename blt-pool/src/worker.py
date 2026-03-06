@@ -1951,20 +1951,40 @@ def _is_excluded_reviewer(login: str) -> bool:
 
 
 async def get_valid_reviewers(owner: str, repo: str, pr_number: int, pr_author: str, token: str) -> list[str]:
-    """Get list of valid approved reviewers for a PR (excluding bots and the PR author)."""
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls/{pr_number}/reviews", token)
-    if resp.status != 200:
-        console.error(f"[BLT] Failed to fetch reviews for PR #{pr_number}: {resp.status}")
-        return []
+    """Get list of valid approved reviewers for a PR (excluding bots and the PR author).
     
-    reviews = json.loads(await resp.text())
+    Paginates through all reviews and tracks the latest state per reviewer.
+    Only reviewers with latest state == "APPROVED" count as valid.
+    """
+    # Track latest state per reviewer (chronological order, last event wins)
+    reviewer_latest_state = {}
+    page = 1
+    
+    while True:
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls/{pr_number}/reviews?per_page=100&page={page}", token)
+        if resp.status != 200:
+            console.error(f"[BLT] Failed to fetch reviews for PR #{pr_number}: {resp.status}")
+            break
+        
+        reviews = json.loads(await resp.text())
+        if not reviews:
+            break
+        
+        # Process reviews in chronological order; overwrite each reviewer's state
+        for review in reviews:
+            reviewer_login = review.get("user", {}).get("login", "")
+            state = review.get("state", "")
+            if reviewer_login:
+                reviewer_latest_state[reviewer_login] = state
+        
+        page += 1
+    
+    # Filter to only valid, approved reviewers
     valid_reviewers = set()
-    
-    for review in reviews:
-        if review.get("state") != "APPROVED":
+    for reviewer_login, state in reviewer_latest_state.items():
+        if state != "APPROVED":
             continue
-        reviewer_login = review.get("user", {}).get("login", "")
-        if not reviewer_login or reviewer_login == pr_author:
+        if reviewer_login == pr_author:
             continue
         if _is_excluded_reviewer(reviewer_login):
             continue
@@ -2056,9 +2076,10 @@ async def check_peer_review_and_comment(owner: str, repo: str, pr_number: int, p
                 already_commented = True
                 break
             page += 1
-            
-            if not already_commented:
-                body = f"""{marker}
+        
+        # Post comment only after searching all pages
+        if not already_commented:
+            body = f"""{marker}
 👋 Hi @{pr_author}!
 
 This pull request needs a peer review before it can be merged. Please request a review from a team member who is not:
@@ -2069,7 +2090,7 @@ This pull request needs a peer review before it can be merged. Please request a 
 Once a valid peer review is submitted, this check will pass automatically. Thank you!
 
 > ⚠️ Peer review enforcement is active."""
-                await create_comment(owner, repo, pr_number, body, token)
+            await create_comment(owner, repo, pr_number, body, token)
 
 
 async def handle_pull_request_review(payload: dict, token: str) -> None:
@@ -2175,10 +2196,19 @@ async def handle_webhook(request, env) -> Response:
         elif event == "pull_request":
             if action == "opened":
                 await handle_pull_request_opened(payload, token, env)
+                await handle_pull_request_for_review(payload, token)
+            elif action == "synchronize" or action == "reopened":
+                await handle_pull_request_for_review(payload, token)
             elif action == "closed":
                 await handle_pull_request_closed(payload, token, env)
-        elif event == "pull_request_review" and action == "submitted":
-            await handle_pull_request_review_submitted(payload, env)
+        elif event == "pull_request_review":
+            if action == "submitted":
+                # Preserve existing D1 review-credit tracking
+                await handle_pull_request_review_submitted(payload, env)
+                # Also check peer review status
+                await handle_pull_request_review(payload, token)
+            elif action == "dismissed":
+                await handle_pull_request_review(payload, token)
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
         return _json({"error": "Internal server error"}, 500)
