@@ -50,6 +50,15 @@ npx wrangler secret put PRIVATE_KEY
 npx wrangler secret put WEBHOOK_SECRET
 ```
 
+Bulk upload from `.env.production` with Worker verification:
+```bash
+chmod +x scripts/upload-production-vars.sh
+./scripts/upload-production-vars.sh
+```
+
+The script verifies `CLOUDFLARE_WORKER_NAME` in `.env.production` matches
+`name` in `wrangler.toml` before uploading any secrets.
+
 ### Testing
 
 ```bash

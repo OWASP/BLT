@@ -2,5 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 .dev.vars
+.env.production
 .DS_Store
 .wrangler/
+*.pem
