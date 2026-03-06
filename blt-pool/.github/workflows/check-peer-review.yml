@@ -27,7 +27,8 @@ jobs:
   check_peer_review:
     runs-on: ubuntu-latest
     if: >
-     github.event.pull_request.user.login != 'dependabot[bot]'
+     github.actor != 'github-actions[bot]'
+     && github.event.pull_request.user.login != 'dependabot[bot]'
      && github.event.pull_request.user.login != 'dependabot-preview[bot]'
      && github.event.pull_request.user.login != 'dependabot'
      && !contains(github.event.pull_request.user.login, 'copilot')
@@ -36,12 +37,12 @@ jobs:
         id: check_peer_review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_FULL: ${{ github.repository }}
         run: |
-          # Get PR number (available for both pull_request and pull_request_review events)
-          PR_NUMBER="${{ github.event.pull_request.number }}"
+          set -euo pipefail
           
           # Parse repository owner and name
-          REPO_FULL="${{ github.repository }}"
           REPO_OWNER="${REPO_FULL%/*}"
           REPO_NAME="${REPO_FULL#*/}"
           
@@ -75,9 +76,6 @@ jobs:
             exit 1
           fi
           
-          # Define excluded users (users whose reviews don't count as valid peer reviews)
-          EXCLUDED_USERS=("$PR_AUTHOR" "coderabbitai[bot]")
-          
           # Extract reviewer usernames from APPROVED reviews only
           # Filter out the PR author, specific excluded users, and any user with "copilot" in their username
           VALID_REVIEWERS=$(echo "$REVIEWS_RESPONSE" | jq -r --arg author "$PR_AUTHOR" \
@@ -94,7 +92,7 @@ jobs:
           # Check if there are any valid reviewers
           if [ -z "$VALID_REVIEWERS" ]; then
             echo "No peer review found from a valid reviewer."
-            echo "has_peer_review=false" >> $GITHUB_OUTPUT
+            echo "has_peer_review=false" >> "$GITHUB_OUTPUT"
             
             # Check if we already posted a comment
             COMMENTS_RESPONSE=$(curl -s -X GET \
@@ -145,7 +143,7 @@ jobs:
             exit 1
           else
             echo "Peer review check passed: Valid reviewers found: $VALID_REVIEWERS"
-            echo "has_peer_review=true" >> $GITHUB_OUTPUT
+            echo "has_peer_review=true" >> "$GITHUB_OUTPUT"
           fi
       
       - name: Add peer review status label
