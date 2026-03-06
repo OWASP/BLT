@@ -1248,27 +1248,40 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     if owner_resp.status == 200:
         owner_data = json.loads(await owner_resp.text())
         is_org = owner_data.get("type") == "Organization"
+    else:
+        console.error(f"[Leaderboard] Owner lookup failed for {owner}: status={owner_resp.status}")
 
     # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
 
-    # If D1 is configured but currently empty, backfill in small chunks per command run.
-    if leaderboard_data is not None and is_org and not leaderboard_data.get("sorted"):
-        backfill_result = await _run_incremental_backfill(owner, token, env)
-        if backfill_result:
-            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-            if backfill_result.get("completed"):
-                if backfill_result.get("processed", 0) > 0:
-                    leaderboard_note = (
-                        f"Backfill completed in this request; seeded data from {backfill_result.get('processed', 0)} repos."
-                    )
-            elif backfill_result.get("ran"):
-                leaderboard_note = (
-                    f"Backfill is in progress. Seeded {backfill_result.get('processed', 0)} repos in this run. "
-                    "Run `/leaderboard` again to continue filling historical data."
+    # Continue backfill until completed, not just when data is empty.
+    if leaderboard_data is not None and is_org:
+        db = _d1_binding(env)
+        if db:
+            month_key = _month_key()
+            state = await _get_backfill_state(db, owner, month_key)
+            if not state.get("completed"):
+                console.log(
+                    f"[Leaderboard] Running incremental backfill for {owner} "
+                    f"month={month_key} page={state.get('next_page')}"
                 )
-            else:
-                leaderboard_note = "Backfill could not run this time; leaderboard will continue updating from new webhook events."
+                backfill_result = await _run_incremental_backfill(owner, token, env)
+                if backfill_result:
+                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+                    if backfill_result.get("completed"):
+                        leaderboard_note = (
+                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
+                        )
+                    elif backfill_result.get("ran"):
+                        leaderboard_note = (
+                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run; "
+                            f"next page {backfill_result.get('next_page', '?')}. "
+                            "Run `/leaderboard` again to continue filling historical data."
+                        )
+                    else:
+                        leaderboard_note = "Backfill did not progress this run; leaderboard still updates from new webhook events."
+                else:
+                    leaderboard_note = "Backfill state unavailable; leaderboard still updates from new webhook events."
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
@@ -1297,12 +1310,15 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     # Format comment
     comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner, leaderboard_note)
     
-    # Delete existing leaderboard comment(s), then always create a fresh one.
+    # Delete existing leaderboard comment(s) and old /leaderboard command comments, then create a fresh leaderboard comment.
     resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100", token)
     if resp.status == 200:
         comments = json.loads(await resp.text())
         for c in comments:
-            if c.get("body") and LEADERBOARD_MARKER in c["body"]:
+            body = c.get("body") or ""
+            is_old_board = LEADERBOARD_MARKER in body
+            is_command_comment = _extract_command(body) == LEADERBOARD_COMMAND
+            if is_old_board or is_command_comment:
                 delete_resp = await github_api(
                     "DELETE",
                     f"/repos/{owner}/{repo}/issues/comments/{c['id']}",
@@ -1310,7 +1326,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
                 )
                 if delete_resp.status not in (204, 200):
                     console.error(
-                        f"[Leaderboard] Failed to delete old leaderboard comment {c['id']} "
+                        f"[Leaderboard] Failed to delete old leaderboard/command comment {c['id']} "
                         f"for {owner}/{repo}#{issue_number}: status={delete_resp.status}"
                     )
     else:
@@ -1483,6 +1499,18 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
         await _unassign(owner, repo, issue, login, token)
     elif command == LEADERBOARD_COMMAND:
         console.log(f"[Leaderboard] Command received for {owner}/{repo}#{issue_number} by @{login}")
+        # Best effort: remove the triggering command comment to keep threads clean.
+        if env is not None and comment_id:
+            delete_cmd_resp = await github_api(
+                "DELETE",
+                f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
+                token,
+            )
+            if delete_cmd_resp.status not in (204, 200):
+                console.error(
+                    f"[Leaderboard] Failed to delete triggering command comment {comment_id} "
+                    f"for {owner}/{repo}#{issue_number}: status={delete_cmd_resp.status}"
+                )
         try:
             if env is None:
                 await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
