@@ -448,11 +448,21 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     # 4. Search for comments in this month across org (optional, budget permitting)
     # Limit to 2 pages to stay under budget
     since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_timestamp))
+    # Note: Skipping comment counting to conserve API budget
+    # With 50 repos, we need to prioritize PRs and reviews
+    
+    # 5. Fetch reviews from a sample of merged PRs - budget 15 calls
+    # Strategy: Get repo URLs from merged PRs, fetch reviews for top 15 PRs
+    max_review_calls = 15
+    review_calls_used = 0
+    
+    # Get merged PRs again (already cached in memory from step 2)
     page = 1
-    while page <= 2:
+    sampled_prs = []
+    while page <= 2 and len(sampled_prs) < max_review_calls:
         resp = await github_api(
             "GET",
-            f"/search/issues?q=is:pr+org:{owner}+commented:>{start_date}&per_page=100&page={page}",
+            f"/search/issues?q=is:pr+is:merged+org:{owner}+merged:{start_date}..{end_date}&per_page=50&page={page}&sort=updated",
             token
         )
         if resp.status != 200:
@@ -462,20 +472,53 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
         if not items:
             break
         
-        # For each PR with comments, we'd need to fetch comments (too expensive)
-        # Instead, use a simplified heuristic: 1 comment point per PR with comments
+        # Extract repo and PR number from each PR
         for pr in items:
-            if pr.get("comments", 0) > 0:
-                # Attribute comment to PR author as proxy (not perfect but efficient)
-                if pr.get("user") and not _is_bot(pr["user"]):
-                    login = pr["user"]["login"]
-                    ensure_user(login)
-                    # Give 1 comment point (conservative estimate)
-                    user_stats[login]["comments"] += 1
+            if len(sampled_prs) >= max_review_calls:
+                break
+            # Parse repo from repository_url: /repos/{owner}/{repo}
+            repo_url = pr.get("repository_url", "")
+            if repo_url:
+                parts = repo_url.split("/")
+                if len(parts) >= 2:
+                    repo_name = parts[-1]
+                    pr_number = pr.get("number")
+                    if repo_name and pr_number:
+                        sampled_prs.append((repo_name, pr_number))
         
-        if len(items) < 100:
+        if len(items) < 50:
             break
         page += 1
+    
+    # Fetch reviews for sampled PRs
+    for repo_name, pr_number in sampled_prs:
+        if review_calls_used >= max_review_calls:
+            break
+        
+        resp_reviews = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews",
+            token
+        )
+        review_calls_used += 1
+        
+        if resp_reviews.status == 200:
+            reviews = json.loads(await resp_reviews.text())
+            pr_review_count = {}
+            
+            for review in reviews:
+                if review.get("user") and not _is_bot(review["user"]):
+                    submitted_at = review.get("submitted_at")
+                    if submitted_at:
+                        review_ts = _parse_github_timestamp(submitted_at)
+                        if start_timestamp <= review_ts <= end_timestamp:
+                            login = review["user"]["login"]
+                            pr_review_count[login] = pr_review_count.get(login, 0) + 1
+            
+            # Count only first 2 reviewers per PR to avoid spam
+            for login in list(pr_review_count.keys())[:2]:
+                ensure_user(login)
+                user_stats[login]["reviews"] += 1
     
     # Calculate total scores
     # open: +1, merged: +10, closed: -2, reviews: +5, comments: +2

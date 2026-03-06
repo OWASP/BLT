@@ -7,13 +7,12 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 - **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
 - **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request.
-- **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard. Works across all repositories in the organization!
-- **Monthly leaderboard** — Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
+- **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
+- **Monthly leaderboard** — Works across **entire organization** (scales to 50+ repos) using GitHub's Search API. Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
   - Open PRs (+1 each)
   - Merged PRs (+10)
   - Closed PRs without merge (−2)
-  - PR Reviews (+5; first two per PR count)
-  - Comments (+2; excludes CodeRabbit mentions)
+  - PR Reviews (+5; sampled from recent merged PRs)
 - **Auto-close excess PRs** — PRs are automatically closed if the author has 50+ open PRs in the repository.
 - **Rank improvement congratulations** — When a PR is merged and the author's rank improves on the 6-month leaderboard, they receive a congratulatory message.
 - **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://github.com/OWASP-BLT/BLT-API).
@@ -34,6 +33,28 @@ Copy `.dev.vars.example` to `.dev.vars` and fill in your credentials:
 ```bash
 cp .dev.vars.example .dev.vars
 ```
+## Architecture Notes
+
+### Leaderboard Scalability
+
+The leaderboard system is optimized to support organizations with **50+ repositories** while staying under Cloudflare Workers' 50 subrequest limit.
+
+**Search API Approach:**
+- Uses GitHub's `/search/issues` API to query across all repos in a single call
+- Example: `is:pr org:OWASP-BLT is:merged merged:2024-03-01..2024-03-31`
+- Total API calls: ~24 maximum (vs 150+ with naive per-repo iteration)
+
+**API Budget Breakdown:**
+- Open PRs search: 1-3 calls (all repos)
+- Merged PRs search: 1-3 calls (all repos, filtered by date)
+- Closed PRs search: 1-3 calls (all repos, filtered by date)
+- Review sampling: 2 search calls + 15 review fetches = 17 calls
+
+**Trade-offs:**
+- Reviews are sampled from 15 most recent merged PRs (not exhaustive)
+- Comments are not counted (to conserve API budget)
+- Optimized for accuracy on PRs (main metric) while staying within limits
+
 
 | Variable | Description |
 |---|---|
