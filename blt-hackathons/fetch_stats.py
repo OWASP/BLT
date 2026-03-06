@@ -273,6 +273,9 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
             if is_merged:
                 participants[username]["mergedCount"] += 1
 
+    # Map PR URL to author
+    pr_authors = {pr["html_url"]: pr["user"]["login"] for pr in prs}
+
     # Process reviews
     for review in all_reviews:
         username = review["user"]["login"]
@@ -289,6 +292,12 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
 
         submitted_at = datetime.fromisoformat(submitted_at_str.replace("Z", "+00:00"))
         if not (start_dt <= submitted_at <= end_dt):
+            continue
+
+        # Exclude self-reviews
+        pr_url = review.get("pull_request_url")
+        pr_author = pr_authors.get(pr_url) or review.get("pull_request_author")
+        if pr_author and username == pr_author:
             continue
 
         if username not in participants:
@@ -311,10 +320,9 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
                 "state": review.get("state"),
                 "submitted_at": review.get("submitted_at"),
                 "html_url": review.get("html_url", ""),
-                "pull_request_url": review.get(
-                    "pull_request_url", review.get("html_url", "")
-                ),
+                "pull_request_url": pr_url,
                 "pull_request_title": review.get("pull_request_title", ""),
+                "pull_request_author": pr_author,
             }
         )
 
@@ -475,6 +483,7 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
                     review["repository"] = repo_path
                     review["pull_request_url"] = pr.get("html_url", "")
                     review["pull_request_title"] = pr.get("title", "")
+                    review["pull_request_author"] = pr["user"]["login"]
                 return reviews
             except Exception as exc:
                 logger.error("Failed to fetch reviews for %s#%d: %s", repo_path, pr_number, exc)
@@ -517,7 +526,7 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
                     continue
                 
                 # Reconstruct enough of the review object for process_hackathon_stats
-                # We need: user.login, submitted_at, state, id, html_url, pull_request_url, pull_request_title
+                # We need: user.login, submitted_at, state, id, html_url, pull_request_url, pull_request_title, pull_request_author
                 reconstructed_review = {
                     "id": review_id,
                     "user": {"login": p["username"]},
@@ -526,6 +535,7 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
                     "html_url": r.get("html_url"),
                     "pull_request_url": pr_url,
                     "pull_request_title": r.get("pull_request_title"),
+                    "pull_request_author": r.get("pull_request_author"),
                 }
                 old_reviews.append(reconstructed_review)
                 if review_id:
