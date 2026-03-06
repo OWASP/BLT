@@ -410,8 +410,22 @@ async def _d1_all(db, sql: str, params: tuple = ()) -> list:
     stmt = db.prepare(sql)
     if params:
         stmt = stmt.bind(*params)
-    result = _to_py(await stmt.all())
+    raw_result = await stmt.all()
 
+    # Cloudflare D1 returns JS proxy objects at runtime; serialize through JS JSON
+    # first to reliably convert to Python dict/list structures.
+    try:
+        from js import JSON as JS_JSON  # noqa: PLC0415 - runtime import
+        js_json = JS_JSON.stringify(raw_result)
+        parsed = json.loads(str(js_json))
+        rows = parsed.get("results") if isinstance(parsed, dict) else None
+        if isinstance(rows, list):
+            return rows
+    except Exception:
+        pass
+
+    # Fallback path for local tests or non-JS proxy values.
+    result = _to_py(raw_result)
     rows = None
     if isinstance(result, dict):
         rows = result.get("results")
@@ -422,7 +436,7 @@ async def _d1_all(db, sql: str, params: tuple = ()) -> list:
             rows = getattr(result, "results", None)
 
     rows = _to_py(rows)
-    if not rows:
+    if rows is None:
         return []
     if isinstance(rows, list):
         return rows
