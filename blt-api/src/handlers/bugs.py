@@ -193,9 +193,27 @@ async def handle_bugs(
                 status=400
             )
         
+        
         # Validate URL length
         if len(body["url"]) > 200:
             return error_response("URL must be 200 characters or less", status=400)
+
+        # Validate URL format and protocol
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(body["url"])
+            if parsed.scheme not in ("http", "https"):
+                return error_response(
+                    "URL must use http or https protocol",
+                    status=400
+                )
+            if not parsed.netloc:
+                return error_response(
+                    "URL must include a valid domain",
+                    status=400
+                )
+        except Exception:
+            return error_response("Invalid URL format", status=400)
         
         try:
             # Insert the new bug - use None for NULL values
