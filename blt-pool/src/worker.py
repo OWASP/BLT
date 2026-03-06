@@ -226,24 +226,42 @@ async def create_comment(
     owner: str, repo: str, number: int, body: str, token: str
 ) -> None:
     """Post a comment on a GitHub issue or pull request."""
-    await github_api(
+    resp = await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/{number}/comments",
         token,
         {"body": body},
     )
+    if resp.status not in (200, 201):
+        try:
+            err_text = await resp.text()
+        except Exception:
+            err_text = "<no response body>"
+        console.error(
+            f"[GitHub] Failed to create comment on {owner}/{repo}#{number}: "
+            f"status={resp.status} body={err_text[:300]}"
+        )
 
 
 async def create_reaction(
     owner: str, repo: str, comment_id: int, reaction: str, token: str
 ) -> None:
     """Add a reaction to a comment. Common reactions: +1, -1, laugh, confused, heart, hooray, rocket, eyes."""
-    await github_api(
+    resp = await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
         token,
         {"content": reaction},
     )
+    if resp.status not in (200, 201):
+        try:
+            err_text = await resp.text()
+        except Exception:
+            err_text = "<no response body>"
+        console.error(
+            f"[GitHub] Failed to create reaction on {owner}/{repo} comment={comment_id}: "
+            f"status={resp.status} body={err_text[:300]}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -310,6 +328,21 @@ def _is_coderabbit_ping(body: str) -> bool:
         return False
     lower = body.lower()
     return "coderabbit" in lower or "@coderabbitai" in lower
+
+
+def _extract_command(body: str) -> Optional[str]:
+    """Extract a supported slash command from comment body (case-insensitive)."""
+    if not body:
+        return None
+    tokens = body.strip().split()
+    if not tokens:
+        return None
+    supported = {ASSIGN_COMMAND, UNASSIGN_COMMAND, LEADERBOARD_COMMAND}
+    for t in tokens:
+        tok = t.strip().lower().rstrip(".,!?:;")
+        if tok in supported:
+            return tok
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -1287,6 +1320,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
         )
 
     await create_comment(owner, repo, issue_number, comment_body, token)
+    console.log(f"[Leaderboard] Posted leaderboard comment for {owner}/{repo}#{issue_number} (requested by @{author_login})")
 
 
 async def _check_and_close_excess_prs(owner: str, repo: str, pr_number: int, author_login: str, token: str) -> bool:
@@ -1432,6 +1466,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
         console.error(f"[Leaderboard] Failed to persist comment event: {exc}")
 
     body = comment["body"].strip()
+    command = _extract_command(body)
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     login = comment["user"]["login"]
@@ -1439,14 +1474,15 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     comment_id = comment.get("id")
     
     # Add eyes reaction immediately to acknowledge command receipt
-    if comment_id and (body.startswith(ASSIGN_COMMAND) or body.startswith(UNASSIGN_COMMAND) or body.startswith(LEADERBOARD_COMMAND)):
+    if comment_id and command:
         await create_reaction(owner, repo, comment_id, "eyes", token)
     
-    if body.startswith(ASSIGN_COMMAND):
+    if command == ASSIGN_COMMAND:
         await _assign(owner, repo, issue, login, token)
-    elif body.startswith(UNASSIGN_COMMAND):
+    elif command == UNASSIGN_COMMAND:
         await _unassign(owner, repo, issue, login, token)
-    elif body.startswith(LEADERBOARD_COMMAND):
+    elif command == LEADERBOARD_COMMAND:
+        console.log(f"[Leaderboard] Command received for {owner}/{repo}#{issue_number} by @{login}")
         try:
             if env is None:
                 await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
