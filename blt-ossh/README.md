@@ -1,4 +1,4 @@
-# BLT-OSSH ≡ƒÄ⌐Γ£¿
+# BLT-OSSH 🎩✨
 **Open Source Sorting Hat** - AI-powered GitHub profile analyzer that recommends perfect open source projects
 
 ## Overview
@@ -6,24 +6,24 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Features
 
-### ≡ƒöì GitHub Profile Analysis
+### 🔍 GitHub Profile Analysis
 - Fetches and analyzes your GitHub repositories, languages, and topics
 - AI-powered matching of projects based on your tech stack
 - Real-time GitHub API integration
 
-### ≡ƒæÑ Community Platform
+### 👥 Community Platform
 - **Create Developer Profiles** - Share your profile with the community
 - **Browse Profiles** - Discover developers with similar interests
 - **Smart Profile Creation** - After analyzing your GitHub, create a community profile with pre-filled data
 - **Filter & Search** - Find developers by experience level, skills, or location
 
-### ≡ƒÄ» Personalized Recommendations
+### 🎯 Personalized Recommendations
 - Open source projects matching your tech stack
 - Developer communities and organizations
 - Curated learning resources and articles
 - Active discussion channels (Discord, Slack, Reddit, etc.)
 
-### ≡ƒîÖ Modern UI/UX
+### 🌙 Modern UI/UX
 - Beautiful dark mode support
 - Responsive design for all devices
 - Smooth animations and transitions
@@ -41,13 +41,6 @@ BLT-OSSH (Open Source Sorting Hat) helps contributors discover open-source proje
 
 Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focusing on contributor onboarding and project matching rather than bug reporting.
 
-### How It Works
-
-1. **User submits a GitHub username** — The user enters their GitHub handle on the OSSH homepage.
-2. **OSSH fetches and analyzes** — The frontend calls the GitHub API to retrieve user profile, repositories, languages, and topics.
-3. **Matching logic runs client-side** — The `buildRecommendations()` function in `js/app.js` analyzes repository languages, contribution patterns, and metadata to identify relevant projects.
-4. **Recommendations are displayed** — Results include recommended repositories, communities, articles, and discussion channels.
-
 ### Key Architectural Decisions
 
 - **No backend** — All logic runs in the browser. GitHub API is called directly from the client.
@@ -59,15 +52,15 @@ Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery laye
 ### Simple & Direct
 1. **Submit Profile**: Users create a GitHub Issue using the template
 2. **Auto-Labeled**: Issue gets `profile` label automatically
-3. **Live Display**: Community page fetches and displays issues in real-time
+3. **Live Display**: Workflow generates `data/profiles.json` from issues; Community page displays profiles
 4. **Edit Anytime**: Users edit their issue to update their profile
 
 ### Why GitHub Issues?
-- Γ£à **Simple**: No backend needed, just GitHub API
-- Γ£à **User-Friendly**: Anyone can submit via familiar GitHub Issues
-- Γ£à **Editable**: Users can update their profiles anytime
-- Γ£à **Moderated**: Maintainers can review via issue management
-- Γ£à **No Rate Limits**: Reasonable usage stays within GitHub's limits
+- ✅ **Simple**: No backend needed, just GitHub API
+- ✅ **User-Friendly**: Anyone can submit via familiar GitHub Issues
+- ✅ **Editable**: Users can update their profiles anytime
+- ✅ **Moderated**: Maintainers can review via issue management
+- ✅ **Within limits**: Normal usage stays within GitHub's rate limits
 
 ## Getting Started
 
@@ -125,24 +118,25 @@ Visit `http://localhost:8000` to load the main analysis page. Visit `http://loca
 Pushes to the `main` branch automatically deploy to GitHub Pages via the workflow at `.github/workflows/deploy.yml`.
 
 To enable GitHub Pages for the repository:
-1. Go to **Settings ΓåÆ Pages**
+1. Go to **Settings → Pages**
 2. Set **Source** to **GitHub Actions**
 
 ## Project Structure
-```
+
+```text
 BLT-OSSH/
-Γö£ΓöÇΓöÇ .github/
-Γöé   Γö£ΓöÇΓöÇ workflows/
-Γöé   Γöé   ΓööΓöÇΓöÇ deploy.yml           # GitHub Pages deployment
-Γöé   ΓööΓöÇΓöÇ ISSUE_TEMPLATE/
-Γöé       ΓööΓöÇΓöÇ user_profile.yml     # Community profile template
-Γö£ΓöÇΓöÇ static/
-Γöé   ΓööΓöÇΓöÇ logo.png                 # BLT logo
-Γö£ΓöÇΓöÇ js/
-Γöé   ΓööΓöÇΓöÇ app.js                   # Frontend logic & GitHub API calls
-Γö£ΓöÇΓöÇ index.html                   # Main analysis page
-Γö£ΓöÇΓöÇ community.html               # Community profiles page
-ΓööΓöÇΓöÇ README.md                    # This file
+├── .github/
+│   ├── workflows/
+│   │   └── deploy.yml           # GitHub Pages deployment
+│   └── ISSUE_TEMPLATE/
+│       └── user_profile.yml     # Community profile template
+├── static/
+│   └── logo.png                 # BLT logo
+├── js/
+│   └── app.js                   # Frontend logic & GitHub API calls
+├── index.html                   # Main analysis page
+├── community.html               # Community profiles page
+└── README.md                    # This file
 ```
 
 ## How It Works
@@ -150,7 +144,7 @@ BLT-OSSH/
 ### 1. GitHub Analysis Flow
 1. User enters their GitHub username
 2. Frontend fetches profile and repository data from GitHub API
-3. System analyzes languages, topics, and contribution patterns
+3. System analyzes languages, topics, and repository metadata
 4. Generates personalized recommendations
 5. Results displayed with stats, projects, communities, and resources
 
@@ -165,11 +159,11 @@ BLT-OSSH/
 4. User redirected to GitHub Issues with template pre-filled
 5. User adds additional info (interests, looking for, location, social links)
 6. Submit issue to create profile
-7. Profile appears on Community page immediately (fetched from GitHub Issues)
+7. Profile appears on Community page after workflow updates `data/profiles.json`
 
 ### 3. Profile Discovery
-- Community page fetches all open issues with `profile` label
-- Parses issue body to extract profile information
+- Community page loads profiles from `data/profiles.json`
+- Workflow fetches GitHub Issues with `profile` label and generates the JSON
 - Displays profiles with rich cards showing:
   - Experience level badge
   - Skills and interests
@@ -187,14 +181,14 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 |----------|---------|
 | `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
 | `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
-| `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (stored as GitHub Issues) |
+| `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues API) |
 
 ### Data Fetched
 
 - **User profile** — Avatar, bio, public repos count, followers, following
 - **Repositories** — Names, descriptions, languages, stars, fork status
 - **Languages used** — Extracted from repository metadata and weighted by frequency
-- **Community profiles** — Parsed from issue bodies on the Community page
+- **Community profiles** — Loaded from `data/profiles.json` (generated by workflow from GitHub Issues)
 
 ### Rate Limits
 
@@ -208,56 +202,13 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - **No authentication required** for basic usage — the app works with unauthenticated API calls
 - For higher rate limits or private repository access, you could add a GitHub token; this is not currently implemented in the static frontend
 
-## Usage
-
-### For Users
-1. **Analyze Your Profile**
-   - Visit OSSH homepage
-   - Enter your GitHub username
-   - Click "Find My Projects"
-   - Explore personalized recommendations
-
-2. **Join the Community**
-   - After analysis, click "Create My Community Profile"
-   - Review pre-filled data (username, bio, skills)
-   - Add additional information (interests, looking for, social links)
-   - Submit to create your profile
-
-3. **Discover Developers**
-   - Visit the Community page
-   - Browse developer profiles
-   - Filter by experience level
-   - Search by name, skills, or location
-   - Connect via GitHub, website, or social media
-
-### For Contributors
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
-- Adding new project recommendations
-- Improving the matching algorithm
-- Enhancing the UI/UX
-- Adding new features
-
 ## Features in Detail
 
 ### Smart Matching Algorithm
 - Analyzes your repository languages and frequency
-- Considers your starred repos and topics
+- Considers repository descriptions and metadata
 - Matches you with trending and well-maintained projects
-- Weighs factors like activity, stars, and relevance
-
-### Community Features
-- **Profile Cards**: Rich cards with avatar, bio, skills, interests
-- **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
-- **Search & Filter**: Find developers by name, username, skills, or experience level
-- **Real-time Stats**: Community statistics (member count, languages, countries)
-- **Social Integration**: Connect via GitHub, website, Twitter, LinkedIn
-- **GitHub-Powered**: Uses GitHub Issues as database for profiles
-
-### Recommendation Categories
-- **Projects**: Open source repositories matching your tech stack
-- **Communities**: Developer communities and organizations
-- **Articles**: Learning resources and documentation
-- **Discussions**: Forums, Discord servers, and chat platforms
+- Weighs factors like stars, descriptions, and relevance
 
 ## Community Profile Template
 
@@ -284,7 +235,7 @@ After analyzing your GitHub profile, the system automatically pre-fills:
 - Looking for section with smart suggestions
 
 ## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, and more.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -318,4 +269,4 @@ This project is part of OWASP BLT and follows its licensing terms.
 - All contributors
 
 ---
-Made with Γ¥ñ∩╕Å by the OWASP BLT Community
+Made with ❤️ by the OWASP BLT Community
