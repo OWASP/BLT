@@ -98,20 +98,28 @@ async def test_handle_task_queue_rejects_non_post():
 
 
 @pytest.mark.asyncio
-async def test_handle_task_queue_validates_required_fields():
+@pytest.mark.parametrize(
+    "payload, expected_fields",
+    [
+        ({}, "target_id, task_types"),
+        ({"target_id": "target-1"}, "task_types"),
+        ({"task_types": ["crawler"]}, "target_id"),
+    ],
+)
+async def test_handle_task_queue_validates_required_fields(payload, expected_fields):
     worker = BLTWorker(SimpleNamespace(DB=None))
 
     response = await worker.handle_task_queue(
         FakeRequest(
             "https://api.example.com/api/tasks/queue",
             method="POST",
-            payload={"target_id": "target-1"},
+            payload=payload,
         )
     )
     payload = parse_json(response)
 
     assert response.status == 400
-    assert payload["error"] == "Missing required fields: target_id, task_types"
+    assert payload["error"] == f"Missing required fields: {expected_fields}"
 
 
 @pytest.mark.asyncio
@@ -331,4 +339,3 @@ async def test_on_fetch_entrypoint_uses_worker_handler():
 
     assert response.status == 200
     assert payload["status"] == "operational"
-
