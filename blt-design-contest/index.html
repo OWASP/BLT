@@ -313,6 +313,28 @@
   </section>
 
   <!-- ══════════════════════════════════════════
+       RECENT SUBMISSIONS
+  ══════════════════════════════════════════ -->
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Latest dive deeper into past submissions.
+          </p>
+        </div>
+      </div>
+
+      <div id="recent-submissions-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          Loading recent submissions...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
        FOOTER
   ══════════════════════════════════════════ -->
   <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
@@ -358,10 +380,9 @@
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     });
 
-    // Format submission dates in user's local timezone; cap any future dates to today
-    (function () {
+    function formatSubmissionDates(root) {
       var now = new Date();
-      document.querySelectorAll('time.sub-date').forEach(function (el) {
+      root.querySelectorAll('time.sub-date').forEach(function (el) {
         var raw = el.getAttribute('datetime');
         if (!raw) return;
         var d = new Date(raw);
@@ -370,6 +391,121 @@
         el.textContent = d.toLocaleDateString(undefined, {
           year: 'numeric', month: 'short', day: 'numeric'
         });
+      });
+    }
+
+    // Format submission dates in user's local timezone; cap any future dates to today
+    formatSubmissionDates(document);
+
+    function escapeHtml(text) {
+      return String(text || '').replace(/[&<>"']/g, function (ch) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[ch];
+      });
+    }
+
+    // Populate latest 3 submissions from contest pages, sorted by submitted time.
+    (function () {
+      var grid = document.getElementById('recent-submissions-grid');
+      if (!grid) return;
+
+      var contestLinks = Array.from(document.querySelectorAll('#contests a[href$=".html"]'))
+        .map(function (a) { return a.getAttribute('href'); })
+        .filter(Boolean);
+
+      if (!contestLinks.length) {
+        grid.innerHTML = '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No recent submissions available.</div>';
+        return;
+      }
+
+      Promise.all(contestLinks.map(function (href) {
+        return fetch(href, { cache: 'no-store' })
+          .then(function (resp) { return resp.ok ? resp.text() : ''; })
+          .catch(function () { return ''; });
+      }))
+      .then(function (pages) {
+        var parser = new DOMParser();
+        var submissions = [];
+
+        pages.forEach(function (content, idx) {
+          if (!content) return;
+          var doc = parser.parseFromString(content, 'text/html');
+          var contestName = '';
+          var contestHeading = doc.querySelector('.contest-panel h2');
+          if (contestHeading) {
+            contestName = contestHeading.textContent.trim();
+          } else {
+            contestName = 'Contest';
+          }
+
+          doc.querySelectorAll('article[data-issue-url]').forEach(function (article) {
+            var timeEl = article.querySelector('time.sub-date[datetime]');
+            var rawDate = timeEl ? timeEl.getAttribute('datetime') : '';
+            var submittedAt = rawDate ? new Date(rawDate) : null;
+            if (!submittedAt || isNaN(submittedAt.getTime())) return;
+
+            var titleEl = article.querySelector('h2 a');
+            var title = titleEl ? titleEl.textContent.trim() : 'Untitled submission';
+            var issueUrl = article.getAttribute('data-issue-url') || (titleEl ? titleEl.getAttribute('href') : '#');
+            var previewImg = article.querySelector('a img');
+            var previewUrl = previewImg ? previewImg.getAttribute('src') : '';
+
+            submissions.push({
+              contestName: contestName,
+              contestUrl: contestLinks[idx],
+              title: title,
+              issueUrl: issueUrl,
+              previewUrl: previewUrl,
+              submittedRaw: rawDate,
+              submittedAt: submittedAt
+            });
+          });
+        });
+
+        submissions.sort(function (a, b) {
+          return b.submittedAt.getTime() - a.submittedAt.getTime();
+        });
+
+        var latestThree = submissions.slice(0, 3);
+        if (!latestThree.length) {
+          grid.innerHTML = '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No recent submissions available.</div>';
+          return;
+        }
+
+        grid.innerHTML = latestThree.map(function (item) {
+          var previewBlock = item.previewUrl
+            ? '<a href="' + escapeHtml(item.issueUrl) + '" target="_blank" rel="noopener" class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700"><img src="' + escapeHtml(item.previewUrl) + '" alt="' + escapeHtml(item.title) + ' preview" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" /></a>'
+            : '<a href="' + escapeHtml(item.issueUrl) + '" target="_blank" rel="noopener" class="flex items-center justify-center aspect-video bg-gray-100 dark:bg-gray-700 text-gray-400"><i class="fa-solid fa-image text-3xl" aria-hidden="true"></i></a>';
+
+          return '' +
+            '<article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-[#E10101] transition-all duration-200">' +
+              '<div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>' +
+              previewBlock +
+              '<div class="p-5 flex flex-col gap-3">' +
+                '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                  '<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">' + escapeHtml(item.contestName) + '</span>' +
+                  '<span class="text-xs text-gray-400 dark:text-gray-500"><time class="sub-date" datetime="' + escapeHtml(item.submittedRaw) + '">' + escapeHtml(item.submittedRaw.slice(0, 10)) + '</time></span>' +
+                '</div>' +
+                '<h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">' +
+                  '<a href="' + escapeHtml(item.issueUrl) + '" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors">' + escapeHtml(item.title) + '</a>' +
+                '</h3>' +
+                '<div class="flex items-center justify-between gap-3 pt-2 border-t border-[#E5E5E5] dark:border-gray-700">' +
+                  '<a href="' + escapeHtml(item.contestUrl) + '" class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">Open Contest</a>' +
+                  '<a href="' + escapeHtml(item.issueUrl) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 hover:bg-[#E10101] hover:text-white transition-colors"><i class="fa-brands fa-github" aria-hidden="true"></i> Issue</a>' +
+                '</div>' +
+              '</div>' +
+            '</article>';
+        }).join('');
+
+        formatSubmissionDates(grid);
+      })
+      .catch(function () {
+        grid.innerHTML = '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No recent submissions available.</div>';
       });
     })();
   </script>
