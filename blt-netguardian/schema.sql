@@ -48,5 +48,11 @@ CREATE TABLE IF NOT EXISTS vulnerabilities (
     updated_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS task_hashes (
+    task_hash TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_tasks_job_id ON tasks(job_id);
+CREATE INDEX IF NOT EXISTS idx_task_hashes_created_at ON task_hashes(created_at);
 CREATE INDEX IF NOT EXISTS idx_vulnerabilities_severity ON vulnerabilities(severity);
