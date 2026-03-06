@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadLeaderboard();
   loadRecentBugs();
   initSmoothScroll();
+  initLeaderboardFilters();
 });
 
 /* ────────────────────────────────────────────────────────────
@@ -189,6 +190,9 @@ async function loadLeaderboard() {
 
   if (!container) return;
 
+  const isHomepage = !!document.getElementById("homepage-leaderboard-limit");
+  const limit = isHomepage ? 5 : 0; // 0 means no limit
+
   // Skip re-render when content has already been server-side rendered into the HTML,
   // but still update the relative timestamps from the embedded inline data.
   if (container.dataset.preRendered === "true") {
@@ -196,6 +200,9 @@ async function loadLeaderboard() {
     if (inlineData) {
       updateTimestamps(inlineData);
       updateHeaderBugStats(inlineData.total_bugs, inlineData.open_bugs, inlineData.closed_bugs);
+      if (isHomepage) {
+        renderLeaderboard(container, inlineData, limit);
+      }
     }
     return;
   }
@@ -204,9 +211,10 @@ async function loadLeaderboard() {
     // Use inline data embedded by GitHub Action if available
     const inlineData = window.__BLT_LEADERBOARD__;
     if (inlineData && inlineData.leaderboard) {
-      renderLeaderboard(container, inlineData);
-      renderTopCommenters(document.getElementById("commenters-rows"), inlineData);
-      renderTopDomains(document.getElementById("domains-rows"), inlineData);
+      currentLeaderboardData = inlineData;
+      renderLeaderboard(container, inlineData, limit);
+      renderTopCommenters(document.getElementById("commenters-rows"), inlineData, isHomepage ? 5 : 0);
+      renderTopDomains(document.getElementById("domains-rows"), inlineData, isHomepage ? 5 : 0);
       if (statBugs) statBugs.textContent = formatNumber(inlineData.total_bugs || 0);
       if (statReporters) statReporters.textContent = formatNumber(inlineData.leaderboard.length || 0);
       if (statDomains) statDomains.textContent = inlineData.total_domains != null ? formatNumber(inlineData.total_domains) : "-";
@@ -217,18 +225,19 @@ async function loadLeaderboard() {
     const res = await fetch("data/leaderboard.json");
     if (!res.ok) throw new Error("No static data");
     const data = await res.json();
-    renderLeaderboard(container, data);
-    renderTopCommenters(document.getElementById("commenters-rows"), data);
-    renderTopDomains(document.getElementById("domains-rows"), data);
+    currentLeaderboardData = data;
+    renderLeaderboard(container, data, limit);
+    renderTopCommenters(document.getElementById("commenters-rows"), data, isHomepage ? 5 : 0);
+    renderTopDomains(document.getElementById("domains-rows"), data, isHomepage ? 5 : 0);
     if (statBugs) statBugs.textContent = formatNumber(data.total_bugs || 0);
     if (statReporters) statReporters.textContent = formatNumber(data.leaderboard?.length || 0);
     if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
     updateHeaderBugStats(data.total_bugs, data.open_bugs, data.closed_bugs);
-  } catch {
+  } catch (err) {
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
-      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters);
-    } catch (err) {
+      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit);
+    } catch (err2) {
       container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
         <svg class="fa-icon text-primary mr-2" aria-hidden="true"><use href="#fa-circle-exclamation"></use></svg>
         Could not load leaderboard. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -237,7 +246,9 @@ async function loadLeaderboard() {
   }
 }
 
-async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters) {
+let currentLeaderboardData = null;
+
+async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit = 0) {
   const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100`;
   const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
@@ -296,16 +307,17 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     updated_at: new Date().toISOString(),
   };
 
-  renderLeaderboard(container, data);
-  renderTopCommenters(document.getElementById("commenters-rows"), data);
-  renderTopDomains(document.getElementById("domains-rows"), data);
+  currentLeaderboardData = data;
+  renderLeaderboard(container, data, limit);
+  renderTopCommenters(document.getElementById("commenters-rows"), data, limit > 0 ? 5 : 0);
+  renderTopDomains(document.getElementById("domains-rows"), data, limit > 0 ? 5 : 0);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
   if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
   updateHeaderBugStats(data.total_bugs, data.open_bugs, data.closed_bugs);
 }
 
-function renderLeaderboard(container, data) {
+function renderLeaderboard(container, data, limit = 0, filter = "") {
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
@@ -315,9 +327,20 @@ function renderLeaderboard(container, data) {
   }
 
   const rankIcons = ["🥇", "🥈", "🥉"];
-  const maxCount = data.leaderboard[0]?.count || 1;
+  let leaderboard = data.leaderboard;
 
-  container.innerHTML = data.leaderboard
+  if (filter) {
+    const f = filter.toLowerCase();
+    leaderboard = leaderboard.filter(e => e.login.toLowerCase().includes(f));
+  }
+
+  if (limit > 0) {
+    leaderboard = leaderboard.slice(0, limit);
+  }
+
+  const maxCount = leaderboard[0]?.count || 1;
+
+  container.innerHTML = leaderboard
     .map((entry) => {
       const rankDisplay =
         entry.rank <= 3
@@ -330,44 +353,51 @@ function renderLeaderboard(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
+      const isCompact = limit > 0;
+
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
+                 class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.login)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+          ${isCompact ? '' : `
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
               <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
               ${formatNumber(entry.count)}
             </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1 flex-1 overflow-hidden">
+              <div class="bg-primary h-1 rounded-full" style="width:${activityPct}%"></div>
             </div>
-          </div>
+          </div>`}
         </td>
+        ${isCompact ? `
+        <td class="px-3 py-2 text-right">
+          <span class="font-bold text-gray-900 dark:text-white text-sm">${formatNumber(entry.count)}</span>
+        </td>` : `
         <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
             ${formatNumber(entry.count)}
           </span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
@@ -682,10 +712,20 @@ function renderRecentBugs(bugs) {
 /* ────────────────────────────────────────────────────────────
    Top Commenters
 ──────────────────────────────────────────────────────────── */
-function renderTopCommenters(container, data) {
+function renderTopCommenters(container, data, limit = 0, filter = "") {
   if (!container) return;
 
-  const commenters = data.top_commenters || [];
+  let commenters = data.top_commenters || [];
+
+  if (filter) {
+    const f = filter.toLowerCase();
+    commenters = commenters.filter(e => e.login.toLowerCase().includes(f));
+  }
+
+  if (limit > 0) {
+    commenters = commenters.slice(0, limit);
+  }
+
   if (commenters.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>
@@ -696,6 +736,8 @@ function renderTopCommenters(container, data) {
 
   const rankIcons = ["🥇", "🥈", "🥉"];
   const maxCount = commenters[0]?.count || 1;
+
+  const isCompact = limit > 0;
 
   container.innerHTML = commenters
     .map((entry) => {
@@ -710,44 +752,47 @@ function renderTopCommenters(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
+
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
+                 class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.login)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+          ${isCompact ? '' : `
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
               <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
               ${formatNumber(entry.count)}
             </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1 flex-1 overflow-hidden">
+              <div class="bg-primary h-1 rounded-full" style="width:${activityPct}%"></div>
             </div>
-          </div>
+          </div>`}
         </td>
-        <td class="hidden px-4 py-3 text-right sm:table-cell">
-          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
+        <td class="${isCompact ? 'px-3 py-2' : 'hidden px-4 py-3 sm:table-cell'} text-right">
+          <span class="font-bold text-gray-900 dark:text-white ${isCompact ? 'text-sm' : ''}">
+            ${isCompact ? '' : `<svg class="fa-icon text-primary text-xs mr-1" aria-hidden="true"><use href="#fa-comment"></use></svg>`}
             ${formatNumber(entry.count)}
           </span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        ${isCompact ? '' : `
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
@@ -756,10 +801,20 @@ function renderTopCommenters(container, data) {
 /* ────────────────────────────────────────────────────────────
    Top Domains
 ──────────────────────────────────────────────────────────── */
-function renderTopDomains(container, data) {
+function renderTopDomains(container, data, limit = 0, filter = "") {
   if (!container) return;
 
-  const domains = data.top_domains || [];
+  let domains = data.top_domains || [];
+
+  if (filter) {
+    const f = filter.toLowerCase();
+    domains = domains.filter(e => e.domain.toLowerCase().includes(f));
+  }
+
+  if (limit > 0) {
+    domains = domains.slice(0, limit);
+  }
+
   if (domains.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>
@@ -770,6 +825,8 @@ function renderTopDomains(container, data) {
 
   const rankIcons = ["🥇", "🥈", "🥉"];
   const maxCount = domains[0]?.count || 1;
+
+  const isCompact = limit > 0;
 
   container.innerHTML = domains
     .map((entry) => {
@@ -787,46 +844,53 @@ function renderTopDomains(container, data) {
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
 
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
           <a href="https://${escapeHtml(entry.domain)}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${faviconUrl}"
                  alt="${escapeHtml(entry.domain)} favicon"
                  class="w-5 h-5 rounded flex-shrink-0"
                  loading="lazy"
                  onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-5 h-5 flex-shrink-0\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.domain)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
-            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
-              <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
-              ${formatNumber(entry.count)}
-            </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
-            </div>
-          </div>
         </td>
-        <td class="hidden px-4 py-3 text-right sm:table-cell">
-          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
-            ${formatNumber(entry.count)}
-          </span>
+        <td class="px-3 py-2 text-right">
+          <span class="font-bold text-gray-900 dark:text-white text-sm">${formatNumber(entry.count)}</span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        ${isCompact ? '' : `
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
+}
+
+/* ────────────────────────────────────────────────────────────
+   Leaderboard Filters
+──────────────────────────────────────────────────────────── */
+function initLeaderboardFilters() {
+  const searchInput = document.getElementById("leaderboard-search");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", (e) => {
+    const data = window.__BLT_LEADERBOARD__ || currentLeaderboardData;
+    if (!data) return;
+
+    const query = e.target.value;
+    renderLeaderboard(document.getElementById("leaderboard-rows"), data, 0, query);
+    renderTopCommenters(document.getElementById("commenters-rows"), data, 0, query);
+    renderTopDomains(document.getElementById("domains-rows"), data, 0, query);
+  });
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -847,6 +911,24 @@ function initSmoothScroll() {
 /* ────────────────────────────────────────────────────────────
    Helpers
 ──────────────────────────────────────────────────────────── */
+/**
+ * Renders a stable, deterministic activity sparkline based on contribution count.
+ */
+function renderActivitySparkline(count, maxCount, totalBars = 12) {
+  const activeBars = Math.max(1, Math.min(totalBars, Math.ceil((count / maxCount) * totalBars)));
+
+  return Array.from({ length: totalBars }).map((_, i) => {
+    const isActive = i < activeBars;
+    // Predefined professional "growth" pattern for the bars
+    const baseHeight = 25;
+    const growthFactor = (i / totalBars) * 40;
+    const finalHeight = isActive ? Math.min(100, baseHeight + growthFactor + ((count / maxCount) * 20)) : 10;
+
+    const colorClass = isActive ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700';
+    return `<div class="w-full rounded-t-sm ${colorClass} transition-all duration-500" style="height: ${finalHeight}%"></div>`;
+  }).join('');
+}
+
 function formatNumber(n) {
   if (n >= 1000) return (n / 1000).toFixed(1) + "k";
   return String(n);
