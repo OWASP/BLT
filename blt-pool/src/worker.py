@@ -110,7 +110,7 @@ def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
 
 async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
     """Create a signed GitHub App JWT using the Web Crypto SubtleCrypto API."""
-    from js import Uint8Array, crypto  # noqa: PLC0415 — runtime import
+    from js import Uint8Array, crypto, Array  # noqa: PLC0415 — runtime import
 
     now = int(time.time())
     header_b64 = _b64url(
@@ -130,12 +130,15 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
     for i, b in enumerate(pkcs8_der):
         key_array[i] = b
 
+    # Create a proper JS Array for keyUsages
+    key_usages = getattr(Array, "from")(["sign"])
+
     crypto_key = await crypto.subtle.importKey(
         "pkcs8",
         key_array.buffer,
         {"name": "RSASSA-PKCS1-v1_5"},
         False,
-        ["sign"],
+        key_usages,
     )
 
     # Sign the JWT header.payload

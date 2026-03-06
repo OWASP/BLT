@@ -34,6 +34,14 @@ sys.modules.setdefault("pyodide", _pyodide_stub)
 sys.modules.setdefault("pyodide.ffi", _pyodide_ffi_stub)
 
 
+class _ArrayStub:
+    """Minimal Array stand-in with from() method."""
+    pass
+
+# Use setattr to set 'from' since it's a reserved keyword
+setattr(_ArrayStub, "from", staticmethod(lambda iterable: list(iterable) if not isinstance(iterable, list) else iterable))
+
+
 class _HeadersStub:
     def __init__(self, items=None):
         self._data = dict(items or [])
@@ -59,6 +67,7 @@ class _ResponseStub:
 
 _js_stub.Headers = _HeadersStub
 _js_stub.Response = _ResponseStub
+_js_stub.Array = _ArrayStub
 _js_stub.console = types.SimpleNamespace(error=print, log=print)
 _js_stub.fetch = None  # not used in unit tests
 
@@ -692,6 +701,7 @@ class TestCreateGithubJwt(unittest.TestCase):
                 {
                     "js": types.SimpleNamespace(
                         Uint8Array=self._Uint8ArrayStub,
+                        Array=_ArrayStub,
                         crypto=types.SimpleNamespace(subtle=mock_subtle),
                     ),
                 },
@@ -704,6 +714,38 @@ class TestCreateGithubJwt(unittest.TestCase):
             self.assertEqual(algorithm.get("name"), "RSASSA-PKCS1-v1_5")
 
         asyncio.run(_inner())
+
+    def test_to_js_called_for_key_usages(self):
+        """Array.from() is called to create a JS array for keyUsages."""
+        js_array_created = []
+
+        def mock_array_from(items):
+            js_array_created.append(items)
+            return items
+
+        async def _inner():
+            mock_array = MagicMock()
+            setattr(mock_array, "from", mock_array_from)
+            
+            with patch.dict(
+                sys.modules,
+                {
+                    "js": types.SimpleNamespace(
+                        Uint8Array=self._Uint8ArrayStub,
+                        Array=mock_array,
+                        crypto=types.SimpleNamespace(
+                            subtle=types.SimpleNamespace(
+                                importKey=AsyncMock(return_value=object()),
+                                sign=AsyncMock(return_value=bytes(64)),
+                            )
+                        ),
+                    ),
+                },
+            ):
+                await _worker.create_github_jwt("123", self._make_rsa_pem())
+        
+        asyncio.run(_inner())
+        self.assertIn(["sign"], js_array_created)
 
 
 if __name__ == "__main__":
