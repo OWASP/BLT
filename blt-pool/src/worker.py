@@ -22,7 +22,7 @@ import hashlib
 import hmac as _hmac
 import json
 import time
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
@@ -300,6 +300,401 @@ def _is_coderabbit_ping(body: str) -> bool:
 LEADERBOARD_MARKER = "<!-- leaderboard-bot -->"
 MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
+
+
+def _month_key(ts: Optional[int] = None) -> str:
+    """Return YYYY-MM month key for UTC timestamp (or now)."""
+    if ts is None:
+        ts = int(time.time())
+    return time.strftime("%Y-%m", time.gmtime(ts))
+
+
+def _month_window(month_key: str) -> Tuple[int, int]:
+    """Return start/end timestamps (UTC) for a YYYY-MM key."""
+    year, month = month_key.split("-")
+    y = int(year)
+    m = int(month)
+    start_struct = time.struct_time((y, m, 1, 0, 0, 0, 0, 0, 0))
+    start_ts = int(time.mktime(start_struct))
+    if m == 12:
+        next_struct = time.struct_time((y + 1, 1, 1, 0, 0, 0, 0, 0, 0))
+    else:
+        next_struct = time.struct_time((y, m + 1, 1, 0, 0, 0, 0, 0, 0))
+    end_ts = int(time.mktime(next_struct)) - 1
+    return start_ts, end_ts
+
+
+def _d1_binding(env):
+    """Return D1 binding object if configured, otherwise None."""
+    return getattr(env, "LEADERBOARD_DB", None)
+
+
+async def _d1_run(db, sql: str, params: tuple = ()):
+    stmt = db.prepare(sql)
+    if params:
+        stmt = stmt.bind(*params)
+    return await stmt.run()
+
+
+async def _d1_all(db, sql: str, params: tuple = ()) -> list:
+    stmt = db.prepare(sql)
+    if params:
+        stmt = stmt.bind(*params)
+    result = await stmt.all()
+    rows = result.get("results") if isinstance(result, dict) else None
+    return rows or []
+
+
+async def _d1_first(db, sql: str, params: tuple = ()):
+    rows = await _d1_all(db, sql, params)
+    return rows[0] if rows else None
+
+
+async def _ensure_leaderboard_schema(db) -> None:
+    """Create leaderboard tables if they do not exist."""
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_monthly_stats (
+            org TEXT NOT NULL,
+            month_key TEXT NOT NULL,
+            user_login TEXT NOT NULL,
+            merged_prs INTEGER NOT NULL DEFAULT 0,
+            closed_prs INTEGER NOT NULL DEFAULT 0,
+            reviews INTEGER NOT NULL DEFAULT 0,
+            comments INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (org, month_key, user_login)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_open_prs (
+            org TEXT NOT NULL,
+            user_login TEXT NOT NULL,
+            open_prs INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (org, user_login)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_pr_state (
+            org TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            pr_number INTEGER NOT NULL,
+            author_login TEXT NOT NULL,
+            state TEXT NOT NULL,
+            merged INTEGER NOT NULL DEFAULT 0,
+            closed_at INTEGER,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (org, repo, pr_number)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_review_credits (
+            org TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            pr_number INTEGER NOT NULL,
+            month_key TEXT NOT NULL,
+            reviewer_login TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            PRIMARY KEY (org, repo, pr_number, month_key, reviewer_login)
+        )
+        """,
+    )
+
+
+async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
+    now = int(time.time())
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(org, user_login) DO UPDATE SET
+            open_prs = MAX(0, leaderboard_open_prs.open_prs + excluded.open_prs),
+            updated_at = excluded.updated_at
+        """,
+        (org, user_login, delta, now),
+    )
+
+
+async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: str, delta: int = 1) -> None:
+    now = int(time.time())
+    if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
+        return
+    await _d1_run(
+        db,
+        f"""
+        INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+            {field} = leaderboard_monthly_stats.{field} + excluded.{field},
+            updated_at = excluded.updated_at
+        """,
+        (org, month_key, user_login, delta, now),
+    )
+
+
+async def _track_pr_opened_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+    pr = payload.get("pull_request") or {}
+    author = pr.get("user") or {}
+    if _is_bot(author):
+        return
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    author_login = author.get("login", "")
+    if not (org and repo and pr_number and author_login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    existing = await _d1_first(
+        db,
+        "SELECT state FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        (org, repo, pr_number),
+    )
+    if not existing or existing.get("state") != "open":
+        await _d1_inc_open_pr(db, org, author_login, 1)
+
+    now = int(time.time())
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = 'open',
+            merged = 0,
+            closed_at = NULL,
+            updated_at = excluded.updated_at
+        """,
+        (org, repo, pr_number, author_login, now),
+    )
+
+
+async def _track_pr_closed_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+    pr = payload.get("pull_request") or {}
+    author = pr.get("user") or {}
+    if _is_bot(author):
+        return
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    author_login = author.get("login", "")
+    closed_at = pr.get("closed_at")
+    merged_at = pr.get("merged_at")
+    merged = bool(pr.get("merged"))
+    closed_ts = _parse_github_timestamp(closed_at) if closed_at else int(time.time())
+    if not (org and repo and pr_number and author_login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    existing = await _d1_first(
+        db,
+        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        (org, repo, pr_number),
+    )
+
+    # Idempotency: skip if we already recorded the same closed state.
+    if existing and existing.get("state") == "closed" and int(existing.get("merged") or 0) == int(merged):
+        existing_closed_at = int(existing.get("closed_at") or 0)
+        if existing_closed_at == int(closed_ts or 0):
+            return
+
+    if existing and existing.get("state") == "open":
+        await _d1_inc_open_pr(db, org, author_login, -1)
+
+    event_ts = _parse_github_timestamp(merged_at) if merged and merged_at else closed_ts
+    mk = _month_key(event_ts)
+    if merged:
+        await _d1_inc_monthly(db, org, mk, author_login, "merged_prs", 1)
+    else:
+        await _d1_inc_monthly(db, org, mk, author_login, "closed_prs", 1)
+
+    now = int(time.time())
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, 'closed', ?, ?, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = 'closed',
+            merged = excluded.merged,
+            closed_at = excluded.closed_at,
+            updated_at = excluded.updated_at
+        """,
+        (org, repo, pr_number, author_login, 1 if merged else 0, closed_ts, now),
+    )
+
+
+async def _track_comment_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+    comment = payload.get("comment") or {}
+    user = comment.get("user") or {}
+    if _is_bot(user):
+        return
+    body = comment.get("body", "")
+    if _is_coderabbit_ping(body):
+        return
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    login = user.get("login", "")
+    created_at = comment.get("created_at")
+    if not (org and login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    mk = _month_key(_parse_github_timestamp(created_at) if created_at else int(time.time()))
+    await _d1_inc_monthly(db, org, mk, login, "comments", 1)
+
+
+async def _track_review_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+    review = payload.get("review") or {}
+    reviewer = review.get("user") or {}
+    if _is_bot(reviewer):
+        return
+    pr = payload.get("pull_request") or {}
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    reviewer_login = reviewer.get("login", "")
+    submitted_at = review.get("submitted_at")
+    if not (org and repo and pr_number and reviewer_login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    mk = _month_key(_parse_github_timestamp(submitted_at) if submitted_at else int(time.time()))
+
+    # Only first two unique reviewers per PR/month get credit.
+    exists = await _d1_first(
+        db,
+        """
+        SELECT 1 FROM leaderboard_review_credits
+        WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ? AND reviewer_login = ?
+        """,
+        (org, repo, pr_number, mk, reviewer_login),
+    )
+    if exists:
+        return
+
+    cnt_row = await _d1_first(
+        db,
+        """
+        SELECT COUNT(*) AS cnt FROM leaderboard_review_credits
+        WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ?
+        """,
+        (org, repo, pr_number, mk),
+    )
+    already = int((cnt_row or {}).get("cnt") or 0)
+    if already >= 2:
+        return
+
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_review_credits (org, repo, pr_number, month_key, reviewer_login, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (org, repo, pr_number, mk, reviewer_login, int(time.time())),
+    )
+    await _d1_inc_monthly(db, org, mk, reviewer_login, "reviews", 1)
+
+
+async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict]:
+    """Read current-month leaderboard stats from D1 if configured."""
+    db = _d1_binding(env)
+    if not db:
+        return None
+
+    await _ensure_leaderboard_schema(db)
+    mk = _month_key()
+    start_timestamp, end_timestamp = _month_window(mk)
+
+    monthly_rows = await _d1_all(
+        db,
+        """
+        SELECT user_login, merged_prs, closed_prs, reviews, comments
+        FROM leaderboard_monthly_stats
+        WHERE org = ? AND month_key = ?
+        """,
+        (owner, mk),
+    )
+    open_rows = await _d1_all(
+        db,
+        """
+        SELECT user_login, open_prs
+        FROM leaderboard_open_prs
+        WHERE org = ?
+        """,
+        (owner,),
+    )
+
+    user_stats = {}
+
+    def ensure(login: str):
+        if login not in user_stats:
+            user_stats[login] = {
+                "openPrs": 0,
+                "mergedPrs": 0,
+                "closedPrs": 0,
+                "reviews": 0,
+                "comments": 0,
+                "total": 0,
+            }
+
+    for row in monthly_rows:
+        login = row.get("user_login")
+        if not login:
+            continue
+        ensure(login)
+        user_stats[login]["mergedPrs"] = int(row.get("merged_prs") or 0)
+        user_stats[login]["closedPrs"] = int(row.get("closed_prs") or 0)
+        user_stats[login]["reviews"] = int(row.get("reviews") or 0)
+        user_stats[login]["comments"] = int(row.get("comments") or 0)
+
+    for row in open_rows:
+        login = row.get("user_login")
+        if not login:
+            continue
+        ensure(login)
+        user_stats[login]["openPrs"] = int(row.get("open_prs") or 0)
+
+    for login in user_stats:
+        s = user_stats[login]
+        s["total"] = (s["openPrs"] * 1) + (s["mergedPrs"] * 10) + (s["closedPrs"] * -2) + (s["reviews"] * 5) + (s["comments"] * 2)
+
+    sorted_users = sorted(
+        [{"login": login, **stats} for login, stats in user_stats.items()],
+        key=lambda u: (-u["total"], -u["mergedPrs"], -u["reviews"], u["login"].lower())
+    )
+
+    return {
+        "users": user_stats,
+        "sorted": sorted_users,
+        "start_timestamp": start_timestamp,
+        "end_timestamp": end_timestamp,
+    }
 
 
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
@@ -611,7 +1006,7 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     return comment
 
 
-async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str) -> None:
+async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
     """Post or update a leaderboard comment on an issue/PR."""
     # Determine if owner is an org or user
     resp = await github_api("GET", f"/users/{owner}", token)
@@ -622,15 +1017,16 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     owner_data = json.loads(await resp.text())
     is_org = owner_data.get("type") == "Organization"
     
-    # Fetch repos
-    if is_org:
-        repos = await _fetch_org_repos(owner, token)
-    else:
-        # For personal accounts, just use the current repo
-        repos = [{"name": repo}]
-    
-    # Calculate leaderboard
-    leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
+    # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
+    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+
+    # Fallback to API-based calculation when D1 is unavailable.
+    if leaderboard_data is None:
+        if is_org:
+            repos = await _fetch_org_repos(owner, token)
+        else:
+            repos = [{"name": repo}]
+        leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
     
     # Format comment
     comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner)
@@ -788,11 +1184,15 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
 # ---------------------------------------------------------------------------
 
 
-async def handle_issue_comment(payload: dict, token: str) -> None:
+async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     comment = payload["comment"]
     issue = payload["issue"]
     if not _is_human(comment["user"]):
         return
+
+    # Persist comments to D1 for leaderboard scoring.
+    await _track_comment_in_d1(payload, env)
+
     body = comment["body"].strip()
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
@@ -809,7 +1209,10 @@ async def handle_issue_comment(payload: dict, token: str) -> None:
     elif body.startswith(UNASSIGN_COMMAND):
         await _unassign(owner, repo, issue, login, token)
     elif body.startswith(LEADERBOARD_COMMAND):
-        await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
+        if env is None:
+            await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
+        else:
+            await _post_or_update_leaderboard(owner, repo, issue_number, login, token, env)
 
 
 async def _assign(
@@ -960,7 +1363,7 @@ async def handle_issue_labeled(
         )
 
 
-async def handle_pull_request_opened(payload: dict, token: str) -> None:
+async def handle_pull_request_opened(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
     sender = payload["sender"]
     if not _is_human(sender):
@@ -979,6 +1382,9 @@ async def handle_pull_request_opened(payload: dict, token: str) -> None:
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
     if was_closed:
         return  # Stop further processing if auto-closed
+
+    # Track open PR counter in D1.
+    await _track_pr_opened_in_d1(payload, env)
     
     # Post welcome message
     body = (
@@ -995,10 +1401,13 @@ async def handle_pull_request_opened(payload: dict, token: str) -> None:
     await create_comment(owner, repo, pr_number, body, token)
     
     # Post leaderboard
-    await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
+    if env is None:
+        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
+    else:
+        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
 
-async def handle_pull_request_closed(payload: dict, token: str) -> None:
+async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
     sender = payload["sender"]
     if not pr.get("merged"):
@@ -1014,6 +1423,9 @@ async def handle_pull_request_closed(payload: dict, token: str) -> None:
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
     author_login = pr["user"]["login"]
+
+    # Track close/merge counters in D1.
+    await _track_pr_closed_in_d1(payload, env)
     
     # Post merge congratulations
     body = (
@@ -1027,7 +1439,15 @@ async def handle_pull_request_closed(payload: dict, token: str) -> None:
     await _check_rank_improvement(owner, repo, pr_number, author_login, token)
     
     # Post/update leaderboard
-    await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
+    if env is None:
+        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
+    else:
+        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
+
+
+async def handle_pull_request_review_submitted(payload: dict, env=None) -> None:
+    """Track review credits in D1 (first two unique reviewers per PR per month)."""
+    await _track_review_in_d1(payload, env)
 
 
 # ---------------------------------------------------------------------------
@@ -1040,19 +1460,51 @@ async def handle_webhook(request, env) -> Response:
     body_text = await request.text()
     payload_bytes = body_text.encode("utf-8")
 
-    signature = request.headers.get("X-Hub-Signature-256") or ""
-    secret = getattr(env, "WEBHOOK_SECRET", "")
-    if secret and not verify_signature(payload_bytes, signature, secret):
-        return _json({"error": "Invalid signature"}, 401)
+    # Extract header metadata immediately so every webhook invocation is logged.
+    delivery_id = request.headers.get("X-GitHub-Delivery", "")
+    event = request.headers.get("X-GitHub-Event", "")
 
+    # Parse payload once up front for concise logging fields.
+    payload = {}
+    payload_parse_error = False
     try:
         payload = json.loads(body_text)
     except Exception:
+        payload_parse_error = True
+
+    action = payload.get("action", "") if isinstance(payload, dict) else ""
+    installation_id = ((payload.get("installation") or {}).get("id") if isinstance(payload, dict) else None)
+    repo_full_name = ((payload.get("repository") or {}).get("full_name") if isinstance(payload, dict) else "")
+    sender_login = ((payload.get("sender") or {}).get("login") if isinstance(payload, dict) else "")
+    issue_number = ((payload.get("issue") or {}).get("number") if isinstance(payload, dict) else None)
+    pr_number = ((payload.get("pull_request") or {}).get("number") if isinstance(payload, dict) else None)
+    item_number = issue_number or pr_number or ""
+
+    signature = request.headers.get("X-Hub-Signature-256") or ""
+    secret = getattr(env, "WEBHOOK_SECRET", "")
+    if secret and not verify_signature(payload_bytes, signature, secret):
+        console.log(
+            "[BLT][webhook] "
+            f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
+            f"repo={repo_full_name or '-'} sender={sender_login or '-'} item={item_number or '-'} "
+            f"installation={installation_id or '-'} method={request.method} status=rejected_invalid_signature"
+        )
+        return _json({"error": "Invalid signature"}, 401)
+
+    if payload_parse_error:
+        console.log(
+            "[BLT][webhook] "
+            f"delivery={delivery_id or '-'} event={event or '-'} action=- repo=- sender=- item=- "
+            f"installation=- method={request.method} status=rejected_invalid_json"
+        )
         return _json({"error": "Invalid JSON"}, 400)
 
-    event = request.headers.get("X-GitHub-Event", "")
-    action = payload.get("action", "")
-    installation_id = (payload.get("installation") or {}).get("id")
+    console.log(
+        "[BLT][webhook] "
+        f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
+        f"repo={repo_full_name or '-'} sender={sender_login or '-'} item={item_number or '-'} "
+        f"installation={installation_id or '-'} method={request.method} status=received"
+    )
 
     app_id = getattr(env, "APP_ID", "")
     private_key = getattr(env, "PRIVATE_KEY", "")
@@ -1068,7 +1520,7 @@ async def handle_webhook(request, env) -> Response:
 
     try:
         if event == "issue_comment" and action == "created":
-            await handle_issue_comment(payload, token)
+            await handle_issue_comment(payload, token, env)
         elif event == "issues":
             if action == "opened":
                 await handle_issue_opened(payload, token, blt_api_url)
@@ -1076,9 +1528,11 @@ async def handle_webhook(request, env) -> Response:
                 await handle_issue_labeled(payload, token, blt_api_url)
         elif event == "pull_request":
             if action == "opened":
-                await handle_pull_request_opened(payload, token)
+                await handle_pull_request_opened(payload, token, env)
             elif action == "closed":
-                await handle_pull_request_closed(payload, token)
+                await handle_pull_request_closed(payload, token, env)
+        elif event == "pull_request_review" and action == "submitted":
+            await handle_pull_request_review_submitted(payload, env)
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
         return _json({"error": "Internal server error"}, 500)

@@ -8,7 +8,7 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
 - **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request.
 - **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
-- **Monthly leaderboard** — Works across **entire organization** (scales to 50+ repos) using GitHub's Search API. Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
+- **Monthly leaderboard** — Uses D1-backed event counters for accurate, scalable org-wide ranking (no per-request repo scanning). Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
   - Open PRs (+1 each)
   - Merged PRs (+10)
   - Closed PRs without merge (−2)
@@ -37,23 +37,33 @@ cp .dev.vars.example .dev.vars
 
 ### Leaderboard Scalability
 
-The leaderboard system is optimized to support organizations with **50+ repositories** while staying under Cloudflare Workers' 50 subrequest limit.
+The leaderboard uses an **event-driven D1 model**:
+- Webhook events increment persistent counters in D1.
+- `/leaderboard` reads precomputed counters from D1.
+- This avoids per-request org scans and scales to very large orgs.
 
-**Search API Approach:**
-- Uses GitHub's `/search/issues` API to query across all repos in a single call
-- Example: `is:pr org:OWASP-BLT is:merged merged:2024-03-01..2024-03-31`
-- Total API calls: ~24 maximum (vs 150+ with naive per-repo iteration)
+**Tracked by webhook events:**
+- `pull_request` opened: open PR counter (+1)
+- `pull_request` closed merged: merged PRs (+1), open PR counter (-1)
+- `pull_request` closed unmerged: closed PRs (+1), open PR counter (-1)
+- `pull_request_review` submitted: reviews (+1, first two unique reviewers per PR/month)
+- `issue_comment` created: comments (+1, excludes bots and CodeRabbit pings)
 
-**API Budget Breakdown:**
-- Open PRs search: 1-3 calls (all repos)
-- Merged PRs search: 1-3 calls (all repos, filtered by date)
-- Closed PRs search: 1-3 calls (all repos, filtered by date)
-- Review sampling: 2 search calls + 15 review fetches = 17 calls
+### D1 Setup
 
-**Trade-offs:**
-- Reviews are sampled from 15 most recent merged PRs (not exhaustive)
-- Comments are not counted (to conserve API budget)
-- Optimized for accuracy on PRs (main metric) while staying within limits
+1. Create database:
+
+```bash
+npx wrangler d1 create blt-leaderboard
+```
+
+2. Copy returned `database_id` into `wrangler.toml` under `[[d1_databases]]`.
+
+3. Deploy worker:
+
+```bash
+npx wrangler deploy
+```
 
 
 | Variable | Description |
@@ -109,7 +119,7 @@ The app requires the following repository permissions:
 | Pull Requests | Read & Write |
 | Metadata | Read |
 
-And listens for these webhook events: `issue_comment`, `issues`, `pull_request`.
+And listens for these webhook events: `issue_comment`, `issues`, `pull_request`, `pull_request_review`.
 
 ## Usage
 
