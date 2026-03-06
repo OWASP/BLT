@@ -1,26 +1,23 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="OWASP BLT - Community-powered bug reporting platform by OWASP BLT. Report public bugs, handle vulnerabilities responsibly, and track top contributors." />
+  <meta name="description" content="OWASP BLT - Community-powered bug reporting platform by OWASP BLT. Report public bugs, handle vulnerabilities responsibly, and track top contributors." />
   <meta property="og:title" content="OWASP BLT - Bug Reporting Platform" />
-  <meta property="og:description"
-    content="Report public bugs, route vulnerabilities safely, and recognize your community contributors." />
+  <meta property="og:description" content="Report public bugs, route vulnerabilities safely, and recognize your community contributors." />
   <meta property="og:type" content="website" />
   <title>OWASP BLT - Bug Reporting Platform</title>
   <link rel="icon" type="image/png" href="/static/logo.png" />
 
   <script>
-    (function () {
+    (function() {
       try {
         var saved = localStorage.getItem('blt-theme');
         if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark');
         }
-      } catch (e) { }
+      } catch (e) {}
     })();
   </script>
 
@@ -50,6 +47,7 @@
   </script>
 
   <style>
+
     /* Embedded SVG icon sizing (replaces Font Awesome CDN) */
     .fa-icon {
       display: inline-block;
@@ -65,11 +63,9 @@
     img {
       background-color: #e5e7eb;
     }
-
     .dark img {
       background-color: #374151;
     }
-
     :root {
       --blt-primary: #E10101;
       --blt-border: #E5E5E5;
@@ -116,26 +112,11 @@
       text-underline-offset: 3px;
     }
 
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f3f4f6;
-    }
-
-    .dark ::-webkit-scrollbar-track {
-      background: #1F2937;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #E10101;
-      border-radius: 999px;
-    }
-
-    .dark ::-webkit-scrollbar-thumb {
-      background: #EF4444;
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    .dark ::-webkit-scrollbar-track { background: #1F2937; }
+    ::-webkit-scrollbar-thumb { background: #E10101; border-radius: 999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
 
     @font-face {
       font-family: 'Manrope';
@@ -144,7 +125,6 @@
       font-display: swap;
       src: url('/static/fonts/manrope-latin-400-normal.woff2') format('woff2');
     }
-
     @font-face {
       font-family: 'Manrope';
       font-style: normal;
@@ -152,7 +132,6 @@
       font-display: swap;
       src: url('/static/fonts/manrope-latin-500-normal.woff2') format('woff2');
     }
-
     @font-face {
       font-family: 'Manrope';
       font-style: normal;
@@ -160,7 +139,6 @@
       font-display: swap;
       src: url('/static/fonts/manrope-latin-600-normal.woff2') format('woff2');
     }
-
     @font-face {
       font-family: 'Manrope';
       font-style: normal;
@@ -168,7 +146,6 @@
       font-display: swap;
       src: url('/static/fonts/manrope-latin-700-normal.woff2') format('woff2');
     }
-
     @font-face {
       font-family: 'Manrope';
       font-style: normal;
@@ -176,7 +153,6 @@
       font-display: swap;
       src: url('/static/fonts/manrope-latin-800-normal.woff2') format('woff2');
     }
-
     @font-face {
       font-family: 'ManropeFallback';
       src: local('ui-sans-serif'), local('system-ui'), local('Arial');
@@ -189,123 +165,99 @@
 </head>
 
 <body class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
-  <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
-    <symbol id="fa-bug" viewBox="0 0 576 512">
-      <path fill="currentColor"
-        d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z" />
-    </symbol>
-    <symbol id="fa-moon" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512c68.8 0 131.3-27.2 177.3-71.4 7.3-7 9.4-17.9 5.3-27.1s-13.7-14.9-23.8-14.1c-4.9 .4-9.8 .6-14.8 .6-101.6 0-184-82.4-184-184 0-72.1 41.5-134.6 102.1-164.8 9.1-4.5 14.3-14.3 13.1-24.4S322.6 8.5 312.7 6.3C294.4 2.2 275.4 0 256 0z" />
-    </symbol>
-    <symbol id="fa-sun" viewBox="0 0 576 512">
-      <path fill="currentColor"
-        d="M288-32c8.4 0 16.3 4.4 20.6 11.7L364.1 72.3 468.9 46c8.2-2 16.9 .4 22.8 6.3S500 67 498 75.1l-26.3 104.7 92.7 55.5c7.2 4.3 11.7 12.2 11.7 20.6s-4.4 16.3-11.7 20.6L471.7 332.1 498 436.8c2 8.2-.4 16.9-6.3 22.8S477 468 468.9 466l-104.7-26.3-55.5 92.7c-4.3 7.2-12.2 11.7-20.6 11.7s-16.3-4.4-20.6-11.7L211.9 439.7 107.2 466c-8.2 2-16.8-.4-22.8-6.3S76 445 78 436.8l26.2-104.7-92.6-55.5C4.4 272.2 0 264.4 0 256s4.4-16.3 11.7-20.6L104.3 179.9 78 75.1c-2-8.2 .3-16.8 6.3-22.8S99 44 107.2 46l104.7 26.2 55.5-92.6 1.8-2.6c4.5-5.7 11.4-9.1 18.8-9.1zm0 144a144 144 0 1 0 0 288 144 144 0 1 0 0-288zm0 240a96 96 0 1 1 0-192 96 96 0 1 1 0 192z" />
-    </symbol>
-    <symbol id="fa-bars" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" />
-    </symbol>
-    <symbol id="fa-shield-halved" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M256 0c4.6 0 9.2 1 13.4 2.9L457.8 82.8c22 9.3 38.4 31 38.3 57.2-.5 99.2-41.3 280.7-213.6 363.2-16.7 8-36.1 8-52.8 0-172.4-82.5-213.1-264-213.6-363.2-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.9 1 251.4 0 256 0zm0 66.8l0 378.1c138-66.8 175.1-214.8 176-303.4l-176-74.6 0 0z" />
-    </symbol>
-    <symbol id="fa-lock" viewBox="0 0 384 512">
-      <path fill="currentColor"
-        d="M128 96l0 64 128 0 0-64c0-35.3-28.7-64-64-64s-64 28.7-64 64zM64 160l0-64C64 25.3 121.3-32 192-32S320 25.3 320 96l0 64c35.3 0 64 28.7 64 64l0 224c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 224c0-35.3 28.7-64 64-64z" />
-    </symbol>
-    <symbol id="fa-user-secret" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M171-16c-36.4 0-57.8 58.3-68.3 112L72 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l24 0 0 32c0 17 3.3 33.2 9.3 48l-9.3 0 0 0-20.5 0c-15.2 0-27.5 12.3-27.5 27.5 0 3 .5 5.9 1.4 8.7l28.9 86.6C40.2 379.6 16 428.1 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-54.2-24.2-102.7-62.3-135.4l28.9-86.6c.9-2.8 1.4-5.7 1.4-8.7 0-15.2-12.3-27.5-27.5-27.5l-20.5 0 0 0-9.3 0c6-14.8 9.3-31 9.3-48l0-32 24 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-30.7 0c-10.4-53.7-31.9-112-68.3-112-9.6 0-19 3.9-27.5 8.2-8.2 4.1-18.4 7.8-25.5 7.8s-17.3-3.7-25.5-7.8C190-12.1 180.6-16 171-16zm93.7 484.4l-24.8-70.9 27.9-32.5c2.7-3.2 4.2-7.2 4.2-11.4 0-9.7-7.8-17.5-17.5-17.5l-61 0c-9.7 0-17.5 7.8-17.5 17.5 0 4.2 1.5 8.2 4.2 11.4l27.9 32.5-24.8 70.9-57-180.4 35.7 0c18.4 10.2 39.5 16 62 16s43.6-5.8 62-16l35.7 0-57 180.4zM224 256c-34.7 0-64.2-22.1-75.3-53 5.7 3.2 12.3 5 19.3 5l12.4 0c16.5 0 31.1-10.6 36.3-26.2 2.3-7 12.2-7 14.5 0 5.2 15.6 19.9 26.2 36.3 26.2l12.4 0c7 0 13.6-1.8 19.3-5-11.1 30.9-40.6 53-75.3 53z" />
-    </symbol>
-    <symbol id="fa-trophy" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z" />
-    </symbol>
-    <symbol id="fa-globe" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M351.9 280l-190.9 0c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zM160.9 232l190.9 0C349 167.5 334.7 108.1 314.4 64.6 303 40.2 290.7 22.8 279.3 12.2 268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4zm-48 0C116.4 146.4 138.5 66.9 170.8 14.7 78.7 47.3 10.9 131.2 1.5 232l111.4 0zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3L1.5 280zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3l-111.4 0zm111.4-48C501.9 131.2 434.1 47.3 342 14.7 374.3 66.9 396.4 146.4 399.9 232l111.4 0z" />
-    </symbol>
-    <symbol id="fa-coins" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M128 96l0-16c0-44.2 86-80 192-80S512 35.8 512 80l0 16c0 30.6-41.3 57.2-102 70.7-2.4-2.8-4.9-5.5-7.4-8-15.5-15.3-35.5-26.9-56.4-35.5-41.9-17.5-96.5-27.1-154.2-27.1-21.9 0-43.3 1.4-63.8 4.1-.2-1.3-.2-2.7-.2-4.1zM432 353l0-46.2c15.1-3.9 29.3-8.5 42.2-13.9 13.2-5.5 26.1-12.2 37.8-20.3l0 15.4c0 26.8-31.5 50.5-80 65zm0-96l0-33c0-4.5-.4-8.8-1-13 15.5-3.9 30-8.6 43.2-14.2s26.1-12.2 37.8-20.3l0 15.4c0 26.8-31.5 50.5-80 65zM0 240l0-16c0-44.2 86-80 192-80s192 35.8 192 80l0 16c0 44.2-86 80-192 80S0 284.2 0 240zm384 96c0 44.2-86 80-192 80S0 380.2 0 336l0-15.4c11.6 8.1 24.5 14.7 37.8 20.3 41.9 17.5 96.5 27.1 154.2 27.1s112.3-9.7 154.2-27.1c13.2-5.5 26.1-12.2 37.8-20.3l0 15.4zm0 80.6l0 15.4c0 44.2-86 80-192 80S0 476.2 0 432l0-15.4c11.6 8.1 24.5 14.7 37.8 20.3 41.9 17.5 96.5 27.1 154.2 27.1s112.3-9.7 154.2-27.1c13.2-5.5 26.1-12.2 37.8-20.3z" />
-    </symbol>
-    <symbol id="fa-arrow-right" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-105.4 105.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z" />
-    </symbol>
-    <symbol id="fa-check" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z" />
-    </symbol>
-    <symbol id="fa-circle-info" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zM224 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm-8 64l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z" />
-    </symbol>
-    <symbol id="fa-comment" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M512 240c0 132.5-114.6 240-256 240-37.1 0-72.3-7.4-104.1-20.7L33.5 510.1c-9.4 4-20.2 1.7-27.1-5.8S-2 485.8 2.8 476.8l48.8-92.2C19.2 344.3 0 294.3 0 240 0 107.5 114.6 0 256 0S512 107.5 512 240z" />
-    </symbol>
-    <symbol id="fa-magnifying-glass" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
-    </symbol>
-    <symbol id="fa-paper-plane" viewBox="0 0 576 512">
-      <path fill="currentColor"
-        d="M536.4-26.3c9.8-3.5 20.6-1 28 6.3s9.8 18.2 6.3 28l-178 496.9c-5 13.9-18.1 23.1-32.8 23.1-14.2 0-27-8.6-32.3-21.7l-64.2-158c-4.5-11-2.5-23.6 5.2-32.6l94.5-112.4c5.1-6.1 4.7-15-.9-20.6s-14.6-6-20.6-.9L229.2 276.1c-9.1 7.6-21.6 9.6-32.6 5.2L38.1 216.8c-13.1-5.3-21.7-18.1-21.7-32.3 0-14.7 9.2-27.8 23.1-32.8l496.9-178z" />
-    </symbol>
-    <symbol id="fa-plus" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z" />
-    </symbol>
-    <symbol id="fa-comments" viewBox="0 0 576 512">
-      <path fill="currentColor"
-        d="M384 144c0 97.2-86 176-192 176-26.7 0-52.1-5-75.2-14L35.2 349.2c-9.3 4.9-20.7 3.2-28.2-4.2s-9.2-18.9-4.2-28.2l35.6-67.2C14.3 220.2 0 183.6 0 144 0 46.8 86-32 192-32S384 46.8 384 144zm0 368c-94.1 0-172.4-62.1-188.8-144 120-1.5 224.3-86.9 235.8-202.7 83.3 19.2 145 88.3 145 170.7 0 39.6-14.3 76.2-38.4 105.6l35.6 67.2c4.9 9.3 3.2 20.7-4.2 28.2s-18.9 9.2-28.2 4.2L459.2 498c-23.1 9-48.5 14-75.2 14z" />
-    </symbol>
-    <symbol id="fa-code-branch" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M80 104a24 24 0 1 0 0-48 24 24 0 1 0 0 48zm80-24c0 32.8-19.7 61-48 73.3l0 70.7 176 0c26.5 0 48-21.5 48-48l0-22.7c-28.3-12.3-48-40.5-48-73.3 0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3l0 22.7c0 61.9-50.1 112-112 112l-176 0 0 70.7c28.3 12.3 48 40.5 48 73.3 0 44.2-35.8 80-80 80S0 476.2 0 432c0-32.8 19.7-61 48-73.3l0-205.3C19.7 141 0 112.8 0 80 0 35.8 35.8 0 80 0s80 35.8 80 80zm232 0a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM80 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z" />
-    </symbol>
-    <symbol id="fa-circle-dot" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-352a96 96 0 1 1 0 192 96 96 0 1 1 0-192z" />
-    </symbol>
-    <symbol id="fa-heart" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M241 87.1l15 20.7 15-20.7C296 52.5 336.2 32 378.9 32 452.4 32 512 91.6 512 165.1l0 2.6c0 112.2-139.9 242.5-212.9 298.2-12.4 9.4-27.6 14.1-43.1 14.1s-30.8-4.6-43.1-14.1C139.9 410.2 0 279.9 0 167.7l0-2.6C0 91.6 59.6 32 133.1 32 175.8 32 216 52.5 241 87.1z" />
-    </symbol>
-    <symbol id="fa-book" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M384 512L96 512c-53 0-96-43-96-96L0 96C0 43 43 0 96 0L400 0c26.5 0 48 21.5 48 48l0 288c0 20.9-13.4 38.7-32 45.3l0 66.7c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0zM96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0 0-64-256 0zm32-232c0 13.3 10.7 24 24 24l176 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-176 0c-13.3 0-24 10.7-24 24zm24 72c-13.3 0-24 10.7-24 24s10.7 24 24 24l176 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-176 0z" />
-    </symbol>
-    <symbol id="fa-hand-holding-dollar" viewBox="0 0 576 512">
-      <path fill="currentColor"
-        d="M288-16c-13.3 0-24 10.7-24 24l0 12-1.8 0c-36.6 0-66.2 29.7-66.2 66.2 0 33.4 24.9 61.6 58 65.7l61 7.6c5.1 .6 9 5 9 10.2 0 5.7-4.6 10.2-10.2 10.2L240 180c-15.5 0-28 12.5-28 28s12.5 28 28 28l24 0 0 12c0 13.3 10.7 24 24 24s24-10.7 24-24l0-12 1.8 0c36.6 0 66.2-29.7 66.2-66.2 0-33.4-24.9-61.6-58-65.7l-61-7.6c-5.1-.6-9-5-9-10.2 0-5.7 4.6-10.2 10.2-10.2L328 76c15.5 0 28-12.5 28-28s-12.5-28-28-28l-16 0 0-12c0-13.3-10.7-24-24-24zM109.3 341.5L66.7 384 32 384c-17.7 0-32 14.3-32 32l0 64c0 17.7 14.3 32 32 32l320.5 0c29 0 57.3-9.3 80.7-26.5l126.6-93.3c17.8-13.1 21.6-38.1 8.5-55.9s-38.1-21.6-55.9-8.5L392.6 416 280 416c-13.3 0-24-10.7-24-24s10.7-24 24-24l72 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-152.2 0c-33.9 0-66.5 13.5-90.5 37.5z" />
-    </symbol>
-    <symbol id="fa-circle-exclamation" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M256 512a256 256 0 1 1 0-512 256 256 0 1 1 0 512zm0-192a32 32 0 1 0 0 64 32 32 0 1 0 0-64zm0-192c-18.2 0-32.7 15.5-31.4 33.7l7.4 104c.9 12.6 11.4 22.3 23.9 22.3 12.6 0 23-9.7 23.9-22.3l7.4-104c1.3-18.2-13.1-33.7-31.4-33.7z" />
-    </symbol>
-    <symbol id="fa-github" viewBox="0 0 512 512">
-      <path fill="currentColor"
-        d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM252.8 8c-138.7 0-244.8 105.3-244.8 244 0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1 100-33.2 167.8-128.1 167.8-239 0-138.7-112.5-244-251.2-244zM105.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" />
-    </symbol>
-    <symbol id="fa-x-twitter" viewBox="0 0 448 512">
-      <path fill="currentColor"
-        d="M357.2 48L427.8 48 273.6 224.2 455 464 313 464 201.7 318.6 74.5 464 3.8 464 168.7 275.5-5.2 48 140.4 48 240.9 180.9 357.2 48zM332.4 421.8l39.1 0-252.4-333.8-42 0 255.3 333.8z" />
-    </symbol>
-  </svg>
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+  <symbol id="fa-bug" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z"/>
+  </symbol>
+  <symbol id="fa-moon" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512c68.8 0 131.3-27.2 177.3-71.4 7.3-7 9.4-17.9 5.3-27.1s-13.7-14.9-23.8-14.1c-4.9 .4-9.8 .6-14.8 .6-101.6 0-184-82.4-184-184 0-72.1 41.5-134.6 102.1-164.8 9.1-4.5 14.3-14.3 13.1-24.4S322.6 8.5 312.7 6.3C294.4 2.2 275.4 0 256 0z"/>
+  </symbol>
+  <symbol id="fa-sun" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M288-32c8.4 0 16.3 4.4 20.6 11.7L364.1 72.3 468.9 46c8.2-2 16.9 .4 22.8 6.3S500 67 498 75.1l-26.3 104.7 92.7 55.5c7.2 4.3 11.7 12.2 11.7 20.6s-4.4 16.3-11.7 20.6L471.7 332.1 498 436.8c2 8.2-.4 16.9-6.3 22.8S477 468 468.9 466l-104.7-26.3-55.5 92.7c-4.3 7.2-12.2 11.7-20.6 11.7s-16.3-4.4-20.6-11.7L211.9 439.7 107.2 466c-8.2 2-16.8-.4-22.8-6.3S76 445 78 436.8l26.2-104.7-92.6-55.5C4.4 272.2 0 264.4 0 256s4.4-16.3 11.7-20.6L104.3 179.9 78 75.1c-2-8.2 .3-16.8 6.3-22.8S99 44 107.2 46l104.7 26.2 55.5-92.6 1.8-2.6c4.5-5.7 11.4-9.1 18.8-9.1zm0 144a144 144 0 1 0 0 288 144 144 0 1 0 0-288zm0 240a96 96 0 1 1 0-192 96 96 0 1 1 0 192z"/>
+  </symbol>
+  <symbol id="fa-bars" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/>
+  </symbol>
+  <symbol id="fa-shield-halved" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M256 0c4.6 0 9.2 1 13.4 2.9L457.8 82.8c22 9.3 38.4 31 38.3 57.2-.5 99.2-41.3 280.7-213.6 363.2-16.7 8-36.1 8-52.8 0-172.4-82.5-213.1-264-213.6-363.2-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.9 1 251.4 0 256 0zm0 66.8l0 378.1c138-66.8 175.1-214.8 176-303.4l-176-74.6 0 0z"/>
+  </symbol>
+  <symbol id="fa-lock" viewBox="0 0 384 512">
+    <path fill="currentColor" d="M128 96l0 64 128 0 0-64c0-35.3-28.7-64-64-64s-64 28.7-64 64zM64 160l0-64C64 25.3 121.3-32 192-32S320 25.3 320 96l0 64c35.3 0 64 28.7 64 64l0 224c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 224c0-35.3 28.7-64 64-64z"/>
+  </symbol>
+  <symbol id="fa-user-secret" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M171-16c-36.4 0-57.8 58.3-68.3 112L72 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l24 0 0 32c0 17 3.3 33.2 9.3 48l-9.3 0 0 0-20.5 0c-15.2 0-27.5 12.3-27.5 27.5 0 3 .5 5.9 1.4 8.7l28.9 86.6C40.2 379.6 16 428.1 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-54.2-24.2-102.7-62.3-135.4l28.9-86.6c.9-2.8 1.4-5.7 1.4-8.7 0-15.2-12.3-27.5-27.5-27.5l-20.5 0 0 0-9.3 0c6-14.8 9.3-31 9.3-48l0-32 24 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-30.7 0c-10.4-53.7-31.9-112-68.3-112-9.6 0-19 3.9-27.5 8.2-8.2 4.1-18.4 7.8-25.5 7.8s-17.3-3.7-25.5-7.8C190-12.1 180.6-16 171-16zm93.7 484.4l-24.8-70.9 27.9-32.5c2.7-3.2 4.2-7.2 4.2-11.4 0-9.7-7.8-17.5-17.5-17.5l-61 0c-9.7 0-17.5 7.8-17.5 17.5 0 4.2 1.5 8.2 4.2 11.4l27.9 32.5-24.8 70.9-57-180.4 35.7 0c18.4 10.2 39.5 16 62 16s43.6-5.8 62-16l35.7 0-57 180.4zM224 256c-34.7 0-64.2-22.1-75.3-53 5.7 3.2 12.3 5 19.3 5l12.4 0c16.5 0 31.1-10.6 36.3-26.2 2.3-7 12.2-7 14.5 0 5.2 15.6 19.9 26.2 36.3 26.2l12.4 0c7 0 13.6-1.8 19.3-5-11.1 30.9-40.6 53-75.3 53z"/>
+  </symbol>
+  <symbol id="fa-trophy" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z"/>
+  </symbol>
+  <symbol id="fa-globe" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M351.9 280l-190.9 0c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zM160.9 232l190.9 0C349 167.5 334.7 108.1 314.4 64.6 303 40.2 290.7 22.8 279.3 12.2 268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4zm-48 0C116.4 146.4 138.5 66.9 170.8 14.7 78.7 47.3 10.9 131.2 1.5 232l111.4 0zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3L1.5 280zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3l-111.4 0zm111.4-48C501.9 131.2 434.1 47.3 342 14.7 374.3 66.9 396.4 146.4 399.9 232l111.4 0z"/>
+  </symbol>
+  <symbol id="fa-coins" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M128 96l0-16c0-44.2 86-80 192-80S512 35.8 512 80l0 16c0 30.6-41.3 57.2-102 70.7-2.4-2.8-4.9-5.5-7.4-8-15.5-15.3-35.5-26.9-56.4-35.5-41.9-17.5-96.5-27.1-154.2-27.1-21.9 0-43.3 1.4-63.8 4.1-.2-1.3-.2-2.7-.2-4.1zM432 353l0-46.2c15.1-3.9 29.3-8.5 42.2-13.9 13.2-5.5 26.1-12.2 37.8-20.3l0 15.4c0 26.8-31.5 50.5-80 65zm0-96l0-33c0-4.5-.4-8.8-1-13 15.5-3.9 30-8.6 43.2-14.2s26.1-12.2 37.8-20.3l0 15.4c0 26.8-31.5 50.5-80 65zM0 240l0-16c0-44.2 86-80 192-80s192 35.8 192 80l0 16c0 44.2-86 80-192 80S0 284.2 0 240zm384 96c0 44.2-86 80-192 80S0 380.2 0 336l0-15.4c11.6 8.1 24.5 14.7 37.8 20.3 41.9 17.5 96.5 27.1 154.2 27.1s112.3-9.7 154.2-27.1c13.2-5.5 26.1-12.2 37.8-20.3l0 15.4zm0 80.6l0 15.4c0 44.2-86 80-192 80S0 476.2 0 432l0-15.4c11.6 8.1 24.5 14.7 37.8 20.3 41.9 17.5 96.5 27.1 154.2 27.1s112.3-9.7 154.2-27.1c13.2-5.5 26.1-12.2 37.8-20.3z"/>
+  </symbol>
+  <symbol id="fa-arrow-right" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-105.4 105.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+  </symbol>
+  <symbol id="fa-check" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"/>
+  </symbol>
+  <symbol id="fa-circle-info" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zM224 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm-8 64l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/>
+  </symbol>
+  <symbol id="fa-comment" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M512 240c0 132.5-114.6 240-256 240-37.1 0-72.3-7.4-104.1-20.7L33.5 510.1c-9.4 4-20.2 1.7-27.1-5.8S-2 485.8 2.8 476.8l48.8-92.2C19.2 344.3 0 294.3 0 240 0 107.5 114.6 0 256 0S512 107.5 512 240z"/>
+  </symbol>
+  <symbol id="fa-magnifying-glass" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+  </symbol>
+  <symbol id="fa-paper-plane" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M536.4-26.3c9.8-3.5 20.6-1 28 6.3s9.8 18.2 6.3 28l-178 496.9c-5 13.9-18.1 23.1-32.8 23.1-14.2 0-27-8.6-32.3-21.7l-64.2-158c-4.5-11-2.5-23.6 5.2-32.6l94.5-112.4c5.1-6.1 4.7-15-.9-20.6s-14.6-6-20.6-.9L229.2 276.1c-9.1 7.6-21.6 9.6-32.6 5.2L38.1 216.8c-13.1-5.3-21.7-18.1-21.7-32.3 0-14.7 9.2-27.8 23.1-32.8l496.9-178z"/>
+  </symbol>
+  <symbol id="fa-plus" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/>
+  </symbol>
+  <symbol id="fa-comments" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M384 144c0 97.2-86 176-192 176-26.7 0-52.1-5-75.2-14L35.2 349.2c-9.3 4.9-20.7 3.2-28.2-4.2s-9.2-18.9-4.2-28.2l35.6-67.2C14.3 220.2 0 183.6 0 144 0 46.8 86-32 192-32S384 46.8 384 144zm0 368c-94.1 0-172.4-62.1-188.8-144 120-1.5 224.3-86.9 235.8-202.7 83.3 19.2 145 88.3 145 170.7 0 39.6-14.3 76.2-38.4 105.6l35.6 67.2c4.9 9.3 3.2 20.7-4.2 28.2s-18.9 9.2-28.2 4.2L459.2 498c-23.1 9-48.5 14-75.2 14z"/>
+  </symbol>
+  <symbol id="fa-code-branch" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M80 104a24 24 0 1 0 0-48 24 24 0 1 0 0 48zm80-24c0 32.8-19.7 61-48 73.3l0 70.7 176 0c26.5 0 48-21.5 48-48l0-22.7c-28.3-12.3-48-40.5-48-73.3 0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3l0 22.7c0 61.9-50.1 112-112 112l-176 0 0 70.7c28.3 12.3 48 40.5 48 73.3 0 44.2-35.8 80-80 80S0 476.2 0 432c0-32.8 19.7-61 48-73.3l0-205.3C19.7 141 0 112.8 0 80 0 35.8 35.8 0 80 0s80 35.8 80 80zm232 0a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM80 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/>
+  </symbol>
+  <symbol id="fa-circle-dot" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-352a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/>
+  </symbol>
+  <symbol id="fa-heart" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M241 87.1l15 20.7 15-20.7C296 52.5 336.2 32 378.9 32 452.4 32 512 91.6 512 165.1l0 2.6c0 112.2-139.9 242.5-212.9 298.2-12.4 9.4-27.6 14.1-43.1 14.1s-30.8-4.6-43.1-14.1C139.9 410.2 0 279.9 0 167.7l0-2.6C0 91.6 59.6 32 133.1 32 175.8 32 216 52.5 241 87.1z"/>
+  </symbol>
+  <symbol id="fa-book" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M384 512L96 512c-53 0-96-43-96-96L0 96C0 43 43 0 96 0L400 0c26.5 0 48 21.5 48 48l0 288c0 20.9-13.4 38.7-32 45.3l0 66.7c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0zM96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0 0-64-256 0zm32-232c0 13.3 10.7 24 24 24l176 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-176 0c-13.3 0-24 10.7-24 24zm24 72c-13.3 0-24 10.7-24 24s10.7 24 24 24l176 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-176 0z"/>
+  </symbol>
+  <symbol id="fa-hand-holding-dollar" viewBox="0 0 576 512">
+    <path fill="currentColor" d="M288-16c-13.3 0-24 10.7-24 24l0 12-1.8 0c-36.6 0-66.2 29.7-66.2 66.2 0 33.4 24.9 61.6 58 65.7l61 7.6c5.1 .6 9 5 9 10.2 0 5.7-4.6 10.2-10.2 10.2L240 180c-15.5 0-28 12.5-28 28s12.5 28 28 28l24 0 0 12c0 13.3 10.7 24 24 24s24-10.7 24-24l0-12 1.8 0c36.6 0 66.2-29.7 66.2-66.2 0-33.4-24.9-61.6-58-65.7l-61-7.6c-5.1-.6-9-5-9-10.2 0-5.7 4.6-10.2 10.2-10.2L328 76c15.5 0 28-12.5 28-28s-12.5-28-28-28l-16 0 0-12c0-13.3-10.7-24-24-24zM109.3 341.5L66.7 384 32 384c-17.7 0-32 14.3-32 32l0 64c0 17.7 14.3 32 32 32l320.5 0c29 0 57.3-9.3 80.7-26.5l126.6-93.3c17.8-13.1 21.6-38.1 8.5-55.9s-38.1-21.6-55.9-8.5L392.6 416 280 416c-13.3 0-24-10.7-24-24s10.7-24 24-24l72 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-152.2 0c-33.9 0-66.5 13.5-90.5 37.5z"/>
+  </symbol>
+  <symbol id="fa-circle-exclamation" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M256 512a256 256 0 1 1 0-512 256 256 0 1 1 0 512zm0-192a32 32 0 1 0 0 64 32 32 0 1 0 0-64zm0-192c-18.2 0-32.7 15.5-31.4 33.7l7.4 104c.9 12.6 11.4 22.3 23.9 22.3 12.6 0 23-9.7 23.9-22.3l7.4-104c1.3-18.2-13.1-33.7-31.4-33.7z"/>
+  </symbol>
+  <symbol id="fa-github" viewBox="0 0 512 512">
+    <path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM252.8 8c-138.7 0-244.8 105.3-244.8 244 0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1 100-33.2 167.8-128.1 167.8-239 0-138.7-112.5-244-251.2-244zM105.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/>
+  </symbol>
+  <symbol id="fa-x-twitter" viewBox="0 0 448 512">
+    <path fill="currentColor" d="M357.2 48L427.8 48 273.6 224.2 455 464 313 464 201.7 318.6 74.5 464 3.8 464 168.7 275.5-5.2 48 140.4 48 240.9 180.9 357.2 48zM332.4 421.8l39.1 0-252.4-333.8-42 0 255.3 333.8z"/>
+  </symbol>
+</svg>
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[500px] hero-glow"></div>
 
-  <header
-    class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
+  <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="OWASP BLT home">
-        <img src="./static/logo.png" alt="BLT logo" class="h-8 w-8 rounded-md object-contain"
-          style="background-color:transparent"
-          onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
-        <span
-          class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
+      <img
+        src="./static/logo.png"
+        alt="BLT logo"
+        class="h-8 w-8 rounded-md object-contain"
+        style="background-color:transparent"
+        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
+      />
+        <span class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
         <div>
           <p class="text-sm font-extrabold leading-none dark:text-gray-100">OWASP BLT</p>
           <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">OWASP Bug Logging Tool</p>
@@ -316,27 +268,19 @@
         <a href="#features" class="section-link text-sm font-semibold dark:text-gray-200">Features</a>
         <a href="#how-it-works" class="section-link text-sm font-semibold dark:text-gray-200">How it works</a>
         <a href="leaderboard.html" class="section-link text-sm font-semibold dark:text-gray-200">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200 hidden"
-          style="display:none">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
-          class="section-link text-sm font-semibold dark:text-gray-200">
-          <svg class="fa-icon mr-1" aria-hidden="true">
-            <use href="#fa-github"></use>
-          </svg>GitHub
+        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200 hidden" style="display:none">Pricing</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold dark:text-gray-200">
+          <svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
         </a>
       </nav>
 
       <div class="hidden items-center gap-3 text-xs font-semibold md:flex" aria-label="Bug statistics">
-        <span class="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700"
-          title="Total bugs reported">
-          <svg class="fa-icon text-gray-500 dark:text-gray-400" aria-hidden="true">
-            <use href="#fa-bug"></use>
-          </svg>
+        <span class="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700" title="Total bugs reported">
+          <svg class="fa-icon text-gray-500 dark:text-gray-400" aria-hidden="true"><use href="#fa-bug"></use></svg>
           <span id="header-stat-total" class="text-gray-700 dark:text-gray-200">13</span>
           <span class="text-gray-500 dark:text-gray-400">total</span>
         </span>
-        <span class="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 dark:bg-green-900/30"
-          title="Open bugs">
+        <span class="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 dark:bg-green-900/30" title="Open bugs">
           <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
           <span id="header-stat-open" class="text-green-700 dark:text-green-400">4</span>
           <span class="text-green-600 dark:text-green-500">open</span>
@@ -349,57 +293,47 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="dark-toggle"
+        <button
+          id="dark-toggle"
           class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          aria-label="Toggle dark mode" type="button">
-          <svg class="fa-icon dark:hidden" aria-hidden="true">
-            <use href="#fa-moon"></use>
-          </svg>
-          <svg class="fa-icon hidden dark:inline-block" aria-hidden="true">
-            <use href="#fa-sun"></use>
-          </svg>
+          aria-label="Toggle dark mode"
+          type="button"
+        >
+          <svg class="fa-icon dark:hidden" aria-hidden="true"><use href="#fa-moon"></use></svg>
+          <svg class="fa-icon hidden dark:inline-block" aria-hidden="true"><use href="#fa-sun"></use></svg>
         </button>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank"
-          rel="noopener noreferrer"
-          class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex">
-          <svg class="fa-icon mr-2" aria-hidden="true">
-            <use href="#fa-bug"></use>
-          </svg>Report Bug
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
+          class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex"
+        >
+          <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Report Bug
         </a>
-        <button id="mobile-menu-toggle"
+        <button
+          id="mobile-menu-toggle"
           class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
-          aria-label="Open navigation menu" aria-expanded="false" type="button">
-          <svg class="fa-icon" aria-hidden="true">
-            <use href="#fa-bars"></use>
-          </svg>
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          type="button"
+        >
+          <svg class="fa-icon" aria-hidden="true"><use href="#fa-bars"></use></svg>
         </button>
       </div>
     </div>
 
-    <div id="mobile-menu"
-      class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
+    <div id="mobile-menu" class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
       <nav class="space-y-3" aria-label="Mobile navigation">
-        <a href="#features"
-          class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Features</a>
-        <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">How
-          it works</a>
-        <a href="leaderboard.html"
-          class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link-mobile"
-          class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400 hidden"
-          style="display:none">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
-          class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">
-          <svg class="fa-icon mr-2" aria-hidden="true">
-            <use href="#fa-github"></use>
-          </svg>GitHub
+        <a href="#features" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Features</a>
+        <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">How it works</a>
+        <a href="leaderboard.html" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
+        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400 hidden" style="display:none">Pricing</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">
+          <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
         </a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
-          <svg class="fa-icon mr-2" aria-hidden="true">
-            <use href="#fa-bug"></use>
-          </svg>Report Bug
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+        >
+          <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Report Bug
         </a>
       </nav>
     </div>
@@ -410,43 +344,37 @@
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
           <div>
-            <span
-              class="mb-5 inline-flex items-center rounded-full border border-red-200 bg-active-bg px-3 py-1 text-xs font-semibold text-primary dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon mr-2" aria-hidden="true">
-                <use href="#fa-shield-halved"></use>
-              </svg>
+            <span class="mb-5 inline-flex items-center rounded-full border border-red-200 bg-active-bg px-3 py-1 text-xs font-semibold text-primary dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-shield-halved"></use></svg>
               OWASP Project • AGPLv3 Licensed
             </span>
-            <h1
-              class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[3.35rem] dark:text-gray-100">
+            <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[3.35rem] dark:text-gray-100">
               One landing page for
-              <span class="text-primary dark:text-red-400">public bugs, secure disclosures, and contributor
-                momentum.</span>
+              <span class="text-primary dark:text-red-400">public bugs, secure disclosures, and contributor momentum.</span>
             </h1>
             <p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">
-              OWASP BLT gives teams a practical front door to collect issue reports, route sensitive vulnerabilities to
-              BLT-Zero,
+              OWASP BLT gives teams a practical front door to collect issue reports, route sensitive vulnerabilities to BLT-Zero,
               and keep community reporting transparent through a live leaderboard.
             </p>
 
             <div class="mt-8 flex flex-wrap items-center gap-3">
-              <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
-                <svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-bug"></use>
-                </svg>Start reporting
+              <a
+                href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+              >
+                <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Start reporting
               </a>
-              <a href="https://zero.owaspblt.org" target="_blank" rel="noopener noreferrer"
-                class="inline-flex items-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
-                <svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-lock"></use>
-                </svg>Use BLT-Zero
+              <a
+                href="https://zero.owaspblt.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+              >
+                <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-lock"></use></svg>Use BLT-Zero
               </a>
             </div>
 
-            <dl
-              class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-700 dark:bg-dark-surface">
               <div>
                 <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">13</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Bugs reported</dt>
@@ -468,85 +396,59 @@
     <section id="features" class="bg-white py-14 sm:py-16 dark:bg-dark-surface">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10 max-w-3xl">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">What OWASP BLT gives your
-            team</h2>
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">What OWASP BLT gives your team</h2>
           <p class="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300">
-            Built for practical bug intake: clear public reporting, safe vulnerability handling, and community
-            visibility in one workflow.
+            Built for practical bug intake: clear public reporting, safe vulnerability handling, and community visibility in one workflow.
           </p>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-bug"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-bug"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Public bug reports</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Capture 404/500 issues, UI regressions, performance
-              problems, typo fixes, and policy violations in one place.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Capture 404/500 issues, UI regressions, performance problems, typo fixes, and policy violations in one place.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-user-secret"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-user-secret"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Anonymous intake via BLT-API</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Contributors can submit reports without exposing
-              account identity when privacy is important.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Contributors can submit reports without exposing account identity when privacy is important.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-shield-halved"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-shield-halved"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Secure vulnerability path</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Route critical security disclosures through
-              BLT-Zero with zero-log, zero-tracking guarantees.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Route critical security disclosures through BLT-Zero with zero-log, zero-tracking guarantees.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-trophy"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-trophy"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Live leaderboard</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Recognition stays visible through an auto-refreshed
-              leaderboard generated from issue activity.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Recognition stays visible through an auto-refreshed leaderboard generated from issue activity.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-globe"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-globe"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Report issues on any website</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">BLT covers the entire internet — report bugs,
-              broken pages, or security problems on any domain, not just your own.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">BLT covers the entire internet — report bugs, broken pages, or security problems on any domain, not just your own.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-5">
-            <div
-              class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon" aria-hidden="true">
-                <use href="#fa-coins"></use>
-              </svg>
+            <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon" aria-hidden="true"><use href="#fa-coins"></use></svg>
             </div>
             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Earn rewards for every report</h3>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Reporters earn BACON tokens for accepted bug
-              reports, turning community contributions into tangible recognition.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Reporters earn BACON tokens for accepted bug reports, turning community contributions into tangible recognition.</p>
           </article>
         </div>
       </div>
@@ -555,85 +457,64 @@
     <section id="reporting" class="py-14 sm:py-16">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-10 max-w-3xl">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">How teams use OWASP BLT daily
-          </h2>
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">How teams use OWASP BLT daily</h2>
           <p class="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300">
-            Keep public issue intake simple, keep sensitive security reports private, and keep contributor trust high
-            with transparent tracking.
+            Keep public issue intake simple, keep sensitive security reports private, and keep contributor trust high with transparent tracking.
           </p>
         </div>
 
         <div class="grid gap-6 md:grid-cols-2">
           <article class="surface-card flex flex-col rounded-2xl p-7">
             <div class="mb-5 flex items-center gap-3">
-              <div
-                class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-                <svg class="fa-icon text-lg" aria-hidden="true">
-                  <use href="#fa-bug"></use>
-                </svg>
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+                <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-bug"></use></svg>
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Report a public bug</h3>
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">GitHub template or anonymous submission
-                </p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">GitHub template or anonymous submission</p>
               </div>
             </div>
 
             <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">Supported issue categories include:</p>
 
             <div class="mb-6 flex flex-wrap gap-2" role="list" aria-label="Supported bug categories">
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">404
-                / 500 errors</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Functional
-                issues</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Performance</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Slow
-                loading</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Typos</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Design
-                issues</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">IP
-                / trademark</span>
-              <span role="listitem"
-                class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">License
-                violations</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">404 / 500 errors</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Functional issues</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Performance</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Slow loading</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Typos</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">Design issues</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">IP / trademark</span>
+              <span role="listitem" class="rounded-full bg-active-bg px-2.5 py-1 text-xs font-semibold text-primary dark:bg-red-950/30 dark:text-red-400">License violations</span>
             </div>
 
-            <label
-              class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3 dark:border-gray-700">
-              <input id="anonymous-toggle" type="checkbox"
-                class="mt-0.5 h-4 w-4 rounded border-gray-400 accent-[#E10101]" aria-describedby="anonymous-desc" />
+            <label class="mb-6 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-border p-3 dark:border-gray-700">
+              <input
+                id="anonymous-toggle"
+                type="checkbox"
+                class="mt-0.5 h-4 w-4 rounded border-gray-400 accent-[#E10101]"
+                aria-describedby="anonymous-desc"
+              />
               <div>
                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Report anonymously</span>
-                <p id="anonymous-desc" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Submit through BLT-API
-                  without exposing your GitHub identity.</p>
+                <p id="anonymous-desc" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Submit through BLT-API without exposing your GitHub identity.</p>
               </div>
             </label>
 
-            <a id="report-bug-btn" href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-              target="_blank" rel="noopener noreferrer"
-              class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
-              <svg class="fa-icon mr-2" aria-hidden="true">
-                <use href="#fa-arrow-right"></use>
-              </svg>
+            <a
+              id="report-bug-btn"
+              href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
+              class="mt-auto inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+            >
+              <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-arrow-right"></use></svg>
               <span class="btn-label">Report a bug</span>
             </a>
           </article>
 
           <article class="surface-card flex flex-col rounded-2xl p-7">
             <div class="mb-5 flex items-center gap-3">
-              <div
-                class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-                <svg class="fa-icon text-lg" aria-hidden="true">
-                  <use href="#fa-shield-halved"></use>
-                </svg>
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+                <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-shield-halved"></use></svg>
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Report a vulnerability</h3>
@@ -641,46 +522,27 @@
               </div>
             </div>
 
-            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">For sensitive security findings, use a private
-              disclosure route with stronger safety guarantees:</p>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">For sensitive security findings, use a private disclosure route with stronger safety guarantees:</p>
 
             <div class="mb-6 flex flex-wrap gap-2" role="list" aria-label="Security guarantees">
-              <span role="listitem"
-                class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg
-                  class="fa-icon mr-1" aria-hidden="true">
-                  <use href="#fa-check"></use>
-                </svg>Zero logs</span>
-              <span role="listitem"
-                class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg
-                  class="fa-icon mr-1" aria-hidden="true">
-                  <use href="#fa-check"></use>
-                </svg>Zero tracking</span>
-              <span role="listitem"
-                class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg
-                  class="fa-icon mr-1" aria-hidden="true">
-                  <use href="#fa-check"></use>
-                </svg>Zero storage</span>
-              <span role="listitem"
-                class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg
-                  class="fa-icon mr-1" aria-hidden="true">
-                  <use href="#fa-check"></use>
-                </svg>Encrypted transport</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-check"></use></svg>Zero logs</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-check"></use></svg>Zero tracking</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-check"></use></svg>Zero storage</span>
+              <span role="listitem" class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/30 dark:text-green-400"><svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-check"></use></svg>Encrypted transport</span>
             </div>
 
-            <div
-              class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true">
-                <use href="#fa-circle-info"></use>
-              </svg>
-              Only the report ID and status are visible to the organization. Sensitive vulnerability payloads are not
-              stored in the receiving server.
+            <div class="mb-6 rounded-lg border border-neutral-border bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-circle-info"></use></svg>
+              Only the report ID and status are visible to the organization. Sensitive vulnerability payloads are not stored in the receiving server.
             </div>
 
-            <a href="https://zero.owaspblt.org" target="_blank" rel="noopener noreferrer"
-              class="mt-auto inline-flex items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
-              <svg class="fa-icon mr-2" aria-hidden="true">
-                <use href="#fa-lock"></use>
-              </svg>Report vulnerability
+            <a
+              href="https://zero.owaspblt.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-auto inline-flex items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+            >
+              <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-lock"></use></svg>Report vulnerability
             </a>
           </article>
         </div>
@@ -692,25 +554,23 @@
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">
-              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true">
-                <use href="#fa-bug"></use>
-              </svg>
+              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-bug"></use></svg>
               Recent bug reports
             </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Latest community-submitted issues from this
-              repository</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Latest community-submitted issues from this repository</p>
           </div>
-          <a href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug+sort%3Acreated-desc" target="_blank"
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug+sort%3Acreated-desc"
+            target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
+            class="inline-flex items-center rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white"
+          >
             View all reports
           </a>
         </div>
 
-        <div id="recent-bugs-grid" class="grid gap-6 md:grid-cols-3">
-          <!-- SSR:recent-bugs -->
+        <div id="recent-bugs-grid" data-pre-rendered="true" class="grid gap-6 md:grid-cols-3"><!-- SSR:recent-bugs --><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/60e992b9-866d-434a-91d0-ce30e79712d7" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/69" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] make the x link to OWASP_BLT</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 5, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/69" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-primary hover:underline"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>Be the first to comment</a></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] video bugs are not showing up</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="+1: 1" aria-label="+1: 1"><span aria-hidden="true">👍</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 2, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-primary hover:underline"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>Be the first to comment</a></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/8" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=www.owasp.community&amp;sz=32" alt="www.owasp.community favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] join chapter button does not work</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 1, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/swaparup36" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/u/82692857?v=4" alt="swaparup36&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/swaparup36.png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">@Armaansaxena @yogeshwarithombare any of you working on this?</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/8" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>3 comments</a></div></div></div></div><!-- /SSR:recent-bugs -->
         </div>
-      </div>
       </div>
     </section>
 
@@ -718,45 +578,32 @@
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-3xl text-center">
           <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">How it works</h2>
-          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Three practical steps to improve web quality and
-            security response.</p>
+          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Three practical steps to improve web quality and security response.</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-3">
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div
-              class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon text-2xl" aria-hidden="true">
-                <use href="#fa-magnifying-glass"></use>
-              </svg>
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon text-2xl" aria-hidden="true"><use href="#fa-magnifying-glass"></use></svg>
             </div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">1. Spot a bug</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Find a broken flow, performance
-              issue, typo, visual regression, or policy concern.</p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Find a broken flow, performance issue, typo, visual regression, or policy concern.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div
-              class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon text-2xl" aria-hidden="true">
-                <use href="#fa-paper-plane"></use>
-              </svg>
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon text-2xl" aria-hidden="true"><use href="#fa-paper-plane"></use></svg>
             </div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">2. Submit report</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Use the GitHub template for normal
-              issues or submit anonymously through BLT-API.</p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Use the GitHub template for normal issues or submit anonymously through BLT-API.</p>
           </article>
 
           <article class="surface-card rounded-2xl p-6 text-center">
-            <div
-              class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
-              <svg class="fa-icon text-2xl" aria-hidden="true">
-                <use href="#fa-trophy"></use>
-              </svg>
+            <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400">
+              <svg class="fa-icon text-2xl" aria-hidden="true"><use href="#fa-trophy"></use></svg>
             </div>
             <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">3. Build trust</h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Accepted reports improve your
-              leaderboard rank and help teams triage faster.</p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">Accepted reports improve your leaderboard rank and help teams triage faster.</p>
           </article>
         </div>
       </div>
@@ -855,18 +702,15 @@
     <section id="pricing" class="py-14 sm:py-16 hidden" style="display:none">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-10 max-w-3xl text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">Simple, transparent pricing
-          </h2>
-          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Public bug reporting remains free. Commercial forks
-            can enable managed intake plans.</p>
+          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">Simple, transparent pricing</h2>
+          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Public bug reporting remains free. Commercial forks can enable managed intake plans.</p>
         </div>
 
         <div id="pricing-grid" class="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"></div>
 
         <p class="mt-8 text-center text-xs text-gray-400 dark:text-gray-500">
           Revenue share is paid monthly to reporters whose submissions resulted in company sign-up.
-          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
-            class="text-red-600 hover:underline dark:text-red-400">See the source code</a>.
+          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">See the source code</a>.
         </p>
       </div>
     </section>
@@ -877,112 +721,71 @@
       <div class="mb-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div class="mb-3 flex items-center gap-2">
-            <img src="./static/logo.png" alt="BLT logo" class="h-8 w-8 rounded-md object-contain"
+            <img
+              src="./static/logo.png"
+              alt="BLT logo"
+              class="h-8 w-8 rounded-md object-contain"
               style="background-color:transparent"
-              onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
-            <span
-              class="hidden h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-white">B</span>
+              onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
+            />
+            <span class="hidden h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-white">B</span>
             <span class="font-bold text-gray-900 dark:text-gray-100">OWASP BLT</span>
           </div>
-          <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">An OWASP Foundation project focused on
-            open, practical bug reporting workflows.</p>
+          <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">An OWASP Foundation project focused on open, practical bug reporting workflows.</p>
           <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
             Licensed under
-            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer"
-              class="text-red-600 hover:underline dark:text-red-400">AGPLv3</a>
+            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">AGPLv3</a>
           </p>
         </div>
 
         <div>
           <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">Report</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-bug"></use>
-                </svg>Public bug</a></li>
-            <li><a href="https://zero.owaspblt.org" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-shield-halved"></use>
-                </svg>Security vulnerability</a></li>
-            <li><a href="https://next.owaspblt.org/pages/report-bug" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-user-secret"></use>
-                </svg>Anonymous route</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Public bug</a></li>
+            <li><a href="https://zero.owaspblt.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-shield-halved"></use></svg>Security vulnerability</a></li>
+            <li><a href="https://next.owaspblt.org/pages/report-bug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-user-secret"></use></svg>Anonymous route</a></li>
           </ul>
         </div>
 
         <div>
           <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">Project</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-github"></use>
-                </svg>Source code</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-code-branch"></use>
-                </svg>BLT core</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-circle-dot"></use>
-                </svg>Issue tracker</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-github"></use></svg>Source code</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-code-branch"></use></svg>BLT core</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-circle-dot"></use></svg>Issue tracker</a></li>
           </ul>
         </div>
 
         <div>
           <h3 class="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-gray-100">OWASP</h3>
           <ul class="space-y-2 text-sm font-semibold">
-            <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-globe"></use>
-                </svg>owasp.org</a></li>
-            <li><a href="https://owasp.org/donate" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-heart"></use>
-                </svg>Donate</a></li>
-            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
-                class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true">
-                  <use href="#fa-book"></use>
-                </svg>BLT project page</a></li>
+            <li><a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-globe"></use></svg>owasp.org</a></li>
+            <li><a href="https://owasp.org/donate" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-heart"></use></svg>Donate</a></li>
+            <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-book"></use></svg>BLT project page</a></li>
           </ul>
         </div>
       </div>
 
-      <div
-        class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row dark:border-gray-700">
-        <p class="text-xs text-gray-400 dark:text-gray-500">&copy; <span id="footer-year"></span> OWASP Foundation and
-          BLT Contributors.</p>
+      <div class="flex flex-col items-center justify-between gap-3 border-t border-neutral-border pt-6 sm:flex-row dark:border-gray-700">
+        <p class="text-xs text-gray-400 dark:text-gray-500">&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
         <div class="flex items-center gap-4">
-          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer"
-            class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400"
-            aria-label="OWASP BLT on GitHub">
-            <svg class="fa-icon text-lg" aria-hidden="true">
-              <use href="#fa-github"></use>
-            </svg>
+          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP BLT on GitHub">
+            <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-github"></use></svg>
           </a>
-          <a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer"
-            class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400"
-            aria-label="OWASP on X">
-            <svg class="fa-icon text-lg" aria-hidden="true">
-              <use href="#fa-x-twitter"></use>
-            </svg>
+          <a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP on X">
+            <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-x-twitter"></use></svg>
           </a>
         </div>
       </div>
-      <p id="homepage-updated" class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">Last updated: Mar 6,
-        2026, 6:12 PM UTC &mdash; <a
-          href="https://github.com/OWASP-BLT/BLT-Pages/commit/366cfd5ce8a6e3064bb7b6c91b0697817b16afa5" target="_blank"
-          rel="noopener noreferrer" class="hover:underline">366cfd5</a></p>
+      <p id="homepage-updated" class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">Last updated: Mar 6, 2026, 6:12 PM UTC &mdash; <a href="https://github.com/OWASP-BLT/BLT-Pages/commit/366cfd5ce8a6e3064bb7b6c91b0697817b16afa5" target="_blank" rel="noopener noreferrer" class="hover:underline">366cfd5</a></p>
     </div>
   </footer>
 
-  <script
-    id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = { "updated_at": "2026-03-06T18:12:05.176Z", "commit_sha": "366cfd5ce8a6e3064bb7b6c91b0697817b16afa5", "total_bugs": 13, "open_bugs": 4, "closed_bugs": 9, "total_domains": 2, "total_orgs": 0, "leaderboard": [{ "rank": 1, "login": "DonnieBLT", "count": 8, "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT" }, { "rank": 2, "login": "ananya-09", "count": 3, "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4", "profile_url": "https://github.com/ananya-09" }, { "rank": 3, "login": "kittenbytes", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/171991749?v=4", "profile_url": "https://github.com/kittenbytes" }, { "rank": 4, "login": "sidd190", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4", "profile_url": "https://github.com/sidd190" }], "top_commenters": [{ "rank": 1, "login": "ananya-09", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4", "profile_url": "https://github.com/ananya-09" }, { "rank": 2, "login": "azizrebhi", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4", "profile_url": "https://github.com/azizrebhi" }, { "rank": 3, "login": "Nachiket-Roy", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4", "profile_url": "https://github.com/Nachiket-Roy" }, { "rank": 4, "login": "sidd190", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4", "profile_url": "https://github.com/sidd190" }, { "rank": 5, "login": "yogeshwarithombare", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4", "profile_url": "https://github.com/yogeshwarithombare" }, { "rank": 6, "login": "Armaansaxena", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4", "profile_url": "https://github.com/Armaansaxena" }, { "rank": 7, "login": "swaparup36", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4", "profile_url": "https://github.com/swaparup36" }, { "rank": 8, "login": "mdkaifansari04", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4", "profile_url": "https://github.com/mdkaifansari04" }, { "rank": 9, "login": "DonnieBLT", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT" }], "top_domains": [{ "rank": 1, "domain": "owaspblt.org", "count": 11 }, { "rank": 2, "domain": "www.owasp.community", "count": 2 }], "recent_bugs": [{ "number": 69, "title": "[BUG] make the x link to OWASP_BLT", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/69", "created_at": "2026-03-05T09:26:36Z", "comment_count": 0, "user": { "login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT" }, "image_url": "https://github.com/user-attachments/assets/60e992b9-866d-434a-91d0-ce30e79712d7", "domain": "owaspblt.org", "reactions": { "eyes": 1 }, "latest_comment": null }, { "number": 17, "title": "[BUG] video bugs are not showing up", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17", "created_at": "2026-03-02T20:50:49Z", "comment_count": 0, "user": { "login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT" }, "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45", "domain": "owaspblt.org", "reactions": { "+1": 1 }, "latest_comment": null }, { "number": 8, "title": "[BUG] join chapter button does not work", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8", "created_at": "2026-03-01T08:40:35Z", "comment_count": 3, "user": { "login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT" }, "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c", "domain": "www.owasp.community", "reactions": {}, "latest_comment": { "body": "@Armaansaxena @yogeshwarithombare  any of you working on this?", "created_at": "2026-03-04T17:04:20Z", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3998884616", "user": { "login": "swaparup36", "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4", "profile_url": "https://github.com/swaparup36" } } }] };</script>
+  <script id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = {"updated_at":"2026-03-06T18:12:05.176Z","commit_sha":"366cfd5ce8a6e3064bb7b6c91b0697817b16afa5","total_bugs":13,"open_bugs":4,"closed_bugs":9,"total_domains":2,"total_orgs":0,"leaderboard":[{"rank":1,"login":"DonnieBLT","count":8,"avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},{"rank":2,"login":"ananya-09","count":3,"avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"},{"rank":3,"login":"kittenbytes","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/171991749?v=4","profile_url":"https://github.com/kittenbytes"},{"rank":4,"login":"sidd190","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/73955358?v=4","profile_url":"https://github.com/sidd190"}],"top_commenters":[{"rank":1,"login":"ananya-09","count":2,"avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"},{"rank":2,"login":"azizrebhi","count":2,"avatar_url":"https://avatars.githubusercontent.com/u/154744962?v=4","profile_url":"https://github.com/azizrebhi"},{"rank":3,"login":"Nachiket-Roy","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/204239697?v=4","profile_url":"https://github.com/Nachiket-Roy"},{"rank":4,"login":"sidd190","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/73955358?v=4","profile_url":"https://github.com/sidd190"},{"rank":5,"login":"yogeshwarithombare","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/247213611?v=4","profile_url":"https://github.com/yogeshwarithombare"},{"rank":6,"login":"Armaansaxena","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/143505186?v=4","profile_url":"https://github.com/Armaansaxena"},{"rank":7,"login":"swaparup36","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/82692857?v=4","profile_url":"https://github.com/swaparup36"},{"rank":8,"login":"mdkaifansari04","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/117475603?v=4","profile_url":"https://github.com/mdkaifansari04"},{"rank":9,"login":"DonnieBLT","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"}],"top_domains":[{"rank":1,"domain":"owaspblt.org","count":11},{"rank":2,"domain":"www.owasp.community","count":2}],"recent_bugs":[{"number":69,"title":"[BUG] make the x link to OWASP_BLT","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/69","created_at":"2026-03-05T09:26:36Z","comment_count":0,"user":{"login":"DonnieBLT","avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},"image_url":"https://github.com/user-attachments/assets/60e992b9-866d-434a-91d0-ce30e79712d7","domain":"owaspblt.org","reactions":{"eyes":1},"latest_comment":null},{"number":17,"title":"[BUG] video bugs are not showing up","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/17","created_at":"2026-03-02T20:50:49Z","comment_count":0,"user":{"login":"DonnieBLT","avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},"image_url":"https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45","domain":"owaspblt.org","reactions":{"+1":1},"latest_comment":null},{"number":8,"title":"[BUG] join chapter button does not work","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/8","created_at":"2026-03-01T08:40:35Z","comment_count":3,"user":{"login":"DonnieBLT","avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},"image_url":"https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c","domain":"www.owasp.community","reactions":{},"latest_comment":{"body":"@Armaansaxena @yogeshwarithombare  any of you working on this?","created_at":"2026-03-04T17:04:20Z","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3998884616","user":{"login":"swaparup36","avatar_url":"https://avatars.githubusercontent.com/u/82692857?v=4","profile_url":"https://github.com/swaparup36"}}}]};</script>
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
   <script>
     document.getElementById('footer-year').textContent = new Date().getFullYear();
   </script>
 </body>
-
 </html>
