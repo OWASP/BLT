@@ -456,6 +456,147 @@ async def handle_pull_request_closed(payload: dict, token: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Peer review enforcement
+# ---------------------------------------------------------------------------
+
+# Excluded accounts whose reviews don't count as valid peer reviews
+PEER_REVIEW_EXCLUDED = {"coderabbitai[bot]", "dependabot[bot]", "dependabot-preview[bot]", "dependabot", "github-actions[bot]"}
+
+
+async def get_valid_reviewers(owner: str, repo: str, pr_number: int, pr_author: str, token: str) -> list[str]:
+    """Get list of valid approved reviewers for a PR (excluding bots and the PR author)."""
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls/{pr_number}/reviews", token)
+    if resp.status != 200:
+        console.error(f"[BLT] Failed to fetch reviews for PR #{pr_number}: {resp.status}")
+        return []
+    
+    reviews = json.loads(await resp.text())
+    valid_reviewers = set()
+    
+    for review in reviews:
+        if review.get("state") != "APPROVED":
+            continue
+        reviewer_login = review.get("user", {}).get("login", "")
+        if not reviewer_login or reviewer_login == pr_author:
+            continue
+        if reviewer_login in PEER_REVIEW_EXCLUDED:
+            continue
+        if "copilot" in reviewer_login.lower():
+            continue
+        valid_reviewers.add(reviewer_login)
+    
+    return list(valid_reviewers)
+
+
+async def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str, token: str) -> None:
+    """Create or update a label to ensure it exists with the correct color/description."""
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/labels/{label_name}", token)
+    
+    if resp.status == 200:
+        # Label exists, check if it needs update
+        data = json.loads(await resp.text())
+        if data.get("color") != color or data.get("description") != description:
+            await github_api("PATCH", f"/repos/{owner}/{repo}/labels/{label_name}", token, {
+                "color": color,
+                "description": description,
+            })
+    elif resp.status == 404:
+        # Label doesn't exist, create it
+        await github_api("POST", f"/repos/{owner}/{repo}/labels", token, {
+            "name": label_name,
+            "color": color,
+            "description": description,
+        })
+
+
+async def update_peer_review_labels(owner: str, repo: str, pr_number: int, has_review: bool, token: str) -> None:
+    """Add/remove peer review labels based on whether the PR has a valid review."""
+    new_label = "has-peer-review" if has_review else "needs-peer-review"
+    old_label = "needs-peer-review" if has_review else "has-peer-review"
+    color = "0e8a16" if has_review else "e74c3c"  # Green or Red
+    description = "PR has received peer review" if has_review else "PR needs peer review"
+    
+    # Ensure the new label exists
+    await ensure_label_exists(owner, repo, new_label, color, description, token)
+    
+    # Get current labels
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/labels", token)
+    if resp.status != 200:
+        return
+    
+    current_labels = json.loads(await resp.text())
+    current_label_names = {label.get("name") for label in current_labels}
+    
+    # Remove old label if present
+    if old_label in current_label_names:
+        await github_api("DELETE", f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{old_label}", token)
+    
+    # Add new label if not present
+    if new_label not in current_label_names:
+        await github_api("POST", f"/repos/{owner}/{repo}/issues/{pr_number}/labels", token, {"labels": [new_label]})
+
+
+async def check_peer_review_and_comment(owner: str, repo: str, pr_number: int, pr_author: str, token: str) -> None:
+    """Check if a PR has peer review, update labels, and post a comment if needed."""
+    # Skip for excluded accounts
+    if pr_author in PEER_REVIEW_EXCLUDED or "copilot" in pr_author.lower():
+        return
+    
+    reviewers = await get_valid_reviewers(owner, repo, pr_number, pr_author, token)
+    has_review = len(reviewers) > 0
+    
+    # Update labels
+    await update_peer_review_labels(owner, repo, pr_number, has_review, token)
+    
+    # If no review, post a reminder comment (only once)
+    if not has_review:
+        # Check if we already posted the reminder
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments", token)
+        if resp.status == 200:
+            comments = json.loads(await resp.text())
+            marker = "<!-- peer-review-check -->"
+            already_commented = any(marker in comment.get("body", "") for comment in comments)
+            
+            if not already_commented:
+                body = f"""{marker}
+👋 Hi @{pr_author}!
+
+This pull request needs a peer review before it can be merged. Please request a review from a team member who is not:
+- The PR author
+- coderabbitai
+- copilot
+
+Once a valid peer review is submitted, this check will pass automatically. Thank you!
+
+> ⚠️ Peer review enforcement is active."""
+                await create_comment(owner, repo, pr_number, body, token)
+
+
+async def handle_pull_request_review(payload: dict, token: str) -> None:
+    """Handle pull_request_review events (submitted/dismissed) to check peer review status."""
+    pr = payload["pull_request"]
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    pr_author = pr["user"]["login"]
+    
+    await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
+
+
+async def handle_pull_request_for_review(payload: dict, token: str) -> None:
+    """Handle pull_request events (opened/synchronize/reopened) to check peer review status."""
+    pr = payload["pull_request"]
+    sender = payload["sender"]
+    if not _is_human(sender):
+        return
+    
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    pr_author = pr["user"]["login"]
+    
+    await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
+
+
+# ---------------------------------------------------------------------------
 # Webhook dispatcher
 # ---------------------------------------------------------------------------
 
@@ -502,8 +643,13 @@ async def handle_webhook(request, env) -> Response:
         elif event == "pull_request":
             if action == "opened":
                 await handle_pull_request_opened(payload, token)
+                await handle_pull_request_for_review(payload, token)
+            elif action in ("synchronize", "reopened"):
+                await handle_pull_request_for_review(payload, token)
             elif action == "closed":
                 await handle_pull_request_closed(payload, token)
+        elif event == "pull_request_review" and action in ("submitted", "dismissed"):
+            await handle_pull_request_review(payload, token)
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
         return _json({"error": "Internal server error"}, 500)
