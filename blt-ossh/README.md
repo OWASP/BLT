@@ -1,4 +1,4 @@
-# BLT-OSSH 🎩✨
+# BLT-OSSH ≡ƒÄ⌐Γ£¿
 **Open Source Sorting Hat** - AI-powered GitHub profile analyzer that recommends perfect open source projects
 
 ## Overview
@@ -6,24 +6,24 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Features
 
-### 🔍 GitHub Profile Analysis
+### ≡ƒöì GitHub Profile Analysis
 - Fetches and analyzes your GitHub repositories, languages, and topics
 - AI-powered matching of projects based on your tech stack
 - Real-time GitHub API integration
 
-### 👥 Community Platform
+### ≡ƒæÑ Community Platform
 - **Create Developer Profiles** - Share your profile with the community
 - **Browse Profiles** - Discover developers with similar interests
 - **Smart Profile Creation** - After analyzing your GitHub, create a community profile with pre-filled data
 - **Filter & Search** - Find developers by experience level, skills, or location
 
-### 🎯 Personalized Recommendations
+### ≡ƒÄ» Personalized Recommendations
 - Open source projects matching your tech stack
 - Developer communities and organizations
 - Curated learning resources and articles
 - Active discussion channels (Discord, Slack, Reddit, etc.)
 
-### 🌙 Modern UI/UX
+### ≡ƒîÖ Modern UI/UX
 - Beautiful dark mode support
 - Responsive design for all devices
 - Smooth animations and transitions
@@ -35,6 +35,25 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 - **APIs**: GitHub REST API v3 (fetched directly from browser)
 - **Deployment**: GitHub Pages
 
+## Architecture Overview
+
+BLT-OSSH (Open Source Sorting Hat) helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
+
+Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focusing on contributor onboarding and project matching rather than bug reporting.
+
+### How It Works
+
+1. **User submits a GitHub username** — The user enters their GitHub handle on the OSSH homepage.
+2. **OSSH fetches and analyzes** — The frontend calls the GitHub API to retrieve user profile, repositories, languages, and topics.
+3. **Matching logic runs client-side** — The `buildRecommendations()` function in `js/app.js` analyzes repository languages, contribution patterns, and metadata to identify relevant projects.
+4. **Recommendations are displayed** — Results include recommended repositories, communities, articles, and discussion channels.
+
+### Key Architectural Decisions
+
+- **No backend** — All logic runs in the browser. GitHub API is called directly from the client.
+- **Static deployment** — Hosted on GitHub Pages with no server-side dependencies.
+- **GitHub Issues as database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
+
 ## How Profiles Work
 
 ### Simple & Direct
@@ -44,49 +63,86 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 4. **Edit Anytime**: Users edit their issue to update their profile
 
 ### Why GitHub Issues?
-- ✅ **Simple**: No backend needed, just GitHub API
-- ✅ **User-Friendly**: Anyone can submit via familiar GitHub Issues
-- ✅ **Editable**: Users can update their profiles anytime
-- ✅ **Moderated**: Maintainers can review via issue management
-- ✅ **No Rate Limits**: Reasonable usage stays within GitHub's limits
+- Γ£à **Simple**: No backend needed, just GitHub API
+- Γ£à **User-Friendly**: Anyone can submit via familiar GitHub Issues
+- Γ£à **Editable**: Users can update their profiles anytime
+- Γ£à **Moderated**: Maintainers can review via issue management
+- Γ£à **No Rate Limits**: Reasonable usage stays within GitHub's limits
 
 ## Getting Started
 
-### Prerequisites
-- A modern web browser (no server-side dependencies)
-
 ### Local Development
-Open `index.html` directly in your browser, or serve it with any static file server:
 
+This section explains how contributors can run BLT-OSSH locally for development and testing.
+
+### Prerequisites
+
+- **Python 3.x** or **Node.js 18+** — For running a local static file server
+- **Git** — For cloning the repository
+- **Modern web browser** — Chrome, Firefox, Safari, or Edge
+
+No environment variables or configuration files are required for basic local development. The app uses the public GitHub API without authentication.
+
+### Setup
+
+**1. Clone the repository**
 ```bash
-# Python built-in server
+git clone https://github.com/OWASP-BLT/BLT-OSSH.git
+cd BLT-OSSH
+```
+
+**2. Serve the application locally**
+
+Option A — Using Python (recommended):
+```bash
 python -m http.server 8000
 ```
 
-The application will be available at `http://localhost:8000`
+Option B — Using npm:
+```bash
+npm run dev
+```
+(This runs `python -m http.server 8000` under the hood)
+
+**3. Open in browser**
+
+Visit `http://localhost:8000` to load the main analysis page. Visit `http://localhost:8000/community.html` for the Community profiles page.
+
+### Configuration
+
+- **No `.env` or config files** — The app is fully static and requires no environment variables
+- **CORS** — GitHub API allows requests from any origin; no CORS configuration needed for local development
+
+### Testing Workflow
+
+1. Run the local server as above
+2. Enter a GitHub username and click "Find My Projects"
+3. Verify recommendations display correctly
+4. Test the "Create My Community Profile" flow (redirects to GitHub Issues)
+5. Open `community.html` and verify profile fetching works
 
 ### Deployment
 Pushes to the `main` branch automatically deploy to GitHub Pages via the workflow at `.github/workflows/deploy.yml`.
 
 To enable GitHub Pages for the repository:
-1. Go to **Settings → Pages**
+1. Go to **Settings ΓåÆ Pages**
 2. Set **Source** to **GitHub Actions**
 
 ## Project Structure
 ```
 BLT-OSSH/
-├── .github/
-│   ├── workflows/
-│   │   └── deploy.yml           # GitHub Pages deployment
-│   └── ISSUE_TEMPLATE/
-│       └── user_profile.yml     # Community profile template
-├── static/
-│   └── logo.png                 # BLT logo
-├── js/
-│   └── app.js                   # Frontend logic & GitHub API calls
-├── index.html                   # Main analysis page
-├── community.html               # Community profiles page
-└── README.md                    # This file
+Γö£ΓöÇΓöÇ .github/
+Γöé   Γö£ΓöÇΓöÇ workflows/
+Γöé   Γöé   ΓööΓöÇΓöÇ deploy.yml           # GitHub Pages deployment
+Γöé   ΓööΓöÇΓöÇ ISSUE_TEMPLATE/
+Γöé       ΓööΓöÇΓöÇ user_profile.yml     # Community profile template
+Γö£ΓöÇΓöÇ static/
+Γöé   ΓööΓöÇΓöÇ logo.png                 # BLT logo
+Γö£ΓöÇΓöÇ js/
+Γöé   ΓööΓöÇΓöÇ app.js                   # Frontend logic & GitHub API calls
+Γö£ΓöÇΓöÇ index.html                   # Main analysis page
+Γö£ΓöÇΓöÇ community.html               # Community profiles page
+ΓööΓöÇΓöÇ README.md                    # This file
 ```
 
 ## How It Works
@@ -121,15 +177,36 @@ BLT-OSSH/
   - Social links and contact info
 - Real-time search and filtering
 
-## GitHub API
+## API Usage
 
-The site calls the GitHub REST API directly from the browser (no backend required):
+The system interacts with the **GitHub REST API** to retrieve user and repository data. All API calls are made directly from the browser (no backend required).
 
-- `GET https://api.github.com/users/{username}` — User profile data
-- `GET https://api.github.com/users/{username}/repos` — User repository list
-- `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` — Community profiles
+### Endpoints Used
 
-> **Note**: Unauthenticated requests are limited to 60 requests/hour per IP. This is sufficient for casual use.
+| Endpoint | Purpose |
+|----------|---------|
+| `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
+| `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
+| `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (stored as GitHub Issues) |
+
+### Data Fetched
+
+- **User profile** — Avatar, bio, public repos count, followers, following
+- **Repositories** — Names, descriptions, languages, stars, fork status
+- **Languages used** — Extracted from repository metadata and weighted by frequency
+- **Community profiles** — Parsed from issue bodies on the Community page
+
+### Rate Limits
+
+- **Unauthenticated requests**: 60 requests/hour per IP address
+- **Authenticated requests**: 5,000 requests/hour (if you add a token — not required for basic use)
+- The app typically makes 2–3 requests per profile analysis, so casual use stays within limits
+- If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
+
+### Authentication
+
+- **No authentication required** for basic usage — the app works with unauthenticated API calls
+- For higher rate limits or private repository access, you could add a GitHub token; this is not currently implemented in the static frontend
 
 ## Usage
 
@@ -241,4 +318,4 @@ This project is part of OWASP BLT and follows its licensing terms.
 - All contributors
 
 ---
-Made with ❤️ by the OWASP BLT Community
+Made with Γ¥ñ∩╕Å by the OWASP BLT Community
