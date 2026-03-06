@@ -706,10 +706,13 @@ async def _track_comment_in_d1(payload: dict, env) -> None:
 async def _track_review_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
+        console.log("[D1] REVIEW: No DB binding")
         return
     review = payload.get("review") or {}
     reviewer = review.get("user") or {}
     if _is_bot(reviewer):
+        bot_name = reviewer.get("login", "unknown")
+        console.log(f"[D1] REVIEW: Skipped bot {bot_name}")
         return
     pr = payload.get("pull_request") or {}
     org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
@@ -718,7 +721,10 @@ async def _track_review_in_d1(payload: dict, env) -> None:
     reviewer_login = reviewer.get("login", "")
     submitted_at = review.get("submitted_at")
     if not (org and repo and pr_number and reviewer_login):
+        console.log(f"[D1] REVIEW: Missing fields org={bool(org)} repo={bool(repo)} pr={pr_number} reviewer={reviewer_login}")
         return
+    
+    console.log(f"[D1] REVIEW: Processing {reviewer_login} reviewing {org}/{repo}#{pr_number}")
 
     await _ensure_leaderboard_schema(db)
     mk = _month_key(_parse_github_timestamp(submitted_at) if submitted_at else int(time.time()))
@@ -1895,8 +1901,7 @@ async def handle_pull_request_closed(payload: dict, token: str, env=None) -> Non
     )
     await create_comment(owner, repo, pr_number, body, token)
     
-    # Check for rank improvement and congratulate if improved
-    await _check_rank_improvement(owner, repo, pr_number, author_login, token)
+    # Leaderboard display already shows accurate ranking
     
     # Post/update leaderboard
     if env is None:
