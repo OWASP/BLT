@@ -65,9 +65,18 @@ class _ResponseStub:
         return cls(body, status, headers)
 
 
+class _ObjectStub:
+    """Minimal Object stand-in with fromEntries() method."""
+    pass
+
+# Use setattr to set 'fromEntries' method
+setattr(_ObjectStub, "fromEntries", staticmethod(lambda entries: dict(entries)))
+
+
 _js_stub.Headers = _HeadersStub
 _js_stub.Response = _ResponseStub
 _js_stub.Array = _ArrayStub
+_js_stub.Object = _ObjectStub
 _js_stub.console = types.SimpleNamespace(error=print, log=print)
 _js_stub.fetch = None  # not used in unit tests
 
@@ -690,7 +699,13 @@ class TestCreateGithubJwt(unittest.TestCase):
         asyncio.run(_inner())
 
     def test_algorithm_dict_passed_to_import_key(self):
-        """Verify algorithm dict with correct name is passed to importKey."""
+        """Verify algorithm dict with correct name is passed to importKey via to_js()."""
+        to_js_calls = []
+        
+        def spy_to_js(value, **kwargs):
+            to_js_calls.append(value)
+            return value
+        
         mock_import_key = AsyncMock(return_value=object())
         mock_sign = AsyncMock(return_value=bytes(64))
         mock_subtle = types.SimpleNamespace(importKey=mock_import_key, sign=mock_sign)
@@ -702,16 +717,18 @@ class TestCreateGithubJwt(unittest.TestCase):
                     "js": types.SimpleNamespace(
                         Uint8Array=self._Uint8ArrayStub,
                         Array=_ArrayStub,
+                        Object=_ObjectStub,
                         crypto=types.SimpleNamespace(subtle=mock_subtle),
                     ),
+                    "pyodide.ffi": types.SimpleNamespace(to_js=spy_to_js),
                 },
             ):
                 await _worker.create_github_jwt("123", self._make_rsa_pem())
-            # Check the algorithm arg passed to importKey
-            args = mock_import_key.call_args
-            algorithm = args[0][2] if args else None
-            self.assertIsInstance(algorithm, dict)
-            self.assertEqual(algorithm.get("name"), "RSASSA-PKCS1-v1_5")
+            # Check that to_js was called with the algorithm dict
+            self.assertTrue(
+                any(isinstance(v, dict) and v.get("name") == "RSASSA-PKCS1-v1_5" for v in to_js_calls),
+                f"Expected algorithm dict in to_js calls, got: {to_js_calls}"
+            )
 
         asyncio.run(_inner())
 
@@ -733,6 +750,7 @@ class TestCreateGithubJwt(unittest.TestCase):
                     "js": types.SimpleNamespace(
                         Uint8Array=self._Uint8ArrayStub,
                         Array=mock_array,
+                        Object=_ObjectStub,
                         crypto=types.SimpleNamespace(
                             subtle=types.SimpleNamespace(
                                 importKey=AsyncMock(return_value=object()),
@@ -740,6 +758,7 @@ class TestCreateGithubJwt(unittest.TestCase):
                             )
                         ),
                     ),
+                    "pyodide.ffi": types.SimpleNamespace(to_js=lambda x, **kw: x),
                 },
             ):
                 await _worker.create_github_jwt("123", self._make_rsa_pem())
