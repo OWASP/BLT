@@ -202,6 +202,26 @@ async def get_installation_token(
     return data.get("token")
 
 
+async def get_installation_access_token(installation_id: int, jwt_token: str) -> Optional[str]:
+    """Exchange a prebuilt GitHub App JWT for an installation access token."""
+    resp = await fetch(
+        f"https://api.github.com/app/installations/{installation_id}/access_tokens",
+        method="POST",
+        headers=Headers.new({
+            "Authorization": f"Bearer {jwt_token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "User-Agent": "BLT-GitHub-App/1.0",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }.items()),
+    )
+    if resp.status != 201:
+        console.error(f"[BLT] Failed to get installation access token: {resp.status}")
+        return None
+    data = json.loads(await resp.text())
+    return data.get("token")
+
+
 async def create_comment(
     owner: str, repo: str, number: int, body: str, token: str
 ) -> None:
@@ -407,6 +427,31 @@ async def _ensure_leaderboard_schema(db) -> None:
             reviewer_login TEXT NOT NULL,
             created_at INTEGER NOT NULL,
             PRIMARY KEY (org, repo, pr_number, month_key, reviewer_login)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_backfill_state (
+            org TEXT NOT NULL,
+            month_key TEXT NOT NULL,
+            next_page INTEGER NOT NULL DEFAULT 1,
+            completed INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (org, month_key)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_backfill_repo_done (
+            org TEXT NOT NULL,
+            month_key TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY (org, month_key, repo)
         )
         """,
     )
@@ -697,6 +742,154 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     }
 
 
+async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
+    row = await _d1_first(
+        db,
+        """
+        SELECT next_page, completed FROM leaderboard_backfill_state
+        WHERE org = ? AND month_key = ?
+        """,
+        (owner, month_key),
+    )
+    if row:
+        return {
+            "next_page": int(row.get("next_page") or 1),
+            "completed": bool(int(row.get("completed") or 0)),
+        }
+    return {"next_page": 1, "completed": False}
+
+
+async def _set_backfill_state(db, owner: str, month_key: str, next_page: int, completed: bool) -> None:
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_backfill_state (org, month_key, next_page, completed, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(org, month_key) DO UPDATE SET
+            next_page = excluded.next_page,
+            completed = excluded.completed,
+            updated_at = excluded.updated_at
+        """,
+        (owner, month_key, next_page, 1 if completed else 0, int(time.time())),
+    )
+
+
+async def _run_incremental_backfill(owner: str, token: str, env, repos_per_request: int = 5) -> Optional[dict]:
+    """Backfill leaderboard data in small chunks and report progress for user-facing notes."""
+    db = _d1_binding(env)
+    if not db:
+        return None
+
+    await _ensure_leaderboard_schema(db)
+    month_key = _month_key()
+    start_ts, end_ts = _month_window(month_key)
+    start_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_ts))
+
+    state = await _get_backfill_state(db, owner, month_key)
+    if state["completed"]:
+        return {"ran": False, "completed": True, "processed": 0, "next_page": state["next_page"]}
+
+    page = state["next_page"]
+    repos_resp = await github_api(
+        "GET",
+        f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={repos_per_request}&page={page}",
+        token,
+    )
+    if repos_resp.status != 200:
+        console.error(f"[Leaderboard] Backfill repo page failed for {owner}: status={repos_resp.status}")
+        return {"ran": False, "completed": False, "processed": 0, "next_page": page}
+
+    repos = json.loads(await repos_resp.text())
+    if not repos:
+        await _set_backfill_state(db, owner, month_key, page, True)
+        return {"ran": False, "completed": True, "processed": 0, "next_page": page}
+
+    processed = 0
+    for repo_obj in repos:
+        repo_name = repo_obj.get("name")
+        if not repo_name:
+            continue
+
+        already = await _d1_first(
+            db,
+            """
+            SELECT 1 FROM leaderboard_backfill_repo_done
+            WHERE org = ? AND month_key = ? AND repo = ?
+            """,
+            (owner, month_key, repo_name),
+        )
+        if already:
+            continue
+
+        # Open PRs snapshot for this repo.
+        open_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=open&per_page=100",
+            token,
+        )
+        if open_resp.status == 200:
+            open_prs = json.loads(await open_resp.text())
+            open_by_user = {}
+            for pr in open_prs:
+                user = pr.get("user") or {}
+                if _is_bot(user):
+                    continue
+                login = user.get("login")
+                if login:
+                    open_by_user[login] = open_by_user.get(login, 0) + 1
+            for login, cnt in open_by_user.items():
+                await _d1_inc_open_pr(db, owner, login, cnt)
+
+        # Closed/merged monthly stats for this repo.
+        closed_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
+            token,
+        )
+        if closed_resp.status == 200:
+            closed_prs = json.loads(await closed_resp.text())
+            for pr in closed_prs:
+                user = pr.get("user") or {}
+                if _is_bot(user):
+                    continue
+                login = user.get("login")
+                if not login:
+                    continue
+                merged_at = pr.get("merged_at")
+                closed_at = pr.get("closed_at")
+                if merged_at:
+                    merged_ts = _parse_github_timestamp(merged_at)
+                    if start_ts <= merged_ts <= end_ts:
+                        await _d1_inc_monthly(db, owner, month_key, login, "merged_prs", 1)
+                elif closed_at:
+                    closed_ts = _parse_github_timestamp(closed_at)
+                    if start_ts <= closed_ts <= end_ts:
+                        await _d1_inc_monthly(db, owner, month_key, login, "closed_prs", 1)
+
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_backfill_repo_done (org, month_key, repo, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org, month_key, repo) DO UPDATE SET
+                updated_at = excluded.updated_at
+            """,
+            (owner, month_key, repo_name, int(time.time())),
+        )
+        processed += 1
+
+    done = len(repos) < repos_per_request
+    await _set_backfill_state(db, owner, month_key, page + 1, done)
+    return {
+        "ran": True,
+        "completed": done,
+        "processed": processed,
+        "next_page": page + 1,
+        "month_key": month_key,
+        "since": start_iso,
+    }
+
+
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
     """Fetch repositories in the organization (most recently updated first).
     
@@ -947,7 +1140,7 @@ def _parse_github_timestamp(ts_str: str) -> int:
     return 0
 
 
-def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner: str) -> str:
+def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner: str, note: str = "") -> str:
     """Format a leaderboard comment for a specific user."""
     sorted_users = leaderboard_data["sorted"]
     start_ts = leaderboard_data["start_timestamp"]
@@ -979,7 +1172,11 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
                 f"{u['closedPrs']} | {u['reviews']} | {u['comments']} | **{u['total']}** |")
     
     # Show context rows around the author
-    if author_index == -1:
+    if not sorted_users:
+        # No data yet: show the requesting user with zeroes so the comment is still useful.
+        comment += f"| - | **`@{author_login}`** ✨ | 0 | 0 | 0 | 0 | 0 | **0** |\n"
+        comment += "\n_No leaderboard activity has been recorded for this month yet._\n"
+    elif author_index == -1:
         # Author not in leaderboard, show top 3
         for i in range(min(3, len(sorted_users))):
             medal = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
@@ -1002,32 +1199,62 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
         "Closed (not merged) (−2), Reviews (+5; first two per PR in-month), "
         "Comments (+2, excludes CodeRabbit). Run `/leaderboard` on any issue or PR to see your rank!\n"
     )
+    if note:
+        comment += f"\n> Note: {note}\n"
     
     return comment
 
 
 async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
     """Post or update a leaderboard comment on an issue/PR."""
+    leaderboard_note = ""
+
+    owner_data = None
+    is_org = False
+    owner_resp = await github_api("GET", f"/users/{owner}", token)
+    if owner_resp.status == 200:
+        owner_data = json.loads(await owner_resp.text())
+        is_org = owner_data.get("type") == "Organization"
+
     # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+
+    # If D1 is configured but currently empty, backfill in small chunks per command run.
+    if leaderboard_data is not None and is_org and not leaderboard_data.get("sorted"):
+        backfill_result = await _run_incremental_backfill(owner, token, env)
+        if backfill_result:
+            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+            if backfill_result.get("completed"):
+                if backfill_result.get("processed", 0) > 0:
+                    leaderboard_note = (
+                        f"Backfill completed in this request; seeded data from {backfill_result.get('processed', 0)} repos."
+                    )
+            elif backfill_result.get("ran"):
+                leaderboard_note = (
+                    f"Backfill is in progress. Seeded {backfill_result.get('processed', 0)} repos in this run. "
+                    "Run `/leaderboard` again to continue filling historical data."
+                )
+            else:
+                leaderboard_note = "Backfill could not run this time; leaderboard will continue updating from new webhook events."
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
         # Determine if owner is an org or user only when fallback is needed.
-        resp = await github_api("GET", f"/users/{owner}", token)
-        if resp.status != 200:
-            console.error(f"[Leaderboard] Failed to fetch owner info for {owner}: status={resp.status}")
-            await create_comment(
-                owner,
-                repo,
-                issue_number,
-                f"@{author_login} I couldn't load leaderboard data right now (owner lookup failed). Please try again shortly.",
-                token,
-            )
-            return
+        if owner_data is None:
+            resp = await github_api("GET", f"/users/{owner}", token)
+            if resp.status != 200:
+                console.error(f"[Leaderboard] Failed to fetch owner info for {owner}: status={resp.status}")
+                await create_comment(
+                    owner,
+                    repo,
+                    issue_number,
+                    f"@{author_login} I couldn't load leaderboard data right now (owner lookup failed). Please try again shortly.",
+                    token,
+                )
+                return
+            owner_data = json.loads(await resp.text())
+            is_org = owner_data.get("type") == "Organization"
 
-        owner_data = json.loads(await resp.text())
-        is_org = owner_data.get("type") == "Organization"
         if is_org:
             repos = await _fetch_org_repos(owner, token)
         else:
@@ -1035,7 +1262,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
         leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
     
     # Format comment
-    comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner)
+    comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner, leaderboard_note)
     
     # Delete existing leaderboard comment(s), then always create a fresh one.
     resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100", token)
