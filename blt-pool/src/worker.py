@@ -379,14 +379,21 @@ def _month_window(month_key: str) -> Tuple[int, int]:
 
 def _d1_binding(env):
     """Return D1 binding object if configured, otherwise None."""
-    return getattr(env, "LEADERBOARD_DB", None)
+    db = getattr(env, "LEADERBOARD_DB", None) if env else None
+    return db
 
 
 async def _d1_run(db, sql: str, params: tuple = ()):
-    stmt = db.prepare(sql)
-    if params:
-        stmt = stmt.bind(*params)
-    return await stmt.run()
+    try:
+        stmt = db.prepare(sql)
+        if params:
+            stmt = stmt.bind(*params)
+        result = await stmt.run()
+        console.log(f"[D1.run] Executed: {sql[:60]}...")
+        return result
+    except Exception as e:
+        console.error(f"[D1.run] Error executing {sql[:60]}: {e}")
+        raise
 
 
 async def _d1_all(db, sql: str, params: tuple = ()) -> list:
@@ -493,7 +500,7 @@ async def _ensure_leaderboard_schema(db) -> None:
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
     now = int(time.time())
     try:
-        await _d1_run(
+        result = await _d1_run(
             db,
             """
             INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
@@ -504,9 +511,9 @@ async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
             """,
             (org, user_login, delta, now),
         )
-        console.log(f"[D1] Inserted/updated open PR count for {user_login}: {delta}")
+        console.log(f"[D1] Inserted/updated open PR count org={org} user={user_login} count={delta}")
     except Exception as e:
-        console.error(f"[D1] Failed to update open PRs for {user_login}: {e}")
+        console.error(f"[D1] Failed to update open PRs org={org} user={user_login}: {e}")
 
 
 async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: str, delta: int = 1) -> None:
@@ -514,7 +521,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
     if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
         return
     try:
-        await _d1_run(
+        result = await _d1_run(
             db,
             f"""
             INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
@@ -525,9 +532,9 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
             """,
             (org, month_key, user_login, delta, now),
         )
-        console.log(f"[D1] Updated monthly {field} for {user_login}: +{delta}")
+        console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
-        console.error(f"[D1] Failed to update monthly {field} for {user_login}: {e}")
+        console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
 
 
 async def _track_pr_opened_in_d1(payload: dict, env) -> None:
@@ -718,6 +725,13 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     mk = _month_key()
     start_timestamp, end_timestamp = _month_window(mk)
 
+    # DEBUG: Check if there's ANY data in the tables
+    all_monthly = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_monthly_stats", ())
+    all_open = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_open_prs", ())
+    total_monthly = all_monthly[0].get('cnt') if all_monthly else 0
+    total_open = all_open[0].get('cnt') if all_open else 0
+    console.log(f"[D1] DEBUG: Total rows in DB: monthly_stats={total_monthly}, open_prs={total_open}")
+
     monthly_rows = await _d1_all(
         db,
         """
@@ -736,12 +750,10 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
         """,
         (owner,),
     )
-    
-    console.log(f"[D1] Read {len(monthly_rows or [])} monthly_stats rows, {len(open_rows or [])} open_prs rows for {owner}")
-    if monthly_rows:
-        console.log(f"[D1] Monthly stats sample: {monthly_rows[0]}")
-    if open_rows:
-        console.log(f"[D1] Open PRs sample: {open_rows[0]}")
+
+    console.log(f"[D1] Queried org={owner} mk={mk}: {len(monthly_rows or [])} monthly, {len(open_rows or [])} open")
+    if not monthly_rows and not open_rows:
+        console.log(f"[D1] WARNING: No D1 data found for org={owner}")
 
     user_stats = {}
 
