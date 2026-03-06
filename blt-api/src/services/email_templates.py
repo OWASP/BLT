@@ -5,11 +5,10 @@ Clean separation of templates and code - templates are stored as external HTML f
 
 from pathlib import Path
 from html import escape
-import os
 
 
 # Get the templates directory path
-TEMPLATES_DIR = Path(__file__).parent / "templates"
+TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 
 def _e(value) -> str:
