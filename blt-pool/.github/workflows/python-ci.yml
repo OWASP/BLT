@@ -26,8 +26,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install pytest
+      - name: Install dependencies
         run: pip install pytest
 
       - name: Run Python worker tests
-        run: pytest cloudflare-worker/test_worker.py -v
+        run: pytest test_worker.py -v

@@ -3,6 +3,17 @@ main = "src/worker.py"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["python_workers"]
 
+[[d1_databases]]
+binding = "LEADERBOARD_DB"
+database_name = "blt-leaderboard"
+database_id = "9ab4a669-1a95-4b98-bb01-284012a217dd"
+
+# ---------------------------------------------------------------------------
+# Static assets — serve files from public/ directory
+# ---------------------------------------------------------------------------
+[site]
+bucket = "./public"
+
 # ---------------------------------------------------------------------------
 # Non-secret variables — safe to commit
 # ---------------------------------------------------------------------------
@@ -24,6 +35,12 @@ GITHUB_APP_SLUG = "blt-github-app"
 # GITHUB_CLIENT_ID     — OAuth client ID     (optional)
 # GITHUB_CLIENT_SECRET — OAuth client secret (optional)
 
+
+# ---------------------------------------------------------------------------
+# Scheduled triggers (cron jobs)
+# ---------------------------------------------------------------------------
+[triggers]
+crons = ["0 */2 * * *"]  # Run every 2 hours
 
 [observability]
 enabled = false
