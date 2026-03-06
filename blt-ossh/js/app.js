@@ -43,10 +43,12 @@ form.addEventListener('submit', async (e) => {
     // Reset error state
     hideError();
 
-    // Show loading state
+    // Show loading state: disables form and displays "Loading repositories..." while fetching.
     submitBtn.disabled = true;
     btnText.textContent = 'Analyzing...';
     loadingSpinner.classList.remove('hidden');
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'block';
 
     try {
         // Fetch user profile from GitHub API
@@ -84,10 +86,11 @@ form.addEventListener('submit', async (e) => {
         console.error('Error:', error);
         showError(error.message || 'Failed to analyze GitHub profile. Please try again.');
     } finally {
-        // Reset button state
+        // Reset button state and hide loading indicator (on success or error)
         submitBtn.disabled = false;
         btnText.textContent = 'Find My Projects';
         loadingSpinner.classList.add('hidden');
+        if (loadingEl) loadingEl.style.display = 'none';
     }
 });
 
