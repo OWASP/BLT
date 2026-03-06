@@ -459,8 +459,35 @@ async def handle_pull_request_closed(payload: dict, token: str) -> None:
 # Peer review enforcement
 # ---------------------------------------------------------------------------
 
-# Excluded accounts whose reviews don't count as valid peer reviews
-PEER_REVIEW_EXCLUDED = {"coderabbitai[bot]", "dependabot[bot]", "dependabot-preview[bot]", "dependabot", "github-actions[bot]"}
+# Common bot account patterns that should not count as peer reviews
+def _is_excluded_reviewer(login: str) -> bool:
+    """Return True if the reviewer is a bot or automated account."""
+    if not login:
+        return True
+    login_lower = login.lower()
+    # Exact matches
+    excluded_exact = {
+        "coderabbitai[bot]",
+        "dependabot[bot]",
+        "dependabot-preview[bot]",
+        "dependabot",
+        "github-actions[bot]",
+    }
+    if login in excluded_exact:
+        return True
+    # Pattern matches (substrings that indicate bots)
+    bot_patterns = [
+        "[bot]",
+        "bot]",
+        "copilot",
+        "renovate",
+        "actions-user",
+        "sentry",
+        "snyk",
+        "sonarcloud",
+        "codecov",
+    ]
+    return any(pattern in login_lower for pattern in bot_patterns)
 
 
 async def get_valid_reviewers(owner: str, repo: str, pr_number: int, pr_author: str, token: str) -> list[str]:
@@ -479,9 +506,7 @@ async def get_valid_reviewers(owner: str, repo: str, pr_number: int, pr_author: 
         reviewer_login = review.get("user", {}).get("login", "")
         if not reviewer_login or reviewer_login == pr_author:
             continue
-        if reviewer_login in PEER_REVIEW_EXCLUDED:
-            continue
-        if "copilot" in reviewer_login.lower():
+        if _is_excluded_reviewer(reviewer_login):
             continue
         valid_reviewers.add(reviewer_login)
     
@@ -496,17 +521,23 @@ async def ensure_label_exists(owner: str, repo: str, label_name: str, color: str
         # Label exists, check if it needs update
         data = json.loads(await resp.text())
         if data.get("color") != color or data.get("description") != description:
-            await github_api("PATCH", f"/repos/{owner}/{repo}/labels/{label_name}", token, {
+            update_resp = await github_api("PATCH", f"/repos/{owner}/{repo}/labels/{label_name}", token, {
                 "color": color,
                 "description": description,
             })
+            if update_resp.status not in (200, 201):
+                error_text = await update_resp.text() if update_resp.status >= 400 else ""
+                console.error(f"[BLT] Failed to update label {label_name}: {update_resp.status} {error_text}")
     elif resp.status == 404:
         # Label doesn't exist, create it
-        await github_api("POST", f"/repos/{owner}/{repo}/labels", token, {
+        create_resp = await github_api("POST", f"/repos/{owner}/{repo}/labels", token, {
             "name": label_name,
             "color": color,
             "description": description,
         })
+        if create_resp.status not in (200, 201):
+            error_text = await create_resp.text() if create_resp.status >= 400 else ""
+            console.error(f"[BLT] Failed to create label {label_name}: {create_resp.status} {error_text}")
 
 
 async def update_peer_review_labels(owner: str, repo: str, pr_number: int, has_review: bool, token: str) -> None:
@@ -539,7 +570,7 @@ async def update_peer_review_labels(owner: str, repo: str, pr_number: int, has_r
 async def check_peer_review_and_comment(owner: str, repo: str, pr_number: int, pr_author: str, token: str) -> None:
     """Check if a PR has peer review, update labels, and post a comment if needed."""
     # Skip for excluded accounts
-    if pr_author in PEER_REVIEW_EXCLUDED or "copilot" in pr_author.lower():
+    if _is_excluded_reviewer(pr_author):
         return
     
     reviewers = await get_valid_reviewers(owner, repo, pr_number, pr_author, token)
@@ -550,12 +581,21 @@ async def check_peer_review_and_comment(owner: str, repo: str, pr_number: int, p
     
     # If no review, post a reminder comment (only once)
     if not has_review:
-        # Check if we already posted the reminder
-        resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments", token)
-        if resp.status == 200:
+        # Check if we already posted the reminder (with pagination support)
+        marker = "<!-- peer-review-check -->"
+        already_commented = False
+        page = 1
+        while True:
+            resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100&page={page}", token)
+            if resp.status != 200:
+                break
             comments = json.loads(await resp.text())
-            marker = "<!-- peer-review-check -->"
-            already_commented = any(marker in comment.get("body", "") for comment in comments)
+            if not comments:
+                break
+            if any(marker in comment.get("body", "") for comment in comments):
+                already_commented = True
+                break
+            page += 1
             
             if not already_commented:
                 body = f"""{marker}
