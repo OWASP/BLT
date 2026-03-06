@@ -777,8 +777,8 @@
 
                         <!-- Arnav Kirti -->
                         <article
-                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft dark:shadow-2xl sm:p-6 md:p-8 dark:border-gray-700 dark:bg-dark-surface">
-                            <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6">
+                            class="rounded-2xl border border-neutral-border bg-white p-4 shadow-soft sm:p-6 md:p-8 dark:border-gray-800 dark:bg-dark-surface">
+                            <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-6 mb-4 sm:mb-6">
                                 <div
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:h-20 sm:w-20 dark:bg-red-950/30">
                                     <i class="fab fa-github text-2xl text-brand sm:text-3xl"></i>
@@ -800,6 +800,42 @@
                                             <i class="fas fa-tools mr-1.5 sm:mr-2"></i>GSoC-Tool
                                         </a>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div
+                                    class="rounded-xl border border-neutral-border bg-gray-50 p-3 sm:p-4 dark:border-gray-700 dark:bg-dark-base">
+                                    <div class="mb-3 flex items-center gap-3">
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30">
+                                            <i class="fas fa-code text-sm text-brand"></i>
+                                        </div>
+
+                                        <div>
+                                            <h4
+                                                class="text-base font-extrabold text-gray-900 sm:text-lg dark:text-gray-100">
+                                                Shriyash Soni
+                                            </h4>
+
+                                            <p class="text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+                                                Blockchain Developer | Web3 Engineer | AI Builder
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="max-h-32 overflow-y-auto">
+                                        <p class="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                                            Shriyash Soni is a developer, blockchain builder, and technology entrepreneur focused on building scalable systems and developer ecosystems. He is the founder of global tech communities and platforms that help developers learn, collaborate, and build impactful products.
+
+                                            His work spans across Web3 infrastructure, AI tools, open-source development, and developer platforms. Shriyash has contributed to multiple Web3 projects, worked with international teams, and participated in hackathons, buildathons, and innovation programs.
+
+                                            As a mentor, he focuses on guiding developers in architecture design, blockchain development, backend systems, and open-source contribution practices.
+
+                                            Areas of expertise: Web3 Development, Blockchain Infrastructure, Smart Contracts, AI Tools, Backend Systems, Open Source Collaboration.
+                                        </p>
+                                    </div>
+
                                 </div>
                             </div>
                         </article>
@@ -1159,6 +1195,35 @@
         });
 
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        function getContributorName(card) {
+            const contributorName = card.querySelector('h3');
+            return contributorName ? contributorName.textContent.trim().toLowerCase() : '';
+        }
+
+        function sortCurrentMentorsByGithubId() {
+            const mentorsSection = document.getElementById('current-mentors');
+            if (!mentorsSection) {
+                return;
+            }
+
+            const mentorsContainer = mentorsSection.querySelector('div.mt-6.space-y-6');
+            if (!mentorsContainer) {
+                return;
+            }
+
+            const mentorCards = Array.from(mentorsContainer.children).filter((child) => child.tagName === 'ARTICLE');
+
+            mentorCards.sort((firstCard, secondCard) => {
+                const firstName = getContributorName(firstCard);
+                const secondName = getContributorName(secondCard);
+                return firstName.localeCompare(secondName);
+            });
+
+            mentorCards.forEach((card) => mentorsContainer.appendChild(card));
+        }
+
+        sortCurrentMentorsByGithubId();
 
         // Scroll-spy navigation highlighting
         const sections = document.querySelectorAll('section[id]');
