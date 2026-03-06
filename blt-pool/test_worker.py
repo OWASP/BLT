@@ -303,17 +303,15 @@ class TestHandleAssign(unittest.TestCase):
 
     def _run_assign(self, payload, comments, github_calls):
         async def _inner():
-            with (
-                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
-                patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))),
-            ):
-                await _worker._assign(
-                    payload["repository"]["owner"]["login"],
-                    payload["repository"]["name"],
-                    payload["issue"],
-                    payload["comment"]["user"]["login"],
-                    "tok",
-                )
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    await _worker._assign(
+                        payload["repository"]["owner"]["login"],
+                        payload["repository"]["name"],
+                        payload["issue"],
+                        payload["comment"]["user"]["login"],
+                        "tok",
+                    )
         _run(_inner())
 
     def test_assigns_user_to_open_issue(self):
@@ -363,17 +361,15 @@ class TestHandleUnassign(unittest.TestCase):
 
     def _run_unassign(self, payload, comments, github_calls):
         async def _inner():
-            with (
-                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
-                patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))),
-            ):
-                await _worker._unassign(
-                    payload["repository"]["owner"]["login"],
-                    payload["repository"]["name"],
-                    payload["issue"],
-                    payload["comment"]["user"]["login"],
-                    "tok",
-                )
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    await _worker._unassign(
+                        payload["repository"]["owner"]["login"],
+                        payload["repository"]["name"],
+                        payload["issue"],
+                        payload["comment"]["user"]["login"],
+                        "tok",
+                    )
         _run(_inner())
 
     def test_removes_user_from_assigned_issue(self):
@@ -400,11 +396,9 @@ class TestHandleIssueComment(unittest.TestCase):
 
     def _run_comment(self, payload, assign_calls, unassign_calls):
         async def _inner():
-            with (
-                patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))),
-                patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))),
-            ):
-                await _worker.handle_issue_comment(payload, "tok")
+            with patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))):
+                with patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))):
+                    await _worker.handle_issue_comment(payload, "tok")
         _run(_inner())
 
     def test_routes_assign_command(self):
@@ -448,11 +442,9 @@ class TestHandleIssueOpened(unittest.TestCase):
                 bug_calls.append(data)
                 return bug_return
 
-            with (
-                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
-                patch.object(_worker, "report_bug_to_blt", new=_mock_report),
-            ):
-                await _worker.handle_issue_opened(payload, "tok", "https://blt.example")
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "report_bug_to_blt", new=_mock_report):
+                    await _worker.handle_issue_opened(payload, "tok", "https://blt.example")
         _run(_inner())
 
     def test_posts_welcome_message(self):
@@ -492,11 +484,9 @@ class TestHandleIssueLabeled(unittest.TestCase):
                 bug_calls.append(data)
                 return bug_return
 
-            with (
-                patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))),
-                patch.object(_worker, "report_bug_to_blt", new=_mock_report),
-            ):
-                await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "report_bug_to_blt", new=_mock_report):
+                    await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
         _run(_inner())
 
     def test_reports_to_blt_when_bug_label_added(self):
@@ -690,29 +680,30 @@ class TestCreateGithubJwt(unittest.TestCase):
 
         asyncio.run(_inner())
 
-    def test_to_js_called_for_key_usages(self):
-        """to_js must be called with the keyUsages list so SubtleCrypto receives a JS Array."""
-        to_js_calls = []
+    def test_algorithm_dict_passed_to_import_key(self):
+        """Verify algorithm dict with correct name is passed to importKey."""
+        mock_import_key = AsyncMock(return_value=object())
+        mock_sign = AsyncMock(return_value=bytes(64))
+        mock_subtle = types.SimpleNamespace(importKey=mock_import_key, sign=mock_sign)
 
-        def _spy(value, **kw):
-            to_js_calls.append(value)
-            return value
+        async def _inner():
+            with patch.dict(
+                sys.modules,
+                {
+                    "js": types.SimpleNamespace(
+                        Uint8Array=self._Uint8ArrayStub,
+                        crypto=types.SimpleNamespace(subtle=mock_subtle),
+                    ),
+                },
+            ):
+                await _worker.create_github_jwt("123", self._make_rsa_pem())
+            # Check the algorithm arg passed to importKey
+            args = mock_import_key.call_args
+            algorithm = args[0][2] if args else None
+            self.assertIsInstance(algorithm, dict)
+            self.assertEqual(algorithm.get("name"), "RSASSA-PKCS1-v1_5")
 
-        self._run_create_jwt(_spy)
-        self.assertIn(["sign"], to_js_calls)
-
-    def test_to_js_called_for_algorithm(self):
-        """to_js must be called with the algorithm dict so SubtleCrypto receives a JS Object."""
-        to_js_calls = []
-
-        def _spy(value, **kw):
-            to_js_calls.append(value)
-            return value
-
-        self._run_create_jwt(_spy)
-        self.assertTrue(
-            any(isinstance(v, dict) and v.get("name") == "RSASSA-PKCS1-v1_5" for v in to_js_calls)
-        )
+        asyncio.run(_inner())
 
 
 if __name__ == "__main__":

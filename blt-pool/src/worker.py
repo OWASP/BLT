@@ -22,6 +22,7 @@ import hashlib
 import hmac as _hmac
 import json
 import time
+from typing import Optional
 from urllib.parse import urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
@@ -174,7 +175,7 @@ async def github_api(method: str, path: str, token: str, body=None):
 
 async def get_installation_token(
     installation_id: int, app_id: str, private_key: str
-) -> str | None:
+) -> Optional[str]:
     """Exchange a GitHub App JWT for an installation access token."""
     jwt = await create_github_jwt(app_id, private_key)
     resp = await fetch(
