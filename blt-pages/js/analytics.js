@@ -14,8 +14,9 @@
 /* eslint-enable */
 
 (function () {
-  var key  = (typeof BLT_CONFIG !== "undefined" && BLT_CONFIG.POSTHOG_KEY)  || "";
-  var host = (typeof BLT_CONFIG !== "undefined" && BLT_CONFIG.POSTHOG_HOST) || "https://us.i.posthog.com";
+  var key     = (typeof BLT_CONFIG !== "undefined" && BLT_CONFIG.POSTHOG_KEY)     || "";
+  var host    = (typeof BLT_CONFIG !== "undefined" && BLT_CONFIG.POSTHOG_HOST)    || "https://us.i.posthog.com";
+  var uiHost  = (typeof BLT_CONFIG !== "undefined" && BLT_CONFIG.POSTHOG_UI_HOST) || "https://us.posthog.com";
 
   if (!key) {
     /* Replace posthog with a no-op stub so callers never need to guard. */
@@ -30,7 +31,7 @@
 
   posthog.init(key, {
     api_host: host,
-    ui_host: "https://us.posthog.com",
+    ui_host: uiHost,
     defaults: "2026-01-30",
     person_profiles: "identified_only",
     capture_pageview: true,

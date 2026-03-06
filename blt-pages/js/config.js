@@ -26,8 +26,11 @@ const BLT_CONFIG = {
   BLT_API_URL: "https://blt.owasp.org/api",
 
   /* ── Analytics (PostHog) ── */
+  /* POSTHOG_KEY is a client-side project key (equivalent to a GA tracking ID).
+   * It is intentionally public — it grants no write/admin access to the project. */
   POSTHOG_KEY: "phc_AsrbKREZs1Q8OiQJJfZgzA3OBYLHvScQc4t3OmP9cxF",
   POSTHOG_HOST: "https://h.owaspblt.com",
+  POSTHOG_UI_HOST: "https://us.posthog.com",
 
   /* ── Pricing (set to true in commercial forks) ── */
   SHOW_PRICING: false,
