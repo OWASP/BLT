@@ -4,13 +4,14 @@ Backend API for the security pipeline - Frontend hosted on GitHub Pages
 """
 import json
 import hashlib
+import hmac
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from urllib.parse import parse_qs
 from workers import Response
-from models.task import Task, TaskStatus, TaskType
-from models.target import Target, TargetType
-from models.result import ScanResult, VulnerabilityLevel
+from models.task import Task, TaskStatus
+from models.target import Target
+from models.result import ScanResult
 from utils.deduplication import TaskDeduplicator
 from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, VulnerabilityDatabase
 from scanners.coordinator import ScannerCoordinator
@@ -20,6 +21,10 @@ from scanners.contact_notifier import ContactNotifier
 
 class BLTWorker:
     """Main BLT-NetGuardian Worker class - API only."""
+
+    MAX_LIMIT = 100
+    DEFAULT_ALLOWED_ORIGIN = 'https://owasp-blt.github.io'
+    MUTATING_METHODS = {'POST', 'PUT', 'PATCH', 'DELETE'}
     
     def __init__(self, env):
         """Initialize the worker with Cloudflare environment bindings."""
@@ -39,20 +44,27 @@ class BLTWorker:
         url = request.url
         path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
         method = request.method
-        
-        # CORS headers for all responses
-        # TODO: Restrict to specific domain in production for security
-        # For production, use: 'Access-Control-Allow-Origin': 'https://owasp-blt.github.io'
-        cors_headers = {
-            'Access-Control-Allow-Origin': '*',  # Allow all origins for development
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
-        
+
+        cors_headers = self.get_cors_headers(request)
+
         # Handle CORS preflight
         if method == 'OPTIONS':
-            return Response('', headers=cors_headers)
-        
+            if not self.is_allowed_origin(request):
+                return Response('', status=403, headers=cors_headers)
+            return Response('', status=204, headers=cors_headers)
+
+        if not self.is_allowed_origin(request):
+            return self.json_response({'error': 'Origin not allowed'}, status=403, headers=cors_headers)
+
+        if self.requires_authentication(path, method):
+            authenticated, reason = self.authenticate_request(request)
+            if not authenticated:
+                if reason == 'misconfigured':
+                    return self.json_response({
+                        'error': 'API authentication is not configured'
+                    }, status=503, headers=cors_headers)
+                return self.json_response({'error': 'Unauthorized'}, status=401, headers=cors_headers)
+
         try:
             # Route to appropriate handler - API only, no HTML
             if path == '' or path == '/':
@@ -100,12 +112,9 @@ class BLTWorker:
                 response.headers[key] = value
             
             return response
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Internal server error',
-                'message': str(e)
-            }, status=500, headers=cors_headers)
+            return self.internal_error_response('Internal server error', e, headers=cors_headers)
     
     async def handle_discovery_suggest(self, request):
         """Handle user-suggested targets for autonomous scanning."""
@@ -177,60 +186,53 @@ class BLTWorker:
                 'job_id': job_id,
                 'message': f'Target "{suggestion}" queued for scanning'
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to process suggestion',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to process suggestion', e)
     
     async def handle_discovery_status(self, request):
         """Get current status of autonomous discovery system."""
         try:
             # Get statistics
             stats = await self.discovery.get_discovery_stats()
-            
+
             # Get current scanning target
             current_target = await self.discovery.get_current_scanning_target()
-            
-            # TODO: Replace with actual data from D1 database in production
-            # For demo/development, using placeholder values
-            scanned_today = 1247
-            vulnerabilities_found = 23
-            
+
+            scanned_today = await self.task_queue.count_completed_tasks_today()
+            vulnerability_stats = await self.vuln_db.get_stats()
+            vulnerabilities_found = vulnerability_stats.get('total', 0)
+            current_target_name = current_target.get('target') if isinstance(current_target, dict) else None
+
             return self.json_response({
                 'status': 'active',
-                'current_target': current_target['target'],
+                'current_target': current_target_name,
                 'scanned_today': scanned_today,
                 'vulnerabilities_found': vulnerabilities_found,
                 'stats': stats
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to get discovery status',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to get discovery status', e)
     
     async def handle_discovery_recent(self, request):
         """Get recently discovered targets."""
-        limit = int(self.get_query_param(request, 'limit', '20'))
-        
+        limit = self.parse_limit_param(request, default=20)
+        if limit is None:
+            return self.json_response({'error': 'Invalid limit parameter'}, status=400)
+
         try:
             # Get recent discoveries (in production, query from D1 database)
             discoveries = await self.discovery.discover_targets(limit)
-            
+
             return self.json_response({
                 'success': True,
                 'count': len(discoveries),
                 'discoveries': discoveries
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to get recent discoveries',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to get recent discoveries', e)
     
     async def handle_task_queue(self, request):
         """Queue new security scanning tasks."""
@@ -297,12 +299,9 @@ class BLTWorker:
                 'tasks_deduplicated': deduplicated_count,
                 'message': f'Successfully queued {len(tasks)} tasks for processing'
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to queue tasks',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to queue tasks', e)
     
     async def handle_target_registration(self, request):
         """Register a new scan target."""
@@ -340,12 +339,9 @@ class BLTWorker:
                 'target_id': target_id,
                 'message': 'Target registered successfully'
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to register target',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to register target', e)
     
     async def handle_result_ingestion(self, request):
         """Ingest scan results from agents."""
@@ -357,80 +353,91 @@ class BLTWorker:
             task_id = data.get('task_id')
             agent_type = data.get('agent_type')
             results = data.get('results', {})
-            
+
             if not task_id or not agent_type:
                 return self.json_response({
                     'error': 'Missing required fields: task_id, agent_type'
                 }, status=400)
-            
+
+            if results is None:
+                results = {}
+            if not isinstance(results, dict):
+                return self.json_response({'error': 'Invalid results payload'}, status=400)
+
+            findings = results.get('findings', [])
+            vulnerabilities = results.get('vulnerabilities', [])
+            metadata = results.get('metadata', {})
+
+            if not isinstance(findings, list) or not isinstance(vulnerabilities, list) or not isinstance(metadata, dict):
+                return self.json_response({'error': 'Invalid results structure'}, status=400)
+            if any(not isinstance(vuln, dict) for vuln in vulnerabilities):
+                return self.json_response({'error': 'Invalid vulnerability entry'}, status=400)
+
+            task = await self.task_queue.get_task(task_id)
+            if not task:
+                return self.json_response({'error': 'Unknown task_id'}, status=400)
+
             # Create scan result object
             result = ScanResult(
                 result_id=self.generate_id(f"result-{task_id}-{agent_type}"),
                 task_id=task_id,
                 agent_type=agent_type,
-                findings=results.get('findings', []),
-                vulnerabilities=results.get('vulnerabilities', []),
-                metadata=results.get('metadata', {}),
+                findings=findings,
+                vulnerabilities=vulnerabilities,
+                metadata=metadata,
                 timestamp=datetime.utcnow().isoformat()
             )
-            
+
             # Process and store vulnerabilities
-            for vuln in result.vulnerabilities:
-                vuln_id = self.generate_id(f"vuln-{task_id}-{vuln.get('type')}")
+            for index, vuln in enumerate(result.vulnerabilities):
+                vuln_id = self.build_vulnerability_id(task_id, vuln, index)
                 await self.vuln_db.store_vulnerability(vuln_id, {
                     **vuln,
                     'result_id': result.result_id,
                     'task_id': task_id,
                     'discovered_at': datetime.utcnow().isoformat()
                 })
-            
+
             # Update task status
-            task = await self.task_queue.get_task(task_id)
-            if task:
-                await self.task_queue.update_task(task_id, {
-                    'status': TaskStatus.COMPLETED,
-                    'completed_at': datetime.utcnow().isoformat(),
-                    'result_id': result.result_id
-                })
-                
-                # Update job progress
-                job_id = task['job_id']
+            await self.task_queue.update_task(task_id, {
+                'status': TaskStatus.COMPLETED,
+                'completed_at': datetime.utcnow().isoformat(),
+                'result_id': result.result_id
+            })
+
+            # Update job progress
+            job_id = task.get('job_id')
+            if job_id:
                 await self.job_store.update_job_progress(job_id)
-            
-            # Prepare data for LLM triage
-            triage_data = self.prepare_for_llm_triage(result)
-            
+
             # Automatically contact stakeholders if vulnerabilities found
             contact_result = None
             if result.vulnerabilities:
                 # Get target info
                 target_info = await self.target_registry.get_target(
-                    task.get('target_id') if task else None
+                    task.get('target_id')
                 )
                 if target_info:
                     target_url = target_info.get('target_url', 'unknown')
-                    
+
                     # Attempt to notify
                     contact_result = await self.notifier.notify_vulnerability(
                         target=target_url,
                         vulnerabilities=result.vulnerabilities
                     )
-            
+
             return self.json_response({
                 'success': True,
                 'result_id': result.result_id,
                 'vulnerabilities_found': len(result.vulnerabilities),
-                'triage_ready': True,
+                'triage_ready': False,
                 'contact_attempted': contact_result is not None,
                 'contact_successful': contact_result.get('successful_contacts', 0) if contact_result else 0,
                 'message': 'Results ingested successfully'
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to ingest results',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to ingest results', e)
     
     async def handle_job_status(self, request):
         """Get status of a job."""
@@ -459,12 +466,9 @@ class BLTWorker:
                 'created_at': job_state.get('created_at'),
                 'updated_at': job_state.get('updated_at')
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to get job status',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to get job status', e)
     
     async def handle_task_list(self, request):
         """List all tasks for a job."""
@@ -492,55 +496,137 @@ class BLTWorker:
                 'job_id': job_id,
                 'tasks': tasks
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to list tasks',
-                'message': str(e)
-            }, status=500)
+            return self.internal_error_response('Failed to list tasks', e)
     
     async def handle_vulnerabilities(self, request):
         """Get vulnerabilities from the database."""
-        limit = int(self.get_query_param(request, 'limit', '50'))
+        limit = self.parse_limit_param(request, default=50)
+        if limit is None:
+            return self.json_response({'error': 'Invalid limit parameter'}, status=400)
         severity = self.get_query_param(request, 'severity')
-        
+
         try:
             vulnerabilities = await self.vuln_db.get_vulnerabilities(limit, severity)
-            
+
             return self.json_response({
                 'count': len(vulnerabilities),
                 'vulnerabilities': vulnerabilities
             })
-            
+
         except Exception as e:
-            return self.json_response({
-                'error': 'Failed to get vulnerabilities',
-                'message': str(e)
-            }, status=500)
-    
-    def prepare_for_llm_triage(self, result: ScanResult) -> Dict[str, Any]:
-        """Prepare scan results for LLM triage engine."""
-        return {
-            'result_id': result.result_id,
-            'task_id': result.task_id,
-            'agent_type': result.agent_type,
-            'summary': {
-                'total_findings': len(result.findings),
-                'total_vulnerabilities': len(result.vulnerabilities),
-                'critical_count': len([v for v in result.vulnerabilities 
-                                      if v.get('severity') == 'critical']),
-                'high_count': len([v for v in result.vulnerabilities 
-                                  if v.get('severity') == 'high']),
-            },
-            'vulnerabilities': result.vulnerabilities,
-            'findings': result.findings,
-            'metadata': result.metadata,
-            'timestamp': result.timestamp
-        }
+            return self.internal_error_response('Failed to get vulnerabilities', e)
     
     def generate_id(self, data: str) -> str:
         """Generate a unique ID using SHA256 hash."""
         return hashlib.sha256(data.encode()).hexdigest()[:16]
+
+    def build_vulnerability_id(self, task_id: str, vulnerability: Dict[str, Any], index: int) -> str:
+        """Generate stable IDs that do not collide for repeated vulnerability types."""
+        vuln_payload = json.dumps(vulnerability, sort_keys=True, default=str)
+        return self.generate_id(f"vuln-{task_id}-{index}-{vuln_payload}")
+
+    def parse_limit_param(self, request, default: int) -> Optional[int]:
+        """Parse and bound integer limit parameters."""
+        raw_limit = self.get_query_param(request, 'limit', str(default))
+        try:
+            limit = int(raw_limit)
+        except (TypeError, ValueError):
+            return None
+        if limit < 1:
+            return None
+        return min(limit, self.MAX_LIMIT)
+
+    def get_cors_headers(self, request) -> Dict[str, str]:
+        """Build CORS headers using an explicit origin allowlist."""
+        allowed_origins = self.get_allowed_origins()
+        origin = request.headers.get('Origin')
+
+        headers = {
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+            'Access-Control-Max-Age': '86400',
+            'Vary': 'Origin'
+        }
+
+        if origin and origin in allowed_origins:
+            headers['Access-Control-Allow-Origin'] = origin
+        elif not origin and allowed_origins:
+            headers['Access-Control-Allow-Origin'] = allowed_origins[0]
+        return headers
+
+    def get_allowed_origins(self) -> List[str]:
+        """Resolve allowed frontend origins from env configuration."""
+        configured = getattr(self.env, 'CORS_ALLOWED_ORIGINS', None) or getattr(
+            self.env, 'CORS_ALLOWED_ORIGIN', None
+        )
+        if not configured:
+            return [self.DEFAULT_ALLOWED_ORIGIN]
+
+        origins = [origin.strip() for origin in str(configured).split(',') if origin.strip()]
+        return origins or [self.DEFAULT_ALLOWED_ORIGIN]
+
+    def is_allowed_origin(self, request) -> bool:
+        """Allow same-origin/server calls and whitelisted browser origins."""
+        origin = request.headers.get('Origin')
+        if not origin:
+            return True
+        return origin in self.get_allowed_origins()
+
+    def requires_authentication(self, path: str, method: str) -> bool:
+        """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
+        if not path.startswith('api/'):
+            return False
+        if method in self.MUTATING_METHODS:
+            return True
+        return self.get_boolean_env('AUTHENTICATE_READ_ENDPOINTS', default=True)
+
+    def get_boolean_env(self, key: str, default: bool = False) -> bool:
+        """Read boolean flags from environment variables."""
+        value = getattr(self.env, key, None)
+        if value is None:
+            return default
+        return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+    def extract_auth_token(self, request) -> Optional[str]:
+        """Read API key from X-API-Key or Authorization Bearer header."""
+        api_key = request.headers.get('X-API-Key') or request.headers.get('x-api-key')
+        if api_key:
+            return api_key
+
+        authorization = request.headers.get('Authorization') or request.headers.get('authorization')
+        if not authorization:
+            return None
+
+        scheme, _, token = authorization.partition(' ')
+        if scheme.lower() != 'bearer' or not token:
+            return None
+        return token.strip()
+
+    def authenticate_request(self, request) -> Tuple[bool, str]:
+        """Validate request credentials against API_SECRET."""
+        expected_secret = getattr(self.env, 'API_SECRET', None)
+        if not expected_secret:
+            return False, 'misconfigured'
+
+        provided_secret = self.extract_auth_token(request)
+        if not provided_secret:
+            return False, 'missing'
+
+        if not hmac.compare_digest(str(provided_secret), str(expected_secret)):
+            return False, 'invalid'
+        return True, 'ok'
+
+    def log_exception(self, context: str, error: Exception):
+        """Log errors server-side without exposing internals to clients."""
+        print(f"[ERROR] {context}: {type(error).__name__}: {error}")
+
+    def internal_error_response(self, error_message: str, error: Exception,
+                                headers: Dict[str, str] = None) -> 'Response':
+        """Return a generic 500 response and log exception details server-side."""
+        self.log_exception(error_message, error)
+        return self.json_response({'error': error_message}, status=500, headers=headers)
     
     def get_query_param(self, request, key: str, default: str = None) -> Optional[str]:
         """Extract query parameter from request."""
