@@ -1,11 +1,7 @@
 /**
  * OWASP BLT – Analytics (PostHog)
  *
- * Loads and initialises PostHog when BLT_CONFIG.POSTHOG_KEY is set.
- * When the key is empty (the default for the OWASP-hosted instance),
- * no network requests are made and all posthog.capture() calls are
- * silently ignored.
- *
+ * Loads and initialises PostHog using the project key and host from BLT_CONFIG.
  * Must be loaded after js/config.js.
  * License: AGPLv3
  */
@@ -34,6 +30,8 @@
 
   posthog.init(key, {
     api_host: host,
+    ui_host: "https://us.posthog.com",
+    defaults: "2026-01-30",
     person_profiles: "identified_only",
     capture_pageview: true,
     capture_pageleave: true,
