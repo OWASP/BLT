@@ -110,7 +110,6 @@ def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
 async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
     """Create a signed GitHub App JWT using the Web Crypto SubtleCrypto API."""
     from js import Uint8Array, crypto  # noqa: PLC0415 — runtime import
-    from pyodide.ffi import to_js  # noqa: PLC0415 — runtime import
 
     now = int(time.time())
     header_b64 = _b64url(
@@ -133,9 +132,9 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
     crypto_key = await crypto.subtle.importKey(
         "pkcs8",
         key_array.buffer,
-        to_js({"name": "RSASSA-PKCS1-v1_5"}),
+        {"name": "RSASSA-PKCS1-v1_5"},
         False,
-        to_js(["sign"]),
+        ["sign"],
     )
 
     # Sign the JWT header.payload
