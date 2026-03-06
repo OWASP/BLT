@@ -25,6 +25,13 @@ const BLT_CONFIG = {
   BLT_ZERO_URL: "https://zero.owaspblt.org",
   BLT_API_URL: "https://blt.owasp.org/api",
 
+  /* ── Analytics (PostHog) ── */
+  /* Set POSTHOG_KEY to your project API key to enable analytics.
+   * Leave empty ("") to disable analytics entirely.
+   * POSTHOG_HOST defaults to the PostHog US cloud if not overridden. */
+  POSTHOG_KEY: "",
+  POSTHOG_HOST: "https://us.i.posthog.com",
+
   /* ── Pricing (set to true in commercial forks) ── */
   SHOW_PRICING: false,
 
