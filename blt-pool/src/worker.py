@@ -547,7 +547,10 @@ async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
             INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
             VALUES (?, ?, ?, ?)
             ON CONFLICT(org, user_login) DO UPDATE SET
-                open_prs = excluded.open_prs,
+                open_prs = CASE
+                    WHEN leaderboard_open_prs.open_prs + excluded.open_prs < 0 THEN 0
+                    ELSE leaderboard_open_prs.open_prs + excluded.open_prs
+                END,
                 updated_at = excluded.updated_at
             """,
             (org, user_login, delta, now),
