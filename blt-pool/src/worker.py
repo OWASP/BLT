@@ -1933,7 +1933,7 @@ def _is_excluded_reviewer(login: str) -> bool:
         "dependabot",
         "github-actions[bot]",
     }
-    if login in excluded_exact:
+    if login_lower in excluded_exact:
         return True
     # Pattern matches (substrings that indicate bots)
     bot_patterns = [
