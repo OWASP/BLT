@@ -18,6 +18,7 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 """
 
 import base64
+import calendar
 import hashlib
 import hmac as _hmac
 import json
@@ -368,12 +369,12 @@ def _month_window(month_key: str) -> Tuple[int, int]:
     y = int(year)
     m = int(month)
     start_struct = time.struct_time((y, m, 1, 0, 0, 0, 0, 0, 0))
-    start_ts = int(time.mktime(start_struct))
+    start_ts = int(calendar.timegm(start_struct))
     if m == 12:
         next_struct = time.struct_time((y + 1, 1, 1, 0, 0, 0, 0, 0, 0))
     else:
         next_struct = time.struct_time((y, m + 1, 1, 0, 0, 0, 0, 0, 0))
-    end_ts = int(time.mktime(next_struct)) - 1
+    end_ts = int(calendar.timegm(next_struct)) - 1
     return start_ts, end_ts
 
 
@@ -396,13 +397,39 @@ async def _d1_run(db, sql: str, params: tuple = ()):
         raise
 
 
+def _to_py(value):
+    """Best-effort conversion for JS proxy values returned by Workers runtime."""
+    try:
+        from pyodide.ffi import to_py  # noqa: PLC0415 - runtime import
+        return to_py(value)
+    except Exception:
+        return value
+
+
 async def _d1_all(db, sql: str, params: tuple = ()) -> list:
     stmt = db.prepare(sql)
     if params:
         stmt = stmt.bind(*params)
-    result = await stmt.all()
-    rows = result.get("results") if isinstance(result, dict) else None
-    return rows or []
+    result = _to_py(await stmt.all())
+
+    rows = None
+    if isinstance(result, dict):
+        rows = result.get("results")
+    if rows is None:
+        try:
+            rows = result.get("results")
+        except Exception:
+            rows = getattr(result, "results", None)
+
+    rows = _to_py(rows)
+    if not rows:
+        return []
+    if isinstance(rows, list):
+        return rows
+    try:
+        return list(rows)
+    except Exception:
+        return []
 
 
 async def _d1_first(db, sql: str, params: tuple = ()):
@@ -1256,7 +1283,7 @@ def _parse_github_timestamp(ts_str: str) -> int:
     if match:
         year, month, day, hour, minute, second = map(int, match.groups())
         dt = time.struct_time((year, month, day, hour, minute, second, 0, 0, 0))
-        return int(time.mktime(dt))
+        return int(calendar.timegm(dt))
     return 0
 
 
