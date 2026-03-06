@@ -842,74 +842,9 @@ async def _run_incremental_backfill(owner: str, token: str, env, repos_per_reque
         repo_name = repo_obj.get("name")
         if not repo_name:
             continue
-
-        already = await _d1_first(
-            db,
-            """
-            SELECT 1 FROM leaderboard_backfill_repo_done
-            WHERE org = ? AND month_key = ? AND repo = ?
-            """,
-            (owner, month_key, repo_name),
-        )
-        if already:
-            continue
-
-        # Open PRs snapshot for this repo.
-        open_resp = await github_api(
-            "GET",
-            f"/repos/{owner}/{repo_name}/pulls?state=open&per_page=100",
-            token,
-        )
-        if open_resp.status == 200:
-            open_prs = json.loads(await open_resp.text())
-            open_by_user = {}
-            for pr in open_prs:
-                user = pr.get("user") or {}
-                if _is_bot(user):
-                    continue
-                login = user.get("login")
-                if login:
-                    open_by_user[login] = open_by_user.get(login, 0) + 1
-            for login, cnt in open_by_user.items():
-                await _d1_inc_open_pr(db, owner, login, cnt)
-
-        # Closed/merged monthly stats for this repo.
-        closed_resp = await github_api(
-            "GET",
-            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
-            token,
-        )
-        if closed_resp.status == 200:
-            closed_prs = json.loads(await closed_resp.text())
-            for pr in closed_prs:
-                user = pr.get("user") or {}
-                if _is_bot(user):
-                    continue
-                login = user.get("login")
-                if not login:
-                    continue
-                merged_at = pr.get("merged_at")
-                closed_at = pr.get("closed_at")
-                if merged_at:
-                    merged_ts = _parse_github_timestamp(merged_at)
-                    if start_ts <= merged_ts <= end_ts:
-                        await _d1_inc_monthly(db, owner, month_key, login, "merged_prs", 1)
-                elif closed_at:
-                    closed_ts = _parse_github_timestamp(closed_at)
-                    if start_ts <= closed_ts <= end_ts:
-                        await _d1_inc_monthly(db, owner, month_key, login, "closed_prs", 1)
-
-        await _d1_run(
-            db,
-            """
-            INSERT INTO leaderboard_backfill_repo_done (org, month_key, repo, updated_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(org, month_key, repo) DO UPDATE SET
-                updated_at = excluded.updated_at
-            """,
-            (owner, month_key, repo_name, int(time.time())),
-        )
-        processed += 1
+        seeded = await _backfill_repo_month_if_needed(owner, repo_name, token, env, month_key, start_ts, end_ts)
+        if seeded:
+            processed += 1
 
     done = len(repos) < repos_per_request
     await _set_backfill_state(db, owner, month_key, page + 1, done)
@@ -921,6 +856,94 @@ async def _run_incremental_backfill(owner: str, token: str, env, repos_per_reque
         "month_key": month_key,
         "since": start_iso,
     }
+
+
+async def _backfill_repo_month_if_needed(
+    owner: str,
+    repo_name: str,
+    token: str,
+    env,
+    month_key: Optional[str] = None,
+    start_ts: Optional[int] = None,
+    end_ts: Optional[int] = None,
+) -> bool:
+    """Backfill leaderboard stats for one repo once per month. Returns True if newly seeded."""
+    db = _d1_binding(env)
+    if not db:
+        return False
+
+    await _ensure_leaderboard_schema(db)
+    mk = month_key or _month_key()
+    if start_ts is None or end_ts is None:
+        start_ts, end_ts = _month_window(mk)
+
+    already = await _d1_first(
+        db,
+        """
+        SELECT 1 FROM leaderboard_backfill_repo_done
+        WHERE org = ? AND month_key = ? AND repo = ?
+        """,
+        (owner, mk, repo_name),
+    )
+    if already:
+        return False
+
+    # Open PRs snapshot for this repo.
+    open_resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo_name}/pulls?state=open&per_page=100",
+        token,
+    )
+    if open_resp.status == 200:
+        open_prs = json.loads(await open_resp.text())
+        open_by_user = {}
+        for pr in open_prs:
+            user = pr.get("user") or {}
+            if _is_bot(user):
+                continue
+            login = user.get("login")
+            if login:
+                open_by_user[login] = open_by_user.get(login, 0) + 1
+        for login, cnt in open_by_user.items():
+            await _d1_inc_open_pr(db, owner, login, cnt)
+
+    # Closed/merged monthly stats for this repo.
+    closed_resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
+        token,
+    )
+    if closed_resp.status == 200:
+        closed_prs = json.loads(await closed_resp.text())
+        for pr in closed_prs:
+            user = pr.get("user") or {}
+            if _is_bot(user):
+                continue
+            login = user.get("login")
+            if not login:
+                continue
+            merged_at = pr.get("merged_at")
+            closed_at = pr.get("closed_at")
+            if merged_at:
+                merged_ts = _parse_github_timestamp(merged_at)
+                if start_ts <= merged_ts <= end_ts:
+                    await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
+            elif closed_at:
+                closed_ts = _parse_github_timestamp(closed_at)
+                if start_ts <= closed_ts <= end_ts:
+                    await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
+
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_backfill_repo_done (org, month_key, repo, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(org, month_key, repo) DO UPDATE SET
+            updated_at = excluded.updated_at
+        """,
+        (owner, mk, repo_name, int(time.time())),
+    )
+    return True
 
 
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
@@ -1253,6 +1276,13 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
 
     # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+
+    # Always prioritize seeding the current repo so requester sees their repo's activity immediately.
+    if leaderboard_data is not None and is_org:
+        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
+        if seeded_current:
+            console.log(f"[Leaderboard] Seeded current repo {owner}/{repo} for immediate leaderboard accuracy")
+            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
 
     # Continue backfill until completed, not just when data is empty.
     if leaderboard_data is not None and is_org:
@@ -2018,7 +2048,7 @@ async def on_fetch(request, env) -> Response:
 # ---------------------------------------------------------------------------
 
 
-async def scheduled(event, env):
+async def _run_scheduled(env):
     """Handle scheduled cron events to check and unassign stale issues.
     
     This runs periodically (configured in wrangler.toml) to find issues that:
@@ -2088,6 +2118,16 @@ async def scheduled(event, env):
         
     except Exception as e:
         console.error(f"[CRON] Error during scheduled task: {e}")
+
+
+async def on_scheduled(controller, env, ctx=None):
+    """Cloudflare Python Workers cron entrypoint."""
+    await _run_scheduled(env)
+
+
+async def scheduled(event, env):
+    """Backward-compatible alias for runtimes expecting scheduled()."""
+    await _run_scheduled(env)
 
 
 async def _check_stale_assignments(owner: str, repo: str, token: str):
