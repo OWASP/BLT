@@ -1,4 +1,4 @@
-name: Node.js CI Tests
+name: CI (Wrangler now, Node later)
 
 on:
   push:
@@ -7,30 +7,81 @@ on:
   pull_request:
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+
+      - name: Detect Node project files
+        id: nodeproj
+        shell: bash
+        run: |
+          if [[ -f package.json ]]; then
+            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ -f package-lock.json || -f npm-shrinkwrap.json || -f yarn.lock ]]; then
+            echo "has_lockfile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_lockfile=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # -----------------------------------------------------------------------
+      # Worker mode (NOW): Wrangler + basic sanity checks when there's no Node app
+      # -----------------------------------------------------------------------
+      - name: Install Wrangler (global)
+        if: steps.nodeproj.outputs.has_package_json != 'true'
+        run: npm install -g wrangler
+
+      - name: Wrangler sanity checks (no Cloudflare auth required)
+        if: steps.nodeproj.outputs.has_package_json != 'true'
+        shell: bash
+        run: |
+          wrangler --version
+          wrangler dev --help >/dev/null
+          wrangler deploy --help >/dev/null
+
+      - name: Python syntax check (worker)
+        if: steps.nodeproj.outputs.has_package_json != 'true'
+        run: python -m compileall src/worker.py
+
+      # -----------------------------------------------------------------------
+      # Node mode (LATER): enable cache + run npm tests when Node project exists
+      # -----------------------------------------------------------------------
+      - name: Enable npm cache (only when lockfile exists)
+        if: steps.nodeproj.outputs.has_package_json == 'true' && steps.nodeproj.outputs.has_lockfile == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
           check-latest: true
 
-      - name: Install dependencies
+      - name: Install Node dependencies
+        if: steps.nodeproj.outputs.has_package_json == 'true' && steps.nodeproj.outputs.has_lockfile == 'true'
         run: npm ci
 
-      - name: Security audit (non-blocking)
-        run: npm audit --audit-level=high || true
-
-      - name: Run tests
+      - name: Run Node tests
+        if: steps.nodeproj.outputs.has_package_json == 'true' && steps.nodeproj.outputs.has_lockfile == 'true'
         run: npm test
+
+      - name: Node project present but lockfile missing (action required)
+        if: steps.nodeproj.outputs.has_package_json == 'true' && steps.nodeproj.outputs.has_lockfile != 'true'
+        run: |
+          echo "package.json exists but no lockfile was found."
+          echo "Please commit package-lock.json (npm), npm-shrinkwrap.json, or yarn.lock."
+          exit 1
