@@ -808,24 +808,29 @@ async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
 
 
 async def _set_backfill_state(db, owner: str, month_key: str, next_page: int, completed: bool) -> None:
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_backfill_state (org, month_key, next_page, completed, updated_at)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(org, month_key) DO UPDATE SET
-            next_page = excluded.next_page,
-            completed = excluded.completed,
-            updated_at = excluded.updated_at
-        """,
-        (owner, month_key, next_page, 1 if completed else 0, int(time.time())),
-    )
+    try:
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_backfill_state (org, month_key, next_page, completed, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(org, month_key) DO UPDATE SET
+                next_page = excluded.next_page,
+                completed = excluded.completed,
+                updated_at = excluded.updated_at
+            """,
+            (owner, month_key, next_page, 1 if completed else 0, int(time.time())),
+        )
+        console.log(f"[Backfill] State updated: org={owner} month={month_key} next_page={next_page} completed={completed}")
+    except Exception as e:
+        console.error(f"[Backfill] Failed to update state: {e}")
 
 
 async def _run_incremental_backfill(owner: str, token: str, env, repos_per_request: int = 5) -> Optional[dict]:
     """Backfill leaderboard data in small chunks and report progress for user-facing notes."""
     db = _d1_binding(env)
     if not db:
+        console.error("[Backfill] No D1 binding available")
         return None
 
     await _ensure_leaderboard_schema(db)
@@ -834,21 +839,26 @@ async def _run_incremental_backfill(owner: str, token: str, env, repos_per_reque
     start_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_ts))
 
     state = await _get_backfill_state(db, owner, month_key)
+    console.log(f"[Backfill] Current state: page={state['next_page']}, completed={state['completed']}")
     if state["completed"]:
+        console.log(f"[Backfill] Already completed for {owner}/{month_key}")
         return {"ran": False, "completed": True, "processed": 0, "next_page": state["next_page"]}
 
     page = state["next_page"]
+    console.log(f"[Backfill] Fetching repos page {page} for {owner}")
     repos_resp = await github_api(
         "GET",
         f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={repos_per_request}&page={page}",
         token,
     )
     if repos_resp.status != 200:
-        console.error(f"[Leaderboard] Backfill repo page failed for {owner}: status={repos_resp.status}")
+        console.error(f"[Backfill] Failed to fetch repo page {page}: status={repos_resp.status}")
         return {"ran": False, "completed": False, "processed": 0, "next_page": page}
 
     repos = json.loads(await repos_resp.text())
+    console.log(f"[Backfill] Got {len(repos)} repos on page {page}")
     if not repos:
+        console.log(f"[Backfill] No more repos, marking backfill complete")
         await _set_backfill_state(db, owner, month_key, page, True)
         return {"ran": False, "completed": True, "processed": 0, "next_page": page}
 
@@ -857,11 +867,16 @@ async def _run_incremental_backfill(owner: str, token: str, env, repos_per_reque
         repo_name = repo_obj.get("name")
         if not repo_name:
             continue
+        console.log(f"[Backfill] Backfilling repo {owner}/{repo_name}")
         seeded = await _backfill_repo_month_if_needed(owner, repo_name, token, env, month_key, start_ts, end_ts)
         if seeded:
             processed += 1
+            console.log(f"[Backfill] Seeded {owner}/{repo_name} (total processed this run: {processed})")
+        else:
+            console.log(f"[Backfill] Skipped {owner}/{repo_name} (already seeded or failed)")
 
     done = len(repos) < repos_per_request
+    console.log(f"[Backfill] Processed {processed} repos, done={done}")
     await _set_backfill_state(db, owner, month_key, page + 1, done)
     return {
         "ran": True,
