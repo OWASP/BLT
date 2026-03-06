@@ -25,6 +25,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 _js_stub = types.ModuleType("js")
 
+# Stub for pyodide.ffi — makes to_js a transparent pass-through outside runtime
+_pyodide_ffi_stub = types.ModuleType("pyodide.ffi")
+_pyodide_ffi_stub.to_js = lambda x, **kw: x
+_pyodide_stub = types.ModuleType("pyodide")
+_pyodide_stub.ffi = _pyodide_ffi_stub
+sys.modules.setdefault("pyodide", _pyodide_stub)
+sys.modules.setdefault("pyodide.ffi", _pyodide_ffi_stub)
+
 
 class _HeadersStub:
     def __init__(self, items=None):
@@ -630,6 +638,81 @@ class TestSecretVarsStatusHtml(unittest.TestCase):
     def test_landing_html_no_env_removes_placeholder(self):
         html = _worker._landing_html("my-app", None)
         self.assertNotIn("{{SECRET_VARS_STATUS}}", html)
+
+
+class TestCreateGithubJwt(unittest.TestCase):
+    """create_github_jwt — verifies to_js is used for SubtleCrypto parameters."""
+
+    class _Uint8ArrayStub:
+        """Minimal Uint8Array stand-in for use outside the Cloudflare runtime."""
+
+        def __init__(self, n_or_buf=0):
+            self._data = bytearray(n_or_buf)
+            self.buffer = self._data
+
+        @classmethod
+        def new(cls, n_or_buf=0):
+            return cls(n_or_buf)
+
+        def __setitem__(self, i, v):
+            self._data[i] = v
+
+        def __iter__(self):
+            return iter(self._data)
+
+        def __bytes__(self):
+            return bytes(self._data)
+
+    def _make_rsa_pem(self) -> str:
+        """Return a minimal (non-functional) PKCS#8 PEM for import testing."""
+        # 16 zero bytes wrapped in a PKCS#8 PEM header
+        payload = base64.b64encode(bytes(16)).decode()
+        return f"-----BEGIN PRIVATE KEY-----\n{payload}\n-----END PRIVATE KEY-----"
+
+    def _run_create_jwt(self, spy_to_js):
+        """Run create_github_jwt with mocked JS and pyodide.ffi modules."""
+        mock_import_key = AsyncMock(return_value=object())
+        mock_sign = AsyncMock(return_value=bytes(64))
+        mock_subtle = types.SimpleNamespace(importKey=mock_import_key, sign=mock_sign)
+
+        async def _inner():
+            with patch.dict(
+                sys.modules,
+                {
+                    "js": types.SimpleNamespace(
+                        Uint8Array=self._Uint8ArrayStub,
+                        crypto=types.SimpleNamespace(subtle=mock_subtle),
+                    ),
+                    "pyodide.ffi": types.SimpleNamespace(to_js=spy_to_js),
+                },
+            ):
+                return await _worker.create_github_jwt("123", self._make_rsa_pem())
+
+        asyncio.run(_inner())
+
+    def test_to_js_called_for_key_usages(self):
+        """to_js must be called with the keyUsages list so SubtleCrypto receives a JS Array."""
+        to_js_calls = []
+
+        def _spy(value, **kw):
+            to_js_calls.append(value)
+            return value
+
+        self._run_create_jwt(_spy)
+        self.assertIn(["sign"], to_js_calls)
+
+    def test_to_js_called_for_algorithm(self):
+        """to_js must be called with the algorithm dict so SubtleCrypto receives a JS Object."""
+        to_js_calls = []
+
+        def _spy(value, **kw):
+            to_js_calls.append(value)
+            return value
+
+        self._run_create_jwt(_spy)
+        self.assertTrue(
+            any(isinstance(v, dict) and v.get("name") == "RSASSA-PKCS1-v1_5" for v in to_js_calls)
+        )
 
 
 if __name__ == "__main__":
