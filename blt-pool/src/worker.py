@@ -137,7 +137,7 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
     crypto_key = await crypto.subtle.importKey(
         "pkcs8",
         key_array.buffer,
-        to_js({"name": "RSASSA-PKCS1-v1_5"}, dict_converter=Object.fromEntries),
+        to_js({"name": "RSASSA-PKCS1-v1_5", "hash": "SHA-256"}, dict_converter=Object.fromEntries),
         False,
         key_usages,
     )

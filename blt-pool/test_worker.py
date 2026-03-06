@@ -726,8 +726,8 @@ class TestCreateGithubJwt(unittest.TestCase):
                 await _worker.create_github_jwt("123", self._make_rsa_pem())
             # Check that to_js was called with the algorithm dict
             self.assertTrue(
-                any(isinstance(v, dict) and v.get("name") == "RSASSA-PKCS1-v1_5" for v in to_js_calls),
-                f"Expected algorithm dict in to_js calls, got: {to_js_calls}"
+                any(isinstance(v, dict) and v.get("name") == "RSASSA-PKCS1-v1_5" and v.get("hash") == "SHA-256" for v in to_js_calls),
+                f"Expected algorithm dict with name and hash in to_js calls, got: {to_js_calls}"
             )
 
         asyncio.run(_inner())
