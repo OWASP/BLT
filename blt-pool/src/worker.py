@@ -492,34 +492,42 @@ async def _ensure_leaderboard_schema(db) -> None:
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(org, user_login) DO UPDATE SET
-            open_prs = MAX(0, leaderboard_open_prs.open_prs + excluded.open_prs),
-            updated_at = excluded.updated_at
-        """,
-        (org, user_login, delta, now),
-    )
+    try:
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org, user_login) DO UPDATE SET
+                open_prs = excluded.open_prs,
+                updated_at = excluded.updated_at
+            """,
+            (org, user_login, delta, now),
+        )
+        console.log(f"[D1] Inserted/updated open PR count for {user_login}: {delta}")
+    except Exception as e:
+        console.error(f"[D1] Failed to update open PRs for {user_login}: {e}")
 
 
 async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: str, delta: int = 1) -> None:
     now = int(time.time())
     if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
         return
-    await _d1_run(
-        db,
-        f"""
-        INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-            {field} = leaderboard_monthly_stats.{field} + excluded.{field},
-            updated_at = excluded.updated_at
-        """,
-        (org, month_key, user_login, delta, now),
-    )
+    try:
+        await _d1_run(
+            db,
+            f"""
+            INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                {field} = leaderboard_monthly_stats.{field} + excluded.{field},
+                updated_at = excluded.updated_at
+            """,
+            (org, month_key, user_login, delta, now),
+        )
+        console.log(f"[D1] Updated monthly {field} for {user_login}: +{delta}")
+    except Exception as e:
+        console.error(f"[D1] Failed to update monthly {field} for {user_login}: {e}")
 
 
 async def _track_pr_opened_in_d1(payload: dict, env) -> None:
@@ -703,6 +711,7 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     """Read current-month leaderboard stats from D1 if configured."""
     db = _d1_binding(env)
     if not db:
+        console.error("[D1] No D1 binding available")
         return None
 
     await _ensure_leaderboard_schema(db)
@@ -727,6 +736,12 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
         """,
         (owner,),
     )
+    
+    console.log(f"[D1] Read {len(monthly_rows or [])} monthly_stats rows, {len(open_rows or [])} open_prs rows for {owner}")
+    if monthly_rows:
+        console.log(f"[D1] Monthly stats sample: {monthly_rows[0]}")
+    if open_rows:
+        console.log(f"[D1] Open PRs sample: {open_rows[0]}")
 
     user_stats = {}
 
@@ -870,6 +885,7 @@ async def _backfill_repo_month_if_needed(
     """Backfill leaderboard stats for one repo once per month. Returns True if newly seeded."""
     db = _d1_binding(env)
     if not db:
+        console.error(f"[Backfill] No D1 binding available for {owner}/{repo_name}")
         return False
 
     await _ensure_leaderboard_schema(db)
@@ -886,7 +902,10 @@ async def _backfill_repo_month_if_needed(
         (owner, mk, repo_name),
     )
     if already:
+        console.log(f"[Backfill] Repo {owner}/{repo_name} already seeded for {mk}")
         return False
+
+    console.log(f"[Backfill] Starting backfill for {owner}/{repo_name} month={mk}")
 
     # Open PRs snapshot for this repo.
     open_resp = await github_api(
@@ -904,8 +923,12 @@ async def _backfill_repo_month_if_needed(
             login = user.get("login")
             if login:
                 open_by_user[login] = open_by_user.get(login, 0) + 1
+        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users")
         for login, cnt in open_by_user.items():
+            console.log(f"[Backfill] User {login}: {cnt} open PRs")
             await _d1_inc_open_pr(db, owner, login, cnt)
+    else:
+        console.error(f"[Backfill] Failed to fetch open PRs: status={open_resp.status}")
 
     # Closed/merged monthly stats for this repo.
     closed_resp = await github_api(
@@ -915,6 +938,8 @@ async def _backfill_repo_month_if_needed(
     )
     if closed_resp.status == 200:
         closed_prs = json.loads(await closed_resp.text())
+        merged_count = 0
+        closed_count = 0
         for pr in closed_prs:
             user = pr.get("user") or {}
             if _is_bot(user):
@@ -927,23 +952,35 @@ async def _backfill_repo_month_if_needed(
             if merged_at:
                 merged_ts = _parse_github_timestamp(merged_at)
                 if start_ts <= merged_ts <= end_ts:
+                    console.log(f"[Backfill] User {login}: merged PR (#{pr.get('number')})")
+                    merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
             elif closed_at:
                 closed_ts = _parse_github_timestamp(closed_at)
                 if start_ts <= closed_ts <= end_ts:
+                    console.log(f"[Backfill] User {login}: closed PR (#{pr.get('number')})")
+                    closed_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
+        console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
+    else:
+        console.error(f"[Backfill] Failed to fetch closed PRs: status={closed_resp.status}")
 
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_backfill_repo_done (org, month_key, repo, updated_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(org, month_key, repo) DO UPDATE SET
-            updated_at = excluded.updated_at
-        """,
-        (owner, mk, repo_name, int(time.time())),
-    )
-    return True
+    try:
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_backfill_repo_done (org, month_key, repo, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org, month_key, repo) DO UPDATE SET
+                updated_at = excluded.updated_at
+            """,
+            (owner, mk, repo_name, int(time.time())),
+        )
+        console.log(f"[Backfill] Marked {owner}/{repo_name} as complete for {mk}")
+        return True
+    except Exception as e:
+        console.error(f"[Backfill] Failed to mark repo as done: {e}")
+        return False
 
 
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
@@ -1264,6 +1301,8 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
 async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
     """Post or update a leaderboard comment on an issue/PR."""
     leaderboard_note = ""
+    
+    console.log(f"[Leaderboard] Starting leaderboard post for {owner}/{repo}#{issue_number} by @{author_login}")
 
     owner_data = None
     is_org = False
@@ -1271,18 +1310,25 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     if owner_resp.status == 200:
         owner_data = json.loads(await owner_resp.text())
         is_org = owner_data.get("type") == "Organization"
+        console.log(f"[Leaderboard] Owner {owner} is_org={is_org}")
     else:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}: status={owner_resp.status}")
 
     # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+    console.log(f"[Leaderboard] Initial D1 data: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
 
     # Always prioritize seeding the current repo so requester sees their repo's activity immediately.
     if leaderboard_data is not None and is_org:
+        console.log(f"[Leaderboard] D1 is available, attempting to seed current repo {owner}/{repo}")
         seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
+        console.log(f"[Leaderboard] Current repo backfill result: seeded_current={seeded_current}")
         if seeded_current:
             console.log(f"[Leaderboard] Seeded current repo {owner}/{repo} for immediate leaderboard accuracy")
             leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+            console.log(f"[Leaderboard] After current repo seed, data has {len(leaderboard_data.get('sorted', []))} users")
+    else:
+        console.log(f"[Leaderboard] Skipped current repo backfill: leaderboard_data={bool(leaderboard_data)}, is_org={is_org}")
 
     # Continue backfill until completed, not just when data is empty.
     if leaderboard_data is not None and is_org:
@@ -1298,6 +1344,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
                 backfill_result = await _run_incremental_backfill(owner, token, env)
                 if backfill_result:
                     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+                    console.log(f"[Leaderboard] After incremental backfill, data has {len(leaderboard_data.get('sorted', []))} users")
                     if backfill_result.get("completed"):
                         leaderboard_note = (
                             f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
