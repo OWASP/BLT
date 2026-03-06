@@ -1008,20 +1008,26 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
 
 async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
     """Post or update a leaderboard comment on an issue/PR."""
-    # Determine if owner is an org or user
-    resp = await github_api("GET", f"/users/{owner}", token)
-    if resp.status != 200:
-        console.error(f"[Leaderboard] Failed to fetch owner info for {owner}")
-        return
-    
-    owner_data = json.loads(await resp.text())
-    is_org = owner_data.get("type") == "Organization"
-    
     # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
+        # Determine if owner is an org or user only when fallback is needed.
+        resp = await github_api("GET", f"/users/{owner}", token)
+        if resp.status != 200:
+            console.error(f"[Leaderboard] Failed to fetch owner info for {owner}: status={resp.status}")
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"@{author_login} I couldn't load leaderboard data right now (owner lookup failed). Please try again shortly.",
+                token,
+            )
+            return
+
+        owner_data = json.loads(await resp.text())
+        is_org = owner_data.get("type") == "Organization"
         if is_org:
             repos = await _fetch_org_repos(owner, token)
         else:
@@ -1031,27 +1037,29 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     # Format comment
     comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner)
     
-    # Check for existing leaderboard comment
+    # Delete existing leaderboard comment(s), then always create a fresh one.
     resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100", token)
     if resp.status == 200:
         comments = json.loads(await resp.text())
-        existing = None
         for c in comments:
             if c.get("body") and LEADERBOARD_MARKER in c["body"]:
-                existing = c
-                break
-        
-        if existing:
-            # Update existing comment
-            await github_api(
-                "PATCH",
-                f"/repos/{owner}/{repo}/issues/comments/{existing['id']}",
-                token,
-                {"body": comment_body}
-            )
-        else:
-            # Create new comment
-            await create_comment(owner, repo, issue_number, comment_body, token)
+                delete_resp = await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/comments/{c['id']}",
+                    token,
+                )
+                if delete_resp.status not in (204, 200):
+                    console.error(
+                        f"[Leaderboard] Failed to delete old leaderboard comment {c['id']} "
+                        f"for {owner}/{repo}#{issue_number}: status={delete_resp.status}"
+                    )
+    else:
+        console.error(
+            f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}: "
+            f"status={resp.status}; posting new leaderboard anyway"
+        )
+
+    await create_comment(owner, repo, issue_number, comment_body, token)
 
 
 async def _check_and_close_excess_prs(owner: str, repo: str, pr_number: int, author_login: str, token: str) -> bool:
@@ -1191,7 +1199,10 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
         return
 
     # Persist comments to D1 for leaderboard scoring.
-    await _track_comment_in_d1(payload, env)
+    try:
+        await _track_comment_in_d1(payload, env)
+    except Exception as exc:
+        console.error(f"[Leaderboard] Failed to persist comment event: {exc}")
 
     body = comment["body"].strip()
     owner = payload["repository"]["owner"]["login"]
@@ -1209,10 +1220,20 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     elif body.startswith(UNASSIGN_COMMAND):
         await _unassign(owner, repo, issue, login, token)
     elif body.startswith(LEADERBOARD_COMMAND):
-        if env is None:
-            await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
-        else:
-            await _post_or_update_leaderboard(owner, repo, issue_number, login, token, env)
+        try:
+            if env is None:
+                await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
+            else:
+                await _post_or_update_leaderboard(owner, repo, issue_number, login, token, env)
+        except Exception as exc:
+            console.error(f"[Leaderboard] Command failed for {owner}/{repo}#{issue_number}: {exc}")
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"@{login} I hit an error while generating the leaderboard. Please try again in a moment.",
+                token,
+            )
 
 
 async def _assign(
