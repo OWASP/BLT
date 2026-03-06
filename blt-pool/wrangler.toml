@@ -4,6 +4,12 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["python_workers"]
 
 # ---------------------------------------------------------------------------
+# Static assets — serve files from public/ directory
+# ---------------------------------------------------------------------------
+[site]
+bucket = "./public"
+
+# ---------------------------------------------------------------------------
 # Non-secret variables — safe to commit
 # ---------------------------------------------------------------------------
 [vars]
@@ -24,6 +30,12 @@ GITHUB_APP_SLUG = "blt-github-app"
 # GITHUB_CLIENT_ID     — OAuth client ID     (optional)
 # GITHUB_CLIENT_SECRET — OAuth client secret (optional)
 
+
+# ---------------------------------------------------------------------------
+# Scheduled triggers (cron jobs)
+# ---------------------------------------------------------------------------
+[triggers]
+crons = ["0 */2 * * *"]  # Run every 2 hours
 
 [observability]
 enabled = false

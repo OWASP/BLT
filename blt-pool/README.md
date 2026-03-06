@@ -4,8 +4,18 @@ A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into Git
 
 ## Features
 
-- **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 24 hours if no linked PR is submitted.
+- **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
 - **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
+- **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request.
+- **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard. Works across all repositories in the organization!
+- **Monthly leaderboard** — Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
+  - Open PRs (+1 each)
+  - Merged PRs (+10)
+  - Closed PRs without merge (−2)
+  - PR Reviews (+5; first two per PR count)
+  - Comments (+2; excludes CodeRabbit mentions)
+- **Auto-close excess PRs** — PRs are automatically closed if the author has 50+ open PRs in the repository.
+- **Rank improvement congratulations** — When a PR is merged and the author's rank improves on the 6-month leaderboard, they receive a congratulatory message.
 - **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://github.com/OWASP-BLT/BLT-API).
 - **Welcome messages** — New issues and pull requests receive helpful onboarding messages with contribution tips.
 - **Merge congratulations** — Merged PRs receive an acknowledgement message celebrating the contributor's work.
@@ -42,6 +52,8 @@ cp .dev.vars.example .dev.vars   # fill in your credentials
 npx wrangler dev                 # local dev server
 npx wrangler deploy              # deploy to Cloudflare
 ```
+
+**Note:** The `public/` directory contains static assets (logo, HTML files) that are automatically served by Cloudflare Workers when the `[site]` bucket is configured in `wrangler.toml`.
 
 Set secrets securely for production:
 ```bash
@@ -88,7 +100,7 @@ In any issue, comment:
 /assign
 ```
 
-You will be assigned to the issue with a 24-hour deadline to submit a pull request.
+You will be assigned to the issue with an 8-hour deadline to submit a pull request.
 
 To release an issue:
 

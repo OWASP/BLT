@@ -82,11 +82,15 @@ _js_stub.fetch = None  # not used in unit tests
 
 sys.modules.setdefault("js", _js_stub)
 
+# Add src directory to path so worker.py can import index_template
+import pathlib
+_src_path = pathlib.Path(__file__).parent / "src"
+sys.path.insert(0, str(_src_path))
+
 # Now import the worker module
 import importlib.util
-import pathlib
 
-_worker_path = pathlib.Path(__file__).parent / "src" / "worker.py"
+_worker_path = _src_path / "worker.py"
 _spec = importlib.util.spec_from_file_location("worker", _worker_path)
 _worker = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_worker)
@@ -102,6 +106,10 @@ _wrap_pkcs1_as_pkcs8 = _worker._wrap_pkcs1_as_pkcs8
 _der_len = _worker._der_len
 _b64url = _worker._b64url
 _is_human = _worker._is_human
+_is_bot = _worker._is_bot
+_is_coderabbit_ping = _worker._is_coderabbit_ping
+_parse_github_timestamp = _worker._parse_github_timestamp
+_format_leaderboard_comment = _worker._format_leaderboard_comment
 
 
 # ---------------------------------------------------------------------------
@@ -542,7 +550,9 @@ class TestHandlePullRequestOpened(unittest.TestCase):
     def _run_opened(self, payload, comments):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                await _worker.handle_pull_request_opened(payload, "tok")
+                with patch.object(_worker, "_check_and_close_excess_prs", new=AsyncMock(return_value=False)):
+                    with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
+                        await _worker.handle_pull_request_opened(payload, "tok")
         _run(_inner())
 
     def test_posts_welcome_message(self):
@@ -566,7 +576,9 @@ class TestHandlePullRequestClosed(unittest.TestCase):
     def _run_closed(self, payload, comments):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                await _worker.handle_pull_request_closed(payload, "tok")
+                with patch.object(_worker, "_check_rank_improvement", new=AsyncMock()):
+                    with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
+                        await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_congratulations_when_merged(self):
@@ -765,6 +777,361 @@ class TestCreateGithubJwt(unittest.TestCase):
         
         asyncio.run(_inner())
         self.assertIn(["sign"], js_array_created)
+
+
+# ---------------------------------------------------------------------------
+# Leaderboard tests
+# ---------------------------------------------------------------------------
+
+
+class TestIsBot(unittest.TestCase):
+    """Test bot detection for leaderboard filtering"""
+
+    def test_detects_bot_type(self):
+        self.assertTrue(_is_bot({"login": "someuser", "type": "Bot"}))
+
+    def test_detects_copilot_in_name(self):
+        self.assertTrue(_is_bot({"login": "copilot-bot", "type": "User"}))
+        self.assertTrue(_is_bot({"login": "github-copilot", "type": "User"}))
+
+    def test_detects_bracket_bot(self):
+        self.assertTrue(_is_bot({"login": "renovate[bot]", "type": "User"}))
+
+    def test_detects_dependabot(self):
+        self.assertTrue(_is_bot({"login": "dependabot", "type": "User"}))
+
+    def test_detects_github_actions(self):
+        self.assertTrue(_is_bot({"login": "github-actions", "type": "User"}))
+
+    def test_detects_coderabbit(self):
+        self.assertTrue(_is_bot({"login": "coderabbitai", "type": "User"}))
+        self.assertTrue(_is_bot({"login": "coderabbit", "type": "User"}))
+
+    def test_human_users_not_bots(self):
+        self.assertFalse(_is_bot({"login": "alice", "type": "User"}))
+        self.assertFalse(_is_bot({"login": "john-smith", "type": "User"}))
+
+    def test_none_is_bot(self):
+        # None user objects should be treated as bots to safely filter them out
+        self.assertTrue(_is_bot(None))
+        self.assertTrue(_is_bot({}))
+        # User with no login is treated as bot to be safe
+        self.assertTrue(_is_bot({"type": "User"}))
+
+
+class TestIsCoderabbitPing(unittest.TestCase):
+    """Test CodeRabbit mention detection"""
+
+    def test_detects_coderabbit_mention(self):
+        self.assertTrue(_is_coderabbit_ping("Hey @coderabbitai can you review this?"))
+        self.assertTrue(_is_coderabbit_ping("What does coderabbit think?"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(_is_coderabbit_ping("CODERABBIT please review"))
+        self.assertTrue(_is_coderabbit_ping("CodeRabbit AI"))
+
+    def test_normal_comments_not_pings(self):
+        self.assertFalse(_is_coderabbit_ping("This looks good!"))
+        self.assertFalse(_is_coderabbit_ping("I reviewed the code"))
+
+    def test_empty_string(self):
+        self.assertFalse(_is_coderabbit_ping(""))
+        self.assertFalse(_is_coderabbit_ping(None))
+
+
+class TestParseGithubTimestamp(unittest.TestCase):
+    """Test GitHub timestamp parsing"""
+
+    def test_parses_valid_timestamp(self):
+        ts = _parse_github_timestamp("2024-03-05T12:34:56Z")
+        # Should be a positive Unix timestamp
+        self.assertGreater(ts, 0)
+        self.assertIsInstance(ts, int)
+
+    def test_parses_different_dates(self):
+        ts1 = _parse_github_timestamp("2024-01-01T00:00:00Z")
+        ts2 = _parse_github_timestamp("2024-12-31T23:59:59Z")
+        # Later date should have higher timestamp
+        self.assertGreater(ts2, ts1)
+
+    def test_invalid_format_returns_zero(self):
+        self.assertEqual(_parse_github_timestamp("invalid"), 0)
+        self.assertEqual(_parse_github_timestamp("2024-03-05"), 0)
+        self.assertEqual(_parse_github_timestamp(""), 0)
+
+
+class TestFormatLeaderboardComment(unittest.TestCase):
+    """Test leaderboard comment formatting"""
+
+    def test_formats_comment_with_user_rank(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 5, "mergedPrs": 10, "closedPrs": 1, "reviews": 3, "comments": 20, "total": 75},
+                {"login": "bob", "openPrs": 3, "mergedPrs": 8, "closedPrs": 0, "reviews": 5, "comments": 15, "total": 68},
+                {"login": "charlie", "openPrs": 2, "mergedPrs": 5, "closedPrs": 2, "reviews": 2, "comments": 10, "total": 40},
+            ],
+            "start_timestamp": 1704067200,  # 2024-01-01
+            "end_timestamp": 1706745599
+        }
+        
+        result = _format_leaderboard_comment("bob", leaderboard_data, "test-org")
+        
+        # Should contain leaderboard marker
+        self.assertIn("<!-- leaderboard-bot -->", result)
+        # Should mention the user
+        self.assertIn("@bob", result)
+        # Should have table headers
+        self.assertIn("| Rank |", result)
+        self.assertIn("| User |", result)
+        # Should highlight bob's row
+        self.assertIn("**`@bob`** ✨", result)
+        # Should contain scoring explanation
+        self.assertIn("Scoring this month", result)
+        self.assertIn("/leaderboard", result)
+
+    def test_shows_medals_for_top_three(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "first", "openPrs": 1, "mergedPrs": 20, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 201},
+                {"login": "second", "openPrs": 1, "mergedPrs": 15, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 151},
+                {"login": "third", "openPrs": 1, "mergedPrs": 10, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 101},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599
+        }
+        
+        result = _format_leaderboard_comment("first", leaderboard_data, "test-org")
+        
+        # Should contain medals
+        self.assertIn("🥇", result)
+
+    def test_shows_top_three_when_user_not_found(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 1, "mergedPrs": 10, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 101},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 8, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 81},
+                {"login": "charlie", "openPrs": 1, "mergedPrs": 5, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 51},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599
+        }
+        
+        result = _format_leaderboard_comment("unknown", leaderboard_data, "test-org")
+        
+        # Should show top 3 users
+        self.assertIn("alice", result)
+        self.assertIn("bob", result)
+        self.assertIn("charlie", result)
+        # Should not highlight anyone
+        self.assertNotIn("✨", result)
+
+
+class TestHandleIssueCommentLeaderboard(unittest.TestCase):
+    """Test /leaderboard command handling"""
+
+    def _run_comment(self, payload, leaderboard_calls):
+        async def _inner():
+            async def _mock_leaderboard(owner, repo, number, login, token):
+                leaderboard_calls.append((owner, repo, number, login))
+            
+            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+                with patch.object(_worker, "_assign", new=AsyncMock()):
+                    with patch.object(_worker, "_unassign", new=AsyncMock()):
+                        await _worker.handle_issue_comment(payload, "tok")
+        _run(_inner())
+
+    def test_routes_leaderboard_command(self):
+        payload = _make_issue_payload(comment_body="/leaderboard")
+        leaderboard_calls = []
+        self._run_comment(payload, leaderboard_calls)
+        self.assertEqual(len(leaderboard_calls), 1)
+        owner, repo, number, login = leaderboard_calls[0]
+        self.assertEqual(owner, "OWASP-BLT")
+        self.assertEqual(repo, "TestRepo")
+        self.assertEqual(number, 1)
+        self.assertEqual(login, "alice")
+
+    def test_ignores_bot_leaderboard_requests(self):
+        payload = _make_issue_payload(
+            comment_body="/leaderboard",
+            comment_user={"login": "bot", "type": "Bot"}
+        )
+        leaderboard_calls = []
+        self._run_comment(payload, leaderboard_calls)
+        self.assertEqual(len(leaderboard_calls), 0)
+
+
+class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
+    """Test leaderboard posting on PR opened"""
+
+    def _run_pr_opened(self, payload, leaderboard_calls, close_calls, comment_calls):
+        async def _inner():
+            async def _mock_leaderboard(owner, repo, number, login, token):
+                leaderboard_calls.append((owner, repo, number, login))
+            
+            async def _mock_close(owner, repo, pr_number, author_login, token):
+                close_calls.append((owner, repo, pr_number, author_login))
+                return False  # Not closed
+            
+            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+                with patch.object(_worker, "_check_and_close_excess_prs", new=_mock_close):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                        await _worker.handle_pull_request_opened(payload, "tok")
+        _run(_inner())
+
+    def test_posts_leaderboard_on_pr_open(self):
+        payload = _make_pr_payload()
+        leaderboard_calls, close_calls, comments = [], [], []
+        self._run_pr_opened(payload, leaderboard_calls, close_calls, comments)
+        
+        # Should check for excess PRs
+        self.assertEqual(len(close_calls), 1)
+        # Should post leaderboard
+        self.assertEqual(len(leaderboard_calls), 1)
+        # Should post welcome comment
+        self.assertTrue(any("Thanks for opening this pull request" in c for c in comments))
+
+    def test_skips_bots(self):
+        payload = _make_pr_payload(sender={"login": "dependabot", "type": "Bot"})
+        leaderboard_calls, close_calls, comments = [], [], []
+        self._run_pr_opened(payload, leaderboard_calls, close_calls, comments)
+        
+        # Should not process bot PRs
+        self.assertEqual(len(close_calls), 0)
+        self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(comments), 0)
+
+    def test_stops_processing_if_auto_closed(self):
+        payload = _make_pr_payload()
+        leaderboard_calls, close_calls, comments = [], [], []
+        
+        async def _inner():
+            async def _mock_leaderboard(owner, repo, number, login, token):
+                leaderboard_calls.append((owner, repo, number, login))
+            
+            async def _mock_close(owner, repo, pr_number, author_login, token):
+                close_calls.append((owner, repo, pr_number, author_login))
+                return True  # PR was closed
+            
+            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+                with patch.object(_worker, "_check_and_close_excess_prs", new=_mock_close):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                        await _worker.handle_pull_request_opened(payload, "tok")
+        _run(_inner())
+        
+        # Should check for excess PRs
+        self.assertEqual(len(close_calls), 1)
+        # Should NOT post leaderboard if closed
+        self.assertEqual(len(leaderboard_calls), 0)
+        # Should NOT post welcome comment if closed
+        self.assertEqual(len(comments), 0)
+
+
+class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
+    """Test leaderboard and rank improvement on PR merged"""
+
+    def _run_pr_closed(self, payload, leaderboard_calls, rank_calls, comment_calls):
+        async def _inner():
+            async def _mock_leaderboard(owner, repo, number, login, token):
+                leaderboard_calls.append((owner, repo, number, login))
+            
+            async def _mock_rank(owner, repo, pr_number, author_login, token):
+                rank_calls.append((owner, repo, pr_number, author_login))
+            
+            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+                with patch.object(_worker, "_check_rank_improvement", new=_mock_rank):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                        await _worker.handle_pull_request_closed(payload, "tok")
+        _run(_inner())
+
+    def test_posts_leaderboard_and_checks_rank_on_merge(self):
+        payload = _make_pr_payload(merged=True)
+        leaderboard_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        
+        # Should check rank improvement
+        self.assertEqual(len(rank_calls), 1)
+        # Should post leaderboard
+        self.assertEqual(len(leaderboard_calls), 1)
+        # Should post merge congratulations
+        self.assertTrue(any("PR merged!" in c for c in comments))
+
+    def test_skips_unmerged_prs(self):
+        payload = _make_pr_payload(merged=False)
+        leaderboard_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        
+        # Should not process unmerged PRs
+        self.assertEqual(len(rank_calls), 0)
+        self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(comments), 0)
+
+    def test_skips_bots(self):
+        payload = _make_pr_payload(
+            merged=True,
+            pr_user={"login": "renovate[bot]", "type": "Bot"}
+        )
+        leaderboard_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        
+        # Should not process bot PRs
+        self.assertEqual(len(rank_calls), 0)
+        self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(comments), 0)
+
+
+class TestCheckAndCloseExcessPrs(unittest.TestCase):
+    """Test auto-close for users with too many open PRs"""
+
+    def _run_check(self, search_response, comment_calls, api_calls):
+        async def _inner():
+            async def _mock_api(method, path, token, body=None):
+                api_calls.append((method, path, body))
+                if "/search/issues" in path:
+                    mock_resp = types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(search_response))
+                    )
+                    return mock_resp
+                return types.SimpleNamespace(status=200)
+            
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                    result = await _worker._check_and_close_excess_prs(
+                        "OWASP-BLT", "TestRepo", 10, "alice", "tok"
+                    )
+            return result
+        
+        return _run(_inner())
+
+    def test_does_not_close_when_under_limit(self):
+        # User has 10 open PRs (excluding current)
+        search_response = {
+            "items": [{"number": i} for i in range(1, 12)]  # 11 PRs total, 10 pre-existing
+        }
+        comments, api_calls = [], []
+        result = self._run_check(search_response, comments, api_calls)
+        
+        self.assertFalse(result)
+        # Should not close PR
+        self.assertFalse(any(method == "PATCH" and "pulls" in path for method, path, _ in api_calls))
+
+    def test_closes_when_over_limit(self):
+        # User has 50 open PRs (excluding current)
+        search_response = {
+            "items": [{"number": i} for i in range(1, 52)]  # 51 PRs total, 50 pre-existing
+        }
+        comments, api_calls = [], []
+        result = self._run_check(search_response, comments, api_calls)
+        
+        self.assertTrue(result)
+        # Should post explanation comment
+        self.assertTrue(any("auto-closed" in c and "50 open PRs" in c for c in comments))
+        # Should close the PR
+        self.assertTrue(any(
+            method == "PATCH" and "pulls" in path and body and body.get("state") == "closed"
+            for method, path, body in api_calls
+        ))
 
 
 if __name__ == "__main__":

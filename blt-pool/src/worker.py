@@ -26,6 +26,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
+from index_template import INDEX_HTML  # Landing page HTML template
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -33,6 +34,7 @@ from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindin
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
+LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
@@ -254,6 +256,452 @@ def _is_human(user: dict) -> bool:
     return bool(user and user.get("type") in ("User", "Mannequin"))
 
 
+def _is_bot(user: dict) -> bool:
+    """Return True if the user is a bot account.
+    
+    Returns True for None or malformed user objects to safely filter them out.
+    """
+    if not user or not user.get("login"):
+        return True  # Treat invalid/missing users as bots for safety
+    login_lower = user["login"].lower()
+    bot_patterns = [
+        "copilot", "[bot]", "dependabot", "github-actions",
+        "renovate", "actions-user", "coderabbitai", "coderabbit",
+        "sentry-autofix"
+    ]
+    return user.get("type") == "Bot" or any(p in login_lower for p in bot_patterns)
+
+
+def _is_coderabbit_ping(body: str) -> bool:
+    """Return True if the comment body mentions coderabbit."""
+    if not body:
+        return False
+    lower = body.lower()
+    return "coderabbit" in lower or "@coderabbitai" in lower
+
+
+# ---------------------------------------------------------------------------
+# Leaderboard — Calculation & Display
+# ---------------------------------------------------------------------------
+
+# Leaderboard configuration constants
+LEADERBOARD_MARKER = "<!-- leaderboard-bot -->"
+MAX_OPEN_PRS_PER_AUTHOR = 50
+LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
+
+
+async def _fetch_org_repos(org: str, token: str) -> list:
+    """Fetch all repositories in the organization."""
+    repos = []
+    page = 1
+    per_page = 100
+    max_pages = 10
+    
+    while page <= max_pages:
+        resp = await github_api("GET", f"/orgs/{org}/repos?per_page={per_page}&page={page}", token)
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        if not data:
+            break
+        repos.extend(data)
+        page += 1
+        if len(data) < per_page:
+            break
+    
+    return repos
+
+
+async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, window_months: int = 1) -> dict:
+    """Calculate leaderboard stats across multiple repositories.
+    
+    Args:
+        owner: Organization or user name
+        repos: List of repository objects with 'name' field
+        token: GitHub API token
+        window_months: Number of months to look back (default: 1 for monthly)
+    
+    Returns:
+        Dictionary with user stats and sorted leaderboard
+    """
+    now_seconds = int(time.time())
+    now = time.gmtime(now_seconds)
+    
+    # Calculate time window
+    start_of_month = time.struct_time((now.tm_year, now.tm_mon, 1, 0, 0, 0, 0, 0, 0))
+    start_timestamp = int(time.mktime(start_of_month))
+    
+    # End of month calculation
+    if now.tm_mon == 12:
+        end_month = 1
+        end_year = now.tm_year + 1
+    else:
+        end_month = now.tm_mon + 1
+        end_year = now.tm_year
+    end_of_month = time.struct_time((end_year, end_month, 1, 0, 0, 0, 0, 0, 0))
+    end_timestamp = int(time.mktime(end_of_month)) - 1
+    
+    user_stats = {}
+    
+    def ensure_user(login: str):
+        if login not in user_stats:
+            user_stats[login] = {
+                "openPrs": 0,
+                "mergedPrs": 0,
+                "closedPrs": 0,
+                "reviews": 0,
+                "comments": 0,
+                "total": 0
+            }
+    
+    # Fetch stats from each repo
+    for repo_obj in repos:
+        repo = repo_obj["name"]
+        
+        # Fetch open PRs (all time)
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=open&per_page=100", token)
+        if resp.status == 200:
+            open_prs = json.loads(await resp.text())
+            for pr in open_prs:
+                if pr.get("user") and not _is_bot(pr["user"]):
+                    login = pr["user"]["login"]
+                    ensure_user(login)
+                    user_stats[login]["openPrs"] += 1
+        
+        # Fetch closed/merged PRs from this month
+        since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_timestamp))
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=closed&per_page=100&sort=updated&direction=desc", token)
+        if resp.status == 200:
+            closed_prs = json.loads(await resp.text())
+            for pr in closed_prs:
+                # Check if merged or closed in the time window
+                merged_at = pr.get("merged_at")
+                closed_at = pr.get("closed_at")
+                
+                if merged_at:
+                    merged_ts = _parse_github_timestamp(merged_at)
+                    if start_timestamp <= merged_ts <= end_timestamp:
+                        if pr.get("user") and not _is_bot(pr["user"]):
+                            login = pr["user"]["login"]
+                            ensure_user(login)
+                            user_stats[login]["mergedPrs"] += 1
+                elif closed_at:
+                    closed_ts = _parse_github_timestamp(closed_at)
+                    if start_timestamp <= closed_ts <= end_timestamp:
+                        if pr.get("user") and not _is_bot(pr["user"]):
+                            login = pr["user"]["login"]
+                            ensure_user(login)
+                            user_stats[login]["closedPrs"] += 1
+        
+        # Fetch reviews (we'll count first 2 per PR in the month)
+        # For simplicity, we'll fetch recent PRs and their reviews
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=all&per_page=100&sort=updated&direction=desc", token)
+        if resp.status == 200:
+            prs = json.loads(await resp.text())
+            review_counts = {}  # Track first 2 reviews per PR per user
+            
+            for pr in prs[:50]:  # Limit to recent 50 PRs for performance
+                pr_num = pr["number"]
+                resp_reviews = await github_api("GET", f"/repos/{owner}/{repo}/pulls/{pr_num}/reviews", token)
+                if resp_reviews.status == 200:
+                    reviews = json.loads(await resp_reviews.text())
+                    pr_review_count = {}
+                    
+                    for review in reviews:
+                        if review.get("user") and not _is_bot(review["user"]):
+                            submitted_at = review.get("submitted_at")
+                            if submitted_at:
+                                review_ts = _parse_github_timestamp(submitted_at)
+                                if start_timestamp <= review_ts <= end_timestamp:
+                                    login = review["user"]["login"]
+                                    pr_review_count[login] = pr_review_count.get(login, 0) + 1
+                    
+                    # Count only first 2 reviews per PR globally
+                    counted = 0
+                    for login in pr_review_count:
+                        if counted < 2:
+                            ensure_user(login)
+                            user_stats[login]["reviews"] += 1
+                            counted += 1
+        
+        # Fetch comments from this month
+        resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/comments?since={since_iso}&per_page=100", token)
+        if resp.status == 200:
+            comments = json.loads(await resp.text())
+            for comment in comments:
+                if comment.get("user") and not _is_bot(comment["user"]):
+                    created_at = comment.get("created_at")
+                    if created_at:
+                        comment_ts = _parse_github_timestamp(created_at)
+                        if start_timestamp <= comment_ts <= end_timestamp:
+                            body = comment.get("body", "")
+                            if not _is_coderabbit_ping(body):
+                                login = comment["user"]["login"]
+                                ensure_user(login)
+                                user_stats[login]["comments"] += 1
+    
+    # Calculate total scores
+    # open: +1, merged: +10, closed: -2, reviews: +5, comments: +2
+    for login in user_stats:
+        s = user_stats[login]
+        s["total"] = (s["openPrs"] * 1) + (s["mergedPrs"] * 10) + (s["closedPrs"] * -2) + (s["reviews"] * 5) + (s["comments"] * 2)
+    
+    # Sort users by total score, then merged PRs, then reviews, then alphabetically
+    sorted_users = sorted(
+        [{"login": login, **stats} for login, stats in user_stats.items()],
+        key=lambda u: (-u["total"], -u["mergedPrs"], -u["reviews"], u["login"].lower())
+    )
+    
+    return {
+        "users": user_stats,
+        "sorted": sorted_users,
+        "start_timestamp": start_timestamp,
+        "end_timestamp": end_timestamp
+    }
+
+
+def _parse_github_timestamp(ts_str: str) -> int:
+    """Parse GitHub ISO 8601 timestamp to Unix timestamp."""
+    # GitHub timestamps are like: 2024-03-05T12:34:56Z
+    import re
+    match = re.match(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z", ts_str)
+    if match:
+        year, month, day, hour, minute, second = map(int, match.groups())
+        dt = time.struct_time((year, month, day, hour, minute, second, 0, 0, 0))
+        return int(time.mktime(dt))
+    return 0
+
+
+def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner: str) -> str:
+    """Format a leaderboard comment for a specific user."""
+    sorted_users = leaderboard_data["sorted"]
+    start_ts = leaderboard_data["start_timestamp"]
+    
+    # Find author's index
+    author_index = -1
+    for i, user in enumerate(sorted_users):
+        if user["login"] == author_login:
+            author_index = i
+            break
+    
+    # Format month display
+    month_struct = time.gmtime(start_ts)
+    display_month = time.strftime("%B %Y", month_struct)
+    
+    # Build comment
+    comment = LEADERBOARD_MARKER + "\n"
+    comment += "## 📊 Monthly Leaderboard\n\n"
+    comment += f"Hi @{author_login}! Here's how you rank for {display_month}:\n\n"
+    
+    # Table header
+    comment += "| Rank | User | Open PRs | PRs (merged) | PRs (closed) | Reviews | Comments | Total |\n"
+    comment += "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    
+    def row_for(rank: int, u: dict, bold: bool = False, medal: str = "") -> str:
+        user_cell = f"**`@{u['login']}`** ✨" if bold else f"`@{u['login']}`"
+        rank_cell = f"{medal} #{rank}" if medal else f"#{rank}"
+        return (f"| {rank_cell} | {user_cell} | {u['openPrs']} | {u['mergedPrs']} | "
+                f"{u['closedPrs']} | {u['reviews']} | {u['comments']} | **{u['total']}** |")
+    
+    # Show context rows around the author
+    if author_index == -1:
+        # Author not in leaderboard, show top 3
+        for i in range(min(3, len(sorted_users))):
+            medal = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
+            comment += row_for(i + 1, sorted_users[i], False, medal) + "\n"
+    else:
+        # Show author and neighbors
+        if author_index > 0:
+            medal = ["🥇", "🥈", "🥉"][author_index - 1] if author_index - 1 < 3 else ""
+            comment += row_for(author_index, sorted_users[author_index - 1], False, medal) + "\n"
+        
+        medal = ["🥇", "🥈", "🥉"][author_index] if author_index < 3 else ""
+        comment += row_for(author_index + 1, sorted_users[author_index], True, medal) + "\n"
+        
+        if author_index < len(sorted_users) - 1:
+            comment += row_for(author_index + 2, sorted_users[author_index + 1]) + "\n"
+    
+    comment += "\n---\n"
+    comment += (
+        f"**Scoring this month** (across {owner} org): Open PRs (+1 each), Merged PRs (+10), "
+        "Closed (not merged) (−2), Reviews (+5; first two per PR in-month), "
+        "Comments (+2, excludes CodeRabbit). Run `/leaderboard` on any issue or PR to see your rank!\n"
+    )
+    
+    return comment
+
+
+async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str) -> None:
+    """Post or update a leaderboard comment on an issue/PR."""
+    # Determine if owner is an org or user
+    resp = await github_api("GET", f"/users/{owner}", token)
+    if resp.status != 200:
+        console.error(f"[Leaderboard] Failed to fetch owner info for {owner}")
+        return
+    
+    owner_data = json.loads(await resp.text())
+    is_org = owner_data.get("type") == "Organization"
+    
+    # Fetch repos
+    if is_org:
+        repos = await _fetch_org_repos(owner, token)
+    else:
+        # For personal accounts, just use the current repo
+        repos = [{"name": repo}]
+    
+    # Calculate leaderboard
+    leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
+    
+    # Format comment
+    comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner)
+    
+    # Check for existing leaderboard comment
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100", token)
+    if resp.status == 200:
+        comments = json.loads(await resp.text())
+        existing = None
+        for c in comments:
+            if c.get("body") and LEADERBOARD_MARKER in c["body"]:
+                existing = c
+                break
+        
+        if existing:
+            # Update existing comment
+            await github_api(
+                "PATCH",
+                f"/repos/{owner}/{repo}/issues/comments/{existing['id']}",
+                token,
+                {"body": comment_body}
+            )
+        else:
+            # Create new comment
+            await create_comment(owner, repo, issue_number, comment_body, token)
+
+
+async def _check_and_close_excess_prs(owner: str, repo: str, pr_number: int, author_login: str, token: str) -> bool:
+    """Check if author has too many open PRs and close if needed.
+    
+    Returns:
+        True if PR was closed, False otherwise
+    """
+    # Search for open PRs by this author
+    resp = await github_api(
+        "GET",
+        f"/search/issues?q=repo:{owner}/{repo}+is:pr+is:open+author:{author_login}&per_page=100",
+        token
+    )
+    
+    if resp.status != 200:
+        return False
+    
+    data = json.loads(await resp.text())
+    open_prs = data.get("items", [])
+    
+    # Exclude the current PR from count
+    pre_existing_count = len([pr for pr in open_prs if pr["number"] != pr_number])
+    
+    if pre_existing_count >= MAX_OPEN_PRS_PER_AUTHOR:
+        # Close the PR
+        msg = (
+            f"Hi @{author_login}, thanks for your contribution!\n\n"
+            f"This PR is being auto-closed because you currently have {pre_existing_count} "
+            f"open PRs in this repository (limit: {MAX_OPEN_PRS_PER_AUTHOR}).\n"
+            "Please finish or close some existing PRs before opening new ones.\n\n"
+            "If you believe this was closed in error, please contact the maintainers."
+        )
+        
+        await create_comment(owner, repo, pr_number, msg, token)
+        
+        await github_api(
+            "PATCH",
+            f"/repos/{owner}/{repo}/pulls/{pr_number}",
+            token,
+            {"state": "closed"}
+        )
+        
+        return True
+    
+    return False
+
+
+async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_login: str, token: str) -> None:
+    """Check if author's rank improved and post congratulatory message."""
+    # Get org repos
+    resp = await github_api("GET", f"/users/{owner}", token)
+    if resp.status != 200:
+        return
+    
+    owner_data = json.loads(await resp.text())
+    is_org = owner_data.get("type") == "Organization"
+    
+    if is_org:
+        repos = await _fetch_org_repos(owner, token)
+    else:
+        repos = [{"name": repo}]
+    
+    # Calculate 6-month window
+    now = int(time.time())
+    six_months_ago = now - (6 * 30 * 24 * 60 * 60)  # Approximate
+    
+    # Count merged PRs in 6-month window for all users
+    merged_prs_per_author = {}
+    
+    for repo_obj in repos:
+        repo_name = repo_obj["name"]
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
+            token
+        )
+        
+        if resp.status == 200:
+            prs = json.loads(await resp.text())
+            for pr in prs:
+                if pr.get("merged_at"):
+                    merged_ts = _parse_github_timestamp(pr["merged_at"])
+                    if merged_ts >= six_months_ago:
+                        pr_author = pr.get("user")
+                        if pr_author and not _is_bot(pr_author):
+                            login = pr_author["login"]
+                            merged_prs_per_author[login] = merged_prs_per_author.get(login, 0) + 1
+    
+    author_count = merged_prs_per_author.get(author_login, 0)
+    
+    if author_count == 0:
+        return
+    
+    # Calculate new rank (number of users with more PRs + 1)
+    new_rank = len([c for c in merged_prs_per_author.values() if c > author_count]) + 1
+    
+    # Calculate old rank (before this merge)
+    prev_count = author_count - 1
+    old_rank = None
+    if prev_count > 0:
+        old_rank = len([c for c in merged_prs_per_author.values() if c > prev_count]) + 1
+    
+    # Check if rank improved
+    rank_improved = old_rank is None or new_rank < old_rank
+    
+    if not rank_improved:
+        return
+    
+    # Post congratulatory message
+    if old_rank is None:
+        msg = (
+            f"🎉 Congratulations @{author_login}! "
+            f"You've entered the BLT PR leaderboard at **rank #{new_rank}** with this merged PR! "
+            "Keep up the great work! 🚀"
+        )
+    else:
+        msg = (
+            f"🎉 Congratulations @{author_login}! "
+            f"This merged PR has moved you up to **rank #{new_rank}** on the BLT PR leaderboard "
+            f"(up from #{old_rank})! Keep up the great work! 🚀"
+        )
+    
+    await create_comment(owner, repo, pr_number, msg, token)
+
+
 # ---------------------------------------------------------------------------
 # Event handlers — mirror the Node.js handler logic exactly
 # ---------------------------------------------------------------------------
@@ -268,10 +716,14 @@ async def handle_issue_comment(payload: dict, token: str) -> None:
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     login = comment["user"]["login"]
+    issue_number = issue["number"]
+    
     if body.startswith(ASSIGN_COMMAND):
         await _assign(owner, repo, issue, login, token)
     elif body.startswith(UNASSIGN_COMMAND):
         await _unassign(owner, repo, issue, login, token)
+    elif body.startswith(LEADERBOARD_COMMAND):
+        await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
 
 
 async def _assign(
@@ -427,10 +879,24 @@ async def handle_pull_request_opened(payload: dict, token: str) -> None:
     sender = payload["sender"]
     if not _is_human(sender):
         return
+    
+    # Skip bots more thoroughly
+    if _is_bot(sender):
+        return
+    
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
+    pr_number = pr["number"]
+    author_login = sender["login"]
+    
+    # Check for too many open PRs and auto-close if needed
+    was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
+    if was_closed:
+        return  # Stop further processing if auto-closed
+    
+    # Post welcome message
     body = (
-        f"👋 Thanks for opening this pull request, @{sender['login']}!\n\n"
+        f"👋 Thanks for opening this pull request, @{author_login}!\n\n"
         "**Before your PR is reviewed, please ensure:**\n"
         "- [ ] Your code follows the project's coding style and guidelines.\n"
         "- [ ] You have written or updated tests for your changes.\n"
@@ -440,7 +906,10 @@ async def handle_pull_request_opened(payload: dict, token: str) -> None:
         "If you have questions, feel free to ask in the comments.\n\n"
         "🚀 Keep up the great work! — [OWASP BLT](https://owaspblt.org)"
     )
-    await create_comment(owner, repo, pr["number"], body, token)
+    await create_comment(owner, repo, pr_number, body, token)
+    
+    # Post leaderboard
+    await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
 
 
 async def handle_pull_request_closed(payload: dict, token: str) -> None:
@@ -450,14 +919,29 @@ async def handle_pull_request_closed(payload: dict, token: str) -> None:
         return
     if not _is_human(sender):
         return
+    
+    # Skip bots more thoroughly
+    if _is_bot(pr.get("user", {})):
+        return
+    
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
+    pr_number = pr["number"]
+    author_login = pr["user"]["login"]
+    
+    # Post merge congratulations
     body = (
-        f"🎉 PR merged! Thanks for your contribution, @{pr['user']['login']}!\n\n"
+        f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
         "Your work is now part of the project. Keep contributing to "
         "[OWASP BLT](https://owaspblt.org) and help make the web a safer place! 🛡️"
     )
-    await create_comment(owner, repo, pr["number"], body, token)
+    await create_comment(owner, repo, pr_number, body, token)
+    
+    # Check for rank improvement and congratulate if improved
+    await _check_rank_improvement(owner, repo, pr_number, author_login, token)
+    
+    # Post/update leaderboard
+    await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
 
 
 # ---------------------------------------------------------------------------
@@ -517,229 +1001,9 @@ async def handle_webhook(request, env) -> Response:
 
 
 # ---------------------------------------------------------------------------
-# Landing page HTML — embedded at build time to avoid filesystem access in
-# the Cloudflare Workers Python runtime (where open() cannot reach public/).
+# Landing page HTML — separated into src/index_template.py for maintainability.
+# Edit public/index.html and regenerate src/index_template.py before deploying.
 # ---------------------------------------------------------------------------
-
-_INDEX_HTML_TEMPLATE = """\
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT GitHub App</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-</head>
-<body class="min-h-screen flex flex-col" style="background:#111827;color:#e5e7eb;">
-  <!-- Header -->
-  <header class="w-full px-6 py-3 flex items-center gap-3" style="background:#1F2937;border-bottom:1px solid #374151;">
-    <img
-      src="https://avatars.githubusercontent.com/u/47849434?s=40"
-      alt="OWASP BLT logo"
-      class="w-10 h-10 rounded-lg"
-    />
-    <h1 class="flex-1 text-lg font-bold text-white">BLT GitHub App</h1>
-    <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.25);">
-      <i class="fa-solid fa-circle" style="font-size:0.45rem;" aria-hidden="true"></i>
-      Operational
-    </span>
-  </header>
-
-  <!-- Main -->
-  <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-12">
-
-    <!-- Hero -->
-    <section class="text-center py-16 px-8 rounded-xl mb-12" style="background:#1F2937;border:1px solid #374151;">
-      <h2 class="text-4xl font-extrabold text-white mb-4">
-        Supercharge your GitHub&nbsp;org&nbsp;with&nbsp;BLT
-      </h2>
-      <p class="text-lg max-w-xl mx-auto mb-8 leading-relaxed" style="color:#9ca3af;">
-        Automate issue assignment, bug reporting to OWASP&nbsp;BLT, and
-        contributor onboarding — powered by a lightweight Python Cloudflare Worker.
-      </p>
-      <div class="flex flex-wrap justify-center gap-3">
-        <a
-          href="{{INSTALL_URL}}"
-          class="inline-flex items-center gap-2 text-white font-semibold text-base px-6 py-3 rounded-lg transition-colors"
-          style="background:#E10101;"
-          onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#E10101'"
-        >
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          Add to GitHub Organization
-        </a>
-        <a
-          href="https://github.com/OWASP-BLT/BLT-GitHub-App"
-          target="_blank"
-          rel="noopener"
-          class="inline-flex items-center gap-2 font-semibold text-base px-6 py-3 rounded-lg transition-colors"
-          style="border:1px solid #E10101;color:#E10101;"
-          onmouseover="this.style.background='#E10101';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#E10101'"
-        >
-          <i class="fa-solid fa-code" aria-hidden="true"></i>
-          View Source
-        </a>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section class="mb-12">
-      <h2 class="text-xl font-bold text-white mb-5">Features</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
-            <i class="fa-solid fa-list-check text-lg" style="color:#E10101;" aria-hidden="true"></i>
-          </div>
-          <h3 class="text-white font-semibold mb-2">/assign &amp; /unassign</h3>
-          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
-            Comment <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">/assign</code> on any
-            issue to claim it with a 24-hour deadline. Release with
-            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">/unassign</code>.
-          </p>
-        </div>
-
-        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
-            <i class="fa-solid fa-bug text-lg" style="color:#E10101;" aria-hidden="true"></i>
-          </div>
-          <h3 class="text-white font-semibold mb-2">Auto Bug Reporting</h3>
-          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
-            Issues labeled <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">bug</code>,
-            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">vulnerability</code>, or
-            <code class="rounded text-xs px-1.5 py-0.5" style="background:#111827;">security</code> are instantly
-            reported to the OWASP BLT platform.
-          </p>
-        </div>
-
-        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
-            <i class="fa-solid fa-comments text-lg" style="color:#E10101;" aria-hidden="true"></i>
-          </div>
-          <h3 class="text-white font-semibold mb-2">Welcome Messages</h3>
-          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
-            New issues and pull requests receive friendly onboarding messages
-            with contribution guidelines.
-          </p>
-        </div>
-
-        <div class="rounded-xl p-6" style="background:#1F2937;border:1px solid #374151;">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(225,1,1,0.1);">
-            <i class="fa-solid fa-trophy text-lg" style="color:#E10101;" aria-hidden="true"></i>
-          </div>
-          <h3 class="text-white font-semibold mb-2">Merge Congratulations</h3>
-          <p class="text-sm leading-relaxed" style="color:#9ca3af;">
-            Merged PRs trigger a celebratory acknowledgement for the
-            contributor.
-          </p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- System Status -->
-    <section class="rounded-xl p-6 mb-12" style="background:#1F2937;border:1px solid #374151;">
-      <h2 class="text-xl font-bold text-white mb-4">System Status</h2>
-      <div style="border-top:1px solid #374151;">
-
-        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
-          <span style="color:#d1d5db;">Worker</span>
-          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Operational
-          </span>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
-          <span style="color:#d1d5db;">GitHub Webhooks</span>
-          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Listening
-          </span>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
-          <span style="color:#d1d5db;">BLT API</span>
-          <span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Connected
-          </span>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">
-          <span style="color:#d1d5db;">Webhook endpoint</span>
-          <code class="rounded text-xs px-2 py-0.5" style="background:#111827;color:#9ca3af;">/api/github/webhooks</code>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span style="color:#d1d5db;">Health endpoint</span>
-          <code class="rounded text-xs px-2 py-0.5" style="background:#111827;color:#9ca3af;">/health</code>
-        </div>
-
-{{SECRET_VARS_STATUS}}
-      </div>
-    </section>
-
-    <!-- How to Add -->
-    <section class="mb-12">
-      <h2 class="text-xl font-bold text-white mb-5">How to Add to Your Organization</h2>
-      <ol class="space-y-3">
-
-        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
-          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">1</span>
-          <h3 class="text-white font-semibold text-sm mb-1">Click &#34;Add to GitHub Organization&#34; above</h3>
-          <p class="text-sm" style="color:#9ca3af;">This starts the GitHub App installation flow.</p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
-          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">2</span>
-          <h3 class="text-white font-semibold text-sm mb-1">Choose your organization or account</h3>
-          <p class="text-sm" style="color:#9ca3af;">
-            Select the GitHub organization or personal account where you want to install BLT.
-          </p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
-          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">3</span>
-          <h3 class="text-white font-semibold text-sm mb-1">Grant repository access</h3>
-          <p class="text-sm" style="color:#9ca3af;">
-            Choose which repositories the app should monitor — all repos or a specific selection.
-          </p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16" style="background:#1F2937;border:1px solid #374151;">
-          <span class="absolute left-5 top-4 w-7 h-7 text-white text-xs font-bold rounded-full flex items-center justify-center" style="background:#E10101;" aria-hidden="true">4</span>
-          <h3 class="text-white font-semibold text-sm mb-1">You&#39;re done!</h3>
-          <p class="text-sm" style="color:#9ca3af;">
-            BLT will immediately start responding to issues and pull requests in the selected repositories.
-          </p>
-        </li>
-
-      </ol>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="w-full px-6 py-5 text-center text-sm" style="background:#1F2937;border-top:1px solid #374151;color:#9ca3af;">
-    <p>
-      Built with <i class="fa-solid fa-heart" style="color:#E10101;" aria-hidden="true"></i> by
-      <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener"
-         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">OWASP BLT</a>
-      &nbsp;·&nbsp;
-      <a href="https://github.com/OWASP-BLT/BLT-GitHub-App" target="_blank" rel="noopener"
-         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Source on GitHub</a>
-      &nbsp;·&nbsp;
-      <a href="https://owaspblt.org" target="_blank" rel="noopener"
-         style="color:#E10101;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">owaspblt.org</a>
-      &nbsp;·&nbsp; © {{YEAR}} OWASP BLT — AGPL-3.0
-    </p>
-  </footer>
-</body>
-</html>
-"""
 
 _CALLBACK_HTML = """\
 <!DOCTYPE html>
@@ -836,7 +1100,7 @@ def _landing_html(app_slug: str, env=None) -> str:
     year = time.gmtime().tm_year
     secret_vars_html = _secret_vars_status_html(env) if env is not None else ""
     return (
-        _INDEX_HTML_TEMPLATE
+        INDEX_HTML
         .replace("{{INSTALL_URL}}", install_url)
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
@@ -895,3 +1159,193 @@ async def on_fetch(request, env) -> Response:
         return _html(_callback_html())
 
     return _json({"error": "Not found"}, 404)
+
+
+# ---------------------------------------------------------------------------
+# Scheduled event handler — runs on cron triggers
+# ---------------------------------------------------------------------------
+
+
+async def scheduled(event, env):
+    """Handle scheduled cron events to check and unassign stale issues.
+    
+    This runs periodically (configured in wrangler.toml) to find issues that:
+    - Have assignees
+    - Were assigned more than ASSIGNMENT_DURATION_HOURS ago
+    - Have no linked pull requests
+    
+    Such issues are automatically unassigned to free them up for other contributors.
+    """
+    console.log("[CRON] Starting stale assignment check...")
+    
+    try:
+        # Get GitHub App installation token
+        app_id = getattr(env, "APP_ID", "")
+        private_key = getattr(env, "PRIVATE_KEY", "")
+        
+        if not app_id or not private_key:
+            console.error("[CRON] Missing APP_ID or PRIVATE_KEY")
+            return
+        
+        # For cron jobs, we need to iterate through all installations
+        # Get an app JWT first
+        jwt_token = await create_github_jwt(app_id, private_key)
+        
+        # Fetch all installations
+        installations_resp = await github_api("GET", "/app/installations", jwt_token)
+        if installations_resp.status != 200:
+            console.error(f"[CRON] Failed to fetch installations: {installations_resp.status}")
+            return
+        
+        installations = json.loads(await installations_resp.text())
+        console.log(f"[CRON] Found {len(installations)} installations")
+        
+        for installation in installations:
+            install_id = installation["id"]
+            account = installation["account"]
+            account_login = account.get("login", "unknown")
+            
+            console.log(f"[CRON] Processing installation {install_id} for {account_login}")
+            
+            # Get installation token
+            token = await get_installation_access_token(install_id, jwt_token)
+            if not token:
+                console.error(f"[CRON] Failed to get token for installation {install_id}")
+                continue
+            
+            # Fetch all repos for this installation
+            repos = []
+            if account.get("type") == "Organization":
+                repos = await _fetch_org_repos(account_login, token)
+            else:
+                # For user accounts, fetch user repos
+                repos_resp = await github_api("GET", f"/users/{account_login}/repos?per_page=100", token)
+                if repos_resp.status == 200:
+                    repos = json.loads(await repos_resp.text())
+            
+            console.log(f"[CRON] Checking {len(repos)} repositories")
+            
+            # Check each repository for stale assignments
+            for repo_data in repos:
+                repo_name = repo_data["name"]
+                owner = repo_data["owner"]["login"]
+                
+                await _check_stale_assignments(owner, repo_name, token)
+        
+        console.log("[CRON] Stale assignment check complete")
+        
+    except Exception as e:
+        console.error(f"[CRON] Error during scheduled task: {e}")
+
+
+async def _check_stale_assignments(owner: str, repo: str, token: str):
+    """Check a repository for stale issue assignments and unassign them."""
+    try:
+        # Fetch open issues with assignees
+        issues_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues?state=open&per_page=100",
+            token
+        )
+        
+        if issues_resp.status != 200:
+            return
+        
+        issues = json.loads(await issues_resp.text())
+        
+        # Filter issues that have assignees and are not pull requests
+        assigned_issues = [
+            issue for issue in issues
+            if issue.get("assignees") and "pull_request" not in issue
+        ]
+        
+        if not assigned_issues:
+            return
+        
+        console.log(f"[CRON] Found {len(assigned_issues)} assigned issues in {owner}/{repo}")
+        
+        current_time = time.time()
+        deadline_seconds = ASSIGNMENT_DURATION_HOURS * 3600
+        
+        for issue in assigned_issues:
+            issue_number = issue["number"]
+            assignees = issue.get("assignees", [])
+            
+            # Check if issue has linked PRs
+            timeline_resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo}/issues/{issue_number}/timeline",
+                token
+            )
+            
+            if timeline_resp.status != 200:
+                continue
+            
+            timeline = json.loads(await timeline_resp.text())
+            
+            # Look for assignment events and cross-referenced PRs
+            assignment_time = None
+            has_linked_pr = False
+            
+            for event in timeline:
+                event_type = event.get("event")
+                
+                # Track the most recent assignment
+                if event_type == "assigned":
+                    created_at = event.get("created_at", "")
+                    if created_at:
+                        event_timestamp = _parse_github_timestamp(created_at)
+                        if event_timestamp:
+                            assignment_time = event_timestamp
+                
+                # Check for cross-referenced PRs
+                if event_type == "cross-referenced":
+                    source = event.get("source", {})
+                    if source.get("type") == "issue" and "pull_request" in source.get("issue", {}):
+                        has_linked_pr = True
+                        break
+            
+            # If no assignment time found in timeline, use updated_at as fallback
+            if assignment_time is None:
+                updated_at = issue.get("updated_at", "")
+                if updated_at:
+                    assignment_time = _parse_github_timestamp(updated_at)
+            
+            # Skip if we couldn't determine assignment time
+            if assignment_time is None:
+                continue
+            
+            time_elapsed = current_time - assignment_time
+            
+            # Unassign if deadline passed and no linked PR
+            if time_elapsed > deadline_seconds and not has_linked_pr:
+                hours_elapsed = int(time_elapsed / 3600)
+                
+                console.log(
+                    f"[CRON] Unassigning stale issue {owner}/{repo}#{issue_number} "
+                    f"(assigned {hours_elapsed}h ago, no PR)"
+                )
+                
+                # Unassign all assignees
+                assignee_logins = [a["login"] for a in assignees]
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+                    token,
+                    {"assignees": assignee_logins}
+                )
+                
+                # Post a comment explaining the unassignment
+                assignee_mentions = ", ".join(f"@{login}" for login in assignee_logins)
+                await create_comment(
+                    owner, repo, issue_number,
+                    f"{assignee_mentions} This issue has been automatically unassigned because "
+                    f"the {ASSIGNMENT_DURATION_HOURS}-hour deadline has passed without a linked pull request.\n\n"
+                    f"The issue is now available for others to claim. If you'd still like to work on this, "
+                    f"please comment `{ASSIGN_COMMAND}` again.\n\n"
+                    "Thank you for your interest! 🙏 — [OWASP BLT](https://owaspblt.org)",
+                    token
+                )
+    
+    except Exception as e:
+        console.error(f"[CRON] Error checking {owner}/{repo}: {e}")
