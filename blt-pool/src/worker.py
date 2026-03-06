@@ -33,8 +33,8 @@ from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindin
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
-MAX_ASSIGNEES = 3
-ASSIGNMENT_DURATION_HOURS = 24
+MAX_ASSIGNEES = 1
+ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
