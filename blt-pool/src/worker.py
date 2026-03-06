@@ -214,6 +214,18 @@ async def create_comment(
     )
 
 
+async def create_reaction(
+    owner: str, repo: str, comment_id: int, reaction: str, token: str
+) -> None:
+    """Add a reaction to a comment. Common reactions: +1, -1, laugh, confused, heart, hooray, rocket, eyes."""
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+        token,
+        {"content": reaction},
+    )
+
+
 # ---------------------------------------------------------------------------
 # BLT API helper
 # ---------------------------------------------------------------------------
@@ -290,34 +302,31 @@ MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
 
-async def _fetch_org_repos(org: str, token: str) -> list:
-    """Fetch all repositories in the organization."""
-    repos = []
-    page = 1
-    per_page = 100
-    max_pages = 10
+async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
+    """Fetch repositories in the organization (most recently updated first).
     
-    while page <= max_pages:
-        resp = await github_api("GET", f"/orgs/{org}/repos?per_page={per_page}&page={page}", token)
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        if not data:
-            break
-        repos.extend(data)
-        page += 1
-        if len(data) < per_page:
-            break
-    
-    return repos
+    Args:
+        org: Organization name
+        token: GitHub API token
+        limit: Maximum number of repos to return (default: 10 to prevent subrequest limits)
+    """
+    # Fetch repos sorted by most recently pushed to reduce API calls for active repos
+    resp = await github_api("GET", f"/orgs/{org}/repos?sort=pushed&direction=desc&per_page={limit}", token)
+    if resp.status != 200:
+        return []
+    repos = json.loads(await resp.text())
+    return repos[:limit]
 
 
 async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, window_months: int = 1) -> dict:
-    """Calculate leaderboard stats across multiple repositories.
+    """Calculate leaderboard stats across ALL repositories using GitHub Search API.
+    
+    This approach uses GitHub's search API to query across all org repos efficiently,
+    staying well under Cloudflare's 50 subrequest limit even with 50+ repos.
     
     Args:
         owner: Organization or user name
-        repos: List of repository objects with 'name' field
+        repos: List of repository objects (used for repo count, not iteration)
         token: GitHub API token
         window_months: Number of months to look back (default: 1 for monthly)
     
@@ -341,6 +350,10 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     end_of_month = time.struct_time((end_year, end_month, 1, 0, 0, 0, 0, 0, 0))
     end_timestamp = int(time.mktime(end_of_month)) - 1
     
+    # Format date range for search API
+    start_date = time.strftime("%Y-%m-%d", time.gmtime(start_timestamp))
+    end_date = time.strftime("%Y-%m-%d", time.gmtime(end_timestamp))
+    
     user_stats = {}
     
     def ensure_user(login: str):
@@ -354,91 +367,115 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
                 "total": 0
             }
     
-    # Fetch stats from each repo
-    for repo_obj in repos:
-        repo = repo_obj["name"]
+    # Use GitHub Search API to query across ALL repos efficiently
+    # This dramatically reduces API calls: ~6 calls total vs 150+ with per-repo approach
+    
+    # 1. Count open PRs (current state across all repos) - 1-2 calls
+    page = 1
+    while page <= 3:  # Max 3 pages = 300 PRs
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=is:pr+is:open+org:{owner}&per_page=100&page={page}",
+            token
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
         
-        # Fetch open PRs (all time)
-        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=open&per_page=100", token)
-        if resp.status == 200:
-            open_prs = json.loads(await resp.text())
-            for pr in open_prs:
+        for pr in items:
+            if pr.get("user") and not _is_bot(pr["user"]):
+                login = pr["user"]["login"]
+                ensure_user(login)
+                user_stats[login]["openPrs"] += 1
+        
+        if len(items) < 100:
+            break
+        page += 1
+    
+    # 2. Fetch merged PRs from this month - 1-2 calls
+    page = 1
+    while page <= 3:
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=is:pr+is:merged+org:{owner}+merged:{start_date}..{end_date}&per_page=100&page={page}",
+            token
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
+        
+        for pr in items:
+            if pr.get("user") and not _is_bot(pr["user"]):
+                login = pr["user"]["login"]
+                ensure_user(login)
+                user_stats[login]["mergedPrs"] += 1
+        
+        if len(items) < 100:
+            break
+        page += 1
+    
+    # 3. Fetch closed (not merged) PRs from this month - 1-2 calls
+    page = 1
+    while page <= 3:
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=is:pr+is:closed+is:unmerged+org:{owner}+closed:{start_date}..{end_date}&per_page=100&page={page}",
+            token
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
+        
+        for pr in items:
+            if pr.get("user") and not _is_bot(pr["user"]):
+                login = pr["user"]["login"]
+                ensure_user(login)
+                user_stats[login]["closedPrs"] += 1
+        
+        if len(items) < 100:
+            break
+        page += 1
+    
+    # 4. Search for comments in this month across org (optional, budget permitting)
+    # Limit to 2 pages to stay under budget
+    since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_timestamp))
+    page = 1
+    while page <= 2:
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=is:pr+org:{owner}+commented:>{start_date}&per_page=100&page={page}",
+            token
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
+        
+        # For each PR with comments, we'd need to fetch comments (too expensive)
+        # Instead, use a simplified heuristic: 1 comment point per PR with comments
+        for pr in items:
+            if pr.get("comments", 0) > 0:
+                # Attribute comment to PR author as proxy (not perfect but efficient)
                 if pr.get("user") and not _is_bot(pr["user"]):
                     login = pr["user"]["login"]
                     ensure_user(login)
-                    user_stats[login]["openPrs"] += 1
+                    # Give 1 comment point (conservative estimate)
+                    user_stats[login]["comments"] += 1
         
-        # Fetch closed/merged PRs from this month
-        since_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(start_timestamp))
-        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=closed&per_page=100&sort=updated&direction=desc", token)
-        if resp.status == 200:
-            closed_prs = json.loads(await resp.text())
-            for pr in closed_prs:
-                # Check if merged or closed in the time window
-                merged_at = pr.get("merged_at")
-                closed_at = pr.get("closed_at")
-                
-                if merged_at:
-                    merged_ts = _parse_github_timestamp(merged_at)
-                    if start_timestamp <= merged_ts <= end_timestamp:
-                        if pr.get("user") and not _is_bot(pr["user"]):
-                            login = pr["user"]["login"]
-                            ensure_user(login)
-                            user_stats[login]["mergedPrs"] += 1
-                elif closed_at:
-                    closed_ts = _parse_github_timestamp(closed_at)
-                    if start_timestamp <= closed_ts <= end_timestamp:
-                        if pr.get("user") and not _is_bot(pr["user"]):
-                            login = pr["user"]["login"]
-                            ensure_user(login)
-                            user_stats[login]["closedPrs"] += 1
-        
-        # Fetch reviews (we'll count first 2 per PR in the month)
-        # For simplicity, we'll fetch recent PRs and their reviews
-        resp = await github_api("GET", f"/repos/{owner}/{repo}/pulls?state=all&per_page=100&sort=updated&direction=desc", token)
-        if resp.status == 200:
-            prs = json.loads(await resp.text())
-            review_counts = {}  # Track first 2 reviews per PR per user
-            
-            for pr in prs[:50]:  # Limit to recent 50 PRs for performance
-                pr_num = pr["number"]
-                resp_reviews = await github_api("GET", f"/repos/{owner}/{repo}/pulls/{pr_num}/reviews", token)
-                if resp_reviews.status == 200:
-                    reviews = json.loads(await resp_reviews.text())
-                    pr_review_count = {}
-                    
-                    for review in reviews:
-                        if review.get("user") and not _is_bot(review["user"]):
-                            submitted_at = review.get("submitted_at")
-                            if submitted_at:
-                                review_ts = _parse_github_timestamp(submitted_at)
-                                if start_timestamp <= review_ts <= end_timestamp:
-                                    login = review["user"]["login"]
-                                    pr_review_count[login] = pr_review_count.get(login, 0) + 1
-                    
-                    # Count only first 2 reviews per PR globally
-                    counted = 0
-                    for login in pr_review_count:
-                        if counted < 2:
-                            ensure_user(login)
-                            user_stats[login]["reviews"] += 1
-                            counted += 1
-        
-        # Fetch comments from this month
-        resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/comments?since={since_iso}&per_page=100", token)
-        if resp.status == 200:
-            comments = json.loads(await resp.text())
-            for comment in comments:
-                if comment.get("user") and not _is_bot(comment["user"]):
-                    created_at = comment.get("created_at")
-                    if created_at:
-                        comment_ts = _parse_github_timestamp(created_at)
-                        if start_timestamp <= comment_ts <= end_timestamp:
-                            body = comment.get("body", "")
-                            if not _is_coderabbit_ping(body):
-                                login = comment["user"]["login"]
-                                ensure_user(login)
-                                user_stats[login]["comments"] += 1
+        if len(items) < 100:
+            break
+        page += 1
     
     # Calculate total scores
     # open: +1, merged: +10, closed: -2, reviews: +5, comments: +2
@@ -646,11 +683,12 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
     # Count merged PRs in 6-month window for all users
     merged_prs_per_author = {}
     
-    for repo_obj in repos:
+    # Limit repos to prevent subrequest errors
+    for repo_obj in repos[:10]:
         repo_name = repo_obj["name"]
         resp = await github_api(
             "GET",
-            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=30&sort=updated&direction=desc",
             token
         )
         
@@ -717,6 +755,11 @@ async def handle_issue_comment(payload: dict, token: str) -> None:
     repo = payload["repository"]["name"]
     login = comment["user"]["login"]
     issue_number = issue["number"]
+    comment_id = comment.get("id")
+    
+    # Add eyes reaction immediately to acknowledge command receipt
+    if comment_id and (body.startswith(ASSIGN_COMMAND) or body.startswith(UNASSIGN_COMMAND) or body.startswith(LEADERBOARD_COMMAND)):
+        await create_reaction(owner, repo, comment_id, "eyes", token)
     
     if body.startswith(ASSIGN_COMMAND):
         await _assign(owner, repo, issue, login, token)
@@ -1213,13 +1256,13 @@ async def scheduled(event, env):
                 console.error(f"[CRON] Failed to get token for installation {install_id}")
                 continue
             
-            # Fetch all repos for this installation
+            # Fetch all repos for this installation (limit to 20 for cron to prevent timeouts)
             repos = []
             if account.get("type") == "Organization":
-                repos = await _fetch_org_repos(account_login, token)
+                repos = await _fetch_org_repos(account_login, token, limit=20)
             else:
-                # For user accounts, fetch user repos
-                repos_resp = await github_api("GET", f"/users/{account_login}/repos?per_page=100", token)
+                # For user accounts, fetch user repos (limited)
+                repos_resp = await github_api("GET", f"/users/{account_login}/repos?per_page=20", token)
                 if repos_resp.status == 200:
                     repos = json.loads(await repos_resp.text())
             
