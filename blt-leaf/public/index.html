@@ -541,8 +541,15 @@
                         data-repo="all">
                         <div class="repo-name text-sm font-semibold text-[#BC0000] dark:text-red-400">All Repositories
                         </div>
-                        <div class="repo-count mt-0.5 text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0
-                            PRs</div>
+                        <div class="flex items-center justify-between mt-0.5">
+                            <div class="repo-count text-xs text-slate-500 dark:text-slate-400" id="allReposCount">0 PRs</div>
+                            <button id="refreshAllOrgBtn"
+                                class="text-slate-400 hover:text-[#BC0000] dark:hover:text-red-400 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                title="Refresh all PRs in this organization and run readiness analysis"
+                                aria-label="Refresh all PRs and analyze readiness">
+                                <i class="fas fa-sync-alt text-xs"></i>
+                            </button>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -3546,6 +3553,141 @@
         initTheme();
         loadRateLimit();
         loadLatestRelease();
+
+        // Handle Refresh All Org button in the sidebar
+        (function initRefreshAllOrgBtn() {
+            const ANALYZE_MAX_RETRIES = 3;
+            const ANALYZE_DEFAULT_WAIT_SECS = 61;
+            const ANALYZE_5XX_RETRY_DELAY_SECS = 5;
+            const MAX_ERROR_REASON_LENGTH = 80;
+            const SPINNER_HTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+
+            const btn = document.getElementById('refreshAllOrgBtn');
+            if (!btn) return;
+
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+
+                if (allPrs.length === 0) {
+                    showWarning('No PRs to refresh.');
+                    return;
+                }
+
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = SPINNER_HTML;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+                try {
+                    // Step 1: Batch refresh PR data from GitHub
+                    const prIds = allPrs.map(pr => pr.id);
+                    const batchSize = 100;
+                    for (let i = 0; i < prIds.length; i += batchSize) {
+                        const chunk = prIds.slice(i, i + batchSize);
+                        const resp = await fetch('/api/refresh-batch', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ pr_ids: chunk })
+                        });
+                        if (!resp.ok) throw new Error(`Refresh failed (${resp.status})`);
+                        const data = await resp.json();
+                        if (data.error) throw new Error(data.error);
+                    }
+
+                    // Reload PR list to reflect refreshed data and pick up any removed PRs
+                    await loadPrs(true);
+                    invalidateApiCache();
+
+                    // Step 2: Analyze readiness for all PRs
+                    const total = allPrs.length;
+                    let done = 0;
+                    const failures = [];
+                    btn.innerHTML = SPINNER_HTML;
+                    btn.title = `Analyzing 0/${total}...`;
+
+                    for (const pr of allPrs) {
+                        let retries = 0;
+                        let succeeded = false;
+                        while (retries < ANALYZE_MAX_RETRIES) {
+                            try {
+                                const resp = await fetch(`/api/prs/${pr.id}/readiness`);
+                                if (resp.status === 429) {
+                                    let waitSecs = ANALYZE_DEFAULT_WAIT_SECS;
+                                    try {
+                                        const errData = await resp.json();
+                                        if (typeof errData.retry_after === 'number' && Number.isFinite(errData.retry_after)) {
+                                            waitSecs = errData.retry_after;
+                                        }
+                                    } catch (_) {}
+                                    for (let s = waitSecs; s > 0; s--) {
+                                        btn.title = `Rate limited, retrying in ${s}s... (${done}/${total})`;
+                                        await new Promise(r => setTimeout(r, 1000));
+                                    }
+                                    retries++;
+                                    continue;
+                                }
+                                if (resp.status >= 500) {
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    retries++;
+                                    if (retries < ANALYZE_MAX_RETRIES) {
+                                        await new Promise(r => setTimeout(r, ANALYZE_5XX_RETRY_DELAY_SECS * 1000));
+                                        continue;
+                                    }
+                                    failures.push({ id: pr.id, reason });
+                                    break;
+                                }
+                                if (resp.ok) {
+                                    const data = await resp.json();
+                                    if (!data.error) {
+                                        saveReadinessData(pr.id, data.readiness, data.review_health);
+                                        updateInlineCells(pr.id, data.readiness, data.review_health);
+                                        succeeded = true;
+                                    } else {
+                                        failures.push({ id: pr.id, reason: data.error });
+                                    }
+                                } else {
+                                    let reason = `HTTP ${resp.status}`;
+                                    try { const errData = await resp.json(); if (errData.error) reason = errData.error; } catch (_) {}
+                                    failures.push({ id: pr.id, reason });
+                                }
+                                break;
+                            } catch (networkErr) {
+                                failures.push({ id: pr.id, reason: networkErr.message || 'Network error' });
+                                break;
+                            }
+                        }
+                        if (!succeeded && retries >= ANALYZE_MAX_RETRIES && !failures.find(f => f.id === pr.id)) {
+                            failures.push({ id: pr.id, reason: 'Rate limit retries exhausted' });
+                        }
+                        done++;
+                        btn.title = `Analyzing ${done}/${total}...`;
+                    }
+
+                    if (failures.length > 0) {
+                        const reasonCounts = failures.reduce((acc, f) => {
+                            const key = f.reason.substring(0, MAX_ERROR_REASON_LENGTH);
+                            acc[key] = (acc[key] || 0) + 1;
+                            return acc;
+                        }, {});
+                        const reasonSummary = Object.entries(reasonCounts)
+                            .map(([r, c]) => `${c}× ${r}`)
+                            .join('; ');
+                        showError(`Refresh & Analyze: ${failures.length} PR${failures.length !== 1 ? 's' : ''} could not be analyzed — ${reasonSummary}`);
+                    } else {
+                        showSuccess(`Refreshed and analyzed ${total} PR${total !== 1 ? 's' : ''} successfully.`);
+                    }
+                } catch (err) {
+                    showError(`Failed to refresh & analyze PRs: ${err.message}`);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    btn.title = 'Refresh all PRs in this organization and run readiness analysis';
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            });
+        })();
+
         // initOrgFilter sets up event listeners only; dropdown items are populated from `repos`
         // on user interaction, so calling this before loadRepos() is safe.
         initOrgFilter();
