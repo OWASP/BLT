@@ -234,6 +234,21 @@ Stats are workspace-specific and use optimistic locking to handle concurrent upd
    wrangler secret put SIGNING_SECRET    # Your Signing Secret
    ```
 
+   **Or use the automated setup script** (recommended for production):
+   
+   ```bash
+   # Copy the example env file
+   cp .env.production.example .env.production
+   
+   # Edit with your production credentials
+   nano .env.production
+   
+   # Run the setup script
+   python scripts/setup-env.py
+   ```
+   
+   See [Environment Setup Guide](#environment-setup) for detailed instructions.
+
 4. **Deploy the worker**
    ```bash
    wrangler deploy

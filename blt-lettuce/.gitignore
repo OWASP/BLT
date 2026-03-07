@@ -5,3 +5,5 @@ __pycache__
 .secrets
 *.code-workspace
 .venv
+.env*
+.wrangler/cache/wrangler-account.json
