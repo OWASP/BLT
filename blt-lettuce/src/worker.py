@@ -68,9 +68,10 @@ def _row(result):
     if result is None:
         return None
     try:
-        return dict(result)
+        return _js_to_python(dict(result))
     except Exception:
-        return result
+        converted = _js_to_python(result)
+        return converted if isinstance(converted, dict) else result
 
 
 def _rows(result):
@@ -80,12 +81,21 @@ def _rows(result):
     rows = getattr(result, "results", None)
     if rows is None:
         return []
+
+    rows = _js_to_python(rows)
+    if not isinstance(rows, list):
+        rows = [rows]
+
     out = []
     for r in rows:
         try:
-            out.append(dict(r))
+            out.append(_js_to_python(dict(r)))
         except Exception:
-            out.append(r)
+            converted = _js_to_python(r)
+            if isinstance(converted, dict):
+                out.append(converted)
+            else:
+                out.append(r)
     return out
 
 
@@ -121,6 +131,24 @@ def _js_to_python(value):
         pass
 
     return value
+
+
+def _obj_get(obj, key, default=None):
+    """Read key from dict/JSProxy-like object without assuming subscriptability."""
+    if obj is None:
+        return default
+    try:
+        if isinstance(obj, dict):
+            return obj.get(key, default)
+    except Exception:
+        pass
+    try:
+        val = getattr(obj, key)
+        if val is not None:
+            return val
+    except Exception:
+        pass
+    return default
 
 
 # One-time schema bootstrap guard for the active worker instance.
@@ -1373,25 +1401,26 @@ async def handle_request(request, env):
                 )
 
             # ---- Identify the authorizing user ----
-            authed_user = token_data.get("authed_user") or {}
-            user_token = authed_user.get("access_token")
-            user_slack_id = authed_user.get("id")
+            authed_user = _js_to_python(token_data.get("authed_user") or {})
+            user_token = _obj_get(authed_user, "access_token", "")
+            user_slack_id = _obj_get(authed_user, "id", "")
 
             user_name = ""
             user_email = ""
-            user_team_id = (token_data.get("team") or {}).get("id", "")
+            team_obj = _js_to_python(token_data.get("team") or {})
+            user_team_id = _obj_get(team_obj, "id", "")
 
             if user_token:
                 identity = await fetch_user_identity(user_token)
                 if identity.get("ok"):
-                    profile = identity.get("user") or {}
-                    team_info = identity.get("team") or {}
-                    user_name = profile.get("name", "")
-                    user_email = profile.get("email", "")
+                    profile = _js_to_python(identity.get("user") or {})
+                    team_info = _js_to_python(identity.get("team") or {})
+                    user_name = _obj_get(profile, "name", "")
+                    user_email = _obj_get(profile, "email", "")
                     if not user_team_id:
-                        user_team_id = team_info.get("id", "")
+                        user_team_id = _obj_get(team_info, "id", "")
                     if not user_slack_id:
-                        user_slack_id = profile.get("id", "")
+                        user_slack_id = _obj_get(profile, "id", "")
 
             if not user_slack_id:
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
@@ -1420,9 +1449,9 @@ async def handle_request(request, env):
             # ---- If this was an "add workspace" flow, install the bot ----
             if intent == "add_workspace":
                 bot_token = token_data.get("access_token")
-                team_info = token_data.get("team") or {}
-                team_id = team_info.get("id", "")
-                team_name = team_info.get("name", "Unknown Workspace")
+                team_info = _js_to_python(token_data.get("team") or {})
+                team_id = _obj_get(team_info, "id", "")
+                team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
 
                 if team_id and bot_token:
@@ -1430,18 +1459,23 @@ async def handle_request(request, env):
                         env, team_id, team_name, bot_token, bot_user_id
                     )
                     if ws:
-                        await db_link_user_workspace(
-                            env, user["id"], ws["id"], role="owner"
-                        )
+                        user_id_val = _obj_get(user, "id")
+                        ws_id_val = _obj_get(ws, "id")
+                        if user_id_val and ws_id_val:
+                            await db_link_user_workspace(
+                                env, user_id_val, ws_id_val, role="owner"
+                            )
                         # Background channel scan (best-effort)
                         try:
-                            await scan_workspace_channels(env, ws["id"], bot_token)
+                            if ws_id_val:
+                                await scan_workspace_channels(env, ws_id_val, bot_token)
                         except Exception:
                             pass
 
             # ---- Create session ----
             token = generate_session_token()
-            session_ok = await db_create_session(env, user["id"], token)
+            user_id_val = _obj_get(user, "id")
+            session_ok = await db_create_session(env, user_id_val, token) if user_id_val else False
             if not session_ok:
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
                 return _html_response(
