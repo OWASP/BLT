@@ -6,28 +6,9 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Features
 
-### 🔍 GitHub Profile Analysis
-- Fetches and analyzes your GitHub repositories, languages, and topics
-- AI-powered matching of projects based on your tech stack
-- Real-time GitHub API integration
-
-### 👥 Community Platform
-- **Create Developer Profiles** - Share your profile with the community
-- **Browse Profiles** - Discover developers with similar interests
-- **Smart Profile Creation** - After analyzing your GitHub, create a community profile with pre-filled data
-- **Filter & Search** - Find developers by experience level, skills, or location
-
-### 🎯 Personalized Recommendations
-- Open source projects matching your tech stack
-- Developer communities and organizations
-- Curated learning resources and articles
-- Active discussion channels (Discord, Slack, Reddit, etc.)
-
-### 🌙 Modern UI/UX
-- Beautiful dark mode support
-- Responsive design for all devices
-- Smooth animations and transitions
-- Accessible and intuitive interface
+- GitHub profile analysis (repos, languages, topics) with project matching
+- Community profiles via GitHub Issues — create, browse, filter
+- Personalized recommendations: projects, communities, learning resources, discussion channels
 
 ## Tech Stack
 - **Frontend**: HTML, Tailwind CSS, JavaScript
@@ -95,20 +76,9 @@ npm run dev
 
 Visit `http://localhost:8000` to load the main analysis page. Visit `http://localhost:8000/community.html` for the Community profiles page.
 
-### Testing Workflow
-
-1. Run the local server as above
-2. Enter a GitHub username and click "Find My Projects"
-3. Verify recommendations display correctly
-4. Test the "Create My Community Profile" flow (redirects to GitHub Issues)
-5. Open `community.html` and verify profile fetching works
-
 ### Deployment
-Pushes to the `main` branch automatically deploy to GitHub Pages via the workflow at `.github/workflows/deploy.yml`.
 
-To enable GitHub Pages for the repository:
-1. Go to **Settings → Pages**
-2. Set **Source** to **GitHub Actions**
+Pushes to `main` deploy via `.github/workflows/deploy.yml`. Enable in **Settings → Pages** with source **GitHub Actions**.
 
 ## Project Structure
 
@@ -133,35 +103,10 @@ BLT-OSSH/
 
 ## How It Works
 
-### 1. GitHub Analysis Flow
 1. User enters their GitHub username
 2. Frontend fetches profile and repository data from GitHub API
-3. System analyzes languages, topics, and repository metadata
-4. Generates personalized recommendations
-5. Results displayed with stats, projects, communities, and resources
-
-### 2. Community Profile Creation Flow
-1. User analyzes their GitHub profile
-2. Clicks "Create My Community Profile" button
-3. System pre-fills profile data:
-   - GitHub username
-   - Display name from GitHub
-   - Bio (or primary language as fallback)
-   - Skills extracted from repository languages
-4. User redirected to GitHub Issues with template pre-filled
-5. User adds additional info (interests, looking for, location, social links)
-6. Submit issue to create profile
-7. Profile appears on Community page after workflow updates `data/profiles.json`
-
-### 3. Profile Discovery
-- Community page loads profiles from `data/profiles.json`
-- Workflow fetches GitHub Issues with `profile` label and generates the JSON
-- Displays profiles with rich cards showing:
-  - Experience level badge
-  - Skills and interests
-  - "Looking For" section
-  - Social links and contact info
-- Real-time search and filtering
+3. System analyzes languages, topics, and metadata to generate recommendations
+4. Results displayed with projects, communities, and resources
 
 ## API Usage
 
@@ -182,33 +127,13 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - The app typically makes 2–3 requests per profile analysis, so casual use stays within limits
 - If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
 
-## Community Profile Template
-
-Profiles are created as GitHub Issues using a structured template with these fields:
-
-- **GitHub Username** (required) - Your GitHub handle
-- **Display Name** (required) - How you want to be called
-- **Bio** (required) - Brief description about yourself
-- **Experience Level** (required) - Beginner, Intermediate, Advanced, or Expert
-- **Areas of Interest** (checkboxes) - Web Dev, Mobile, AI/ML, Security, DevOps, etc.
-- **Skills & Technologies** (required) - Comma-separated list (e.g., JavaScript, Python, React)
-- **Looking For** (required) - Your goals (e.g., "Mentorship in AI", "Open source collaborations")
-- **Location** (optional) - City, Country
-- **Website/Portfolio** (optional) - Your personal website
-- **Twitter** (optional) - Handle without @
-- **LinkedIn** (optional) - LinkedIn username
-
 ## Contributing
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, and more.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
-This project is part of OWASP BLT and follows its licensing terms.
+
+Part of OWASP BLT; follows its licensing terms.
 
 ## Links
 - [OWASP BLT](https://github.com/OWASP-BLT/BLT)
@@ -216,6 +141,3 @@ This project is part of OWASP BLT and follows its licensing terms.
 - [Report Issues](https://github.com/OWASP-BLT/BLT-OSSH/issues)
 - [Create Your Profile](https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml)
 - [Browse Community](./community.html)
-
----
-Made with ❤️ by the OWASP BLT Community
