@@ -467,6 +467,7 @@
     const submitBtn = document.getElementById('submit-btn');
     const btnText = document.getElementById('btn-text');
     const loadingSpinner = document.getElementById('loading-spinner');
+    const loadingIndicator = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
     const usernameInput = document.getElementById('github-username');
@@ -494,6 +495,7 @@
       submitBtn.disabled = true;
       btnText.textContent = 'Analyzing...';
       loadingSpinner.classList.remove('hidden');
+      if (loadingIndicator) loadingIndicator.style.display = 'block';
 
       try {
         // Fetch user profile from GitHub API
@@ -533,6 +535,7 @@
         submitBtn.disabled = false;
         btnText.textContent = 'Find My Projects';
         loadingSpinner.classList.add('hidden');
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
       }
     });
 
