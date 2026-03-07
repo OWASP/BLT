@@ -12,8 +12,8 @@ compatibility_flags = ["python_workers"]
 #   wrangler d1 execute BLT_DB --local --file=schema.sql    # local dev
 [[d1_databases]]
 binding = "DB"
-database_name = "BLT_DB"
-database_id = "placeholder-replace-with-actual-id"
+database_name = "blt-lettuce"
+database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
 
 # KV Namespace for legacy stats (kept for backward compatibility)
 # To create: wrangler kv:namespace create "STATS_KV"
@@ -40,4 +40,4 @@ database_id = "placeholder-replace-with-actual-id"
 ENVIRONMENT = "production"
 VERSION = "2.0.0"
 # Base URL for OAuth redirect URIs – override per environment if needed
-BASE_URL = "https://blt-lettuce.workers.dev"
+BASE_URL = "https://lettuce.owaspblt.org"
