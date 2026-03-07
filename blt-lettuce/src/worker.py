@@ -26,9 +26,11 @@ except ImportError:
 
 
 from lettuce.html_templates import (
+    get_404_html,
     get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
+    get_status_html,
 )
 from lettuce.sentry import get_sentry, init_sentry
 
@@ -1478,30 +1480,42 @@ async def handle_request(request, env):
         )
 
     # ------------------------------------------------------------------ #
-    #  Default API info response                                         #
+    #  GET /status  →  configuration status page                         #
     # ------------------------------------------------------------------ #
-    return Response.json(
-        {
-            "message": "BLT-Lettuce Cloudflare Worker",
-            "version": "2.0.0",
-            "endpoints": {
-                "GET /": "Homepage",
-                "GET /login": "Sign in with Slack",
-                "GET /callback": "OAuth callback",
-                "GET /logout": "Sign out",
-                "GET /dashboard": "Live stats dashboard (auth required)",
-                "GET /workspace/add": "Add a new workspace (auth required)",
-                "POST /webhook": "Slack event webhook",
-                "GET /health": "Health check",
-                "GET /api/ws/<id>/stats": "Workspace live stats (auth required)",
-                "GET /api/ws/<id>/events": "Workspace events (auth required)",
-                "POST /api/ws/<id>/scan": "Scan workspace channels (auth required)",
-                "GET /api/ws/<id>/repos": "List repos (auth required)",
-                "POST /api/ws/<id>/repos": "Add repo (auth required)",
-                "DELETE /api/ws/<id>/repos/<repo_id>": "Remove repo (auth required)",
-            },
-        }
-    )
+    if pathname == "/status":
+        return _html_response(
+            get_status_html(env),
+            extra_headers={"Cache-Control": "no-cache"},
+        )
+
+    # ------------------------------------------------------------------ #
+    #  GET /api/db-stats  →  database table counts                       #
+    # ------------------------------------------------------------------ #
+    if pathname == "/api/db-stats" and method == "GET":
+        try:
+            # Query counts for each table
+            tables = ["users", "sessions", "workspaces", "user_workspaces", 
+                      "channels", "repositories", "events"]
+            counts = {}
+            
+            for table in tables:
+                result = await env.DB.prepare(
+                    f"SELECT COUNT(*) as count FROM {table}"
+                ).first()
+                counts[table] = result["count"] if result else 0
+            
+            return Response.json({
+                "ok": True,
+                "counts": counts,
+                "timestamp": get_utc_now()
+            })
+        except Exception as e:
+            return _json_response({"error": str(e)}, 500)
+
+    # ------------------------------------------------------------------ #
+    #  404 Not Found                                                     #
+    # ------------------------------------------------------------------ #
+    return _html_response(get_404_html(), 404)
 
 
 # Module-level env holder for handler access

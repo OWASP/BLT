@@ -223,3 +223,91 @@ def get_dashboard_html(
 def get_homepage_html():
     """Generate the homepage HTML with project information and live stats."""
     return _load_template("homepage.html")
+
+
+def get_status_html(env):
+    """Generate the status page HTML showing configuration status."""
+    
+    def _status_item(name, description, is_set, required=True):
+        """Generate a status item HTML."""
+        status_class = "set" if is_set else "missing"
+        icon = "✓" if is_set else "✗"
+        badge_class = "required" if required else "optional"
+        badge_text = "Required" if required else "Optional"
+        
+        return f'''<div class="status-item {status_class}">
+        <div class="status-icon">{icon}</div>
+        <div class="status-details">
+            <div class="status-name">{name} <span class="badge {badge_class}">{badge_text}</span></div>
+            <div class="status-desc">{description}</div>
+        </div>
+    </div>'''
+    
+    # Check which secrets are set
+    slack_token = bool(getattr(env, 'SLACK_TOKEN', None))
+    signing_secret = bool(getattr(env, 'SIGNING_SECRET', None))
+    slack_client_id = bool(getattr(env, 'SLACK_CLIENT_ID', None))
+    slack_client_secret = bool(getattr(env, 'SLACK_CLIENT_SECRET', None))
+    sentry_dsn = bool(getattr(env, 'SENTRY_DSN', None))
+    base_url = bool(getattr(env, 'BASE_URL', None))
+    joins_channel = bool(getattr(env, 'JOINS_CHANNEL_ID', None))
+    contribute_id = bool(getattr(env, 'CONTRIBUTE_ID', None))
+    
+    replacements = {
+        '%%SLACK_TOKEN_STATUS%%': _status_item(
+            'SLACK_TOKEN',
+            'Slack Bot User OAuth Token (xoxb-...) for API calls',
+            slack_token,
+            required=True
+        ),
+        '%%SIGNING_SECRET_STATUS%%': _status_item(
+            'SIGNING_SECRET',
+            'Slack App Signing Secret for webhook verification',
+            signing_secret,
+            required=True
+        ),
+        '%%SLACK_CLIENT_ID_STATUS%%': _status_item(
+            'SLACK_CLIENT_ID',
+            'Slack OAuth App Client ID for user authentication',
+            slack_client_id,
+            required=True
+        ),
+        '%%SLACK_CLIENT_SECRET_STATUS%%': _status_item(
+            'SLACK_CLIENT_SECRET',
+            'Slack OAuth App Client Secret for token exchange',
+            slack_client_secret,
+            required=True
+        ),
+        '%%SENTRY_DSN_STATUS%%': _status_item(
+            'SENTRY_DSN',
+            'Sentry Data Source Name for error tracking',
+            sentry_dsn,
+            required=False
+        ),
+        '%%BASE_URL_STATUS%%': _status_item(
+            'BASE_URL',
+            'Base URL for OAuth redirects (e.g., https://lettuce.owaspblt.org)',
+            base_url,
+            required=False
+        ),
+        '%%JOINS_CHANNEL_ID_STATUS%%': _status_item(
+            'JOINS_CHANNEL_ID',
+            'Channel ID where join notifications are posted',
+            joins_channel,
+            required=False
+        ),
+        '%%CONTRIBUTE_ID_STATUS%%': _status_item(
+            'CONTRIBUTE_ID',
+            'Channel ID for contribution guidelines',
+            contribute_id,
+            required=False
+        ),
+    }
+    
+    return _render_template("status.html", replacements)
+
+
+def get_404_html():
+    """Generate the 404 not found HTML page."""
+    return _load_template("404.html")
+

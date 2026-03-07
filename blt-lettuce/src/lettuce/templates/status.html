@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-Lettuce Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .status-section {
+            margin-bottom: 40px;
+        }
+        .status-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        .status-item.set {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .status-item.missing {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .status-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .status-item.set .status-icon {
+            color: #10b981;
+        }
+        .status-item.missing .status-icon {
+            color: #ef4444;
+        }
+        .status-details {
+            flex: 1;
+        }
+        .status-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .status-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .instructions {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            color: #92400e;
+            margin-bottom:15px;
+            font-size: 1.1rem;
+        }
+        .instructions pre {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            border: 1px solid #fbbf24;
+        }
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge.required {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        .badge.optional {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥬 BLT-Lettuce Status</h1>
+            <p>Configuration & Health Check</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-section">
+                <h2>
+                    <span>⚙️</span> Required Secrets
+                </h2>
+                <div class="status-grid">
+                    %%SLACK_TOKEN_STATUS%%
+                    %%SIGNING_SECRET_STATUS%%
+                    %%SLACK_CLIENT_ID_STATUS%%
+                    %%SLACK_CLIENT_SECRET_STATUS%%
+                </div>
+            </div>
+
+            <div class="status-section">
+                <h2>
+                    <span>🔧</span> Optional Configuration
+                </h2>
+                <div class="status-grid">
+                    %%SENTRY_DSN_STATUS%%
+                    %%BASE_URL_STATUS%%
+                    %%JOINS_CHANNEL_ID_STATUS%%
+                    %%CONTRIBUTE_ID_STATUS%%
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>📝 Setup Instructions</h3>
+                <p>To set up your environment variables, use the provided setup script:</p>
+                <pre># 1. Copy the example environment file
+cp .env.production.example .env.production
+
+# 2. Edit with your credentials
+nano .env.production
+
+# 3. Run the setup script
+python scripts/setup-env.py
+
+# 4. Deploy the worker
+wrangler deploy</pre>
+                
+                <p style="margin-top: 15px;">Or set secrets individually:</p>
+                <pre>wrangler secret put SLACK_TOKEN
+wrangler secret put SIGNING_SECRET
+wrangler secret put SLACK_CLIENT_ID
+wrangler secret put SLACK_CLIENT_SECRET</pre>
+            </div>
+
+            <div class="status-section" style="margin-top: 30px;">
+                <h2>
+                    <span>📚</span> Documentation
+                </h2>
+                <p style="line-height: 1.8;">
+                    • <a href="https://github.com/OWASP-BLT/BLT-Lettuce" style="color: #667eea; text-decoration: none;">GitHub Repository</a><br>
+                    • <a href="https://github.com/OWASP-BLT/BLT-Lettuce/blob/main/DEPLOYMENT.md" style="color: #667eea; text-decoration: none;">Deployment Guide</a><br>
+                    • <a href="https://github.com/OWASP-BLT/BLT-Lettuce/blob/main/SENTRY_SETUP.md" style="color: #667eea; text-decoration: none;">Sentry Setup</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>BLT-Lettuce v2.0.0 • <a href="https://owasp.org" target="_blank">OWASP</a></p>
+        </div>
+    </div>
+</body>
+</html>
