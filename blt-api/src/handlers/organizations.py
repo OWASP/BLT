@@ -63,7 +63,8 @@ async def handle_organizations(
                 SELECT COUNT(*) as total FROM domains WHERE organization = ?
             ''').bind(org_id_int).first()
             
-            total = count_result.get("total", 0) if count_result else 0
+            count_data = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result) if count_result else {}
+            total = count_data.get("total", 0)
             
             return paginated_response(domains, page=page, per_page=per_page, total=total)
         
@@ -91,7 +92,8 @@ async def handle_organizations(
                 WHERE d.organization = ?
             ''').bind(org_id_int).first()
             
-            total = count_result.get("total", 0) if count_result else 0
+            count_data = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result) if count_result else {}
+            total = count_data.get("total", 0)
             
             return paginated_response(bugs, page=page, per_page=per_page, total=total)
         
@@ -156,6 +158,7 @@ async def handle_organizations(
             domain_count_result = await db.prepare('''
                 SELECT COUNT(*) as count FROM domains WHERE organization = ?
             ''').bind(org_id_int).first()
+            domain_count_data = domain_count_result.to_py() if hasattr(domain_count_result, 'to_py') else dict(domain_count_result) if domain_count_result else {}
             
             # Get bug count
             bug_count_result = await db.prepare('''
@@ -164,6 +167,7 @@ async def handle_organizations(
                 JOIN domains d ON b.domain = d.id
                 WHERE d.organization = ?
             ''').bind(org_id_int).first()
+            bug_count_data = bug_count_result.to_py() if hasattr(bug_count_result, 'to_py') else dict(bug_count_result) if bug_count_result else {}
             
             # Get verified bug count
             verified_bug_result = await db.prepare('''
@@ -172,17 +176,19 @@ async def handle_organizations(
                 JOIN domains d ON b.domain = d.id
                 WHERE d.organization = ? AND b.verified = 1
             ''').bind(org_id_int).first()
+            verified_bug_data = verified_bug_result.to_py() if hasattr(verified_bug_result, 'to_py') else dict(verified_bug_result) if verified_bug_result else {}
             
             # Get manager count
             manager_count_result = await db.prepare('''
                 SELECT COUNT(*) as count FROM organization_managers WHERE organization_id = ?
             ''').bind(org_id_int).first()
+            manager_count_data = manager_count_result.to_py() if hasattr(manager_count_result, 'to_py') else dict(manager_count_result) if manager_count_result else {}
             
             stats = {
-                "domain_count": domain_count_result.get("count", 0) if domain_count_result else 0,
-                "bug_count": bug_count_result.get("count", 0) if bug_count_result else 0,
-                "verified_bug_count": verified_bug_result.get("count", 0) if verified_bug_result else 0,
-                "manager_count": manager_count_result.get("count", 0) if manager_count_result else 0
+                "domain_count": domain_count_data.get("count", 0),
+                "bug_count": bug_count_data.get("count", 0),
+                "verified_bug_count": verified_bug_data.get("count", 0),
+                "manager_count": manager_count_data.get("count", 0)
             }
             
             return Response.json({
@@ -228,7 +234,8 @@ async def handle_organizations(
             domain_count_result = await db.prepare('''
                 SELECT COUNT(*) as count FROM domains WHERE organization = ?
             ''').bind(org_id_int).first()
-            org["domain_count"] = domain_count_result.get("count", 0) if domain_count_result else 0
+            domain_count_data = domain_count_result.to_py() if hasattr(domain_count_result, 'to_py') else dict(domain_count_result) if domain_count_result else {}
+            org["domain_count"] = domain_count_data.get("count", 0)
         
         return Response.json({
             "success": True,
@@ -282,6 +289,7 @@ async def handle_organizations(
         SELECT COUNT(*) as total FROM organization o WHERE {where_sql}
     '''
     count_result = await db.prepare(count_query).bind(*bind_params[:-2]).first()
-    total = count_result.get("total", 0) if count_result else 0
+    count_data = count_result.to_py() if hasattr(count_result, 'to_py') else dict(count_result) if count_result else {}
+    total = count_data.get("total", 0)
     
     return paginated_response(organizations, page=page, per_page=per_page, total=total)
