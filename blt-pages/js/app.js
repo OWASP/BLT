@@ -196,7 +196,7 @@ async function loadLeaderboard() {
   // Skip re-render when content has already been server-side rendered into the HTML,
   // but still update the relative timestamps from the embedded inline data.
   if (container.dataset.preRendered === "true") {
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData) {
       updateTimestamps(inlineData);
       updateHeaderBugStats(inlineData.total_bugs, inlineData.open_bugs, inlineData.closed_bugs);
@@ -209,7 +209,7 @@ async function loadLeaderboard() {
 
   try {
     // Use inline data embedded by GitHub Action if available
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData && inlineData.leaderboard) {
       currentLeaderboardData = inlineData;
       renderLeaderboard(container, inlineData, limit);
@@ -234,16 +234,26 @@ async function loadLeaderboard() {
     if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
     updateHeaderBugStats(data.total_bugs, data.open_bugs, data.closed_bugs);
   } catch (err) {
+    console.error("Leaderboard loading failed:", { context: "loadLeaderboard", error: err });
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
       await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit);
     } catch (err2) {
+      console.error("API Fallback failed:", { context: "loadLeaderboardFromAPI", error: err2 });
       container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
         <svg class="fa-icon text-primary mr-2" aria-hidden="true"><use href="#fa-circle-exclamation"></use></svg>
         Could not load leaderboard. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
       </td></tr>`;
     }
   }
+}
+
+/**
+ * Centralized data access helper for leaderboard information.
+ * Returns either the server-side rendered (SSR) inline data or the latest fetched state.
+ */
+function getLeaderboardData() {
+  return window.__BLT_LEADERBOARD__ || currentLeaderboardData;
 }
 
 let currentLeaderboardData = null;
@@ -440,9 +450,10 @@ async function loadRecentBugs() {
   // In the non-SSR path, first try the API to fetch reactions
   try {
     await loadRecentBugsFromAPI(grid);
-  } catch {
+  } catch (err) {
+    console.warn("Recent bugs API failed, falling back to inline data:", err);
     // Fall back to inline data if available (no reactions, but no extra request)
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
       renderRecentBugs(inlineData.recent_bugs);
       return;
@@ -886,7 +897,7 @@ function initLeaderboardFilters() {
   searchInput.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const data = window.__BLT_LEADERBOARD__ || currentLeaderboardData;
+      const data = getLeaderboardData();
       if (!data) return;
 
       const query = e.target.value;
@@ -919,11 +930,16 @@ function initSmoothScroll() {
  * Renders a stable, deterministic activity sparkline based on contribution count.
  */
 function renderActivitySparkline(count, maxCount, totalBars = 12) {
+  // Calculate how many bars should be "active" (colored) based on the score relative to the leader
   const activeBars = Math.max(1, Math.min(totalBars, Math.ceil((count / maxCount) * totalBars)));
 
   return Array.from({ length: totalBars }).map((_, i) => {
     const isActive = i < activeBars;
-    // Predefined professional "growth" pattern for the bars
+
+    // Math: Predefined professional "growth" pattern for the bars.
+    // baseHeight (25%) provides a minimum visibility for even low counts.
+    // growthFactor (0-40%) adds an upward slope from left to right.
+    // last term (0-20%) adjusts the overall height based on the user's relative score to maxCount.
     const baseHeight = 25;
     const growthFactor = (i / totalBars) * 40;
     const finalHeight = isActive ? Math.min(100, baseHeight + growthFactor + ((count / maxCount) * 20)) : 10;
