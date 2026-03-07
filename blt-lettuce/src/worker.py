@@ -1515,5 +1515,32 @@ class Default(WorkerEntrypoint):
     """Cloudflare Python Worker entrypoint class."""
 
     async def fetch(self, request):
-        return await handle_request(request, self.env)
+        """Main entry point for the Cloudflare Worker."""
+        # Extract all env bindings upfront to avoid reentrancy issues
+        # The Pyodide runtime has issues with nested async access to self.env
+        try:
+            env_dict = {
+                'DB': self.env.DB if hasattr(self.env, 'DB') else None,
+                'SLACK_CLIENT_ID': getattr(self.env, 'SLACK_CLIENT_ID', None),
+                'SLACK_CLIENT_SECRET': getattr(self.env, 'SLACK_CLIENT_SECRET', None),
+                'SLACK_TOKEN': getattr(self.env, 'SLACK_TOKEN', None),
+                'SIGNING_SECRET': getattr(self.env, 'SIGNING_SECRET', None),
+                'BASE_URL': getattr(self.env, 'BASE_URL', None),
+                'JOINS_CHANNEL_ID': getattr(self.env, 'JOINS_CHANNEL_ID', None),
+                'CONTRIBUTE_ID': getattr(self.env, 'CONTRIBUTE_ID', None),
+                'ENVIRONMENT': getattr(self.env, 'ENVIRONMENT', 'production'),
+            }
+        except Exception as e:
+            return Response.json({"error": f"Failed to access environment: {str(e)}"}, {"status": 500})
+        
+        # Create a simple object to hold env values
+        class EnvHolder:
+            pass
+        
+        env = EnvHolder()
+        for key, value in env_dict.items():
+            setattr(env, key, value)
+        
+        # Route to the main handler
+        return await handle_request(request, env)
 
