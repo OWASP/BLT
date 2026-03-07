@@ -18,7 +18,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Architecture Overview
 
-BLT-OSSH (Open Source Sorting Hat) helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata. It goes beyond project matching to suggest information such as blogs, educational pathways, and integration with **BLT University**.
+BLT-OSSH (Open Source Sorting Hat) is a *magical recommendation engine with special powers* that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata. It goes beyond project matching to suggest information such as blogs, educational pathways, and integration with **BLT University**.
 
 Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focusing on contributor onboarding and project matching rather than bug reporting.
 
@@ -118,13 +118,15 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 |----------|---------|
 | `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
 | `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
-| `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues API) |
+| `GET https://api.github.com/users/{username}/events/public?per_page=100` | Public events (for activity scoring; optional) |
+| `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (used by workflow) |
+| `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues) |
 
 ### Rate Limits
 
 - **Unauthenticated requests**: 60 requests/hour per IP address
 - **Authenticated requests**: 5,000 requests/hour (if you add a token — not required for basic use)
-- The app typically makes 2–3 requests per profile analysis, so casual use stays within limits
+- The app typically makes 2–4 requests per profile analysis (profile, repos, optionally events), so casual use stays within limits
 - If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
 
 ## Contributing
