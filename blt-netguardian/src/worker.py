@@ -530,6 +530,8 @@ class BLTWorker:
     def parse_limit_param(self, request, default: int) -> Optional[int]:
         """Parse and bound integer limit parameters."""
         raw_limit = self.get_query_param(request, 'limit', str(default))
+        if raw_limit is None:
+            return None
         try:
             limit = int(raw_limit)
         except (TypeError, ValueError):
@@ -552,8 +554,6 @@ class BLTWorker:
 
         if origin and origin in allowed_origins:
             headers['Access-Control-Allow-Origin'] = origin
-        elif not origin and allowed_origins:
-            headers['Access-Control-Allow-Origin'] = allowed_origins[0]
         return headers
 
     def get_allowed_origins(self) -> List[str]:
@@ -623,19 +623,19 @@ class BLTWorker:
         print(f"[ERROR] {context}: {type(error).__name__}: {error}")
 
     def internal_error_response(self, error_message: str, error: Exception,
-                                headers: Dict[str, str] = None) -> 'Response':
+                                headers: Optional[Dict[str, str]] = None) -> 'Response':
         """Return a generic 500 response and log exception details server-side."""
         self.log_exception(error_message, error)
         return self.json_response({'error': error_message}, status=500, headers=headers)
     
-    def get_query_param(self, request, key: str, default: str = None) -> Optional[str]:
+    def get_query_param(self, request, key: str, default: Optional[str] = None) -> Optional[str]:
         """Extract query parameter from request."""
         query_string = request.url.split('?')[1] if '?' in request.url else ''
         params = parse_qs(query_string)
         return params.get(key, [default])[0]
     
-    def json_response(self, data: Dict[str, Any], status: int = 200, 
-                     headers: Dict[str, str] = None) -> 'Response':
+    def json_response(self, data: Dict[str, Any], status: int = 200,
+                     headers: Optional[Dict[str, str]] = None) -> 'Response':
         """Create a JSON response."""
         response_headers = {'Content-Type': 'application/json'}
         if headers:
