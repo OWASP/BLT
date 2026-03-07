@@ -24,7 +24,7 @@ import hmac as _hmac
 import json
 import time
 from typing import Optional, Tuple
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import INDEX_HTML  # Landing page HTML template
@@ -1872,6 +1872,12 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     else:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
+    # Check for unresolved review conversations
+    try:
+        await check_unresolved_conversations(payload, token)
+    except Exception as exc:
+        console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
+
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
@@ -1913,6 +1919,120 @@ async def handle_pull_request_closed(payload: dict, token: str, env=None) -> Non
 async def handle_pull_request_review_submitted(payload: dict, env=None) -> None:
     """Track review credits in D1 (first two unique reviewers per PR per month)."""
     await _track_review_in_d1(payload, env)
+
+
+async def _ensure_label_exists(
+    owner: str, repo: str, name: str, color: str, token: str
+) -> None:
+    """Create a label if it does not already exist, or update its colour."""
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/labels/{quote(name, safe='')}",
+        token,
+    )
+    if resp.status == 404:
+        await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/labels",
+            token,
+            {"name": name, "color": color},
+        )
+    elif resp.status == 200:
+        data = json.loads(await resp.text())
+        if data.get("color") != color:
+            await github_api(
+                "PATCH",
+                f"/repos/{owner}/{repo}/labels/{quote(name, safe='')}",
+                token,
+                {"color": color},
+            )
+
+async def check_unresolved_conversations(payload, token):
+    """Add label if PR has unresolved review conversations"""
+    pr = payload.get("pull_request")
+    if not pr:
+        return
+
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    number = pr["number"]
+
+    query = """
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $number) {
+          reviewThreads(first: 100) {
+            nodes {
+              isResolved
+            }
+          }
+        }
+      }
+    }
+    """
+
+    resp = await fetch(
+        "https://api.github.com/graphql",
+        method="POST",
+        headers=_gh_headers(token),
+        body=json.dumps({
+            "query": query,
+            "variables": {"owner": owner, "repo": repo, "number": number},
+        }),
+    )
+
+    if resp.status != 200:
+        console.error(f"[BLT] GraphQL query failed: {resp.status}")
+        return
+
+    result = json.loads(await resp.text())
+    pull_request = (
+        result.get("data", {})
+        .get("repository", {})
+        .get("pullRequest")
+    )
+    if result.get("errors") or pull_request is None:
+        console.error(f"[BLT] GraphQL reviewThreads query returned errors: {result.get('errors')}")
+        return
+    threads = (
+        pull_request
+        .get("reviewThreads", {})
+        .get("nodes", [])
+    )
+
+    unresolved = any(not t.get("isResolved", True) for t in threads)
+
+    unresolved_count = sum(not t.get("isResolved", True) for t in threads)
+
+    # Remove any existing unresolved-conversations labels
+    resp_labels = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{number}/labels",
+        token,
+    )
+    if resp_labels.status == 200:
+        current_labels = json.loads(await resp_labels.text())
+        for lb in current_labels:
+            if lb["name"].startswith("unresolved-conversations"):
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{number}/labels/{quote(lb['name'], safe='')}",
+                    token,
+                )
+
+    label = f"unresolved-conversations: {unresolved_count}"
+
+    if unresolved:
+        await _ensure_label_exists(owner, repo, label, "e74c3c", token)
+    else:
+        await _ensure_label_exists(owner, repo, label, "5cb85c", token)
+
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{number}/labels",
+        token,
+        {"labels": [label]},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2209,6 +2329,11 @@ async def handle_webhook(request, env) -> Response:
                 await handle_pull_request_review(payload, token)
             elif action == "dismissed":
                 await handle_pull_request_review(payload, token)
+        elif event == "pull_request_review_comment":
+            await check_unresolved_conversations(payload, token)
+        elif event == "pull_request_review_thread":
+            await check_unresolved_conversations(payload, token)
+
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
         return _json({"error": "Internal server error"}, 500)
