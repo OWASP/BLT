@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - BLT-Lettuce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
+
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-14">
+      <div class="flex items-center gap-3">
+        <img src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
+             alt="Logo" class="w-7 h-7"/>
+        <span class="font-bold text-gray-800">BLT-Lettuce</span>
+        <span class="text-gray-300">|</span>
+        <span class="text-sm text-gray-500">Dashboard</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-600">
+          <i class="fas fa-user-circle mr-1 text-red-500"></i>%%USER_NAME%%
+        </span>
+        <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
+        <a href="/logout"
+           class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600
+                  hover:bg-gray-50 transition-colors">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-gray-800">My Workspaces</h2>
+        <p class="text-xs text-gray-400">%%WS_COUNT%% workspace(s) connected</p>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center">
+        %%WS_TABS%%
+        <a href="/workspace/add"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white
+                  rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
+          <i class="fas fa-plus"></i> Add Workspace
+        </a>
+      </div>
+    </div>
+  </section>
+
+  %%WORKSPACE_SECTION%%
+</main>
+
+<script>
+const WS_ID = %%WS_ID_JSON%%;
+
+function timeAgo(isoStr) {
+  if (!isoStr) return '—';
+  const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+  if (diff < 60) return diff + ' seconds ago';
+  if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
+    return h + ' hour' + (h > 1 ? 's' : '') + (m ? ', ' + m + ' min' : '') + ' ago';
+  }
+  return Math.floor(diff / 86400) + ' days ago';
+}
+
+const lastEl = document.getElementById('last-activity-ago');
+if (lastEl) {
+  const raw = lastEl.textContent.trim();
+  if (raw && raw !== '—') {
+    lastEl.textContent = timeAgo(raw.replace(' ', 'T') + ':00');
+  }
+}
+
+const chartCanvas = document.getElementById('activityChart');
+if (chartCanvas && WS_ID) {
+  const labels = %%CHART_LABELS%%;
+  const joins = %%CHART_JOINS%%;
+  const cmds = %%CHART_COMMANDS%%;
+  new Chart(chartCanvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Team Joins',
+          data: joins,
+          backgroundColor: 'rgba(220, 38, 38, 0.85)',
+          borderRadius: 2,
+        },
+        {
+          label: 'Commands',
+          data: cmds,
+          backgroundColor: 'rgba(252, 165, 165, 0.7)',
+          borderRadius: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 30, font: { size: 12 } } },
+      },
+      scales: {
+        x: { ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+}
+
+async function refreshStats() {
+  if (!WS_ID) return;
+  try {
+    const r = await fetch(`/api/ws/${WS_ID}/stats`);
+    if (!r.ok) return;
+    await r.json();
+  } catch (e) {}
+}
+setInterval(refreshStats, 30000);
+
+async function scanChannels(wsId) {
+  const btn = document.getElementById('scan-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Scanning...';
+  }
+  try {
+    const r = await fetch(`/api/ws/${wsId}/scan`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      alert(`Scan complete! ${d.channels_scanned} channels found.`);
+      location.reload();
+    } else {
+      alert('Scan failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    alert('Request failed');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Scan Channels';
+    }
+  }
+}
+
+async function addRepo(e) {
+  e.preventDefault();
+  const url = document.getElementById('repo-url').value.trim();
+  if (!url || !WS_ID) return;
+  try {
+    const r = await fetch(`/api/ws/${WS_ID}/repos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_url: url }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      location.reload();
+    } else {
+      alert('Failed: ' + (d.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Request failed');
+  }
+}
+
+async function deleteRepo(repoId, wsId) {
+  if (!confirm('Remove this repository?')) return;
+  try {
+    const r = await fetch(`/api/ws/${wsId}/repos/${repoId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) {
+      location.reload();
+    } else {
+      alert('Failed: ' + (d.error || 'unknown'));
+    }
+  } catch (e) {
+    alert('Request failed');
+  }
+}
+</script>
+</body>
+</html>

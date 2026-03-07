@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign in - BLT-Lettuce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md text-center">
+    <img src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
+         alt="OWASP Logo" class="w-16 h-16 mx-auto mb-4"/>
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">BLT-Lettuce</h1>
+    <p class="text-gray-500 text-sm mb-8">Dashboard for Slack workspace managers</p>
+    %%ERR_BLOCK%%
+    <a href="%%SIGN_IN_URL%%"
+       class="inline-flex items-center justify-center gap-3 w-full px-6 py-3
+              bg-[#4A154B] text-white rounded-lg hover:bg-[#3b1040]
+              transition-colors font-semibold text-base shadow">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.8 122.8"
+           class="w-5 h-5 flex-shrink-0">
+        <path d="M25.8 77.6a12.9 12.9 0 1 1-12.9-12.9h12.9z" fill="#e01e5a"/>
+        <path d="M32.3 77.6a12.9 12.9 0 0 1 25.8 0v32.3a12.9 12.9 0 1 1-25.8 0z" fill="#e01e5a"/>
+        <path d="M45.2 25.8a12.9 12.9 0 1 1 12.9-12.9v12.9z" fill="#36c5f0"/>
+        <path d="M45.2 32.3a12.9 12.9 0 0 1 0 25.8H12.9a12.9 12.9 0 1 1 0-25.8z" fill="#36c5f0"/>
+        <path d="M97 45.2a12.9 12.9 0 1 1 12.9 12.9H97z" fill="#2eb67d"/>
+        <path d="M90.5 45.2a12.9 12.9 0 0 1-25.8 0V12.9a12.9 12.9 0 1 1 25.8 0z" fill="#2eb67d"/>
+        <path d="M77.6 97a12.9 12.9 0 1 1-12.9 12.9V97z" fill="#ecb22e"/>
+        <path d="M77.6 90.5a12.9 12.9 0 0 1 0-25.8h32.3a12.9 12.9 0 1 1 0 25.8z" fill="#ecb22e"/>
+      </svg>
+      Sign in with Slack
+    </a>
+    <p class="text-xs text-gray-400 mt-6">
+      By signing in you agree to Slack's
+      <a href="https://slack.com/terms-of-service" class="underline" target="_blank">Terms of Service</a>.
+    </p>
+  </div>
+</body>
+</html>
