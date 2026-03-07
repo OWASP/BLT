@@ -27,6 +27,7 @@ except ImportError:
 
 from lettuce.html_templates import (
     get_404_html,
+    get_500_html,
     get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
@@ -86,6 +87,40 @@ def _rows(result):
         except Exception:
             out.append(r)
     return out
+
+
+def _js_to_python(value):
+    """Best-effort conversion of JS proxy objects to native Python values."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {k: _js_to_python(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_js_to_python(v) for v in value]
+
+    # Pyodide JSProxy objects often expose to_py().
+    try:
+        to_py = getattr(value, "to_py", None)
+        if callable(to_py):
+            return _js_to_python(to_py())
+    except Exception:
+        pass
+
+    # Fallback for plain JS objects.
+    try:
+        from js import Object
+
+        out = {}
+        keys = Object.keys(value)
+        for idx in range(len(keys)):
+            key = str(keys[idx])
+            out[key] = _js_to_python(getattr(value, key, None))
+        if out:
+            return out
+    except Exception:
+        pass
+
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -659,36 +694,9 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
         if status >= 400:
             return {"ok": False, "error": f"http_error_{status}"}
         
-        data = await resp.json()
-        
-        # Convert JS object to Python dict
-        result = {}
-        try:
-            # Try to iterate over the JS object properties
-            for key in dir(data):
-                if not key.startswith("_"):
-                    try:
-                        val = getattr(data, key)
-                        if not callable(val):
-                            result[key] = val
-                    except Exception:
-                        pass
-        except Exception:
-            # Fallback: try direct property access
-            try:
-                result = {
-                    "ok": data.ok if hasattr(data, "ok") else False,
-                    "error": data.error if hasattr(data, "error") else None,
-                    "access_token": data.access_token if hasattr(data, "access_token") else None,
-                    "token_type": data.token_type if hasattr(data, "token_type") else None,
-                    "scope": data.scope if hasattr(data, "scope") else None,
-                    "bot_user_id": data.bot_user_id if hasattr(data, "bot_user_id") else None,
-                    "app_id": data.app_id if hasattr(data, "app_id") else None,
-                    "team": data.team if hasattr(data, "team") else None,
-                    "authed_user": data.authed_user if hasattr(data, "authed_user") else None,
-                }
-            except Exception:
-                return {"ok": False, "error": "invalid_response_format"}
+        result = _js_to_python(await resp.json())
+        if not isinstance(result, dict):
+            return {"ok": False, "error": "invalid_response_format"}
         
         # If Slack returns an error, include details
         ok_status = result.get("ok", False)
@@ -715,9 +723,45 @@ async def fetch_user_identity(user_token):
                 "headers": headers,
             },
         )
-        return await resp.json()
+        result = _js_to_python(await resp.json())
+        return result if isinstance(result, dict) else {"ok": False}
     except Exception:
         return {"ok": False}
+
+
+async def get_db_table_counts(env):
+    """Return counts for key D1 tables used by dashboard and bot commands."""
+    tables = [
+        "users",
+        "sessions",
+        "workspaces",
+        "user_workspaces",
+        "channels",
+        "repositories",
+        "events",
+    ]
+    counts = {}
+    for table in tables:
+        row = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
+        counts[table] = (row or {}).get("count", 0)
+    return counts
+
+
+def _format_db_stats_for_slack(counts):
+    """Format table counts as a readable Slack markdown message."""
+    lines = ["*BLT Lettuce DB Stats* :bar_chart:"]
+    ordered = [
+        ("users", "Users"),
+        ("sessions", "Sessions"),
+        ("workspaces", "Workspaces"),
+        ("user_workspaces", "User Workspaces"),
+        ("channels", "Channels"),
+        ("repositories", "Repositories"),
+        ("events", "Events"),
+    ]
+    for key, label in ordered:
+        lines.append(f"- *{label}:* {counts.get(key, 0)}")
+    return "\n".join(lines)
 
 
 # ===========================================================================
@@ -785,7 +829,9 @@ async def get_bot_user_id(env):
             "https://slack.com/api/auth.test",
             {"method": "POST", "headers": headers},
         )
-        result = await resp.json()
+        result = _js_to_python(await resp.json())
+        if not isinstance(result, dict):
+            return None
         if result.get("ok"):
             return result.get("user_id")
     except Exception:
@@ -811,7 +857,8 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
             "body": json.dumps(payload),
         },
     )
-    return await resp.json()
+    result = _js_to_python(await resp.json())
+    return result if isinstance(result, dict) else {"ok": False, "error": "invalid_response"}
 
 
 async def open_conversation(env, user_id, token=None):
@@ -829,7 +876,8 @@ async def open_conversation(env, user_id, token=None):
             "body": json.dumps({"users": user_id}),
         },
     )
-    return await resp.json()
+    result = _js_to_python(await resp.json())
+    return result if isinstance(result, dict) else {"ok": False, "error": "invalid_response"}
 
 
 # ===========================================================================
@@ -899,7 +947,8 @@ async def handle_team_join(env, event, team_id=None):
 
 
 async def handle_message_event(env, event, team_id=None):
-    message_text = event.get("text", "").lower()
+    original_text = (event.get("text") or "").strip()
+    message_text = original_text.lower()
     user = event.get("user")
     channel = event.get("channel")
     channel_type = event.get("channel_type")
@@ -908,6 +957,10 @@ async def handle_message_event(env, event, team_id=None):
     # Ignore bot messages (check both bot_id field and user field)
     if event.get("bot_id") or event.get("bot_profile"):
         return {"ok": True, "message": "Ignoring bot message (bot_id present)"}
+    
+    # Ignore message subtypes that shouldn't trigger responses
+    if subtype in ("message_changed", "message_deleted", "bot_message", "channel_join", "channel_leave"):
+        return {"ok": True, "message": f"Ignoring message subtype: {subtype}"}
 
     # Look up workspace-specific bot token
     ws_token = getattr(env, "SLACK_TOKEN", None)
@@ -941,18 +994,49 @@ async def handle_message_event(env, event, team_id=None):
         if joins_channel:
             try:
                 await send_slack_message(
-                    env, joins_channel, f"<@{user}> said {message_text}", token=ws_token
+                    env,
+                    joins_channel,
+                    f"<@{user}> said {message_text}",
+                    token=ws_token,
                 )
             except Exception:
                 pass
-        # Use the event's channel ID (the DM channel), not the user ID
-        result = await send_slack_message(
-            env,
-            channel,
-            f"Hello <@{user}>, you said: {event.get('text', '')}",
-            token=ws_token,
+
+        if any(word in message_text for word in ("stats", "health", "tables", "db")):
+            counts = await get_db_table_counts(env)
+            stats_text = _format_db_stats_for_slack(counts)
+            result = await send_slack_message(env, channel, stats_text, token=ws_token)
+            return {"ok": result.get("ok"), "action": "dm_stats"}
+
+        if any(greet in message_text for greet in ("hello", "hi", "hey")):
+            counts = await get_db_table_counts(env)
+            stats_text = _format_db_stats_for_slack(counts)
+            greet_text = (
+                f"Hello <@{user}>! Here are the latest stats.\n\n{stats_text}\n\n"
+                "Try commands: `stats`, `help`, `health`"
+            )
+            result = await send_slack_message(env, channel, greet_text, token=ws_token)
+            return {"ok": result.get("ok"), "action": "dm_greeting_stats"}
+
+        if any(word in message_text for word in ("help", "commands", "cmd")):
+            help_text = (
+                "*Lettuce Bot Commands*\n"
+                "- `stats` or `health`: Show DB table counts\n"
+                "- `hello` / `hi` / `hey`: Greeting + DB stats\n"
+                "- `help`: Show this command list"
+            )
+            result = await send_slack_message(env, channel, help_text, token=ws_token)
+            return {"ok": result.get("ok"), "action": "dm_help"}
+
+        # Default DM response with quick guidance + current stats.
+        counts = await get_db_table_counts(env)
+        stats_text = _format_db_stats_for_slack(counts)
+        default_text = (
+            f"Hi <@{user}>! I can help with stats.\n\n{stats_text}\n\n"
+            "Try: `stats`, `hello`, or `help`."
         )
-        return {"ok": result.get("ok"), "action": "dm_response"}
+        result = await send_slack_message(env, channel, default_text, token=ws_token)
+        return {"ok": result.get("ok"), "action": "dm_default"}
 
     return {"ok": True, "message": "No action taken"}
 
@@ -1086,154 +1170,184 @@ async def handle_request(request, env):
     #  GET /callback  →  OAuth callback (handles both sign-in & add-ws)  #
     # ------------------------------------------------------------------ #
     if pathname == "/callback" and method == "GET":
-        qs = url.split("?", 1)[1] if "?" in url else ""
-        params = {}
-        for part in qs.split("&"):
-            kv = part.split("=", 1)
-            if len(kv) == 2:
-                try:
-                    params[kv[0]] = unquote_plus(kv[1])
-                except Exception:
-                    params[kv[0]] = kv[1]
+        try:
+            qs = url.split("?", 1)[1] if "?" in url else ""
+            params = {}
+            for part in qs.split("&"):
+                kv = part.split("=", 1)
+                if len(kv) == 2:
+                    try:
+                        params[kv[0]] = unquote_plus(kv[1])
+                    except Exception:
+                        params[kv[0]] = kv[1]
 
-        code = params.get("code")
-        received_state = params.get("state", "")
-        error = params.get("error")
+            code = params.get("code")
+            received_state = params.get("state", "")
+            error = params.get("error")
 
-        # Validate CSRF state before processing
-        stored_state = parse_cookies(request).get("oauth_state", "")
-        intent = _verify_oauth_state(stored_state, received_state)
+            # Validate CSRF state before processing
+            stored_state = parse_cookies(request).get("oauth_state", "")
+            intent = _verify_oauth_state(stored_state, received_state)
 
-        if error or not code:
+            if error or not code:
+                base = get_base_url(env, request)
+                client_id = getattr(env, "SLACK_CLIENT_ID", None)
+                sign_in_url = get_slack_sign_in_url(client_id or "", f"{base}/callback")
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url, error=f"OAuth error: {error or 'missing code'}"
+                    ),
+                )
+
+            # Reject if CSRF state is invalid (missing or tampered)
+            if intent is None:
+                base = get_base_url(env, request)
+                client_id_csrf = getattr(env, "SLACK_CLIENT_ID", None)
+                sign_in_url = get_slack_sign_in_url(
+                    client_id_csrf or "", f"{base}/callback"
+                )
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url,
+                        error="Invalid OAuth state. Please try signing in again.",
+                    ),
+                )
+
+            client_id = getattr(env, "SLACK_CLIENT_ID", None)
+            client_secret = getattr(env, "SLACK_CLIENT_SECRET", None)
+            base = get_base_url(env, request)
+            redirect_uri = f"{base}/callback"
+
+            token_data = await exchange_code_for_token(
+                client_id, client_secret, code, redirect_uri
+            )
+
+            if not token_data.get("ok"):
+                sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url,
+                        error=f"Token exchange failed: {token_data.get('error')}",
+                    ),
+                )
+
+            # ---- Identify the authorizing user ----
+            authed_user = token_data.get("authed_user") or {}
+            user_token = authed_user.get("access_token")
+            user_slack_id = authed_user.get("id")
+
+            user_name = ""
+            user_email = ""
+            user_team_id = (token_data.get("team") or {}).get("id", "")
+
+            if user_token:
+                identity = await fetch_user_identity(user_token)
+                if identity.get("ok"):
+                    profile = identity.get("user") or {}
+                    team_info = identity.get("team") or {}
+                    user_name = profile.get("name", "")
+                    user_email = profile.get("email", "")
+                    if not user_team_id:
+                        user_team_id = team_info.get("id", "")
+                    if not user_slack_id:
+                        user_slack_id = profile.get("id", "")
+
+            if not user_slack_id:
+                sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url, error="Could not retrieve your Slack identity."
+                    ),
+                )
+
+            user = await db_get_or_create_user(
+                env,
+                user_slack_id,
+                user_team_id,
+                user_name,
+                user_email,
+                user_token or "",
+            )
+            if not user:
+                sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url, error="Database error. Please try again."
+                    ),
+                )
+
+            # ---- If this was an "add workspace" flow, install the bot ----
+            if intent == "add_workspace":
+                bot_token = token_data.get("access_token")
+                team_info = token_data.get("team") or {}
+                team_id = team_info.get("id", "")
+                team_name = team_info.get("name", "Unknown Workspace")
+                bot_user_id = token_data.get("bot_user_id") or ""
+
+                if team_id and bot_token:
+                    ws = await db_upsert_workspace(
+                        env, team_id, team_name, bot_token, bot_user_id
+                    )
+                    if ws:
+                        await db_link_user_workspace(
+                            env, user["id"], ws["id"], role="owner"
+                        )
+                        # Background channel scan (best-effort)
+                        try:
+                            await scan_workspace_channels(env, ws["id"], bot_token)
+                        except Exception:
+                            pass
+
+            # ---- Create session ----
+            token = generate_session_token()
+            session_ok = await db_create_session(env, user["id"], token)
+            if not session_ok:
+                sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url,
+                        error="Could not create a session. Please try again.",
+                    ),
+                )
+
+            # Clear the oauth_state cookie and set the session cookie
+            session_cookie = (
+                f"session_id={token}; HttpOnly; Secure; SameSite=Lax; "
+                "Max-Age=2592000; Path=/"
+            )
+            clear_oauth_cookie = (
+                "oauth_state=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/"
+            )
+            # Set both cookies in the redirect using append (Workers support multiple Set-Cookie)
+            resp_h = Headers.new()
+            resp_h.set("Location", "/dashboard")
+            resp_h.append("Set-Cookie", session_cookie)
+            resp_h.append("Set-Cookie", clear_oauth_cookie)
+            return Response.new("", {"status": 302, "headers": resp_h})
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e,
+                    level="error",
+                    extra={
+                        "path": "/callback",
+                        "method": "GET",
+                    },
+                )
+            except Exception:
+                pass
+
             base = get_base_url(env, request)
             client_id = getattr(env, "SLACK_CLIENT_ID", None)
             sign_in_url = get_slack_sign_in_url(client_id or "", f"{base}/callback")
             return _html_response(
                 get_login_page_html(
-                    sign_in_url, error=f"OAuth error: {error or 'missing code'}"
-                ),
-            )
-
-        # Reject if CSRF state is invalid (missing or tampered)
-        if intent is None:
-            base = get_base_url(env, request)
-            client_id_csrf = getattr(env, "SLACK_CLIENT_ID", None)
-            sign_in_url = get_slack_sign_in_url(
-                client_id_csrf or "", f"{base}/callback"
-            )
-            return _html_response(
-                get_login_page_html(
                     sign_in_url,
-                    error="Invalid OAuth state. Please try signing in again.",
+                    error="Internal server error during Slack sign-in. Please retry.",
                 ),
+                status=500,
             )
-
-        client_id = getattr(env, "SLACK_CLIENT_ID", None)
-        client_secret = getattr(env, "SLACK_CLIENT_SECRET", None)
-        base = get_base_url(env, request)
-        redirect_uri = f"{base}/callback"
-
-        token_data = await exchange_code_for_token(
-            client_id, client_secret, code, redirect_uri
-        )
-
-        if not token_data.get("ok"):
-            sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
-            return _html_response(
-                get_login_page_html(
-                    sign_in_url,
-                    error=f"Token exchange failed: {token_data.get('error')}",
-                ),
-            )
-
-        # ---- Identify the authorizing user ----
-        authed_user = token_data.get("authed_user") or {}
-        user_token = authed_user.get("access_token")
-        user_slack_id = authed_user.get("id")
-
-        user_name = ""
-        user_email = ""
-        user_team_id = (token_data.get("team") or {}).get("id", "")
-
-        if user_token:
-            identity = await fetch_user_identity(user_token)
-            if identity.get("ok"):
-                profile = identity.get("user") or {}
-                team_info = identity.get("team") or {}
-                user_name = profile.get("name", "")
-                user_email = profile.get("email", "")
-                if not user_team_id:
-                    user_team_id = team_info.get("id", "")
-                if not user_slack_id:
-                    user_slack_id = profile.get("id", "")
-
-        if not user_slack_id:
-            sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
-            return _html_response(
-                get_login_page_html(
-                    sign_in_url, error="Could not retrieve your Slack identity."
-                ),
-            )
-
-        user = await db_get_or_create_user(
-            env, user_slack_id, user_team_id, user_name, user_email, user_token or ""
-        )
-        if not user:
-            sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
-            return _html_response(
-                get_login_page_html(
-                    sign_in_url, error="Database error. Please try again."
-                ),
-            )
-
-        # ---- If this was an "add workspace" flow, install the bot ----
-        if intent == "add_workspace":
-            bot_token = token_data.get("access_token")
-            team_info = token_data.get("team") or {}
-            team_id = team_info.get("id", "")
-            team_name = team_info.get("name", "Unknown Workspace")
-            bot_user_id = token_data.get("bot_user_id") or ""
-
-            if team_id and bot_token:
-                ws = await db_upsert_workspace(
-                    env, team_id, team_name, bot_token, bot_user_id
-                )
-                if ws:
-                    await db_link_user_workspace(
-                        env, user["id"], ws["id"], role="owner"
-                    )
-                    # Background channel scan (best-effort)
-                    try:
-                        await scan_workspace_channels(env, ws["id"], bot_token)
-                    except Exception:
-                        pass
-
-        # ---- Create session ----
-        token = generate_session_token()
-        session_ok = await db_create_session(env, user["id"], token)
-        if not session_ok:
-            sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
-            return _html_response(
-                get_login_page_html(
-                    sign_in_url,
-                    error="Could not create a session. Please try again.",
-                ),
-            )
-
-        # Clear the oauth_state cookie and set the session cookie
-        session_cookie = (
-            f"session_id={token}; HttpOnly; Secure; SameSite=Lax; "
-            "Max-Age=2592000; Path=/"
-        )
-        clear_oauth_cookie = (
-            "oauth_state=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/"
-        )
-        # Set both cookies in the redirect using append (Workers support multiple Set-Cookie)
-        resp_h = Headers.new()
-        resp_h.set("Location", "/dashboard")
-        resp_h.append("Set-Cookie", session_cookie)
-        resp_h.append("Set-Cookie", clear_oauth_cookie)
-        return Response.new("", {"status": 302, "headers": resp_h})
 
     # ------------------------------------------------------------------ #
     #  GET /logout                                                        #
@@ -1525,7 +1639,19 @@ async def handle_request(request, env):
 
             return Response.json({"ok": True, "message": "Event received"})
 
-        except Exception:
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e,
+                    level="error",
+                    extra={
+                        "path": "/webhook",
+                        "method": "POST",
+                    },
+                )
+            except Exception:
+                pass
             return _json_response({"error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
@@ -1557,17 +1683,7 @@ async def handle_request(request, env):
     # ------------------------------------------------------------------ #
     if pathname == "/api/db-stats" and method == "GET":
         try:
-            # Query counts for each table
-            tables = ["users", "sessions", "workspaces", "user_workspaces", 
-                      "channels", "repositories", "events"]
-            counts = {}
-            
-            for table in tables:
-                result = await env.DB.prepare(
-                    f"SELECT COUNT(*) as count FROM {table}"
-                ).first()
-                counts[table] = result["count"] if result else 0
-            
+            counts = await get_db_table_counts(env)
             return Response.json({
                 "ok": True,
                 "counts": counts,
@@ -1632,9 +1748,21 @@ class Default(WorkerEntrypoint):
             import traceback
 
             traceback.print_exc(file=sys.stderr)
-            h = Headers.new()
-            h.set("Content-Type", "application/json")
-            return Response.new(
-                json.dumps({"error": "Internal server error"}),
-                {"status": 500, "headers": h},
-            )
+            path = ""
+            method = ""
+            try:
+                path = urlparse(request.url).path
+                method = request.method
+            except Exception:
+                pass
+
+            # API/webhook callers still expect JSON responses.
+            if path.startswith("/api/") or path == "/webhook":
+                h = Headers.new()
+                h.set("Content-Type", "application/json")
+                return Response.new(
+                    json.dumps({"error": "Internal server error"}),
+                    {"status": 500, "headers": h},
+                )
+
+            return _html_response(get_500_html(), status=500)

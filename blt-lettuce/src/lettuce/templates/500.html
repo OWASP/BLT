@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error - BLT Lettuce</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #fef08a 0%, #f97316 100%);
+            color: #1f2937;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 640px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 56px 40px;
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 112px;
+            font-weight: 800;
+            color: #ea580c;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 14px;
+            color: #111827;
+        }
+
+        p {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .note {
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            border-radius: 10px;
+            color: #9a3412;
+            font-size: 14px;
+            padding: 12px;
+            margin-bottom: 24px;
+        }
+
+        .links {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        a {
+            padding: 12px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #ea580c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #c2410c;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .error-code {
+                font-size: 84px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            p {
+                font-size: 16px;
+            }
+
+            .container {
+                padding: 36px 22px;
+            }
+
+            .links {
+                flex-direction: column;
+            }
+
+            a {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-code">500</div>
+        <h1>Something Went Wrong</h1>
+        <p>An unexpected server error occurred. The incident was reported for investigation.</p>
+        <div class="note">If this happened during Slack sign-in, retry in a few seconds. If it persists, check <code>/status</code>.</div>
+
+        <div class="links">
+            <a href="/" class="btn-primary">Back to Home</a>
+            <a href="/status" class="btn-secondary">View Status</a>
+        </div>
+    </div>
+</body>
+</html>

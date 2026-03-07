@@ -319,3 +319,8 @@ def get_404_html():
     """Generate the 404 not found HTML page."""
     return _load_template("404.html")
 
+
+def get_500_html():
+    """Generate the 500 internal server error HTML page."""
+    return _load_template("500.html")
+

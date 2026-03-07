@@ -149,19 +149,22 @@ class SentryClient:
     async def _send_payload(self, payload):
         """Send payload to Sentry API."""
         try:
-            from js import fetch
+            from js import Headers, fetch
         except ImportError:
             return
 
         try:
+            headers = Headers.new()
+            headers.set("Content-Type", "application/json")
+            headers.set(
+                "X-Sentry-Auth",
+                f"Sentry sentry_key={self.key}, sentry_version=7",
+            )
             await fetch(
                 self.api_url,
                 {
                     "method": "POST",
-                    "headers": {
-                        "Content-Type": "application/json",
-                        "X-Sentry-Auth": f"Sentry sentry_key={self.key}, sentry_version=7",
-                    },
+                    "headers": headers,
                     "body": json.dumps(payload),
                 },
             )
