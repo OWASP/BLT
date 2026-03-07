@@ -976,7 +976,8 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
             with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
                 with patch.object(_worker, "_check_and_close_excess_prs", new=_mock_close):
                     with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
-                        await _worker.handle_pull_request_opened(payload, "tok")
+                        with patch.object(_worker, "check_unresolved_conversations", new=AsyncMock(return_value=None)):
+                            await _worker.handle_pull_request_opened(payload, "tok")
         _run(_inner())
 
     def test_posts_leaderboard_on_pr_open(self):
@@ -1016,7 +1017,8 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
             with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
                 with patch.object(_worker, "_check_and_close_excess_prs", new=_mock_close):
                     with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                        await _worker.handle_pull_request_opened(payload, "tok")
+                        with patch.object(_worker, "check_unresolved_conversations", new=AsyncMock(return_value=None)):
+                            await _worker.handle_pull_request_opened(payload, "tok")
         _run(_inner())
         
         # Should check for excess PRs
@@ -1616,8 +1618,6 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
-        # _ensure_label_exists should have been called with red colour
-        ensure_calls = [c for c in api_calls if len(c) >= 2 and "labels/" in str(c[1]) and c[0] == "GET"]
         add_label_calls = [c for c in api_calls if c[0] == "POST" and "/issues/7/labels" in c[1]]
         self.assertTrue(len(add_label_calls) >= 1, f"Expected POST to add label, got {api_calls}")
         # Should use label name with count 1

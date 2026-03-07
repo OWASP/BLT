@@ -1873,7 +1873,10 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
     # Check for unresolved review conversations
-    await check_unresolved_conversations(payload, token)
+    try:
+        await check_unresolved_conversations(payload, token)
+    except Exception as exc:
+        console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
@@ -1983,10 +1986,16 @@ async def check_unresolved_conversations(payload, token):
         return
 
     result = json.loads(await resp.text())
-    threads = (
+    pull_request = (
         result.get("data", {})
         .get("repository", {})
-        .get("pullRequest", {})
+        .get("pullRequest")
+    )
+    if result.get("errors") or pull_request is None:
+        console.error(f"[BLT] GraphQL reviewThreads query returned errors: {result.get('errors')}")
+        return
+    threads = (
+        pull_request
         .get("reviewThreads", {})
         .get("nodes", [])
     )
