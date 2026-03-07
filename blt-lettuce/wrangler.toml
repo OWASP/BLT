@@ -16,17 +16,11 @@ database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
 #   wrangler secret put SLACK_CLIENT_ID    # Slack OAuth App Client ID
 #   wrangler secret put SLACK_CLIENT_SECRET # Slack OAuth App Client Secret
 #
-# Optional secrets (for custom channel IDs):
-#   wrangler secret put JOINS_CHANNEL_ID   # Channel ID where join notifications are posted
-#   wrangler secret put CONTRIBUTE_ID      # Channel ID for contribution guidelines
-#   wrangler secret put DEPLOYS_CHANNEL    # Channel for deployment notifications
+# Optional secrets:
+#   wrangler secret put SENTRY_DSN         # Sentry Data Source Name for error tracking
 
 [vars]
-ENVIRONMENT = "production"
 VERSION = "2.0.0"
-# Base URL for OAuth redirect URIs – override per environment if needed
-BASE_URL = "https://lettuce.owaspblt.org"
-
 
 [observability]
 enabled = false

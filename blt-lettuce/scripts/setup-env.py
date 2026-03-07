@@ -30,15 +30,17 @@ SECRETS = {
     "SLACK_CLIENT_ID",
     "SLACK_CLIENT_SECRET",
     "SENTRY_DSN",
-}
-
-# Non-sensitive variables for wrangler.toml [vars]
-VARS = {
+    # Non-sensitive but set via wrangler secret for consistency
     "ENVIRONMENT",
     "JOINS_CHANNEL_ID",
     "CONTRIBUTE_ID",
     "DEPLOYS_CHANNEL",
     "BASE_URL",
+}
+
+# Reserved variables that should NOT be set (managed in wrangler.toml)
+RESERVED = {
+    "VERSION",
 }
 
 
@@ -95,7 +97,6 @@ def set_secret(key: str, value: str) -> bool:
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
-
 def main():
     # Determine env file path
     if len(sys.argv) > 1:
@@ -117,13 +118,12 @@ def main():
     print(f"{Colors.GREEN}Found {len(env_vars)} variables{Colors.RESET}\n")
 
     secret_count = 0
-    var_count = 0
     skipped = 0
 
-    # Process each variable
+    # Process all variables as secrets
     for key, value in sorted(env_vars.items()):
         if key in SECRETS:
-            # Set as secret
+            # Set as secret on Cloudflare
             sys.stdout.write(f"Setting secret {key}... ")
             sys.stdout.flush()
 
@@ -133,28 +133,21 @@ def main():
             else:
                 print(f"{Colors.RED}✗{Colors.RESET}")
 
-        elif key in VARS:
-            # Note: vars are typically set in wrangler.toml
-            print(f"Found var {key}={value[:30]}...")
-            var_count += 1
-
-        else:
+        elif key not in RESERVED:
             # Unknown variable
             print(f"{Colors.YELLOW}⊘ Skipping unknown variable: {key}{Colors.RESET}")
             skipped += 1
 
     print()
     print(f"{Colors.GREEN}✓ Environment setup complete!{Colors.RESET}")
-    print(f"  • {secret_count} secrets set")
-    print(f"  • {var_count} vars found (update wrangler.toml if needed)")
+    print(f"  • {secret_count} secrets set on Cloudflare")
     if skipped:
         print(f"  • {skipped} variables skipped")
 
     print()
     print("Next steps:")
-    print("  1. Verify secrets were set: wrangler secret list")
-    print("  2. Update wrangler.toml [vars] section if needed")
-    print("  3. Deploy: wrangler deploy")
+    print("  1. Verify secrets: wrangler secret list")
+    print("  2. Deploy: wrangler deploy")
     print()
 
     return 0

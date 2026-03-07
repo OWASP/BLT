@@ -651,9 +651,16 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
                 "body": body,
             },
         )
-        return await resp.json()
-    except Exception:
-        return {"ok": False, "error": "token_exchange_failed"}
+        data = await resp.json()
+        
+        # If Slack returns an error, include details
+        if not data.get("ok"):
+            error_detail = data.get("error", "unknown_error")
+            return {"ok": False, "error": error_detail}
+        
+        return data
+    except Exception as e:
+        return {"ok": False, "error": f"token_exchange_failed: {str(e)}"}
 
 
 async def fetch_user_identity(user_token):
