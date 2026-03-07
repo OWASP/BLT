@@ -661,16 +661,42 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
         
         data = await resp.json()
         
-        # Ensure data is a dict-like object
-        if not hasattr(data, "get"):
-            return {"ok": False, "error": "invalid_response_format"}
+        # Convert JS object to Python dict
+        result = {}
+        try:
+            # Try to iterate over the JS object properties
+            for key in dir(data):
+                if not key.startswith("_"):
+                    try:
+                        val = getattr(data, key)
+                        if not callable(val):
+                            result[key] = val
+                    except Exception:
+                        pass
+        except Exception:
+            # Fallback: try direct property access
+            try:
+                result = {
+                    "ok": data.ok if hasattr(data, "ok") else False,
+                    "error": data.error if hasattr(data, "error") else None,
+                    "access_token": data.access_token if hasattr(data, "access_token") else None,
+                    "token_type": data.token_type if hasattr(data, "token_type") else None,
+                    "scope": data.scope if hasattr(data, "scope") else None,
+                    "bot_user_id": data.bot_user_id if hasattr(data, "bot_user_id") else None,
+                    "app_id": data.app_id if hasattr(data, "app_id") else None,
+                    "team": data.team if hasattr(data, "team") else None,
+                    "authed_user": data.authed_user if hasattr(data, "authed_user") else None,
+                }
+            except Exception:
+                return {"ok": False, "error": "invalid_response_format"}
         
         # If Slack returns an error, include details
-        if not data.get("ok"):
-            error_detail = data.get("error", "unknown_error")
+        ok_status = result.get("ok", False)
+        if not ok_status:
+            error_detail = result.get("error", "unknown_error")
             return {"ok": False, "error": error_detail}
         
-        return data
+        return result
     except Exception as e:
         # Try to get meaningful error info
         error_msg = str(e) if str(e) else type(e).__name__
@@ -820,6 +846,11 @@ async def handle_team_join(env, event, team_id=None):
     if not user_id:
         return {"error": "No user ID in event"}
 
+    # Ignore if the bot is welcoming itself
+    bot_user_id = await get_bot_user_id(env)
+    if user_id == bot_user_id:
+        return {"ok": True, "message": "Ignoring bot's own team_join event"}
+
     # Look up the workspace
     ws = None
     ws_token = getattr(env, "SLACK_TOKEN", None)
@@ -873,6 +904,10 @@ async def handle_message_event(env, event, team_id=None):
     channel = event.get("channel")
     channel_type = event.get("channel_type")
     subtype = event.get("subtype")
+    
+    # Ignore bot messages (check both bot_id field and user field)
+    if event.get("bot_id") or event.get("bot_profile"):
+        return {"ok": True, "message": "Ignoring bot message (bot_id present)"}
 
     # Look up workspace-specific bot token
     ws_token = getattr(env, "SLACK_TOKEN", None)
