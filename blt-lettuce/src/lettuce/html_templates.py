@@ -244,8 +244,11 @@ def get_dashboard_html(
             '        id="scan-btn" '
             '        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 '
             '               text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">'
-            '<i class="fas fa-sync-alt"></i> Scan Channels</button>'
-        )
+            '<i class="fas fa-sync-alt"></i> Scan Channels</button>'            f'<button onclick="sendTestMessage({ws_id_js})" '
+            '        id="test-msg-btn" '
+            '        class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 '
+            '               text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'  
+            '<i class="fas fa-paper-plane"></i> Send Test Message</button>'        )
         workspace_section = _render_template(
             "dashboard_workspace_section.html",
             {

@@ -504,14 +504,81 @@ async def db_get_channels(env, workspace_id):
 
 async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token):
     now = get_utc_now()
-    print(f\"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}\")\n    try:\n        await ensure_d1_schema(env)\n\n        # Ensure required columns are never NULL for inserts/updates.\n        slack_user_id = slack_user_id or \"\"\n        team_id = team_id or \"unknown\"\n        name = name or \"\"\n        email = email or \"\"\n        access_token = access_token or \"\"\n\n        if not slack_user_id:\n            print(f\"[db_get_or_create_user] ERROR: slack_user_id is empty, returning None\")\n            return None\n\n        existing = _row(\n            await env.DB.prepare(\"SELECT * FROM users WHERE slack_user_id = ?\")\n            .bind(slack_user_id)\n            .first()\n        )\n        if existing:\n            print(f\"[db_get_or_create_user] User exists, updating...\")\n            result = await (\n                env.DB.prepare(\n                    \"UPDATE users SET name=?, email=?, access_token=?, team_id=?, updated_at=? \"\n                    \"WHERE slack_user_id=?\"\n                )\n                .bind(name, email, access_token, team_id, now, slack_user_id)\n                .run()\n            )\n            print(f\"[db_get_or_create_user] Update result: {result}\")\n        else:\n            print(f\"[db_get_or_create_user] Creating new user...\")\n            result = await (\n                env.DB.prepare(\n                    \"INSERT INTO users \"\n                    \"(slack_user_id, team_id, name, email, access_token, created_at, updated_at) \"\n                    \"VALUES (?, ?, ?, ?, ?, ?, ?)\"\n                )\n                .bind(slack_user_id, team_id, name, email, access_token, now, now)\n                .run()\n            )\n            print(f\"[db_get_or_create_user] Insert result: {result}\")\n        user = _row(\n            await env.DB.prepare(\"SELECT * FROM users WHERE slack_user_id = ?\")\n            .bind(slack_user_id)\n            .first()\n        )\n        print(f\"[db_get_or_create_user] Retrieved user: {user}\")\n        return user\n    except Exception as e:\n        print(f\"[db_get_or_create_user] ERROR: {e}\")\n        capture_exception_to_sentry(env, e, {\"slack_user_id\": slack_user_id})\n        return None
+    print(f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}")
+    try:
+        await ensure_d1_schema(env)
+
+        # Ensure required columns are never NULL for inserts/updates.
+        slack_user_id = slack_user_id or ""
+        team_id = team_id or "unknown"
+        name = name or ""
+        email = email or ""
+        access_token = access_token or ""
+
+        if not slack_user_id:
+            print(f"[db_get_or_create_user] ERROR: slack_user_id is empty, returning None")
+            return None
+
+        existing = _row(
+            await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
+            .bind(slack_user_id)
+            .first()
+        )
+        if existing:
+            print(f"[db_get_or_create_user] User exists, updating...")
+            result = await (
+                env.DB.prepare(
+                    "UPDATE users SET name=?, email=?, access_token=?, team_id=?, updated_at=? "
+                    "WHERE slack_user_id=?"
+                )
+                .bind(name, email, access_token, team_id, now, slack_user_id)
+                .run()
+            )
+            print(f"[db_get_or_create_user] Update result: {result}")
+        else:
+            print(f"[db_get_or_create_user] Creating new user...")
+            result = await (
+                env.DB.prepare(
+                    "INSERT INTO users "
+                    "(slack_user_id, team_id, name, email, access_token, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                )
+                .bind(slack_user_id, team_id, name, email, access_token, now, now)
+                .run()
+            )
+            print(f"[db_get_or_create_user] Insert result: {result}")
+        user = _row(
+            await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
+            .bind(slack_user_id)
+            .first()
+        )
+        print(f"[db_get_or_create_user] Retrieved user: {user}")
+        return user
+    except Exception as e:
+        print(f"[db_get_or_create_user] ERROR: {e}")
+        capture_exception_to_sentry(env, e, {"slack_user_id": slack_user_id})
+        return None
 
 
 async def db_create_session(env, user_id, token):
     now = get_utc_now()
     expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-    print(f\"[db_create_session] Creating session for user_id={user_id}\")\n    try:\n        await ensure_d1_schema(env)
-        result = await (\n            env.DB.prepare(\n                \"INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)\"\n            )\n            .bind(token, user_id, now, expires)\n            .run()\n        )\n        print(f\"[db_create_session] Session created successfully, result: {result}\")\n        return True\n    except Exception as e:\n        print(f\"[db_create_session] ERROR: {e}\")\n        capture_exception_to_sentry(env, e, {\"user_id\": user_id})\n        return False
+    print(f"[db_create_session] Creating session for user_id={user_id}")
+    try:
+        await ensure_d1_schema(env)
+        result = await (
+            env.DB.prepare(
+                "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
+            )
+            .bind(token, user_id, now, expires)
+            .run()
+        )
+        print(f"[db_create_session] Session created successfully, result: {result}")
+        return True
+    except Exception as e:
+        print(f"[db_create_session] ERROR: {e}")
+        capture_exception_to_sentry(env, e, {"user_id": user_id})
+        return False
 
 
 async def db_get_session(env, token):
@@ -1630,6 +1697,71 @@ async def handle_request(request, env):
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
         return Response.json({"ok": True, "channels_scanned": scanned})
+
+    # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/test-message  →  send test DM to workspace owner#
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/test-message")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+
+        # Send test DM to the user
+        user_slack_id = user.get("slack_user_id")
+        if not user_slack_id:
+            return _json_response({"ok": False, "error": "User Slack ID not found"}, 400)
+
+        # Open DM conversation
+        conv_result = await open_conversation(env, user_slack_id, ws.get("access_token"))
+        if not conv_result.get("ok"):
+            return _json_response(
+                {"ok": False, "error": f"Failed to open conversation: {conv_result.get('error', 'unknown')}"}, 500
+            )
+
+        channel_id = conv_result.get("channel", {}).get("id") if isinstance(conv_result.get("channel"), dict) else conv_result.get("channel")
+        if not channel_id:
+            return _json_response({"ok": False, "error": "Could not retrieve DM channel ID"}, 500)
+
+        # Get DB stats
+        counts = await get_db_table_counts(env)
+        stats_text = _format_db_stats_for_slack(counts)
+
+        # Send test message
+        test_message = (
+            f":wave: *Test Message from BLT Lettuce Bot!*\n\n"
+            f"This is a test message from your workspace *{html_escape(ws.get('team_name', 'Unknown'))}*.\n\n"
+            f"{stats_text}\n\n"
+            f":white_check_mark: Your bot is working correctly!"
+        )
+
+        send_result = await send_slack_message(
+            env,
+            channel_id,
+            test_message,
+            token=ws.get("access_token")
+        )
+
+        if send_result.get("ok"):
+            return Response.json({"ok": True, "message": "Test message sent successfully"})
+        else:
+            return _json_response(
+                {"ok": False, "error": f"Failed to send message: {send_result.get('error', 'unknown')}"}, 500
+            )
 
     # ------------------------------------------------------------------ #
     #  GET  /api/ws/<id>/repos  →  list repos                            #

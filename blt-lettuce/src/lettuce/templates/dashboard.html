@@ -153,6 +153,30 @@ async function scanChannels(wsId) {
   }
 }
 
+async function sendTestMessage(wsId) {
+  const btn = document.getElementById('test-msg-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Sending...';
+  }
+  try {
+    const r = await fetch(`/api/ws/${wsId}/test-message`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      alert('Test message sent! Check your Slack DMs.');
+    } else {
+      alert('Failed to send: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Test Message';
+    }
+  }
+}
+
 async function addRepo(e) {
   e.preventDefault();
   const url = document.getElementById('repo-url').value.trim();
