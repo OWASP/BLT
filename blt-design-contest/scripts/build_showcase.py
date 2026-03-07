@@ -119,9 +119,11 @@ def github_request(path: str) -> list | dict:
       with urllib.request.urlopen(req) as resp:
         data = json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
-      print(f"GitHub API error {exc.code} for {paged_url}: {exc.reason}",
-          file=sys.stderr)
-      break
+      error_msg = (
+          f"GitHub API error {exc.code} for {paged_url}: {exc.reason}"
+      )
+      print(f"ERROR: {error_msg}", file=sys.stderr)
+      sys.exit(1)
     if isinstance(data, list):
       results.extend(data)
       if len(data) < 100:
@@ -837,14 +839,54 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                     f'</a>'
                 )
             else:
-                preview_block = (
-                  f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                  f'   aria-label="Preview: {item["title"]}" '
-                  f'   class="flex items-center justify-center aspect-video '
-                  f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
-                  f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
-                  f'</a>'
-                )
+                # Build the latest submissions across contests by submitted time.
+                # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
+                heap = []  # min-heap of (submitted_dt, entry_dict) tuples
+                for d in contests_data:
+                  c = d["config"]
+                  cid = c["id"]
+                  contest_name = html.escape(c["name"])
+                  contest_url = html.escape(f"{cid}.html")
+                  title_prefix = c.get("title_prefix", "")
+
+                  for issue in d.get("issues", []):
+                    created_at = issue.get("created_at", "")
+                    if not created_at:
+                      continue
+                    try:
+                      submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                    except ValueError:
+                      continue
+
+                    raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+                    if title_prefix and raw_title.startswith(title_prefix):
+                      raw_title = raw_title[len(title_prefix):].strip()
+
+                    body = issue.get("body", "") or ""
+                    fields = parse_issue_body(body)
+                    preview_url = html.escape(extract_preview_url(fields, body))
+                    issue_url = html.escape(issue.get("html_url", "#"))
+
+                    entry = {
+                      "contest_name": contest_name,
+                      "contest_url": contest_url,
+                      "title": html.escape(raw_title or "Untitled submission"),
+                      "issue_url": issue_url,
+                      "preview_url": preview_url,
+                      "submitted_iso": html.escape(created_at),
+                      "submitted_fallback": html.escape(created_at[:10]),
+                      "submitted_dt": submitted_dt,
+                    }
+
+                    # Maintain a heap of the 3 most recent entries
+                    if len(heap) < 3:
+                      heapq.heappush(heap, (submitted_dt, entry))
+                    elif submitted_dt > heap[0][0]:
+                      heapq.heapreplace(heap, (submitted_dt, entry))
+
+                # Extract the 3 entries and sort them in descending order
+                latest_three = sorted(heap, reverse=True)
+                latest_three = [entry for _, entry in latest_three]
 
             recent_cards_html += f"""
         <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
