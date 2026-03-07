@@ -15,12 +15,6 @@ binding = "DB"
 database_name = "blt-lettuce"
 database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
 
-# KV Namespace for legacy stats (kept for backward compatibility)
-# To create: wrangler kv:namespace create "STATS_KV"
-# [[kv_namespaces]]
-# binding = "STATS_KV"
-# id = "placeholder-replace-with-actual-id"
-
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
 #   wrangler secret put SLACK_TOKEN        # Slack Bot User OAuth Token (xoxb-...)

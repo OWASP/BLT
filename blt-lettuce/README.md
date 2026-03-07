@@ -228,24 +228,18 @@ Stats are workspace-specific and use optimistic locking to handle concurrent upd
    wrangler login
    ```
 
-3. **Create KV namespace**
-   ```bash
-   wrangler kv:namespace create "STATS_KV"
-   # Copy the namespace ID and update it in wrangler.toml
-   ```
-
-4. **Set up secrets**
+3. **Set up secrets**
    ```bash
    wrangler secret put SLACK_TOKEN       # Your Bot User OAuth Token
    wrangler secret put SIGNING_SECRET    # Your Signing Secret
    ```
 
-5. **Deploy the worker**
+4. **Deploy the worker**
    ```bash
    wrangler deploy
    ```
 
-6. **Configure Slack App**
+5. **Configure Slack App**
    - Use the `manifest.yaml` to create or update your Slack app
    - Or manually configure Event Subscriptions URL: `https://your-worker.workers.dev/webhook`
    - Subscribe to events: `team_join`, `message.channels`, `message.im`, `app_mention`
