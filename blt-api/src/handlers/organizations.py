@@ -56,7 +56,7 @@ async def handle_organizations(
                 LIMIT ? OFFSET ?
             ''').bind(org_id_int, per_page, (page - 1) * per_page).all()
             
-            domains = convert_d1_results(result)
+            domains = convert_d1_results(result.results if hasattr(result, 'results') else [])
             
             # Get total count
             count_result = await db.prepare('''
@@ -82,7 +82,7 @@ async def handle_organizations(
                 LIMIT ? OFFSET ?
             ''').bind(org_id_int, per_page, (page - 1) * per_page).all()
             
-            bugs = convert_d1_results(result)
+            bugs = convert_d1_results(result.results if hasattr(result, 'results') else [])
             
             # Get total count
             count_result = await db.prepare('''
@@ -108,7 +108,7 @@ async def handle_organizations(
                 ORDER BY om.created DESC
             ''').bind(org_id_int).all()
             
-            managers = convert_d1_results(result)
+            managers = convert_d1_results(result.results if hasattr(result, 'results') else [])
             
             return Response.json({
                 "success": True,
@@ -126,7 +126,7 @@ async def handle_organizations(
                 ORDER BY t.name ASC
             ''').bind(org_id_int).all()
             
-            tags = convert_d1_results(result)
+            tags = convert_d1_results(result.results if hasattr(result, 'results') else [])
             
             return Response.json({
                 "success": True,
@@ -144,7 +144,7 @@ async def handle_organizations(
                 ORDER BY integration_type ASC
             ''').bind(org_id_int).all()
             
-            integrations = convert_d1_results(result)
+            integrations = convert_d1_results(result.results if hasattr(result, 'results') else [])
             
             return Response.json({
                 "success": True,
@@ -207,7 +207,7 @@ async def handle_organizations(
         if not org_result:
             return error_response("Organization not found", status=404)
         
-        org = dict(org_result)
+        org = org_result.to_py() if hasattr(org_result, 'to_py') else dict(org_result)
         
         # Optionally include related data if requested
         include_related = query_params.get("include", "").split(",")
@@ -219,7 +219,7 @@ async def handle_organizations(
                 JOIN users u ON om.user_id = u.id
                 WHERE om.organization_id = ?
             ''').bind(org_id_int).all()
-            org["managers"] = convert_d1_results(managers_result)
+            org["managers"] = convert_d1_results(managers_result.results if hasattr(managers_result, 'results') else [])
         
         if "tags" in include_related:
             tags_result = await db.prepare('''
@@ -228,7 +228,7 @@ async def handle_organizations(
                 JOIN tags t ON ot.tag_id = t.id
                 WHERE ot.organization_id = ?
             ''').bind(org_id_int).all()
-            org["tags"] = convert_d1_results(tags_result)
+            org["tags"] = convert_d1_results(tags_result.results if hasattr(tags_result, 'results') else [])
         
         if "stats" in include_related:
             domain_count_result = await db.prepare('''
@@ -282,7 +282,7 @@ async def handle_organizations(
     bind_params.extend([per_page, (page - 1) * per_page])
     
     result = await db.prepare(query).bind(*bind_params).all()
-    organizations = convert_d1_results(result)
+    organizations = convert_d1_results(result.results if hasattr(result, 'results') else [])
     
     # Get total count
     count_query = f'''
