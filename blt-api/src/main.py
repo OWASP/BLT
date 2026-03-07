@@ -73,8 +73,12 @@ router.add_route("GET", "/domains/{id}/tags", handle_domains)
 # Organizations API
 router.add_route("GET", "/organizations", handle_organizations)
 router.add_route("GET", "/organizations/{id}", handle_organizations)
-router.add_route("GET", "/organizations/{id}/repos", handle_organizations)
-router.add_route("GET", "/organizations/{id}/projects", handle_organizations)
+router.add_route("GET", "/organizations/{id}/domains", handle_organizations)
+router.add_route("GET", "/organizations/{id}/bugs", handle_organizations)
+router.add_route("GET", "/organizations/{id}/managers", handle_organizations)
+router.add_route("GET", "/organizations/{id}/tags", handle_organizations)
+router.add_route("GET", "/organizations/{id}/integrations", handle_organizations)
+router.add_route("GET", "/organizations/{id}/stats", handle_organizations)
 
 # Projects API
 router.add_route("GET", "/projects", handle_projects)
