@@ -76,7 +76,35 @@ layout: default
         </div>
 
         <aside class="lg:col-span-4 space-y-6">
-            
+
+            {% if page.instructor %}
+            {% assign course_instructor = site.instructors | where: "title", page.instructor | first %}
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
+                <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
+                </h3>
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 overflow-hidden shrink-0 bg-gray-100 flex items-center justify-center">
+                        {% if course_instructor and course_instructor.avatar %}
+                        <img src="{{ course_instructor.avatar | relative_url }}" alt="{{ page.instructor }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if course_instructor %}
+                        <a href="{{ course_instructor.url | relative_url }}" class="font-bold text-gray-900 hover:text-bltRed transition-colors">{{ page.instructor }}</a>
+                        {% else %}
+                        <span class="font-bold text-gray-900">{{ page.instructor }}</span>
+                        {% endif %}
+                        {% if course_instructor and course_instructor.expertise %}
+                        <p class="text-xs text-gray-500 mt-0.5">{{ course_instructor.expertise }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
                 <h3 class="text-xl font-bold text-gray-900 mb-6">Enroll Now</h3>
