@@ -1,9 +1,9 @@
 {
   "participantCount": 149,
-  "totalPRs": 2149,
-  "mergedPRs": 1367,
-  "totalIssues": 642,
-  "repositories": 53,
+  "totalPRs": 2154,
+  "mergedPRs": 1368,
+  "totalIssues": 637,
+  "repositories": 52,
   "topContributors": [
     {
       "username": "Nachiket-Roy",
@@ -15,7 +15,7 @@
       "username": "mdkaifansari04",
       "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "url": "https://github.com/mdkaifansari04",
-      "mergedCount": 49
+      "mergedCount": 51
     },
     {
       "username": "Pritz395",
