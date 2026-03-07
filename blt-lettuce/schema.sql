@@ -4,6 +4,9 @@
 
 -- Users authenticated via "Sign in with Slack"
 -- A single user can manage multiple workspaces
+-- SECURITY NOTE: access_token stores the Slack user OAuth token. Consider
+-- encrypting at-rest using a Worker secret key if your threat model requires
+-- it. Restrict D1 read access to the Worker service binding only.
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slack_user_id TEXT UNIQUE NOT NULL,
@@ -25,6 +28,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 -- Slack workspaces that have had the bot installed
+-- SECURITY NOTE: access_token stores the bot OAuth token in plaintext.
+-- A compromised D1 read would allow full bot impersonation for that workspace.
+-- Restrict D1 access to the Worker service binding and apply least-privilege
+-- IAM policies. Consider application-layer encryption for high-security
+-- deployments.
 CREATE TABLE IF NOT EXISTS workspaces (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     team_id TEXT UNIQUE NOT NULL,

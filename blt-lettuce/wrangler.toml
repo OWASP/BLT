@@ -27,7 +27,9 @@ database_id = "placeholder-replace-with-actual-id"
 #   wrangler secret put SIGNING_SECRET     # Slack App Signing Secret
 #   wrangler secret put SLACK_CLIENT_ID    # Slack OAuth App Client ID
 #   wrangler secret put SLACK_CLIENT_SECRET # Slack OAuth App Client Secret
-#   wrangler secret put SESSION_SECRET     # Random string used to sign session tokens
+#
+# Note: The D1 binding name used in code is "DB" (env.DB). The database is
+#       named "BLT_DB" in Cloudflare but accessed via the binding name "DB".
 #
 # Optional secrets (for custom channel IDs):
 #   wrangler secret put JOINS_CHANNEL_ID   # Channel ID where join notifications are posted

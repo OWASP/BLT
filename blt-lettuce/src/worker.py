@@ -12,7 +12,7 @@ import hmac
 import json
 import secrets
 from datetime import datetime, timedelta, timezone
-from urllib.parse import unquote_plus, urlparse
+from urllib.parse import unquote_plus, urlencode, urlparse
 
 from js import Headers, Response, fetch
 
@@ -27,6 +27,33 @@ DEFAULT_CONTRIBUTE_ID = None
 def get_utc_now():
     """Return current UTC time as an ISO-8601 string."""
     return datetime.now(timezone.utc).isoformat()
+
+
+def html_escape(text):
+    """Escape HTML special characters to prevent XSS."""
+    return (
+        str(text)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
+
+
+def _make_oauth_state(intent):
+    """Generate a random CSRF state token with the intent embedded as a prefix."""
+    return f"{intent}:{secrets.token_hex(16)}"
+
+
+def _verify_oauth_state(stored_state, received_state):
+    """Validate the OAuth CSRF state and return the intent, or None on failure."""
+    if not stored_state or not received_state:
+        return None
+    if not hmac.compare_digest(stored_state, received_state):
+        return None
+    parts = stored_state.split(":", 1)
+    return parts[0] if len(parts) == 2 else None
 
 
 def _row(result):
@@ -627,8 +654,7 @@ def get_slack_sign_in_url(client_id, redirect_uri, state="signin"):
 def get_slack_add_workspace_url(client_id, redirect_uri, state="add_workspace"):
     """OAuth URL for installing the bot into a workspace."""
     bot_scopes = (
-        "channels:read,chat:write,users:read,team:read,"
-        "im:write,im:read,im:history"
+        "channels:read,chat:write,users:read,team:read," "im:write,im:read,im:history"
     )
     return (
         "https://slack.com/oauth/v2/authorize"
@@ -642,9 +668,13 @@ def get_slack_add_workspace_url(client_id, redirect_uri, state="add_workspace"):
 
 async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
     try:
-        body = (
-            f"client_id={client_id}&client_secret={client_secret}"
-            f"&code={code}&redirect_uri={redirect_uri}"
+        body = urlencode(
+            {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "code": code,
+                "redirect_uri": redirect_uri,
+            }
         )
         resp = await fetch(
             "https://slack.com/api/oauth.v2.access",
@@ -798,22 +828,26 @@ async def handle_team_join(env, event, team_id=None):
 
     await increment_joins(env)
 
-    # Log to D1 if we have a workspace
+    # Look up the workspace to get its specific bot token and D1 id
+    ws = None
+    ws_token = getattr(env, "SLACK_TOKEN", None)
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
         if ws:
             await db_log_event(env, ws["id"], "Team_Join", user_id, "success")
+            if ws.get("access_token"):
+                ws_token = ws["access_token"]
 
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
     if joins_channel:
         try:
             await send_slack_message(
-                env, joins_channel, f"<@{user_id}> joined the team."
+                env, joins_channel, f"<@{user_id}> joined the team.", token=ws_token
             )
         except Exception:
             pass
 
-    dm_response = await open_conversation(env, user_id)
+    dm_response = await open_conversation(env, user_id, token=ws_token)
     if not dm_response.get("ok"):
         return {"error": f"Failed to open DM: {dm_response.get('error')}"}
 
@@ -823,14 +857,12 @@ async def handle_team_join(env, event, team_id=None):
 
     # Build suggested channels from D1 if available
     channel_suggestions = ""
-    if team_id:
-        ws = await db_get_workspace_by_team(env, team_id)
-        if ws:
-            top_channels = await db_get_channels(env, ws["id"])
-            top5 = [c for c in top_channels[:5] if c.get("channel_name")]
-            if top5:
-                names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
-                channel_suggestions = f"\n\n:bar_chart: *Most Active Channels:* {names}"
+    if ws:
+        top_channels = await db_get_channels(env, ws["id"])
+        top5 = [c for c in top_channels[:5] if c.get("channel_name")]
+        if top5:
+            names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
+            channel_suggestions = f"\n\n:bar_chart: *Most Active Channels:* {names}"
 
     welcome_text = WELCOME_MESSAGE.format(user_id=user_id) + channel_suggestions
     blocks = [
@@ -838,17 +870,24 @@ async def handle_team_join(env, event, team_id=None):
     ]
 
     result = await send_slack_message(
-        env, dm_channel, "Welcome to the OWASP Slack Community!", blocks
+        env, dm_channel, "Welcome to the OWASP Slack Community!", blocks, token=ws_token
     )
     return {"ok": result.get("ok"), "user_id": user_id}
 
 
-async def handle_message_event(env, event):
+async def handle_message_event(env, event, team_id=None):
     message_text = event.get("text", "").lower()
     user = event.get("user")
     channel = event.get("channel")
     channel_type = event.get("channel_type")
     subtype = event.get("subtype")
+
+    # Look up workspace-specific bot token
+    ws_token = getattr(env, "SLACK_TOKEN", None)
+    if team_id:
+        ws = await db_get_workspace_by_team(env, team_id)
+        if ws and ws.get("access_token"):
+            ws_token = ws["access_token"]
 
     bot_user_id = await get_bot_user_id(env)
     if user == bot_user_id:
@@ -868,19 +907,23 @@ async def handle_message_event(env, event):
             f"Hello <@{user}>! Please check this channel "
             f"<#{contribute_id}> for contributing guidelines today!"
         )
-        result = await send_slack_message(env, channel, text)
+        result = await send_slack_message(env, channel, text, token=ws_token)
         return {"ok": result.get("ok"), "action": "contribute_response"}
 
     if channel_type == "im":
         if joins_channel:
             try:
                 await send_slack_message(
-                    env, joins_channel, f"<@{user}> said {message_text}"
+                    env, joins_channel, f"<@{user}> said {message_text}", token=ws_token
                 )
             except Exception:
                 pass
+        # Use the event's channel ID (the DM channel), not the user ID
         result = await send_slack_message(
-            env, user, f"Hello <@{user}>, you said: {event.get('text', '')}"
+            env,
+            channel,
+            f"Hello <@{user}>, you said: {event.get('text', '')}",
+            token=ws_token,
         )
         return {"ok": result.get("ok"), "action": "dm_response"}
 
@@ -929,38 +972,12 @@ def verify_slack_signature(signing_secret, timestamp, body, signature):
 # HTML helpers
 # ===========================================================================
 
-_NON_PAGE_PATHS = frozenset(
-    [
-        "webhook",
-        "stats",
-        "health",
-        "login",
-        "callback",
-        "logout",
-        "dashboard",
-        "api",
-    ]
-)
-
 
 def is_homepage_request(url, method):
     if method != "GET":
         return False
-    path = url.split("?")[0]
-    last = path.rstrip("/").split("/")[-1] if path.rstrip("/") else ""
-    return (
-        (
-            path.endswith("/")
-            or last == ""
-            or "/index" in path
-            or ("." not in last and last not in _NON_PAGE_PATHS)
-        )
-        and "/api/" not in path
-        and "/dashboard" not in path
-        and "/login" not in path
-        and "/callback" not in path
-        and "/logout" not in path
-    )
+    pathname = urlparse(url).path.rstrip("/") or "/"
+    return pathname in ("/", "/index")
 
 
 def _html_response(html, status=200, extra_headers=None):
@@ -990,7 +1007,7 @@ def _redirect(location, extra_headers=None):
 def get_login_page_html(sign_in_url, error=None):
     err_block = (
         f'<div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg '
-        f'text-sm text-red-700">{error}</div>'
+        f'text-sm text-red-700">{html_escape(error)}</div>'
         if error
         else ""
     )
@@ -1044,9 +1061,9 @@ def get_login_page_html(sign_in_url, error=None):
 def get_dashboard_html(
     user, workspaces, current_ws, ws_stats, channels, events, daily_stats, repos
 ):
-    user_name = (user or {}).get("name") or "User"
+    user_name = html_escape((user or {}).get("name") or "User")
     ws_id = (current_ws or {}).get("id", "")
-    ws_name = (current_ws or {}).get("team_name", "No workspace selected")
+    ws_name = html_escape((current_ws or {}).get("team_name", "No workspace selected"))
     ws_count = len(workspaces)
 
     # ---- workspace selector tabs ----
@@ -1061,7 +1078,7 @@ def get_dashboard_html(
             f'<a href="/dashboard?ws={ws["id"]}" '
             f'class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium {active} transition-colors">'
             f'<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>'
-            f'{ws["team_name"]}</a>'
+            f'{html_escape(ws["team_name"])}</a>'
         )
 
     # ---- stats cards ----
@@ -1077,7 +1094,7 @@ def get_dashboard_html(
     for ch in channels[:10]:
         channels_html += (
             f'<div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">'
-            f'<span class="text-sm font-medium text-gray-800">#{ch.get("channel_name","")}</span>'
+            f'<span class="text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name",""))}</span>'
             f'<span class="text-xs text-gray-400">{ch.get("member_count",0):,} members</span>'
             f'</div>'
         )
@@ -1093,11 +1110,11 @@ def get_dashboard_html(
             else '<span class="inline-block w-2 h-2 rounded-full bg-red-400 mr-1"></span>'
         )
         status_label = "Success" if ev.get("status") == "success" else "Failed"
-        ev_time = ev.get("created_at", "")[:16].replace("T", " ")
-        ws_int_id = ev.get("workspace_id", "")
+        ev_time = html_escape(ev.get("created_at", "")[:16].replace("T", " "))
+        ws_int_id = int(ev.get("workspace_id") or 0)
         events_html += (
             f'<tr class="border-b border-gray-100 hover:bg-gray-50">'
-            f'<td class="py-3 px-4 text-sm text-gray-700">{ev.get("event_type","")}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-700">{html_escape(ev.get("event_type",""))}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500">{ev_time}</td>'
             f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ws_int_id}</td>'
@@ -1112,14 +1129,18 @@ def get_dashboard_html(
     # ---- repos list ----
     repos_html = ""
     for repo in repos:
+        safe_url = html_escape(repo.get("repo_url", "#"))
+        safe_name = html_escape(repo.get("repo_name") or repo.get("repo_url", ""))
+        safe_lang = html_escape(repo.get("language", ""))
+        stars_text = f"  ⭐ {repo.get('stars','')}" if repo.get("stars") else ""
         repos_html += (
             f'<div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 group">'
             f'<div>'
-            f'<a href="{repo.get("repo_url","#")}" target="_blank" '
+            f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
             f'   class="text-sm font-medium text-red-600 hover:underline">'
-            f'{repo.get("repo_name") or repo.get("repo_url","")}</a>'
-            f'<p class="text-xs text-gray-400">{repo.get("language","")}'
-            f'{"  ⭐ " + str(repo.get("stars","")) if repo.get("stars") else ""}</p>'
+            f'{safe_name}</a>'
+            f'<p class="text-xs text-gray-400">{safe_lang}'
+            f'{html_escape(stars_text)}</p>'
             f'</div>'
             f'<button onclick="deleteRepo({repo.get("id","")}, {ws_id})" '
             f'        class="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">'
@@ -1783,15 +1804,9 @@ async def on_fetch(request, env):
     url = request.url
     method = request.method
 
-    # Parse path from URL
-    path = url.split("?")[0]
-    path_parts = path.split("/")
-    # last meaningful segment
-    path_end = (
-        path_parts[-1]
-        if path_parts[-1]
-        else (path_parts[-2] if len(path_parts) > 1 else "")
-    )
+    # Parse the URL into its components for exact, safe routing
+    _parsed = urlparse(url)
+    pathname = _parsed.path.rstrip("/") or "/"  # e.g., "/login", "/api/ws/3/scan"
 
     # ---- CORS preflight ----
     if method == "OPTIONS":
@@ -1804,7 +1819,7 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /login  →  redirect to Slack OAuth (sign-in, identity only)   #
     # ------------------------------------------------------------------ #
-    if "/login" in path and method == "GET":
+    if pathname == "/login" and method == "GET":
         client_id = getattr(env, "SLACK_CLIENT_ID", None)
         if not client_id:
             return _html_response(
@@ -1813,13 +1828,21 @@ async def on_fetch(request, env):
             )
         base = get_base_url(env, request)
         redirect_uri = f"{base}/callback"
-        sign_in_url = get_slack_sign_in_url(client_id, redirect_uri, state="signin")
-        return _html_response(get_login_page_html(sign_in_url))
+        state_token = _make_oauth_state("signin")
+        sign_in_url = get_slack_sign_in_url(client_id, redirect_uri, state=state_token)
+        oauth_cookie = (
+            f"oauth_state={state_token}; HttpOnly; Secure; SameSite=Lax; "
+            "Max-Age=600; Path=/"
+        )
+        return _html_response(
+            get_login_page_html(sign_in_url),
+            extra_headers={"Set-Cookie": oauth_cookie},
+        )
 
     # ------------------------------------------------------------------ #
     #  GET /callback  →  OAuth callback (handles both sign-in & add-ws)  #
     # ------------------------------------------------------------------ #
-    if "/callback" in path and method == "GET":
+    if pathname == "/callback" and method == "GET":
         qs = url.split("?", 1)[1] if "?" in url else ""
         params = {}
         for part in qs.split("&"):
@@ -1831,8 +1854,12 @@ async def on_fetch(request, env):
                     params[kv[0]] = kv[1]
 
         code = params.get("code")
-        state = params.get("state", "")
+        received_state = params.get("state", "")
         error = params.get("error")
+
+        # Validate CSRF state before processing
+        stored_state = parse_cookies(request).get("oauth_state", "")
+        intent = _verify_oauth_state(stored_state, received_state)
 
         if error or not code:
             base = get_base_url(env, request)
@@ -1841,6 +1868,20 @@ async def on_fetch(request, env):
             return _html_response(
                 get_login_page_html(
                     sign_in_url, error=f"OAuth error: {error or 'missing code'}"
+                ),
+            )
+
+        # Reject if CSRF state is invalid (missing or tampered)
+        if intent is None:
+            base = get_base_url(env, request)
+            client_id_csrf = getattr(env, "SLACK_CLIENT_ID", None)
+            sign_in_url = get_slack_sign_in_url(
+                client_id_csrf or "", f"{base}/callback"
+            )
+            return _html_response(
+                get_login_page_html(
+                    sign_in_url,
+                    error="Invalid OAuth state. Please try signing in again.",
                 ),
             )
 
@@ -1862,7 +1903,7 @@ async def on_fetch(request, env):
                 ),
             )
 
-        # ---- Identify the authorising user ----
+        # ---- Identify the authorizing user ----
         authed_user = token_data.get("authed_user") or {}
         user_token = authed_user.get("access_token")
         user_slack_id = authed_user.get("id")
@@ -1903,7 +1944,7 @@ async def on_fetch(request, env):
             )
 
         # ---- If this was an "add workspace" flow, install the bot ----
-        if state == "add_workspace":
+        if intent == "add_workspace":
             bot_token = token_data.get("access_token")
             team_info = token_data.get("team") or {}
             team_id = team_info.get("id", "")
@@ -1926,18 +1967,35 @@ async def on_fetch(request, env):
 
         # ---- Create session ----
         token = generate_session_token()
-        await db_create_session(env, user["id"], token)
+        session_ok = await db_create_session(env, user["id"], token)
+        if not session_ok:
+            sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+            return _html_response(
+                get_login_page_html(
+                    sign_in_url,
+                    error="Could not create a session. Please try again.",
+                ),
+            )
 
-        cookie = (
+        # Clear the oauth_state cookie and set the session cookie
+        session_cookie = (
             f"session_id={token}; HttpOnly; Secure; SameSite=Lax; "
             "Max-Age=2592000; Path=/"
         )
-        return _redirect("/dashboard", extra_headers={"Set-Cookie": cookie})
+        clear_oauth_cookie = (
+            "oauth_state=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/"
+        )
+        # Set both cookies in the redirect using append (Workers support multiple Set-Cookie)
+        resp_h = Headers.new()
+        resp_h.set("Location", "/dashboard")
+        resp_h.append("Set-Cookie", session_cookie)
+        resp_h.append("Set-Cookie", clear_oauth_cookie)
+        return Response.new("", {"status": 302, "headers": resp_h})
 
     # ------------------------------------------------------------------ #
     #  GET /logout                                                        #
     # ------------------------------------------------------------------ #
-    if "/logout" in path and method == "GET":
+    if pathname == "/logout" and method == "GET":
         cookies = parse_cookies(request)
         session_id = cookies.get("session_id")
         if session_id:
@@ -1948,7 +2006,7 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /workspace/add  →  redirect to Slack OAuth (bot installation) #
     # ------------------------------------------------------------------ #
-    if "/workspace/add" in path and method == "GET":
+    if pathname == "/workspace/add" and method == "GET":
         user = await get_current_user(env, request)
         if not user:
             return _redirect("/login")
@@ -1957,15 +2015,23 @@ async def on_fetch(request, env):
             return _redirect("/dashboard")
         base = get_base_url(env, request)
         redirect_uri = f"{base}/callback"
+        state_token = _make_oauth_state("add_workspace")
         add_ws_url = get_slack_add_workspace_url(
-            client_id, redirect_uri, state="add_workspace"
+            client_id, redirect_uri, state=state_token
         )
-        return _redirect(add_ws_url)
+        oauth_cookie = (
+            f"oauth_state={state_token}; HttpOnly; Secure; SameSite=Lax; "
+            "Max-Age=600; Path=/"
+        )
+        resp_h = Headers.new()
+        resp_h.set("Location", add_ws_url)
+        resp_h.append("Set-Cookie", oauth_cookie)
+        return Response.new("", {"status": 302, "headers": resp_h})
 
     # ------------------------------------------------------------------ #
     #  GET /dashboard  →  live stats dashboard (requires auth)           #
     # ------------------------------------------------------------------ #
-    if "/dashboard" in path and method == "GET":
+    if pathname == "/dashboard" and method == "GET":
         user = await get_current_user(env, request)
         if not user:
             return _redirect("/login")
@@ -2017,14 +2083,18 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/scan  →  trigger channel scan for a workspace   #
     # ------------------------------------------------------------------ #
-    if "/api/ws/" in path and "/scan" in path and method == "POST":
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/scan")
+        and method == "POST"
+    ):
         user = await get_current_user(env, request)
         if not user:
             return Response.json(
                 {"ok": False, "error": "Unauthorized"}, {"status": 401}
             )
         try:
-            ws_id_val = int(path.split("/api/ws/")[1].split("/")[0])
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return Response.json(
                 {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
@@ -2046,14 +2116,14 @@ async def on_fetch(request, env):
     #  GET  /api/ws/<id>/repos  →  list repos                            #
     #  POST /api/ws/<id>/repos  →  add repo                              #
     # ------------------------------------------------------------------ #
-    if "/api/ws/" in path and "/repos" in path and "/repos/" not in path:
+    if pathname.startswith("/api/ws/") and pathname.endswith("/repos"):
         user = await get_current_user(env, request)
         if not user:
             return Response.json(
                 {"ok": False, "error": "Unauthorized"}, {"status": 401}
             )
         try:
-            ws_id_val = int(path.split("/api/ws/")[1].split("/")[0])
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return Response.json(
                 {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
@@ -2114,14 +2184,14 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  DELETE /api/ws/<ws_id>/repos/<repo_id>  →  remove a repo         #
     # ------------------------------------------------------------------ #
-    if "/api/ws/" in path and "/repos/" in path and method == "DELETE":
+    if pathname.startswith("/api/ws/") and "/repos/" in pathname and method == "DELETE":
         user = await get_current_user(env, request)
         if not user:
             return Response.json(
                 {"ok": False, "error": "Unauthorized"}, {"status": 401}
             )
         try:
-            after = path.split("/api/ws/")[1]
+            after = pathname.split("/api/ws/")[1]
             ws_id_val = int(after.split("/")[0])
             repo_id_val = int(after.split("/repos/")[1].rstrip("/"))
         except (ValueError, IndexError):
@@ -2136,14 +2206,18 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /api/ws/<id>/stats  →  live stats JSON (for dashboard poll)   #
     # ------------------------------------------------------------------ #
-    if "/api/ws/" in path and path_end == "stats" and method == "GET":
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/stats")
+        and method == "GET"
+    ):
         user = await get_current_user(env, request)
         if not user:
             return Response.json(
                 {"ok": False, "error": "Unauthorized"}, {"status": 401}
             )
         try:
-            ws_id_val = int(path.split("/api/ws/")[1].split("/")[0])
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return Response.json(
                 {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
@@ -2166,14 +2240,18 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /api/ws/<id>/events  →  recent events JSON                    #
     # ------------------------------------------------------------------ #
-    if "/api/ws/" in path and path_end == "events" and method == "GET":
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/events")
+        and method == "GET"
+    ):
         user = await get_current_user(env, request)
         if not user:
             return Response.json(
                 {"ok": False, "error": "Unauthorized"}, {"status": 401}
             )
         try:
-            ws_id_val = int(path.split("/api/ws/")[1].split("/")[0])
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return Response.json(
                 {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
@@ -2188,7 +2266,7 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /stats  →  legacy KV stats (public)                           #
     # ------------------------------------------------------------------ #
-    if "/stats" in path and method == "GET" and "/api/" not in path:
+    if pathname == "/stats" and method == "GET":
         stats = await get_stats(env)
         return Response.json(
             stats,
@@ -2203,7 +2281,7 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  POST /webhook  →  Slack events                                    #
     # ------------------------------------------------------------------ #
-    if "/webhook" in path and method == "POST":
+    if pathname == "/webhook" and method == "POST":
         try:
             body_text = await request.text()
             body_json = json.loads(body_text)
@@ -2231,7 +2309,7 @@ async def on_fetch(request, env):
                 return Response.json(result)
 
             if event_type == "message":
-                result = await handle_message_event(env, event)
+                result = await handle_message_event(env, event, team_id=team_id)
                 return Response.json(result)
 
             if event_type == "app_mention" or body_json.get("command"):
@@ -2246,7 +2324,7 @@ async def on_fetch(request, env):
     # ------------------------------------------------------------------ #
     #  GET /health                                                        #
     # ------------------------------------------------------------------ #
-    if "/health" in path:
+    if pathname == "/health":
         return Response.json({"status": "ok", "timestamp": get_utc_now()})
 
     # ------------------------------------------------------------------ #
