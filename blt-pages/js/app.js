@@ -328,6 +328,18 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
 }
 
 function renderLeaderboard(container, data, limit = 0, filter = "") {
+  if (!container || !data) return;
+  const query = filter.trim().toLowerCase();
+  let leaderboard = data.leaderboard || [];
+
+  if (query) {
+    leaderboard = leaderboard.filter((e) => e.login.toLowerCase().includes(query));
+  }
+
+  if (limit > 0) {
+    leaderboard = leaderboard.slice(0, limit);
+  }
+
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
@@ -336,18 +348,14 @@ function renderLeaderboard(container, data, limit = 0, filter = "") {
     return;
   }
 
+  if (leaderboard.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No collaborators matched "${escapeHtml(filter)}".
+    </td></tr>`;
+    return;
+  }
+
   const rankIcons = ["🥇", "🥈", "🥉"];
-  let leaderboard = data.leaderboard;
-
-  if (filter) {
-    const f = filter.toLowerCase();
-    leaderboard = leaderboard.filter(e => e.login.toLowerCase().includes(f));
-  }
-
-  if (limit > 0) {
-    leaderboard = leaderboard.slice(0, limit);
-  }
-
   const maxCount = leaderboard[0]?.count || 1;
 
   container.innerHTML = leaderboard
@@ -724,23 +732,30 @@ function renderRecentBugs(bugs) {
    Top Commenters
 ──────────────────────────────────────────────────────────── */
 function renderTopCommenters(container, data, limit = 0, filter = "") {
-  if (!container) return;
+  if (!container || !data) return;
 
+  const query = filter.trim().toLowerCase();
   let commenters = data.top_commenters || [];
 
-  if (filter) {
-    const f = filter.toLowerCase();
-    commenters = commenters.filter(e => e.login.toLowerCase().includes(f));
+  if (query) {
+    commenters = commenters.filter((e) => e.login.toLowerCase().includes(query));
   }
 
   if (limit > 0) {
     commenters = commenters.slice(0, limit);
   }
 
-  if (commenters.length === 0) {
+  if (!data.top_commenters || data.top_commenters.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>
       No comments yet. Start a conversation on a <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!
+    </td></tr>`;
+    return;
+  }
+
+  if (commenters.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No collaborators matched "${escapeHtml(filter)}".
     </td></tr>`;
     return;
   }
@@ -813,23 +828,30 @@ function renderTopCommenters(container, data, limit = 0, filter = "") {
    Top Domains
 ──────────────────────────────────────────────────────────── */
 function renderTopDomains(container, data, limit = 0, filter = "") {
-  if (!container) return;
+  if (!container || !data) return;
 
+  const query = filter.trim().toLowerCase();
   let domains = data.top_domains || [];
 
-  if (filter) {
-    const f = filter.toLowerCase();
-    domains = domains.filter(e => e.domain.toLowerCase().includes(f));
+  if (query) {
+    domains = domains.filter((e) => e.domain.toLowerCase().includes(query));
   }
 
   if (limit > 0) {
     domains = domains.slice(0, limit);
   }
 
-  if (domains.length === 0) {
+  if (!data.top_domains || data.top_domains.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>
       No domain data yet. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">Be the first to report a bug!</a>
+    </td></tr>`;
+    return;
+  }
+
+  if (domains.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No domains matched "${escapeHtml(filter)}".
     </td></tr>`;
     return;
   }

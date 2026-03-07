@@ -641,9 +641,9 @@
               </svg>
               Top Reporters
             </h3>
+            <input type="hidden" id="homepage-leaderboard-limit" value="5">
             <table class="w-full table-fixed compact-table" aria-label="Bug reporter leaderboard">
               <tbody id="leaderboard-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
-                <input type="hidden" id="homepage-leaderboard-limit" value="5">
                 <!-- SSR:leaderboard-rows -->
               </tbody>
             </table>
@@ -692,7 +692,7 @@
             </svg>
             View Full Leaderboard
           </a>
-          <p id="homepage-updated" class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
             Leaderboard refreshes every 6 hours via GitHub Actions.
           </p>
         </div>
