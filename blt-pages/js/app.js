@@ -882,14 +882,18 @@ function initLeaderboardFilters() {
   const searchInput = document.getElementById("leaderboard-search");
   if (!searchInput) return;
 
+  let debounceTimer;
   searchInput.addEventListener("input", (e) => {
-    const data = window.__BLT_LEADERBOARD__ || currentLeaderboardData;
-    if (!data) return;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const data = window.__BLT_LEADERBOARD__ || currentLeaderboardData;
+      if (!data) return;
 
-    const query = e.target.value;
-    renderLeaderboard(document.getElementById("leaderboard-rows"), data, 0, query);
-    renderTopCommenters(document.getElementById("commenters-rows"), data, 0, query);
-    renderTopDomains(document.getElementById("domains-rows"), data, 0, query);
+      const query = e.target.value;
+      renderLeaderboard(document.getElementById("leaderboard-rows"), data, 0, query);
+      renderTopCommenters(document.getElementById("commenters-rows"), data, 0, query);
+      renderTopDomains(document.getElementById("domains-rows"), data, 0, query);
+    }, 150);
   });
 }
 
