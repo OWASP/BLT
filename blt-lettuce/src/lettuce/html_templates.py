@@ -20,10 +20,8 @@ def _render_template(template_name, replacements):
     """Render a template by replacing {{ token }} placeholders with Jinja2-style syntax."""
     rendered = _load_template(template_name)
     for key, value in replacements.items():
-        # Support both {{ TOKEN }} and {{ token }}
+        # Replace {{ KEY }} with value
         rendered = rendered.replace(f"{{{{ {key} }}}}", str(value))
-        rendered = rendered.replace(f"{{{{ {key.upper()} }}}}", str(value))
-        rendered = rendered.replace(f"{{{{ {key.lower()} }}}}", str(value))
     return rendered
 
 
