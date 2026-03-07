@@ -615,7 +615,7 @@ def get_slack_sign_in_url(client_id, redirect_uri, state="signin"):
 def get_slack_add_workspace_url(client_id, redirect_uri, state="add_workspace"):
     """OAuth URL for installing the bot into a workspace."""
     bot_scopes = (
-        "channels:read,chat:write,users:read,team:read," "im:write,im:read,im:history"
+        "channels:read,chat:write,users:read,team:read,im:write,im:read,im:history"
     )
     return (
         "https://slack.com/oauth/v2/authorize"
@@ -1036,7 +1036,7 @@ def get_dashboard_html(
             f'<a href="/dashboard?ws={ws["id"]}" '
             f'class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium {active} transition-colors">'
             f'<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>'
-            f'{html_escape(ws["team_name"])}</a>'
+            f"{html_escape(ws['team_name'])}</a>"
         )
 
     # ---- stats cards ----
@@ -1052,9 +1052,9 @@ def get_dashboard_html(
     for ch in channels[:10]:
         channels_html += (
             f'<div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">'
-            f'<span class="text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name",""))}</span>'
-            f'<span class="text-xs text-gray-400">{ch.get("member_count",0):,} members</span>'
-            f'</div>'
+            f'<span class="text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name", ""))}</span>'
+            f'<span class="text-xs text-gray-400">{ch.get("member_count", 0):,} members</span>'
+            f"</div>"
         )
     if not channels_html:
         channels_html = '<p class="text-sm text-gray-400 text-center py-4">No channels scanned yet.</p>'
@@ -1072,11 +1072,11 @@ def get_dashboard_html(
         ws_int_id = int(ev.get("workspace_id") or 0)
         events_html += (
             f'<tr class="border-b border-gray-100 hover:bg-gray-50">'
-            f'<td class="py-3 px-4 text-sm text-gray-700">{html_escape(ev.get("event_type",""))}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-700">{html_escape(ev.get("event_type", ""))}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500">{ev_time}</td>'
             f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ws_int_id}</td>'
-            f'</tr>'
+            f"</tr>"
         )
     if not events_html:
         events_html = (
@@ -1090,20 +1090,20 @@ def get_dashboard_html(
         safe_url = html_escape(repo.get("repo_url", "#"))
         safe_name = html_escape(repo.get("repo_name") or repo.get("repo_url", ""))
         safe_lang = html_escape(repo.get("language", ""))
-        stars_text = f"  ⭐ {repo.get('stars','')}" if repo.get("stars") else ""
+        stars_text = f"  ⭐ {repo.get('stars', '')}" if repo.get("stars") else ""
         repos_html += (
             f'<div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 group">'
-            f'<div>'
+            f"<div>"
             f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
             f'   class="text-sm font-medium text-red-600 hover:underline">'
-            f'{safe_name}</a>'
+            f"{safe_name}</a>"
             f'<p class="text-xs text-gray-400">{safe_lang}'
-            f'{html_escape(stars_text)}</p>'
-            f'</div>'
-            f'<button onclick="deleteRepo({repo.get("id","")}, {ws_id})" '
+            f"{html_escape(stars_text)}</p>"
+            f"</div>"
+            f'<button onclick="deleteRepo({repo.get("id", "")}, {ws_id})" '
             f'        class="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">'
             f'<i class="fas fa-trash text-xs"></i></button>'
-            f'</div>'
+            f"</div>"
         )
     if not repos_html:
         repos_html = '<p class="text-sm text-gray-400 text-center py-4">No repositories added yet.</p>'
@@ -1207,7 +1207,10 @@ def get_dashboard_html(
     </div>
   </section>
 
-  {no_ws_notice if not current_ws else f"""
+  {
+        no_ws_notice
+        if not current_ws
+        else f'''
   <!-- Stats cards -->
   <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -1238,7 +1241,7 @@ def get_dashboard_html(
       <div class="bg-gray-50 rounded-lg p-4 col-span-2 md:col-span-1">
         <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Last Activity</p>
         <p class="text-sm font-semibold text-gray-900 mt-1" id="last-activity-ago">
-          {last_event_time[:16].replace("T"," ") if last_event_time else "—"}
+          {last_event_time[:16].replace("T", " ") if last_event_time else "—"}
         </p>
       </div>
     </div>
@@ -1313,12 +1316,13 @@ def get_dashboard_html(
     </form>
     <div id="repos-list">{repos_html}</div>
   </section>
-  """}
+  '''
+    }
 
 </main>
 
 <script>
-const WS_ID = {ws_id or 'null'};
+const WS_ID = {ws_id or "null"};
 
 // ---- time-ago helper ----
 function timeAgo(isoStr) {{
@@ -1595,9 +1599,13 @@ def get_homepage_html():
             </div>
           </div>
         </div>
+        <div class="text-center mt-6">
+          <a href="https://owasp-blt.github.io/BLT-Lettuce/slack-bot-flowchart.html" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold" target="_blank">
+            <i class="fas fa-project-diagram mr-2"></i>
+            View Full Flowchart
+          </a>
+        </div>
       </section>
-
-      <!-- Bot Interactions -->
       <section class="bg-white rounded-lg shadow p-6 mb-8" id="interactions">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Bot Interactions</h2>
         <div class="grid md:grid-cols-2 gap-6">
@@ -2274,10 +2282,10 @@ async def on_fetch(request, env):
     #  GET /  →  homepage                                                #
     # ------------------------------------------------------------------ #
     if is_homepage_request(url, method):
-        h = Headers.new()
-        h.set("Content-Type", "text/html; charset=utf-8")
-        h.set("Cache-Control", "public, max-age=300")
-        return Response.new(get_homepage_html(), {"headers": h})
+        return _html_response(
+            get_homepage_html(),
+            extra_headers={"Cache-Control": "public, max-age=300"},
+        )
 
     # ------------------------------------------------------------------ #
     #  Default API info response                                         #
