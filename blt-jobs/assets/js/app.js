@@ -175,9 +175,12 @@ function renderJobs(jobs) {
                 </a>
               </div>
             </div>
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-              <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
-            </a>
+            <div class="flex gap-2">
+              <div id="bookmark-${job.id}"></div>
+              <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
+              </a>
+            </div>
           </div>
         </div>
       `;
@@ -185,6 +188,15 @@ function renderJobs(jobs) {
     .join("");
 
   jobList.innerHTML = cardsHtml;
+
+  // Add bookmark buttons
+  jobs.forEach((job) => {
+    const container = document.getElementById(`bookmark-${job.id}`);
+    if (container && window.SavedJobs) {
+      const button = window.SavedJobs.createButton(job.id, { showLabel: false, size: "md" });
+      container.appendChild(button);
+    }
+  });
 }
 
 function applyFilters() {
@@ -244,6 +256,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const locationFilter = document.getElementById("locationFilter");
   const clearFiltersButton = document.getElementById("clearFiltersButton");
 
+  // Update saved count badge
+  function updateSavedCountBadge() {
+    const badge = document.getElementById("saved-count-badge");
+    if (badge && window.SavedJobs) {
+      const count = window.SavedJobs.count();
+      if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    }
+  }
+
+  // Initial update
+  updateSavedCountBadge();
+
+  // Listen for changes
+  window.addEventListener("savedJobsChanged", updateSavedCountBadge);
+
   if (filtersForm) {
     filtersForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -279,5 +311,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadJobs();
+
+  // Update saved jobs count badge
+  function updateSavedCountBadge() {
+    const badge = document.getElementById("saved-count-badge");
+    if (badge && typeof SavedJobs !== "undefined") {
+      const count = SavedJobs.count();
+      if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    }
+  }
+
+  // Update badge on load and when saved jobs change
+  updateSavedCountBadge();
+  window.addEventListener("savedJobsChanged", updateSavedCountBadge);
 });
 
