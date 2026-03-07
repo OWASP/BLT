@@ -932,12 +932,15 @@ def is_homepage_request(url, method):
 
 
 def _html_response(html, status=200, extra_headers=None):
-    h = Headers.new()
-    h.set("Content-Type", "text/html; charset=utf-8")
-    h.set("Cache-Control", "no-store")
+    # Use a plain header dict for compatibility across Python Worker runtimes.
+    h = {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+    }
     if extra_headers:
         for k, v in extra_headers.items():
-            h.set(k, v)
+            h[k] = v
     return Response.new(html, {"status": status, "headers": h})
 
 
