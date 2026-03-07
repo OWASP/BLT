@@ -266,11 +266,16 @@ async def ensure_d1_schema(env):
     ]
 
     try:
-        for sql in statements:
+        print(f"[ensure_d1_schema] Initializing schema with {len(statements)} statements...")
+        for idx, sql in enumerate(statements, 1):
             await env.DB.prepare(sql).run()
+            print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
         _schema_initialized = True
+        print(f"[ensure_d1_schema] Schema initialization complete")
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[ensure_d1_schema] ERROR: {e}")
+        capture_exception_to_sentry(env, e, {"context": "schema_initialization"})
         return False
 
 
@@ -936,9 +941,13 @@ async def get_db_table_counts(env):
     counts = {}
     for table in tables:
         try:
-            row = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
-            counts[table] = (row or {}).get("count", 0)
-        except Exception:
+            result = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
+            row = _row(result)
+            count_val = row.get("count", 0) if row else 0
+            counts[table] = count_val
+            print(f"[get_db_table_counts] Table {table}: {count_val} rows")
+        except Exception as e:
+            print(f"[get_db_table_counts] ERROR querying table {table}: {e}")
             counts[table] = 0
     return counts
 
@@ -1991,7 +2000,51 @@ async def handle_request(request, env):
                 "timestamp": get_utc_now()
             })
         except Exception as e:
-            return _json_response({"error": str(e)}, 500)
+            print(f"[/api/db-stats] ERROR: {e}")
+            return Response.json({
+                "ok": False,
+                "error": str(e),
+                "counts": {}
+            })
+
+    # ------------------------------------------------------------------ #
+    #  GET /api/debug/db  →  raw database data for debugging             #
+    # ------------------------------------------------------------------ #
+    if pathname == "/api/debug/db" and method == "GET":
+        try:
+            # Check if user is logged in (only show debug to authenticated users)
+            user = await get_current_user(env, request)
+            if not user:
+                return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+            
+            counts = await get_db_table_counts(env)
+            
+            # Get sample data from each table
+            users = _rows(await env.DB.prepare("SELECT id, slack_user_id, team_id, name, created_at FROM users LIMIT 5").all())
+            sessions = _rows(await env.DB.prepare("SELECT id, user_id, created_at, expires_at FROM sessions LIMIT 5").all())
+            workspaces = _rows(await env.DB.prepare("SELECT id, team_id, team_name, created_at FROM workspaces LIMIT 5").all())
+            
+            return Response.json({
+                "ok": True,
+                "counts": counts,
+                "samples": {
+                    "users": users,
+                    "sessions": sessions,
+                    "workspaces": workspaces,
+                },
+                "current_user": {
+                    "user_id": user.get("user_id"),
+                    "slack_user_id": user.get("slack_user_id"),
+                    "name": user.get("name"),
+                },
+            })
+        except Exception as e:
+            print(f"[/api/debug/db] ERROR: {e}")
+            capture_exception_to_sentry(env, e, {"path": "/api/debug/db"})
+            return Response.json({
+                "ok": False,
+                "error": str(e)
+            })
 
     # ------------------------------------------------------------------ #
     #  404 Not Found                                                     #
