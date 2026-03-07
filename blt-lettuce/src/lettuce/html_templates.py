@@ -235,11 +235,19 @@ def get_status_html(env):
         badge_class = "required" if required else "optional"
         badge_text = "Required" if required else "Optional"
         
-        return f'''<div class="status-item {status_class}">
-        <div class="status-icon">{icon}</div>
-        <div class="status-details">
-            <div class="status-name">{name} <span class="badge {badge_class}">{badge_text}</span></div>
-            <div class="status-desc">{description}</div>
+        # Tailwind classes for styling
+        border_color = "border-l-green-500 bg-green-50" if is_set else "border-l-red-500 bg-red-50"
+        icon_color = "text-green-600" if is_set else "text-red-600"
+        badge_bg = "bg-red-100 text-red-800" if required else "bg-blue-100 text-blue-800"
+        
+        return f'''<div class="status-item {status_class} flex items-start p-4 bg-gray-50 rounded-lg border-l-4 {border_color}">
+        <div class="status-icon text-2xl mr-4 flex-shrink-0 {icon_color}">{icon}</div>
+        <div class="status-details flex-1">
+            <div class="status-name font-semibold text-gray-900 mb-1">
+                {name} 
+                <span class="badge inline-block px-2 py-1 rounded-full text-xs font-semibold uppercase ml-2 {badge_bg}">{badge_text}</span>
+            </div>
+            <div class="status-desc text-sm text-gray-600">{description}</div>
         </div>
     </div>'''
     
