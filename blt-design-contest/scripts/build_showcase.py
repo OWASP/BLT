@@ -838,7 +838,8 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                 )
             else:
                 preview_block = (
-                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '  
++                   f'   aria-label="Open {item["title"]} issue on GitHub" ' 
                     f'   class="flex items-center justify-center aspect-video '
                     f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
                     f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
