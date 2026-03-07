@@ -3,144 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OWASP-Wich checks GitHub repositories against OWASP project standards with a 100-point compliance framework.">
     <title>OWASP-Wich: OWASP Project Compliance Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    >
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <div class="owasp-badge">
-                <span class="badge-text">OWASP</span>
-                <span class="badge-project">BLT Project</span>
+<body class="bg-slate-50 font-sans text-gray-900 antialiased">
+    <div class="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <header class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-border px-6 py-4">
+                <div class="owasp-badge">
+                    <span class="badge-text">OWASP</span>
+                    <span class="badge-project">BLT Project</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener" class="btn-outline">
+                        <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
+                        <span>View Source</span>
+                    </a>
+                    <a href="#checker" class="btn-primary">
+                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                        <span>Start Compliance Check</span>
+                    </a>
+                </div>
             </div>
-            <h1>🔒 OWASP-Wich</h1>
-            <p class="subtitle">OWASP Project Compliance Checker</p>
-            <p class="description">Check GitHub repositories against OWASP standards and best practices</p>
+
+            <div class="grid gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+                <div>
+                    <p class="mb-4 inline-flex items-center rounded-full bg-[#feeae9] px-3 py-1 text-sm font-semibold text-primary">
+                        <i class="fa-solid fa-bolt mr-2" aria-hidden="true"></i>
+                        Built for OWASP project governance
+                    </p>
+                    <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl">
+                        <i class="fa-solid fa-lock text-primary" aria-hidden="true"></i>
+                        OWASP-Wich
+                    </h1>
+                    <p class="subtitle">OWASP Project Compliance Checker</p>
+                    <p class="description">Check GitHub repositories against OWASP standards and best practices using a transparent 100-point scoring model.</p>
+                    <div class="mt-6 grid gap-3 sm:grid-cols-3">
+                        <div class="hero-stat">
+                            <p class="hero-stat-value">100</p>
+                            <p class="hero-stat-label">Checks</p>
+                        </div>
+                        <div class="hero-stat">
+                            <p class="hero-stat-value">10</p>
+                            <p class="hero-stat-label">Categories</p>
+                        </div>
+                        <div class="hero-stat">
+                            <p class="hero-stat-value">Browser + CLI</p>
+                            <p class="hero-stat-label">Usage Modes</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-xl border border-neutral-border bg-gradient-to-b from-white to-rose-50 p-6">
+                    <h2 class="text-xl font-bold text-gray-900">Why teams use OWASP-Wich</h2>
+                    <ul class="mt-4 space-y-3 text-sm text-gray-700">
+                        <li class="flex gap-3">
+                            <i class="fa-solid fa-check text-primary pt-0.5" aria-hidden="true"></i>
+                            <span>Standardized compliance checks across governance, security, quality, and legal controls.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <i class="fa-solid fa-check text-primary pt-0.5" aria-hidden="true"></i>
+                            <span>Actionable recommendations for each failed check, ready for maintainers and contributors.</span>
+                        </li>
+                        <li class="flex gap-3">
+                            <i class="fa-solid fa-check text-primary pt-0.5" aria-hidden="true"></i>
+                            <span>Fast onboarding signal for new OWASP projects and extension repositories.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </header>
 
-        <main>
-            <div class="input-section">
-                <div class="input-group">
-                    <input 
-                        type="text" 
-                        id="repoUrl" 
-                        placeholder="Enter GitHub repository URL (e.g., https://github.com/OWASP/owasp-mastg)"
-                        aria-label="GitHub repository URL"
-                    >
-                    <button id="checkBtn" onclick="checkCompliance()">
-                        <span id="btnText">Check Compliance</span>
-                        <span id="btnSpinner" class="spinner hidden"></span>
-                    </button>
+        <main class="mt-8 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <aside class="sidebar-card">
+                <div class="sidebar-group">
+                    <p class="sidebar-group-title">Jump To</p>
+                    <a href="#checker" class="sidebar-link active">Compliance Checker</a>
+                    <a href="#features" class="sidebar-link">Feature Highlights</a>
+                    <a href="#how-it-works" class="sidebar-link">How It Works</a>
+                    <a href="#references" class="sidebar-link">References</a>
                 </div>
-                
-                <div class="token-section">
-                    <details>
-                        <summary>Optional: GitHub Token (for higher rate limits)</summary>
-                        <input 
-                            type="password" 
-                            id="githubToken" 
-                            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                            aria-label="GitHub personal access token"
-                        >
-                        <p class="help-text">
-                            Without a token: 60 requests/hour<br>
-                            With a token: 5,000 requests/hour<br>
-                            <a href="https://github.com/settings/tokens/new?description=OWASP-Wich&scopes=repo" target="_blank" rel="noopener">Create a token</a>
-                        </p>
-                    </details>
+                <div class="sidebar-group">
+                    <p class="sidebar-group-title">Resources</p>
+                    <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener" class="sidebar-link">Repository</a>
+                    <a href="https://blt.owasp.org" target="_blank" rel="noopener" class="sidebar-link">OWASP BLT</a>
+                    <a href="https://wich.owaspblt.org/" target="_blank" rel="noopener" class="sidebar-link">Live Web App</a>
                 </div>
+            </aside>
 
-                <div id="errorMessage" class="error-message hidden"></div>
-            </div>
-
-            <div id="results" class="results hidden">
-                <div class="score-card">
-                    <div class="score-header">
-                        <h2>Compliance Report</h2>
-                        <div id="repoInfo" class="repo-info"></div>
+            <div class="space-y-8">
+                <div id="checker" class="input-section">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <h2 class="text-2xl font-bold text-gray-900">Run Compliance Check</h2>
+                        <p class="text-sm text-gray-500">Paste any public GitHub repository URL</p>
                     </div>
-                    <div class="score-summary">
-                        <div class="score-circle">
-                            <svg viewBox="0 0 120 120">
-                                <circle class="score-bg" cx="60" cy="60" r="54"></circle>
-                                <circle id="scoreCircle" class="score-fg" cx="60" cy="60" r="54"></circle>
-                            </svg>
-                            <div class="score-text">
-                                <div id="scoreValue" class="score-value">0</div>
-                                <div class="score-label">%</div>
+                    <div class="input-group">
+                        <div class="relative flex-1">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                            </span>
+                            <input
+                                type="text"
+                                id="repoUrl"
+                                class="search-input"
+                                placeholder="Enter GitHub repository URL (e.g., https://github.com/OWASP/owasp-mastg)"
+                                aria-label="GitHub repository URL"
+                            >
+                        </div>
+                        <button id="checkBtn" class="btn-primary" onclick="checkCompliance()">
+                            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                            <span id="btnText">Check Compliance</span>
+                            <span id="btnSpinner" class="spinner hidden" aria-hidden="true"></span>
+                        </button>
+                        <button id="sampleRepoBtn" type="button" class="btn-outline">
+                            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                            <span>Use Sample</span>
+                        </button>
+                    </div>
+
+                    <div class="token-section">
+                        <details>
+                            <summary>Optional: GitHub Token (for higher rate limits)</summary>
+                            <input
+                                type="password"
+                                id="githubToken"
+                                class="input-field mt-3"
+                                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                aria-label="GitHub personal access token"
+                            >
+                            <p class="help-text">
+                                Without a token: 60 requests/hour<br>
+                                With a token: 5,000 requests/hour<br>
+                                <a href="https://github.com/settings/tokens/new?description=OWASP-Wich&amp;scopes=repo" target="_blank" rel="noopener">Create a token</a>
+                            </p>
+                        </details>
+                    </div>
+
+                    <div id="errorMessage" class="error-message hidden"></div>
+                </div>
+
+                <div id="results" class="results hidden">
+                    <div class="score-card">
+                        <div class="score-header">
+                            <h2>Compliance Report</h2>
+                            <div id="repoInfo" class="repo-info"></div>
+                        </div>
+                        <div class="score-summary">
+                            <div class="score-circle">
+                                <svg viewBox="0 0 120 120">
+                                    <circle class="score-bg" cx="60" cy="60" r="54"></circle>
+                                    <circle id="scoreCircle" class="score-fg" cx="60" cy="60" r="54"></circle>
+                                </svg>
+                                <div class="score-text">
+                                    <div id="scoreValue" class="score-value">0</div>
+                                    <div class="score-label">%</div>
+                                </div>
+                            </div>
+                            <div class="score-details">
+                                <div id="scoreStatus" class="score-status"></div>
+                                <div id="scorePoints" class="score-points"></div>
                             </div>
                         </div>
-                        <div class="score-details">
-                            <div id="scoreStatus" class="score-status"></div>
-                            <div id="scorePoints" class="score-points"></div>
+                    </div>
+
+                    <div id="categories" class="categories"></div>
+                </div>
+
+                <div class="info-section">
+                    <section id="features">
+                        <h2>About OWASP-Wich</h2>
+                        <p>
+                            This tool evaluates <strong>100 compliance points</strong> across 10 key categories to ensure
+                            your GitHub repository meets OWASP quality, security, and governance standards.
+                        </p>
+
+                        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            <article class="feature-card">
+                                <i class="fa-solid fa-list-check text-primary" aria-hidden="true"></i>
+                                <h3>100-Point Checklist</h3>
+                                <p>Comprehensive checks across governance, documentation, security, testing, and legal compliance.</p>
+                            </article>
+                            <article class="feature-card">
+                                <i class="fa-solid fa-shield-virus text-primary" aria-hidden="true"></i>
+                                <h3>Security-First</h3>
+                                <p>Aligns with OWASP Top 10, ASVS guidance, and common secure engineering practices.</p>
+                            </article>
+                            <article class="feature-card">
+                                <i class="fa-solid fa-chart-column text-primary" aria-hidden="true"></i>
+                                <h3>Actionable Reporting</h3>
+                                <p>Each score includes details and practical “how to fix” guidance for maintainers.</p>
+                            </article>
+                            <article class="feature-card">
+                                <i class="fa-solid fa-plug text-primary" aria-hidden="true"></i>
+                                <h3>GitHub Native</h3>
+                                <p>Analyzes repository metadata and files directly from GitHub APIs.</p>
+                            </article>
+                            <article class="feature-card">
+                                <i class="fa-solid fa-window-maximize text-primary" aria-hidden="true"></i>
+                                <h3>Browser + CLI</h3>
+                                <p>Use the same checker in the browser for quick scans or in Python for automation.</p>
+                            </article>
+                            <article class="feature-card">
+                                <i class="fa-solid fa-palette text-primary" aria-hidden="true"></i>
+                                <h3>BLT Aligned UI</h3>
+                                <p>Minimal, practical interface aligned to OWASP BLT branding for consistency.</p>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section id="how-it-works" class="mt-10">
+                        <h3>How it is used</h3>
+                        <div class="how-grid">
+                            <div class="how-card">
+                                <span class="how-step">1</span>
+                                <h4>Paste Repository URL</h4>
+                                <p>Provide a valid GitHub repository URL in the search field.</p>
+                            </div>
+                            <div class="how-card">
+                                <span class="how-step">2</span>
+                                <h4>Run OWASP Checks</h4>
+                                <p>Click “Check Compliance” to evaluate repository signals across all categories.</p>
+                            </div>
+                            <div class="how-card">
+                                <span class="how-step">3</span>
+                                <h4>Improve With Guidance</h4>
+                                <p>Review scores and expand categories for detailed fixes and implementation direction.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="categories-list mt-10">
+                        <div class="category-item">
+                            <strong>General Compliance &amp; Governance</strong> (10 points)<br>
+                            <small>Project structure, licensing, and governance</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Documentation &amp; Usability</strong> (10 points)<br>
+                            <small>README, guides, and user documentation</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Code Quality &amp; Best Practices</strong> (10 points)<br>
+                            <small>Code standards and maintainability</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Security &amp; OWASP Compliance</strong> (15 points)<br>
+                            <small>Security practices and OWASP standards</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>CI/CD &amp; DevSecOps</strong> (10 points)<br>
+                            <small>Automation and security integration</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Testing &amp; Validation</strong> (10 points)<br>
+                            <small>Test coverage and quality</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Performance &amp; Scalability</strong> (10 points)<br>
+                            <small>Performance optimization</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Logging &amp; Monitoring</strong> (10 points)<br>
+                            <small>Observability and logging practices</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Community &amp; Support</strong> (10 points)<br>
+                            <small>Community engagement and support</small>
+                        </div>
+                        <div class="category-item">
+                            <strong>Legal &amp; Compliance</strong> (5 points)<br>
+                            <small>Licensing and legal compliance</small>
                         </div>
                     </div>
+
+                    <section id="references" class="mt-10">
+                        <h3>References</h3>
+                        <ul>
+                            <li><a href="https://owasp.org/www-committee-project/" target="_blank" rel="noopener">OWASP Project Handbook</a></li>
+                            <li><a href="https://owasp.org/www-project-application-security-verification-standard/" target="_blank" rel="noopener">OWASP ASVS</a></li>
+                            <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a></li>
+                            <li><a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener">Source Code</a></li>
+                        </ul>
+                    </section>
                 </div>
-
-                <div id="categories" class="categories"></div>
-            </div>
-
-            <div class="info-section">
-                <h2>About OWASP-Wich</h2>
-                <p>
-                    This tool evaluates <strong>100 compliance points</strong> across 10 key categories to ensure 
-                    your GitHub repository meets OWASP quality, security, and governance standards.
-                </p>
-                
-                <div class="categories-list">
-                    <div class="category-item">
-                        <strong>General Compliance & Governance</strong> (10 points)<br>
-                        <small>Project structure, licensing, and governance</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Documentation & Usability</strong> (10 points)<br>
-                        <small>README, guides, and user documentation</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Code Quality & Best Practices</strong> (10 points)<br>
-                        <small>Code standards and maintainability</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Security & OWASP Compliance</strong> (15 points)<br>
-                        <small>Security practices and OWASP standards</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>CI/CD & DevSecOps</strong> (10 points)<br>
-                        <small>Automation and security integration</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Testing & Validation</strong> (10 points)<br>
-                        <small>Test coverage and quality</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Performance & Scalability</strong> (10 points)<br>
-                        <small>Performance optimization</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Logging & Monitoring</strong> (10 points)<br>
-                        <small>Observability and logging practices</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Community & Support</strong> (10 points)<br>
-                        <small>Community engagement and support</small>
-                    </div>
-                    <div class="category-item">
-                        <strong>Legal & Compliance</strong> (5 points)<br>
-                        <small>Licensing and legal compliance</small>
-                    </div>
-                </div>
-
-                <h3>References</h3>
-                <ul>
-                    <li><a href="https://owasp.org/www-committee-project/" target="_blank" rel="noopener">OWASP Project Handbook</a></li>
-                    <li><a href="https://owasp.org/www-project-application-security-verification-standard/" target="_blank" rel="noopener">OWASP ASVS</a></li>
-                    <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a></li>
-                    <li><a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener">Source Code</a></li>
-                </ul>
             </div>
         </main>
 
-        <footer>
+        <footer class="mt-8">
             <p>Made with ❤️ by the <a href="https://blt.owasp.org" target="_blank" rel="noopener">OWASP BLT Team</a></p>
             <p><a href="https://git.owaspblt.org/BLT/BLT-OWASP-Wich" target="_blank" rel="noopener">View on GitHub</a></p>
         </footer>

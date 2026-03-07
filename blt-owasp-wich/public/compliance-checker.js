@@ -534,7 +534,10 @@ function displayResults(results) {
     
     // Update repo info
     document.getElementById('repoInfo').innerHTML = `
-        <span>📁 <a href="${results.url}" target="_blank" rel="noopener">${results.url.replace('https://github.com/', '')}</a></span>
+        <span class="inline-flex items-center gap-2">
+            <i class="fa-solid fa-folder-tree" aria-hidden="true"></i>
+            <a href="${results.url}" target="_blank" rel="noopener">${results.url.replace('https://github.com/', '')}</a>
+        </span>
     `;
     
     // Update score
@@ -552,7 +555,7 @@ function displayResults(results) {
     let statusColor = '';
     
     if (percentage >= 80) {
-        statusText = '✓ EXCELLENT COMPLIANCE';
+        statusText = 'EXCELLENT COMPLIANCE';
         statusColor = '#27ae60';
         circle.style.stroke = '#27ae60';
     } else if (percentage >= 60) {
@@ -587,21 +590,24 @@ function displayResults(results) {
         const categoryPercentage = Math.round((categoryData.score / categoryData.maxScore) * 100);
         
         categoryDiv.innerHTML = `
-            <div class="category-header" onclick="toggleCategory(this)">
+            <button type="button" class="category-header" onclick="toggleCategory(this)" aria-expanded="false">
                 <div class="category-title">${categoryName}</div>
-                <div class="category-score">${categoryData.score}/${categoryData.maxScore} (${categoryPercentage}%)</div>
-            </div>
+                <div class="inline-flex items-center gap-3">
+                    <div class="category-score">${categoryData.score}/${categoryData.maxScore} (${categoryPercentage}%)</div>
+                    <i class="fa-solid fa-chevron-right category-chevron" aria-hidden="true"></i>
+                </div>
+            </button>
             <div class="category-content">
                 <div class="checks-list">
                     ${categoryData.checks.map(check => `
                         <div class="check-item">
                             <div class="check-icon ${check.passed ? 'passed' : 'failed'}">
-                                ${check.passed ? '✓' : '✗'}
+                                <i class="fa-solid ${check.passed ? 'fa-circle-check' : 'fa-circle-xmark'}" aria-hidden="true"></i>
                             </div>
                             <div class="check-content">
                                 <div class="check-name">${check.name}</div>
                                 ${check.details ? `<div class="check-details">${check.details}</div>` : ''}
-                                ${!check.passed && check.howToFix ? `<div class="check-howtofix">ℹ️ <strong>How to fix:</strong> ${check.howToFix}</div>` : ''}
+                                ${!check.passed && check.howToFix ? `<div class="check-howtofix"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <strong>How to fix:</strong> ${check.howToFix}</div>` : ''}
                             </div>
                             <div class="check-points">${check.points}/${check.maxPoints} pts</div>
                         </div>
@@ -619,7 +625,8 @@ function displayResults(results) {
 
 function toggleCategory(header) {
     const category = header.parentElement;
-    category.classList.toggle('expanded');
+    const isExpanded = category.classList.toggle('expanded');
+    header.setAttribute('aria-expanded', String(isExpanded));
 }
 
 // Main check compliance function
@@ -658,9 +665,28 @@ async function checkCompliance() {
 // Allow Enter key to submit
 document.addEventListener('DOMContentLoaded', () => {
     const repoInput = document.getElementById('repoUrl');
+    const sampleRepoBtn = document.getElementById('sampleRepoBtn');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
     repoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             checkCompliance();
         }
+    });
+
+    if (sampleRepoBtn) {
+        sampleRepoBtn.addEventListener('click', () => {
+            repoInput.value = 'https://github.com/OWASP/owasp-mastg';
+            repoInput.focus();
+        });
+    }
+
+    sidebarLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+            sidebarLinks.forEach((item) => item.classList.remove('active'));
+            if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) {
+                link.classList.add('active');
+            }
+        });
     });
 });
