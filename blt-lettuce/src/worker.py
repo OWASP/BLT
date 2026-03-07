@@ -14,7 +14,14 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
 
-from js import Headers, Response, fetch
+from js import Headers, Response, fetch as js_fetch
+
+try:
+    from workers import WorkerEntrypoint
+except ImportError:
+    # Local tooling may not provide the workers runtime package.
+    class WorkerEntrypoint:
+        env = None
 
 from lettuce.html_templates import (
     get_dashboard_html,
@@ -34,6 +41,8 @@ DEFAULT_CONTRIBUTE_ID = None
 def get_utc_now():
     """Return current UTC time as an ISO-8601 string."""
     return datetime.now(timezone.utc).isoformat()
+
+
 def _make_oauth_state(intent):
     """Generate a random CSRF state token with the intent embedded as a prefix."""
     return f"{intent}:{secrets.token_hex(16)}"
@@ -630,7 +639,7 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
                 "redirect_uri": redirect_uri,
             }
         )
-        resp = await fetch(
+        resp = await js_fetch(
             "https://slack.com/api/oauth.v2.access",
             {
                 "method": "POST",
@@ -646,7 +655,7 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
 async def fetch_user_identity(user_token):
     """Call identity.basic to get user profile from a user token."""
     try:
-        resp = await fetch(
+        resp = await js_fetch(
             "https://slack.com/api/users.identity",
             {
                 "method": "GET",
@@ -672,7 +681,7 @@ async def scan_workspace_channels(env, workspace_id, access_token):
         if cursor:
             url += f"&cursor={cursor}"
         try:
-            resp = await fetch(
+            resp = await js_fetch(
                 url,
                 {
                     "method": "GET",
@@ -715,7 +724,7 @@ async def get_bot_user_id(env):
     if not slack_token:
         return None
     try:
-        resp = await fetch(
+        resp = await js_fetch(
             "https://slack.com/api/auth.test",
             {"method": "POST", "headers": {"Authorization": f"Bearer {slack_token}"}},
         )
@@ -734,7 +743,7 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
     payload = {"channel": channel, "text": text}
     if blocks:
         payload["blocks"] = blocks
-    resp = await fetch(
+    resp = await js_fetch(
         "https://slack.com/api/chat.postMessage",
         {
             "method": "POST",
@@ -752,7 +761,7 @@ async def open_conversation(env, user_id, token=None):
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
-    resp = await fetch(
+    resp = await js_fetch(
         "https://slack.com/api/conversations.open",
         {
             "method": "POST",
@@ -958,7 +967,7 @@ def _redirect(location, extra_headers=None):
 # ===========================================================================
 
 
-async def fetch(request, env):
+async def handle_request(request, env):
     """Main entry point for the Cloudflare Worker."""
     url = request.url
     method = request.method
@@ -1316,7 +1325,7 @@ async def fetch(request, env):
                             api_url = (
                                 f"https://api.github.com/repos/{owner}/{repo_slug}"
                             )
-                            gh_resp = await fetch(
+                            gh_resp = await js_fetch(
                                 api_url,
                                 {
                                     "method": "GET",
@@ -1505,3 +1514,11 @@ async def fetch(request, env):
             },
         }
     )
+
+
+class Default(WorkerEntrypoint):
+    """Cloudflare Python Worker entrypoint class."""
+
+    async def fetch(self, request):
+        return await handle_request(request, self.env)
+
