@@ -122,45 +122,6 @@ WELCOME_MESSAGE = (
 
 
 # ===========================================================================
-# Legacy KV Stats helpers (backward-compatible)
-# ===========================================================================
-
-
-async def get_stats(env):
-    """Get current stats from KV store (legacy)."""
-    try:
-        result = await env.STATS_KV.getWithMetadata("stats", "json")
-        if result and result.value is not None:
-            return result.value
-    except Exception:
-        pass
-    return {"joins": 0, "commands": 0, "last_updated": get_utc_now()}
-
-
-async def save_stats(env, stats):
-    """Save stats to KV store (legacy)."""
-    stats["last_updated"] = get_utc_now()
-    try:
-        await env.STATS_KV.put("stats", json.dumps(stats))
-    except Exception:
-        pass
-
-
-async def increment_joins(env):
-    stats = await get_stats(env)
-    stats["joins"] = stats.get("joins", 0) + 1
-    await save_stats(env, stats)
-    return stats
-
-
-async def increment_commands(env):
-    stats = await get_stats(env)
-    stats["commands"] = stats.get("commands", 0) + 1
-    await save_stats(env, stats)
-    return stats
-
-
-# ===========================================================================
 # D1 — Workspace helpers
 # ===========================================================================
 
@@ -826,9 +787,7 @@ async def handle_team_join(env, event, team_id=None):
     if not user_id:
         return {"error": "No user ID in event"}
 
-    await increment_joins(env)
-
-    # Look up the workspace to get its specific bot token and D1 id
+    # Look up the workspace
     ws = None
     ws_token = getattr(env, "SLACK_TOKEN", None)
     if team_id:
@@ -931,7 +890,6 @@ async def handle_message_event(env, event, team_id=None):
 
 
 async def handle_command(env, event, team_id=None):
-    await increment_commands(env)
     user_id = event.get("user") or event.get("user_id") or ""
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
@@ -2264,21 +2222,6 @@ async def on_fetch(request, env):
         return Response.json({"ok": True, "events": events})
 
     # ------------------------------------------------------------------ #
-    #  GET /stats  →  legacy KV stats (public)                           #
-    # ------------------------------------------------------------------ #
-    if pathname == "/stats" and method == "GET":
-        stats = await get_stats(env)
-        return Response.json(
-            stats,
-            {
-                "headers": {
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "application/json",
-                }
-            },
-        )
-
-    # ------------------------------------------------------------------ #
     #  POST /webhook  →  Slack events                                    #
     # ------------------------------------------------------------------ #
     if pathname == "/webhook" and method == "POST":
@@ -2351,7 +2294,6 @@ async def on_fetch(request, env):
                 "GET /dashboard": "Live stats dashboard (auth required)",
                 "GET /workspace/add": "Add a new workspace (auth required)",
                 "POST /webhook": "Slack event webhook",
-                "GET /stats": "Legacy KV stats",
                 "GET /health": "Health check",
                 "GET /api/ws/<id>/stats": "Workspace live stats (auth required)",
                 "GET /api/ws/<id>/events": "Workspace events (auth required)",

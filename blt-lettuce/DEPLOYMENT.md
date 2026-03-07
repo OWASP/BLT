@@ -26,21 +26,9 @@ wrangler login
 
 This will open a browser window for you to authenticate.
 
-### 1.3 Create KV Namespace
+### 1.3 Update wrangler.toml
 
-```bash
-cd cloudflare-worker
-wrangler kv:namespace create "STATS_KV"
-```
-
-Copy the namespace ID from the output. It will look like:
-```
-{ binding = "STATS_KV", id = "abc123def456" }
-```
-
-### 1.4 Update wrangler.toml
-
-Edit `wrangler.toml` and replace `REPLACE_WITH_YOUR_KV_NAMESPACE_ID` with your actual namespace ID.
+Edit `wrangler.toml` and replace the placeholder `database_id` with your actual D1 database ID.
 
 ## Step 2: Set Up Slack App
 
@@ -150,7 +138,6 @@ Slack will verify the URL - you should see a green checkmark if everything is co
 2. The bot should automatically send them a welcome DM
 3. Try sending a message with the word "contribute" - the bot should respond
 4. Visit your worker URL in a browser to see the dashboard
-5. Visit `https://your-worker-url.workers.dev/stats` to see the stats API
 
 ## Deploying to Multiple Organizations
 
@@ -161,7 +148,7 @@ To allow other Slack workspaces to install your bot:
 3. Enable **Org-Wide App Installation**
 4. You can now share your app's install link
 
-Each organization will have its own isolated statistics in the Cloudflare KV store.
+Each organization will have its own isolated data in the Cloudflare D1 database.
 
 ## Troubleshooting
 
@@ -178,12 +165,6 @@ Each organization will have its own isolated statistics in the Cloudflare KV sto
 - Check logs: `wrangler tail`
 - Make sure the bot is installed in your workspace
 
-### Stats Not Updating
-
-- Verify KV namespace is correctly configured in `wrangler.toml`
-- Check that you replaced the placeholder namespace ID
-- Look for errors in logs: `wrangler tail`
-
 ### Cannot Open DM with User
 
 - Make sure the bot has `im:write` permission
@@ -199,13 +180,6 @@ wrangler tail
 ```
 
 This shows real-time logs from your worker.
-
-### Check Stats
-
-Visit `https://your-worker-url.workers.dev/stats` to see:
-- Number of members welcomed
-- Number of commands processed
-- Last update timestamp
 
 ### View Dashboard
 
