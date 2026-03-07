@@ -41,3 +41,19 @@ ENVIRONMENT = "production"
 VERSION = "2.0.0"
 # Base URL for OAuth redirect URIs – override per environment if needed
 BASE_URL = "https://lettuce.owaspblt.org"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
