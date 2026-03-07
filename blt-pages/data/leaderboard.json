@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-07T18:05:52.504Z",
-  "commit_sha": "47026b551044da154298e8c94f9a4dc9f9b02436",
+  "updated_at": "2026-03-07T20:24:50.384Z",
+  "commit_sha": "92292d2cd6602e6302804e364fb9aaff13c366ee",
   "total_bugs": 14,
   "open_bugs": 5,
   "closed_bugs": 9,
@@ -46,59 +46,59 @@
   "top_commenters": [
     {
       "rank": 1,
+      "login": "mdkaifansari04",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
+      "profile_url": "https://github.com/mdkaifansari04"
+    },
+    {
+      "rank": 2,
       "login": "ananya-09",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
       "profile_url": "https://github.com/ananya-09"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "login": "azizrebhi",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
       "profile_url": "https://github.com/azizrebhi"
     },
     {
-      "rank": 3,
+      "rank": 4,
       "login": "Nachiket-Roy",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
       "profile_url": "https://github.com/Nachiket-Roy"
     },
     {
-      "rank": 4,
+      "rank": 5,
       "login": "sidd190",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
       "profile_url": "https://github.com/sidd190"
     },
     {
-      "rank": 5,
+      "rank": 6,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 6,
+      "rank": 7,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 7,
+      "rank": 8,
       "login": "swaparup36",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
       "profile_url": "https://github.com/swaparup36"
-    },
-    {
-      "rank": 8,
-      "login": "mdkaifansari04",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4",
-      "profile_url": "https://github.com/mdkaifansari04"
     },
     {
       "rank": 9,
@@ -158,7 +158,7 @@
       "title": "[BUG] make the x link to OWASP_BLT",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/69",
       "created_at": "2026-03-05T09:26:36Z",
-      "comment_count": 0,
+      "comment_count": 2,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -169,7 +169,16 @@
       "reactions": {
         "eyes": 1
       },
-      "latest_comment": null
+      "latest_comment": {
+        "body": "@mdkaifansari04 You have been assigned to this issue! 🎉\n\nPlease submit a pull request within **8 hours** (by Sun, 08 Mar 2026 04:24:39 UTC).\n\nIf you need more time or cannot complete the work, please comment `/unassign` so others can pick it up.\n\nHappy coding! 🚀 — [OWASP BLT](https://owaspblt.org)",
+        "created_at": "2026-03-07T20:24:40Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/69#issuecomment-4017278433",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
     },
     {
       "number": 17,
