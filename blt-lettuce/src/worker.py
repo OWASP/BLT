@@ -405,8 +405,10 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
     except Exception as e:
         print(f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}")
         capture_exception_to_sentry(env, e, {"user_id": user_id, "workspace_id": workspace_id})
+        return False
 async def db_get_user_workspaces(env, user_id):
     """Return all workspaces accessible by this user."""
+    print(f"[db_get_user_workspaces] Fetching workspaces for user_id={user_id}")
     try:
         result = (
             await env.DB.prepare(
@@ -418,8 +420,14 @@ async def db_get_user_workspaces(env, user_id):
             .bind(user_id)
             .all()
         )
-        return _rows(result)
-    except Exception:
+        workspaces = _rows(result)
+        print(f"[db_get_user_workspaces] Found {len(workspaces)} workspace(s) for user {user_id}")
+        if workspaces:
+            print(f"[db_get_user_workspaces] Workspaces: {[ws.get('team_name') for ws in workspaces]}")
+        return workspaces
+    except Exception as e:
+        print(f"[db_get_user_workspaces] ERROR: {e}")
+        capture_exception_to_sentry(env, e, {"user_id": user_id})
         return []
 
 
@@ -1484,11 +1492,23 @@ async def handle_request(request, env):
                 user_email,
                 user_token or "",
             )
+            print(f"[OAuth callback] User object returned: {user}")
             if not user:
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
                 return _html_response(
                     get_login_page_html(
                         sign_in_url, error="Database error. Please try again."
+                    ),
+                )
+            
+            # Validate user has an ID field
+            user_id_val = user.get("id") if isinstance(user, dict) else None
+            if not user_id_val:
+                print(f"[OAuth callback] ERROR: User object missing 'id' field. User keys: {user.keys() if isinstance(user, dict) else 'not a dict'}")
+                sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
+                return _html_response(
+                    get_login_page_html(
+                        sign_in_url, error="User ID error. Please try again."
                     ),
                 )
 
@@ -1508,16 +1528,19 @@ async def handle_request(request, env):
                     )
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
-                        user_id_val = _obj_get(user, "id")
-                        ws_id_val = _obj_get(ws, "id")
+                        ws_id_val = ws.get("id") if isinstance(ws, dict) else None
                         print(f"[OAuth callback] user_id_val={user_id_val}, ws_id_val={ws_id_val}")
+                        print(f"[OAuth callback] Workspace keys: {ws.keys() if isinstance(ws, dict) else 'not a dict'}")
+                        
                         if user_id_val and ws_id_val:
                             link_result = await db_link_user_workspace(
                                 env, user_id_val, ws_id_val, role="owner"
                             )
                             print(f"[OAuth callback] Link result: {link_result}")
+                            if not link_result:
+                                print(f"[OAuth callback] ERROR: Failed to link user to workspace")
                         else:
-                            print(f"[OAuth callback] WARNING: Could not link workspace - missing user_id or ws_id")
+                            print(f"[OAuth callback] WARNING: Could not link workspace - missing user_id ({user_id_val}) or ws_id ({ws_id_val})")
                         # Background channel scan (best-effort)
                         try:
                             if ws_id_val and bot_token:
@@ -1532,8 +1555,9 @@ async def handle_request(request, env):
 
             # ---- Create session ----
             token = generate_session_token()
-            user_id_val = _obj_get(user, "id")
+            print(f"[OAuth callback] Creating session with user_id={user_id_val}")
             session_ok = await db_create_session(env, user_id_val, token) if user_id_val else False
+            print(f"[OAuth callback] Session creation result: {session_ok}")
             if not session_ok:
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
                 return _html_response(
@@ -1625,7 +1649,8 @@ async def handle_request(request, env):
         user = await get_current_user(env, request)
         if not user:
             return _redirect("/login")
-
+        
+        print(f"[GET /dashboard] User: {user.get('name')} (user_id={user.get('user_id')}, slack_user_id={user.get('slack_user_id')})")
         workspaces = await db_get_user_workspaces(env, user["user_id"])
 
         # Determine which workspace to show (ws= query param or first)
