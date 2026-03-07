@@ -1533,5 +1533,191 @@ class TestTrackingOperations(unittest.TestCase):
         _run(self._test_track_comment())
 
 
+# ---------------------------------------------------------------------------
+# check_unresolved_conversations tests
+# ---------------------------------------------------------------------------
+
+
+class TestCheckUnresolvedConversations(unittest.TestCase):
+    """check_unresolved_conversations — adds/removes label based on review threads."""
+
+    def _graphql_response(self, threads):
+        """Build a mock GraphQL response containing the given thread nodes."""
+        body = json.dumps({
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "reviewThreads": {
+                            "nodes": threads,
+                        }
+                    }
+                }
+            }
+        })
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value=body)
+        return resp
+
+    def _labels_response(self, labels):
+        """Build a mock REST response for GET labels."""
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value=json.dumps(labels))
+        return resp
+
+    def _ok_response(self):
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value="{}")
+        return resp
+
+    def _payload(self):
+        return _make_pr_payload(owner="acme", repo="widgets", number=7)
+
+    def test_returns_early_when_no_pull_request(self):
+        """Should do nothing if payload has no pull_request key."""
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: api_calls.append(a))):
+                with patch.object(_worker, "fetch", new=AsyncMock()):
+                    await _worker.check_unresolved_conversations({"repository": {"owner": {"login": "x"}, "name": "y"}}, "tok")
+
+        _run(_inner())
+        self.assertEqual(api_calls, [])
+
+    def test_returns_early_on_graphql_failure(self):
+        """Should bail if the GraphQL call fails."""
+        api_calls = []
+        fail_resp = MagicMock()
+        fail_resp.status = 502
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: api_calls.append(a))):
+                with patch.object(_worker, "fetch", new=AsyncMock(return_value=fail_resp)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertEqual(api_calls, [])
+
+    def test_adds_red_label_when_unresolved(self):
+        """With unresolved threads the label should be red (e74c3c)."""
+        threads = [{"isResolved": False}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        # _ensure_label_exists should have been called with red colour
+        ensure_calls = [c for c in api_calls if len(c) >= 2 and "labels/" in str(c[1]) and c[0] == "GET"]
+        add_label_calls = [c for c in api_calls if c[0] == "POST" and "/issues/7/labels" in c[1]]
+        self.assertTrue(len(add_label_calls) >= 1, f"Expected POST to add label, got {api_calls}")
+        # Should use label name with count 1
+        self.assertTrue(
+            any("unresolved-conversations: 1" in json.dumps(c) for c in api_calls),
+            f"Expected label with count 1, calls: {api_calls}",
+        )
+
+    def test_adds_green_label_when_all_resolved(self):
+        """When all threads are resolved, label should be green (5cb85c) with count 0."""
+        threads = [{"isResolved": True}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertTrue(
+            any("unresolved-conversations: 0" in json.dumps(c) for c in api_calls),
+            f"Expected label with count 0, calls: {api_calls}",
+        )
+
+    def test_removes_stale_labels_before_adding(self):
+        """Old unresolved-conversations labels should be DELETEd before adding the new one."""
+        threads = [{"isResolved": False}]
+        existing_labels = [{"name": "unresolved-conversations: 3"}, {"name": "bug"}]
+
+        call_order = []
+
+        async def mock_api(*args, **kwargs):
+            call_order.append(args)
+            # Return existing labels for GET labels call
+            if args[0] == "GET" and "/issues/" in args[1] and "/labels" in args[1] and "labels/" not in args[1]:
+                return self._labels_response(existing_labels)
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        # Should have a DELETE call for the old label
+        delete_calls = [c for c in call_order if c[0] == "DELETE" and "unresolved-conversations" in c[1]]
+        self.assertEqual(len(delete_calls), 1, f"Expected 1 DELETE for stale label, got {delete_calls}")
+        # Should NOT delete the "bug" label
+        bug_deletes = [c for c in call_order if c[0] == "DELETE" and "bug" in c[1]]
+        self.assertEqual(len(bug_deletes), 0)
+
+    def test_no_threads_adds_green_label(self):
+        """When there are no review threads at all, label should be green with count 0."""
+        threads = []
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertTrue(
+            any("unresolved-conversations: 0" in json.dumps(c) for c in api_calls),
+            f"Expected label with count 0, calls: {api_calls}",
+        )
+
+    def test_counts_multiple_unresolved(self):
+        """Label should reflect the correct count of unresolved threads."""
+        threads = [
+            {"isResolved": False},
+            {"isResolved": False},
+            {"isResolved": True},
+            {"isResolved": False},
+        ]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertTrue(
+            any("unresolved-conversations: 3" in json.dumps(c) for c in api_calls),
+            f"Expected label with count 3, calls: {api_calls}",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
