@@ -262,49 +262,49 @@ def get_status_html(env):
     contribute_id = bool(getattr(env, 'CONTRIBUTE_ID', None))
     
     replacements = {
-        '%%SLACK_TOKEN_STATUS%%': _status_item(
+        'SLACK_TOKEN_STATUS': _status_item(
             'SLACK_TOKEN',
             'Slack Bot User OAuth Token (xoxb-...) for API calls',
             slack_token,
             required=True
         ),
-        '%%SIGNING_SECRET_STATUS%%': _status_item(
+        'SIGNING_SECRET_STATUS': _status_item(
             'SIGNING_SECRET',
             'Slack App Signing Secret for webhook verification',
             signing_secret,
             required=True
         ),
-        '%%SLACK_CLIENT_ID_STATUS%%': _status_item(
+        'SLACK_CLIENT_ID_STATUS': _status_item(
             'SLACK_CLIENT_ID',
             'Slack OAuth App Client ID for user authentication',
             slack_client_id,
             required=True
         ),
-        '%%SLACK_CLIENT_SECRET_STATUS%%': _status_item(
+        'SLACK_CLIENT_SECRET_STATUS': _status_item(
             'SLACK_CLIENT_SECRET',
             'Slack OAuth App Client Secret for token exchange',
             slack_client_secret,
             required=True
         ),
-        '%%SENTRY_DSN_STATUS%%': _status_item(
+        'SENTRY_DSN_STATUS': _status_item(
             'SENTRY_DSN',
             'Sentry Data Source Name for error tracking',
             sentry_dsn,
             required=False
         ),
-        '%%BASE_URL_STATUS%%': _status_item(
+        'BASE_URL_STATUS': _status_item(
             'BASE_URL',
             'Base URL for OAuth redirects (e.g., https://lettuce.owaspblt.org)',
             base_url,
             required=False
         ),
-        '%%JOINS_CHANNEL_ID_STATUS%%': _status_item(
+        'JOINS_CHANNEL_ID_STATUS': _status_item(
             'JOINS_CHANNEL_ID',
             'Channel ID where join notifications are posted',
             joins_channel,
             required=False
         ),
-        '%%CONTRIBUTE_ID_STATUS%%': _status_item(
+        'CONTRIBUTE_ID_STATUS': _status_item(
             'CONTRIBUTE_ID',
             'Channel ID for contribution guidelines',
             contribute_id,
