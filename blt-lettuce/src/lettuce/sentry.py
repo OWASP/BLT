@@ -11,6 +11,14 @@ import traceback
 from datetime import datetime, timezone
 
 
+def _log_debug(msg):
+    """Log debug message to stderr."""
+    try:
+        print(f"[Sentry] {msg}", file=sys.stderr)
+    except Exception:
+        pass
+
+
 class SentryClient:
     """Lightweight Sentry client for error reporting."""
 
@@ -34,6 +42,9 @@ class SentryClient:
             # or https://key:secret@sentry.io/project_id
             parts = self.dsn.replace("https://", "").replace("http://", "").split("@")
             if len(parts) != 2:
+                _log_debug(
+                    "DSN parse failed: invalid format (expected key@host/project)"
+                )
                 self.enabled = False
                 return
 
@@ -54,7 +65,9 @@ class SentryClient:
 
             # Construct API endpoint
             self.api_url = f"https://{self.host}/api/{self.project_id}/store/"
-        except Exception:
+            _log_debug(f"Sentry initialized: {self.api_url}")
+        except Exception as e:
+            _log_debug(f"DSN parse error: {e}")
             self.enabled = False
 
     async def capture_exception(self, exc=None, level="error", extra=None):

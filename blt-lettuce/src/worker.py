@@ -943,15 +943,14 @@ def is_homepage_request(url, method):
 
 
 def _html_response(html, status=200, extra_headers=None):
-    # Use a plain header dict for compatibility across Python Worker runtimes.
-    h = {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store",
-        "X-Content-Type-Options": "nosniff",
-    }
+    # Use Headers object for compatibility with Cloudflare Workers
+    h = Headers.new()
+    h.set("Content-Type", "text/html; charset=utf-8")
+    h.set("Cache-Control", "no-store")
+    h.set("X-Content-Type-Options", "nosniff")
     if extra_headers:
         for k, v in extra_headers.items():
-            h[k] = v
+            h.set(k, v)
     return Response.new(html, {"status": status, "headers": h})
 
 
@@ -966,9 +965,11 @@ def _redirect(location, extra_headers=None):
 
 def _json_response(data, status=200):
     """Return a JSON response with the given status code."""
+    h = Headers.new()
+    h.set("Content-Type", "application/json")
     return Response.new(
         json.dumps(data),
-        {"status": status, "headers": {"Content-Type": "application/json"}},
+        {"status": status, "headers": h},
     )
 
 
@@ -1553,7 +1554,9 @@ class Default(WorkerEntrypoint):
             import traceback
 
             traceback.print_exc(file=sys.stderr)
+            h = Headers.new()
+            h.set("Content-Type", "application/json")
             return Response.new(
                 json.dumps({"error": "Internal server error"}),
-                {"status": 500, "headers": {"Content-Type": "application/json"}},
+                {"status": 500, "headers": h},
             )
