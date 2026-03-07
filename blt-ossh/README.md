@@ -116,9 +116,17 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 |----------|---------|
 | `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
 | `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
-| `GET https://api.github.com/users/{username}/events/public?per_page=100` | Public events (for activity scoring; optional) |
+| `GET https://api.github.com/users/{username}/events/public?per_page=100` | Recent public events used to calculate the contributor activity score |
 | `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (used by workflow) |
 | `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues) |
+
+### Data Fetched
+
+- **User profile** — Avatar, bio, public repos count, followers, following
+- **Repositories** — Names, descriptions, languages, stars, fork status
+- **Languages used** — Extracted from repository metadata and weighted by frequency
+- **Public events** — Recent PushEvent, PullRequestEvent, and IssuesEvent counts used for activity scoring (see `js/app.js`, `activity_score`, `activity_breakdown`)
+- **Community profiles** — Parsed from issue bodies on the Community page (or from `data/profiles.json`)
 
 ### Rate Limits
 
