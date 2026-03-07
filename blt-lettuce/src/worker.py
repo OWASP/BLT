@@ -653,7 +653,17 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
                 "body": body,
             },
         )
+        
+        # Check HTTP status
+        status = getattr(resp, "status", 0)
+        if status >= 400:
+            return {"ok": False, "error": f"http_error_{status}"}
+        
         data = await resp.json()
+        
+        # Ensure data is a dict-like object
+        if not hasattr(data, "get"):
+            return {"ok": False, "error": "invalid_response_format"}
         
         # If Slack returns an error, include details
         if not data.get("ok"):
@@ -662,7 +672,9 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
         
         return data
     except Exception as e:
-        return {"ok": False, "error": f"token_exchange_failed: {str(e)}"}
+        # Try to get meaningful error info
+        error_msg = str(e) if str(e) else type(e).__name__
+        return {"ok": False, "error": f"exception: {error_msg}"}
 
 
 async def fetch_user_identity(user_token):
