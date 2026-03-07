@@ -1637,9 +1637,13 @@ def get_homepage_html():
             </div>
           </div>
         </div>
+        <div class="text-center mt-6">
+          <a href="https://owasp-blt.github.io/BLT-Lettuce/slack-bot-flowchart.html" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold" target="_blank">
+            <i class="fas fa-project-diagram mr-2"></i>
+            View Full Flowchart
+          </a>
+        </div>
       </section>
-
-      <!-- Bot Interactions -->
       <section class="bg-white rounded-lg shadow p-6 mb-8" id="interactions">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Bot Interactions</h2>
         <div class="grid md:grid-cols-2 gap-6">
