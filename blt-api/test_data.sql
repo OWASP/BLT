@@ -11,7 +11,11 @@ DELETE FROM bug_tags;
 DELETE FROM bug_screenshots;
 DELETE FROM bugs;
 DELETE FROM domain_tags;
+DELETE FROM organization_integrations;
+DELETE FROM organization_tags;
+DELETE FROM organization_managers;
 DELETE FROM domains;
+DELETE FROM organization;
 DELETE FROM users;
 DELETE FROM tags;
 
@@ -27,7 +31,11 @@ WHERE name IN (
     'bug_screenshots',
     'bugs',
     'domain_tags',
+    'organization_integrations',
+    'organization_tags',
+    'organization_managers',
     'domains',
+    'organization',
     'users',
     'tags'
 );
@@ -100,11 +108,96 @@ INSERT INTO users (username, password, email, title, user_avatar, description, w
         1
     );
 
--- Insert test domains
-INSERT INTO domains (name, url, email, is_active, has_security_txt, user) VALUES
-    ('OWASP BLT', 'https://blt.owasp.org', 'support@owasp.org', 1, 1, 4),
-    ('Example Corp', 'https://example.com', 'security@example.com', 1, 0, 1),
-    ('Test Domain', 'https://test.example.org', 'test@example.org', 1, 1, 2);
+-- Insert test organizations
+INSERT INTO organization (
+    name, slug, description, logo, url, email, tagline, type, 
+    is_active, team_points, github_org, country, city, admin
+) VALUES
+    (
+        'OWASP Foundation',
+        'owasp',
+        'The Open Web Application Security Project (OWASP) is a nonprofit foundation that works to improve the security of software.',
+        'https://owasp.org/assets/images/logo.png',
+        'https://owasp.org',
+        'contact@owasp.org',
+        'Improving the security of software worldwide',
+        'nonprofit',
+        1,
+        5400,
+        'OWASP',
+        'United States',
+        'Wakefield',
+        4
+    ),
+    (
+        'SecureCorp Inc',
+        'securecorp',
+        'Leading cybersecurity company providing enterprise security solutions.',
+        'https://securecorp.example.com/logo.png',
+        'https://securecorp.example.com',
+        'security@securecorp.example.com',
+        'Enterprise Security Made Simple',
+        'company',
+        1,
+        3200,
+        'securecorp',
+        'United States',
+        'San Francisco',
+        1
+    ),
+    (
+        'University of Technology',
+        'unitech',
+        'Research university with a strong focus on computer science and cybersecurity.',
+        NULL,
+        'https://unitech.edu',
+        'info@unitech.edu',
+        'Educating the next generation of security professionals',
+        'education',
+        1,
+        1800,
+        'unitech',
+        'United Kingdom',
+        'London',
+        3
+    );
+
+-- Insert organization managers
+INSERT INTO organization_managers (organization_id, user_id) VALUES
+    (1, 4), -- OWASP -> diana_admin (also admin)
+    (1, 1), -- OWASP -> alice_hunter (manager)
+    (1, 2), -- OWASP -> bob_security (manager)
+    (2, 1), -- SecureCorp -> alice_hunter (manager)
+    (2, 2), -- SecureCorp -> bob_security (manager)
+    (3, 3), -- UniTech -> charlie_dev (manager)
+    (3, 5); -- UniTech -> eve_newbie (manager)
+
+-- Insert organization tags
+INSERT INTO organization_tags (organization_id, tag_id) VALUES
+    (1, 1), -- OWASP -> security
+    (1, 2), -- OWASP -> bug-bounty
+    (1, 3), -- OWASP -> vulnerability
+    (2, 1), -- SecureCorp -> security
+    (2, 4), -- SecureCorp -> web-app
+    (3, 1), -- UniTech -> security
+    (3, 5); -- UniTech -> api
+
+-- Insert organization integrations
+INSERT INTO organization_integrations (
+    organization_id, integration_type, integration_name, 
+    webhook_url, config_data, is_active
+) VALUES
+    (1, 'github', 'GitHub Integration', 'https://hooks.github.com/owasp', '{"repo": "OWASP-BLT", "events": ["push", "pull_request"]}', 1),
+    (1, 'slack', 'Slack Notifications', 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXX', '{"channel": "#security-alerts"}', 1),
+    (2, 'github', 'GitHub Integration', 'https://hooks.github.com/securecorp', '{"repo": "security-tools"}', 1),
+    (2, 'jira', 'JIRA Integration', 'https://securecorp.atlassian.net/webhooks/12345', '{"project": "SEC"}', 1),
+    (3, 'slack', 'Slack Notifications', 'https://hooks.slack.com/services/T11111111/B11111111/YYYYYYYYYYYY', '{"channel": "#research"}', 1);
+
+-- Insert test domains (updated with organization references)
+INSERT INTO domains (name, url, email, is_active, has_security_txt, user, organization) VALUES
+    ('OWASP BLT', 'https://blt.owasp.org', 'support@owasp.org', 1, 1, 4, 1),
+    ('Example Corp', 'https://example.com', 'security@example.com', 1, 0, 1, 2),
+    ('Test Domain', 'https://test.example.org', 'test@example.org', 1, 1, 2, 3);
 
 -- Link tags to domains
 INSERT INTO domain_tags (domain_id, tag_id) VALUES
@@ -321,6 +414,56 @@ FROM domain_tags dt
 JOIN domains d ON dt.domain_id = d.id
 JOIN tags t ON dt.tag_id = t.id
 ORDER BY d.name, t.name;
+
+SELECT 'Organizations:' as info;
+SELECT 
+    o.id,
+    o.name,
+    o.slug,
+    o.type,
+    o.team_points,
+    u.username as admin
+FROM organization o
+LEFT JOIN users u ON o.admin = u.id
+ORDER BY o.name;
+
+SELECT 'Organization Managers:' as info;
+SELECT 
+    o.name as organization,
+    u.username as manager
+FROM organization_managers om
+JOIN organization o ON om.organization_id = o.id
+JOIN users u ON om.user_id = u.id
+ORDER BY o.name, u.username;
+
+SELECT 'Organization Tags:' as info;
+SELECT 
+    o.name as organization,
+    t.name as tag
+FROM organization_tags ot
+JOIN organization o ON ot.organization_id = o.id
+JOIN tags t ON ot.tag_id = t.id
+ORDER BY o.name, t.name;
+
+SELECT 'Organization Integrations:' as info;
+SELECT 
+    o.name as organization,
+    i.integration_type,
+    i.integration_name,
+    i.is_active
+FROM organization_integrations i
+JOIN organization o ON i.organization_id = o.id
+ORDER BY o.name, i.integration_type;
+
+SELECT 'Domains with Organizations:' as info;
+SELECT 
+    d.name as domain,
+    o.name as organization,
+    u.username as submitted_by
+FROM domains d
+LEFT JOIN organization o ON d.organization = o.id
+LEFT JOIN users u ON d.user = u.id
+ORDER BY d.name;
 
 SELECT 'Bugs:' as info;
 SELECT 
