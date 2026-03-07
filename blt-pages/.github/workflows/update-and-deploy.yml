@@ -13,12 +13,6 @@ on:
       - closed
       - reopened
 
-  # Regenerate when a comment is added or edited on any issue
-  issue_comment:
-    types:
-      - created
-      - edited
-
   # Deploy when code is pushed to main
   push:
     branches:
@@ -39,6 +33,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
