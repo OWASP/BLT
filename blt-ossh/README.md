@@ -20,7 +20,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 BLT-OSSH (Open Source Sorting Hat) is a **magical recommendation engine with special powers** that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
 
-Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs and educational pathways integrating with **BLT University**. Like the Sorting Hat, OSSH sorts contributors into four houses:
+Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs and educational pathways integrating with **BLT University**. Like the Sorting Hat, OSSH is designed to eventually sort contributors into four houses:
 
 | House | Focus |
 |-------|-------|
