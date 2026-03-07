@@ -23,7 +23,7 @@ class SentryClient:
         """
         self.dsn = dsn
         self.enabled = bool(dsn)
-        
+
         if self.dsn:
             self._parse_dsn()
 
@@ -101,12 +101,14 @@ class SentryClient:
             tb = exc_traceback
             while tb:
                 frame = tb.tb_frame
-                frames.append({
-                    "filename": frame.f_code.co_filename,
-                    "function": frame.f_code.co_name,
-                    "lineno": tb.tb_lineno,
-                    "context_line": frame.f_code.co_name,
-                })
+                frames.append(
+                    {
+                        "filename": frame.f_code.co_filename,
+                        "function": frame.f_code.co_name,
+                        "lineno": tb.tb_lineno,
+                        "context_line": frame.f_code.co_name,
+                    }
+                )
                 tb = tb.tb_next
 
         payload = {
@@ -141,6 +143,7 @@ class SentryClient:
     def _generate_event_id():
         """Generate a Sentry event ID."""
         import uuid
+
         return str(uuid.uuid4()).replace("-", "")
 
     async def _send_payload(self, payload):
@@ -151,7 +154,7 @@ class SentryClient:
             return
 
         try:
-            resp = await fetch(
+            await fetch(
                 self.api_url,
                 {
                     "method": "POST",
@@ -162,7 +165,7 @@ class SentryClient:
                     "body": json.dumps(payload),
                 },
             )
-            # Fire and forget - don't await the response
+            # Fire and forget - response not used
         except Exception:
             pass
 

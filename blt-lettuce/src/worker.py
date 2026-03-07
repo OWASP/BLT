@@ -14,7 +14,8 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
 
-from js import Headers, Response, fetch as js_fetch
+from js import Headers, Response
+from js import fetch as js_fetch
 
 try:
     from workers import WorkerEntrypoint
@@ -23,13 +24,13 @@ except ImportError:
     class WorkerEntrypoint:
         env = None
 
+
 from lettuce.html_templates import (
     get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
-    html_escape,
 )
-from lettuce.sentry import init_sentry, get_sentry
+from lettuce.sentry import get_sentry, init_sentry
 
 # ---------------------------------------------------------------------------
 # Channel IDs - configure via environment variables
@@ -1271,18 +1272,14 @@ async def handle_request(request, env):
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return _json_response(
-                {"ok": False, "error": "Invalid workspace id"}, 400
-            )
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
             return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         ws = await db_get_workspace_by_id(env, ws_id_val)
         if not ws:
-            return _json_response(
-                {"ok": False, "error": "Workspace not found"}, 404
-            )
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
         return Response.json({"ok": True, "channels_scanned": scanned})
@@ -1298,9 +1295,7 @@ async def handle_request(request, env):
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return _json_response(
-                {"ok": False, "error": "Invalid workspace id"}, 400
-            )
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
             return _json_response({"ok": False, "error": "Forbidden"}, 403)
@@ -1386,9 +1381,7 @@ async def handle_request(request, env):
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return _json_response(
-                {"ok": False, "error": "Invalid workspace id"}, 400
-            )
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
             return _json_response({"ok": False, "error": "Forbidden"}, 403)
@@ -1419,9 +1412,7 @@ async def handle_request(request, env):
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return _json_response(
-                {"ok": False, "error": "Invalid workspace id"}, 400
-            )
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
             return _json_response({"ok": False, "error": "Forbidden"}, 403)
@@ -1524,18 +1515,18 @@ class Default(WorkerEntrypoint):
         """Main entry point for the Cloudflare Worker."""
         global _current_env
         global _sentry_initialized
-        
+
         try:
             # Initialize Sentry on first request
             if not _sentry_initialized:
                 try:
-                    sentry_dsn = getattr(self.env, 'SENTRY_DSN', None)
+                    sentry_dsn = getattr(self.env, "SENTRY_DSN", None)
                     if sentry_dsn:
                         init_sentry(sentry_dsn)
                 except Exception:
                     pass
                 _sentry_initialized = True
-            
+
             # Store env globally to avoid passing through multiple call levels
             _current_env = self.env
             # Call handler - it will access _current_env as needed
@@ -1548,19 +1539,21 @@ class Default(WorkerEntrypoint):
                     e,
                     level="error",
                     extra={
-                        "path": request.url if hasattr(request, 'url') else "unknown",
-                        "method": request.method if hasattr(request, 'method') else "unknown",
-                    }
+                        "path": request.url if hasattr(request, "url") else "unknown",
+                        "method": request.method
+                        if hasattr(request, "method")
+                        else "unknown",
+                    },
                 )
             except Exception:
                 pass
-            
+
             # Log error cleanly to console
             import sys
             import traceback
+
             traceback.print_exc(file=sys.stderr)
             return Response.new(
                 json.dumps({"error": "Internal server error"}),
-                {"status": 500, "headers": {"Content-Type": "application/json"}}
+                {"status": 500, "headers": {"Content-Type": "application/json"}},
             )
-

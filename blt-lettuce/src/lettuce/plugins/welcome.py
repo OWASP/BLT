@@ -21,7 +21,6 @@ def handle_welcome_command(ack, body, client: WebClient) -> None:
     """
     ack()  # Acknowledge the command was received
 
-    user_id = body["user_id"]
     channel_id = body["channel_id"]
 
     welcome_message = {
