@@ -643,11 +643,13 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
                 "redirect_uri": redirect_uri,
             }
         )
+        headers = Headers.new()
+        headers.set("Content-Type", "application/x-www-form-urlencoded")
         resp = await js_fetch(
             "https://slack.com/api/oauth.v2.access",
             {
                 "method": "POST",
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                "headers": headers,
                 "body": body,
             },
         )
@@ -666,11 +668,13 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
 async def fetch_user_identity(user_token):
     """Call identity.basic to get user profile from a user token."""
     try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {user_token}")
         resp = await js_fetch(
             "https://slack.com/api/users.identity",
             {
                 "method": "GET",
-                "headers": {"Authorization": f"Bearer {user_token}"},
+                "headers": headers,
             },
         )
         return await resp.json()
@@ -692,11 +696,13 @@ async def scan_workspace_channels(env, workspace_id, access_token):
         if cursor:
             url += f"&cursor={cursor}"
         try:
+            headers = Headers.new()
+            headers.set("Authorization", f"Bearer {access_token}")
             resp = await js_fetch(
                 url,
                 {
                     "method": "GET",
-                    "headers": {"Authorization": f"Bearer {access_token}"},
+                    "headers": headers,
                 },
             )
             data = await resp.json()
@@ -735,9 +741,11 @@ async def get_bot_user_id(env):
     if not slack_token:
         return None
     try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {slack_token}")
         resp = await js_fetch(
             "https://slack.com/api/auth.test",
-            {"method": "POST", "headers": {"Authorization": f"Bearer {slack_token}"}},
+            {"method": "POST", "headers": headers},
         )
         result = await resp.json()
         if result.get("ok"):
@@ -754,14 +762,14 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
     payload = {"channel": channel, "text": text}
     if blocks:
         payload["blocks"] = blocks
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Authorization", f"Bearer {slack_token}")
     resp = await js_fetch(
         "https://slack.com/api/chat.postMessage",
         {
             "method": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {slack_token}",
-            },
+            "headers": headers,
             "body": json.dumps(payload),
         },
     )
@@ -772,14 +780,14 @@ async def open_conversation(env, user_id, token=None):
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Authorization", f"Bearer {slack_token}")
     resp = await js_fetch(
         "https://slack.com/api/conversations.open",
         {
             "method": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {slack_token}",
-            },
+            "headers": headers,
             "body": json.dumps({"users": user_id}),
         },
     )
@@ -1335,11 +1343,13 @@ async def handle_request(request, env):
                             api_url = (
                                 f"https://api.github.com/repos/{owner}/{repo_slug}"
                             )
+                            gh_headers = Headers.new()
+                            gh_headers.set("User-Agent", "BLT-Lettuce")
                             gh_resp = await js_fetch(
                                 api_url,
                                 {
                                     "method": "GET",
-                                    "headers": {"User-Agent": "BLT-Lettuce"},
+                                    "headers": gh_headers,
                                 },
                             )
                             gh_data = await gh_resp.json()
