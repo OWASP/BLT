@@ -962,6 +962,14 @@ def _redirect(location, extra_headers=None):
     return Response.new("", {"status": 302, "headers": h})
 
 
+def _json_response(data, status=200):
+    """Return a JSON response with the given status code."""
+    return Response.new(
+        json.dumps(data),
+        {"status": status, "headers": {"Content-Type": "application/json"}},
+    )
+
+
 # ===========================================================================
 # Main route handler
 # ===========================================================================
@@ -1258,23 +1266,21 @@ async def handle_request(request, env):
     ):
         user = await get_current_user(env, request)
         if not user:
-            return Response.json(
-                {"ok": False, "error": "Unauthorized"}, {"status": 401}
-            )
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return Response.json(
-                {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
+            return _json_response(
+                {"ok": False, "error": "Invalid workspace id"}, 400
             )
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return Response.json({"ok": False, "error": "Forbidden"}, {"status": 403})
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         ws = await db_get_workspace_by_id(env, ws_id_val)
         if not ws:
-            return Response.json(
-                {"ok": False, "error": "Workspace not found"}, {"status": 404}
+            return _json_response(
+                {"ok": False, "error": "Workspace not found"}, 404
             )
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
@@ -1287,18 +1293,16 @@ async def handle_request(request, env):
     if pathname.startswith("/api/ws/") and pathname.endswith("/repos"):
         user = await get_current_user(env, request)
         if not user:
-            return Response.json(
-                {"ok": False, "error": "Unauthorized"}, {"status": 401}
-            )
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return Response.json(
-                {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
+            return _json_response(
+                {"ok": False, "error": "Invalid workspace id"}, 400
             )
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return Response.json({"ok": False, "error": "Forbidden"}, {"status": 403})
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         if method == "GET":
             repos = await db_get_repositories(env, ws_id_val)
@@ -1309,8 +1313,8 @@ async def handle_request(request, env):
                 body = json.loads(await request.text())
                 repo_url = (body.get("repo_url") or "").strip()
                 if not repo_url:
-                    return Response.json(
-                        {"ok": False, "error": "repo_url required"}, {"status": 400}
+                    return _json_response(
+                        {"ok": False, "error": "repo_url required"}, 400
                     )
 
                 # Fetch GitHub metadata (best-effort)
@@ -1345,9 +1349,7 @@ async def handle_request(request, env):
                 )
                 return Response.json({"ok": True})
             except Exception:
-                return Response.json(
-                    {"ok": False, "error": "Invalid request"}, {"status": 400}
-                )
+                return _json_response({"ok": False, "error": "Invalid request"}, 400)
 
     # ------------------------------------------------------------------ #
     #  DELETE /api/ws/<ws_id>/repos/<repo_id>  →  remove a repo         #
@@ -1355,18 +1357,16 @@ async def handle_request(request, env):
     if pathname.startswith("/api/ws/") and "/repos/" in pathname and method == "DELETE":
         user = await get_current_user(env, request)
         if not user:
-            return Response.json(
-                {"ok": False, "error": "Unauthorized"}, {"status": 401}
-            )
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             after = pathname.split("/api/ws/")[1]
             ws_id_val = int(after.split("/")[0])
             repo_id_val = int(after.split("/repos/")[1].rstrip("/"))
         except (ValueError, IndexError):
-            return Response.json({"ok": False, "error": "Invalid ids"}, {"status": 400})
+            return _json_response({"ok": False, "error": "Invalid ids"}, 400)
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return Response.json({"ok": False, "error": "Forbidden"}, {"status": 403})
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         await db_delete_repository(env, repo_id_val, ws_id_val)
         return Response.json({"ok": True})
@@ -1381,27 +1381,26 @@ async def handle_request(request, env):
     ):
         user = await get_current_user(env, request)
         if not user:
-            return Response.json(
-                {"ok": False, "error": "Unauthorized"}, {"status": 401}
-            )
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return Response.json(
-                {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
+            return _json_response(
+                {"ok": False, "error": "Invalid workspace id"}, 400
             )
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return Response.json({"ok": False, "error": "Forbidden"}, {"status": 403})
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         ws_stats = await db_get_workspace_stats(env, ws_id_val)
-        return Response.json(
-            ws_stats,
+        return Response.new(
+            json.dumps(ws_stats),
             {
+                "status": 200,
                 "headers": {
                     "Access-Control-Allow-Origin": "*",
                     "Content-Type": "application/json",
-                }
+                },
             },
         )
 
@@ -1415,18 +1414,16 @@ async def handle_request(request, env):
     ):
         user = await get_current_user(env, request)
         if not user:
-            return Response.json(
-                {"ok": False, "error": "Unauthorized"}, {"status": 401}
-            )
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
-            return Response.json(
-                {"ok": False, "error": "Invalid workspace id"}, {"status": 400}
+            return _json_response(
+                {"ok": False, "error": "Invalid workspace id"}, 400
             )
 
         if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return Response.json({"ok": False, "error": "Forbidden"}, {"status": 403})
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
         events = await db_get_events(env, ws_id_val, limit=50)
         return Response.json({"ok": True, "events": events})
@@ -1446,9 +1443,7 @@ async def handle_request(request, env):
                 if not verify_slack_signature(
                     signing_secret, timestamp, body_text, signature
                 ):
-                    return Response.json(
-                        {"error": "Invalid signature"}, {"status": 401}
-                    )
+                    return _json_response({"error": "Invalid signature"}, 401)
 
             if body_json.get("type") == "url_verification":
                 return Response.json({"challenge": body_json.get("challenge")})
@@ -1472,7 +1467,7 @@ async def handle_request(request, env):
             return Response.json({"ok": True, "message": "Event received"})
 
         except Exception:
-            return Response.json({"error": "Internal server error"}, {"status": 500})
+            return _json_response({"error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
     #  GET /health                                                        #
