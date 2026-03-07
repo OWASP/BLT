@@ -123,6 +123,129 @@ def _js_to_python(value):
     return value
 
 
+# One-time schema bootstrap guard for the active worker instance.
+_schema_initialized = False
+
+
+async def ensure_d1_schema(env):
+    """Create required D1 tables/indexes if they do not exist."""
+    global _schema_initialized
+    if _schema_initialized:
+        return True
+
+    statements = [
+        (
+            "CREATE TABLE IF NOT EXISTS users ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "slack_user_id TEXT UNIQUE NOT NULL,"
+            "team_id TEXT NOT NULL,"
+            "name TEXT DEFAULT '',"
+            "email TEXT DEFAULT '',"
+            "access_token TEXT DEFAULT '',"
+            "created_at TEXT NOT NULL,"
+            "updated_at TEXT NOT NULL"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS sessions ("
+            "id TEXT PRIMARY KEY,"
+            "user_id INTEGER NOT NULL,"
+            "created_at TEXT NOT NULL,"
+            "expires_at TEXT NOT NULL,"
+            "FOREIGN KEY (user_id) REFERENCES users(id)"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS workspaces ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "team_id TEXT UNIQUE NOT NULL,"
+            "team_name TEXT NOT NULL,"
+            "access_token TEXT NOT NULL,"
+            "bot_user_id TEXT DEFAULT '',"
+            "created_at TEXT NOT NULL,"
+            "updated_at TEXT NOT NULL"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS user_workspaces ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "user_id INTEGER NOT NULL,"
+            "workspace_id INTEGER NOT NULL,"
+            "role TEXT DEFAULT 'owner',"
+            "created_at TEXT NOT NULL,"
+            "FOREIGN KEY (user_id) REFERENCES users(id),"
+            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
+            "UNIQUE(user_id, workspace_id)"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS channels ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "workspace_id INTEGER NOT NULL,"
+            "channel_id TEXT NOT NULL,"
+            "channel_name TEXT NOT NULL,"
+            "member_count INTEGER DEFAULT 0,"
+            "topic TEXT DEFAULT '',"
+            "purpose TEXT DEFAULT '',"
+            "is_private INTEGER DEFAULT 0,"
+            "created_at TEXT NOT NULL,"
+            "updated_at TEXT NOT NULL,"
+            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
+            "UNIQUE(workspace_id, channel_id)"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS repositories ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "workspace_id INTEGER NOT NULL,"
+            "repo_url TEXT NOT NULL,"
+            "repo_name TEXT DEFAULT '',"
+            "description TEXT DEFAULT '',"
+            "language TEXT DEFAULT '',"
+            "stars INTEGER DEFAULT 0,"
+            "created_at TEXT NOT NULL,"
+            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
+            "UNIQUE(workspace_id, repo_url)"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS events ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "workspace_id INTEGER,"
+            "event_type TEXT NOT NULL,"
+            "user_slack_id TEXT DEFAULT '',"
+            "status TEXT DEFAULT 'success',"
+            "created_at TEXT NOT NULL"
+            ")"
+        ),
+        (
+            "CREATE INDEX IF NOT EXISTS idx_events_workspace_created "
+            "ON events(workspace_id, created_at DESC)"
+        ),
+        (
+            "CREATE INDEX IF NOT EXISTS idx_channels_workspace "
+            "ON channels(workspace_id, member_count DESC)"
+        ),
+        "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
+        (
+            "CREATE INDEX IF NOT EXISTS idx_user_workspaces_user "
+            "ON user_workspaces(user_id)"
+        ),
+        (
+            "CREATE INDEX IF NOT EXISTS idx_user_workspaces_workspace "
+            "ON user_workspaces(workspace_id)"
+        ),
+    ]
+
+    try:
+        for sql in statements:
+            await env.DB.prepare(sql).run()
+        _schema_initialized = True
+        return True
+    except Exception:
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Welcome message template
 # ---------------------------------------------------------------------------
@@ -341,6 +464,18 @@ async def db_get_channels(env, workspace_id):
 async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token):
     now = get_utc_now()
     try:
+        await ensure_d1_schema(env)
+
+        # Ensure required columns are never NULL for inserts/updates.
+        slack_user_id = slack_user_id or ""
+        team_id = team_id or "unknown"
+        name = name or ""
+        email = email or ""
+        access_token = access_token or ""
+
+        if not slack_user_id:
+            return None
+
         existing = _row(
             await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
             .bind(slack_user_id)
@@ -378,6 +513,7 @@ async def db_create_session(env, user_id, token):
     now = get_utc_now()
     expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
     try:
+        await ensure_d1_schema(env)
         await (
             env.DB.prepare(
                 "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
@@ -731,6 +867,8 @@ async def fetch_user_identity(user_token):
 
 async def get_db_table_counts(env):
     """Return counts for key D1 tables used by dashboard and bot commands."""
+    await ensure_d1_schema(env)
+
     tables = [
         "users",
         "sessions",
@@ -742,8 +880,11 @@ async def get_db_table_counts(env):
     ]
     counts = {}
     for table in tables:
-        row = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
-        counts[table] = (row or {}).get("count", 0)
+        try:
+            row = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
+            counts[table] = (row or {}).get("count", 0)
+        except Exception:
+            counts[table] = 0
     return counts
 
 
