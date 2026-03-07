@@ -25,6 +25,7 @@ import sys
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
+import heapq
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -100,35 +101,172 @@ MAX_COMMENT_LENGTH = 120
 
 
 def github_request(path: str) -> list | dict:
-    """Perform a paginated GET against the GitHub REST API."""
-    url = f"{API_BASE}{path}"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+  """Perform a paginated GET against the GitHub REST API."""
+  url = f"{API_BASE}{path}"
+  headers = {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  }
+  if GITHUB_TOKEN:
+    headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
 
-    results = []
-    page = 1
-    while True:
-        paged_url = f"{url}{'&' if '?' in url else '?'}per_page=100&page={page}"
-        req = urllib.request.Request(paged_url, headers=headers)
-        try:
-            with urllib.request.urlopen(req) as resp:
-                data = json.loads(resp.read().decode())
-        except urllib.error.HTTPError as exc:
-            print(f"GitHub API error {exc.code} for {paged_url}: {exc.reason}",
-                  file=sys.stderr)
-            break
-        if isinstance(data, list):
-            results.extend(data)
-            if len(data) < 100:
-                break
-            page += 1
-        else:
-            return data
-    return results
+  results = []
+  page = 1
+  while True:
+    paged_url = f"{url}{'&' if '?' in url else '?'}per_page=100&page={page}"
+    req = urllib.request.Request(paged_url, headers=headers)
+    try:
+      with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as exc:
+      error_msg = (
+          f"GitHub API error {exc.code} for {paged_url}: {exc.reason}"
+      )
+      print(f"ERROR: {error_msg}", file=sys.stderr)
+      sys.exit(1)
+    if isinstance(data, list):
+      results.extend(data)
+      if len(data) < 100:
+        break
+      page += 1
+    else:
+      return data
+  return results
+
+
+
+
+def build_html(contests_data: list[dict], last_updated: str) -> str:
+  """Return the complete index.html (homepage) as a string.
+
+  ``contests_data`` is a list of dicts, each with keys:
+    - ``config``  – the CONTESTS entry dict
+    - ``cards``   – list of card HTML strings (winners first)
+    - ``total``   – submission count for that contest
+    - ``issues``  – raw issue payloads for that contest
+  """
+  total_all = sum(d["total"] for d in contests_data)
+
+  # Build contest summary cards for the homepage
+  contest_cards_html = ""
+  for d in contests_data:
+    c = d["config"]
+    cid = html.escape(c["id"])
+    cname = html.escape(c["name"])
+    cdesc = html.escape(c["description"])
+    cprize = html.escape(c["prize"])
+    cdeadline = html.escape(c["deadline_display"])
+    ctotal = d["total"]
+    icon = c["icon"]
+    page_url = f"{cid}.html"
+    cstatus = c.get("status", "active")
+    if cstatus == "selecting_winner":
+      status_badge = (
+        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+        ' bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">'
+        'Ended \u2013 Selecting Winner'
+        '</span>'
+      )
+      ends_text = f"Ended {cdeadline}"
+    else:
+      status_badge = (
+        '<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full'
+        ' bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">'
+        'Active'
+        '</span>'
+      )
+      ends_text = f"Ends {cdeadline}"
+
+    contest_cards_html += f"""
+    <a href="{page_url}"
+       class="group block bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm
+          border border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+          hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+      <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+      <div class="p-6 sm:p-7">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-14 h-14 rounded-xl bg-[#feeae9] dark:bg-red-900/30
+              flex items-center justify-center shrink-0">
+        <i class="{icon} text-2xl text-[#E10101]" aria-hidden="true"></i>
+        </div>
+        <div class="min-w-0">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{cname}</h3>
+        {status_badge}
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
+      <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
+        <span class="inline-flex items-center gap-1.5 text-[#E10101]">
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
+        </span>
+        <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+        <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
+        </span>
+      </div>
+      <div class="flex items-center justify-between pt-4
+            border-t border-[#E5E5E5] dark:border-gray-700">
+        <div>
+        <p class="text-2xl font-black text-[#E10101]">{ctotal}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          submission{'' if ctotal == 1 else 's'}
+        </p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+               group-hover:gap-2.5 transition-all duration-200">
+        View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </span>
+      </div>
+      </div>
+    </a>"""
+
+  # Build the latest submissions across contests by submitted time.
+  # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
+  heap = []  # min-heap of (submitted_dt, entry_dict) tuples
+  for d in contests_data:
+    c = d["config"]
+    cid = c["id"]
+    contest_name = html.escape(c["name"])
+    contest_url = html.escape(f"{cid}.html")
+    title_prefix = c.get("title_prefix", "")
+
+    for issue in d.get("issues", []):
+      created_at = issue.get("created_at", "")
+      if not created_at:
+        continue
+      try:
+        submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+      except ValueError:
+        continue
+
+      raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+      if title_prefix and raw_title.startswith(title_prefix):
+        raw_title = raw_title[len(title_prefix):].strip()
+
+      body = issue.get("body", "") or ""
+      fields = parse_issue_body(body)
+      preview_url = html.escape(extract_preview_url(fields, body))
+      issue_url = html.escape(issue.get("html_url", "#"))
+
+      entry = {
+        "contest_name": contest_name,
+        "contest_url": contest_url,
+        "title": html.escape(raw_title or "Untitled submission"),
+        "issue_url": issue_url,
+        "preview_url": preview_url,
+        "submitted_iso": html.escape(created_at),
+        "submitted_fallback": html.escape(created_at[:10]),
+        "submitted_dt": submitted_dt,
+      }
+
+      # Maintain a heap of the 3 most recent entries
+      if len(heap) < 3:
+        heapq.heappush(heap, (submitted_dt, entry))
+      elif submitted_dt > heap[0][0]:
+        heapq.heapreplace(heap, (submitted_dt, entry))
+
+  # Extract the 3 entries and sort them in descending order
+  latest_three = sorted(heap, reverse=True)
+  latest_three = [entry for _, entry in latest_three]
 
 
 def fetch_reactions(issue_number: int) -> dict:
@@ -571,6 +709,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       - ``config``  – the CONTESTS entry dict
       - ``cards``   – list of card HTML strings (winners first)
       - ``total``   – submission count for that contest
+      - ``issues``  – raw issue payloads for that contest
     """
     total_all = sum(d["total"] for d in contests_data)
 
@@ -645,6 +784,150 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
             </div>
           </div>
         </a>"""
+
+    # Build the latest submissions across contests by submitted time.
+    recent_entries = []
+    for d in contests_data:
+        c = d["config"]
+        cid = c["id"]
+        contest_name = html.escape(c["name"])
+        contest_url = html.escape(f"{cid}.html")
+        title_prefix = c.get("title_prefix", "")
+
+        for issue in d.get("issues", []):
+            created_at = issue.get("created_at", "")
+            if not created_at:
+                continue
+            try:
+                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+
+            raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+            if title_prefix and raw_title.startswith(title_prefix):
+                raw_title = raw_title[len(title_prefix):].strip()
+
+            body = issue.get("body", "") or ""
+            fields = parse_issue_body(body)
+            preview_url = html.escape(extract_preview_url(fields, body))
+            issue_url = html.escape(issue.get("html_url", "#"))
+
+            recent_entries.append({
+                "contest_name": contest_name,
+                "contest_url": contest_url,
+                "title": html.escape(raw_title or "Untitled submission"),
+                "issue_url": issue_url,
+                "preview_url": preview_url,
+                "submitted_iso": html.escape(created_at),
+                "submitted_fallback": html.escape(created_at[:10]),
+                "submitted_dt": submitted_dt,
+            })
+
+    recent_entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+    latest_three = recent_entries[:3]
+
+    if latest_three:
+        recent_cards_html = ""
+        for item in latest_three:
+            if item["preview_url"]:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
+                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
+                    f'       class="w-full h-full object-cover transition-transform duration-300 '
+                    f'              group-hover:scale-105" />'
+                    f'</a>'
+                )
+            else:
+                # Build the latest submissions across contests by submitted time.
+                # Use a min-heap to keep only the top 3 most recent entries without sorting the full list.
+                heap = []  # min-heap of (submitted_dt, entry_dict) tuples
+                for d in contests_data:
+                  c = d["config"]
+                  cid = c["id"]
+                  contest_name = html.escape(c["name"])
+                  contest_url = html.escape(f"{cid}.html")
+                  title_prefix = c.get("title_prefix", "")
+
+                  for issue in d.get("issues", []):
+                    created_at = issue.get("created_at", "")
+                    if not created_at:
+                      continue
+                    try:
+                      submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                    except ValueError:
+                      continue
+
+                    raw_title = (issue.get("title", "Untitled") or "Untitled").strip()
+                    if title_prefix and raw_title.startswith(title_prefix):
+                      raw_title = raw_title[len(title_prefix):].strip()
+
+                    body = issue.get("body", "") or ""
+                    fields = parse_issue_body(body)
+                    preview_url = html.escape(extract_preview_url(fields, body))
+                    issue_url = html.escape(issue.get("html_url", "#"))
+
+                    entry = {
+                      "contest_name": contest_name,
+                      "contest_url": contest_url,
+                      "title": html.escape(raw_title or "Untitled submission"),
+                      "issue_url": issue_url,
+                      "preview_url": preview_url,
+                      "submitted_iso": html.escape(created_at),
+                      "submitted_fallback": html.escape(created_at[:10]),
+                      "submitted_dt": submitted_dt,
+                    }
+
+                    # Maintain a heap of the 3 most recent entries
+                    if len(heap) < 3:
+                      heapq.heappush(heap, (submitted_dt, entry))
+                    elif submitted_dt > heap[0][0]:
+                      heapq.heapreplace(heap, (submitted_dt, entry))
+
+                # Extract the 3 entries and sort them in descending order
+                latest_three = sorted(heap, reverse=True)
+                latest_three = [entry for _, entry in latest_three]
+
+            recent_cards_html += f"""
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          {preview_block}
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="{item["contest_url"]}"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>"""
+    else:
+        recent_cards_html = (
+            '<div class="md:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center '
+            'text-sm text-gray-500 dark:text-gray-400">'
+            'No recent submissions available.'
+            '</div>'
+        )
 
     # For the hero submit URL, use the first contest
     first_submit_url = html.escape(
@@ -843,6 +1126,26 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         {contest_cards_html}
       </div>
 
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       RECENT SUBMISSIONS
+  ══════════════════════════════════════════ -->
+  <section id="recent-submissions" class="bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Latest 3 entries sorted by submitted time.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {recent_cards_html}
+      </div>
     </div>
   </section>
 
@@ -1344,6 +1647,7 @@ def main() -> None:
         contests_data.append({
             "config": contest,
             "cards": cards,
+            "issues": issues,
             "total": len(cards),
             "winner_count": len(winner_cards),
         })
