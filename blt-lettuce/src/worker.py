@@ -332,9 +332,10 @@ async def db_get_workspace_by_team(env, team_id):
 async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id=""):
     now = get_utc_now()
     try:
+        await ensure_d1_schema(env)
         existing = await db_get_workspace_by_team(env, team_id)
         if existing:
-            await (
+            result = await (
                 env.DB.prepare(
                     "UPDATE workspaces SET team_name=?, access_token=?, bot_user_id=?, "
                     "updated_at=? WHERE team_id=?"
@@ -342,8 +343,9 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
                 .bind(team_name, access_token, bot_user_id, now, team_id)
                 .run()
             )
+            print(f"[db_upsert_workspace] Updated workspace {team_id}, result: {result}")
         else:
-            await (
+            result = await (
                 env.DB.prepare(
                     "INSERT INTO workspaces "
                     "(team_id, team_name, access_token, bot_user_id, created_at, updated_at) "
@@ -352,8 +354,13 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
                 .bind(team_id, team_name, access_token, bot_user_id, now, now)
                 .run()
             )
-        return await db_get_workspace_by_team(env, team_id)
-    except Exception:
+            print(f"[db_upsert_workspace] Inserted workspace {team_id}, result: {result}")
+        ws = await db_get_workspace_by_team(env, team_id)
+        print(f"[db_upsert_workspace] Retrieved workspace: {ws}")
+        return ws
+    except Exception as e:
+        print(f"[db_upsert_workspace] ERROR: {e}")
+        capture_exception_to_sentry(env, e, {"team_id": team_id, "team_name": team_name})
         return None
 
 
@@ -376,8 +383,10 @@ async def db_get_workspace_by_id(env, workspace_id):
 async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
     """Associate a user with a workspace (idempotent)."""
     now = get_utc_now()
+    print(f"[db_link_user_workspace] Linking user {user_id} to workspace {workspace_id}")
     try:
-        await (
+        await ensure_d1_schema(env)
+        result = await (
             env.DB.prepare(
                 "INSERT INTO user_workspaces (user_id, workspace_id, role, created_at) "
                 "VALUES (?, ?, ?, ?) "
@@ -386,11 +395,11 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
             .bind(user_id, workspace_id, role, now)
             .run()
         )
+        print(f"[db_link_user_workspace] Link created successfully, result: {result}")
         return True
-    except Exception:
-        return False
-
-
+    except Exception as e:
+        print(f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}")
+        capture_exception_to_sentry(env, e, {"user_id": user_id, "workspace_id": workspace_id})
 async def db_get_user_workspaces(env, user_id):
     """Return all workspaces accessible by this user."""
     try:
@@ -441,7 +450,8 @@ async def db_upsert_channel(
 ):
     now = get_utc_now()
     try:
-        await (
+        await ensure_d1_schema(env)
+        result = await (
             env.DB.prepare(
                 "INSERT INTO channels "
                 "(workspace_id, channel_id, channel_name, member_count, topic, purpose, "
@@ -465,8 +475,11 @@ async def db_upsert_channel(
             )
             .run()
         )
+        print(f"[db_upsert_channel] Saved channel {channel_name} (ID: {channel_id}), result: {result}")
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
+        capture_exception_to_sentry(env, e, {"workspace_id": workspace_id, "channel_id": channel_id})
         return False
 
 
@@ -491,67 +504,14 @@ async def db_get_channels(env, workspace_id):
 
 async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token):
     now = get_utc_now()
-    try:
-        await ensure_d1_schema(env)
-
-        # Ensure required columns are never NULL for inserts/updates.
-        slack_user_id = slack_user_id or ""
-        team_id = team_id or "unknown"
-        name = name or ""
-        email = email or ""
-        access_token = access_token or ""
-
-        if not slack_user_id:
-            return None
-
-        existing = _row(
-            await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
-            .bind(slack_user_id)
-            .first()
-        )
-        if existing:
-            await (
-                env.DB.prepare(
-                    "UPDATE users SET name=?, email=?, access_token=?, team_id=?, updated_at=? "
-                    "WHERE slack_user_id=?"
-                )
-                .bind(name, email, access_token, team_id, now, slack_user_id)
-                .run()
-            )
-        else:
-            await (
-                env.DB.prepare(
-                    "INSERT INTO users "
-                    "(slack_user_id, team_id, name, email, access_token, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
-                )
-                .bind(slack_user_id, team_id, name, email, access_token, now, now)
-                .run()
-            )
-        return _row(
-            await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
-            .bind(slack_user_id)
-            .first()
-        )
-    except Exception:
-        return None
+    print(f\"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}\")\n    try:\n        await ensure_d1_schema(env)\n\n        # Ensure required columns are never NULL for inserts/updates.\n        slack_user_id = slack_user_id or \"\"\n        team_id = team_id or \"unknown\"\n        name = name or \"\"\n        email = email or \"\"\n        access_token = access_token or \"\"\n\n        if not slack_user_id:\n            print(f\"[db_get_or_create_user] ERROR: slack_user_id is empty, returning None\")\n            return None\n\n        existing = _row(\n            await env.DB.prepare(\"SELECT * FROM users WHERE slack_user_id = ?\")\n            .bind(slack_user_id)\n            .first()\n        )\n        if existing:\n            print(f\"[db_get_or_create_user] User exists, updating...\")\n            result = await (\n                env.DB.prepare(\n                    \"UPDATE users SET name=?, email=?, access_token=?, team_id=?, updated_at=? \"\n                    \"WHERE slack_user_id=?\"\n                )\n                .bind(name, email, access_token, team_id, now, slack_user_id)\n                .run()\n            )\n            print(f\"[db_get_or_create_user] Update result: {result}\")\n        else:\n            print(f\"[db_get_or_create_user] Creating new user...\")\n            result = await (\n                env.DB.prepare(\n                    \"INSERT INTO users \"\n                    \"(slack_user_id, team_id, name, email, access_token, created_at, updated_at) \"\n                    \"VALUES (?, ?, ?, ?, ?, ?, ?)\"\n                )\n                .bind(slack_user_id, team_id, name, email, access_token, now, now)\n                .run()\n            )\n            print(f\"[db_get_or_create_user] Insert result: {result}\")\n        user = _row(\n            await env.DB.prepare(\"SELECT * FROM users WHERE slack_user_id = ?\")\n            .bind(slack_user_id)\n            .first()\n        )\n        print(f\"[db_get_or_create_user] Retrieved user: {user}\")\n        return user\n    except Exception as e:\n        print(f\"[db_get_or_create_user] ERROR: {e}\")\n        capture_exception_to_sentry(env, e, {\"slack_user_id\": slack_user_id})\n        return None
 
 
 async def db_create_session(env, user_id, token):
     now = get_utc_now()
     expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-    try:
-        await ensure_d1_schema(env)
-        await (
-            env.DB.prepare(
-                "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
-            )
-            .bind(token, user_id, now, expires)
-            .run()
-        )
-        return True
-    except Exception:
-        return False
+    print(f\"[db_create_session] Creating session for user_id={user_id}\")\n    try:\n        await ensure_d1_schema(env)
+        result = await (\n            env.DB.prepare(\n                \"INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)\"\n            )\n            .bind(token, user_id, now, expires)\n            .run()\n        )\n        print(f\"[db_create_session] Session created successfully, result: {result}\")\n        return True\n    except Exception as e:\n        print(f\"[db_create_session] ERROR: {e}\")\n        capture_exception_to_sentry(env, e, {\"user_id\": user_id})\n        return False
 
 
 async def db_get_session(env, token):
@@ -940,6 +900,8 @@ def _format_db_stats_for_slack(counts):
 
 async def scan_workspace_channels(env, workspace_id, access_token):
     """Scan all public channels in the workspace and persist them in D1."""
+    print(f"[scan_workspace_channels] Starting scan for workspace {workspace_id}")
+    print(f"[scan_workspace_channels] Access token present: {bool(access_token)}")
     scanned = 0
     cursor = None
     while True:
@@ -956,14 +918,18 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                     "headers": headers,
                 },
             )
-            data = await resp.json()
+            data = _js_to_python(await resp.json())
+            print(f"[scan_workspace_channels] Slack API response ok: {data.get('ok')}, error: {data.get('error')}")
             if not data.get("ok"):
+                print(f"[scan_workspace_channels] Slack API error: {data.get('error')}")
                 break
-            for ch in data.get("channels", []):
+            channels = data.get("channels", [])
+            print(f"[scan_workspace_channels] Found {len(channels)} channels in this batch")
+            for ch in channels:
                 cid = ch.get("id", "")
                 cname = ch.get("name", "")
                 if cid and cname:
-                    await db_upsert_channel(
+                    success = await db_upsert_channel(
                         env,
                         workspace_id,
                         cid,
@@ -973,12 +939,16 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                         (ch.get("purpose") or {}).get("value", ""),
                         1 if ch.get("is_private") else 0,
                     )
-                    scanned += 1
+                    if success:
+                        scanned += 1
             cursor = (data.get("response_metadata") or {}).get("next_cursor", "")
             if not cursor:
                 break
-        except Exception:
+        except Exception as e:
+            print(f"[scan_workspace_channels] ERROR during scan: {e}")
+            capture_exception_to_sentry(env, e, {"workspace_id": workspace_id})
             break
+    print(f"[scan_workspace_channels] Scan complete: {scanned} channels saved")
     return scanned
 
 
@@ -1448,29 +1418,41 @@ async def handle_request(request, env):
 
             # ---- If this was an "add workspace" flow, install the bot ----
             if intent == "add_workspace":
+                print(f"[OAuth callback] Processing add_workspace flow")
                 bot_token = token_data.get("access_token")
                 team_info = _js_to_python(token_data.get("team") or {})
                 team_id = _obj_get(team_info, "id", "")
                 team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
+                print(f"[OAuth callback] team_id={team_id}, team_name={team_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}")
 
                 if team_id and bot_token:
                     ws = await db_upsert_workspace(
                         env, team_id, team_name, bot_token, bot_user_id
                     )
+                    print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
                         user_id_val = _obj_get(user, "id")
                         ws_id_val = _obj_get(ws, "id")
+                        print(f"[OAuth callback] user_id_val={user_id_val}, ws_id_val={ws_id_val}")
                         if user_id_val and ws_id_val:
-                            await db_link_user_workspace(
+                            link_result = await db_link_user_workspace(
                                 env, user_id_val, ws_id_val, role="owner"
                             )
+                            print(f"[OAuth callback] Link result: {link_result}")
+                        else:
+                            print(f"[OAuth callback] WARNING: Could not link workspace - missing user_id or ws_id")
                         # Background channel scan (best-effort)
                         try:
-                            if ws_id_val:
-                                await scan_workspace_channels(env, ws_id_val, bot_token)
-                        except Exception:
+                            if ws_id_val and bot_token:
+                                print(f"[OAuth callback] Starting channel scan...")
+                                scan_result = await scan_workspace_channels(env, ws_id_val, bot_token)
+                                print(f"[OAuth callback] Channel scan result: {scan_result}")
+                        except Exception as e:
+                            print(f"[OAuth callback] Channel scan failed: {e}")
                             pass
+                else:
+                    print(f"[OAuth callback] WARNING: Could not create workspace - missing team_id or bot_token")
 
             # ---- Create session ----
             token = generate_session_token()

@@ -2,15 +2,15 @@
   <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
     <h2 class="text-xl font-bold text-gray-800">
       Slack Bot Activity
-      <span class="text-base font-normal text-gray-400 ml-2">- %%WS_NAME%%</span>
+      <span class="text-base font-normal text-gray-400 ml-2">- {{ WS_NAME }}</span>
     </h2>
-    <div class="flex gap-2">%%SCAN_BTN%%</div>
+    <div class="flex gap-2">{{ SCAN_BTN }}</div>
   </div>
 
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
     <div class="bg-gray-50 rounded-lg p-4">
       <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Activities</p>
-      <p class="text-2xl font-bold text-gray-900 mt-1">%%TOTAL%%</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ TOTAL }}</p>
     </div>
     <div class="bg-gray-50 rounded-lg p-4">
       <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Last 24 h</p>
@@ -18,16 +18,16 @@
     </div>
     <div class="bg-gray-50 rounded-lg p-4">
       <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Success Rate</p>
-      <p class="text-2xl font-bold text-gray-900 mt-1">%%SUCCESS_RATE%%%</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ SUCCESS_RATE }}%</p>
     </div>
     <div class="bg-gray-50 rounded-lg p-4">
       <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Active Workspaces</p>
-      <p class="text-2xl font-bold text-gray-900 mt-1">%%WS_COUNT%%</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ WS_COUNT }}</p>
     </div>
     <div class="bg-gray-50 rounded-lg p-4 col-span-2 md:col-span-1">
       <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Last Activity</p>
       <p class="text-sm font-semibold text-gray-900 mt-1" id="last-activity-ago">
-        %%LAST_EVENT_TIME%%
+        {{ LAST_EVENT_TIME }}
       </p>
     </div>
   </div>
@@ -35,11 +35,11 @@
   <div class="flex gap-6 mb-6">
     <div>
       <span class="text-xs text-gray-400">Team_Join</span>
-      <p class="text-2xl font-bold text-gray-800">%%JOINS%%</p>
+      <p class="text-2xl font-bold text-gray-800">{{ JOINS }}</p>
     </div>
     <div>
       <span class="text-xs text-gray-400">Command</span>
-      <p class="text-2xl font-bold text-gray-800">%%COMMANDS%%</p>
+      <p class="text-2xl font-bold text-gray-800">{{ COMMANDS }}</p>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
           </tr>
         </thead>
         <tbody id="events-tbody">
-          %%EVENTS_HTML%%
+          {{ EVENTS_HTML }}
         </tbody>
       </table>
     </div>
@@ -75,7 +75,7 @@
       <h3 class="text-lg font-bold text-gray-800">Top Channels</h3>
       <span class="text-xs text-gray-400">by member count</span>
     </div>
-    <div id="channels-list">%%CHANNELS_HTML%%</div>
+    <div id="channels-list">{{ CHANNELS_HTML }}</div>
   </div>
 </div>
 
@@ -92,5 +92,5 @@
             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700
                    transition-colors text-sm font-medium">Add</button>
   </form>
-  <div id="repos-list">%%REPOS_HTML%%</div>
+  <div id="repos-list">{{ REPOS_HTML }}</div>
 </section>

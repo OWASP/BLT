@@ -47,10 +47,10 @@
                 <i class="fas fa-key text-red-600"></i> Required Secrets
             </h2>
             <div class="space-y-3">
-                %%SLACK_TOKEN_STATUS%%
-                %%SIGNING_SECRET_STATUS%%
-                %%SLACK_CLIENT_ID_STATUS%%
-                %%SLACK_CLIENT_SECRET_STATUS%%
+                {{ SLACK_TOKEN_STATUS }}
+                {{ SIGNING_SECRET_STATUS }}
+                {{ SLACK_CLIENT_ID_STATUS }}
+                {{ SLACK_CLIENT_SECRET_STATUS }}
             </div>
         </div>
 
@@ -59,10 +59,10 @@
                 <i class="fas fa-cog text-blue-600"></i> Optional Configuration
             </h2>
             <div class="space-y-3">
-                %%SENTRY_DSN_STATUS%%
-                %%BASE_URL_STATUS%%
-                %%JOINS_CHANNEL_ID_STATUS%%
-                %%CONTRIBUTE_ID_STATUS%%
+                {{ SENTRY_DSN_STATUS }}
+                {{ BASE_URL_STATUS }}
+                {{ JOINS_CHANNEL_ID_STATUS }}
+                {{ CONTRIBUTE_ID_STATUS }}
             </div>
         </div>
 

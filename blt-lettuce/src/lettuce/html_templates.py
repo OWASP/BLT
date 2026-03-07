@@ -17,10 +17,13 @@ def _load_template(template_name):
 
 
 def _render_template(template_name, replacements):
-    """Render a template by replacing %%TOKEN%% placeholders."""
+    """Render a template by replacing {{ token }} placeholders with Jinja2-style syntax."""
     rendered = _load_template(template_name)
     for key, value in replacements.items():
-        rendered = rendered.replace(f"%%{key}%%", str(value))
+        # Support both {{ TOKEN }} and {{ token }}
+        rendered = rendered.replace(f"{{{{ {key} }}}}", str(value))
+        rendered = rendered.replace(f"{{{{ {key.upper()} }}}}", str(value))
+        rendered = rendered.replace(f"{{{{ {key.lower()} }}}}", str(value))
     return rendered
 
 

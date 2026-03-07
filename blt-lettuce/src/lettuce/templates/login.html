@@ -14,8 +14,8 @@
          alt="OWASP Logo" class="w-16 h-16 mx-auto mb-4"/>
     <h1 class="text-2xl font-bold text-gray-900 mb-1">BLT-Lettuce</h1>
     <p class="text-gray-500 text-sm mb-8">Dashboard for Slack workspace managers</p>
-    %%ERR_BLOCK%%
-    <a href="%%SIGN_IN_URL%%"
+    {{ ERR_BLOCK }}
+    <a href="{{ SIGN_IN_URL }}"
        class="inline-flex items-center justify-center gap-3 w-full px-6 py-3
               bg-[#4A154B] text-white rounded-lg hover:bg-[#3b1040]
               transition-colors font-semibold text-base shadow">
