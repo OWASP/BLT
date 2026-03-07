@@ -309,8 +309,8 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
 
   currentLeaderboardData = data;
   renderLeaderboard(container, data, limit);
-  renderTopCommenters(document.getElementById("commenters-rows"), data, limit > 0 ? 5 : 0);
-  renderTopDomains(document.getElementById("domains-rows"), data, limit > 0 ? 5 : 0);
+  renderTopCommenters(document.getElementById("commenters-rows"), data, limit);
+  renderTopDomains(document.getElementById("domains-rows"), data, limit);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
   if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
