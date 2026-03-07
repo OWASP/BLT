@@ -61,7 +61,15 @@ def get_login_page_html(sign_in_url, error=None):
 
 
 def get_dashboard_html(
-    user, workspaces, current_ws, ws_stats, channels, events, daily_stats, repos
+    user,
+    workspaces,
+    current_ws,
+    ws_stats,
+    channels,
+    events,
+    daily_stats,
+    repos,
+    active_tab="overview",
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
     user_name = html_escape((user or {}).get("name") or "User")
@@ -170,7 +178,64 @@ def get_dashboard_html(
     chart_joins = json.dumps([date_joins.get(d, 0) for d in all_dates])
     chart_commands = json.dumps([date_commands.get(d, 0) for d in all_dates])
 
+    dashboard_tabs = ""
     if current_ws:
+        ws_q = f"ws={ws_id}" if ws_id else ""
+        overview_href = f"/dashboard?{ws_q}&tab=overview" if ws_q else "/dashboard?tab=overview"
+        channels_href = f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
+        overview_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "overview"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
+        channels_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "channels"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
+        dashboard_tabs = (
+            '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
+            '<div class="flex flex-wrap gap-2">'
+            f'<a href="{overview_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {overview_active}">'
+            '<i class="fas fa-chart-line"></i> Overview</a>'
+            f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
+            '<i class="fas fa-hashtag"></i> Channels</a>'
+            '</div></section>'
+        )
+
+    if current_ws and active_tab == "channels":
+        all_channels_rows = ""
+        for idx, ch in enumerate(channels, start=1):
+            all_channels_rows += (
+                '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
+                f'<td class="py-3 px-4 text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name", ""))}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-600">{ch.get("member_count", 0):,}</td>'
+                '</tr>'
+            )
+        if not all_channels_rows:
+            all_channels_rows = (
+                '<tr><td colspan="3" class="py-6 text-center text-sm text-gray-400">'
+                "No channels scanned yet. Use Scan Channels to fetch workspace channels."
+                "</td></tr>"
+            )
+        workspace_section = (
+            '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+            '<div class="flex items-center justify-between mb-4">'
+            f'<h2 class="text-xl font-bold text-gray-800">Channels - {ws_name}</h2>'
+            f'<span class="text-xs text-gray-400">{len(channels)} channel(s)</span>'
+            '</div>'
+            '<div class="overflow-x-auto">'
+            '<table class="w-full text-left">'
+            '<thead><tr class="border-b border-gray-200">'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">#</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
+            '</tr></thead><tbody>'
+            f'{all_channels_rows}'
+            '</tbody></table></div></section>'
+        )
+    elif current_ws:
         scan_btn = (
             f'<button onclick="scanChannels({ws_id_js})" '
             '        id="scan-btn" '
@@ -211,6 +276,7 @@ def get_dashboard_html(
             "USER_NAME": user_name,
             "WS_COUNT": ws_count,
             "WS_TABS": ws_tabs,
+            "DASHBOARD_TABS": dashboard_tabs,
             "WORKSPACE_SECTION": workspace_section,
             "WS_ID_JSON": ws_id_js,
             "CHART_LABELS": chart_labels,

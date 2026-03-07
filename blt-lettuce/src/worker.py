@@ -1580,6 +1580,9 @@ async def handle_request(request, env):
 
         current_ws = None
         selected_ws_id = qs_params.get("ws")
+        selected_tab = (qs_params.get("tab") or "overview").lower()
+        if selected_tab not in ("overview", "channels"):
+            selected_tab = "overview"
         if selected_ws_id:
             try:
                 sid = int(selected_ws_id)
@@ -1608,7 +1611,15 @@ async def handle_request(request, env):
             repos = await db_get_repositories(env, ws_id_val)
 
         html = get_dashboard_html(
-            user, workspaces, current_ws, ws_stats, channels, events, daily_stats, repos
+            user,
+            workspaces,
+            current_ws,
+            ws_stats,
+            channels,
+            events,
+            daily_stats,
+            repos,
+            active_tab=selected_tab,
         )
         return _html_response(html)
 
