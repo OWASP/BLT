@@ -76,8 +76,6 @@ form.addEventListener('submit', async (e) => {
 
         // Build and display results
         const data = buildRecommendations(userData, reposData);
-        console.log("user recommendation ", data);
-
         displayResults(data);
 
     } catch (error) {
@@ -200,8 +198,6 @@ function hideError() {
 }
 
 function displayResults(data) {
-    console.log("result", JSON.stringify(data));
-
     const resultsSection = document.getElementById('results-section');
     const githubStats = data.github_stats;
 
