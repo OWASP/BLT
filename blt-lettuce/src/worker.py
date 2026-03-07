@@ -1964,8 +1964,9 @@ async def handle_request(request, env):
     #  GET /  →  homepage                                                #
     # ------------------------------------------------------------------ #
     if is_homepage_request(url, method):
+        user = await get_current_user(env, request)
         return _html_response(
-            get_homepage_html(),
+            get_homepage_html(user),
             extra_headers={"Cache-Control": "public, max-age=300"},
         )
 

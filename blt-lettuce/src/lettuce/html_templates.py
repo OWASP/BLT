@@ -290,9 +290,22 @@ def get_dashboard_html(
     )
 
 
-def get_homepage_html():
+def get_homepage_html(user=None):
     """Generate the homepage HTML with project information and live stats."""
-    return _load_template("homepage.html")
+    if user:
+        auth_button_href = "/dashboard"
+        auth_button_text = "Go to Dashboard"
+    else:
+        auth_button_href = "/login"
+        auth_button_text = "Sign in with Slack"
+    
+    return _render_template(
+        "homepage.html",
+        {
+            "AUTH_BUTTON_HREF": auth_button_href,
+            "AUTH_BUTTON_TEXT": auth_button_text,
+        },
+    )
 
 
 def get_status_html(env):
