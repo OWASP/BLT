@@ -10,20 +10,20 @@ from slack_sdk.errors import SlackApiError
 
 def handle_welcome_command(ack, body, client: WebClient) -> None:
     """Handle the /welcome slash command in Slack.
-    
+
     Args:
         ack: Slack command acknowledgment callback
         body: The command request body from Slack
         client: Slack WebClient instance for API calls
-    
+
     Raises:
         SlackApiError: If there's an error sending the message to Slack
     """
     ack()  # Acknowledge the command was received
-    
-    user_id = body['user_id']
-    channel_id = body['channel_id']
-    
+
+    user_id = body["user_id"]
+    channel_id = body["channel_id"]
+
     welcome_message = {
         "type": "mrkdwn",
         "text": (
@@ -34,18 +34,12 @@ def handle_welcome_command(ack, body, client: WebClient) -> None:
             "• Feel free to ask questions in #general\n"
             "• Join our community and have fun reporting security bugs!\n\n"
             "Questions? Just ask! We're here to help. :smile:"
-        )
+        ),
     }
-    
+
     try:
         client.chat_postMessage(
-            channel=channel_id,
-            blocks=[
-                {
-                    "type": "section",
-                    "text": welcome_message
-                }
-            ]
+            channel=channel_id, blocks=[{"type": "section", "text": welcome_message}]
         )
     except SlackApiError as e:
         # Log error but don't fail silently
@@ -55,7 +49,7 @@ def handle_welcome_command(ack, body, client: WebClient) -> None:
 
 def register_welcome_handler(app) -> None:
     """Register the welcome command handler with the Slack app.
-    
+
     Args:
         app: The Slack Bolt app instance
     """

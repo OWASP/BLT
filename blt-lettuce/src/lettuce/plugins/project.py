@@ -9,7 +9,9 @@ from machine.utils.collections import CaseInsensitiveDict
 
 
 class ProjectPlugin(MachineBasePlugin):
-    def __init__(self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage):
+    def __init__(
+        self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
+    ):
         super().__init__(client, settings, storage)
 
         # Construct the absolute path to repos.json
@@ -27,7 +29,9 @@ class ProjectPlugin(MachineBasePlugin):
 
         if project:
             project_list = "\n".join(project)
-            message = f"Hello, here the information about '{project_name}':\n{project_list}"
+            message = (
+                f"Hello, here the information about '{project_name}':\n{project_list}"
+            )
         else:
             message = (
                 f"Hello, the project '{project_name}' is not recognized. "

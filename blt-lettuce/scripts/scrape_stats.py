@@ -63,7 +63,9 @@ def parse_stats(html_content):
     text_content = soup.get_text()
 
     # Extract Total Activities
-    total_match = re.search(r"Total\s*Activities[:\s]*(\d[\d,]*)", text_content, re.IGNORECASE)
+    total_match = re.search(
+        r"Total\s*Activities[:\s]*(\d[\d,]*)", text_content, re.IGNORECASE
+    )
     if total_match:
         stats["total_activities"] = extract_number(total_match.group(1))
 
@@ -82,7 +84,9 @@ def parse_stats(html_content):
         stats["active_workspaces"] = extract_number(workspace_match.group(1))
 
     # Extract Team join count
-    team_join_match = re.search(r"Team[_\s]?Join[:\s]*(\d[\d,]*)", text_content, re.IGNORECASE)
+    team_join_match = re.search(
+        r"Team[_\s]?Join[:\s]*(\d[\d,]*)", text_content, re.IGNORECASE
+    )
     if team_join_match:
         stats["team_joins"] = extract_number(team_join_match.group(1))
 
