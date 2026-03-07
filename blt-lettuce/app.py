@@ -23,9 +23,13 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-slack_events_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", app)
+slack_events_adapter = SlackEventAdapter(
+    os.environ["SIGNING_SECRET"], "/slack/events", app
+)
 client = WebClient(token=os.environ["SLACK_TOKEN"])
-client.chat_postMessage(channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top")
+client.chat_postMessage(
+    channel=DEPLOYS_CHANNEL_NAME, text="bot started v1.9 240611-1 top"
+)
 
 
 @app.route("/slack/events", methods=["POST"])
@@ -97,10 +101,17 @@ def handle_team_join(event_data):
             welcome_message_template = file.read()
 
         welcome_message = welcome_message_template.format(user_id=user_id)
-        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": welcome_message.strip()}}]
+        blocks = [
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": welcome_message.strip()},
+            }
+        ]
 
         client.chat_postMessage(
-            channel=dm_channel_id, text="Welcome to the OWASP Slack Community!", blocks=blocks
+            channel=dm_channel_id,
+            text="Welcome to the OWASP Slack Community!",
+            blocks=blocks,
         )
     except Exception as e:
         logging.error(f"Error sending welcome message: {e}")
@@ -118,7 +129,10 @@ def handle_message(payload):
     if message.get("user") != bot_user_id:
         if (
             message.get("subtype") is None
-            and not any(keyword in message.get("text", "").lower() for keyword in ["#contribute"])
+            and not any(
+                keyword in message.get("text", "").lower()
+                for keyword in ["#contribute"]
+            )
             and any(
                 keyword in message.get("text", "").lower()
                 for keyword in ("contribute", "contributing", "contributes")
@@ -145,8 +159,12 @@ def handle_message(payload):
         text = message.get("text", "")  # The text of the message
         try:
             if message.get("user") != bot_user_id:
-                client.chat_postMessage(channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}")
+                client.chat_postMessage(
+                    channel=JOINS_CHANNEL_ID, text=f"<@{user}> said {text}"
+                )
             # Respond to the direct message
-            client.chat_postMessage(channel=user, text=f"Hello <@{user}>, you said: {text}")
+            client.chat_postMessage(
+                channel=user, text=f"Hello <@{user}>, you said: {text}"
+            )
         except SlackApiError as e:
             print(f"Error sending response: {e.response['error']}")

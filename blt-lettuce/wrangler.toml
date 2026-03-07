@@ -3,16 +3,33 @@ main = "src/worker.py"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
-# KV Namespace for storing stats
-# To create this namespace, run:
-#   wrangler kv:namespace create "STATS_KV"
-# Then replace the placeholder ID below with the actual namespace ID from the output
-# we will be using D1
+# D1 Database for persistent storage (workspaces, users, sessions, events, channels, repos)
+# To create:
+#   wrangler d1 create BLT_DB
+# Then replace the placeholder database_id below with the actual ID from the output.
+# To apply schema:
+#   wrangler d1 execute BLT_DB --file=schema.sql            # remote
+#   wrangler d1 execute BLT_DB --local --file=schema.sql    # local dev
+[[d1_databases]]
+binding = "DB"
+database_name = "BLT_DB"
+database_id = "placeholder-replace-with-actual-id"
+
+# KV Namespace for legacy stats (kept for backward compatibility)
+# To create: wrangler kv:namespace create "STATS_KV"
+# [[kv_namespaces]]
+# binding = "STATS_KV"
+# id = "placeholder-replace-with-actual-id"
 
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
-#   wrangler secret put SLACK_TOKEN        # Your Slack Bot User OAuth Token
-#   wrangler secret put SIGNING_SECRET     # Your Slack App Signing Secret
+#   wrangler secret put SLACK_TOKEN        # Slack Bot User OAuth Token (xoxb-...)
+#   wrangler secret put SIGNING_SECRET     # Slack App Signing Secret
+#   wrangler secret put SLACK_CLIENT_ID    # Slack OAuth App Client ID
+#   wrangler secret put SLACK_CLIENT_SECRET # Slack OAuth App Client Secret
+#
+# Note: The D1 binding name used in code is "DB" (env.DB). The database is
+#       named "BLT_DB" in Cloudflare but accessed via the binding name "DB".
 #
 # Optional secrets (for custom channel IDs):
 #   wrangler secret put JOINS_CHANNEL_ID   # Channel ID where join notifications are posted
@@ -22,3 +39,5 @@ compatibility_flags = ["python_workers"]
 [vars]
 ENVIRONMENT = "production"
 VERSION = "2.0.0"
+# Base URL for OAuth redirect URIs – override per environment if needed
+BASE_URL = "https://blt-lettuce.workers.dev"
