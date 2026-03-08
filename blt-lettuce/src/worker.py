@@ -261,6 +261,11 @@ async def ensure_d1_schema(env):
             "ON user_workspaces(workspace_id)"
         ),
     ]
+    
+    # Migration statements to add new columns to existing tables
+    migrations = [
+        "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
+    ]
 
     try:
         print(
@@ -269,6 +274,17 @@ async def ensure_d1_schema(env):
         for idx, sql in enumerate(statements, 1):
             await env.DB.prepare(sql).run()
             print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
+        
+        # Run migrations - these may fail if columns already exist, which is fine
+        print(f"[ensure_d1_schema] Running {len(migrations)} migration(s)...")
+        for idx, migration_sql in enumerate(migrations, 1):
+            try:
+                await env.DB.prepare(migration_sql).run()
+                print(f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully")
+            except Exception as migration_error:
+                # Column may already exist, which is fine
+                print(f"[ensure_d1_schema] Migration {idx} skipped (likely already applied): {migration_error}")
+        
         _schema_initialized = True
         print("[ensure_d1_schema] Schema initialization complete")
         return True
