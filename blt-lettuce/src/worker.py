@@ -2585,34 +2585,34 @@ async def validate_slack_token(token):
     """
     if not token or not isinstance(token, str):
         return {"ok": False, "error": "Invalid token format"}
-    
+
     token = token.strip()
     if not token.startswith(("xoxb-", "xoxp-")):
         return {"ok": False, "error": "Token must start with xoxb- or xoxp-"}
-    
+
     try:
         headers = Headers.new()
         headers.set("Authorization", f"Bearer {token}")
         headers.set("Content-Type", "application/json")
-        
+
         resp = await js_fetch(
             "https://slack.com/api/auth.test",
             {"method": "POST", "headers": headers},
         )
         result = _js_to_python(await resp.json())
-        
+
         if not isinstance(result, dict):
             return {"ok": False, "error": "Invalid Slack API response"}
-        
+
         if not result.get("ok"):
             error_msg = result.get("error", "unknown_error")
             return {"ok": False, "error": f"Slack API error: {error_msg}"}
-        
+
         # Extract workspace information
         team_id = result.get("team_id", "")
         team_name = result.get("team", "")
         bot_user_id = result.get("user_id", "")
-        
+
         # Get team info including icon
         try:
             team_resp = await js_fetch(
@@ -2629,7 +2629,7 @@ async def validate_slack_token(token):
                 icon_url = ""
         except Exception:
             icon_url = ""
-        
+
         return {
             "ok": True,
             "team_id": team_id,
@@ -3844,36 +3844,36 @@ async def handle_request(request, env):
         user = await get_current_user(env, request)
         if not user:
             return _json_response({"ok": False, "error": "Unauthorized"}, 401)
-        
+
         try:
-            body = await get_request_body(request)
+            body = json.loads(await request.text())
             token = (body.get("token") or "").strip()
             custom_name = (body.get("team_name") or "").strip()
-            
+
             if not token:
                 return _json_response(
                     {"ok": False, "error": "Bot token is required"}, 400
                 )
-            
+
             # Validate token and get workspace info
             print(f"[manual-add] Validating token for user {user.get('user_id')}")
             validation = await validate_slack_token(token)
-            
+
             if not validation.get("ok"):
                 error_msg = validation.get("error", "Invalid token")
                 print(f"[manual-add] Validation failed: {error_msg}")
                 return _json_response({"ok": False, "error": error_msg}, 400)
-            
+
             team_id = validation.get("team_id")
             team_name = custom_name or validation.get("team_name", "Unknown Workspace")
             bot_user_id = validation.get("bot_user_id", "")
             icon_url = validation.get("icon_url", "")
             app_id = validation.get("app_id", "")
-            
+
             print(
                 f"[manual-add] Token validated. team_id={team_id}, team_name={team_name}"
             )
-            
+
             # Check if workspace already exists for another user
             existing_ws = await db_get_workspace_by_team(env, team_id)
             if existing_ws:
@@ -3889,7 +3889,7 @@ async def handle_request(request, env):
                     print(
                         f"[manual-add] Linked user {user['user_id']} to existing workspace {existing_ws['id']}"
                     )
-                
+
                 # Update token if provided
                 ws = await db_upsert_workspace(
                     env, team_id, team_name, token, bot_user_id, app_id, icon_url
@@ -3899,7 +3899,7 @@ async def handle_request(request, env):
                 ws = await db_upsert_workspace(
                     env, team_id, team_name, token, bot_user_id, app_id, icon_url
                 )
-                
+
                 if ws:
                     # Link user as owner
                     await db_link_user_workspace(
@@ -3908,12 +3908,12 @@ async def handle_request(request, env):
                     print(
                         f"[manual-add] Created workspace {ws['id']} and linked user {user['user_id']}"
                     )
-            
+
             if not ws:
                 return _json_response(
                     {"ok": False, "error": "Failed to create workspace"}, 500
                 )
-            
+
             try:
                 sentry = get_sentry()
                 sentry.capture_message_nowait(
@@ -3922,7 +3922,7 @@ async def handle_request(request, env):
                 )
             except Exception:
                 pass
-            
+
             return _json_response(
                 {
                     "ok": True,
@@ -3934,7 +3934,7 @@ async def handle_request(request, env):
                 },
                 200,
             )
-            
+
         except Exception as e:
             print(f"[manual-add] ERROR: {e}")
             try:
@@ -3944,9 +3944,7 @@ async def handle_request(request, env):
                 )
             except Exception:
                 pass
-            return _json_response(
-                {"ok": False, "error": "Internal server error"}, 500
-            )
+            return _json_response({"ok": False, "error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
     #  GET /dashboard  →  live stats dashboard (requires auth)           #
