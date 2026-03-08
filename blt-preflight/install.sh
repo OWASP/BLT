@@ -30,7 +30,11 @@ install_pf() {
         sudo pip3 "${pip_args[@]}"
     else
         echo "Installing BLT-Preflight for current user…"
-        pip3 "${pip_args[@]}" --user
+        if [[ -n "$VIRTUAL_ENV" ]]; then
+            pip3 install --editable "${REPO_DIR}"
+        else
+            pip3 install --editable "${REPO_DIR}" --user
+        fi
         # Ensure the user bin directory is on PATH
         USER_BIN="$(python3 -m site --user-base)/bin"
         if [[ ":$PATH:" != *":${USER_BIN}:"* ]]; then
