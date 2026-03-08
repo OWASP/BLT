@@ -209,9 +209,24 @@ async def handle_bugs(
             "hunt",
             "domain",
         }
+
+        forbidden = sorted(set(body.keys()) - client_writable_fields)
+        if forbidden:
+            return error_response(
+                "The following fields are not allowed: " + ", ".join(forbidden),
+                status=400,
+            )
+
         sanitized_body = {k: v for k, v in body.items() if k in client_writable_fields}
 
-        url = body["url"]
+        url = sanitized_body.get("url")
+
+        if not isinstance(url, str):
+            return error_response("URL must be a string", status=400)
+
+        url = url.strip()
+        if not url:
+            return error_response("URL is required", status=400)
         
         
         # Validate URL length
