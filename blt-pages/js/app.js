@@ -202,6 +202,8 @@ async function loadLeaderboard() {
       updateHeaderBugStats(inlineData.total_bugs, inlineData.open_bugs, inlineData.closed_bugs);
       if (isHomepage) {
         renderLeaderboard(container, inlineData, limit);
+        renderTopCommenters(document.getElementById("commenters-rows"), inlineData, limit);
+        renderTopDomains(document.getElementById("domains-rows"), inlineData, limit);
       }
     }
     return;
