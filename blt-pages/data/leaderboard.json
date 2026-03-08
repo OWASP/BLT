@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-03-08T23:18:21.364Z",
-  "commit_sha": "23469d9289ee24a7a98515b36c440f331c535d66",
+  "updated_at": "2026-03-08T23:24:38.119Z",
+  "commit_sha": "6d75eb57b3e741350c355e53aa9874d6f058d428",
   "total_bugs": 14,
-  "open_bugs": 3,
-  "closed_bugs": 11,
+  "open_bugs": 2,
+  "closed_bugs": 12,
   "total_domains": 3,
   "total_orgs": 0,
   "leaderboard": [
@@ -74,38 +74,38 @@
     },
     {
       "rank": 5,
+      "login": "DonnieBLT",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "profile_url": "https://github.com/DonnieBLT"
+    },
+    {
+      "rank": 6,
       "login": "sidd190",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
       "profile_url": "https://github.com/sidd190"
     },
     {
-      "rank": 6,
+      "rank": 7,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 7,
+      "rank": 8,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 8,
+      "rank": 9,
       "login": "swaparup36",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
       "profile_url": "https://github.com/swaparup36"
-    },
-    {
-      "rank": 9,
-      "login": "DonnieBLT",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-      "profile_url": "https://github.com/DonnieBLT"
     }
   ],
   "top_domains": [
@@ -144,31 +144,6 @@
         "eyes": 1
       },
       "latest_comment": null
-    },
-    {
-      "number": 8,
-      "title": "[BUG] join chapter button does not work",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8",
-      "created_at": "2026-03-01T08:40:35Z",
-      "comment_count": 3,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/1d38827d-5518-4f68-b37c-19294f0dcf3c",
-      "domain": "www.owasp.community",
-      "reactions": {},
-      "latest_comment": {
-        "body": "@Armaansaxena @yogeshwarithombare  any of you working on this?",
-        "created_at": "2026-03-04T17:04:20Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/8#issuecomment-3998884616",
-        "user": {
-          "login": "swaparup36",
-          "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
-          "profile_url": "https://github.com/swaparup36"
-        }
-      }
     },
     {
       "number": 6,
