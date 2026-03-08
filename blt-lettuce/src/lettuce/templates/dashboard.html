@@ -48,6 +48,7 @@
                 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
         <i class="fas fa-plus"></i> Add Workspace
       </a>
+      {{ DELETE_WORKSPACE_BTN }}
     </aside>
 
     <section class="space-y-6">
@@ -429,6 +430,24 @@ async function analyzePastedManifest(wsId) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest';
     }
+  }
+}
+
+async function deleteWorkspace(wsId) {
+  if (!wsId) return;
+  const ok = confirm('Delete this workspace and all related data (channels, repos, events)? This cannot be undone.');
+  if (!ok) return;
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.ok) {
+      alert('Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    window.location.href = '/dashboard';
+  } catch (e) {
+    alert('Request failed: ' + e.message);
   }
 }
 </script>

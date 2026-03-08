@@ -950,6 +950,49 @@ async def db_delete_repository(env, repo_id, workspace_id):
         return False
 
 
+async def db_delete_workspace(env, workspace_id):
+    """Delete a workspace and all dependent workspace-scoped records."""
+    try:
+        # Delete children first because FKs are not configured with cascade.
+        await (
+            env.DB.prepare("DELETE FROM events WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        await (
+            env.DB.prepare("DELETE FROM channels WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        await (
+            env.DB.prepare("DELETE FROM repositories WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        await (
+            env.DB.prepare("DELETE FROM user_workspaces WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        await (
+            env.DB.prepare("DELETE FROM workspaces WHERE id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        return True
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={"context": "db_delete_workspace", "workspace_id": workspace_id},
+            )
+        except Exception:
+            pass
+        return False
+
+
 async def db_get_repositories(env, workspace_id):
     try:
         return _rows(
@@ -3020,6 +3063,62 @@ async def handle_request(request, env):
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/scan  →  trigger channel scan for a workspace   #
     # ------------------------------------------------------------------ #
+
+    # ------------------------------------------------------------------ #
+    #  DELETE /api/ws/<id>  →  delete a workspace and its workspace data #
+    # ------------------------------------------------------------------ #
+    if pathname.startswith("/api/ws/") and method == "DELETE":
+        suffix = pathname.split("/api/ws/")[1].strip("/")
+        if suffix and "/" not in suffix:
+            user = await get_current_user(env, request)
+            if not user:
+                return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+            try:
+                ws_id_val = int(suffix)
+            except (ValueError, TypeError):
+                return _json_response(
+                    {"ok": False, "error": "Invalid workspace id"},
+                    400,
+                )
+
+            if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+                return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+            user_role = await db_get_user_workspace_role(
+                env, user["user_id"], ws_id_val
+            )
+            if user_role not in ("owner", "admin"):
+                return _json_response(
+                    {
+                        "ok": False,
+                        "error": "Only workspace admins/owners can delete a workspace.",
+                    },
+                    403,
+                )
+
+            ws = await db_get_workspace_by_id(env, ws_id_val)
+            if not ws:
+                return _json_response(
+                    {"ok": False, "error": "Workspace not found"},
+                    404,
+                )
+
+            deleted = await db_delete_workspace(env, ws_id_val)
+            if not deleted:
+                return _json_response(
+                    {"ok": False, "error": "Failed to delete workspace"},
+                    500,
+                )
+
+            return _json_response(
+                {
+                    "ok": True,
+                    "deleted_workspace_id": ws_id_val,
+                    "deleted_workspace_name": ws.get("team_name") or "Workspace",
+                },
+                200,
+            )
+
     if (
         pathname.startswith("/api/ws/")
         and pathname.endswith("/scan")

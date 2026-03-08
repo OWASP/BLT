@@ -94,6 +94,14 @@ def get_dashboard_html(
         else "https://api.slack.com/apps"
     )
     ws_count = len(workspaces)
+    delete_workspace_btn = ""
+    if current_ws and can_manage_manifest:
+        delete_workspace_btn = (
+            f'<button onclick="deleteWorkspace({ws_id})" '
+            'class="mt-2 inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-white text-red-700 border border-red-200 '
+            'rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">'
+            '<i class="fas fa-trash"></i> Delete Workspace</button>'
+        )
 
     ws_tabs = ""
     for ws in workspaces:
@@ -524,6 +532,7 @@ def get_dashboard_html(
             "USER_AVATAR": user_avatar_html,
             "WS_COUNT": ws_count,
             "WS_TABS": ws_tabs,
+            "DELETE_WORKSPACE_BTN": delete_workspace_btn,
             "DASHBOARD_TABS": dashboard_tabs,
             "WORKSPACE_SECTION": workspace_section,
             "WS_ID_JSON": ws_id_js,
