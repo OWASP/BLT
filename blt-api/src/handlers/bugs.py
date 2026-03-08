@@ -193,25 +193,35 @@ async def handle_bugs(
                 status=400
             )
 
-        # Prevent clients from setting security-sensitive fields.
-        privileged_fields = ["verified", "user", "closed_by", "reporter_ip_address"]
-        provided_privileged_fields = [field for field in privileged_fields if field in body]
-        if provided_privileged_fields:
-            return error_response(
-                "The following fields are server-managed and cannot be set: "
-                + ", ".join(provided_privileged_fields),
-                status=400
-            )
+        # Positive allowlist: only copy keys clients are allowed to write.
+        client_writable_fields = {
+            "url",
+            "description",
+            "markdown_description",
+            "label",
+            "score",
+            "user_agent",
+            "ocr",
+            "screenshot",
+            "github_url",
+            "cve_id",
+            "cve_score",
+            "hunt",
+            "domain",
+        }
+        sanitized_body = {k: v for k, v in body.items() if k in client_writable_fields}
+
+        url = body["url"]
         
         
         # Validate URL length
-        if len(body["url"]) > 200:
+        if len(url) > 200:
             return error_response("URL must be 200 characters or less", status=400)
 
         # Validate URL format and protocol
         try:
             from urllib.parse import urlparse
-            parsed = urlparse(body["url"])
+            parsed = urlparse(url)
             if parsed.scheme not in ("http", "https"):
                 return error_response(
                     "URL must use http or https protocol",
@@ -234,6 +244,17 @@ async def handle_bugs(
                 except Exception:
                     reporter_ip = None
 
+            # Server-side identity (if an auth layer attaches one to request).
+            user_id = None
+            if hasattr(request, "user_id"):
+                user_id = getattr(request, "user_id")
+            elif hasattr(request, "user"):
+                request_user = getattr(request, "user")
+                if isinstance(request_user, dict):
+                    user_id = request_user.get("id")
+                else:
+                    user_id = getattr(request_user, "id", None)
+
             # Insert the new bug - use None for NULL values
             result = await db.prepare('''
                 INSERT INTO bugs (
@@ -243,26 +264,26 @@ async def handle_bugs(
                     hunt, domain, user, closed_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''').bind(
-                body.get("url"),
-                body.get("description"),
-                body.get("markdown_description") or None,
-                body.get("label") or None,
-                body.get("views") or None,
+                sanitized_body.get("url"),
+                sanitized_body.get("description"),
+                sanitized_body.get("markdown_description") or None,
+                sanitized_body.get("label") or None,
                 0,
-                body.get("score") or None,
-                body.get("status") or "open",
-                body.get("user_agent") or None,
-                body.get("ocr") or None,
-                body.get("screenshot") or None,
-                body.get("github_url") or None,
-                1 if body.get("is_hidden") else 0,
-                body.get("rewarded") or 0,
+                0,
+                sanitized_body.get("score") or None,
+                "open",
+                sanitized_body.get("user_agent") or None,
+                sanitized_body.get("ocr") or None,
+                sanitized_body.get("screenshot") or None,
+                sanitized_body.get("github_url") or None,
+                0,
+                0,
                 reporter_ip,
-                body.get("cve_id") or None,
-                body.get("cve_score") or None,
-                body.get("hunt") or None,
-                body.get("domain") or None,
-                None,
+                sanitized_body.get("cve_id") or None,
+                sanitized_body.get("cve_score") or None,
+                sanitized_body.get("hunt") or None,
+                sanitized_body.get("domain") or None,
+                user_id,
                 None
             ).run()
             
