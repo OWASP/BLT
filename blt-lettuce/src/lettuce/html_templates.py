@@ -270,24 +270,30 @@ def get_dashboard_html(
         )
     elif current_ws and active_tab == "apps":
         apps_rows = ""
+        slack_apps_home = "https://api.slack.com/apps"
         for app in installed_apps or []:
             app_name = html_escape(app.get("app_name") or "Unknown App")
             app_id = html_escape(app.get("app_id") or "")
             source = html_escape(app.get("source") or "unknown")
             scopes = html_escape(app.get("scopes") or "-")
+            installed_by = html_escape(app.get("installed_by") or "Unknown")
             status = "Installed" if app.get("is_installed") else "Unknown"
+            app_manage_url = (
+                f"https://api.slack.com/apps/{app_id}/general" if app_id else slack_apps_home
+            )
             apps_rows += (
                 '<tr class="border-b border-gray-100 hover:bg-gray-50">'
-                f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{app_name}</td>'
+                f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{app_name}<a href="{app_manage_url}" target="_blank" rel="noopener noreferrer" class="ml-2 text-xs text-red-600 hover:text-red-700 underline">Manage</a></td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{app_id}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{status}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-600">{installed_by}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500">{source}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500">{scopes}</td>'
                 "</tr>"
             )
         if not apps_rows:
             apps_rows = (
-                '<tr><td colspan="5" class="py-6 text-center text-sm text-gray-400">'
+                '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
                 "No app details available for this workspace token."
                 "</td></tr>"
             )
@@ -296,7 +302,7 @@ def get_dashboard_html(
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
             '<div class="flex items-center justify-between mb-4">'
             f'<h2 class="text-xl font-bold text-gray-800">Installed Apps - {ws_name}</h2>'
-            '<span class="text-xs text-gray-400">best effort from Slack APIs</span>'
+            f'<a href="{slack_apps_home}" target="_blank" rel="noopener noreferrer" class="text-xs text-red-600 hover:text-red-700 underline">Open Slack Apps Page</a>'
             "</div>"
             '<p class="text-sm text-gray-500 mb-4">'
             "This tab shows apps visible to your current Slack token. Some workspaces require admin scopes for full app listings."
@@ -307,6 +313,7 @@ def get_dashboard_html(
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">App</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">App ID</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Installed By</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Source</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Scopes</th>'
             "</tr></thead><tbody>"

@@ -568,6 +568,34 @@ async def db_user_owns_workspace(env, user_id, workspace_id):
         return False
 
 
+async def db_get_workspace_installers(env, workspace_id):
+    """Return users linked to a workspace (owners first) for install attribution."""
+    try:
+        rows = _rows(
+            await env.DB.prepare(
+                "SELECT u.name, u.slack_user_id, uw.role, uw.created_at "
+                "FROM user_workspaces uw "
+                "JOIN users u ON u.id = uw.user_id "
+                "WHERE uw.workspace_id = ? "
+                "ORDER BY CASE WHEN uw.role = 'owner' THEN 0 ELSE 1 END, uw.created_at ASC"
+            )
+            .bind(workspace_id)
+            .all()
+        )
+        return rows
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={"context": "db_get_workspace_installers", "workspace_id": workspace_id},
+            )
+        except Exception:
+            pass
+        return []
+
+
 # ===========================================================================
 # D1 — Channel helpers
 # ===========================================================================
@@ -2505,6 +2533,7 @@ async def handle_request(request, env):
         daily_stats = []
         repos = []
         installed_apps = []
+        workspace_installers = []
 
         if current_ws:
             ws_id_val = current_ws["id"]
@@ -2515,6 +2544,19 @@ async def handle_request(request, env):
             repos = await db_get_repositories(env, ws_id_val)
             if selected_tab == "apps":
                 installed_apps = await get_workspace_installed_apps(env, current_ws)
+                workspace_installers = await db_get_workspace_installers(env, ws_id_val)
+
+                # Attach best-effort installer attribution to each app row.
+                installer_name = ""
+                if workspace_installers:
+                    primary = workspace_installers[0]
+                    installer_name = (
+                        primary.get("name")
+                        or primary.get("slack_user_id")
+                        or "Unknown"
+                    )
+                for app in installed_apps:
+                    app["installed_by"] = installer_name or "Unknown"
 
         html = get_dashboard_html(
             user,
