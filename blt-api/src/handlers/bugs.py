@@ -250,6 +250,16 @@ async def handle_bugs(
         except Exception:
             return error_response("Invalid URL format", status=400)
         
+        # Validate description
+        description = sanitized_body.get("description")
+        
+        if not isinstance(description, str):
+            return error_response("Description must be a string", status=400)
+        
+        description = description.strip()
+        if not description:
+            return error_response("Description is required", status=400)
+        
         try:
             # Use a trusted edge header when available; never accept this from JSON body.
             reporter_ip = None
@@ -279,25 +289,25 @@ async def handle_bugs(
                     hunt, domain, user, closed_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''').bind(
-                sanitized_body.get("url"),
-                sanitized_body.get("description"),
-                sanitized_body.get("markdown_description") or None,
-                sanitized_body.get("label") or None,
+                url,
+                description,
+                sanitized_body.get("markdown_description") if "markdown_description" in sanitized_body else None,
+                sanitized_body.get("label") if "label" in sanitized_body else None,
                 0,
                 0,
-                sanitized_body.get("score") or None,
+                sanitized_body.get("score") if "score" in sanitized_body else None,
                 "open",
-                sanitized_body.get("user_agent") or None,
-                sanitized_body.get("ocr") or None,
-                sanitized_body.get("screenshot") or None,
-                sanitized_body.get("github_url") or None,
+                sanitized_body.get("user_agent") if "user_agent" in sanitized_body else None,
+                sanitized_body.get("ocr") if "ocr" in sanitized_body else None,
+                sanitized_body.get("screenshot") if "screenshot" in sanitized_body else None,
+                sanitized_body.get("github_url") if "github_url" in sanitized_body else None,
                 0,
                 0,
                 reporter_ip,
-                sanitized_body.get("cve_id") or None,
-                sanitized_body.get("cve_score") or None,
-                sanitized_body.get("hunt") or None,
-                sanitized_body.get("domain") or None,
+                sanitized_body.get("cve_id") if "cve_id" in sanitized_body else None,
+                sanitized_body.get("cve_score") if "cve_score" in sanitized_body else None,
+                sanitized_body.get("hunt") if "hunt" in sanitized_body else None,
+                sanitized_body.get("domain") if "domain" in sanitized_body else None,
                 user_id,
                 None
             ).run()

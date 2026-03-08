@@ -199,3 +199,65 @@ async def test_create_bug_rejects_blank_url(monkeypatch):
     assert payload["error"] is True
     assert payload["message"] == "URL is required"
     assert fake_db.insert_params is None
+
+
+@pytest.mark.asyncio
+async def test_create_bug_rejects_non_string_description(monkeypatch):
+    fake_db = FakeDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+
+    request_body = json.dumps(
+        {
+            "url": "https://example.com/vuln",
+            "description": 123,
+        }
+    )
+
+    response = await bugs_handler.handle_bugs(
+        request=MockRequest(request_body, headers={"CF-Connecting-IP": "8.8.8.8"}),
+        env=MockEnv(),
+        path_params={},
+        query_params={},
+        path="/bugs",
+    )
+
+    assert getattr(response, "status", None) == 400
+    payload = json.loads(response.body)
+    assert payload["error"] is True
+    assert payload["message"] == "Description must be a string"
+    assert fake_db.insert_params is None
+
+
+@pytest.mark.asyncio
+async def test_create_bug_rejects_blank_description(monkeypatch):
+    fake_db = FakeDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+
+    request_body = json.dumps(
+        {
+            "url": "https://example.com/vuln",
+            "description": "   ",
+        }
+    )
+
+    response = await bugs_handler.handle_bugs(
+        request=MockRequest(request_body, headers={"CF-Connecting-IP": "8.8.8.8"}),
+        env=MockEnv(),
+        path_params={},
+        query_params={},
+        path="/bugs",
+    )
+
+    assert getattr(response, "status", None) == 400
+    payload = json.loads(response.body)
+    assert payload["error"] is True
+    assert payload["message"] == "Description is required"
+    assert fake_db.insert_params is None
