@@ -113,11 +113,22 @@ def get_dashboard_html(
         )
         team_name = str(ws.get("team_name") or "Workspace")
         icon_letter = html_escape(team_name[:1].upper() if team_name else "W")
+        icon_url = str(ws.get("icon_url") or "").strip()
+        if icon_url:
+            workspace_icon_html = (
+                f'<img src="{html_escape(icon_url)}" alt="{html_escape(team_name)} icon" '
+                'class="w-8 h-8 shrink-0 rounded-lg border border-gray-200 object-cover"/>'
+            )
+        else:
+            workspace_icon_html = (
+                '<span class="w-8 h-8 shrink-0 rounded-lg bg-gray-900 text-white inline-flex items-center justify-center text-xs font-bold">'
+                f"{icon_letter}</span>"
+            )
         team_name_safe = html_escape(team_name)
         ws_tabs += (
             f'<a href="/dashboard?ws={ws["id"]}" '
             f'class="flex items-center gap-3 px-3 py-2 rounded-lg border text-sm font-medium {active} transition-colors">'
-            f'<span class="w-8 h-8 rounded-lg bg-gray-900 text-white inline-flex items-center justify-center text-xs font-bold">{icon_letter}</span>'
+            f"{workspace_icon_html}"
             f'<span class="truncate">{team_name_safe}</span>'
             '</a>'
         )
