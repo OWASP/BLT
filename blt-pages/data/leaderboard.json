@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-07T21:29:03.001Z",
-  "commit_sha": "00d76c3d5f5aaaf0de2413c82c7636936499ab9e",
+  "updated_at": "2026-03-08T00:20:01.924Z",
+  "commit_sha": "c299be02d56e8d892daf4ab81903aefa8c1ac61b",
   "total_bugs": 14,
   "open_bugs": 3,
   "closed_bugs": 11,
@@ -140,7 +140,8 @@
       "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
       "domain": "owaspblt.org",
       "reactions": {
-        "+1": 1
+        "+1": 1,
+        "eyes": 1
       },
       "latest_comment": null
     },
