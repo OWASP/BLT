@@ -80,6 +80,7 @@ def get_dashboard_html(
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
     user_name = html_escape((user or {}).get("name") or "User")
+    user_slack_id = html_escape((user or {}).get("slack_user_id") or "")
     user_avatar_url = (user or {}).get("avatar_url") or ""
 
     # Generate avatar HTML - either image or fallback icon
@@ -169,9 +170,13 @@ def get_dashboard_html(
         user_name = html_escape(raw_user_name or "Unknown User")
         ev_time = html_escape(ev.get("created_at", "") or "-")
         request_data_raw = str(ev.get("request_data") or "").strip()
-        request_data = html_escape(request_data_raw or "-")
-        if request_data_raw and len(request_data) > 120:
-            request_data = f"{request_data[:117]}..."
+        request_data_tooltip = html_escape(request_data_raw)
+        request_data_html = (
+            '<span class="inline-flex items-center justify-center w-7 h-7 rounded-md border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200" '
+            f'title="{request_data_tooltip}"><i class="fas fa-code text-xs"></i></span>'
+            if request_data_raw
+            else '<span class="text-gray-300">-</span>'
+        )
         is_verified = int(ev.get("verified") or 0) == 1
         verified_badge = (
             '<span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-green-100 text-green-800">Verified</span>'
@@ -196,7 +201,7 @@ def get_dashboard_html(
             f'<td class="py-3 px-4 text-sm text-gray-700">{user_name}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500">{channel_name}</td>'
             f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
-            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{request_data}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500">{request_data_html}</td>'
             f'<td class="py-3 px-4 text-sm">{verified_badge}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500" data-timestamp="{ev_time}"><span class="timeago">{ev_time}</span></td>'
             "</tr>"
@@ -363,7 +368,7 @@ def get_dashboard_html(
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
             '<div class="flex flex-wrap gap-2">'
             f'<a href="{overview_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {overview_active}">'
-            f'<i class="fas fa-chart-line"></i> Overview {overview_count_badge}</a>'
+            f'<i class="fas fa-chart-line"></i> Activities {overview_count_badge}</a>'
             f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
             f'<i class="fas fa-hashtag"></i> Channels {channels_count_badge}</a>'
             f'<a href="{repositories_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {repositories_active}">'
@@ -428,13 +433,6 @@ def get_dashboard_html(
             '<div class="flex items-center justify-between mb-4">'
             f'<h2 class="text-xl font-bold text-gray-800">Channels - {ws_name}</h2>'
             f'<span class="text-xs text-gray-400">{len(channels)} channel(s)</span>'
-            "</div>"
-            '<div class="rounded-lg border border-gray-100 bg-gray-50 p-4 mb-4">'
-            '<div class="flex items-center justify-between mb-3">'
-            '<h3 class="text-sm font-semibold text-gray-700">Top Channels</h3>'
-            '<span class="text-xs text-gray-400">by member count</span>'
-            "</div>"
-            f'<div id="channels-list">{channels_html}</div>'
             "</div>"
             '<div id="channel-config-status" class="hidden mb-4 p-3 rounded-lg"></div>'
             '<p class="text-xs text-gray-400 mb-4">Select a join message to enable auto-send on channel join. Choose "None (disabled)" to turn it off.</p>'
@@ -734,6 +732,7 @@ def get_dashboard_html(
         "dashboard.html",
         {
             "USER_NAME": user_name,
+            "USER_SLACK_ID": user_slack_id,
             "USER_AVATAR": user_avatar_html,
             "WS_COUNT": ws_count,
             "WS_TABS": ws_tabs,

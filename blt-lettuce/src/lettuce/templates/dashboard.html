@@ -15,17 +15,22 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-14">
       <div class="flex items-center gap-3">
-        <img src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
-             alt="Logo" class="w-7 h-7"/>
-        <span class="font-bold text-gray-800">BLT-Lettuce</span>
+        <a href="/dashboard" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors">
+          <img src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
+               alt="Logo" class="w-7 h-7"/>
+          <span class="font-bold">BLT-Lettuce</span>
+        </a>
         <span class="text-gray-300">|</span>
-        <span class="text-sm text-gray-500">Dashboard</span>
+        <a href="/dashboard" class="text-sm text-gray-500 hover:text-red-700 transition-colors">Dashboard</a>
       </div>
       <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-600 flex items-center gap-2">
+        <div class="flex items-center gap-2">
           {{ USER_AVATAR }}
-          <span>{{ USER_NAME }}</span>
-        </span>
+          <div class="leading-tight">
+            <div class="text-sm text-gray-700 font-medium">{{ USER_NAME }}</div>
+            <div class="text-[10px] text-gray-400 font-mono">{{ USER_SLACK_ID }}</div>
+          </div>
+        </div>
         <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
         <a href="/logout"
            class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600
