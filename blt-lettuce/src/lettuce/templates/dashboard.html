@@ -44,7 +44,7 @@
   <div class="grid gap-6 lg:grid-cols-[280px,1fr]">
     <aside class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 h-fit lg:sticky lg:top-20">
       <h2 class="text-base font-bold text-gray-800">Workspaces</h2>
-      <p class="text-xs text-gray-400 mt-1">{{ WS_COUNT }} workspace(s) connected</p>
+      <p class="text-xs text-gray-400 mt-1">{{ WS_SUMMARY }}</p>
       <div class="mt-4 space-y-2">
         {{ WS_TABS }}
       </div>
@@ -556,6 +556,93 @@ async function analyzePastedManifest(wsId) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest';
     }
+  }
+}
+
+async function saveWorkspaceManifest(wsId) {
+  const textarea = document.getElementById('manifest-input');
+  if (!textarea) return;
+
+  const manifestYaml = textarea.value || '';
+  const btn = document.getElementById('manifest-save-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/manifest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest_yaml: manifestYaml }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('manifest-status', 'error', 'Save failed: ' + ((d && d.error) || 'unknown error'));
+      return;
+    }
+
+    showStatus('manifest-status', 'success', 'Manifest saved for this app.');
+    if (d.result) {
+      const result = d.result;
+      const summaryBox = document.getElementById('manifest-summary-box');
+      const summaryLabel = document.getElementById('manifest-summary-label');
+      const summaryText = document.getElementById('manifest-summary-text');
+      const manifestPath = document.getElementById('manifest-path');
+      const checksBody = document.getElementById('manifest-checks-body');
+
+      if (summaryBox) {
+        summaryBox.className = 'rounded-lg border p-3 mb-4 ' + (result.ok
+          ? 'text-green-700 bg-green-50 border-green-200'
+          : 'text-red-700 bg-red-50 border-red-200');
+      }
+      if (summaryLabel) summaryLabel.textContent = result.ok ? 'Manifest is valid' : 'Manifest has required fixes';
+      if (summaryText) summaryText.textContent = result.summary || 'No summary';
+      if (manifestPath) manifestPath.textContent = result.manifest_path || 'saved workspace manifest';
+
+      if (checksBody) {
+        const checks = Array.isArray(result.checks) ? result.checks : [];
+        checksBody.innerHTML = checks.length
+          ? checks.map((check, idx) => {
+              const ok = !!check.ok;
+              const badgeClass = ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+              const label = ok ? 'PASS' : 'FAIL';
+              return '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                + `<td class="py-3 px-4 text-sm text-gray-400 font-mono">${idx + 1}</td>`
+                + `<td class="py-3 px-4 text-sm font-medium text-gray-800">${escapeHtml(check.name || '')}</td>`
+                + `<td class="py-3 px-4 text-sm"><span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold ${badgeClass}">${label}</span></td>`
+                + `<td class="py-3 px-4 text-sm text-gray-600">${escapeHtml(check.detail || '')}</td>`
+                + '</tr>';
+            }).join('')
+          : '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">No manifest checks available.</td></tr>';
+      }
+    }
+  } catch (e) {
+    showStatus('manifest-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save For This App';
+    }
+  }
+}
+
+async function loadManifestFile(event) {
+  const fileInput = event.target;
+  const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const textarea = document.getElementById('manifest-input');
+    if (textarea) {
+      textarea.value = text;
+      showStatus('manifest-status', 'success', `Loaded ${file.name}. You can now analyze or save it.`);
+    }
+  } catch (e) {
+    showStatus('manifest-status', 'error', 'Failed to read file: ' + e.message);
+  } finally {
+    if (fileInput) fileInput.value = '';
   }
 }
 

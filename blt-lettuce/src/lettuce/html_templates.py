@@ -96,7 +96,13 @@ def get_dashboard_html(
         if ws_app_id
         else "https://api.slack.com/apps"
     )
-    ws_count = len(workspaces)
+    app_count = len(workspaces)
+    workspace_keys = set()
+    for ws in workspaces:
+        team_key = str(ws.get("team_id") or "").strip() or str(ws.get("id") or "")
+        workspace_keys.add(team_key)
+    ws_count = len(workspace_keys)
+    ws_summary = f"{ws_count} workspace(s), {app_count} app(s) connected"
     delete_workspace_btn = ""
     if current_ws and can_manage_manifest:
         delete_workspace_btn = (
@@ -116,6 +122,7 @@ def get_dashboard_html(
         )
         team_name = str(ws.get("team_name") or "Workspace")
         app_name = str(ws.get("app_name") or "").strip()
+        app_icon_url = str(ws.get("app_icon_url") or "").strip()
         icon_letter = html_escape(team_name[:1].upper() if team_name else "W")
         icon_url = str(ws.get("icon_url") or "").strip()
         if icon_url:
@@ -134,7 +141,14 @@ def get_dashboard_html(
             f"{workspace_icon_html}"
             f'<div class="flex flex-col min-w-0">'
             f'<span class="truncate font-medium">{html_escape(team_name)}</span>'
-            f'<span class="truncate text-xs opacity-75">{html_escape(app_name) if app_name else "App"}</span>'
+            '<span class="truncate text-xs opacity-75 inline-flex items-center gap-1.5">'
+            + (
+                f'<img src="{html_escape(app_icon_url)}" alt="app icon" class="w-3.5 h-3.5 rounded-sm border border-gray-200 object-cover"/>'
+                if app_icon_url
+                else '<i class="fas fa-puzzle-piece text-[10px]"></i>'
+            )
+            + f'<span class="truncate">{html_escape(app_name) if app_name else "App"}</span>'
+            + '</span>'
             '</div>'
             '</a>'
         )
@@ -490,6 +504,7 @@ def get_dashboard_html(
         slack_apps_home = "https://api.slack.com/apps"
         for app in installed_apps or []:
             app_name = html_escape(app.get("app_name") or "Unknown App")
+            app_icon_url = html_escape(app.get("app_icon_url") or "")
             app_id = html_escape(app.get("app_id") or "")
             source = html_escape(app.get("source") or "unknown")
             scopes = html_escape(app.get("scopes") or "-")
@@ -503,7 +518,17 @@ def get_dashboard_html(
             )
             apps_rows += (
                 '<tr class="border-b border-gray-100 hover:bg-gray-50">'
-                f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{app_name}<a href="{app_manage_url}" target="_blank" rel="noopener noreferrer" class="ml-2 text-xs text-red-600 hover:text-red-700 underline">Manage</a></td>'
+                '<td class="py-3 px-4 text-sm font-medium text-gray-800">'
+                '<div class="inline-flex items-center gap-2">'
+                + (
+                    f'<img src="{app_icon_url}" alt="{app_name} icon" class="w-5 h-5 rounded-sm border border-gray-200 object-cover"/>'
+                    if app_icon_url
+                    else '<i class="fas fa-puzzle-piece text-gray-400"></i>'
+                )
+                + f'<span>{app_name}</span>'
+                + f'<a href="{app_manage_url}" target="_blank" rel="noopener noreferrer" class="ml-2 text-xs text-red-600 hover:text-red-700 underline">Manage</a>'
+                + '</div>'
+                '</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{app_id}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{status}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{installed_by}</td>'
@@ -620,6 +645,9 @@ def get_dashboard_html(
             )
         else:
             checks = (manifest_result or {}).get("checks") or []
+            saved_manifest_yaml = html_escape(
+                str((current_ws or {}).get("manifest_yaml") or "")
+            )
             check_rows = ""
             for idx, check in enumerate(checks, start=1):
                 ok = bool(check.get("ok"))
@@ -666,10 +694,19 @@ def get_dashboard_html(
                 '<label for="manifest-input" class="block text-sm font-medium text-gray-700 mb-2">Paste Manifest YAML</label>'
                 '<textarea id="manifest-input" rows="10" '
                 'class="w-full rounded-lg border border-gray-200 p-3 text-sm font-mono text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300" '
-                'placeholder="display_information:\n  name: My App\n..."></textarea>'
+                f'placeholder="display_information:\n  name: My App\n...">{saved_manifest_yaml}</textarea>'
+                '<div class="mt-3 flex flex-wrap items-center gap-2">'
+                '<input id="manifest-file-input" type="file" accept=".yaml,.yml,text/yaml,text/plain,application/x-yaml" class="hidden" onchange="loadManifestFile(event)"/>'
+                '<button type="button" onclick="document.getElementById(\'manifest-file-input\').click()" '
+                'class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">'
+                '<i class="fas fa-file-arrow-up"></i> Load File</button>'
                 f'<button onclick="analyzePastedManifest({ws_id_js})" id="manifest-analyze-btn" '
-                'class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'
+                'class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'
                 '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest</button>'
+                f'<button onclick="saveWorkspaceManifest({ws_id_js})" id="manifest-save-btn" '
+                'class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 border border-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">'
+                '<i class="fas fa-floppy-disk"></i> Save For This App</button>'
+                '</div>'
                 "</div>"
                 '<div id="manifest-status" class="hidden mb-4 p-3 rounded-lg"></div>'
                 f'<div id="manifest-summary-box" class="rounded-lg border p-3 mb-4 {summary_class}">'
@@ -763,6 +800,7 @@ def get_dashboard_html(
             "USER_SLACK_ID": user_slack_id,
             "USER_AVATAR": user_avatar_html,
             "WS_COUNT": ws_count,
+            "WS_SUMMARY": ws_summary,
             "WS_TABS": ws_tabs,
             "DELETE_WORKSPACE_BTN": delete_workspace_btn,
             "DASHBOARD_TABS": dashboard_tabs,

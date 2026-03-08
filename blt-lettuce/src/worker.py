@@ -238,6 +238,8 @@ async def ensure_d1_schema(env):
             "icon_url TEXT DEFAULT '',"
             "app_id TEXT DEFAULT '',"
             "app_name TEXT DEFAULT '',"
+            "app_icon_url TEXT DEFAULT '',"
+            "manifest_yaml TEXT DEFAULT '',"
             "access_token TEXT NOT NULL,"
             "bot_user_id TEXT DEFAULT '',"
             "created_at TEXT NOT NULL,"
@@ -404,6 +406,16 @@ async def ensure_d1_schema(env):
             "table": "workspaces",
             "column": "app_name",
             "sql": "ALTER TABLE workspaces ADD COLUMN app_name TEXT DEFAULT ''",
+        },
+        {
+            "table": "workspaces",
+            "column": "manifest_yaml",
+            "sql": "ALTER TABLE workspaces ADD COLUMN manifest_yaml TEXT DEFAULT ''",
+        },
+        {
+            "table": "workspaces",
+            "column": "app_icon_url",
+            "sql": "ALTER TABLE workspaces ADD COLUMN app_icon_url TEXT DEFAULT ''",
         },
     ]
 
@@ -597,6 +609,7 @@ async def db_upsert_workspace(
     app_id="",
     icon_url="",
     app_name="",
+    app_icon_url="",
 ):
     now = get_utc_now()
     try:
@@ -612,13 +625,14 @@ async def db_upsert_workspace(
         if existing:
             result = await (
                 env.DB.prepare(
-                    "UPDATE workspaces SET team_name=?, icon_url=?, app_name=?, access_token=?, bot_user_id=?, "
+                    "UPDATE workspaces SET team_name=?, icon_url=?, app_name=?, app_icon_url=?, access_token=?, bot_user_id=?, "
                     "updated_at=? WHERE team_id=? AND app_id=?"
                 )
                 .bind(
                     team_name,
                     icon_url,
                     app_name,
+                    app_icon_url,
                     access_token,
                     bot_user_id,
                     now,
@@ -634,8 +648,8 @@ async def db_upsert_workspace(
             result = await (
                 env.DB.prepare(
                     "INSERT INTO workspaces "
-                    "(team_id, team_name, icon_url, app_id, app_name, access_token, bot_user_id, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    "(team_id, team_name, icon_url, app_id, app_name, app_icon_url, access_token, bot_user_id, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 )
                 .bind(
                     team_id,
@@ -643,6 +657,7 @@ async def db_upsert_workspace(
                     icon_url,
                     app_id,
                     app_name,
+                    app_icon_url,
                     access_token,
                     bot_user_id,
                     now,
@@ -701,6 +716,46 @@ async def db_update_workspace_icon(env, workspace_id, icon_url):
                 "UPDATE workspaces SET icon_url = ?, updated_at = ? WHERE id = ?"
             )
             .bind(icon_url or "", get_utc_now(), workspace_id)
+            .run()
+        )
+        return True
+    except Exception:
+        return False
+
+
+async def db_update_workspace_manifest(env, workspace_id, manifest_yaml):
+    """Persist manifest YAML for a specific workspace/app entry."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE workspaces SET manifest_yaml = ?, updated_at = ? WHERE id = ?"
+            )
+            .bind(str(manifest_yaml or ""), now, workspace_id)
+            .run()
+        )
+        return True
+    except Exception:
+        return False
+
+
+async def db_update_workspace_app_metadata(
+    env, workspace_id, app_name="", app_icon_url="", app_id=""
+):
+    """Persist app metadata for a workspace/app row."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE workspaces SET app_name = ?, app_icon_url = ?, app_id = ?, updated_at = ? WHERE id = ?"
+            )
+            .bind(
+                str(app_name or ""),
+                str(app_icon_url or ""),
+                str(app_id or ""),
+                now,
+                workspace_id,
+            )
             .run()
         )
         return True
@@ -2488,6 +2543,72 @@ async def import_workspace_history(env, workspace_id, access_token):
     }
 
 
+def _extract_app_icon_url(app_obj):
+    """Return best available app icon URL from Slack app object."""
+    if not isinstance(app_obj, dict):
+        return ""
+    icons = _js_to_python(app_obj.get("icons") or {})
+    if isinstance(icons, dict):
+        for key in (
+            "image_68",
+            "image_64",
+            "image_48",
+            "image_44",
+            "image_36",
+            "image_32",
+        ):
+            val = str(icons.get(key) or "").strip()
+            if val:
+                return val
+    for key in ("icon", "image_68", "image_64", "image_48", "image_36"):
+        val = str(app_obj.get(key) or "").strip()
+        if val:
+            return val
+    return ""
+
+
+async def fetch_app_metadata(access_token, fallback_app_id=""):
+    """Fetch app id/name/icon from Slack using the provided token."""
+    if not access_token:
+        return {
+            "app_id": str(fallback_app_id or ""),
+            "app_name": "",
+            "app_icon_url": "",
+        }
+    try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {access_token}")
+        resp = await js_fetch(
+            "https://slack.com/api/apps.permissions.info",
+            {"method": "GET", "headers": headers},
+        )
+        data = _js_to_python(await resp.json())
+        if isinstance(data, dict) and data.get("ok"):
+            info = _js_to_python(data.get("info") or {})
+            app_obj = _js_to_python(info.get("app") or data.get("app") or {})
+            app_id = str(
+                app_obj.get("id")
+                or info.get("app_id")
+                or data.get("app_id")
+                or fallback_app_id
+                or ""
+            )
+            app_name = str(app_obj.get("name") or "").strip()
+            app_icon_url = _extract_app_icon_url(app_obj)
+            return {
+                "app_id": app_id,
+                "app_name": app_name,
+                "app_icon_url": app_icon_url,
+            }
+    except Exception:
+        pass
+    return {
+        "app_id": str(fallback_app_id or ""),
+        "app_name": "",
+        "app_icon_url": "",
+    }
+
+
 async def get_workspace_installed_apps(env, workspace):
     """Best-effort list of installed apps visible to the workspace token."""
     ws = workspace or {}
@@ -2532,6 +2653,7 @@ async def get_workspace_installed_apps(env, workspace):
                             "app_name": app.get("name")
                             or app.get("app_name")
                             or "Unknown App",
+                            "app_icon_url": _extract_app_icon_url(app),
                             "is_installed": True,
                             "source": source_label,
                             "distribution": distribution_label,
@@ -2577,6 +2699,8 @@ async def get_workspace_installed_apps(env, workspace):
                 {
                     "app_id": ws.get("app_id") or app_obj.get("id") or "",
                     "app_name": app_obj.get("name") or "Bot App",
+                    "app_icon_url": _extract_app_icon_url(app_obj)
+                    or str(ws.get("app_icon_url") or ""),
                     "is_installed": True,
                     "source": "apps.permissions.info",
                     "scopes": bot_scopes_text,
@@ -2590,7 +2714,8 @@ async def get_workspace_installed_apps(env, workspace):
     _append_app(
         {
             "app_id": ws.get("app_id") or "",
-            "app_name": "Bot App",
+            "app_name": str(ws.get("app_name") or "Bot App"),
+            "app_icon_url": str(ws.get("app_icon_url") or ""),
             "is_installed": True,
             "source": "workspace_record",
             "scopes": "",
@@ -3762,12 +3887,17 @@ async def handle_request(request, env):
                 bot_user_id = token_data.get("bot_user_id") or ""
                 app_id = token_data.get("app_id") or ""
                 app_name = f"Bot App ({app_id[:8]})" if app_id else "Bot App"
+                app_icon_url = ""
                 icon_url = ""
                 print(
                     f"[OAuth callback] team_id={team_id}, team_name={team_name}, app_id={app_id}, app_name={app_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
                 )
 
                 if team_id and bot_token:
+                    app_meta = await fetch_app_metadata(bot_token, fallback_app_id=app_id)
+                    app_id = app_meta.get("app_id") or app_id
+                    app_name = app_meta.get("app_name") or app_name
+                    app_icon_url = app_meta.get("app_icon_url") or ""
                     icon_url = await fetch_workspace_icon_url(bot_token)
                     ws = await db_upsert_workspace(
                         env,
@@ -3778,6 +3908,7 @@ async def handle_request(request, env):
                         app_id,
                         icon_url,
                         app_name,
+                        app_icon_url,
                     )
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
@@ -3945,11 +4076,17 @@ async def handle_request(request, env):
             bot_user_id = validation.get("bot_user_id", "")
             icon_url = validation.get("icon_url", "")
             app_id = validation.get("app_id", "")
+            app_icon_url = ""
             app_name = (
                 custom_name or f"Bot App ({bot_user_id[:8]})"
                 if bot_user_id
                 else "Bot App"
             )
+
+            app_meta = await fetch_app_metadata(token, fallback_app_id=app_id)
+            app_id = app_meta.get("app_id") or app_id
+            app_name = app_meta.get("app_name") or app_name
+            app_icon_url = app_meta.get("app_icon_url") or ""
 
             print(
                 f"[manual-add] Token validated. team_id={team_id}, team_name={team_name}, app_id={app_id}"
@@ -3981,6 +4118,7 @@ async def handle_request(request, env):
                     app_id,
                     icon_url,
                     app_name,
+                    app_icon_url,
                 )
             else:
                 # Create new workspace
@@ -3993,6 +4131,7 @@ async def handle_request(request, env):
                     app_id,
                     icon_url,
                     app_name,
+                    app_icon_url,
                 )
 
                 if ws:
@@ -4057,16 +4196,44 @@ async def handle_request(request, env):
         # Backfill missing workspace icons from Slack for older records.
         for ws in workspaces:
             if ws.get("icon_url"):
-                continue
-            token = ws.get("access_token") or ""
-            if not token:
-                continue
-            icon_url = await fetch_workspace_icon_url(token)
-            if icon_url:
-                ws["icon_url"] = icon_url
-                ws_id_backfill = ws.get("id")
-                if ws_id_backfill:
-                    await db_update_workspace_icon(env, ws_id_backfill, icon_url)
+                token = ws.get("access_token") or ""
+            else:
+                token = ws.get("access_token") or ""
+                if token:
+                    icon_url = await fetch_workspace_icon_url(token)
+                    if icon_url:
+                        ws["icon_url"] = icon_url
+                        ws_id_backfill = ws.get("id")
+                        if ws_id_backfill:
+                            await db_update_workspace_icon(env, ws_id_backfill, icon_url)
+
+            # Backfill missing app metadata (name/icon/app_id) from Slack app API.
+            if token and (
+                not str(ws.get("app_name") or "").strip()
+                or not str(ws.get("app_icon_url") or "").strip()
+            ):
+                app_meta = await fetch_app_metadata(
+                    token,
+                    fallback_app_id=str(ws.get("app_id") or ""),
+                )
+                app_name = str(app_meta.get("app_name") or ws.get("app_name") or "").strip()
+                app_icon_url = str(
+                    app_meta.get("app_icon_url") or ws.get("app_icon_url") or ""
+                ).strip()
+                app_id = str(app_meta.get("app_id") or ws.get("app_id") or "").strip()
+                if app_name or app_icon_url or app_id:
+                    ws["app_name"] = app_name or ws.get("app_name")
+                    ws["app_icon_url"] = app_icon_url or ws.get("app_icon_url")
+                    ws["app_id"] = app_id or ws.get("app_id")
+                    ws_id_backfill = ws.get("id")
+                    if ws_id_backfill:
+                        await db_update_workspace_app_metadata(
+                            env,
+                            ws_id_backfill,
+                            app_name=ws.get("app_name") or "",
+                            app_icon_url=ws.get("app_icon_url") or "",
+                            app_id=ws.get("app_id") or "",
+                        )
 
         # Determine which workspace to show (ws= query param or first)
         qs = url.split("?", 1)[1] if "?" in url else ""
@@ -4156,9 +4323,16 @@ async def handle_request(request, env):
                         "error": "Only workspace admins/owners can access Manifest Checker.",
                     }
                 else:
-                    base_dir = Path(__file__).resolve().parents[1]
-                    manifest_path = base_dir / "manifest.yaml"
-                    manifest_result = check_manifest_requirements(manifest_path)
+                    saved_manifest = str(current_ws.get("manifest_yaml") or "").strip()
+                    if saved_manifest:
+                        manifest_result = check_manifest_requirements_from_text(
+                            saved_manifest,
+                            manifest_label="saved workspace manifest",
+                        )
+                    else:
+                        base_dir = Path(__file__).resolve().parents[1]
+                        manifest_path = base_dir / "manifest.yaml"
+                        manifest_result = check_manifest_requirements(manifest_path)
 
         html = get_dashboard_html(
             user,
@@ -4889,6 +5063,61 @@ async def handle_request(request, env):
             manifest_yaml, manifest_label="pasted manifest"
         )
         return _json_response({"ok": True, "result": result}, 200)
+
+    # ------------------------------------------------------------------ #
+    #  GET/POST /api/ws/<id>/manifest  →  load/save workspace manifest   #
+    # ------------------------------------------------------------------ #
+    if pathname.startswith("/api/ws/") and pathname.endswith("/manifest"):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        if method == "GET":
+            ws = await db_get_workspace_by_id(env, ws_id_val)
+            if not ws:
+                return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+            return _json_response(
+                {
+                    "ok": True,
+                    "manifest_yaml": str(ws.get("manifest_yaml") or ""),
+                    "app_id": str(ws.get("app_id") or ""),
+                    "app_name": str(ws.get("app_name") or ""),
+                },
+                200,
+            )
+
+        if method == "POST":
+            user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+            if user_role not in ("owner", "admin"):
+                return _json_response(
+                    {
+                        "ok": False,
+                        "error": "Only workspace admins/owners can save manifest data.",
+                    },
+                    403,
+                )
+            try:
+                body = json.loads(await request.text())
+            except Exception:
+                body = {}
+
+            manifest_yaml = str((body or {}).get("manifest_yaml") or "")
+            save_ok = await db_update_workspace_manifest(env, ws_id_val, manifest_yaml)
+            if not save_ok:
+                return _json_response({"ok": False, "error": "Failed to save manifest"}, 500)
+
+            result = check_manifest_requirements_from_text(
+                manifest_yaml,
+                manifest_label="saved workspace manifest",
+            )
+            return _json_response({"ok": True, "result": result}, 200)
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/events/purge  →  purge workspace events         #

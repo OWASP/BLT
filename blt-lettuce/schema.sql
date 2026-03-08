@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS workspaces (
     team_name TEXT NOT NULL,
     app_id TEXT DEFAULT '',
     app_name TEXT DEFAULT '',
+    app_icon_url TEXT DEFAULT '',
+    manifest_yaml TEXT DEFAULT '',
     access_token TEXT NOT NULL,
     bot_user_id TEXT DEFAULT '',
     created_at TEXT NOT NULL,
