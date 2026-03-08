@@ -1,16 +1,16 @@
 {
-  "updated_at": "2026-03-08T23:32:05.574Z",
-  "commit_sha": "a7d53277675376a5e03cbe9f852cbdf64a3a85e5",
-  "total_bugs": 15,
-  "open_bugs": 3,
+  "updated_at": "2026-03-08T23:34:37.755Z",
+  "commit_sha": "d3ae630cbc18034da62a51d809d41c507c4baf1f",
+  "total_bugs": 16,
+  "open_bugs": 4,
   "closed_bugs": 12,
-  "total_domains": 3,
+  "total_domains": 4,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 9,
+      "count": 10,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -121,14 +121,44 @@
     },
     {
       "rank": 3,
+      "domain": "www.owaspblt.org",
+      "count": 1
+    },
+    {
+      "rank": 4,
       "domain": "github.com",
       "count": 1
     }
   ],
   "recent_bugs": [
     {
+      "number": 82,
+      "title": "[BUG] when clicking on the top domain report have it show the issues tagged with that domain",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/82",
+      "created_at": "2026-03-08T23:34:25Z",
+      "comment_count": 1,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/45b5d21b-8024-4db5-8f85-029e83bcd82d",
+      "domain": "www.owaspblt.org",
+      "reactions": {},
+      "latest_comment": {
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n",
+        "created_at": "2026-03-08T23:34:27Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/82#issuecomment-4020258021",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
+    {
       "number": 81,
-      "title": "[BUG] whole div should be clickable and remove test data",
+      "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
       "created_at": "2026-03-08T23:31:51Z",
       "comment_count": 1,
@@ -139,7 +169,9 @@
       },
       "image_url": "https://github.com/user-attachments/assets/90330d80-7329-4058-941a-4b50b831d9cf",
       "domain": "www.owasp.community",
-      "reactions": {},
+      "reactions": {
+        "eyes": 1
+      },
       "latest_comment": {
         "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n",
         "created_at": "2026-03-08T23:31:54Z",
@@ -169,31 +201,6 @@
         "eyes": 1
       },
       "latest_comment": null
-    },
-    {
-      "number": 6,
-      "title": "[BUG] page always shows loading screen even though it’s loaded before",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6",
-      "created_at": "2026-03-01T07:04:11Z",
-      "comment_count": 3,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/33a6854c-605f-464c-be62-5c9bd724edcd",
-      "domain": "www.owasp.community",
-      "reactions": {},
-      "latest_comment": {
-        "body": "Hi @DonnieBLT ! I'd like to work on this issue.\nI'll try reproducing the bug locally and investigate why the loading screen persists after refresh.",
-        "created_at": "2026-03-02T08:27:34Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/6#issuecomment-3982889169",
-        "user": {
-          "login": "azizrebhi",
-          "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
-          "profile_url": "https://github.com/azizrebhi"
-        }
-      }
     }
   ]
 }
