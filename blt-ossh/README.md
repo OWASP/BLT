@@ -147,11 +147,11 @@ BLT-OSSH/
 4. User redirected to GitHub Issues with template pre-filled
 5. User adds additional info (interests, looking for, location, social links)
 6. Submit issue to create profile
-7. Profile appears on Community page after workflow updates `data/profiles.json`
+7. Profile appears on Community page immediately (after workflow syncs `data/profiles.json`)
 
 ### 3. Profile Discovery
-- Community page loads profiles from `data/profiles.json`
-- Workflow fetches GitHub Issues with `profile` label and generates the JSON
+- Community page fetches all open issues with `profile` label
+- Parses issue body to extract profile information
 - Displays profiles with rich cards showing:
   - Experience level badge
   - Skills and interests
