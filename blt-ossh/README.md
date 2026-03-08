@@ -89,6 +89,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Projects**: Open-source repositories matching your skills and interests
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
+- **Discussions**: Forums, Discord servers, and other platforms
 
 ## How Profiles Work
 
