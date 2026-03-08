@@ -25,10 +25,15 @@ except ImportError:
         env = None
 
 
-from lettuce.html_templates import (get_404_html, get_500_html,
-                                    get_dashboard_html, get_homepage_html,
-                                    get_login_page_html, get_status_html,
-                                    html_escape)
+from lettuce.html_templates import (
+    get_404_html,
+    get_500_html,
+    get_dashboard_html,
+    get_homepage_html,
+    get_login_page_html,
+    get_status_html,
+    html_escape,
+)
 from lettuce.sentry import get_sentry, init_sentry
 
 # ---------------------------------------------------------------------------
@@ -261,7 +266,7 @@ async def ensure_d1_schema(env):
             "ON user_workspaces(workspace_id)"
         ),
     ]
-    
+
     # Migration statements to add new columns to existing tables
     migrations = [
         "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
@@ -274,22 +279,33 @@ async def ensure_d1_schema(env):
         for idx, sql in enumerate(statements, 1):
             await env.DB.prepare(sql).run()
             print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
-        
+
         # Run migrations - these may fail if columns already exist, which is fine
         print(f"[ensure_d1_schema] Running {len(migrations)} migration(s)...")
         for idx, migration_sql in enumerate(migrations, 1):
             try:
                 await env.DB.prepare(migration_sql).run()
-                print(f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully")
+                print(
+                    f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully"
+                )
             except Exception as migration_error:
                 # Column may already exist, which is fine
-                print(f"[ensure_d1_schema] Migration {idx} skipped (likely already applied): {migration_error}")
-        
+                print(
+                    f"[ensure_d1_schema] Migration {idx} skipped (likely already applied): {migration_error}"
+                )
+
         _schema_initialized = True
         print("[ensure_d1_schema] Schema initialization complete")
         return True
     except Exception as e:
         print(f"[ensure_d1_schema] ERROR: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "schema_initialization"}
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -383,6 +399,13 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
         return ws
     except Exception as e:
         print(f"[db_upsert_workspace] ERROR: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"team_id": team_id, "team_name": team_name}
+            )
+        except Exception:
+            pass
         return None
 
 
@@ -425,6 +448,15 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
         print(
             f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}"
         )
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e,
+                level="error",
+                extra={"user_id": user_id, "workspace_id": workspace_id},
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -453,6 +485,11 @@ async def db_get_user_workspaces(env, user_id):
         return workspaces
     except Exception as e:
         print(f"[db_get_user_workspaces] ERROR: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(e, level="error", extra={"user_id": user_id})
+        except Exception:
+            pass
         return []
 
 
@@ -519,6 +556,15 @@ async def db_upsert_channel(
         return True
     except Exception as e:
         print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e,
+                level="error",
+                extra={"workspace_id": workspace_id, "channel_id": channel_id},
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -613,6 +659,13 @@ async def db_get_or_create_user(
         return user
     except Exception as e:
         print(f"[db_get_or_create_user] ERROR: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"slack_user_id": slack_user_id}
+            )
+        except Exception:
+            pass
         return None
 
 
@@ -633,6 +686,11 @@ async def db_create_session(env, user_id, token):
         return token
     except Exception as e:
         print(f"[db_create_session] ERROR: {e}")
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(e, level="error", extra={"user_id": user_id})
+        except Exception:
+            pass
         return None
 
 
@@ -1000,6 +1058,15 @@ async def get_db_table_counts(env):
             print(f"[get_db_table_counts] Table {table}: {count_val} rows")
         except Exception as e:
             print(f"[get_db_table_counts] ERROR querying table {table}: {e}")
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e,
+                    level="error",
+                    extra={"table": table, "context": "get_db_table_counts"},
+                )
+            except Exception:
+                pass
             counts[table] = 0
     return counts
 
@@ -1108,6 +1175,13 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                 break
         except Exception as e:
             print(f"[scan_workspace_channels] ERROR during scan: {e}")
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e, level="error", extra={"workspace_id": workspace_id}
+                )
+            except Exception:
+                pass
             break
     print(f"[scan_workspace_channels] Scan complete: {scanned} channels saved")
     return scanned
@@ -1162,6 +1236,19 @@ async def import_workspace_history(env, workspace_id, access_token):
 
         except Exception as e:
             print(f"[import_workspace_history] ERROR importing from {channel_id}: {e}")
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e,
+                    level="error",
+                    extra={
+                        "workspace_id": workspace_id,
+                        "channel_id": channel_id,
+                        "context": "import_workspace_history",
+                    },
+                )
+            except Exception:
+                pass
             continue
 
     print(f"[import_workspace_history] Import complete: {total_events} events added")
@@ -1505,6 +1592,23 @@ def _json_response(data, status=200):
         json.dumps(data),
         {"status": status, "headers": h},
     )
+
+
+async def report_404_to_sentry(env, path, method, detail=""):
+    """Capture 404 responses in Sentry with request context."""
+    try:
+        sentry = get_sentry()
+        await sentry.capture_exception(
+            RuntimeError("404 Not Found"),
+            level="warning",
+            extra={
+                "path": path,
+                "method": method,
+                "detail": detail,
+            },
+        )
+    except Exception:
+        pass
 
 
 # ===========================================================================
@@ -1921,6 +2025,7 @@ async def handle_request(request, env):
 
         ws = await db_get_workspace_by_id(env, ws_id_val)
         if not ws:
+            await report_404_to_sentry(env, pathname, method, "workspace_not_found")
             return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
@@ -1947,6 +2052,7 @@ async def handle_request(request, env):
 
         ws = await db_get_workspace_by_id(env, ws_id_val)
         if not ws:
+            await report_404_to_sentry(env, pathname, method, "workspace_not_found")
             return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         # Send test DM to the user
@@ -2031,6 +2137,7 @@ async def handle_request(request, env):
 
         ws = await db_get_workspace_by_id(env, ws_id_val)
         if not ws:
+            await report_404_to_sentry(env, pathname, method, "workspace_not_found")
             return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         result = await import_workspace_history(env, ws_id_val, ws["access_token"])
@@ -2329,6 +2436,13 @@ async def handle_request(request, env):
             )
         except Exception as e:
             print(f"[/api/db-stats] ERROR: {e}")
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e, level="error", extra={"path": "/api/db-stats"}
+                )
+            except Exception:
+                pass
             return Response.json({"ok": False, "error": str(e), "counts": {}})
 
     # ------------------------------------------------------------------ #
@@ -2378,11 +2492,19 @@ async def handle_request(request, env):
             )
         except Exception as e:
             print(f"[/api/debug/db] ERROR: {e}")
+            try:
+                sentry = get_sentry()
+                await sentry.capture_exception(
+                    e, level="error", extra={"path": "/api/debug/db"}
+                )
+            except Exception:
+                pass
             return Response.json({"ok": False, "error": str(e)})
 
     # ------------------------------------------------------------------ #
     #  404 Not Found                                                     #
     # ------------------------------------------------------------------ #
+    await report_404_to_sentry(env, pathname, method, "route_not_found")
     return _html_response(get_404_html(), 404)
 
 
