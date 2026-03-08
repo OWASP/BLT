@@ -293,6 +293,19 @@ async def ensure_d1_schema(env):
                 print(
                     f"[ensure_d1_schema] Migration {idx} skipped (likely already applied): {migration_error}"
                 )
+                try:
+                    sentry = get_sentry()
+                    await sentry.capture_exception(
+                        migration_error,
+                        level="warning",
+                        extra={
+                            "context": "schema_migration",
+                            "migration_index": idx,
+                            "migration_sql": migration_sql,
+                        },
+                    )
+                except Exception:
+                    pass
 
         _schema_initialized = True
         print("[ensure_d1_schema] Schema initialization complete")
@@ -360,7 +373,14 @@ async def db_get_workspace_by_team(env, team_id):
             .bind(team_id)
             .first()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_workspace_by_team", "team_id": team_id}
+            )
+        except Exception:
+            pass
         return None
 
 
@@ -416,7 +436,14 @@ async def db_get_workspace_by_id(env, workspace_id):
             .bind(workspace_id)
             .first()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_workspace_by_id", "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return None
 
 
@@ -707,7 +734,14 @@ async def db_get_session(env, token):
             .bind(token, get_utc_now())
             .first()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_session"}
+            )
+        except Exception:
+            pass
         return None
 
 
@@ -715,7 +749,14 @@ async def db_delete_session(env, token):
     try:
         await env.DB.prepare("DELETE FROM sessions WHERE id = ?").bind(token).run()
         return True
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_delete_session"}
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -742,7 +783,14 @@ async def db_add_repository(
             .run()
         )
         return True
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_add_repository", "workspace_id": workspace_id, "repo_url": repo_url}
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -755,7 +803,14 @@ async def db_delete_repository(env, repo_id, workspace_id):
             .run()
         )
         return True
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_delete_repository", "repo_id": repo_id, "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -768,7 +823,14 @@ async def db_get_repositories(env, workspace_id):
             .bind(workspace_id)
             .all()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_repositories", "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return []
 
 
@@ -791,7 +853,14 @@ async def db_log_event(
             .run()
         )
         return True
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_log_event", "workspace_id": workspace_id, "event_type": event_type}
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -805,7 +874,14 @@ async def db_get_events(env, workspace_id, limit=20):
             .bind(workspace_id, limit)
             .all()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_events", "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return []
 
 
@@ -822,7 +898,14 @@ async def db_get_daily_stats(env, workspace_id, days=30):
             .bind(workspace_id, since)
             .all()
         )
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_daily_stats", "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return []
 
 
@@ -898,7 +981,14 @@ async def db_get_workspace_stats(env, workspace_id):
             "joins": joins,
             "commands": commands,
         }
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "db_get_workspace_stats", "workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
         return zero
 
 
@@ -924,7 +1014,14 @@ async def get_current_user(env, request):
         if not token:
             return None
         return await db_get_session(env, token)
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            await sentry.capture_exception(
+                e, level="error", extra={"context": "get_current_user"}
+            )
+        except Exception:
+            pass
         return None
 
 
