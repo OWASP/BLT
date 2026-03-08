@@ -89,7 +89,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Projects**: Open-source repositories matching your skills and interests
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
-- **Discussions**: Forums, Discord servers, and other platforms
+- **Discussions**: Forums, Discord servers, and chat platforms
 
 ## How Profiles Work
 
@@ -283,6 +283,46 @@ After analyzing your GitHub profile, the system automatically pre-fills:
 - See [Smart Matching Algorithm](#smart-matching-algorithm)
 - See [Community Features](#community-features)
 - See [Recommendation Categories](#recommendation-categories)
+
+### Pre-filled Profile Creation
+
+After analyzing your GitHub profile, the system automatically pre-fills:
+- Your GitHub username
+- Display name from your GitHub profile
+- Bio from GitHub (or primary language as fallback)
+- Skills extracted from your most-used languages
+- Looking for section with smart suggestions
+
+## Usage
+
+### For Users
+
+1. **Analyze Your Profile**
+   - Visit OSSH homepage
+   - Enter your GitHub username
+   - Click "Find My Projects"
+   - Explore personalized recommendations
+
+2. **Join the Community**
+   - After analysis, click "Create My Community Profile"
+   - Review pre-filled data (username, bio, skills)
+   - Add additional information (interests, looking for, social links)
+   - Submit to create your profile
+
+3. **Discover Developers**
+   - Visit the Community page
+   - Browse developer profiles
+   - Filter by experience level
+   - Search by name, skills, or location
+   - Connect via GitHub, website, or social media
+
+### For Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Adding new project recommendations
+- Improving the matching algorithm
+- Enhancing the UI/UX
+- Adding new features
 
 ## Contributing
 
