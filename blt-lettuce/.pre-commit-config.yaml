@@ -16,6 +16,9 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
+        args:
+          - --profile
+          - black
         exclude: ^(docs)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit

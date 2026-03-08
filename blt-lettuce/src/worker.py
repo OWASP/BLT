@@ -7,12 +7,12 @@ Slack OAuth (sign-in + workspace installation), stores data
 in Cloudflare D1, and handles all Slack interactions.
 """
 
+import csv
 import hashlib
 import hmac
 import io
 import json
 import secrets
-import csv
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import unquote_plus, urlencode, urlparse
@@ -320,9 +320,7 @@ async def ensure_d1_schema(env):
                     f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully"
                 )
             except Exception as migration_error:
-                print(
-                    f"[ensure_d1_schema] Migration {idx} failed: {migration_error}"
-                )
+                print(f"[ensure_d1_schema] Migration {idx} failed: {migration_error}")
                 try:
                     sentry = get_sentry()
                     sentry.capture_exception_nowait(
@@ -407,7 +405,9 @@ async def db_get_workspace_by_team(env, team_id):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_workspace_by_team", "team_id": team_id}
+                e,
+                level="error",
+                extra={"context": "db_get_workspace_by_team", "team_id": team_id},
             )
         except Exception:
             pass
@@ -472,7 +472,12 @@ async def db_get_workspace_by_id(env, workspace_id):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_workspace_by_id", "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={
+                    "context": "db_get_workspace_by_id",
+                    "workspace_id": workspace_id,
+                },
             )
         except Exception:
             pass
@@ -546,7 +551,9 @@ async def db_get_user_workspaces(env, user_id):
         print(f"[db_get_user_workspaces] ERROR: {e}")
         try:
             sentry = get_sentry()
-            sentry.capture_exception_nowait(e, level="error", extra={"user_id": user_id})
+            sentry.capture_exception_nowait(
+                e, level="error", extra={"user_id": user_id}
+            )
         except Exception:
             pass
         return []
@@ -603,7 +610,10 @@ async def db_get_workspace_installers(env, workspace_id):
             sentry.capture_exception_nowait(
                 e,
                 level="error",
-                extra={"context": "db_get_workspace_installers", "workspace_id": workspace_id},
+                extra={
+                    "context": "db_get_workspace_installers",
+                    "workspace_id": workspace_id,
+                },
             )
         except Exception:
             pass
@@ -790,7 +800,9 @@ async def db_create_session(env, user_id, token):
         print(f"[db_create_session] ERROR: {e}")
         try:
             sentry = get_sentry()
-            sentry.capture_exception_nowait(e, level="error", extra={"user_id": user_id})
+            sentry.capture_exception_nowait(
+                e, level="error", extra={"user_id": user_id}
+            )
         except Exception:
             pass
         return None
@@ -862,7 +874,13 @@ async def db_add_repository(
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_add_repository", "workspace_id": workspace_id, "repo_url": repo_url}
+                e,
+                level="error",
+                extra={
+                    "context": "db_add_repository",
+                    "workspace_id": workspace_id,
+                    "repo_url": repo_url,
+                },
             )
         except Exception:
             pass
@@ -882,7 +900,13 @@ async def db_delete_repository(env, repo_id, workspace_id):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_delete_repository", "repo_id": repo_id, "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={
+                    "context": "db_delete_repository",
+                    "repo_id": repo_id,
+                    "workspace_id": workspace_id,
+                },
             )
         except Exception:
             pass
@@ -902,7 +926,9 @@ async def db_get_repositories(env, workspace_id):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_repositories", "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={"context": "db_get_repositories", "workspace_id": workspace_id},
             )
         except Exception:
             pass
@@ -932,7 +958,13 @@ async def db_log_event(
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_log_event", "workspace_id": workspace_id, "event_type": event_type}
+                e,
+                level="error",
+                extra={
+                    "context": "db_log_event",
+                    "workspace_id": workspace_id,
+                    "event_type": event_type,
+                },
             )
         except Exception:
             pass
@@ -1011,7 +1043,9 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
         return {"ok": False, "error": "CSV must include a header row"}
 
     # Normalize header names to lowercase for flexible CSV imports.
-    normalized_fieldnames = [str(name or "").strip().lower() for name in reader.fieldnames]
+    normalized_fieldnames = [
+        str(name or "").strip().lower() for name in reader.fieldnames
+    ]
 
     max_rows = 5000
     for row_index, row in enumerate(reader, start=2):
@@ -1021,19 +1055,31 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
 
         normalized_row = {}
         for idx, key in enumerate(reader.fieldnames or []):
-            norm_key = normalized_fieldnames[idx] if idx < len(normalized_fieldnames) else str(key or "").strip().lower()
+            norm_key = (
+                normalized_fieldnames[idx]
+                if idx < len(normalized_fieldnames)
+                else str(key or "").strip().lower()
+            )
             normalized_row[norm_key] = row.get(key)
 
-        event_type = (normalized_row.get("event_type") or normalized_row.get("type") or "").strip()
+        event_type = (
+            normalized_row.get("event_type") or normalized_row.get("type") or ""
+        ).strip()
         if not event_type:
             skipped += 1
             if len(sample_errors) < 5:
                 sample_errors.append(f"Line {row_index}: missing event_type")
             continue
 
-        user_slack_id = (normalized_row.get("user_slack_id") or normalized_row.get("user") or "").strip()
+        user_slack_id = (
+            normalized_row.get("user_slack_id") or normalized_row.get("user") or ""
+        ).strip()
         status = (normalized_row.get("status") or "success").strip() or "success"
-        created_at = _normalize_event_timestamp(normalized_row.get("created_at") or normalized_row.get("time") or normalized_row.get("timestamp"))
+        created_at = _normalize_event_timestamp(
+            normalized_row.get("created_at")
+            or normalized_row.get("time")
+            or normalized_row.get("timestamp")
+        )
 
         ok = await db_insert_event(
             env,
@@ -1072,7 +1118,9 @@ async def db_get_events(env, workspace_id, limit=20):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_events", "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={"context": "db_get_events", "workspace_id": workspace_id},
             )
         except Exception:
             pass
@@ -1096,7 +1144,9 @@ async def db_get_daily_stats(env, workspace_id, days=30):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_daily_stats", "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={"context": "db_get_daily_stats", "workspace_id": workspace_id},
             )
         except Exception:
             pass
@@ -1179,7 +1229,12 @@ async def db_get_workspace_stats(env, workspace_id):
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "db_get_workspace_stats", "workspace_id": workspace_id}
+                e,
+                level="error",
+                extra={
+                    "context": "db_get_workspace_stats",
+                    "workspace_id": workspace_id,
+                },
             )
         except Exception:
             pass
@@ -1591,7 +1646,9 @@ async def get_workspace_installed_apps(env, workspace):
                     _append_app(
                         {
                             "app_id": app.get("app_id") or app.get("id") or "",
-                            "app_name": app.get("name") or app.get("app_name") or "Unknown App",
+                            "app_name": app.get("name")
+                            or app.get("app_name")
+                            or "Unknown App",
                             "is_installed": True,
                             "source": source_label,
                             "distribution": distribution_label,
@@ -1662,7 +1719,11 @@ async def get_workspace_installed_apps(env, workspace):
     if not admin_list_success:
         unique_errors = sorted({e for e in admin_errors if e})
         hint = ""
-        if any(e in ("missing_scope", "not_allowed_token_type", "not_authed", "invalid_auth") for e in unique_errors):
+        if any(
+            e
+            in ("missing_scope", "not_allowed_token_type", "not_authed", "invalid_auth")
+            for e in unique_errors
+        ):
             hint = (
                 "To list all workspace apps, reinstall with an admin token that has "
                 "`admin.apps:read` scope (and org/workspace admin privileges)."
@@ -2140,7 +2201,9 @@ def check_manifest_requirements(manifest_path):
             "Interactivity must be enabled and point to /webhook.",
         )
 
-        bot_events = _manifest_get(parsed, ["settings", "event_subscriptions", "bot_events"])
+        bot_events = _manifest_get(
+            parsed, ["settings", "event_subscriptions", "bot_events"]
+        )
         bot_events = bot_events if isinstance(bot_events, list) else []
         required_events = ["team_join", "message.im"]
         for evt in required_events:
@@ -2600,7 +2663,9 @@ async def handle_request(request, env):
 
         if current_ws:
             ws_id_val = current_ws["id"]
-            user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+            user_role = await db_get_user_workspace_role(
+                env, user["user_id"], ws_id_val
+            )
             can_manage_manifest = user_role in ("owner", "admin")
             ws_stats = await db_get_workspace_stats(env, ws_id_val)
             channels = await db_get_channels(env, ws_id_val)
@@ -2610,9 +2675,9 @@ async def handle_request(request, env):
             if selected_tab == "apps":
                 apps_payload = await get_workspace_installed_apps(env, current_ws)
                 installed_apps = (apps_payload or {}).get("apps") or []
-                apps_permission_warning = (
-                    (apps_payload or {}).get("permission_warning") or ""
-                )
+                apps_permission_warning = (apps_payload or {}).get(
+                    "permission_warning"
+                ) or ""
                 workspace_installers = await db_get_workspace_installers(env, ws_id_val)
 
                 # Attach best-effort installer attribution to each app row.
@@ -2620,9 +2685,7 @@ async def handle_request(request, env):
                 if workspace_installers:
                     primary = workspace_installers[0]
                     installer_name = (
-                        primary.get("name")
-                        or primary.get("slack_user_id")
-                        or "Unknown"
+                        primary.get("name") or primary.get("slack_user_id") or "Unknown"
                     )
                 for app in installed_apps:
                     app["installed_by"] = installer_name or "Unknown"
@@ -2912,7 +2975,9 @@ async def handle_request(request, env):
             try:
                 ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
             except (ValueError, IndexError):
-                return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+                return _json_response(
+                    {"ok": False, "error": "Invalid workspace id"}, 400
+                )
 
             if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
                 return _json_response({"ok": False, "error": "Forbidden"}, 403)

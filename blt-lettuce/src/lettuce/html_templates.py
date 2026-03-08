@@ -135,25 +135,28 @@ def get_dashboard_html(
             else '<span class="inline-block w-2 h-2 rounded-full bg-red-400 mr-1"></span>'
         )
         raw_status = str(ev.get("status") or "")
-        status_label = "Success" if raw_status == "success" else (raw_status.title() or "Unknown")
-        ev_id = int(ev.get("id") or 0)
-        ws_int_id = int(ev.get("workspace_id") or 0)
+        status_label = (
+            "Success" if raw_status == "success" else (raw_status.title() or "Unknown")
+        )
         ev_type = html_escape(ev.get("event_type", ""))
-        user_slack_id = html_escape(ev.get("user_slack_id", "") or "-")
+        user_name = html_escape(
+            ev.get("user_name", "") or ev.get("user_slack_id", "") or "-"
+        )
         ev_time = html_escape(ev.get("created_at", "") or "-")
+        # For channel, we currently don't track it in events table
+        channel_name = "-"
         events_html += (
             '<tr class="border-b border-gray-100 hover:bg-gray-50">'
-            f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ev_id}</td>'
-            f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ws_int_id}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-700">{ev_type}</td>'
-            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{user_slack_id}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-700">{user_name}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500">{channel_name}</td>'
             f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
-            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{ev_time}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500" data-timestamp="{ev_time}"><span class="timeago">{ev_time}</span></td>'
             "</tr>"
         )
     if not events_html:
         events_html = (
-            '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
+            '<tr><td colspan="5" class="py-6 text-center text-sm text-gray-400">'
             "No events recorded yet.</td></tr>"
         )
 
@@ -298,7 +301,9 @@ def get_dashboard_html(
             installed_by = html_escape(app.get("installed_by") or "Unknown")
             status = "Installed" if app.get("is_installed") else "Unknown"
             app_manage_url = (
-                f"https://api.slack.com/apps/{app_id}/general" if app_id else slack_apps_home
+                f"https://api.slack.com/apps/{app_id}/general"
+                if app_id
+                else slack_apps_home
             )
             apps_rows += (
                 '<tr class="border-b border-gray-100 hover:bg-gray-50">'
@@ -323,8 +328,8 @@ def get_dashboard_html(
             apps_warning_html = (
                 '<div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800 text-sm">'
                 '<div class="font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-2"></i>More apps may be hidden</div>'
-                f'<div>{html_escape(apps_permission_warning)}</div>'
-                '</div>'
+                f"<div>{html_escape(apps_permission_warning)}</div>"
+                "</div>"
             )
 
         workspace_section = (
@@ -365,7 +370,9 @@ def get_dashboard_html(
             check_rows = ""
             for idx, check in enumerate(checks, start=1):
                 ok = bool(check.get("ok"))
-                badge_class = "bg-green-100 text-green-800" if ok else "bg-red-100 text-red-800"
+                badge_class = (
+                    "bg-green-100 text-green-800" if ok else "bg-red-100 text-red-800"
+                )
                 label = "PASS" if ok else "FAIL"
                 check_rows += (
                     '<tr class="border-b border-gray-100 hover:bg-gray-50">'
@@ -382,10 +389,18 @@ def get_dashboard_html(
                     "</td></tr>"
                 )
 
-            summary = html_escape((manifest_result or {}).get("summary") or "No summary")
-            manifest_path = html_escape((manifest_result or {}).get("manifest_path") or "manifest.yaml")
+            summary = html_escape(
+                (manifest_result or {}).get("summary") or "No summary"
+            )
+            manifest_path = html_escape(
+                (manifest_result or {}).get("manifest_path") or "manifest.yaml"
+            )
             ok = bool((manifest_result or {}).get("ok"))
-            summary_class = "text-green-700 bg-green-50 border-green-200" if ok else "text-red-700 bg-red-50 border-red-200"
+            summary_class = (
+                "text-green-700 bg-green-50 border-green-200"
+                if ok
+                else "text-red-700 bg-red-50 border-red-200"
+            )
             summary_label = "Manifest is valid" if ok else "Manifest has required fixes"
 
             workspace_section = (
@@ -501,7 +516,9 @@ def get_manifest_checker_html(result):
         ok = bool(check.get("ok"))
         badge_class = "bg-green-100 text-green-800" if ok else "bg-red-100 text-red-800"
         status_text = "PASS" if ok else "FAIL"
-        icon = "fa-check-circle text-green-600" if ok else "fa-times-circle text-red-600"
+        icon = (
+            "fa-check-circle text-green-600" if ok else "fa-times-circle text-red-600"
+        )
         rows_html += (
             '<tr class="border-b border-gray-100 hover:bg-gray-50">'
             f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
@@ -521,7 +538,11 @@ def get_manifest_checker_html(result):
     all_ok = bool(result.get("ok"))
     summary = html_escape(result.get("summary") or "No summary")
     manifest_path = html_escape(result.get("manifest_path") or "manifest.yaml")
-    status_class = "text-green-700 bg-green-50 border-green-200" if all_ok else "text-red-700 bg-red-50 border-red-200"
+    status_class = (
+        "text-green-700 bg-green-50 border-green-200"
+        if all_ok
+        else "text-red-700 bg-red-50 border-red-200"
+    )
     status_label = "Manifest is valid" if all_ok else "Manifest has required fixes"
 
     return _render_template(

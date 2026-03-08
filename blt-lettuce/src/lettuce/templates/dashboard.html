@@ -117,6 +117,30 @@ if (lastEl) {
     lastEl.textContent = timeAgo(parsedTs);
   } else {
     lastEl.textContent = '—';
+  // Convert all timestamps with .timeago class to relative time
+  document.querySelectorAll('.timeago').forEach(el => {
+    const raw = el.textContent.trim();
+    const parsedTs = parseUtcTimestamp(raw);
+    if (parsedTs !== null) {
+      el.textContent = timeAgo(parsedTs);
+    } else {
+      el.textContent = '—';
+    }
+  });
+
+  // Update relative times every minute
+  setInterval(() => {
+    document.querySelectorAll('.timeago').forEach(el => {
+      const td = el.closest('td');
+      if (td && td.dataset.timestamp) {
+        const parsedTs = parseUtcTimestamp(td.dataset.timestamp);
+        if (parsedTs !== null) {
+          el.textContent = timeAgo(parsedTs);
+        }
+      }
+    });
+  }, 60000);
+
   }
 }
 
@@ -157,16 +181,6 @@ if (chartCanvas && WS_ID) {
     },
   });
 }
-
-async function refreshStats() {
-  if (!WS_ID) return;
-  try {
-    const r = await fetch(`/api/ws/${WS_ID}/stats`);
-    if (!r.ok) return;
-    await r.json();
-  } catch (e) {}
-}
-setInterval(refreshStats, 30000);
 
 async function scanChannels(wsId) {
   const btn = document.getElementById('scan-btn');
