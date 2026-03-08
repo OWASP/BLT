@@ -818,12 +818,14 @@ async def db_get_channel_by_slack_id(env, workspace_id, channel_id):
         return None
 
 
-async def db_update_channel_join_config(
-    env, workspace_id, channel_id, send_join_message, join_message_id
-):
-    """Update per-channel join message toggle/template selection."""
+async def db_update_channel_join_config(env, workspace_id, channel_id, join_message_id):
+    """Update per-channel join message template selection.
+
+    Sending is enabled whenever join_message_id is set, disabled when NULL.
+    """
     try:
         await ensure_d1_schema(env)
+        send_join_message = 1 if join_message_id else 0
         await (
             env.DB.prepare(
                 "UPDATE channels SET send_join_message = ?, join_message_id = ?, updated_at = ? "
@@ -849,13 +851,39 @@ async def db_update_channel_join_config(
                     "context": "db_update_channel_join_config",
                     "workspace_id": workspace_id,
                     "channel_id": channel_id,
-                    "send_join_message": bool(send_join_message),
                     "join_message_id": join_message_id,
                 },
             )
         except Exception:
             pass
         return False
+
+
+async def db_get_channel_join_message_sent_counts(env, workspace_id):
+    """Return a map of channel_id -> successful Channel_Join_Message send count."""
+    try:
+        rows = _rows(
+            await env.DB.prepare(
+                "SELECT request_data FROM events "
+                "WHERE workspace_id = ? AND event_type = 'Channel_Join_Message' AND status = 'success' "
+                "ORDER BY id DESC LIMIT 10000"
+            )
+            .bind(workspace_id)
+            .all()
+        )
+        counts = {}
+        for row in rows:
+            try:
+                payload = json.loads(row.get("request_data") or "{}")
+            except Exception:
+                payload = {}
+            channel_id = str(payload.get("channel") or "").strip()
+            if not channel_id:
+                continue
+            counts[channel_id] = counts.get(channel_id, 0) + 1
+        return counts
+    except Exception:
+        return {}
 
 
 async def db_get_join_messages(env, workspace_id):
@@ -2551,9 +2579,9 @@ async def handle_message_event(env, event, team_id=None):
                 "success",
                 channel_name=resolved_channel_name,
             )
-            # Optionally send a configured join message to this channel.
+            # Send configured join message when a template is selected for this channel.
             channel_row = await db_get_channel_by_slack_id(env, ws["id"], channel)
-            if channel_row and int(channel_row.get("send_join_message") or 0) == 1:
+            if channel_row:
                 message_id = channel_row.get("join_message_id")
                 if message_id:
                     template = await db_get_join_message_by_id(
@@ -3479,6 +3507,7 @@ async def handle_request(request, env):
         workspace_installers = []
         manifest_result = None
         join_messages = []
+        join_message_event_counts = {}
         can_manage_manifest = False
 
         if current_ws:
@@ -3490,6 +3519,9 @@ async def handle_request(request, env):
             ws_stats = await db_get_workspace_stats(env, ws_id_val)
             channels = await db_get_channels(env, ws_id_val)
             join_messages = await db_get_join_messages(env, ws_id_val)
+            join_message_event_counts = await db_get_channel_join_message_sent_counts(
+                env, ws_id_val
+            )
             events = await db_get_events(env, ws_id_val, limit=20)
             daily_stats = await db_get_daily_stats(env, ws_id_val, days=30)
             repos = await db_get_repositories(env, ws_id_val)
@@ -3537,6 +3569,7 @@ async def handle_request(request, env):
             apps_permission_warning,
             manifest_result,
             join_messages,
+            join_message_event_counts,
             can_manage_manifest,
             active_tab=selected_tab,
         )
@@ -3881,7 +3914,6 @@ async def handle_request(request, env):
             body = {}
 
         channel_id = str((body or {}).get("channel_id") or "").strip()
-        send_join_message = bool((body or {}).get("send_join_message"))
         join_message_id_raw = (body or {}).get("join_message_id")
         join_message_id = None
         try:
@@ -3918,20 +3950,10 @@ async def handle_request(request, env):
                     400,
                 )
 
-        if send_join_message and not join_message_id:
-            return _json_response(
-                {
-                    "ok": False,
-                    "error": "Select a join message before enabling send join message.",
-                },
-                400,
-            )
-
         ok = await db_update_channel_join_config(
             env,
             ws_id_val,
             channel_id,
-            send_join_message,
             join_message_id,
         )
         if not ok:

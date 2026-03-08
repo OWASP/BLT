@@ -74,6 +74,7 @@ def get_dashboard_html(
     apps_permission_warning,
     manifest_result,
     join_messages,
+    join_message_event_counts,
     can_manage_manifest,
     active_tab="overview",
 ):
@@ -375,7 +376,7 @@ def get_dashboard_html(
         )
 
     if current_ws and active_tab == "channels":
-        join_message_options = '<option value="">Select join message</option>'
+        join_message_options = '<option value="">None (disabled)</option>'
         for jm in join_messages or []:
             jm_id = int(jm.get("id") or 0)
             jm_name = html_escape(jm.get("name") or f"Message {jm_id}")
@@ -385,8 +386,16 @@ def get_dashboard_html(
         for idx, ch in enumerate(channels, start=1):
             ch_id = html_escape(ch.get("channel_id", ""))
             current_join_id = str(ch.get("join_message_id") or "")
-            enabled = int(ch.get("send_join_message") or 0) == 1
-            checked_attr = " checked" if enabled else ""
+            is_configured = bool(current_join_id)
+            status_badge = (
+                '<span class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-semibold">'
+                '<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Configured</span>'
+                if is_configured
+                else '<span class="inline-flex rounded-full bg-gray-100 text-gray-600 px-2 py-0.5 text-xs font-semibold">Not Set</span>'
+            )
+            sent_count = int(
+                (join_message_event_counts or {}).get(ch.get("channel_id"), 0) or 0
+            )
             options_html = join_message_options
             if current_join_id:
                 options_html = options_html.replace(
@@ -398,12 +407,11 @@ def get_dashboard_html(
                 f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
                 f'<td class="py-3 px-4 text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name", ""))}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{ch.get("member_count", 0):,}</td>'
-                '<td class="py-3 px-4 text-sm text-gray-600">'
-                f'<input id="join-enabled-{ch_id}" type="checkbox"{checked_attr} class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"/>'
-                "</td>"
+                f'<td class="py-3 px-4 text-sm text-gray-600">{status_badge}</td>'
                 '<td class="py-3 px-4 text-sm text-gray-600">'
                 f'<select id="join-template-{ch_id}" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm">{options_html}</select>'
                 "</td>"
+                f'<td class="py-3 px-4 text-sm text-gray-600 font-semibold">{sent_count:,}</td>'
                 '<td class="py-3 px-4 text-sm text-gray-600">'
                 f'<button onclick="saveChannelJoinConfig({ws_id_js}, &quot;{ch_id}&quot;)" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium">Save</button>'
                 "</td>"
@@ -425,19 +433,20 @@ def get_dashboard_html(
             '<div class="flex items-center justify-between mb-3">'
             '<h3 class="text-sm font-semibold text-gray-700">Top Channels</h3>'
             '<span class="text-xs text-gray-400">by member count</span>'
-            '</div>'
+            "</div>"
             f'<div id="channels-list">{channels_html}</div>'
-            '</div>'
+            "</div>"
             '<div id="channel-config-status" class="hidden mb-4 p-3 rounded-lg"></div>'
-            '<p class="text-xs text-gray-400 mb-4">Enable "Send Join Message" per channel and select a stored template.</p>'
+            '<p class="text-xs text-gray-400 mb-4">Select a join message to enable auto-send on channel join. Choose "None (disabled)" to turn it off.</p>'
             '<div class="overflow-x-auto">'
             '<table class="w-full text-left">'
             '<thead><tr class="border-b border-gray-200">'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">#</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
-            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Send Join Message</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Join Message</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Messages Sent</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Action</th>'
             "</tr></thead><tbody>"
             f"{all_channels_rows}"

@@ -356,11 +356,9 @@ async function deleteJoinMessage(wsId, messageId) {
 }
 
 async function saveChannelJoinConfig(wsId, channelId) {
-  const enabledEl = document.getElementById(`join-enabled-${channelId}`);
   const templateEl = document.getElementById(`join-template-${channelId}`);
-  if (!enabledEl || !templateEl) return;
+  if (!templateEl) return;
 
-  const sendJoinMessage = !!enabledEl.checked;
   const joinMessageId = templateEl.value ? Number(templateEl.value) : null;
 
   try {
@@ -369,7 +367,6 @@ async function saveChannelJoinConfig(wsId, channelId) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         channel_id: channelId,
-        send_join_message: sendJoinMessage,
         join_message_id: joinMessageId,
       }),
     });
