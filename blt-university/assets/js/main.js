@@ -1,6 +1,39 @@
 // BLT University JavaScript
+// Load saved theme
+if (localStorage.getItem("theme") === "dark") {
+    document.documentElement.classList.add("dark");
+}
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // DARK MODE TOGGLE
+    const toggle = document.getElementById("theme-toggle");
+    const icon = document.getElementById("theme-icon");
+
+    if (toggle) {
+        toggle.addEventListener("click", () => {
+
+            document.documentElement.classList.toggle("dark");
+
+            if (document.documentElement.classList.contains("dark")) {
+                localStorage.setItem("theme", "dark");
+
+                if (icon) {
+                    icon.classList.remove("fa-moon");
+                    icon.classList.add("fa-sun");
+                }
+
+            } else {
+                localStorage.setItem("theme", "light");
+
+                if (icon) {
+                    icon.classList.remove("fa-sun");
+                    icon.classList.add("fa-moon");
+                }
+            }
+
+        });
+    }
 
     // Course Filtering
     const categoryFilter = document.getElementById('category-filter');
@@ -96,3 +129,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+

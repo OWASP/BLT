@@ -3,7 +3,7 @@ layout: default
 ---
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<article class="bg-[#fafafa]">
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
     <section class="bg-bltDark text-white pt-20 pb-32 relative overflow-hidden">
         <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
         <div class="absolute inset-0 z-0">
@@ -32,32 +32,31 @@ layout: default
     <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
         
         <div class="lg:col-span-8 space-y-8">
-            
-            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
                     <i class="ph-fill ph-info text-bltRed"></i> Course Overview
                 </h2>
-                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 mb-8">
-                    {{ content }}
+                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
+                   {{ content }}
                 </div>
 
                 {% if page.syllabus %}
-                <div class="mt-12 pt-10 border-t border-gray-50">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-10 flex items-center gap-3">
+                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
                         <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
                     </h2>
                     <div class="space-y-4">
                         {% for module in page.syllabus %}
-                        <div class="group border border-gray-100 rounded-3xl p-6 hover:border-red-100 hover:shadow-soft transition-all bg-gray-50/30">
+                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
                             <div class="flex items-start gap-6">
-                                <div class="w-12 h-12 rounded-2xl bg-white border border-gray-100 text-gray-900 flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
                                     {{ forloop.index | prepend: '0' | slice: -2, 2 }}
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="font-bold text-gray-900 text-lg mb-2">{{ module.title }}</h3>
-                                    <p class="text-sm text-gray-500 mb-4 leading-relaxed">{{ module.description }}</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">{{ module.title }}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">{{ module.description }}</p>
                                     {% if module.topics %}
-                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600">
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
                                         {% for topic in module.topics %}
                                         <li class="flex items-center gap-2">
                                             <i class="ph-bold ph-check text-bltRed"></i> {{ topic }}
@@ -79,12 +78,12 @@ layout: default
 
             {% if page.instructor %}
             {% assign course_instructor = site.instructors | where: "title", page.instructor | first %}
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
-                <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
                 </h3>
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 overflow-hidden shrink-0 bg-gray-100 flex items-center justify-center">
+                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                         {% if course_instructor and course_instructor.avatar %}
                         <img src="{{ course_instructor.avatar | relative_url }}" alt="{{ page.instructor }}" class="w-full h-full object-cover">
                         {% else %}
@@ -93,55 +92,55 @@ layout: default
                     </div>
                     <div>
                         {% if course_instructor %}
-                        <a href="{{ course_instructor.url | relative_url }}" class="font-bold text-gray-900 hover:text-bltRed transition-colors">{{ page.instructor }}</a>
+                        <a href="{{ course_instructor.url | relative_url }}" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">{{ page.instructor }}</a>
                         {% else %}
-                        <span class="font-bold text-gray-900">{{ page.instructor }}</span>
+                        <span class="font-bold text-gray-900 dark:text-white">{{ page.instructor }}</span>
                         {% endif %}
                         {% if course_instructor and course_instructor.expertise %}
-                        <p class="text-xs text-gray-500 mt-0.5">{{ course_instructor.expertise }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ course_instructor.expertise }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100 relative overflow-hidden group">
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
-                <h3 class="text-xl font-bold text-gray-900 mb-6">Enroll Now</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
                 
                 <div class="mb-8 space-y-4">
-                    <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                        <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Prerequisites</h4>
-                        <p class="text-xs text-gray-700 leading-relaxed font-medium">
+                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
+                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                             {{ page.prerequisites | default: "Familiarity with cybersecurity fundamentals." }}
                         </p>
                     </div>
                 </div>
 
                 <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml" 
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 hover:bg-bltRedHover hover:-translate-y-1 transition-all">
+                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
                     <i class="ph-bold ph-github-logo text-xl"></i>
                     Enroll via GitHub
                 </a>
                 
-                <p class="mt-4 text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">
+                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
                     <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
                 </p>
             </div>
 
             {% if page.resources %}
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-soft border border-gray-100">
-                <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
                 </h3>
                 <ul class="space-y-3">
                     {% for res in page.resources %}
                     <li>
-                        <a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 transition-all group">
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                                <i class="ph-bold ph-file-text text-lg text-gray-400 group-hover:text-bltRed"></i>
+                        <a href="{{ res.url }}" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-600 group-hover:text-gray-900">{{ res.title }}</span>
+                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">{{ res.title }}</span>
                         </a>
                     </li>
                     {% endfor %}
@@ -149,7 +148,7 @@ layout: default
             </div>
             {% endif %}
 
-            <div class="bg-gray-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
                 <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
                     <i class="ph-fill ph-seal-check text-8xl"></i>
                 </div>
