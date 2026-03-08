@@ -1536,6 +1536,241 @@ class TestTrackingOperations(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Backfill double-counting prevention tests
+# ---------------------------------------------------------------------------
+
+
+class TestBackfillRepoMonthIdempotency(unittest.TestCase):
+    """Test that _backfill_repo_month_if_needed skips PRs already tracked via webhooks."""
+
+    def _make_mock_db(self, pr_state_rows=None, already_done=False):
+        """Create a mock D1 DB for backfill tests.
+
+        pr_state_rows: rows returned for 'SELECT pr_number FROM leaderboard_pr_state'
+        already_done: whether the repo is already marked done in leaderboard_backfill_repo_done
+        """
+        mock_db = MagicMock()
+        mock_stmt = AsyncMock()
+        mock_stmt.bind = MagicMock(return_value=mock_stmt)
+        mock_stmt.run = AsyncMock(return_value={"success": True})
+
+        def _stmt_all_side_effect():
+            # Each call to .all() returns empty schema check results
+            return asyncio.coroutine(lambda: {"results": []})()
+
+        # Track which SQL is being prepared so we can route responses.
+        prepare_calls = []
+
+        def _prepare(sql):
+            prepare_calls.append(sql)
+            stmt = AsyncMock()
+            stmt.bind = MagicMock(return_value=stmt)
+            stmt.run = AsyncMock(return_value={"success": True})
+
+            if "leaderboard_backfill_repo_done" in sql and "SELECT" in sql:
+                # Return "already done" or empty
+                rows = [{"1": 1}] if already_done else []
+                stmt.all = AsyncMock(return_value={"results": rows})
+            elif "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                # Return pre-tracked PRs
+                rows = [{"pr_number": r} for r in (pr_state_rows or [])]
+                stmt.all = AsyncMock(return_value={"results": rows})
+            else:
+                stmt.all = AsyncMock(return_value={"results": []})
+
+            return stmt
+
+        mock_db.prepare = MagicMock(side_effect=_prepare)
+        mock_db._prepare_calls = prepare_calls
+        return mock_db
+
+    def _make_api_response(self, data, status=200):
+        return types.SimpleNamespace(
+            status=status,
+            text=AsyncMock(return_value=json.dumps(data)),
+        )
+
+    async def _run_backfill(self, mock_db, open_prs_data, closed_prs_data, month_key="2026-03"):
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        start_ts, end_ts = _worker._month_window(month_key)
+
+        api_calls = []
+
+        async def _mock_api(method, path, token, body=None):
+            api_calls.append(path)
+            if "state=open" in path:
+                return self._make_api_response(open_prs_data)
+            if "state=closed" in path:
+                return self._make_api_response(closed_prs_data)
+            return self._make_api_response([])
+
+        with patch.object(_worker, "github_api", new=_mock_api):
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                    result = await _worker._backfill_repo_month_if_needed(
+                        "OWASP-BLT", "test-repo", "tok", env,
+                        month_key=month_key, start_ts=start_ts, end_ts=end_ts,
+                    )
+        return result, api_calls
+
+    def test_skips_already_done_repo(self):
+        """Repo already marked done in leaderboard_backfill_repo_done should return False immediately."""
+        mock_db = self._make_mock_db(already_done=True)
+        result, api_calls = _run(self._run_backfill(mock_db, [], []))
+        self.assertFalse(result)
+        # Should not have made any GitHub API calls
+        self.assertEqual(len(api_calls), 0)
+
+    def test_skips_open_prs_already_tracked(self):
+        """Open PRs already in leaderboard_pr_state should not increment open_prs counter."""
+        # PR #42 already tracked via webhook
+        mock_db = self._make_mock_db(pr_state_rows=[42])
+        inc_calls = []
+
+        open_prs = [
+            {"number": 42, "user": {"login": "alice", "type": "User"}},
+            {"number": 99, "user": {"login": "bob", "type": "User"}},
+        ]
+        closed_prs = []
+
+        with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock(side_effect=lambda db, org, login, cnt: inc_calls.append((login, cnt)))):
+            _run(self._run_backfill(mock_db, open_prs, closed_prs))
+
+        # PR #42 (alice) already tracked, PR #99 (bob) is new → only bob gets counted
+        logins = [login for login, cnt in inc_calls]
+        self.assertNotIn("alice", logins)
+        self.assertIn("bob", logins)
+
+    def test_skips_merged_prs_already_tracked(self):
+        """Merged PRs already in leaderboard_pr_state should not increment merged_prs counter."""
+        # PR #10 already tracked via webhook
+        mock_db = self._make_mock_db(pr_state_rows=[10])
+        monthly_inc_calls = []
+
+        open_prs = []
+        closed_prs = [
+            {
+                "number": 10,
+                "user": {"login": "alice", "type": "User"},
+                "merged_at": "2026-03-05T10:00:00Z",
+                "closed_at": "2026-03-05T10:00:00Z",
+            },
+            {
+                "number": 11,
+                "user": {"login": "bob", "type": "User"},
+                "merged_at": "2026-03-06T10:00:00Z",
+                "closed_at": "2026-03-06T10:00:00Z",
+            },
+        ]
+
+        with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field)))):
+            _run(self._run_backfill(mock_db, open_prs, closed_prs))
+
+        # PR #10 (alice) already tracked → only bob's PR #11 should be counted
+        merged_logins = [login for login, field in monthly_inc_calls if field == "merged_prs"]
+        self.assertNotIn("alice", merged_logins)
+        self.assertIn("bob", merged_logins)
+
+    def test_new_prs_are_tracked_in_pr_state(self):
+        """New PRs discovered during backfill should be inserted into leaderboard_pr_state."""
+        mock_db = self._make_mock_db(pr_state_rows=[])
+        pr_state_inserts = []
+
+        original_d1_run = _worker._d1_run
+
+        async def _capture_d1_run(db, sql, params=()):
+            if "leaderboard_pr_state" in sql and "INSERT" in sql:
+                pr_state_inserts.append(params)
+            # Still call through to avoid breakage, but mock_db will handle it
+            stmt = db.prepare(sql)
+            if params:
+                stmt = stmt.bind(*params)
+            return await stmt.run()
+
+        open_prs = [
+            {"number": 55, "user": {"login": "carol", "type": "User"}},
+        ]
+        closed_prs = [
+            {
+                "number": 56,
+                "user": {"login": "dave", "type": "User"},
+                "merged_at": "2026-03-10T10:00:00Z",
+                "closed_at": "2026-03-10T10:00:00Z",
+            },
+        ]
+
+        with patch.object(_worker, "_d1_run", new=_capture_d1_run):
+            with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                    _run(self._run_backfill(mock_db, open_prs, closed_prs))
+
+        # Both new PRs should be inserted into leaderboard_pr_state
+        pr_numbers_inserted = [p[2] for p in pr_state_inserts]
+        self.assertIn(55, pr_numbers_inserted)
+        self.assertIn(56, pr_numbers_inserted)
+
+    def test_pagination_fetches_multiple_pages(self):
+        """Backfill should paginate closed PRs when first page returns exactly 100 results."""
+        async def _inner():
+            mock_db = self._make_mock_db(pr_state_rows=[])
+            api_calls = []
+            monthly_inc_calls = []
+
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # Build 100 merged PRs for page 1, and 5 for page 2
+            page1_prs = [
+                {
+                    "number": i,
+                    "user": {"login": f"user{i}", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                }
+                for i in range(1, 101)
+            ]
+            page2_prs = [
+                {
+                    "number": i,
+                    "user": {"login": f"user{i}", "type": "User"},
+                    "merged_at": "2026-03-06T10:00:00Z",
+                    "closed_at": "2026-03-06T10:00:00Z",
+                }
+                for i in range(101, 106)
+            ]
+
+            async def _mock_api(method, path, token, body=None):
+                api_calls.append(path)
+                if "state=open" in path:
+                    return self._make_api_response([])
+                if "state=closed" in path and "page=2" in path:
+                    return self._make_api_response(page2_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(page1_prs)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field)))):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # Should have fetched both page 1 and page 2 of closed PRs
+            closed_calls = [p for p in api_calls if "state=closed" in p]
+            self.assertEqual(len(closed_calls), 2)
+            # All 105 PRs (100 from page 1 + 5 from page 2) should be counted as merged
+            merged_inc_count = sum(1 for _, field in monthly_inc_calls if field == "merged_prs")
+            self.assertEqual(merged_inc_count, 105)
+
+        _run(_inner())
+
+
+# ---------------------------------------------------------------------------
 # check_unresolved_conversations tests
 # ---------------------------------------------------------------------------
 

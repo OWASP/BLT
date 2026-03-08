@@ -984,6 +984,18 @@ async def _backfill_repo_month_if_needed(
 
     console.log(f"[Backfill] Starting backfill for {owner}/{repo_name} month={mk}")
 
+    # Load all PR numbers already tracked via webhooks for this repo to avoid
+    # double-counting PRs that were already processed by webhook event handlers.
+    tracked_rows = await _d1_all(
+        db,
+        "SELECT pr_number FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
+        (owner, repo_name),
+    )
+    already_tracked = {int(row["pr_number"]) for row in (tracked_rows or [])}
+    console.log(f"[Backfill] {len(already_tracked)} PRs already tracked for {owner}/{repo_name}")
+
+    now_ts = int(time.time())
+
     # Open PRs snapshot for this repo.
     open_resp = await github_api(
         "GET",
@@ -998,9 +1010,25 @@ async def _backfill_repo_month_if_needed(
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if login:
-                open_by_user[login] = open_by_user.get(login, 0) + 1
-        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users")
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping open PR #{pr_number} (already tracked via webhook)")
+                continue
+            open_by_user[login] = open_by_user.get(login, 0) + 1
+            # Record in pr_state so webhook handlers can coordinate future state changes.
+            await _d1_run(
+                db,
+                """
+                INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+                ON CONFLICT(org, repo, pr_number) DO NOTHING
+                """,
+                (owner, repo_name, pr_number, login, now_ts),
+            )
+            already_tracked.add(pr_number)
+        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users (new)")
         for login, cnt in open_by_user.items():
             console.log(f"[Backfill] User {login}: {cnt} open PRs")
             await _d1_inc_open_pr(db, owner, login, cnt)
@@ -1008,39 +1036,75 @@ async def _backfill_repo_month_if_needed(
         console.error(f"[Backfill] Failed to fetch open PRs: status={open_resp.status}")
 
     # Closed/merged monthly stats for this repo.
-    closed_resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
-        token,
-    )
-    if closed_resp.status == 200:
+    # Paginate up to 3 pages to catch repos with more than 100 closed PRs in the month.
+    merged_count = 0
+    closed_count = 0
+    closed_page = 1
+    while closed_page <= 3:
+        closed_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc&page={closed_page}",
+            token,
+        )
+        if closed_resp.status != 200:
+            console.error(f"[Backfill] Failed to fetch closed PRs page {closed_page}: status={closed_resp.status}")
+            break
         closed_prs = json.loads(await closed_resp.text())
-        merged_count = 0
-        closed_count = 0
+        if not closed_prs:
+            break
+        found_in_window = False
         for pr in closed_prs:
             user = pr.get("user") or {}
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if not login:
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping closed PR #{pr_number} (already tracked via webhook)")
                 continue
             merged_at = pr.get("merged_at")
             closed_at = pr.get("closed_at")
             if merged_at:
                 merged_ts = _parse_github_timestamp(merged_at)
                 if start_ts <= merged_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: merged PR (#{pr.get('number')})")
+                    console.log(f"[Backfill] User {login}: merged PR (#{pr_number})")
+                    found_in_window = True
                     merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, merged_ts, now_ts),
+                    )
+                    already_tracked.add(pr_number)
             elif closed_at:
-                closed_ts = _parse_github_timestamp(closed_at)
-                if start_ts <= closed_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: closed PR (#{pr.get('number')})")
+                closed_ts_val = _parse_github_timestamp(closed_at)
+                if start_ts <= closed_ts_val <= end_ts:
+                    console.log(f"[Backfill] User {login}: closed PR (#{pr_number})")
+                    found_in_window = True
                     closed_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
-        console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
-    else:
-        console.error(f"[Backfill] Failed to fetch closed PRs: status={closed_resp.status}")
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 0, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
+                    )
+                    already_tracked.add(pr_number)
+        # Stop paginating if fewer than 100 results (last page) or no new in-window PRs found.
+        if len(closed_prs) < 100 or not found_in_window:
+            break
+        closed_page += 1
+    console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
 
     try:
         await _d1_run(
