@@ -54,7 +54,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 - **No backend** — All logic runs in the browser. GitHub API is called directly from the client.
 - **Static deployment** — Hosted on GitHub Pages with no server-side dependencies.
-- **GitHub Issues as database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
+- **GitHub Issues as a database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
 
 ## How Profiles Work
 
@@ -129,10 +129,35 @@ BLT-OSSH/
 
 ## How It Works
 
+### 1. GitHub Analysis Flow
 1. User enters their GitHub username
 2. Frontend fetches profile and repository data from GitHub API
-3. System analyzes languages, topics, and metadata to generate recommendations
-4. Results displayed with projects, communities, and resources
+3. System analyzes languages, topics, and repository metadata
+4. Generates personalized recommendations
+5. Results displayed with stats, projects, communities, and resources
+
+### 2. Community Profile Creation Flow
+1. User analyzes their GitHub profile
+2. Clicks "Create My Community Profile" button
+3. System pre-fills profile data:
+   - GitHub username
+   - Display name from GitHub
+   - Bio (or primary language as fallback)
+   - Skills extracted from repository languages
+4. User redirected to GitHub Issues with template pre-filled
+5. User adds additional info (interests, looking for, location, social links)
+6. Submit issue to create profile
+7. Profile appears on Community page after workflow updates `data/profiles.json`
+
+### 3. Profile Discovery
+- Community page loads profiles from `data/profiles.json`
+- Workflow fetches GitHub Issues with `profile` label and generates the JSON
+- Displays profiles with rich cards showing:
+  - Experience level badge
+  - Skills and interests
+  - "Looking For" section
+  - Social links and contact info
+- Real-time search and filtering
 
 ## API Usage
 
