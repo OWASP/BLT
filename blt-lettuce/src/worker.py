@@ -47,12 +47,44 @@ DEFAULT_JOINS_CHANNEL_ID = None
 DEFAULT_CONTRIBUTE_ID = None
 
 
-def get_blt_logo_url(env):
-    """Build logo URL from BASE_URL so verification is tied to deployment domain."""
+def get_blt_base_url(env):
+    """Return canonical BLT base URL for links and branding."""
     base_url = str(getattr(env, "BASE_URL", "") or "").strip().rstrip("/")
     if not base_url:
         base_url = "https://lettuce.owaspblt.org"
-    return f"{base_url}/docs/static/logo.png"
+    return base_url
+
+
+def get_blt_logo_url(env):
+    """Build logo URL from BASE_URL so verification is tied to deployment domain."""
+    return f"{get_blt_base_url(env)}/docs/static/logo.png"
+
+
+def build_blt_branding_block(env, channel="", user_id=""):
+    """Build a footer block that includes the BLT logo and homepage link.
+
+    The logo URL includes cache-busting/tracking query params so image loads
+    register a hit in the deployment logs.
+    """
+    tracking_query = urlencode(
+        {
+            "src": "slack",
+            "ts": int(datetime.now(timezone.utc).timestamp()),
+            "ch": str(channel or "")[:80],
+            "u": str(user_id or "")[:80],
+        }
+    )
+    logo_url = f"{get_blt_logo_url(env)}?{tracking_query}"
+    return {
+        "type": "context",
+        "elements": [
+            {"type": "image", "image_url": logo_url, "alt_text": "BLT-Lettuce"},
+            {
+                "type": "mrkdwn",
+                "text": f"Sent by <{get_blt_base_url(env)}|BLT-Lettuce>",
+            },
+        ],
+    }
 
 
 def get_utc_now():
@@ -2338,13 +2370,18 @@ async def get_bot_user_id(env):
     return None
 
 
-async def send_slack_message(env, channel, text, blocks=None, token=None):
+async def send_slack_message(
+    env, channel, text, blocks=None, token=None, include_branding=True
+):
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
     payload = {"channel": channel, "text": text}
-    if blocks:
-        payload["blocks"] = blocks
+    payload_blocks = list(blocks) if isinstance(blocks, list) else []
+    if include_branding and len(payload_blocks) < 50:
+        payload_blocks.append(build_blt_branding_block(env, channel=channel))
+    if payload_blocks:
+        payload["blocks"] = payload_blocks
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Authorization", f"Bearer {slack_token}")
@@ -2365,15 +2402,26 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
 
 
 async def send_slack_ephemeral_message(
-    env, channel, user_id, text, blocks=None, token=None
+    env,
+    channel,
+    user_id,
+    text,
+    blocks=None,
+    token=None,
+    include_branding=True,
 ):
     """Send an ephemeral message visible only to one user in a channel."""
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
     payload = {"channel": channel, "user": user_id, "text": text}
-    if blocks:
-        payload["blocks"] = blocks
+    payload_blocks = list(blocks) if isinstance(blocks, list) else []
+    if include_branding and len(payload_blocks) < 50:
+        payload_blocks.append(
+            build_blt_branding_block(env, channel=channel, user_id=user_id)
+        )
+    if payload_blocks:
+        payload["blocks"] = payload_blocks
     headers = Headers.new()
     headers.set("Content-Type", "application/json")
     headers.set("Authorization", f"Bearer {slack_token}")
@@ -2641,22 +2689,12 @@ async def handle_message_event(env, event, team_id=None):
                             },
                         )
                         if rendered.strip():
-                            logo_url = get_blt_logo_url(env)
-                            image_loaded = await is_image_url_reachable(logo_url)
                             join_blocks = [
                                 {
                                     "type": "section",
                                     "text": {"type": "mrkdwn", "text": rendered},
                                 }
                             ]
-                            if image_loaded:
-                                join_blocks.append(
-                                    {
-                                        "type": "image",
-                                        "image_url": logo_url,
-                                        "alt_text": "BLT Logo",
-                                    }
-                                )
 
                             request_payload = {
                                 "channel": channel,
@@ -2664,8 +2702,7 @@ async def handle_message_event(env, event, team_id=None):
                                 "template_id": message_id,
                                 "template_name": template.get("name") or "",
                                 "user_id": user or "",
-                                "logo_url": logo_url,
-                                "image_loaded": bool(image_loaded),
+                                "logo_url": get_blt_logo_url(env),
                                 "delivery_mode": str(
                                     channel_row.get("join_delivery_mode") or "dm"
                                 ).lower(),
@@ -2713,7 +2750,7 @@ async def handle_message_event(env, event, team_id=None):
                                     "success" if send_result.get("ok") else "failed",
                                     channel_name=resolved_channel_name,
                                     request_data=json.dumps(request_payload),
-                                    verified=bool(image_loaded),
+                                    verified=bool(send_result.get("ok")),
                                 )
                             except Exception:
                                 await db_log_event(
