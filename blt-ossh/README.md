@@ -202,3 +202,23 @@ Part of OWASP BLT; follows its licensing terms.
 - [Report Issues](https://github.com/OWASP-BLT/BLT-OSSH/issues)
 - [Create Your Profile](https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml)
 - [Browse Community](./community.html)
+
+## Roadmap
+
+- [ ] AI-powered project recommendations using ML
+- [ ] Profile verification badges
+- [ ] Direct messaging between community members
+- [ ] Project collaboration matching
+- [ ] Mentorship program integration
+- [ ] Event calendar for community meetups
+- [ ] Skill endorsements
+- [ ] Advanced search with tags
+
+## Acknowledgments
+
+- OWASP Foundation
+- BLT Community
+- All contributors
+
+---
+Made with ❤️ by the OWASP BLT Community
