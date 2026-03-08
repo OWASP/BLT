@@ -81,9 +81,25 @@ function showStatus(id, type, message) {
   }, 5000);
 }
 
-function timeAgo(isoStr) {
-  if (!isoStr) return '—';
-  const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+function parseUtcTimestamp(rawValue) {
+  if (!rawValue) return null;
+  const raw = String(rawValue).trim();
+  if (!raw || raw === '-' || raw === '—') return null;
+
+  let normalized = raw.replace(' ', 'T');
+  const hasSeconds = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized);
+  if (hasSeconds) normalized += ':00';
+
+  const hasTimezone = /(Z|[+-]\d{2}:\d{2})$/i.test(normalized);
+  if (!hasTimezone) normalized += 'Z';
+
+  const parsedMs = Date.parse(normalized);
+  return Number.isNaN(parsedMs) ? null : parsedMs;
+}
+
+function timeAgo(timestampMs) {
+  if (timestampMs === null || timestampMs === undefined) return '—';
+  const diff = Math.max(0, Math.floor((Date.now() - timestampMs) / 1000));
   if (diff < 60) return diff + ' seconds ago';
   if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
   if (diff < 86400) {
@@ -96,8 +112,11 @@ function timeAgo(isoStr) {
 const lastEl = document.getElementById('last-activity-ago');
 if (lastEl) {
   const raw = lastEl.textContent.trim();
-  if (raw && raw !== '—') {
-    lastEl.textContent = timeAgo(raw.replace(' ', 'T') + ':00');
+  const parsedTs = parseUtcTimestamp(raw);
+  if (parsedTs !== null) {
+    lastEl.textContent = timeAgo(parsedTs);
+  } else {
+    lastEl.textContent = '—';
   }
 }
 

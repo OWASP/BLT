@@ -130,20 +130,26 @@ def get_dashboard_html(
             if ev.get("status") == "success"
             else '<span class="inline-block w-2 h-2 rounded-full bg-red-400 mr-1"></span>'
         )
-        status_label = "Success" if ev.get("status") == "success" else "Failed"
-        ev_time = html_escape(ev.get("created_at", "")[:16].replace("T", " "))
+        raw_status = str(ev.get("status") or "")
+        status_label = "Success" if raw_status == "success" else (raw_status.title() or "Unknown")
+        ev_id = int(ev.get("id") or 0)
         ws_int_id = int(ev.get("workspace_id") or 0)
+        ev_type = html_escape(ev.get("event_type", ""))
+        user_slack_id = html_escape(ev.get("user_slack_id", "") or "-")
+        ev_time = html_escape(ev.get("created_at", "") or "-")
         events_html += (
             '<tr class="border-b border-gray-100 hover:bg-gray-50">'
-            f'<td class="py-3 px-4 text-sm text-gray-700">{html_escape(ev.get("event_type", ""))}</td>'
-            f'<td class="py-3 px-4 text-sm text-gray-500">{ev_time}</td>'
-            f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ev_id}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{ws_int_id}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-700">{ev_type}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{user_slack_id}</td>'
+            f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{ev_time}</td>'
             "</tr>"
         )
     if not events_html:
         events_html = (
-            '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">'
+            '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
             "No events recorded yet.</td></tr>"
         )
 
