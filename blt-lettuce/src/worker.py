@@ -1559,13 +1559,13 @@ async def handle_message_event(env, event, team_id=None):
         "message_changed",
         "message_deleted",
         "bot_message",
-        "channel_join",
         "channel_leave",
     ):
         return {"ok": True, "message": f"Ignoring message subtype: {subtype}"}
 
     # Look up workspace-specific bot token
     ws_token = getattr(env, "SLACK_TOKEN", None)
+    ws = None
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
         if ws and ws.get("access_token"):
@@ -1577,6 +1577,22 @@ async def handle_message_event(env, event, team_id=None):
 
     contribute_id = getattr(env, "CONTRIBUTE_ID", DEFAULT_CONTRIBUTE_ID)
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
+
+    # Track channel joins in activities and notify contribute channel.
+    if subtype == "channel_join":
+        if ws:
+            await db_log_event(env, ws["id"], "Channel_Join", user or "", "success")
+        if contribute_id and user and channel:
+            try:
+                await send_slack_message(
+                    env,
+                    contribute_id,
+                    f"<@{user}> joined <#{channel}>.",
+                    token=ws_token,
+                )
+            except Exception:
+                pass
+        return {"ok": True, "action": "channel_join_logged"}
 
     if (
         subtype is None
@@ -2471,17 +2487,28 @@ async def handle_request(request, env):
                 return Response.json({"challenge": body_json.get("challenge")})
 
             if body_json.get("type") == "slash_command":
-                team_id = body_json.get("team_id")
                 user_id = body_json.get("user_id")
                 cmd_text = (body_json.get("text") or "").strip().lower()
                 cmd_name = (body_json.get("command") or "").strip().lower()
 
-                counts = await get_db_table_counts(env)
-                stats_text = _format_db_stats_for_slack(counts)
+                # Fast path for /demo to avoid Slack dispatch timeouts.
+                if cmd_name == "/demo":
+                    return Response.json(
+                        {
+                            "response_type": "ephemeral",
+                            "text": "Demo command received successfully.",
+                        }
+                    )
+
+                try:
+                    counts = await get_db_table_counts(env)
+                    stats_text = _format_db_stats_for_slack(counts)
+                except Exception:
+                    stats_text = "Stats are temporarily unavailable. Please try again."
                 quick_buttons = _create_quick_action_buttons()
 
                 # Primary behavior for slash commands: return stats immediately.
-                if cmd_name in ("/project", "/repo", "/demo", "/demo_jisan") or (
+                if cmd_name in ("/project", "/repo", "/demo_jisan") or (
                     cmd_text in ("", "stats", "health", "tables", "db")
                 ):
                     return Response.json(
