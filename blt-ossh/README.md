@@ -181,6 +181,37 @@ BLT-OSSH/
   - Social links and contact info
 - Real-time search and filtering
 
+## Usage
+
+### For Users
+
+1. **Analyze Your Profile**
+   - Visit OSSH homepage
+   - Enter your GitHub username
+   - Click "Find My Projects"
+   - Explore personalized recommendations
+
+2. **Join the Community**
+   - After analysis, click "Create My Community Profile"
+   - Review pre-filled data (username, bio, skills)
+   - Add additional information (interests, looking for, social links)
+   - Submit to create your profile
+
+3. **Discover Developers**
+   - Visit the Community page
+   - Browse developer profiles
+   - Filter by experience level
+   - Search by name, skills, or location
+   - Connect via GitHub, website, or social media
+
+### For Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Adding new project recommendations
+- Improving the matching algorithm
+- Enhancing the UI/UX
+- Adding new features
+
 ## API Usage
 
 The system interacts with the **GitHub REST API** to retrieve user and repository data. All API calls are made directly from the browser (no backend required).
@@ -209,6 +240,31 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - **Authenticated requests**: 5,000 requests/hour (if you add a token — not required for basic use)
 - The app typically makes 2–4 requests per profile analysis (profile, repos, optionally events), so casual use stays within limits
 - If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
+
+## Community Profile Template
+
+Profiles are created as GitHub Issues using a structured template with these fields:
+
+- **GitHub Username** (required) - Your GitHub handle
+- **Display Name** (required) - How you want to be called
+- **Bio** (required) - Brief description about yourself
+- **Experience Level** (required) - Beginner, Intermediate, Advanced, or Expert
+- **Areas of Interest** (checkboxes) - Web Dev, Mobile, AI/ML, Security, DevOps, etc.
+- **Skills & Technologies** (required) - Comma-separated list (e.g., JavaScript, Python, React)
+- **Looking For** (required) - Your goals (e.g., "Mentorship in AI", "Open source collaborations")
+- **Location** (optional) - City, Country
+- **Website/Portfolio** (optional) - Your personal website
+- **Twitter** (optional) - Handle without @
+- **LinkedIn** (optional) - LinkedIn username
+
+### Pre-filled Profile Creation
+
+After analyzing your GitHub profile, the system automatically pre-fills:
+- Your GitHub username
+- Display name from your GitHub profile
+- Bio from GitHub (or primary language as fallback)
+- Skills extracted from your most-used languages
+- Looking for section with smart suggestions
 
 ## Contributing
 
