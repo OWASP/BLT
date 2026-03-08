@@ -1,6 +1,6 @@
 # BLT-OSSH 🎩✨
 
-**Open Source Sorting Hat** — AI-powered GitHub profile analyzer that recommends perfect open source projects for contributors.
+**Open-Source Sorting Hat** — AI-powered GitHub profile analyzer that recommends perfect open-source projects for contributors.
 
 [![OWASP BLT](https://img.shields.io/badge/OWASP-BLT-blue)](https://github.com/OWASP-BLT/BLT) [![GitHub Pages](https://img.shields.io/badge/Live-Demo-green)](https://owasp-blt.github.io/BLT-OSSH/)
 
@@ -15,7 +15,7 @@
 - [Contributing](#contributing)
 
 ## Overview
-OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profile and recommends personalized open source projects, communities, learning resources, and discussion channels based on your skills, interests, and activity.
+OSSH (Open-Source Sorting Hat) is a tool that analyzes your GitHub profile and recommends personalized open-source projects, communities, learning resources, and discussion channels based on your skills, interests, and activity.
 
 ## Features
 
@@ -31,7 +31,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 - **Filter & Search** - Find developers by experience level, skills, or location
 
 ### 🎯 Personalized Recommendations
-- Open source projects matching your tech stack
+- Open-source projects matching your tech stack
 - Developer communities and organizations
 - Curated learning resources and articles
 - Active discussion channels (Discord, Slack, Reddit, etc.)
@@ -50,7 +50,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Architecture Overview
 
-BLT-OSSH (Open Source Sorting Hat) is a recommendation engine that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
+BLT-OSSH (Open-Source Sorting Hat) is a recommendation engine that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
 
 Within the **BLT (Bug Logging Tool) ecosystem**, BLT-OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs, educational pathways, and integration with **BLT University** (educational resources for contributors). Like the Sorting Hat, BLT-OSSH is designed to eventually sort contributors into four houses:
 
@@ -88,7 +88,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 ### Recommendation Categories
 
-- **Projects**: Open source repositories matching your skills and interests
+- **Projects**: Open-source repositories matching your skills and interests
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
 - **Discussions**: Forums, Discord servers, and other platforms
@@ -106,7 +106,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - ✅ **User-Friendly**: Anyone can submit via familiar GitHub Issues
 - ✅ **Editable**: Users can update their profiles anytime
 - ✅ **Moderated**: Maintainers can review via issue management
-- ✅ **Within limits**: Normal usage stays within GitHub's rate limits
+- ✅ **Rate-limit friendly**: Normal usage stays within GitHub's rate limits
 
 ## Getting Started
 
@@ -192,7 +192,7 @@ BLT-OSSH/
 4. User redirected to GitHub Issues with template pre-filled
 5. User adds additional info (interests, looking for, location, social links)
 6. Submit issue to create profile
-7. Profile appears on Community page immediately (after workflow syncs `data/profiles.json`)
+7. Profile appears on Community page after the workflow syncs `data/profiles.json` (typically within a few minutes)
 
 ### 3. Profile Discovery
 - `update-profiles.yml` fetches all open issues with the `profile` label
@@ -225,7 +225,7 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - **Repositories** — Names, descriptions, languages, stars, fork status
 - **Languages used** — Extracted from repository metadata and weighted by frequency
 - **Public events** — Recent PushEvent, PullRequestEvent, and IssuesEvent counts used for activity scoring (see `js/app.js`, `activity_score`, `activity_breakdown`)
-- **Community profiles** — Parsed from issue bodies on the Community page (or from `data/profiles.json`)
+- **Community profiles** — The workflow generates `data/profiles.json` from GitHub Issues; the Community page reads profiles from this file.
 
 ### Rate Limits
 
