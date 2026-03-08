@@ -35,27 +35,26 @@
   </div>
 </nav>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-  <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-bold text-gray-800">My Workspaces</h2>
-        <p class="text-xs text-gray-400">{{ WS_COUNT }} workspace(s) connected</p>
-      </div>
-      <div class="flex flex-wrap gap-2 items-center">
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid gap-6 lg:grid-cols-[280px,1fr]">
+    <aside class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 h-fit lg:sticky lg:top-20">
+      <h2 class="text-base font-bold text-gray-800">Workspaces</h2>
+      <p class="text-xs text-gray-400 mt-1">{{ WS_COUNT }} workspace(s) connected</p>
+      <div class="mt-4 space-y-2">
         {{ WS_TABS }}
-        <a href="/workspace/add"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white
-                  rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
-          <i class="fas fa-plus"></i> Add Workspace
-        </a>
       </div>
-    </div>
-  </section>
+      <a href="/workspace/add"
+         class="mt-4 inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-red-600 text-white
+                rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
+        <i class="fas fa-plus"></i> Add Workspace
+      </a>
+    </aside>
 
-  {{ DASHBOARD_TABS }}
-
-  {{ WORKSPACE_SECTION }}
+    <section class="space-y-6">
+      {{ DASHBOARD_TABS }}
+      {{ WORKSPACE_SECTION }}
+    </section>
+  </div>
 </main>
 
 <script>
@@ -117,32 +116,32 @@ if (lastEl) {
     lastEl.textContent = timeAgo(parsedTs);
   } else {
     lastEl.textContent = '—';
-  // Convert all timestamps with .timeago class to relative time
-  document.querySelectorAll('.timeago').forEach(el => {
-    const raw = el.textContent.trim();
-    const parsedTs = parseUtcTimestamp(raw);
-    if (parsedTs !== null) {
-      el.textContent = timeAgo(parsedTs);
-    } else {
-      el.textContent = '—';
-    }
-  });
-
-  // Update relative times every minute
-  setInterval(() => {
-    document.querySelectorAll('.timeago').forEach(el => {
-      const td = el.closest('td');
-      if (td && td.dataset.timestamp) {
-        const parsedTs = parseUtcTimestamp(td.dataset.timestamp);
-        if (parsedTs !== null) {
-          el.textContent = timeAgo(parsedTs);
-        }
-      }
-    });
-  }, 60000);
-
   }
 }
+
+// Convert all timestamps with .timeago class to relative time
+document.querySelectorAll('.timeago').forEach(el => {
+  const raw = el.textContent.trim();
+  const parsedTs = parseUtcTimestamp(raw);
+  if (parsedTs !== null) {
+    el.textContent = timeAgo(parsedTs);
+  } else {
+    el.textContent = '—';
+  }
+});
+
+// Update relative times every minute
+setInterval(() => {
+  document.querySelectorAll('.timeago').forEach(el => {
+    const td = el.closest('td');
+    if (td && td.dataset.timestamp) {
+      const parsedTs = parseUtcTimestamp(td.dataset.timestamp);
+      if (parsedTs !== null) {
+        el.textContent = timeAgo(parsedTs);
+      }
+    }
+  });
+}, 60000);
 
 const chartCanvas = document.getElementById('activityChart');
 if (chartCanvas && WS_ID) {
@@ -297,6 +296,9 @@ async function addRepo(e) {
     });
     const d = await r.json();
     if (d.ok) {
+      if (d.mode === 'org') {
+        alert(`Imported organization ${d.organization}: ${d.imported || 0} repo(s) added, ${d.failed || 0} failed.`);
+      }
       location.reload();
     } else {
       alert('Failed: ' + (d.error || 'unknown'));

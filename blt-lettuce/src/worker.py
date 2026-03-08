@@ -237,6 +237,8 @@ async def ensure_d1_schema(env):
             "description TEXT DEFAULT '',"
             "language TEXT DEFAULT '',"
             "stars INTEGER DEFAULT 0,"
+            "source_type TEXT DEFAULT 'repo',"
+            "metadata_json TEXT DEFAULT '',"
             "created_at TEXT NOT NULL,"
             "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
             "UNIQUE(workspace_id, repo_url)"
@@ -288,6 +290,16 @@ async def ensure_d1_schema(env):
             "table": "events",
             "column": "channel_name",
             "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
+        },
+        {
+            "table": "repositories",
+            "column": "source_type",
+            "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
+        },
+        {
+            "table": "repositories",
+            "column": "metadata_json",
+            "sql": "ALTER TABLE repositories ADD COLUMN metadata_json TEXT DEFAULT ''",
         },
     ]
 
@@ -859,20 +871,39 @@ async def db_delete_session(env, token):
 
 
 async def db_add_repository(
-    env, workspace_id, repo_url, repo_name="", description="", language="", stars=0
+    env,
+    workspace_id,
+    repo_url,
+    repo_name="",
+    description="",
+    language="",
+    stars=0,
+    source_type="repo",
+    metadata_json="",
 ):
     now = get_utc_now()
     try:
         await (
             env.DB.prepare(
                 "INSERT INTO repositories "
-                "(workspace_id, repo_url, repo_name, description, language, stars, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?) "
+                "(workspace_id, repo_url, repo_name, description, language, stars, source_type, metadata_json, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
                 "ON CONFLICT(workspace_id, repo_url) DO UPDATE SET "
                 "repo_name=excluded.repo_name, description=excluded.description, "
-                "language=excluded.language, stars=excluded.stars"
+                "language=excluded.language, stars=excluded.stars, "
+                "source_type=excluded.source_type, metadata_json=excluded.metadata_json"
             )
-            .bind(workspace_id, repo_url, repo_name, description, language, stars, now)
+            .bind(
+                workspace_id,
+                repo_url,
+                repo_name,
+                description,
+                language,
+                stars,
+                source_type,
+                metadata_json,
+                now,
+            )
             .run()
         )
         return True
@@ -939,6 +970,142 @@ async def db_get_repositories(env, workspace_id):
         except Exception:
             pass
         return []
+
+
+def _extract_github_target(repo_url):
+    """Return {'kind': 'repo'|'org', ...} for GitHub URLs, else None."""
+    try:
+        parsed = urlparse(str(repo_url or "").strip())
+        if parsed.netloc not in ("github.com", "www.github.com"):
+            return None
+        parts = [p for p in parsed.path.strip("/").split("/") if p]
+        if not parts:
+            return None
+        if len(parts) == 1:
+            return {"kind": "org", "org": parts[0]}
+        owner = parts[0]
+        repo_slug = parts[1].replace(".git", "")
+        return {"kind": "repo", "owner": owner, "repo": repo_slug}
+    except Exception:
+        return None
+
+
+async def _fetch_github_json(url):
+    """GET GitHub API JSON with required headers and safe conversion."""
+    try:
+        gh_headers = Headers.new()
+        gh_headers.set("User-Agent", "BLT-Lettuce")
+        gh_headers.set("Accept", "application/vnd.github+json")
+        resp = await js_fetch(
+            url,
+            {
+                "method": "GET",
+                "headers": gh_headers,
+            },
+        )
+        return _js_to_python(await resp.json())
+    except Exception:
+        return {}
+
+
+def _repo_metadata_from_github(repo_data, source_type="repo", org_login=""):
+    """Normalize GitHub API repo payload into db fields and metadata."""
+    owner_obj = repo_data.get("owner") if isinstance(repo_data, dict) else {}
+    owner_login = (owner_obj.get("login") if isinstance(owner_obj, dict) else "") or ""
+    repo_name = str(repo_data.get("name") or "")
+    html_url = str(repo_data.get("html_url") or "")
+    full_name = str(repo_data.get("full_name") or "")
+    description = str(repo_data.get("description") or "")
+    language = str(repo_data.get("language") or "")
+    stars = int(repo_data.get("stargazers_count") or 0)
+
+    metadata = {
+        "source_type": source_type,
+        "org_login": org_login or owner_login,
+        "full_name": full_name,
+        "owner_login": owner_login,
+        "topics": repo_data.get("topics") or [],
+        "forks": int(repo_data.get("forks_count") or 0),
+        "watchers": int(repo_data.get("watchers_count") or 0),
+        "open_issues": int(repo_data.get("open_issues_count") or 0),
+        "default_branch": repo_data.get("default_branch") or "",
+        "visibility": repo_data.get("visibility") or "",
+        "is_private": bool(repo_data.get("private")),
+        "is_archived": bool(repo_data.get("archived")),
+        "created_at": repo_data.get("created_at") or "",
+        "updated_at": repo_data.get("updated_at") or "",
+        "pushed_at": repo_data.get("pushed_at") or "",
+        "license": (
+            (repo_data.get("license") or {}).get("spdx_id")
+            if isinstance(repo_data.get("license"), dict)
+            else ""
+        )
+        or "",
+    }
+    return {
+        "repo_url": html_url,
+        "repo_name": repo_name,
+        "description": description,
+        "language": language,
+        "stars": stars,
+        "source_type": source_type,
+        "metadata_json": json.dumps(metadata),
+    }
+
+
+async def _import_github_org_repositories(env, workspace_id, org_login, max_repos=150):
+    """Import repositories for a GitHub organization/user URL."""
+    imported = 0
+    failed = 0
+    page = 1
+    per_page = 100
+
+    while imported + failed < max_repos:
+        api_url = f"https://api.github.com/orgs/{org_login}/repos?per_page={per_page}&page={page}&type=all"
+        data = await _fetch_github_json(api_url)
+
+        # Fallback for user account URLs that are not orgs.
+        if isinstance(data, dict) and data.get("message") == "Not Found":
+            api_url = f"https://api.github.com/users/{org_login}/repos?per_page={per_page}&page={page}&type=owner"
+            data = await _fetch_github_json(api_url)
+
+        repos = data if isinstance(data, list) else []
+        if not repos:
+            break
+
+        for item in repos:
+            if imported + failed >= max_repos:
+                break
+            if not isinstance(item, dict):
+                failed += 1
+                continue
+
+            normalized = _repo_metadata_from_github(
+                item,
+                source_type="org",
+                org_login=org_login,
+            )
+            ok = await db_add_repository(
+                env,
+                workspace_id,
+                normalized["repo_url"],
+                normalized["repo_name"],
+                normalized["description"],
+                normalized["language"],
+                normalized["stars"],
+                source_type=normalized["source_type"],
+                metadata_json=normalized["metadata_json"],
+            )
+            if ok:
+                imported += 1
+            else:
+                failed += 1
+
+        if len(repos) < per_page:
+            break
+        page += 1
+
+    return {"imported": imported, "failed": failed}
 
 
 # ===========================================================================
@@ -2387,7 +2554,9 @@ def check_manifest_requirements(manifest_path):
     return _check_manifest_requirements_from_data(text, parsed, str(manifest_path))
 
 
-def check_manifest_requirements_from_text(manifest_text, manifest_label="pasted manifest"):
+def check_manifest_requirements_from_text(
+    manifest_text, manifest_label="pasted manifest"
+):
     """Validate pasted manifest YAML text."""
     text = str(manifest_text or "")
     parsed = _manifest_parse_text(text)
@@ -3032,39 +3201,67 @@ async def handle_request(request, env):
                         {"ok": False, "error": "repo_url required"}, 400
                     )
 
-                # Fetch GitHub metadata (best-effort)
+                gh_target = _extract_github_target(repo_url)
+
+                if gh_target and gh_target.get("kind") == "org":
+                    org_login = gh_target.get("org") or ""
+                    if not org_login:
+                        return _json_response(
+                            {"ok": False, "error": "Invalid GitHub organization URL"},
+                            400,
+                        )
+
+                    org_result = await _import_github_org_repositories(
+                        env,
+                        ws_id_val,
+                        org_login,
+                    )
+                    return Response.json(
+                        {
+                            "ok": True,
+                            "mode": "org",
+                            "organization": org_login,
+                            "imported": int(org_result.get("imported") or 0),
+                            "failed": int(org_result.get("failed") or 0),
+                        }
+                    )
+
                 repo_name, description, language, stars = "", "", "", 0
-                try:
-                    parsed_repo = urlparse(repo_url)
-                    # Only call GitHub API for URLs whose host is exactly github.com
-                    if parsed_repo.netloc in ("github.com", "www.github.com"):
-                        path_parts = parsed_repo.path.strip("/").split("/")
-                        if len(path_parts) >= 2:
-                            owner, repo_slug = path_parts[0], path_parts[1]
-                            api_url = (
-                                f"https://api.github.com/repos/{owner}/{repo_slug}"
+                source_type = "repo"
+                metadata_json = ""
+
+                if gh_target and gh_target.get("kind") == "repo":
+                    owner = gh_target.get("owner") or ""
+                    repo_slug = gh_target.get("repo") or ""
+                    if owner and repo_slug:
+                        gh_data = await _fetch_github_json(
+                            f"https://api.github.com/repos/{owner}/{repo_slug}"
+                        )
+                        if isinstance(gh_data, dict) and gh_data.get("full_name"):
+                            normalized = _repo_metadata_from_github(
+                                gh_data,
+                                source_type="repo",
                             )
-                            gh_headers = Headers.new()
-                            gh_headers.set("User-Agent", "BLT-Lettuce")
-                            gh_resp = await js_fetch(
-                                api_url,
-                                {
-                                    "method": "GET",
-                                    "headers": gh_headers,
-                                },
-                            )
-                            gh_data = await gh_resp.json()
-                            repo_name = gh_data.get("name", "")
-                            description = gh_data.get("description", "") or ""
-                            language = gh_data.get("language", "") or ""
-                            stars = gh_data.get("stargazers_count", 0) or 0
-                except Exception:
-                    pass
+                            repo_url = normalized["repo_url"] or repo_url
+                            repo_name = normalized["repo_name"]
+                            description = normalized["description"]
+                            language = normalized["language"]
+                            stars = normalized["stars"]
+                            source_type = normalized["source_type"]
+                            metadata_json = normalized["metadata_json"]
 
                 await db_add_repository(
-                    env, ws_id_val, repo_url, repo_name, description, language, stars
+                    env,
+                    ws_id_val,
+                    repo_url,
+                    repo_name,
+                    description,
+                    language,
+                    stars,
+                    source_type=source_type,
+                    metadata_json=metadata_json,
                 )
-                return Response.json({"ok": True})
+                return Response.json({"ok": True, "mode": "repo"})
             except Exception:
                 return _json_response({"ok": False, "error": "Invalid request"}, 400)
 

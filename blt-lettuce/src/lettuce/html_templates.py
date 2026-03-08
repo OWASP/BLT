@@ -97,16 +97,21 @@ def get_dashboard_html(
 
     ws_tabs = ""
     for ws in workspaces:
+        is_active = ws.get("id") == ws_id
         active = (
-            "bg-red-600 text-white"
-            if ws.get("id") == ws_id
-            else "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+            "bg-red-50 text-red-700 border-red-200"
+            if is_active
+            else "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
         )
+        team_name = str(ws.get("team_name") or "Workspace")
+        icon_letter = html_escape(team_name[:1].upper() if team_name else "W")
+        team_name_safe = html_escape(team_name)
         ws_tabs += (
             f'<a href="/dashboard?ws={ws["id"]}" '
-            f'class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium {active} transition-colors">'
-            f'<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>'
-            f"{html_escape(ws['team_name'])}</a>"
+            f'class="flex items-center gap-3 px-3 py-2 rounded-lg border text-sm font-medium {active} transition-colors">'
+            f'<span class="w-8 h-8 rounded-lg bg-gray-900 text-white inline-flex items-center justify-center text-xs font-bold">{icon_letter}</span>'
+            f'<span class="truncate">{team_name_safe}</span>'
+            '</a>'
         )
 
     total = ws_stats.get("total_activities", 0)
@@ -176,13 +181,22 @@ def get_dashboard_html(
         safe_name = html_escape(repo.get("repo_name") or repo.get("repo_url", ""))
         safe_lang = html_escape(repo.get("language", ""))
         stars_text = f"  * {repo.get('stars', '')}" if repo.get("stars") else ""
+        source_type = html_escape(str(repo.get("source_type") or "repo").upper())
+        topics_text = ""
+        try:
+            metadata = json.loads(repo.get("metadata_json") or "{}")
+            topics = metadata.get("topics") if isinstance(metadata, dict) else []
+            if isinstance(topics, list) and topics:
+                topics_text = "  * " + ", ".join(str(t) for t in topics[:3])
+        except Exception:
+            topics_text = ""
         repos_html += (
             '<div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 group">'
             "<div>"
             f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
             '   class="text-sm font-medium text-red-600 hover:underline">'
             f"{safe_name}</a>"
-            f'<p class="text-xs text-gray-400">{safe_lang}{html_escape(stars_text)}</p>'
+            f'<p class="text-xs text-gray-400">{safe_lang}{html_escape(stars_text)}  * {source_type}{html_escape(topics_text)}</p>'
             "</div>"
             f'<button onclick="deleteRepo({repo.get("id", "")}, {ws_id_js})" '
             '        class="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">'
@@ -426,7 +440,7 @@ def get_dashboard_html(
                 f'<button onclick="analyzePastedManifest({ws_id_js})" id="manifest-analyze-btn" '
                 'class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'
                 '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest</button>'
-                '</div>'
+                "</div>"
                 '<div id="manifest-status" class="hidden mb-4 p-3 rounded-lg"></div>'
                 f'<div id="manifest-summary-box" class="rounded-lg border p-3 mb-4 {summary_class}">'
                 '<div class="flex items-center justify-between gap-3">'
