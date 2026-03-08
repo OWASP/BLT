@@ -54,4 +54,3 @@ test('pricing section and nav links are hidden when SHOW_PRICING is false', asyn
   await expect(pricingNavLinkMobile).toBeHidden();
 });
 
-
