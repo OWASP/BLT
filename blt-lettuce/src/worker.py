@@ -193,6 +193,7 @@ async def ensure_d1_schema(env):
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "team_id TEXT UNIQUE NOT NULL,"
             "team_name TEXT NOT NULL,"
+            "icon_url TEXT DEFAULT '',"
             "app_id TEXT DEFAULT '',"
             "access_token TEXT NOT NULL,"
             "bot_user_id TEXT DEFAULT '',"
@@ -285,6 +286,11 @@ async def ensure_d1_schema(env):
             "table": "workspaces",
             "column": "app_id",
             "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
+        },
+        {
+            "table": "workspaces",
+            "column": "icon_url",
+            "sql": "ALTER TABLE workspaces ADD COLUMN icon_url TEXT DEFAULT ''",
         },
         {
             "table": "events",
@@ -433,7 +439,13 @@ async def db_get_workspace_by_team(env, team_id):
 
 
 async def db_upsert_workspace(
-    env, team_id, team_name, access_token, bot_user_id="", app_id=""
+    env,
+    team_id,
+    team_name,
+    access_token,
+    bot_user_id="",
+    app_id="",
+    icon_url="",
 ):
     now = get_utc_now()
     try:
@@ -442,10 +454,18 @@ async def db_upsert_workspace(
         if existing:
             result = await (
                 env.DB.prepare(
-                    "UPDATE workspaces SET team_name=?, app_id=?, access_token=?, bot_user_id=?, "
+                    "UPDATE workspaces SET team_name=?, icon_url=?, app_id=?, access_token=?, bot_user_id=?, "
                     "updated_at=? WHERE team_id=?"
                 )
-                .bind(team_name, app_id, access_token, bot_user_id, now, team_id)
+                .bind(
+                    team_name,
+                    icon_url,
+                    app_id,
+                    access_token,
+                    bot_user_id,
+                    now,
+                    team_id,
+                )
                 .run()
             )
             print(
@@ -455,10 +475,19 @@ async def db_upsert_workspace(
             result = await (
                 env.DB.prepare(
                     "INSERT INTO workspaces "
-                    "(team_id, team_name, app_id, access_token, bot_user_id, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    "(team_id, team_name, icon_url, app_id, access_token, bot_user_id, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 )
-                .bind(team_id, team_name, app_id, access_token, bot_user_id, now, now)
+                .bind(
+                    team_id,
+                    team_name,
+                    icon_url,
+                    app_id,
+                    access_token,
+                    bot_user_id,
+                    now,
+                    now,
+                )
                 .run()
             )
             print(
@@ -500,6 +529,21 @@ async def db_get_workspace_by_id(env, workspace_id):
         except Exception:
             pass
         return None
+
+
+async def db_update_workspace_icon(env, workspace_id, icon_url):
+    """Persist a workspace icon URL."""
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE workspaces SET icon_url = ?, updated_at = ? WHERE id = ?"
+            )
+            .bind(icon_url or "", get_utc_now(), workspace_id)
+            .run()
+        )
+        return True
+    except Exception:
+        return False
 
 
 # ===========================================================================
@@ -2132,6 +2176,41 @@ async def open_conversation(env, user_id, token=None):
     )
 
 
+async def fetch_workspace_icon_url(access_token):
+    """Fetch workspace icon URL from Slack team.info API."""
+    if not access_token:
+        return ""
+    try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {access_token}")
+        resp = await js_fetch(
+            "https://slack.com/api/team.info",
+            {
+                "method": "GET",
+                "headers": headers,
+            },
+        )
+        result = _js_to_python(await resp.json())
+        if not isinstance(result, dict) or not result.get("ok"):
+            return ""
+
+        team = _js_to_python(result.get("team") or {})
+        icon = _js_to_python((team or {}).get("icon") or {})
+        if not isinstance(icon, dict):
+            return ""
+        return (
+            icon.get("image_230")
+            or icon.get("image_132")
+            or icon.get("image_88")
+            or icon.get("image_68")
+            or icon.get("image_44")
+            or icon.get("image_34")
+            or ""
+        )
+    except Exception:
+        return ""
+
+
 # ===========================================================================
 # Webhook event handlers
 # ===========================================================================
@@ -2809,13 +2888,21 @@ async def handle_request(request, env):
                 team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
                 app_id = token_data.get("app_id") or ""
+                icon_url = ""
                 print(
                     f"[OAuth callback] team_id={team_id}, team_name={team_name}, app_id={app_id}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
                 )
 
                 if team_id and bot_token:
+                    icon_url = await fetch_workspace_icon_url(bot_token)
                     ws = await db_upsert_workspace(
-                        env, team_id, team_name, bot_token, bot_user_id, app_id
+                        env,
+                        team_id,
+                        team_name,
+                        bot_token,
+                        bot_user_id,
+                        app_id,
+                        icon_url,
                     )
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
@@ -2963,6 +3050,20 @@ async def handle_request(request, env):
             f"[GET /dashboard] User: {user.get('name')} (user_id={user.get('user_id')}, slack_user_id={user.get('slack_user_id')})"
         )
         workspaces = await db_get_user_workspaces(env, user["user_id"])
+
+        # Backfill missing workspace icons from Slack for older records.
+        for ws in workspaces:
+            if ws.get("icon_url"):
+                continue
+            token = ws.get("access_token") or ""
+            if not token:
+                continue
+            icon_url = await fetch_workspace_icon_url(token)
+            if icon_url:
+                ws["icon_url"] = icon_url
+                ws_id_backfill = ws.get("id")
+                if ws_id_backfill:
+                    await db_update_workspace_icon(env, ws_id_backfill, icon_url)
 
         # Determine which workspace to show (ws= query param or first)
         qs = url.split("?", 1)[1] if "?" in url else ""
