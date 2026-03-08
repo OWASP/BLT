@@ -1528,6 +1528,17 @@ def _create_quick_action_buttons():
     ]
 
 
+def _create_quick_response_blocks(message_text):
+    """Create blocks that include message text and quick action buttons."""
+    return [
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": message_text},
+        },
+        *_create_quick_action_buttons(),
+    ]
+
+
 # ===========================================================================
 # Channel scanning
 # ===========================================================================
@@ -3288,7 +3299,7 @@ async def handle_request(request, env):
                     if action_id == "quick_stats":
                         counts = await get_db_table_counts(env)
                         stats_text = _format_db_stats_for_slack(counts)
-                        blocks = _create_quick_action_buttons()
+                        blocks = _create_quick_response_blocks(stats_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
@@ -3311,7 +3322,7 @@ async def handle_request(request, env):
                             f"Hello <@{user_id}>! Here are the latest stats.\\n\\n{stats_text}\\n\\n"
                             "Try commands: `stats`, `help`, `health`"
                         )
-                        blocks = _create_quick_action_buttons()
+                        blocks = _create_quick_response_blocks(greet_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
@@ -3335,7 +3346,7 @@ async def handle_request(request, env):
                             "- `help`: Show this command list\\n\\n"
                             "Or use the quick action buttons below!"
                         )
-                        blocks = _create_quick_action_buttons()
+                        blocks = _create_quick_response_blocks(help_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
