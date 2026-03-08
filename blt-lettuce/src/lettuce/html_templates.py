@@ -313,29 +313,62 @@ def get_dashboard_html(
             if active_tab == "join-messages"
             else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
         )
+        badge_active = "bg-red-500 text-white"
+        badge_idle = "bg-gray-100 text-gray-600"
+
+        overview_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "overview" else badge_idle)
+            + f'">{total}</span>'
+        )
+        channels_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "channels" else badge_idle)
+            + f'">{len(channels)}</span>'
+        )
+        repos_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "repositories" else badge_idle)
+            + f'">{len(repos)}</span>'
+        )
+        apps_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "apps" else badge_idle)
+            + f'">{len(installed_apps or [])}</span>'
+        )
+        manifest_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "manifest" else badge_idle)
+            + f'">{len((manifest_result or {}).get("checks") or [])}</span>'
+        )
+        join_messages_count_badge = (
+            '<span class="inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold '
+            + (badge_active if active_tab == "join-messages" else badge_idle)
+            + f'">{len(join_messages or [])}</span>'
+        )
         manifest_tab_html = ""
         if can_manage_manifest:
             manifest_tab_html = (
                 f'<a href="{manifest_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {manifest_active}">'
-                '<i class="fas fa-clipboard-check"></i> Manifest</a>'
+                f'<i class="fas fa-clipboard-check"></i> Manifest {manifest_count_badge}</a>'
             )
         join_messages_tab_html = ""
         if can_manage_manifest:
             join_messages_tab_html = (
                 f'<a href="{join_messages_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {join_messages_active}">'
-                '<i class="fas fa-message"></i> Join Messages</a>'
+                f'<i class="fas fa-message"></i> Join Messages {join_messages_count_badge}</a>'
             )
         dashboard_tabs = (
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
             '<div class="flex flex-wrap gap-2">'
             f'<a href="{overview_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {overview_active}">'
-            '<i class="fas fa-chart-line"></i> Overview</a>'
+            f'<i class="fas fa-chart-line"></i> Overview {overview_count_badge}</a>'
             f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
-            '<i class="fas fa-hashtag"></i> Channels</a>'
+            f'<i class="fas fa-hashtag"></i> Channels {channels_count_badge}</a>'
             f'<a href="{repositories_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {repositories_active}">'
-            '<i class="fas fa-code-branch"></i> Repositories</a>'
+            f'<i class="fas fa-code-branch"></i> Repositories {repos_count_badge}</a>'
             f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
-            '<i class="fas fa-puzzle-piece"></i> Apps</a>'
+            f'<i class="fas fa-puzzle-piece"></i> Apps {apps_count_badge}</a>'
             f"{manifest_tab_html}"
             f"{join_messages_tab_html}"
             "</div></section>"
@@ -388,6 +421,13 @@ def get_dashboard_html(
             f'<h2 class="text-xl font-bold text-gray-800">Channels - {ws_name}</h2>'
             f'<span class="text-xs text-gray-400">{len(channels)} channel(s)</span>'
             "</div>"
+            '<div class="rounded-lg border border-gray-100 bg-gray-50 p-4 mb-4">'
+            '<div class="flex items-center justify-between mb-3">'
+            '<h3 class="text-sm font-semibold text-gray-700">Top Channels</h3>'
+            '<span class="text-xs text-gray-400">by member count</span>'
+            '</div>'
+            f'<div id="channels-list">{channels_html}</div>'
+            '</div>'
             '<div id="channel-config-status" class="hidden mb-4 p-3 rounded-lg"></div>'
             '<p class="text-xs text-gray-400 mb-4">Enable "Send Join Message" per channel and select a stored template.</p>'
             '<div class="overflow-x-auto">'

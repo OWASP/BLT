@@ -56,8 +56,7 @@
   </div>
 </section>
 
-<div class="grid lg:grid-cols-3 gap-6">
-  <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex items-center justify-between gap-3 mb-4">
       <h3 class="text-lg font-bold text-gray-800">Recent Activities</h3>
       {{ PURGE_EVENTS_BTN }}
@@ -81,13 +80,4 @@
         </tbody>
       </table>
     </div>
-  </div>
-
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold text-gray-800">Top Channels</h3>
-      <span class="text-xs text-gray-400">by member count</span>
-    </div>
-    <div id="channels-list">{{ CHANNELS_HTML }}</div>
-  </div>
 </div>
