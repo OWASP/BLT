@@ -32,6 +32,7 @@ from lettuce.html_templates import (
     get_homepage_html,
     get_login_page_html,
     get_status_html,
+    html_escape,
 )
 from lettuce.sentry import get_sentry, init_sentry
 
