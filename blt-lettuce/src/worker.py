@@ -2326,10 +2326,44 @@ async def handle_request(request, env):
                 return Response.json({"challenge": body_json.get("challenge")})
 
             if body_json.get("type") == "slash_command":
+                team_id = body_json.get("team_id")
+                user_id = body_json.get("user_id")
+                cmd_text = (body_json.get("text") or "").strip().lower()
+                cmd_name = (body_json.get("command") or "").strip().lower()
+
+                counts = await get_db_table_counts(env)
+                stats_text = _format_db_stats_for_slack(counts)
+                quick_buttons = _create_quick_action_buttons()
+
+                # Primary behavior for slash commands: return stats immediately.
+                if cmd_name in ("/project", "/repo", "/demo", "/demo_jisan") or (
+                    cmd_text in ("", "stats", "health", "tables", "db")
+                ):
+                    return Response.json(
+                        {
+                            "response_type": "ephemeral",
+                            "text": stats_text,
+                            "blocks": quick_buttons,
+                        }
+                    )
+
+                if cmd_text in ("hello", "hi", "hey"):
+                    return Response.json(
+                        {
+                            "response_type": "ephemeral",
+                            "text": f"Hello <@{user_id}>! Here are the latest stats.\\n\\n{stats_text}",
+                            "blocks": quick_buttons,
+                        }
+                    )
+
                 return Response.json(
                     {
                         "response_type": "ephemeral",
-                        "text": "Command received. Use `stats`, `hello`, or `help` in DM with Lettuce.",
+                        "text": (
+                            "Unknown command input. Try `stats`, `hello`, or `help`.\\n\\n"
+                            f"{stats_text}"
+                        ),
+                        "blocks": quick_buttons,
                     }
                 )
 
@@ -2359,6 +2393,8 @@ async def handle_request(request, env):
                     # Get workspace token
                     ws = await db_get_workspace_by_team(env, team_id)
                     ws_token = ws.get("access_token") if ws else None
+                    if not ws_token:
+                        ws_token = getattr(env, "SLACK_TOKEN", None)
 
                     if not ws_token or not channel_id:
                         return Response.json({"ok": True})
