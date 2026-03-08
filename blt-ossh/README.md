@@ -6,9 +6,28 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 ## Features
 
-- GitHub profile analysis (repos, languages, topics) with project matching
-- Community profiles via GitHub Issues — create, browse, filter
-- Personalized recommendations: projects, communities, learning resources, discussion channels
+### 🔍 GitHub Profile Analysis
+- Fetches and analyzes your GitHub repositories, languages, and topics
+- AI-powered matching of projects based on your tech stack
+- Real-time GitHub API integration
+
+### 👥 Community Platform
+- **Create Developer Profiles** - Share your profile with the community
+- **Browse Profiles** - Discover developers with similar interests
+- **Smart Profile Creation** - After analyzing your GitHub, create a community profile with pre-filled data
+- **Filter & Search** - Find developers by experience level, skills, or location
+
+### 🎯 Personalized Recommendations
+- Open source projects matching your tech stack
+- Developer communities and organizations
+- Curated learning resources and articles
+- Active discussion channels (Discord, Slack, Reddit, etc.)
+
+### 🌙 Modern UI/UX
+- Beautiful dark mode support
+- Responsive design for all devices
+- Smooth animations and transitions
+- Accessible and intuitive interface
 
 ## Tech Stack
 - **Frontend**: HTML, Tailwind CSS, JavaScript
