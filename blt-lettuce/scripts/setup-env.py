@@ -97,6 +97,7 @@ def set_secret(key: str, value: str) -> bool:
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
+
 def main():
     # Determine env file path
     if len(sys.argv) > 1:

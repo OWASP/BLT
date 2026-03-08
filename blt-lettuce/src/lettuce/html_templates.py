@@ -75,7 +75,7 @@ def get_dashboard_html(
     """Generate the dashboard HTML with workspace statistics and controls."""
     user_name = html_escape((user or {}).get("name") or "User")
     user_avatar_url = (user or {}).get("avatar_url") or ""
-    
+
     # Generate avatar HTML - either image or fallback icon
     if user_avatar_url:
         user_avatar_html = f'<img src="{html_escape(user_avatar_url)}" alt="{user_name}" class="w-8 h-8 rounded-full border border-gray-200"/>'
@@ -189,8 +189,12 @@ def get_dashboard_html(
     dashboard_tabs = ""
     if current_ws:
         ws_q = f"ws={ws_id}" if ws_id else ""
-        overview_href = f"/dashboard?{ws_q}&tab=overview" if ws_q else "/dashboard?tab=overview"
-        channels_href = f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
+        overview_href = (
+            f"/dashboard?{ws_q}&tab=overview" if ws_q else "/dashboard?tab=overview"
+        )
+        channels_href = (
+            f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
+        )
         overview_active = (
             "bg-red-600 text-white border-red-600"
             if active_tab == "overview"
@@ -208,7 +212,7 @@ def get_dashboard_html(
             '<i class="fas fa-chart-line"></i> Overview</a>'
             f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
             '<i class="fas fa-hashtag"></i> Channels</a>'
-            '</div></section>'
+            "</div></section>"
         )
 
     if current_ws and active_tab == "channels":
@@ -232,16 +236,16 @@ def get_dashboard_html(
             '<div class="flex items-center justify-between mb-4">'
             f'<h2 class="text-xl font-bold text-gray-800">Channels - {ws_name}</h2>'
             f'<span class="text-xs text-gray-400">{len(channels)} channel(s)</span>'
-            '</div>'
+            "</div>"
             '<div class="overflow-x-auto">'
             '<table class="w-full text-left">'
             '<thead><tr class="border-b border-gray-200">'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">#</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
-            '</tr></thead><tbody>'
-            f'{all_channels_rows}'
-            '</tbody></table></div></section>'
+            "</tr></thead><tbody>"
+            f"{all_channels_rows}"
+            "</tbody></table></div></section>"
         )
     elif current_ws:
         scan_btn = (
@@ -253,12 +257,12 @@ def get_dashboard_html(
             f'<button onclick="sendTestMessage({ws_id_js})" '
             '        id="test-msg-btn" '
             '        class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 '
-            '               text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'  
+            '               text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'
             '<i class="fas fa-paper-plane"></i> Send Test Message</button>'
             f'<button onclick="importHistory({ws_id_js})" '
             '        id="import-btn" '
             '        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 border border-green-600 '
-            '               text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">'  
+            '               text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">'
             '<i class="fas fa-database"></i> Import History</button>'
         )
         workspace_section = _render_template(
@@ -313,7 +317,7 @@ def get_homepage_html(user=None):
     else:
         auth_button_href = "/login"
         auth_button_text = "Sign in with Slack"
-    
+
     return _render_template(
         "homepage.html",
         {
@@ -325,20 +329,23 @@ def get_homepage_html(user=None):
 
 def get_status_html(env):
     """Generate the status page HTML showing configuration status."""
-    
+
     def _status_item(name, description, is_set, required=True):
         """Generate a status item HTML."""
         status_class = "set" if is_set else "missing"
         icon = "✓" if is_set else "✗"
-        badge_class = "required" if required else "optional"
         badge_text = "Required" if required else "Optional"
-        
+
         # Tailwind classes for styling
-        border_color = "border-l-green-500 bg-green-50" if is_set else "border-l-red-500 bg-red-50"
+        border_color = (
+            "border-l-green-500 bg-green-50" if is_set else "border-l-red-500 bg-red-50"
+        )
         icon_color = "text-green-600" if is_set else "text-red-600"
-        badge_bg = "bg-red-100 text-red-800" if required else "bg-blue-100 text-blue-800"
-        
-        return f'''<div class="status-item {status_class} flex items-start p-4 bg-gray-50 rounded-lg border-l-4 {border_color}">
+        badge_bg = (
+            "bg-red-100 text-red-800" if required else "bg-blue-100 text-blue-800"
+        )
+
+        return f"""<div class="status-item {status_class} flex items-start p-4 bg-gray-50 rounded-lg border-l-4 {border_color}">
         <div class="status-icon text-2xl mr-4 flex-shrink-0 {icon_color}">{icon}</div>
         <div class="status-details flex-1">
             <div class="status-name font-semibold text-gray-900 mb-1">
@@ -347,69 +354,69 @@ def get_status_html(env):
             </div>
             <div class="status-desc text-sm text-gray-600">{description}</div>
         </div>
-    </div>'''
-    
+    </div>"""
+
     # Check which secrets are set
-    slack_token = bool(getattr(env, 'SLACK_TOKEN', None))
-    signing_secret = bool(getattr(env, 'SIGNING_SECRET', None))
-    slack_client_id = bool(getattr(env, 'SLACK_CLIENT_ID', None))
-    slack_client_secret = bool(getattr(env, 'SLACK_CLIENT_SECRET', None))
-    sentry_dsn = bool(getattr(env, 'SENTRY_DSN', None))
-    base_url = bool(getattr(env, 'BASE_URL', None))
-    joins_channel = bool(getattr(env, 'JOINS_CHANNEL_ID', None))
-    contribute_id = bool(getattr(env, 'CONTRIBUTE_ID', None))
-    
+    slack_token = bool(getattr(env, "SLACK_TOKEN", None))
+    signing_secret = bool(getattr(env, "SIGNING_SECRET", None))
+    slack_client_id = bool(getattr(env, "SLACK_CLIENT_ID", None))
+    slack_client_secret = bool(getattr(env, "SLACK_CLIENT_SECRET", None))
+    sentry_dsn = bool(getattr(env, "SENTRY_DSN", None))
+    base_url = bool(getattr(env, "BASE_URL", None))
+    joins_channel = bool(getattr(env, "JOINS_CHANNEL_ID", None))
+    contribute_id = bool(getattr(env, "CONTRIBUTE_ID", None))
+
     replacements = {
-        'SLACK_TOKEN_STATUS': _status_item(
-            'SLACK_TOKEN',
-            'Slack Bot User OAuth Token (xoxb-...) for API calls',
+        "SLACK_TOKEN_STATUS": _status_item(
+            "SLACK_TOKEN",
+            "Slack Bot User OAuth Token (xoxb-...) for API calls",
             slack_token,
-            required=True
+            required=True,
         ),
-        'SIGNING_SECRET_STATUS': _status_item(
-            'SIGNING_SECRET',
-            'Slack App Signing Secret for webhook verification',
+        "SIGNING_SECRET_STATUS": _status_item(
+            "SIGNING_SECRET",
+            "Slack App Signing Secret for webhook verification",
             signing_secret,
-            required=True
+            required=True,
         ),
-        'SLACK_CLIENT_ID_STATUS': _status_item(
-            'SLACK_CLIENT_ID',
-            'Slack OAuth App Client ID for user authentication',
+        "SLACK_CLIENT_ID_STATUS": _status_item(
+            "SLACK_CLIENT_ID",
+            "Slack OAuth App Client ID for user authentication",
             slack_client_id,
-            required=True
+            required=True,
         ),
-        'SLACK_CLIENT_SECRET_STATUS': _status_item(
-            'SLACK_CLIENT_SECRET',
-            'Slack OAuth App Client Secret for token exchange',
+        "SLACK_CLIENT_SECRET_STATUS": _status_item(
+            "SLACK_CLIENT_SECRET",
+            "Slack OAuth App Client Secret for token exchange",
             slack_client_secret,
-            required=True
+            required=True,
         ),
-        'SENTRY_DSN_STATUS': _status_item(
-            'SENTRY_DSN',
-            'Sentry Data Source Name for error tracking',
+        "SENTRY_DSN_STATUS": _status_item(
+            "SENTRY_DSN",
+            "Sentry Data Source Name for error tracking",
             sentry_dsn,
-            required=False
+            required=False,
         ),
-        'BASE_URL_STATUS': _status_item(
-            'BASE_URL',
-            'Base URL for OAuth redirects (e.g., https://lettuce.owaspblt.org)',
+        "BASE_URL_STATUS": _status_item(
+            "BASE_URL",
+            "Base URL for OAuth redirects (e.g., https://lettuce.owaspblt.org)",
             base_url,
-            required=False
+            required=False,
         ),
-        'JOINS_CHANNEL_ID_STATUS': _status_item(
-            'JOINS_CHANNEL_ID',
-            'Channel ID where join notifications are posted',
+        "JOINS_CHANNEL_ID_STATUS": _status_item(
+            "JOINS_CHANNEL_ID",
+            "Channel ID where join notifications are posted",
             joins_channel,
-            required=False
+            required=False,
         ),
-        'CONTRIBUTE_ID_STATUS': _status_item(
-            'CONTRIBUTE_ID',
-            'Channel ID for contribution guidelines',
+        "CONTRIBUTE_ID_STATUS": _status_item(
+            "CONTRIBUTE_ID",
+            "Channel ID for contribution guidelines",
             contribute_id,
-            required=False
+            required=False,
         ),
     }
-    
+
     return _render_template("status.html", replacements)
 
 
@@ -421,4 +428,3 @@ def get_404_html():
 def get_500_html():
     """Generate the 500 internal server error HTML page."""
     return _load_template("500.html")
-

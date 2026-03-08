@@ -25,15 +25,10 @@ except ImportError:
         env = None
 
 
-from lettuce.html_templates import (
-    get_404_html,
-    get_500_html,
-    get_dashboard_html,
-    get_homepage_html,
-    get_login_page_html,
-    get_status_html,
-    html_escape,
-)
+from lettuce.html_templates import (get_404_html, get_500_html,
+                                    get_dashboard_html, get_homepage_html,
+                                    get_login_page_html, get_status_html,
+                                    html_escape)
 from lettuce.sentry import get_sentry, init_sentry
 
 # ---------------------------------------------------------------------------
@@ -268,12 +263,14 @@ async def ensure_d1_schema(env):
     ]
 
     try:
-        print(f"[ensure_d1_schema] Initializing schema with {len(statements)} statements...")
+        print(
+            f"[ensure_d1_schema] Initializing schema with {len(statements)} statements..."
+        )
         for idx, sql in enumerate(statements, 1):
             await env.DB.prepare(sql).run()
             print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
         _schema_initialized = True
-        print(f"[ensure_d1_schema] Schema initialization complete")
+        print("[ensure_d1_schema] Schema initialization complete")
         return True
     except Exception as e:
         print(f"[ensure_d1_schema] ERROR: {e}")
@@ -349,7 +346,9 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
                 .bind(team_name, access_token, bot_user_id, now, team_id)
                 .run()
             )
-            print(f"[db_upsert_workspace] Updated workspace {team_id}, result: {result}")
+            print(
+                f"[db_upsert_workspace] Updated workspace {team_id}, result: {result}"
+            )
         else:
             result = await (
                 env.DB.prepare(
@@ -360,7 +359,9 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
                 .bind(team_id, team_name, access_token, bot_user_id, now, now)
                 .run()
             )
-            print(f"[db_upsert_workspace] Inserted workspace {team_id}, result: {result}")
+            print(
+                f"[db_upsert_workspace] Inserted workspace {team_id}, result: {result}"
+            )
         ws = await db_get_workspace_by_team(env, team_id)
         print(f"[db_upsert_workspace] Retrieved workspace: {ws}")
         return ws
@@ -388,7 +389,9 @@ async def db_get_workspace_by_id(env, workspace_id):
 async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
     """Associate a user with a workspace (idempotent)."""
     now = get_utc_now()
-    print(f"[db_link_user_workspace] Linking user {user_id} to workspace {workspace_id}")
+    print(
+        f"[db_link_user_workspace] Linking user {user_id} to workspace {workspace_id}"
+    )
     try:
         await ensure_d1_schema(env)
         result = await (
@@ -403,8 +406,12 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
         print(f"[db_link_user_workspace] Link created successfully, result: {result}")
         return True
     except Exception as e:
-        print(f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}")
+        print(
+            f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}"
+        )
         return False
+
+
 async def db_get_user_workspaces(env, user_id):
     """Return all workspaces accessible by this user."""
     print(f"[db_get_user_workspaces] Fetching workspaces for user_id={user_id}")
@@ -420,9 +427,13 @@ async def db_get_user_workspaces(env, user_id):
             .all()
         )
         workspaces = _rows(result)
-        print(f"[db_get_user_workspaces] Found {len(workspaces)} workspace(s) for user {user_id}")
+        print(
+            f"[db_get_user_workspaces] Found {len(workspaces)} workspace(s) for user {user_id}"
+        )
         if workspaces:
-            print(f"[db_get_user_workspaces] Workspaces: {[ws.get('team_name') for ws in workspaces]}")
+            print(
+                f"[db_get_user_workspaces] Workspaces: {[ws.get('team_name') for ws in workspaces]}"
+            )
         return workspaces
     except Exception as e:
         print(f"[db_get_user_workspaces] ERROR: {e}")
@@ -486,7 +497,9 @@ async def db_upsert_channel(
             )
             .run()
         )
-        print(f"[db_upsert_channel] Saved channel {channel_name} (ID: {channel_id}), result: {result}")
+        print(
+            f"[db_upsert_channel] Saved channel {channel_name} (ID: {channel_id}), result: {result}"
+        )
         return True
     except Exception as e:
         print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
@@ -512,9 +525,13 @@ async def db_get_channels(env, workspace_id):
 # ===========================================================================
 
 
-async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token, avatar_url=""):
+async def db_get_or_create_user(
+    env, slack_user_id, team_id, name, email, access_token, avatar_url=""
+):
     now = get_utc_now()
-    print(f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}")
+    print(
+        f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}"
+    )
     try:
         await ensure_d1_schema(env)
 
@@ -527,7 +544,9 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
         avatar_url = avatar_url or ""
 
         if not slack_user_id:
-            print(f"[db_get_or_create_user] ERROR: slack_user_id is empty, returning None")
+            print(
+                "[db_get_or_create_user] ERROR: slack_user_id is empty, returning None"
+            )
             return None
 
         existing = _row(
@@ -536,25 +555,36 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
             .first()
         )
         if existing:
-            print(f"[db_get_or_create_user] User exists, updating...")
+            print("[db_get_or_create_user] User exists, updating...")
             result = await (
                 env.DB.prepare(
                     "UPDATE users SET name=?, email=?, access_token=?, avatar_url=?, team_id=?, updated_at=? "
                     "WHERE slack_user_id=?"
                 )
-                .bind(name, email, access_token, avatar_url, team_id, now, slack_user_id)
+                .bind(
+                    name, email, access_token, avatar_url, team_id, now, slack_user_id
+                )
                 .run()
             )
             print(f"[db_get_or_create_user] Update result: {result}")
         else:
-            print(f"[db_get_or_create_user] Creating new user...")
+            print("[db_get_or_create_user] Creating new user...")
             result = await (
                 env.DB.prepare(
                     "INSERT INTO users "
                     "(slack_user_id, team_id, name, email, access_token, avatar_url, created_at, updated_at) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 )
-                .bind(slack_user_id, team_id, name, email, access_token, avatar_url, now, now)
+                .bind(
+                    slack_user_id,
+                    team_id,
+                    name,
+                    email,
+                    access_token,
+                    avatar_url,
+                    now,
+                    now,
+                )
                 .run()
             )
             print(f"[db_get_or_create_user] Insert result: {result}")
@@ -888,22 +918,22 @@ async def exchange_code_for_token(client_id, client_secret, code, redirect_uri):
                 "body": body,
             },
         )
-        
+
         # Check HTTP status
         status = getattr(resp, "status", 0)
         if status >= 400:
             return {"ok": False, "error": f"http_error_{status}"}
-        
+
         result = _js_to_python(await resp.json())
         if not isinstance(result, dict):
             return {"ok": False, "error": "invalid_response_format"}
-        
+
         # If Slack returns an error, include details
         ok_status = result.get("ok", False)
         if not ok_status:
             error_detail = result.get("error", "unknown_error")
             return {"ok": False, "error": error_detail}
-        
+
         return result
     except Exception as e:
         # Try to get meaningful error info
@@ -945,7 +975,9 @@ async def get_db_table_counts(env):
     counts = {}
     for table in tables:
         try:
-            result = await env.DB.prepare(f"SELECT COUNT(*) as count FROM {table}").first()
+            result = await env.DB.prepare(
+                f"SELECT COUNT(*) as count FROM {table}"
+            ).first()
             row = _row(result)
             count_val = row.get("count", 0) if row else 0
             counts[table] = count_val
@@ -971,6 +1003,36 @@ def _format_db_stats_for_slack(counts):
     for key, label in ordered:
         lines.append(f"- *{label}:* {counts.get(key, 0)}")
     return "\n".join(lines)
+
+
+def _create_quick_action_buttons():
+    """Create Slack Block Kit buttons for quick commands."""
+    return [
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "📊 Stats", "emoji": True},
+                    "value": "stats",
+                    "action_id": "quick_stats",
+                    "style": "primary",
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "👋 Hello", "emoji": True},
+                    "value": "hello",
+                    "action_id": "quick_hello",
+                },
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "❓ Help", "emoji": True},
+                    "value": "help",
+                    "action_id": "quick_help",
+                },
+            ],
+        }
+    ]
 
 
 # ===========================================================================
@@ -999,12 +1061,16 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                 },
             )
             data = _js_to_python(await resp.json())
-            print(f"[scan_workspace_channels] Slack API response ok: {data.get('ok')}, error: {data.get('error')}")
+            print(
+                f"[scan_workspace_channels] Slack API response ok: {data.get('ok')}, error: {data.get('error')}"
+            )
             if not data.get("ok"):
                 print(f"[scan_workspace_channels] Slack API error: {data.get('error')}")
                 break
             channels = data.get("channels", [])
-            print(f"[scan_workspace_channels] Found {len(channels)} channels in this batch")
+            print(
+                f"[scan_workspace_channels] Found {len(channels)} channels in this batch"
+            )
             for ch in channels:
                 cid = ch.get("id", "")
                 cname = ch.get("name", "")
@@ -1034,50 +1100,60 @@ async def scan_workspace_channels(env, workspace_id, access_token):
 async def import_workspace_history(env, workspace_id, access_token):
     """Import historical channel activity from Slack to populate events table."""
     print(f"[import_workspace_history] Starting import for workspace {workspace_id}")
-    
+
     # Get all channels for this workspace
     channels = await db_get_channels(env, workspace_id)
     if not channels:
-        print(f"[import_workspace_history] No channels found. Run scan first.")
+        print("[import_workspace_history] No channels found. Run scan first.")
         return {"ok": False, "error": "No channels found. Please scan channels first."}
-    
+
     total_events = 0
     # Get last 7 days of history from each channel
     import time
+
     oldest = str(int(time.time()) - (7 * 24 * 60 * 60))  # 7 days ago
-    
+
     for ch in channels[:10]:  # Limit to first 10 channels to avoid timeout
         channel_id = ch.get("channel_id")
-        print(f"[import_workspace_history] Importing history from #{ch.get('channel_name')}")
-        
+        print(
+            f"[import_workspace_history] Importing history from #{ch.get('channel_name')}"
+        )
+
         try:
             headers = Headers.new()
             headers.set("Authorization", f"Bearer {access_token}")
             headers.set("Content-Type", "application/json")
-            
+
             url = f"https://slack.com/api/conversations.history?channel={channel_id}&oldest={oldest}&limit=100"
             resp = await js_fetch(url, {"method": "GET", "headers": headers})
             data = await resp.json()
             data = _js_to_python(data)
-            
+
             if not data.get("ok"):
-                print(f"[import_workspace_history] Error fetching history: {data.get('error')}")
+                print(
+                    f"[import_workspace_history] Error fetching history: {data.get('error')}"
+                )
                 continue
-            
+
             messages = _js_to_python(data.get("messages") or [])
             for msg in messages:
                 user_id = _obj_get(msg, "user", "")
                 msg_type = _obj_get(msg, "type", "message")
-                await db_log_event(env, workspace_id, f"message_{msg_type}", user_id, "success")
+                await db_log_event(
+                    env, workspace_id, f"message_{msg_type}", user_id, "success"
+                )
                 total_events += 1
-                
+
         except Exception as e:
             print(f"[import_workspace_history] ERROR importing from {channel_id}: {e}")
             continue
-    
-    print(f"[import_workspace_history] Import complete: {total_events} events added")
-    return {"ok": True, "events_imported": total_events, "channels_processed": min(len(channels), 10)}
 
+    print(f"[import_workspace_history] Import complete: {total_events} events added")
+    return {
+        "ok": True,
+        "events_imported": total_events,
+        "channels_processed": min(len(channels), 10),
+    }
 
 
 # ===========================================================================
@@ -1125,7 +1201,11 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
         },
     )
     result = _js_to_python(await resp.json())
-    return result if isinstance(result, dict) else {"ok": False, "error": "invalid_response"}
+    return (
+        result
+        if isinstance(result, dict)
+        else {"ok": False, "error": "invalid_response"}
+    )
 
 
 async def open_conversation(env, user_id, token=None):
@@ -1144,7 +1224,11 @@ async def open_conversation(env, user_id, token=None):
         },
     )
     result = _js_to_python(await resp.json())
-    return result if isinstance(result, dict) else {"ok": False, "error": "invalid_response"}
+    return (
+        result
+        if isinstance(result, dict)
+        else {"ok": False, "error": "invalid_response"}
+    )
 
 
 # ===========================================================================
@@ -1220,13 +1304,19 @@ async def handle_message_event(env, event, team_id=None):
     channel = event.get("channel")
     channel_type = event.get("channel_type")
     subtype = event.get("subtype")
-    
+
     # Ignore bot messages (check both bot_id field and user field)
     if event.get("bot_id") or event.get("bot_profile"):
         return {"ok": True, "message": "Ignoring bot message (bot_id present)"}
-    
+
     # Ignore message subtypes that shouldn't trigger responses
-    if subtype in ("message_changed", "message_deleted", "bot_message", "channel_join", "channel_leave"):
+    if subtype in (
+        "message_changed",
+        "message_deleted",
+        "bot_message",
+        "channel_join",
+        "channel_leave",
+    ):
         return {"ok": True, "message": f"Ignoring message subtype: {subtype}"}
 
     # Look up workspace-specific bot token
@@ -1272,7 +1362,10 @@ async def handle_message_event(env, event, team_id=None):
         if any(word in message_text for word in ("stats", "health", "tables", "db")):
             counts = await get_db_table_counts(env)
             stats_text = _format_db_stats_for_slack(counts)
-            result = await send_slack_message(env, channel, stats_text, token=ws_token)
+            blocks = _create_quick_action_buttons()
+            result = await send_slack_message(
+                env, channel, stats_text, blocks=blocks, token=ws_token
+            )
             return {"ok": result.get("ok"), "action": "dm_stats"}
 
         if any(greet in message_text for greet in ("hello", "hi", "hey")):
@@ -1282,7 +1375,10 @@ async def handle_message_event(env, event, team_id=None):
                 f"Hello <@{user}>! Here are the latest stats.\n\n{stats_text}\n\n"
                 "Try commands: `stats`, `help`, `health`"
             )
-            result = await send_slack_message(env, channel, greet_text, token=ws_token)
+            blocks = _create_quick_action_buttons()
+            result = await send_slack_message(
+                env, channel, greet_text, blocks=blocks, token=ws_token
+            )
             return {"ok": result.get("ok"), "action": "dm_greeting_stats"}
 
         if any(word in message_text for word in ("help", "commands", "cmd")):
@@ -1290,9 +1386,13 @@ async def handle_message_event(env, event, team_id=None):
                 "*Lettuce Bot Commands*\n"
                 "- `stats` or `health`: Show DB table counts\n"
                 "- `hello` / `hi` / `hey`: Greeting + DB stats\n"
-                "- `help`: Show this command list"
+                "- `help`: Show this command list\n\n"
+                "Or use the quick action buttons below!"
             )
-            result = await send_slack_message(env, channel, help_text, token=ws_token)
+            blocks = _create_quick_action_buttons()
+            result = await send_slack_message(
+                env, channel, help_text, blocks=blocks, token=ws_token
+            )
             return {"ok": result.get("ok"), "action": "dm_help"}
 
         # Default DM response with quick guidance + current stats.
@@ -1300,9 +1400,12 @@ async def handle_message_event(env, event, team_id=None):
         stats_text = _format_db_stats_for_slack(counts)
         default_text = (
             f"Hi <@{user}>! I can help with stats.\n\n{stats_text}\n\n"
-            "Try: `stats`, `hello`, or `help`."
+            "Try: `stats`, `hello`, or `help` - or use the buttons below!"
         )
-        result = await send_slack_message(env, channel, default_text, token=ws_token)
+        blocks = _create_quick_action_buttons()
+        result = await send_slack_message(
+            env, channel, default_text, blocks=blocks, token=ws_token
+        )
         return {"ok": result.get("ok"), "action": "dm_default"}
 
     return {"ok": True, "message": "No action taken"}
@@ -1516,7 +1619,11 @@ async def handle_request(request, env):
                     team_info = _js_to_python(identity.get("team") or {})
                     user_name = _obj_get(profile, "name", "")
                     user_email = _obj_get(profile, "email", "")
-                    user_avatar = _obj_get(profile, "image_192", "") or _obj_get(profile, "image_72", "") or _obj_get(profile, "image_48", "")
+                    user_avatar = (
+                        _obj_get(profile, "image_192", "")
+                        or _obj_get(profile, "image_72", "")
+                        or _obj_get(profile, "image_48", "")
+                    )
                     if not user_team_id:
                         user_team_id = _obj_get(team_info, "id", "")
                     if not user_slack_id:
@@ -1547,11 +1654,13 @@ async def handle_request(request, env):
                         sign_in_url, error="Database error. Please try again."
                     ),
                 )
-            
+
             # Validate user has an ID field
             user_id_val = user.get("id") if isinstance(user, dict) else None
             if not user_id_val:
-                print(f"[OAuth callback] ERROR: User object missing 'id' field. User keys: {user.keys() if isinstance(user, dict) else 'not a dict'}")
+                print(
+                    f"[OAuth callback] ERROR: User object missing 'id' field. User keys: {user.keys() if isinstance(user, dict) else 'not a dict'}"
+                )
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
                 return _html_response(
                     get_login_page_html(
@@ -1561,13 +1670,15 @@ async def handle_request(request, env):
 
             # ---- If this was an "add workspace" flow, install the bot ----
             if intent == "add_workspace":
-                print(f"[OAuth callback] Processing add_workspace flow")
+                print("[OAuth callback] Processing add_workspace flow")
                 bot_token = token_data.get("access_token")
                 team_info = _js_to_python(token_data.get("team") or {})
                 team_id = _obj_get(team_info, "id", "")
                 team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
-                print(f"[OAuth callback] team_id={team_id}, team_name={team_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}")
+                print(
+                    f"[OAuth callback] team_id={team_id}, team_name={team_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
+                )
 
                 if team_id and bot_token:
                     ws = await db_upsert_workspace(
@@ -1576,34 +1687,52 @@ async def handle_request(request, env):
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
                         ws_id_val = ws.get("id") if isinstance(ws, dict) else None
-                        print(f"[OAuth callback] user_id_val={user_id_val}, ws_id_val={ws_id_val}")
-                        print(f"[OAuth callback] Workspace keys: {ws.keys() if isinstance(ws, dict) else 'not a dict'}")
-                        
+                        print(
+                            f"[OAuth callback] user_id_val={user_id_val}, ws_id_val={ws_id_val}"
+                        )
+                        print(
+                            f"[OAuth callback] Workspace keys: {ws.keys() if isinstance(ws, dict) else 'not a dict'}"
+                        )
+
                         if user_id_val and ws_id_val:
                             link_result = await db_link_user_workspace(
                                 env, user_id_val, ws_id_val, role="owner"
                             )
                             print(f"[OAuth callback] Link result: {link_result}")
                             if not link_result:
-                                print(f"[OAuth callback] ERROR: Failed to link user to workspace")
+                                print(
+                                    "[OAuth callback] ERROR: Failed to link user to workspace"
+                                )
                         else:
-                            print(f"[OAuth callback] WARNING: Could not link workspace - missing user_id ({user_id_val}) or ws_id ({ws_id_val})")
+                            print(
+                                f"[OAuth callback] WARNING: Could not link workspace - missing user_id ({user_id_val}) or ws_id ({ws_id_val})"
+                            )
                         # Background channel scan (best-effort)
                         try:
                             if ws_id_val and bot_token:
-                                print(f"[OAuth callback] Starting channel scan...")
-                                scan_result = await scan_workspace_channels(env, ws_id_val, bot_token)
-                                print(f"[OAuth callback] Channel scan result: {scan_result}")
+                                print("[OAuth callback] Starting channel scan...")
+                                scan_result = await scan_workspace_channels(
+                                    env, ws_id_val, bot_token
+                                )
+                                print(
+                                    f"[OAuth callback] Channel scan result: {scan_result}"
+                                )
                         except Exception as e:
                             print(f"[OAuth callback] Channel scan failed: {e}")
                             pass
                 else:
-                    print(f"[OAuth callback] WARNING: Could not create workspace - missing team_id or bot_token")
+                    print(
+                        "[OAuth callback] WARNING: Could not create workspace - missing team_id or bot_token"
+                    )
 
             # ---- Create session ----
             token = generate_session_token()
             print(f"[OAuth callback] Creating session with user_id={user_id_val}")
-            session_ok = await db_create_session(env, user_id_val, token) if user_id_val else False
+            session_ok = (
+                await db_create_session(env, user_id_val, token)
+                if user_id_val
+                else False
+            )
             print(f"[OAuth callback] Session creation result: {session_ok}")
             if not session_ok:
                 sign_in_url = get_slack_sign_in_url(client_id or "", redirect_uri)
@@ -1696,8 +1825,10 @@ async def handle_request(request, env):
         user = await get_current_user(env, request)
         if not user:
             return _redirect("/login")
-        
-        print(f"[GET /dashboard] User: {user.get('name')} (user_id={user.get('user_id')}, slack_user_id={user.get('slack_user_id')})")
+
+        print(
+            f"[GET /dashboard] User: {user.get('name')} (user_id={user.get('user_id')}, slack_user_id={user.get('slack_user_id')})"
+        )
         workspaces = await db_get_user_workspaces(env, user["user_id"])
 
         # Determine which workspace to show (ws= query param or first)
@@ -1805,18 +1936,32 @@ async def handle_request(request, env):
         # Send test DM to the user
         user_slack_id = user.get("slack_user_id")
         if not user_slack_id:
-            return _json_response({"ok": False, "error": "User Slack ID not found"}, 400)
-
-        # Open DM conversation
-        conv_result = await open_conversation(env, user_slack_id, ws.get("access_token"))
-        if not conv_result.get("ok"):
             return _json_response(
-                {"ok": False, "error": f"Failed to open conversation: {conv_result.get('error', 'unknown')}"}, 500
+                {"ok": False, "error": "User Slack ID not found"}, 400
             )
 
-        channel_id = conv_result.get("channel", {}).get("id") if isinstance(conv_result.get("channel"), dict) else conv_result.get("channel")
+        # Open DM conversation
+        conv_result = await open_conversation(
+            env, user_slack_id, ws.get("access_token")
+        )
+        if not conv_result.get("ok"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": f"Failed to open conversation: {conv_result.get('error', 'unknown')}",
+                },
+                500,
+            )
+
+        channel_id = (
+            conv_result.get("channel", {}).get("id")
+            if isinstance(conv_result.get("channel"), dict)
+            else conv_result.get("channel")
+        )
         if not channel_id:
-            return _json_response({"ok": False, "error": "Could not retrieve DM channel ID"}, 500)
+            return _json_response(
+                {"ok": False, "error": "Could not retrieve DM channel ID"}, 500
+            )
 
         # Get DB stats
         counts = await get_db_table_counts(env)
@@ -1827,21 +1972,26 @@ async def handle_request(request, env):
             f":wave: *Test Message from BLT Lettuce Bot!*\n\n"
             f"This is a test message from your workspace *{html_escape(ws.get('team_name', 'Unknown'))}*.\n\n"
             f"{stats_text}\n\n"
-            f":white_check_mark: Your bot is working correctly!"
+            f":white_check_mark: Your bot is working correctly!\n\n"
+            "Try the quick action buttons below:"
         )
 
+        blocks = _create_quick_action_buttons()
         send_result = await send_slack_message(
-            env,
-            channel_id,
-            test_message,
-            token=ws.get("access_token")
+            env, channel_id, test_message, blocks=blocks, token=ws.get("access_token")
         )
 
         if send_result.get("ok"):
-            return Response.json({"ok": True, "message": "Test message sent successfully"})
+            return Response.json(
+                {"ok": True, "message": "Test message sent successfully"}
+            )
         else:
             return _json_response(
-                {"ok": False, "error": f"Failed to send message: {send_result.get('error', 'unknown')}"}, 500
+                {
+                    "ok": False,
+                    "error": f"Failed to send message: {send_result.get('error', 'unknown')}",
+                },
+                500,
             )
 
     # ------------------------------------------------------------------ #
@@ -2028,6 +2178,72 @@ async def handle_request(request, env):
             if body_json.get("type") == "url_verification":
                 return Response.json({"challenge": body_json.get("challenge")})
 
+            # Handle interactive button clicks
+            if body_json.get("type") == "block_actions":
+                team_id = (
+                    body_json.get("team", {}).get("id")
+                    if isinstance(body_json.get("team"), dict)
+                    else body_json.get("team_id")
+                )
+                user_id = (
+                    body_json.get("user", {}).get("id")
+                    if isinstance(body_json.get("user"), dict)
+                    else None
+                )
+                channel_id = (
+                    body_json.get("channel", {}).get("id")
+                    if isinstance(body_json.get("channel"), dict)
+                    else None
+                )
+
+                actions = body_json.get("actions", [])
+                if actions and len(actions) > 0:
+                    action = actions[0]
+                    action_id = action.get("action_id", "")
+
+                    # Get workspace token
+                    ws = await db_get_workspace_by_team(env, team_id)
+                    ws_token = ws.get("access_token") if ws else None
+
+                    if not ws_token or not channel_id:
+                        return Response.json({"ok": True})
+
+                    # Handle button actions by simulating the command
+                    if action_id == "quick_stats":
+                        counts = await get_db_table_counts(env)
+                        stats_text = _format_db_stats_for_slack(counts)
+                        blocks = _create_quick_action_buttons()
+                        await send_slack_message(
+                            env, channel_id, stats_text, blocks=blocks, token=ws_token
+                        )
+
+                    elif action_id == "quick_hello":
+                        counts = await get_db_table_counts(env)
+                        stats_text = _format_db_stats_for_slack(counts)
+                        greet_text = (
+                            f"Hello <@{user_id}>! Here are the latest stats.\\n\\n{stats_text}\\n\\n"
+                            "Try commands: `stats`, `help`, `health`"
+                        )
+                        blocks = _create_quick_action_buttons()
+                        await send_slack_message(
+                            env, channel_id, greet_text, blocks=blocks, token=ws_token
+                        )
+
+                    elif action_id == "quick_help":
+                        help_text = (
+                            "*Lettuce Bot Commands*\\n"
+                            "- `stats` or `health`: Show DB table counts\\n"
+                            "- `hello` / `hi` / `hey`: Greeting + DB stats\\n"
+                            "- `help`: Show this command list\\n\\n"
+                            "Or use the quick action buttons below!"
+                        )
+                        blocks = _create_quick_action_buttons()
+                        await send_slack_message(
+                            env, channel_id, help_text, blocks=blocks, token=ws_token
+                        )
+
+                return Response.json({"ok": True})
+
             team_id = body_json.get("team_id")
             event = body_json.get("event", {})
             event_type = event.get("type")
@@ -2092,18 +2308,12 @@ async def handle_request(request, env):
     if pathname == "/api/db-stats" and method == "GET":
         try:
             counts = await get_db_table_counts(env)
-            return Response.json({
-                "ok": True,
-                "counts": counts,
-                "timestamp": get_utc_now()
-            })
+            return Response.json(
+                {"ok": True, "counts": counts, "timestamp": get_utc_now()}
+            )
         except Exception as e:
             print(f"[/api/db-stats] ERROR: {e}")
-            return Response.json({
-                "ok": False,
-                "error": str(e),
-                "counts": {}
-            })
+            return Response.json({"ok": False, "error": str(e), "counts": {}})
 
     # ------------------------------------------------------------------ #
     #  GET /api/debug/db  →  raw database data for debugging             #
@@ -2114,34 +2324,45 @@ async def handle_request(request, env):
             user = await get_current_user(env, request)
             if not user:
                 return _json_response({"ok": False, "error": "Unauthorized"}, 401)
-            
+
             counts = await get_db_table_counts(env)
-            
+
             # Get sample data from each table
-            users = _rows(await env.DB.prepare("SELECT id, slack_user_id, team_id, name, created_at FROM users LIMIT 5").all())
-            sessions = _rows(await env.DB.prepare("SELECT id, user_id, created_at, expires_at FROM sessions LIMIT 5").all())
-            workspaces = _rows(await env.DB.prepare("SELECT id, team_id, team_name, created_at FROM workspaces LIMIT 5").all())
-            
-            return Response.json({
-                "ok": True,
-                "counts": counts,
-                "samples": {
-                    "users": users,
-                    "sessions": sessions,
-                    "workspaces": workspaces,
-                },
-                "current_user": {
-                    "user_id": user.get("user_id"),
-                    "slack_user_id": user.get("slack_user_id"),
-                    "name": user.get("name"),
-                },
-            })
+            users = _rows(
+                await env.DB.prepare(
+                    "SELECT id, slack_user_id, team_id, name, created_at FROM users LIMIT 5"
+                ).all()
+            )
+            sessions = _rows(
+                await env.DB.prepare(
+                    "SELECT id, user_id, created_at, expires_at FROM sessions LIMIT 5"
+                ).all()
+            )
+            workspaces = _rows(
+                await env.DB.prepare(
+                    "SELECT id, team_id, team_name, created_at FROM workspaces LIMIT 5"
+                ).all()
+            )
+
+            return Response.json(
+                {
+                    "ok": True,
+                    "counts": counts,
+                    "samples": {
+                        "users": users,
+                        "sessions": sessions,
+                        "workspaces": workspaces,
+                    },
+                    "current_user": {
+                        "user_id": user.get("user_id"),
+                        "slack_user_id": user.get("slack_user_id"),
+                        "name": user.get("name"),
+                    },
+                }
+            )
         except Exception as e:
             print(f"[/api/debug/db] ERROR: {e}")
-            return Response.json({
-                "ok": False,
-                "error": str(e)
-            })
+            return Response.json({"ok": False, "error": str(e)})
 
     # ------------------------------------------------------------------ #
     #  404 Not Found                                                     #
@@ -2200,10 +2421,8 @@ class Default(WorkerEntrypoint):
 
             traceback.print_exc(file=sys.stderr)
             path = ""
-            method = ""
             try:
                 path = urlparse(request.url).path
-                method = request.method
             except Exception:
                 pass
 
