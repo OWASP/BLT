@@ -309,6 +309,81 @@ async function addRepo(e) {
   }
 }
 
+async function createJoinMessage(wsId) {
+  const nameEl = document.getElementById('join-message-name');
+  const textEl = document.getElementById('join-message-text');
+  if (!nameEl || !textEl) return;
+
+  const name = nameEl.value.trim();
+  const messageText = textEl.value.trim();
+  if (!name || !messageText) {
+    showStatus('join-messages-status', 'error', 'Name and message text are required.');
+    return;
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, message_text: messageText }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Join message saved.');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function deleteJoinMessage(wsId, messageId) {
+  if (!confirm('Delete this join message?')) return;
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages/${messageId}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Join message deleted.');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
+async function saveChannelJoinConfig(wsId, channelId) {
+  const enabledEl = document.getElementById(`join-enabled-${channelId}`);
+  const templateEl = document.getElementById(`join-template-${channelId}`);
+  if (!enabledEl || !templateEl) return;
+
+  const sendJoinMessage = !!enabledEl.checked;
+  const joinMessageId = templateEl.value ? Number(templateEl.value) : null;
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/channels/join-config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channel_id: channelId,
+        send_join_message: sendJoinMessage,
+        join_message_id: joinMessageId,
+      }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('channel-config-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('channel-config-status', 'success', 'Channel join message settings saved.');
+  } catch (e) {
+    showStatus('channel-config-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
 async function deleteRepo(repoId, wsId) {
   if (!confirm('Remove this repository?')) return;
   try {

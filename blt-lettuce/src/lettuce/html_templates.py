@@ -73,6 +73,7 @@ def get_dashboard_html(
     installed_apps,
     apps_permission_warning,
     manifest_result,
+    join_messages,
     can_manage_manifest,
     active_tab="overview",
 ):
@@ -260,6 +261,11 @@ def get_dashboard_html(
         manifest_href = (
             f"/dashboard?{ws_q}&tab=manifest" if ws_q else "/dashboard?tab=manifest"
         )
+        join_messages_href = (
+            f"/dashboard?{ws_q}&tab=join-messages"
+            if ws_q
+            else "/dashboard?tab=join-messages"
+        )
         overview_active = (
             "bg-red-600 text-white border-red-600"
             if active_tab == "overview"
@@ -280,11 +286,22 @@ def get_dashboard_html(
             if active_tab == "manifest"
             else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
         )
+        join_messages_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "join-messages"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
         manifest_tab_html = ""
         if can_manage_manifest:
             manifest_tab_html = (
                 f'<a href="{manifest_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {manifest_active}">'
                 '<i class="fas fa-clipboard-check"></i> Manifest</a>'
+            )
+        join_messages_tab_html = ""
+        if can_manage_manifest:
+            join_messages_tab_html = (
+                f'<a href="{join_messages_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {join_messages_active}">'
+                '<i class="fas fa-message"></i> Join Messages</a>'
             )
         dashboard_tabs = (
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
@@ -296,22 +313,48 @@ def get_dashboard_html(
             f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
             '<i class="fas fa-puzzle-piece"></i> Apps</a>'
             f"{manifest_tab_html}"
+            f"{join_messages_tab_html}"
             "</div></section>"
         )
 
     if current_ws and active_tab == "channels":
+        join_message_options = '<option value="">Select join message</option>'
+        for jm in join_messages or []:
+            jm_id = int(jm.get("id") or 0)
+            jm_name = html_escape(jm.get("name") or f"Message {jm_id}")
+            join_message_options += f'<option value="{jm_id}">{jm_name}</option>'
+
         all_channels_rows = ""
         for idx, ch in enumerate(channels, start=1):
+            ch_id = html_escape(ch.get("channel_id", ""))
+            current_join_id = str(ch.get("join_message_id") or "")
+            enabled = int(ch.get("send_join_message") or 0) == 1
+            checked_attr = " checked" if enabled else ""
+            options_html = join_message_options
+            if current_join_id:
+                options_html = options_html.replace(
+                    f'value="{current_join_id}"',
+                    f'value="{current_join_id}" selected',
+                )
             all_channels_rows += (
                 '<tr class="border-b border-gray-100 hover:bg-gray-50">'
                 f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
                 f'<td class="py-3 px-4 text-sm font-medium text-gray-800">#{html_escape(ch.get("channel_name", ""))}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{ch.get("member_count", 0):,}</td>'
+                '<td class="py-3 px-4 text-sm text-gray-600">'
+                f'<input id="join-enabled-{ch_id}" type="checkbox"{checked_attr} class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"/>'
+                "</td>"
+                '<td class="py-3 px-4 text-sm text-gray-600">'
+                f'<select id="join-template-{ch_id}" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm">{options_html}</select>'
+                "</td>"
+                '<td class="py-3 px-4 text-sm text-gray-600">'
+                f'<button onclick="saveChannelJoinConfig({ws_id_js}, "{ch_id}")" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium">Save</button>'
+                "</td>"
                 '</tr>'
             )
         if not all_channels_rows:
             all_channels_rows = (
-                '<tr><td colspan="3" class="py-6 text-center text-sm text-gray-400">'
+                '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
                 "No channels scanned yet. Use Scan Channels to fetch workspace channels."
                 "</td></tr>"
             )
@@ -321,12 +364,17 @@ def get_dashboard_html(
             f'<h2 class="text-xl font-bold text-gray-800">Channels - {ws_name}</h2>'
             f'<span class="text-xs text-gray-400">{len(channels)} channel(s)</span>'
             "</div>"
+            '<div id="channel-config-status" class="hidden mb-4 p-3 rounded-lg"></div>'
+            '<p class="text-xs text-gray-400 mb-4">Enable "Send Join Message" per channel and select a stored template.</p>'
             '<div class="overflow-x-auto">'
             '<table class="w-full text-left">'
             '<thead><tr class="border-b border-gray-200">'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">#</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Send Join Message</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Join Message</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Action</th>'
             "</tr></thead><tbody>"
             f"{all_channels_rows}"
             "</tbody></table></div></section>"
@@ -398,6 +446,62 @@ def get_dashboard_html(
             f"{apps_rows}"
             "</tbody></table></div></section>"
         )
+    elif current_ws and active_tab == "join-messages":
+        if not can_manage_manifest:
+            workspace_section = (
+                '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+                '<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 text-sm">'
+                '<div class="font-semibold mb-1"><i class="fas fa-lock mr-2"></i>Admin Access Required</div>'
+                "Only workspace admins/owners can manage join messages."
+                "</div></section>"
+            )
+        else:
+            rows = ""
+            for jm in join_messages or []:
+                jm_id = int(jm.get("id") or 0)
+                jm_name = html_escape(jm.get("name") or f"Message {jm_id}")
+                jm_text = html_escape(jm.get("message_text") or "")
+                rows += (
+                    '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                    f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{jm_id}</td>'
+                    f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{jm_name}</td>'
+                    f'<td class="py-3 px-4 text-sm text-gray-600 whitespace-pre-wrap">{jm_text}</td>'
+                    '<td class="py-3 px-4 text-sm text-gray-600">'
+                    f'<button onclick="deleteJoinMessage({ws_id_js}, {jm_id})" class="px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 text-xs font-medium">Delete</button>'
+                    "</td>"
+                    "</tr>"
+                )
+            if not rows:
+                rows = (
+                    '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">'
+                    "No join messages yet. Create one below."
+                    "</td></tr>"
+                )
+
+            workspace_section = (
+                '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+                '<div class="flex items-center justify-between mb-4">'
+                f'<h2 class="text-xl font-bold text-gray-800">Join Messages - {ws_name}</h2>'
+                "</div>"
+                '<div id="join-messages-status" class="hidden mb-4 p-3 rounded-lg"></div>'
+                '<div class="rounded-lg border border-gray-200 p-4 mb-5">'
+                '<h3 class="text-sm font-semibold text-gray-700 mb-3">Create Join Message</h3>'
+                '<input id="join-message-name" type="text" placeholder="Welcome DM v1" class="w-full mb-3 rounded-lg border border-gray-200 px-3 py-2 text-sm"/>'
+                '<textarea id="join-message-text" rows="6" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono" placeholder="Welcome {user_mention} to #{channel_name} in {workspace_name}!"></textarea>'
+                '<p class="text-xs text-gray-400 mt-2">Variables: {user_mention}, {user_id}, {channel_name}, {channel_id}, {workspace_name}, {workspace_id}, {timestamp}</p>'
+                f'<button onclick="createJoinMessage({ws_id_js})" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"><i class="fas fa-plus"></i> Save Join Message</button>'
+                "</div>"
+                '<div class="overflow-x-auto">'
+                '<table class="w-full text-left">'
+                '<thead><tr class="border-b border-gray-200">'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">ID</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Name</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Message</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Action</th>'
+                "</tr></thead><tbody>"
+                f"{rows}"
+                "</tbody></table></div></section>"
+            )
     elif current_ws and active_tab == "manifest":
         if not can_manage_manifest:
             workspace_section = (

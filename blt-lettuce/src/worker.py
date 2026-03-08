@@ -45,6 +45,7 @@ from lettuce.sentry import get_sentry, init_sentry
 DEFAULT_DEPLOYS_CHANNEL = None
 DEFAULT_JOINS_CHANNEL_ID = None
 DEFAULT_CONTRIBUTE_ID = None
+BLT_LOGO_URL = "https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
 
 
 def get_utc_now():
@@ -223,10 +224,24 @@ async def ensure_d1_schema(env):
             "topic TEXT DEFAULT '',"
             "purpose TEXT DEFAULT '',"
             "is_private INTEGER DEFAULT 0,"
+            "send_join_message INTEGER DEFAULT 0,"
+            "join_message_id INTEGER DEFAULT NULL,"
             "created_at TEXT NOT NULL,"
             "updated_at TEXT NOT NULL,"
             "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
             "UNIQUE(workspace_id, channel_id)"
+            ")"
+        ),
+        (
+            "CREATE TABLE IF NOT EXISTS join_messages ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "workspace_id INTEGER NOT NULL,"
+            "name TEXT NOT NULL,"
+            "message_text TEXT NOT NULL,"
+            "is_active INTEGER DEFAULT 1,"
+            "created_at TEXT NOT NULL,"
+            "updated_at TEXT NOT NULL,"
+            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id)"
             ")"
         ),
         (
@@ -252,6 +267,8 @@ async def ensure_d1_schema(env):
             "event_type TEXT NOT NULL,"
             "user_slack_id TEXT DEFAULT '',"
             "channel_name TEXT DEFAULT '',"
+            "request_data TEXT DEFAULT '',"
+            "verified INTEGER DEFAULT 0,"
             "status TEXT DEFAULT 'success',"
             "created_at TEXT NOT NULL"
             ")"
@@ -263,6 +280,10 @@ async def ensure_d1_schema(env):
         (
             "CREATE INDEX IF NOT EXISTS idx_channels_workspace "
             "ON channels(workspace_id, member_count DESC)"
+        ),
+        (
+            "CREATE INDEX IF NOT EXISTS idx_join_messages_workspace "
+            "ON join_messages(workspace_id, created_at DESC)"
         ),
         "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
         (
@@ -298,6 +319,16 @@ async def ensure_d1_schema(env):
             "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
         },
         {
+            "table": "events",
+            "column": "request_data",
+            "sql": "ALTER TABLE events ADD COLUMN request_data TEXT DEFAULT ''",
+        },
+        {
+            "table": "events",
+            "column": "verified",
+            "sql": "ALTER TABLE events ADD COLUMN verified INTEGER DEFAULT 0",
+        },
+        {
             "table": "repositories",
             "column": "source_type",
             "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
@@ -306,6 +337,16 @@ async def ensure_d1_schema(env):
             "table": "repositories",
             "column": "metadata_json",
             "sql": "ALTER TABLE repositories ADD COLUMN metadata_json TEXT DEFAULT ''",
+        },
+        {
+            "table": "channels",
+            "column": "send_join_message",
+            "sql": "ALTER TABLE channels ADD COLUMN send_join_message INTEGER DEFAULT 0",
+        },
+        {
+            "table": "channels",
+            "column": "join_message_id",
+            "sql": "ALTER TABLE channels ADD COLUMN join_message_id INTEGER DEFAULT NULL",
         },
     ]
 
@@ -756,6 +797,114 @@ async def db_get_channels(env, workspace_id):
         return []
 
 
+async def db_get_channel_by_slack_id(env, workspace_id, channel_id):
+    """Return a channel row by workspace and Slack channel ID."""
+    try:
+        return _row(
+            await env.DB.prepare(
+                "SELECT * FROM channels WHERE workspace_id = ? AND channel_id = ?"
+            )
+            .bind(workspace_id, channel_id)
+            .first()
+        )
+    except Exception:
+        return None
+
+
+async def db_update_channel_join_config(
+    env, workspace_id, channel_id, send_join_message, join_message_id
+):
+    """Update per-channel join message toggle/template selection."""
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE channels SET send_join_message = ?, join_message_id = ?, updated_at = ? "
+                "WHERE workspace_id = ? AND channel_id = ?"
+            )
+            .bind(
+                1 if send_join_message else 0,
+                join_message_id,
+                get_utc_now(),
+                workspace_id,
+                channel_id,
+            )
+            .run()
+        )
+        return True
+    except Exception:
+        return False
+
+
+async def db_get_join_messages(env, workspace_id):
+    """List saved join message templates for a workspace."""
+    try:
+        return _rows(
+            await env.DB.prepare(
+                "SELECT * FROM join_messages WHERE workspace_id = ? "
+                "ORDER BY created_at DESC"
+            )
+            .bind(workspace_id)
+            .all()
+        )
+    except Exception:
+        return []
+
+
+async def db_get_join_message_by_id(env, workspace_id, message_id):
+    """Fetch one join message template by id."""
+    try:
+        return _row(
+            await env.DB.prepare(
+                "SELECT * FROM join_messages WHERE id = ? AND workspace_id = ?"
+            )
+            .bind(message_id, workspace_id)
+            .first()
+        )
+    except Exception:
+        return None
+
+
+async def db_add_join_message(env, workspace_id, name, message_text):
+    """Create a join message template."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "INSERT INTO join_messages "
+                "(workspace_id, name, message_text, is_active, created_at, updated_at) "
+                "VALUES (?, ?, ?, 1, ?, ?)"
+            )
+            .bind(workspace_id, name, message_text, now, now)
+            .run()
+        )
+        return True
+    except Exception:
+        return False
+
+
+async def db_delete_join_message(env, workspace_id, message_id):
+    """Delete a join message template and unset channel references."""
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE channels SET join_message_id = NULL, send_join_message = 0, updated_at = ? "
+                "WHERE workspace_id = ? AND join_message_id = ?"
+            )
+            .bind(get_utc_now(), workspace_id, message_id)
+            .run()
+        )
+        await (
+            env.DB.prepare(
+                "DELETE FROM join_messages WHERE id = ? AND workspace_id = ?"
+            )
+            .bind(message_id, workspace_id)
+            .run()
+        )
+        return True
+    except Exception:
+        return False
+
+
 # ===========================================================================
 # D1 — User & Session helpers
 # ===========================================================================
@@ -1014,6 +1163,11 @@ async def db_delete_workspace(env, workspace_id):
             .run()
         )
         await (
+            env.DB.prepare("DELETE FROM join_messages WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        await (
             env.DB.prepare("DELETE FROM user_workspaces WHERE workspace_id = ?")
             .bind(workspace_id)
             .run()
@@ -1207,15 +1361,26 @@ async def db_log_event(
     user_slack_id="",
     status="success",
     channel_name="",
+    request_data="",
+    verified=0,
 ):
     now = get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, request_data, verified, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             )
-            .bind(workspace_id, event_type, user_slack_id, channel_name, status, now)
+            .bind(
+                workspace_id,
+                event_type,
+                user_slack_id,
+                channel_name,
+                request_data,
+                1 if verified else 0,
+                status,
+                now,
+            )
             .run()
         )
         return True
@@ -1244,20 +1409,24 @@ async def db_insert_event(
     status="success",
     created_at=None,
     channel_name="",
+    request_data="",
+    verified=0,
 ):
     """Insert a single event row with an explicit timestamp when provided."""
     event_time = created_at or get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, request_data, verified, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(
                 workspace_id,
                 event_type,
                 user_slack_id,
                 channel_name,
+                request_data,
+                1 if verified else 0,
                 status,
                 event_time,
             )
@@ -1348,6 +1517,9 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
             normalized_row.get("user_slack_id") or normalized_row.get("user") or ""
         ).strip()
         status = (normalized_row.get("status") or "success").strip() or "success"
+        request_data = (normalized_row.get("request_data") or "").strip()
+        verified_raw = str(normalized_row.get("verified") or "").strip().lower()
+        verified = verified_raw in ("1", "true", "yes", "y", "verified")
         created_at = _normalize_event_timestamp(
             normalized_row.get("created_at")
             or normalized_row.get("time")
@@ -1362,6 +1534,8 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
             status=status,
             created_at=created_at,
             channel_name=(normalized_row.get("channel_name") or "").strip(),
+            request_data=request_data,
+            verified=verified,
         )
         if ok:
             imported += 1
@@ -2211,6 +2385,28 @@ async def fetch_workspace_icon_url(access_token):
         return ""
 
 
+async def is_image_url_reachable(url):
+    """Best-effort URL check used for verified image status."""
+    if not url:
+        return False
+    try:
+        resp = await js_fetch(url, {"method": "GET"})
+        status = int(getattr(resp, "status", 0) or 0)
+        return 200 <= status < 400
+    except Exception:
+        return False
+
+
+def render_join_message_template(template_text, context):
+    """Render join message variables in both {var} and {{var}} forms."""
+    output = str(template_text or "")
+    for key, value in (context or {}).items():
+        safe_value = str(value or "")
+        output = output.replace("{" + key + "}", safe_value)
+        output = output.replace("{{" + key + "}}", safe_value)
+    return output
+
+
 # ===========================================================================
 # Webhook event handlers
 # ===========================================================================
@@ -2332,6 +2528,38 @@ async def handle_message_event(env, event, team_id=None):
                 "success",
                 channel_name=resolved_channel_name,
             )
+            # Optionally send a configured join message to this channel.
+            channel_row = await db_get_channel_by_slack_id(env, ws["id"], channel)
+            if channel_row and int(channel_row.get("send_join_message") or 0) == 1:
+                message_id = channel_row.get("join_message_id")
+                if message_id:
+                    template = await db_get_join_message_by_id(
+                        env, ws["id"], message_id
+                    )
+                    if template and (template.get("message_text") or "").strip():
+                        rendered = render_join_message_template(
+                            template.get("message_text") or "",
+                            {
+                                "user_id": user or "",
+                                "user_mention": f"<@{user}>" if user else "",
+                                "channel_id": channel or "",
+                                "channel_name": resolved_channel_name or "",
+                                "workspace_id": ws.get("id") or "",
+                                "workspace_name": ws.get("team_name") or "",
+                                "event_type": "channel_join",
+                                "timestamp": get_utc_now(),
+                            },
+                        )
+                        if rendered.strip():
+                            try:
+                                await send_slack_message(
+                                    env,
+                                    channel,
+                                    rendered,
+                                    token=ws_token,
+                                )
+                            except Exception:
+                                pass
         return {"ok": True, "action": "channel_join_logged"}
 
     if (
@@ -3076,7 +3304,13 @@ async def handle_request(request, env):
         current_ws = None
         selected_ws_id = qs_params.get("ws")
         selected_tab = (qs_params.get("tab") or "overview").lower()
-        if selected_tab not in ("overview", "channels", "apps", "manifest"):
+        if selected_tab not in (
+            "overview",
+            "channels",
+            "apps",
+            "manifest",
+            "join-messages",
+        ):
             selected_tab = "overview"
         if selected_ws_id:
             try:
@@ -3100,6 +3334,7 @@ async def handle_request(request, env):
         apps_permission_warning = ""
         workspace_installers = []
         manifest_result = None
+        join_messages = []
         can_manage_manifest = False
 
         if current_ws:
@@ -3110,6 +3345,7 @@ async def handle_request(request, env):
             can_manage_manifest = user_role in ("owner", "admin")
             ws_stats = await db_get_workspace_stats(env, ws_id_val)
             channels = await db_get_channels(env, ws_id_val)
+            join_messages = await db_get_join_messages(env, ws_id_val)
             events = await db_get_events(env, ws_id_val, limit=20)
             daily_stats = await db_get_daily_stats(env, ws_id_val, days=30)
             repos = await db_get_repositories(env, ws_id_val)
@@ -3156,6 +3392,7 @@ async def handle_request(request, env):
             installed_apps,
             apps_permission_warning,
             manifest_result,
+            join_messages,
             can_manage_manifest,
             active_tab=selected_tab,
         )
@@ -3371,6 +3608,171 @@ async def handle_request(request, env):
         result = await import_workspace_history_csv(env, ws_id_val, csv_text)
         status_code = 200 if result.get("ok") else 400
         return _json_response(result, status_code)
+
+    # ------------------------------------------------------------------ #
+    #  GET/POST /api/ws/<id>/join-messages  →  list/create templates      #
+    # ------------------------------------------------------------------ #
+    if pathname.startswith("/api/ws/") and pathname.endswith("/join-messages"):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        if method == "GET":
+            rows = await db_get_join_messages(env, ws_id_val)
+            return _json_response({"ok": True, "join_messages": rows}, 200)
+
+        if method == "POST":
+            user_role = await db_get_user_workspace_role(
+                env, user["user_id"], ws_id_val
+            )
+            if user_role not in ("owner", "admin"):
+                return _json_response(
+                    {
+                        "ok": False,
+                        "error": "Only workspace admins/owners can manage join messages.",
+                    },
+                    403,
+                )
+            try:
+                body = json.loads(await request.text())
+            except Exception:
+                body = {}
+
+            name = str((body or {}).get("name") or "").strip()
+            message_text = str((body or {}).get("message_text") or "").strip()
+            if not name:
+                return _json_response({"ok": False, "error": "name is required"}, 400)
+            if not message_text:
+                return _json_response(
+                    {"ok": False, "error": "message_text is required"},
+                    400,
+                )
+
+            ok = await db_add_join_message(env, ws_id_val, name, message_text)
+            if not ok:
+                return _json_response(
+                    {"ok": False, "error": "Failed to create join message"},
+                    500,
+                )
+            return _json_response({"ok": True}, 200)
+
+    # ------------------------------------------------------------------ #
+    #  DELETE /api/ws/<id>/join-messages/<msg_id>  →  delete template    #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and "/join-messages/" in pathname
+        and method == "DELETE"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            after = pathname.split("/api/ws/")[1]
+            ws_id_val = int(after.split("/")[0])
+            msg_id_val = int(after.split("/join-messages/")[1].rstrip("/"))
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid ids"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can manage join messages.",
+                },
+                403,
+            )
+
+        ok = await db_delete_join_message(env, ws_id_val, msg_id_val)
+        if not ok:
+            return _json_response(
+                {"ok": False, "error": "Failed to delete join message"},
+                500,
+            )
+        return _json_response({"ok": True}, 200)
+
+    # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/channels/join-config  →  update per-channel cfg #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/channels/join-config")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can update channel join settings.",
+                },
+                403,
+            )
+
+        try:
+            body = json.loads(await request.text())
+        except Exception:
+            body = {}
+
+        channel_id = str((body or {}).get("channel_id") or "").strip()
+        send_join_message = bool((body or {}).get("send_join_message"))
+        join_message_id_raw = (body or {}).get("join_message_id")
+        join_message_id = None
+        try:
+            if join_message_id_raw not in (None, "", 0, "0"):
+                join_message_id = int(join_message_id_raw)
+        except Exception:
+            return _json_response(
+                {"ok": False, "error": "Invalid join_message_id"}, 400
+            )
+
+        if not channel_id:
+            return _json_response({"ok": False, "error": "channel_id is required"}, 400)
+
+        if send_join_message and not join_message_id:
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Select a join message before enabling send join message.",
+                },
+                400,
+            )
+
+        ok = await db_update_channel_join_config(
+            env,
+            ws_id_val,
+            channel_id,
+            send_join_message,
+            join_message_id,
+        )
+        if not ok:
+            return _json_response(
+                {"ok": False, "error": "Failed to update channel join config"},
+                500,
+            )
+        return _json_response({"ok": True}, 200)
 
     # ------------------------------------------------------------------ #
     #  GET  /api/ws/<id>/repos  →  list repos                            #
