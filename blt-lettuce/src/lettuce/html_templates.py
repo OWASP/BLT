@@ -416,12 +416,22 @@ def get_dashboard_html(
                 '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
                 '<div class="flex items-center justify-between mb-4">'
                 f'<h2 class="text-xl font-bold text-gray-800">Manifest Checker - {ws_name}</h2>'
-                f'<span class="text-xs text-gray-400 font-mono">{manifest_path}</span>'
+                f'<span id="manifest-path" class="text-xs text-gray-400 font-mono">{manifest_path}</span>'
                 "</div>"
-                f'<div class="rounded-lg border p-3 mb-4 {summary_class}">'
+                '<div class="mb-4">'
+                '<label for="manifest-input" class="block text-sm font-medium text-gray-700 mb-2">Paste Manifest YAML</label>'
+                '<textarea id="manifest-input" rows="10" '
+                'class="w-full rounded-lg border border-gray-200 p-3 text-sm font-mono text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300" '
+                'placeholder="display_information:\n  name: My App\n..."></textarea>'
+                f'<button onclick="analyzePastedManifest({ws_id_js})" id="manifest-analyze-btn" '
+                'class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 border border-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">'
+                '<i class="fas fa-magnifying-glass"></i> Analyze Pasted Manifest</button>'
+                '</div>'
+                '<div id="manifest-status" class="hidden mb-4 p-3 rounded-lg"></div>'
+                f'<div id="manifest-summary-box" class="rounded-lg border p-3 mb-4 {summary_class}">'
                 '<div class="flex items-center justify-between gap-3">'
-                f'<p class="text-sm font-semibold">{summary_label}</p>'
-                f'<p class="text-xs font-mono">{summary}</p>'
+                f'<p id="manifest-summary-label" class="text-sm font-semibold">{summary_label}</p>'
+                f'<p id="manifest-summary-text" class="text-xs font-mono">{summary}</p>'
                 "</div></div>"
                 '<div class="overflow-x-auto">'
                 '<table class="w-full text-left">'
@@ -430,7 +440,7 @@ def get_dashboard_html(
                 '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Requirement</th>'
                 '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
                 '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Details</th>'
-                "</tr></thead><tbody>"
+                '</tr></thead><tbody id="manifest-checks-body">'
                 f"{check_rows}"
                 "</tbody></table></div></section>"
             )

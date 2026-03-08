@@ -2237,28 +2237,24 @@ def _manifest_read_data(manifest_path):
     return text, parsed if isinstance(parsed, dict) else None
 
 
+def _manifest_parse_text(text):
+    """Parse YAML text to dict when possible."""
+    parsed = None
+    try:
+        import yaml  # type: ignore
+
+        parsed = yaml.safe_load(text)
+    except Exception:
+        parsed = None
+    return parsed if isinstance(parsed, dict) else None
+
+
 def _contains_manifest_line(text, snippet):
     return snippet in text
 
 
-def check_manifest_requirements(manifest_path):
-    """Validate manifest.yaml against required BLT-Lettuce settings."""
-    if not manifest_path.exists():
-        return {
-            "ok": False,
-            "manifest_path": str(manifest_path),
-            "summary": "manifest.yaml not found",
-            "checks": [
-                {
-                    "name": "Manifest file exists",
-                    "ok": False,
-                    "detail": f"Could not find: {manifest_path}",
-                }
-            ],
-        }
-
-    text, parsed = _manifest_read_data(manifest_path)
-
+def _check_manifest_requirements_from_data(text, parsed, manifest_label):
+    """Validate manifest data from either file text or pasted YAML text."""
     checks = []
 
     def add_check(name, ok, detail):
@@ -2338,7 +2334,6 @@ def check_manifest_requirements(manifest_path):
                 f"Required bot scope: {scope}",
             )
     else:
-        # Fallback text checks when YAML parser is unavailable.
         add_check(
             "Manifest YAML parse",
             False,
@@ -2366,10 +2361,37 @@ def check_manifest_requirements(manifest_path):
     summary = f"{passed} passed, {failed} failed"
     return {
         "ok": failed == 0,
-        "manifest_path": str(manifest_path),
+        "manifest_path": manifest_label,
         "summary": summary,
         "checks": checks,
     }
+
+
+def check_manifest_requirements(manifest_path):
+    """Validate manifest.yaml against required BLT-Lettuce settings."""
+    if not manifest_path.exists():
+        return {
+            "ok": False,
+            "manifest_path": str(manifest_path),
+            "summary": "manifest.yaml not found",
+            "checks": [
+                {
+                    "name": "Manifest file exists",
+                    "ok": False,
+                    "detail": f"Could not find: {manifest_path}",
+                }
+            ],
+        }
+
+    text, parsed = _manifest_read_data(manifest_path)
+    return _check_manifest_requirements_from_data(text, parsed, str(manifest_path))
+
+
+def check_manifest_requirements_from_text(manifest_text, manifest_label="pasted manifest"):
+    """Validate pasted manifest YAML text."""
+    text = str(manifest_text or "")
+    parsed = _manifest_parse_text(text)
+    return _check_manifest_requirements_from_data(text, parsed, manifest_label)
 
 
 async def report_404_to_sentry(env, path, method, detail=""):
@@ -3123,6 +3145,54 @@ async def handle_request(request, env):
 
         events = await db_get_events(env, ws_id_val, limit=50)
         return Response.json({"ok": True, "events": events})
+
+    # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/manifest-check  →  analyze pasted manifest YAML #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/manifest-check")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can analyze manifests.",
+                },
+                403,
+            )
+
+        try:
+            body = json.loads(await request.text())
+        except Exception:
+            body = {}
+
+        manifest_yaml = ""
+        if isinstance(body, dict):
+            manifest_yaml = str(body.get("manifest_yaml") or "")
+        if not manifest_yaml.strip():
+            return _json_response(
+                {"ok": False, "error": "manifest_yaml is required"},
+                400,
+            )
+
+        result = check_manifest_requirements_from_text(
+            manifest_yaml, manifest_label="pasted manifest"
+        )
+        return _json_response({"ok": True, "result": result}, 200)
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/events/purge  →  purge workspace events         #
