@@ -115,6 +115,8 @@ def get_dashboard_html(
             else "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
         )
         team_name = str(ws.get("team_name") or "Workspace")
+        app_name = str(ws.get("app_name") or "").strip()
+        display_name = f"{team_name} - {app_name}" if app_name else team_name
         icon_letter = html_escape(team_name[:1].upper() if team_name else "W")
         icon_url = str(ws.get("icon_url") or "").strip()
         if icon_url:
@@ -127,12 +129,15 @@ def get_dashboard_html(
                 '<span class="w-8 h-8 shrink-0 rounded-lg bg-gray-900 text-white inline-flex items-center justify-center text-xs font-bold">'
                 f"{icon_letter}</span>"
             )
-        team_name_safe = html_escape(team_name)
+        display_name_safe = html_escape(display_name)
         ws_tabs += (
             f'<a href="/dashboard?ws={ws["id"]}" '
             f'class="flex items-center gap-3 px-3 py-2 rounded-lg border text-sm font-medium {active} transition-colors">'
             f"{workspace_icon_html}"
-            f'<span class="truncate">{team_name_safe}</span>'
+            f'<div class="flex flex-col min-w-0">'
+            f'<span class="truncate font-medium">{html_escape(team_name)}</span>'
+            f'<span class="truncate text-xs opacity-75">{html_escape(app_name) if app_name else "Default Bot"}</span>'
+            '</div>'
             '</a>'
         )
 

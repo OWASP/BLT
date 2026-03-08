@@ -233,15 +233,20 @@ async def ensure_d1_schema(env):
         (
             "CREATE TABLE IF NOT EXISTS workspaces ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "team_id TEXT UNIQUE NOT NULL,"
+            "team_id TEXT NOT NULL,"
             "team_name TEXT NOT NULL,"
             "icon_url TEXT DEFAULT '',"
             "app_id TEXT DEFAULT '',"
+            "app_name TEXT DEFAULT '',"
             "access_token TEXT NOT NULL,"
             "bot_user_id TEXT DEFAULT '',"
             "created_at TEXT NOT NULL,"
             "updated_at TEXT NOT NULL"
             ")"
+        ),
+        (
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_team_app "
+            "ON workspaces(team_id, app_id)"
         ),
         (
             "CREATE TABLE IF NOT EXISTS user_workspaces ("
@@ -395,6 +400,11 @@ async def ensure_d1_schema(env):
             "column": "join_delivery_mode",
             "sql": "ALTER TABLE channels ADD COLUMN join_delivery_mode TEXT DEFAULT 'dm'",
         },
+        {
+            "table": "workspaces",
+            "column": "app_name",
+            "sql": "ALTER TABLE workspaces ADD COLUMN app_name TEXT DEFAULT ''",
+        },
     ]
 
     try:
@@ -507,9 +517,10 @@ WELCOME_MESSAGE = (
 
 
 async def db_get_workspace_by_team(env, team_id):
+    """Get first workspace for a team (legacy - use db_get_workspace_by_team_and_app instead)."""
     try:
         return _row(
-            await env.DB.prepare("SELECT * FROM workspaces WHERE team_id = ?")
+            await env.DB.prepare("SELECT * FROM workspaces WHERE team_id = ? LIMIT 1")
             .bind(team_id)
             .first()
         )
@@ -526,6 +537,53 @@ async def db_get_workspace_by_team(env, team_id):
         return None
 
 
+async def db_get_workspace_by_team_and_app(env, team_id, app_id):
+    """Get a specific workspace by team_id and app_id."""
+    try:
+        return _row(
+            await env.DB.prepare(
+                "SELECT * FROM workspaces WHERE team_id = ? AND app_id = ?"
+            )
+            .bind(team_id, app_id)
+            .first()
+        )
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={
+                    "context": "db_get_workspace_by_team_and_app",
+                    "team_id": team_id,
+                    "app_id": app_id,
+                },
+            )
+        except Exception:
+            pass
+        return None
+
+
+async def db_get_workspaces_by_team(env, team_id):
+    """Get all bot/app installations for a given team."""
+    try:
+        result = await env.DB.prepare(
+            "SELECT * FROM workspaces WHERE team_id = ? ORDER BY created_at ASC"
+        ).bind(team_id).all()
+        return _rows(result)
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={"context": "db_get_workspaces_by_team", "team_id": team_id},
+            )
+        except Exception:
+            pass
+        return []
+
+
 async def db_upsert_workspace(
     env,
     team_id,
@@ -534,43 +592,53 @@ async def db_upsert_workspace(
     bot_user_id="",
     app_id="",
     icon_url="",
+    app_name="",
 ):
     now = get_utc_now()
     try:
         await ensure_d1_schema(env)
-        existing = await db_get_workspace_by_team(env, team_id)
+        
+        # Use app_id to distinguish multiple bot installations
+        if not app_id:
+            app_id = ""
+        
+        # Try to find existing by team_id + app_id
+        existing = await db_get_workspace_by_team_and_app(env, team_id, app_id)
+        
         if existing:
             result = await (
                 env.DB.prepare(
-                    "UPDATE workspaces SET team_name=?, icon_url=?, app_id=?, access_token=?, bot_user_id=?, "
-                    "updated_at=? WHERE team_id=?"
+                    "UPDATE workspaces SET team_name=?, icon_url=?, app_name=?, access_token=?, bot_user_id=?, "
+                    "updated_at=? WHERE team_id=? AND app_id=?"
                 )
                 .bind(
                     team_name,
                     icon_url,
-                    app_id,
+                    app_name,
                     access_token,
                     bot_user_id,
                     now,
                     team_id,
+                    app_id,
                 )
                 .run()
             )
             print(
-                f"[db_upsert_workspace] Updated workspace {team_id}, result: {result}"
+                f"[db_upsert_workspace] Updated workspace {team_id}/{app_id}, result: {result}"
             )
         else:
             result = await (
                 env.DB.prepare(
                     "INSERT INTO workspaces "
-                    "(team_id, team_name, icon_url, app_id, access_token, bot_user_id, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    "(team_id, team_name, icon_url, app_id, app_name, access_token, bot_user_id, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 )
                 .bind(
                     team_id,
                     team_name,
                     icon_url,
                     app_id,
+                    app_name,
                     access_token,
                     bot_user_id,
                     now,
@@ -579,9 +647,9 @@ async def db_upsert_workspace(
                 .run()
             )
             print(
-                f"[db_upsert_workspace] Inserted workspace {team_id}, result: {result}"
+                f"[db_upsert_workspace] Inserted workspace {team_id}/{app_id}, result: {result}"
             )
-        ws = await db_get_workspace_by_team(env, team_id)
+        ws = await db_get_workspace_by_team_and_app(env, team_id, app_id)
         print(f"[db_upsert_workspace] Retrieved workspace: {ws}")
         return ws
     except Exception as e:
@@ -589,7 +657,7 @@ async def db_upsert_workspace(
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
-                e, level="error", extra={"team_id": team_id, "team_name": team_name}
+                e, level="error", extra={"team_id": team_id, "team_name": team_name, "app_id": app_id}
             )
         except Exception:
             pass
@@ -3687,9 +3755,10 @@ async def handle_request(request, env):
                 team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
                 app_id = token_data.get("app_id") or ""
+                app_name = f"OWASP BLT Bot ({app_id[:8]})" if app_id else "OWASP BLT Bot"
                 icon_url = ""
                 print(
-                    f"[OAuth callback] team_id={team_id}, team_name={team_name}, app_id={app_id}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
+                    f"[OAuth callback] team_id={team_id}, team_name={team_name}, app_id={app_id}, app_name={app_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
                 )
 
                 if team_id and bot_token:
@@ -3702,6 +3771,7 @@ async def handle_request(request, env):
                         bot_user_id,
                         app_id,
                         icon_url,
+                        app_name,
                     )
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
@@ -3869,13 +3939,14 @@ async def handle_request(request, env):
             bot_user_id = validation.get("bot_user_id", "")
             icon_url = validation.get("icon_url", "")
             app_id = validation.get("app_id", "")
+            app_name = custom_name or f"Manual Bot ({bot_user_id[:8]})" if bot_user_id else "Manual Bot"
 
             print(
-                f"[manual-add] Token validated. team_id={team_id}, team_name={team_name}"
+                f"[manual-add] Token validated. team_id={team_id}, team_name={team_name}, app_id={app_id}"
             )
 
             # Check if workspace already exists for another user
-            existing_ws = await db_get_workspace_by_team(env, team_id)
+            existing_ws = await db_get_workspace_by_team_and_app(env, team_id, app_id)
             if existing_ws:
                 # Check if current user already has access
                 has_access = await db_user_owns_workspace(
@@ -3892,12 +3963,12 @@ async def handle_request(request, env):
 
                 # Update token if provided
                 ws = await db_upsert_workspace(
-                    env, team_id, team_name, token, bot_user_id, app_id, icon_url
+                    env, team_id, team_name, token, bot_user_id, app_id, icon_url, app_name
                 )
             else:
                 # Create new workspace
                 ws = await db_upsert_workspace(
-                    env, team_id, team_name, token, bot_user_id, app_id, icon_url
+                    env, team_id, team_name, token, bot_user_id, app_id, icon_url, app_name
                 )
 
                 if ws:

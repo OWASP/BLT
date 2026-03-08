@@ -33,15 +33,21 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- Restrict D1 access to the Worker service binding and apply least-privilege
 -- IAM policies. Consider application-layer encryption for high-security
 -- deployments.
+-- NOTE: Multiple bot/app installations per team are supported via composite key (team_id, app_id)
 CREATE TABLE IF NOT EXISTS workspaces (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    team_id TEXT UNIQUE NOT NULL,
+    team_id TEXT NOT NULL,
     team_name TEXT NOT NULL,
+    app_id TEXT DEFAULT '',
+    app_name TEXT DEFAULT '',
     access_token TEXT NOT NULL,
     bot_user_id TEXT DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_team_app 
+ON workspaces(team_id, app_id);
 
 -- Junction table: which users manage which workspaces (many-to-many)
 -- role: 'owner' (installed the bot) or 'admin'
