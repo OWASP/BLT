@@ -1,5 +1,17 @@
 # BLT-OSSH 🎩✨
-**Open Source Sorting Hat** - AI-powered GitHub profile analyzer that recommends perfect open source projects
+
+**Open Source Sorting Hat** — AI-powered GitHub profile analyzer that recommends perfect open source projects for contributors.
+
+[![OWASP BLT](https://img.shields.io/badge/OWASP-BLT-blue)](https://github.com/OWASP-BLT/BLT) [![GitHub Pages](https://img.shields.io/badge/Live-Demo-green)](https://owasp-blt.github.io/BLT-OSSH/)
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture-overview)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Contributing](#contributing)
 
 ## Overview
 OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profile and recommends personalized open source projects, communities, learning resources, and discussion channels based on your skills, interests, and activity.
@@ -39,7 +51,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 BLT-OSSH (Open Source Sorting Hat) is a **magical recommendation engine with special powers** that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
 
-Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs and educational pathways integrating with **BLT University**. Like the Sorting Hat, OSSH is designed to eventually sort contributors into four houses:
+Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs, educational pathways, and integration with **BLT University** (educational resources for contributors). Like the Sorting Hat, OSSH is designed to eventually sort contributors into four houses:
 
 | House | Focus |
 |-------|-------|
@@ -69,14 +81,15 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
 - **Search & Filters**: Find developers by name, username, skills, or experience level
 - **Real-time Stats**: Community statistics (member count, languages, countries)
-- **Social Integrations**: Connect via Github, website, Twitter, LinkedIn
-- **Github-Powered**: Uses Github Issues as a database for profiles
+- **Social Integrations**: Connect via GitHub, website, Twitter, LinkedIn
+- **GitHub-Powered**: Uses GitHub Issues as a database for profiles
 
 ### Recommendation Categories
 
 - **Projects**: Open source repositories matching your tech stack
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
+- **Discussions**: Forums, Discord servers, and chat platforms
 
 ## How Profiles Work
 
