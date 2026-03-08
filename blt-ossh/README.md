@@ -288,6 +288,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 - Enhancing the UI/UX
 - Adding new features
 
+## Features in Detail
+
+### Smart Matching Algorithm
+- Analyzes your repository languages and frequency
+- Considers your starred repos and topics
+- Matches you with trending and well-maintained projects
+- Weighs factors like activity, stars, and relevance
+
+### Community Features
+- **Profile Cards**: Rich cards with avatar, bio, skills, interests
+- **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
+- **Search & Filter**: Find developers by name, username, skills, or experience level
+- **Real-time Stats**: Community statistics (member count, languages, countries)
+- **Social Integration**: Connect via GitHub, website, Twitter, LinkedIn
+- **GitHub-Powered**: Uses GitHub Issues as database for profiles
+
+### Recommendation Categories
+- **Projects**: Open source repositories matching your tech stack
+- **Communities**: Developer communities and organizations
+- **Articles**: Learning resources and documentation
+- **Discussions**: Forums, Discord servers, and chat platforms
+
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, and more.
