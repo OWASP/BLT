@@ -56,6 +56,28 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Static deployment** — Hosted on GitHub Pages with no server-side dependencies.
 - **GitHub Issues as a database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
 
+### Smart Hatching Algorithm
+
+- Analyzes your repository languages and frequency
+- Considers your starred repos and topics
+- Matches you with trending and well-maintained projects
+- Weights factors like activity, stars, and relevance
+
+### Community Features
+
+- **Profile Cards**: Rich cards with avatar, bio, skills, interests
+- **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
+- **Search & Filters**: Find developers by name, username, skills, or experience level
+- **Real-time Stats**: Community statistics (member count, languages, countries)
+- **Social Integrations**: Connect via Github, website, Twitter, LinkedIn
+- **Github-Powered**: Uses Github Issues as a database for profiles
+
+### Recommendation Categories
+
+- **Projects**: Open source repositories matching your tech stack
+- **Communities**: Developer communities and organizations
+- **Articles**: Learning resources and documentation
+
 ## How Profiles Work
 
 ### Simple & Direct
