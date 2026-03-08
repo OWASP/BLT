@@ -148,9 +148,9 @@ def get_dashboard_html(
                 else '<i class="fas fa-puzzle-piece text-[10px]"></i>'
             )
             + f'<span class="truncate">{html_escape(app_name) if app_name else "App"}</span>'
-            + '</span>'
-            '</div>'
-            '</a>'
+            + "</span>"
+            "</div>"
+            "</a>"
         )
 
     total = ws_stats.get("total_activities", 0)
@@ -525,10 +525,10 @@ def get_dashboard_html(
                     if app_icon_url
                     else '<i class="fas fa-puzzle-piece text-gray-400"></i>'
                 )
-                + f'<span>{app_name}</span>'
+                + f"<span>{app_name}</span>"
                 + f'<a href="{app_manage_url}" target="_blank" rel="noopener noreferrer" class="ml-2 text-xs text-red-600 hover:text-red-700 underline">Manage</a>'
-                + '</div>'
-                '</td>'
+                + "</div>"
+                "</td>"
                 f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{app_id}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{status}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{installed_by}</td>'
@@ -706,7 +706,7 @@ def get_dashboard_html(
                 f'<button onclick="saveWorkspaceManifest({ws_id_js})" id="manifest-save-btn" '
                 'class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 border border-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">'
                 '<i class="fas fa-floppy-disk"></i> Save For This App</button>'
-                '</div>'
+                "</div>"
                 "</div>"
                 '<div id="manifest-status" class="hidden mb-4 p-3 rounded-lg"></div>'
                 f'<div id="manifest-summary-box" class="rounded-lg border p-3 mb-4 {summary_class}">'

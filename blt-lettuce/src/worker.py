@@ -3894,7 +3894,9 @@ async def handle_request(request, env):
                 )
 
                 if team_id and bot_token:
-                    app_meta = await fetch_app_metadata(bot_token, fallback_app_id=app_id)
+                    app_meta = await fetch_app_metadata(
+                        bot_token, fallback_app_id=app_id
+                    )
                     app_id = app_meta.get("app_id") or app_id
                     app_name = app_meta.get("app_name") or app_name
                     app_icon_url = app_meta.get("app_icon_url") or ""
@@ -4205,7 +4207,9 @@ async def handle_request(request, env):
                         ws["icon_url"] = icon_url
                         ws_id_backfill = ws.get("id")
                         if ws_id_backfill:
-                            await db_update_workspace_icon(env, ws_id_backfill, icon_url)
+                            await db_update_workspace_icon(
+                                env, ws_id_backfill, icon_url
+                            )
 
             # Backfill missing app metadata (name/icon/app_id) from Slack app API.
             if token and (
@@ -4216,7 +4220,9 @@ async def handle_request(request, env):
                     token,
                     fallback_app_id=str(ws.get("app_id") or ""),
                 )
-                app_name = str(app_meta.get("app_name") or ws.get("app_name") or "").strip()
+                app_name = str(
+                    app_meta.get("app_name") or ws.get("app_name") or ""
+                ).strip()
                 app_icon_url = str(
                     app_meta.get("app_icon_url") or ws.get("app_icon_url") or ""
                 ).strip()
@@ -5082,7 +5088,9 @@ async def handle_request(request, env):
         if method == "GET":
             ws = await db_get_workspace_by_id(env, ws_id_val)
             if not ws:
-                return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+                return _json_response(
+                    {"ok": False, "error": "Workspace not found"}, 404
+                )
             return _json_response(
                 {
                     "ok": True,
@@ -5094,7 +5102,9 @@ async def handle_request(request, env):
             )
 
         if method == "POST":
-            user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+            user_role = await db_get_user_workspace_role(
+                env, user["user_id"], ws_id_val
+            )
             if user_role not in ("owner", "admin"):
                 return _json_response(
                     {
@@ -5111,7 +5121,9 @@ async def handle_request(request, env):
             manifest_yaml = str((body or {}).get("manifest_yaml") or "")
             save_ok = await db_update_workspace_manifest(env, ws_id_val, manifest_yaml)
             if not save_ok:
-                return _json_response({"ok": False, "error": "Failed to save manifest"}, 500)
+                return _json_response(
+                    {"ok": False, "error": "Failed to save manifest"}, 500
+                )
 
             result = check_manifest_requirements_from_text(
                 manifest_yaml,
