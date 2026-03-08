@@ -30,6 +30,9 @@ from slack_notifier import notify_slack_exception, notify_slack_error
 # Uses COALESCE to handle NULL values (returns 0 if column is NULL or invalid JSON)
 ISSUES_COUNT_SQL_EXPR = '(COALESCE(json_array_length(blockers), 0) + COALESCE(json_array_length(warnings), 0))'
 
+# Maximum PRs to import/discover per bulk operation to prevent timeouts on large orgs
+_MAX_PRS_PER_BULK_OP = 1000
+
 
 async def handle_add_pr(request, env):
     """
@@ -118,7 +121,7 @@ async def handle_add_pr(request, env):
             
             # Fetch open PRs with a safety limit to prevent timeouts on very large repos
             # Maximum 1000 PRs per import to stay within Cloudflare Workers execution limits
-            MAX_PRS_PER_IMPORT = 1000
+            MAX_PRS_PER_IMPORT = _MAX_PRS_PER_BULK_OP
             added_count = 0
             truncated = False
             repos_imported = 0
@@ -705,6 +708,126 @@ async def handle_batch_refresh_prs(request, env):
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
         
+async def handle_refresh_org(request, env):
+    """
+    Discover and import new repositories and PRs for an organization.
+
+    POST /api/refresh-org
+    Body: { "org": "org-name" }
+
+    Fetches all repos for the org, scans each for open PRs, and upserts
+    any found PRs into the database. This allows new repos and newly-opened
+    PRs to be picked up without a full re-import.
+    """
+    try:
+        data = (await request.json()).to_py()
+        org = (data.get('org') or '').strip()
+        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+
+        if not org:
+            return Response.new(json.dumps({'error': 'org parameter is required'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+
+        # Fetch all repos for the org/user
+        try:
+            org_repos = await fetch_org_repos(org, token=user_token)
+        except Exception as e:
+            error_msg = str(e)
+            if 'status=403' in error_msg:
+                return Response.new(json.dumps({'error': 'Rate Limit Exceeded'}),
+                                  {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+            return Response.new(json.dumps({'error': f'Failed to fetch organization repos: {error_msg}'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+
+        if not org_repos:
+            return Response.new(json.dumps({'error': f'No public repositories found for {org}'}),
+                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+
+        db = get_db(env)
+
+        # Prepare headers for paginated fetching
+        headers_dict = {
+            'User-Agent': 'PR-Tracker/1.0',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+        if user_token:
+            headers_dict['Authorization'] = f'Bearer {user_token}'
+
+        headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
+
+        MAX_PRS_PER_REFRESH = _MAX_PRS_PER_BULK_OP
+        imported_count = 0
+        truncated = False
+        ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+        for repo_info in org_repos:
+            owner = repo_info['owner']
+            repo_name = repo_info['name']
+
+            remaining = MAX_PRS_PER_REFRESH - imported_count
+            if remaining <= 0:
+                truncated = True
+                break
+
+            list_url = (
+                f"https://api.github.com/repos/{owner}/{repo_name}"
+                f"/pulls?state=open&sort=created&direction=desc&per_page=100"
+            )
+
+            try:
+                result = await fetch_paginated_data(list_url, headers, max_items=remaining, return_metadata=True)
+                prs_list = result['items']
+                if result['truncated']:
+                    truncated = True
+            except Exception as e:
+                error_msg = str(e)
+                if 'status=403' in error_msg:
+                    truncated = True
+                    break
+                print(f"Skipping repo {owner}/{repo_name}: {error_msg}")
+                continue
+
+            if not prs_list:
+                continue
+
+            for item in prs_list:
+                user = item.get('user') or {}
+                pr_data = {
+                    'title': item.get('title', ''),
+                    'state': 'open',
+                    'is_merged': 0,
+                    'mergeable_state': 'unknown',
+                    'files_changed': 0,
+                    'author_login': user.get('login', 'ghost'),
+                    'author_avatar': user.get('avatar_url', ''),
+                    'repo_owner_avatar': item.get('base', {}).get('repo', {}).get('owner', {}).get('avatar_url', ''),
+                    'checks_passed': 0,
+                    'checks_failed': 0,
+                    'checks_skipped': 0,
+                    'review_status': 'pending',
+                    'last_updated_at': item.get('updated_at', ts),
+                    'commits_count': 0,
+                    'behind_by': 0,
+                    'is_draft': 1 if item.get('draft') else 0,
+                    'reviewers_json': '[]'
+                }
+                await upsert_pr(db, item['html_url'], owner, repo_name, item['number'], pr_data)
+                imported_count += 1
+
+        return Response.new(json.dumps({
+            'success': True,
+            'imported_count': imported_count,
+            'repos_scanned': len(org_repos),
+            'truncated': truncated
+        }), {'headers': {'Content-Type': 'application/json'}})
+
+    except Exception as e:
+        await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_refresh_org'})
+        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
+
+
 async def handle_rate_limit(env):
     """
     GET /api/rate-limit
