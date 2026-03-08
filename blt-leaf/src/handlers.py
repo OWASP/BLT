@@ -852,46 +852,6 @@ async def handle_get_pr(env, pr_id):
         )
 
 
-async def verify_github_signature(request, payload_body, secret):
-    """
-    Verify GitHub webhook signature.
-    
-    Args:
-        request: The request object containing headers
-        payload_body: Raw request body as bytes or string
-        secret: Webhook secret configured in GitHub
-        
-    Returns:
-        bool: True if signature is valid, False otherwise
-    """
-    if not secret:
-        # If no secret is configured, skip verification (development mode)
-        print("WARNING: Webhook secret not configured - skipping signature verification")
-        return True
-    
-    signature_header = request.headers.get('x-hub-signature-256')
-    if not signature_header:
-        return False
-    
-    # GitHub sends signature as "sha256=<hash>"
-    try:
-        import hashlib
-        import hmac
-        
-        # Ensure payload_body is bytes
-        if isinstance(payload_body, str):
-            payload_body = payload_body.encode('utf-8')
-        
-        # Calculate expected signature
-        hash_object = hmac.new(secret.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
-        expected_signature = "sha256=" + hash_object.hexdigest()
-        
-        # Constant-time comparison to prevent timing attacks
-        return hmac.compare_digest(expected_signature, signature_header)
-    except Exception as e:
-        print(f"Error verifying webhook signature: {e}")
-        return False
-
 async def handle_github_webhook(request, env):
     """
     POST /api/github/webhook
