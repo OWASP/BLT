@@ -194,8 +194,9 @@ BLT-OSSH/
 7. Profile appears on Community page immediately (after workflow syncs `data/profiles.json`)
 
 ### 3. Profile Discovery
-- Community page fetches all open issues with `profile` label
-- Parses issue body to extract profile information
+- `update-profiles.yml` fetches all open issues with the `profile` label
+- The workflow parses issue bodies and generates `data/profiles.json`
+- Community page reads `data/profiles.json` to render profiles
 - Displays profiles with rich cards showing:
   - Experience level badge
   - Skills and interests
@@ -290,25 +291,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 ## Features in Detail
 
-### Smart Matching Algorithm
-- Analyzes your repository languages and frequency
-- Considers your starred repos and topics
-- Matches you with trending and well-maintained projects
-- Weighs factors like activity, stars, and relevance
-
-### Community Features
-- **Profile Cards**: Rich cards with avatar, bio, skills, interests
-- **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
-- **Search & Filter**: Find developers by name, username, skills, or experience level
-- **Real-time Stats**: Community statistics (member count, languages, countries)
-- **Social Integration**: Connect via GitHub, website, Twitter, LinkedIn
-- **GitHub-Powered**: Uses GitHub Issues as database for profiles
-
-### Recommendation Categories
-- **Projects**: Open source repositories matching your tech stack
-- **Communities**: Developer communities and organizations
-- **Articles**: Learning resources and documentation
-- **Discussions**: Forums, Discord servers, and chat platforms
+- See [Smart Hatching Algorithm](#smart-hatching-algorithm)
+- See [Community Features](#community-features)
+- See [Recommendation Categories](#recommendation-categories)
 
 ## Contributing
 
@@ -329,7 +314,7 @@ Part of OWASP BLT; follows its licensing terms.
 - [BLT Website](https://blt.owasp.org/)
 - [Report Issues](https://github.com/OWASP-BLT/BLT-OSSH/issues)
 - [Create Your Profile](https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml)
-- [Browse Community](./community.html)
+- [Browse Community](https://owasp-blt.github.io/BLT-OSSH/community.html)
 
 ## Roadmap
 
