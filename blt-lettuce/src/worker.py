@@ -1429,6 +1429,30 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
     )
 
 
+async def send_interactive_response(response_url, text, blocks=None):
+    """Send a response to Slack interactivity response_url."""
+    if not response_url:
+        return {"ok": False, "error": "missing_response_url"}
+    payload = {
+        "response_type": "ephemeral",
+        "text": text,
+    }
+    if blocks:
+        payload["blocks"] = blocks
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    resp = await js_fetch(
+        response_url,
+        {
+            "method": "POST",
+            "headers": headers,
+            "body": json.dumps(payload),
+        },
+    )
+    status = getattr(resp, "status", 0)
+    return {"ok": 200 <= status < 300, "status": status}
+
+
 async def open_conversation(env, user_id, token=None):
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
@@ -2354,28 +2378,31 @@ async def handle_request(request, env):
         and pathname.endswith("/stats")
         and method == "GET"
     ):
-        user = await get_current_user(env, request)
-        if not user:
-            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
-            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
-        except (ValueError, IndexError):
-            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+            user = await get_current_user(env, request)
+            if not user:
+                return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+            try:
+                ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+            except (ValueError, IndexError):
+                return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
-        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+            if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+                return _json_response({"ok": False, "error": "Forbidden"}, 403)
 
-        ws_stats = await db_get_workspace_stats(env, ws_id_val)
-        return Response.new(
-            json.dumps(ws_stats),
-            {
-                "status": 200,
-                "headers": {
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "application/json",
-                },
-            },
-        )
+            ws_stats = await db_get_workspace_stats(env, ws_id_val)
+            return _json_response(ws_stats, 200)
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                sentry.capture_exception_nowait(
+                    e,
+                    level="error",
+                    extra={"path": "/api/ws/<id>/stats", "workspace_id": pathname},
+                )
+            except Exception:
+                pass
+            return _json_response({"ok": False, "error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
     #  GET /api/ws/<id>/events  →  recent events JSON                    #
@@ -2502,6 +2529,7 @@ async def handle_request(request, env):
                     if isinstance(body_json.get("channel"), dict)
                     else None
                 )
+                response_url = body_json.get("response_url")
 
                 actions = body_json.get("actions", [])
                 if actions and len(actions) > 0:
@@ -2514,17 +2542,25 @@ async def handle_request(request, env):
                     if not ws_token:
                         ws_token = getattr(env, "SLACK_TOKEN", None)
 
-                    if not ws_token or not channel_id:
-                        return Response.json({"ok": True})
-
                     # Handle button actions by simulating the command
                     if action_id == "quick_stats":
                         counts = await get_db_table_counts(env)
                         stats_text = _format_db_stats_for_slack(counts)
                         blocks = _create_quick_action_buttons()
-                        await send_slack_message(
-                            env, channel_id, stats_text, blocks=blocks, token=ws_token
-                        )
+                        if ws_token and channel_id:
+                            await send_slack_message(
+                                env,
+                                channel_id,
+                                stats_text,
+                                blocks=blocks,
+                                token=ws_token,
+                            )
+                        else:
+                            await send_interactive_response(
+                                response_url,
+                                stats_text,
+                                blocks=blocks,
+                            )
 
                     elif action_id == "quick_hello":
                         counts = await get_db_table_counts(env)
@@ -2534,9 +2570,20 @@ async def handle_request(request, env):
                             "Try commands: `stats`, `help`, `health`"
                         )
                         blocks = _create_quick_action_buttons()
-                        await send_slack_message(
-                            env, channel_id, greet_text, blocks=blocks, token=ws_token
-                        )
+                        if ws_token and channel_id:
+                            await send_slack_message(
+                                env,
+                                channel_id,
+                                greet_text,
+                                blocks=blocks,
+                                token=ws_token,
+                            )
+                        else:
+                            await send_interactive_response(
+                                response_url,
+                                greet_text,
+                                blocks=blocks,
+                            )
 
                     elif action_id == "quick_help":
                         help_text = (
@@ -2547,9 +2594,20 @@ async def handle_request(request, env):
                             "Or use the quick action buttons below!"
                         )
                         blocks = _create_quick_action_buttons()
-                        await send_slack_message(
-                            env, channel_id, help_text, blocks=blocks, token=ws_token
-                        )
+                        if ws_token and channel_id:
+                            await send_slack_message(
+                                env,
+                                channel_id,
+                                help_text,
+                                blocks=blocks,
+                                token=ws_token,
+                            )
+                        else:
+                            await send_interactive_response(
+                                response_url,
+                                help_text,
+                                blocks=blocks,
+                            )
 
                 return Response.json({"ok": True})
 
