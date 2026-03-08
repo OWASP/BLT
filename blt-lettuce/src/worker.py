@@ -1599,7 +1599,7 @@ async def report_404_to_sentry(env, path, method, detail=""):
     try:
         sentry = get_sentry()
         await sentry.capture_exception(
-            RuntimeError("404 Not Found"),
+            RuntimeError(f"404 Not Found: {path}"),
             level="warning",
             extra={
                 "path": path,

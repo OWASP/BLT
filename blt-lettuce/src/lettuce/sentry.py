@@ -81,8 +81,8 @@ class SentryClient:
             # Build Sentry payload
             payload = self._build_payload(exc, exc_info, level, extra)
 
-            # Send to Sentry
-            await self._send_payload(payload)
+            # Send to Sentry without blocking request execution.
+            self._send_payload(payload)
         except Exception:
             # Silently fail - don't break the worker
             pass
@@ -146,7 +146,7 @@ class SentryClient:
 
         return str(uuid.uuid4()).replace("-", "")
 
-    async def _send_payload(self, payload):
+    def _send_payload(self, payload):
         """Send payload to Sentry API."""
         try:
             from js import Headers, fetch
@@ -160,7 +160,9 @@ class SentryClient:
                 "X-Sentry-Auth",
                 f"Sentry sentry_key={self.key}, sentry_version=7",
             )
-            await fetch(
+            # Fire-and-forget network send. Avoid awaiting here because
+            # nested awaits in worker exception paths can deadlock Pyodide tasks.
+            fetch(
                 self.api_url,
                 {
                     "method": "POST",
@@ -168,7 +170,6 @@ class SentryClient:
                     "body": json.dumps(payload),
                 },
             )
-            # Fire and forget - response not used
         except Exception:
             pass
 
@@ -200,7 +201,7 @@ class SentryClient:
                 "extra": extra or {},
             }
 
-            await self._send_payload(payload)
+            self._send_payload(payload)
         except Exception:
             pass
 
