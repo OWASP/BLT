@@ -192,6 +192,16 @@ async def handle_bugs(
                 f"Missing required fields: {', '.join(missing_fields)}",
                 status=400
             )
+
+        # Prevent clients from setting security-sensitive fields.
+        privileged_fields = ["verified", "user", "closed_by", "reporter_ip_address"]
+        provided_privileged_fields = [field for field in privileged_fields if field in body]
+        if provided_privileged_fields:
+            return error_response(
+                "The following fields are server-managed and cannot be set: "
+                + ", ".join(provided_privileged_fields),
+                status=400
+            )
         
         
         # Validate URL length
@@ -216,6 +226,14 @@ async def handle_bugs(
             return error_response("Invalid URL format", status=400)
         
         try:
+            # Use a trusted edge header when available; never accept this from JSON body.
+            reporter_ip = None
+            if hasattr(request, "headers") and request.headers:
+                try:
+                    reporter_ip = request.headers.get("CF-Connecting-IP")
+                except Exception:
+                    reporter_ip = None
+
             # Insert the new bug - use None for NULL values
             result = await db.prepare('''
                 INSERT INTO bugs (
@@ -230,7 +248,7 @@ async def handle_bugs(
                 body.get("markdown_description") or None,
                 body.get("label") or None,
                 body.get("views") or None,
-                1 if body.get("verified") else 0,
+                0,
                 body.get("score") or None,
                 body.get("status") or "open",
                 body.get("user_agent") or None,
@@ -239,13 +257,13 @@ async def handle_bugs(
                 body.get("github_url") or None,
                 1 if body.get("is_hidden") else 0,
                 body.get("rewarded") or 0,
-                body.get("reporter_ip_address") or None,
+                reporter_ip,
                 body.get("cve_id") or None,
                 body.get("cve_score") or None,
                 body.get("hunt") or None,
                 body.get("domain") or None,
-                body.get("user") or None,
-                body.get("closed_by") or None
+                None,
+                None
             ).run()
             
             # Get the last inserted row ID
