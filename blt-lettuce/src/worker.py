@@ -2287,7 +2287,31 @@ async def handle_request(request, env):
     if pathname == "/webhook" and method == "POST":
         try:
             body_text = await request.text()
-            body_json = json.loads(body_text)
+            content_type = (request.headers.get("Content-Type") or "").lower()
+            body_json = {}
+
+            # Slack interactivity and slash commands are form-encoded.
+            if "application/x-www-form-urlencoded" in content_type:
+                form_data = {}
+                for pair in body_text.split("&"):
+                    if not pair:
+                        continue
+                    kv = pair.split("=", 1)
+                    key = unquote_plus(kv[0]) if len(kv) > 0 else ""
+                    value = unquote_plus(kv[1]) if len(kv) > 1 else ""
+                    if key:
+                        form_data[key] = value
+
+                if form_data.get("payload"):
+                    body_json = json.loads(form_data.get("payload") or "{}")
+                else:
+                    # Slash command payload shape.
+                    body_json = {
+                        "type": "slash_command",
+                        **form_data,
+                    }
+            else:
+                body_json = json.loads(body_text or "{}")
 
             if body_json.get("type") != "url_verification":
                 signing_secret = getattr(env, "SIGNING_SECRET", None)
@@ -2300,6 +2324,14 @@ async def handle_request(request, env):
 
             if body_json.get("type") == "url_verification":
                 return Response.json({"challenge": body_json.get("challenge")})
+
+            if body_json.get("type") == "slash_command":
+                return Response.json(
+                    {
+                        "response_type": "ephemeral",
+                        "text": "Command received. Use `stats`, `hello`, or `help` in DM with Lettuce.",
+                    }
+                )
 
             # Handle interactive button clicks
             if body_json.get("type") == "block_actions":
