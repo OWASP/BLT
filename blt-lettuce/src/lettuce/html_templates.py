@@ -83,6 +83,12 @@ def get_dashboard_html(
         user_avatar_html = '<i class="fas fa-user-circle text-red-500 text-2xl"></i>'
     ws_id = (current_ws or {}).get("id", "")
     ws_name = html_escape((current_ws or {}).get("team_name", "No workspace selected"))
+    ws_app_id = (current_ws or {}).get("app_id", "")
+    app_edit_url = (
+        f"https://api.slack.com/apps/{ws_app_id}/general"
+        if ws_app_id
+        else "https://api.slack.com/apps"
+    )
     ws_count = len(workspaces)
 
     ws_tabs = ""
@@ -269,6 +275,7 @@ def get_dashboard_html(
             "dashboard_workspace_section.html",
             {
                 "WS_NAME": ws_name,
+                "APP_EDIT_URL": app_edit_url,
                 "SCAN_BTN": scan_btn,
                 "TOTAL": f"{total:,}",
                 "LAST24": f"{last24:,}",

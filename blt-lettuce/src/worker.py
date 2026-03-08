@@ -190,6 +190,7 @@ async def ensure_d1_schema(env):
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "team_id TEXT UNIQUE NOT NULL,"
             "team_name TEXT NOT NULL,"
+            "app_id TEXT DEFAULT '',"
             "access_token TEXT NOT NULL,"
             "bot_user_id TEXT DEFAULT '',"
             "created_at TEXT NOT NULL,"
@@ -273,6 +274,11 @@ async def ensure_d1_schema(env):
             "table": "users",
             "column": "avatar_url",
             "sql": "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
+        },
+        {
+            "table": "workspaces",
+            "column": "app_id",
+            "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
         },
     ]
 
@@ -405,7 +411,9 @@ async def db_get_workspace_by_team(env, team_id):
         return None
 
 
-async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id=""):
+async def db_upsert_workspace(
+    env, team_id, team_name, access_token, bot_user_id="", app_id=""
+):
     now = get_utc_now()
     try:
         await ensure_d1_schema(env)
@@ -413,10 +421,10 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
         if existing:
             result = await (
                 env.DB.prepare(
-                    "UPDATE workspaces SET team_name=?, access_token=?, bot_user_id=?, "
+                    "UPDATE workspaces SET team_name=?, app_id=?, access_token=?, bot_user_id=?, "
                     "updated_at=? WHERE team_id=?"
                 )
-                .bind(team_name, access_token, bot_user_id, now, team_id)
+                .bind(team_name, app_id, access_token, bot_user_id, now, team_id)
                 .run()
             )
             print(
@@ -426,10 +434,10 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
             result = await (
                 env.DB.prepare(
                     "INSERT INTO workspaces "
-                    "(team_id, team_name, access_token, bot_user_id, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?)"
+                    "(team_id, team_name, app_id, access_token, bot_user_id, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
                 )
-                .bind(team_id, team_name, access_token, bot_user_id, now, now)
+                .bind(team_id, team_name, app_id, access_token, bot_user_id, now, now)
                 .run()
             )
             print(
@@ -1582,16 +1590,6 @@ async def handle_message_event(env, event, team_id=None):
     if subtype == "channel_join":
         if ws:
             await db_log_event(env, ws["id"], "Channel_Join", user or "", "success")
-        if contribute_id and user and channel:
-            try:
-                await send_slack_message(
-                    env,
-                    contribute_id,
-                    f"<@{user}> joined <#{channel}>.",
-                    token=ws_token,
-                )
-            except Exception:
-                pass
         return {"ok": True, "action": "channel_join_logged"}
 
     if (
@@ -1954,13 +1952,14 @@ async def handle_request(request, env):
                 team_id = _obj_get(team_info, "id", "")
                 team_name = _obj_get(team_info, "name", "Unknown Workspace")
                 bot_user_id = token_data.get("bot_user_id") or ""
+                app_id = token_data.get("app_id") or ""
                 print(
-                    f"[OAuth callback] team_id={team_id}, team_name={team_name}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
+                    f"[OAuth callback] team_id={team_id}, team_name={team_name}, app_id={app_id}, bot_user_id={bot_user_id}, bot_token present={bool(bot_token)}"
                 )
 
                 if team_id and bot_token:
                     ws = await db_upsert_workspace(
-                        env, team_id, team_name, bot_token, bot_user_id
+                        env, team_id, team_name, bot_token, bot_user_id, app_id
                     )
                     print(f"[OAuth callback] Workspace upserted: {ws}")
                     if ws:
