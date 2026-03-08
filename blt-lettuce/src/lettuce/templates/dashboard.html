@@ -218,16 +218,44 @@ async function sendTestMessage(wsId) {
 }
 
 async function importHistory(wsId) {
+  const fileInput = document.getElementById('import-history-file');
+  if (!fileInput) {
+    showStatus('import-status', 'error', 'CSV input is unavailable on this page.');
+    return;
+  }
+  fileInput.value = '';
+  fileInput.click();
+}
+
+async function handleImportHistoryFile(event, wsId) {
+  const fileInput = event.target;
+  const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+  if (!file) return;
+
+  const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv';
+  if (!isCsv) {
+    showStatus('import-status', 'error', 'Please upload a .csv file.');
+    fileInput.value = '';
+    return;
+  }
+
   const btn = document.getElementById('import-btn');
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Importing...';
   }
+
   try {
-    const r = await fetch(`/api/ws/${wsId}/import-history`, { method: 'POST' });
+    const csvText = await file.text();
+    const r = await fetch(`/api/ws/${wsId}/import-history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv_text: csvText, filename: file.name }),
+    });
     const d = await r.json();
     if (d.ok) {
-      showStatus('import-status', 'success', `Import complete! ${d.events_imported || 0} events added from ${d.channels_processed || 0} channels.`);
+      const skipped = d.rows_skipped || 0;
+      showStatus('import-status', 'success', `Import complete! ${d.events_imported || 0} events added.${skipped ? ` ${skipped} row(s) skipped.` : ''}`);
       setTimeout(() => location.reload(), 2000);
     } else {
       showStatus('import-status', 'error', 'Import failed: ' + (d.error || 'unknown error'));
@@ -235,9 +263,10 @@ async function importHistory(wsId) {
   } catch (e) {
     showStatus('import-status', 'error', 'Request failed: ' + e.message);
   } finally {
+    if (fileInput) fileInput.value = '';
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-database mr-2"></i>Import History';
+      btn.innerHTML = '<i class="fas fa-file-csv mr-2"></i>Upload CSV';
     }
   }
 }

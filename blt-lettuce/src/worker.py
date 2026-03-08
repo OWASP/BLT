@@ -9,8 +9,10 @@ in Cloudflare D1, and handles all Slack interactions.
 
 import hashlib
 import hmac
+import io
 import json
 import secrets
+import csv
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
 
@@ -891,6 +893,125 @@ async def db_log_event(
         except Exception:
             pass
         return False
+
+
+async def db_insert_event(
+    env,
+    workspace_id,
+    event_type,
+    user_slack_id="",
+    status="success",
+    created_at=None,
+):
+    """Insert a single event row with an explicit timestamp when provided."""
+    event_time = created_at or get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?)"
+            )
+            .bind(workspace_id, event_type, user_slack_id, status, event_time)
+            .run()
+        )
+        return True
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={
+                    "context": "db_insert_event",
+                    "workspace_id": workspace_id,
+                    "event_type": event_type,
+                },
+            )
+        except Exception:
+            pass
+        return False
+
+
+def _normalize_event_timestamp(value):
+    """Normalize user-provided timestamp values to ISO-8601 UTC strings."""
+    if value is None:
+        return get_utc_now()
+    raw = str(value).strip()
+    if not raw:
+        return get_utc_now()
+    cleaned = raw.replace(" ", "T")
+    if cleaned.endswith("Z"):
+        cleaned = cleaned[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(cleaned)
+    except ValueError:
+        return get_utc_now()
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.isoformat()
+
+
+async def import_workspace_history_csv(env, workspace_id, csv_text):
+    """Import event rows from CSV text into the events table."""
+    if not csv_text or not str(csv_text).strip():
+        return {"ok": False, "error": "CSV file is empty"}
+
+    imported = 0
+    skipped = 0
+    sample_errors = []
+
+    reader = csv.DictReader(io.StringIO(csv_text))
+    if not reader.fieldnames:
+        return {"ok": False, "error": "CSV must include a header row"}
+
+    # Normalize header names to lowercase for flexible CSV imports.
+    normalized_fieldnames = [str(name or "").strip().lower() for name in reader.fieldnames]
+
+    max_rows = 5000
+    for row_index, row in enumerate(reader, start=2):
+        if row_index > max_rows + 1:
+            skipped += 1
+            continue
+
+        normalized_row = {}
+        for idx, key in enumerate(reader.fieldnames or []):
+            norm_key = normalized_fieldnames[idx] if idx < len(normalized_fieldnames) else str(key or "").strip().lower()
+            normalized_row[norm_key] = row.get(key)
+
+        event_type = (normalized_row.get("event_type") or normalized_row.get("type") or "").strip()
+        if not event_type:
+            skipped += 1
+            if len(sample_errors) < 5:
+                sample_errors.append(f"Line {row_index}: missing event_type")
+            continue
+
+        user_slack_id = (normalized_row.get("user_slack_id") or normalized_row.get("user") or "").strip()
+        status = (normalized_row.get("status") or "success").strip() or "success"
+        created_at = _normalize_event_timestamp(normalized_row.get("created_at") or normalized_row.get("time") or normalized_row.get("timestamp"))
+
+        ok = await db_insert_event(
+            env,
+            workspace_id,
+            event_type,
+            user_slack_id=user_slack_id,
+            status=status,
+            created_at=created_at,
+        )
+        if ok:
+            imported += 1
+        else:
+            skipped += 1
+            if len(sample_errors) < 5:
+                sample_errors.append(f"Line {row_index}: failed to insert event")
+
+    return {
+        "ok": imported > 0,
+        "events_imported": imported,
+        "rows_skipped": skipped,
+        "errors": sample_errors,
+    }
 
 
 async def db_get_events(env, workspace_id, limit=20):
@@ -2297,8 +2418,24 @@ async def handle_request(request, env):
             await report_404_to_sentry(env, pathname, method, "workspace_not_found")
             return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
-        result = await import_workspace_history(env, ws_id_val, ws["access_token"])
-        return _json_response(result)
+        try:
+            body = json.loads(await request.text())
+        except Exception:
+            body = {}
+
+        csv_text = (body.get("csv_text") or "") if isinstance(body, dict) else ""
+        if not csv_text:
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "CSV upload required. Please choose a CSV file from the dashboard.",
+                },
+                400,
+            )
+
+        result = await import_workspace_history_csv(env, ws_id_val, csv_text)
+        status_code = 200 if result.get("ok") else 400
+        return _json_response(result, status_code)
 
     # ------------------------------------------------------------------ #
     #  GET  /api/ws/<id>/repos  →  list repos                            #

@@ -275,7 +275,9 @@ def get_dashboard_html(
             '        id="import-btn" '
             '        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 border border-green-600 '
             '               text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">'
-            '<i class="fas fa-database"></i> Import History</button>'
+            '<i class="fas fa-file-csv"></i> Upload CSV</button>'
+            f'<input id="import-history-file" type="file" accept=".csv,text/csv" class="hidden" '
+            f'       onchange="handleImportHistoryFile(event, {ws_id_js})" />'
         )
         workspace_section = _render_template(
             "dashboard_workspace_section.html",
