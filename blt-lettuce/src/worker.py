@@ -823,6 +823,7 @@ async def db_update_channel_join_config(
 ):
     """Update per-channel join message toggle/template selection."""
     try:
+        await ensure_d1_schema(env)
         await (
             env.DB.prepare(
                 "UPDATE channels SET send_join_message = ?, join_message_id = ?, updated_at = ? "
@@ -838,7 +839,22 @@ async def db_update_channel_join_config(
             .run()
         )
         return True
-    except Exception:
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={
+                    "context": "db_update_channel_join_config",
+                    "workspace_id": workspace_id,
+                    "channel_id": channel_id,
+                    "send_join_message": bool(send_join_message),
+                    "join_message_id": join_message_id,
+                },
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -2784,6 +2800,75 @@ def _json_response(data, status=200):
     )
 
 
+def _is_same_origin_request(request):
+    """Best-effort same-origin check for browser-initiated state-changing requests."""
+    req_url = urlparse(request.url)
+    expected_origin = f"{req_url.scheme}://{req_url.netloc}".lower()
+
+    origin = str(request.headers.get("Origin") or "").strip().lower()
+    if origin:
+        return origin == expected_origin
+
+    referer = str(request.headers.get("Referer") or "").strip()
+    if referer:
+        try:
+            referer_url = urlparse(referer)
+            referer_origin = (
+                f"{referer_url.scheme}://{referer_url.netloc}".strip().lower()
+            )
+            return referer_origin == expected_origin
+        except Exception:
+            return False
+
+    sec_fetch_site = str(request.headers.get("Sec-Fetch-Site") or "").strip().lower()
+    if sec_fetch_site and sec_fetch_site not in ("same-origin", "none"):
+        return False
+
+    # If no browser provenance headers are present (e.g. non-browser callers),
+    # let auth/ownership checks decide.
+    return True
+
+
+def _attach_security_headers(response):
+    """Attach security headers to every response if not already set."""
+    if response is None:
+        return response
+
+    headers = response.headers
+    if not headers.get("X-Content-Type-Options"):
+        headers.set("X-Content-Type-Options", "nosniff")
+    if not headers.get("X-Frame-Options"):
+        headers.set("X-Frame-Options", "DENY")
+    if not headers.get("Referrer-Policy"):
+        headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+    if not headers.get("Permissions-Policy"):
+        headers.set(
+            "Permissions-Policy",
+            "camera=(), microphone=(), geolocation=(), payment=()",
+        )
+    if not headers.get("Cross-Origin-Resource-Policy"):
+        headers.set("Cross-Origin-Resource-Policy", "same-origin")
+    if not headers.get("Cross-Origin-Opener-Policy"):
+        headers.set("Cross-Origin-Opener-Policy", "same-origin")
+    if not headers.get("Strict-Transport-Security"):
+        headers.set(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains; preload",
+        )
+    if not headers.get("Content-Security-Policy"):
+        headers.set(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https:; "
+            "style-src 'self' 'unsafe-inline' https:; "
+            "img-src 'self' https: data:; "
+            "font-src 'self' https: data:; "
+            "connect-src 'self' https:; "
+            "base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        )
+    return response
+
+
 def _manifest_get(data, path):
     """Safely read nested dict values by path list."""
     cur = data
@@ -3004,6 +3089,11 @@ async def handle_request(request, env):
         h.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         h.set("Access-Control-Allow-Headers", "Content-Type")
         return Response.new("", {"headers": h})
+
+    # Reject cross-origin browser requests for mutating workspace API calls.
+    if pathname.startswith("/api/ws/") and method in ("POST", "DELETE"):
+        if not _is_same_origin_request(request):
+            return _json_response({"ok": False, "error": "Forbidden origin"}, 403)
 
     # ------------------------------------------------------------------ #
     #  GET /login  →  redirect to Slack OAuth (sign-in, identity only)   #
@@ -3805,6 +3895,29 @@ async def handle_request(request, env):
         if not channel_id:
             return _json_response({"ok": False, "error": "channel_id is required"}, 400)
 
+        channel_row = await db_get_channel_by_slack_id(env, ws_id_val, channel_id)
+        if not channel_row:
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Unknown channel. Run Scan Channels and try again.",
+                },
+                404,
+            )
+
+        if join_message_id is not None:
+            join_message = await db_get_join_message_by_id(
+                env, ws_id_val, join_message_id
+            )
+            if not join_message:
+                return _json_response(
+                    {
+                        "ok": False,
+                        "error": "Selected join message does not exist for this workspace.",
+                    },
+                    400,
+                )
+
         if send_join_message and not join_message_id:
             return _json_response(
                 {
@@ -4356,6 +4469,9 @@ async def handle_request(request, env):
     # ------------------------------------------------------------------ #
     if pathname == "/api/db-stats" and method == "GET":
         try:
+            user = await get_current_user(env, request)
+            if not user:
+                return _json_response({"ok": False, "error": "Unauthorized"}, 401)
             counts = await get_db_table_counts(env)
             return Response.json(
                 {"ok": True, "counts": counts, "timestamp": get_utc_now()}
@@ -4461,7 +4577,8 @@ class Default(WorkerEntrypoint):
             # Store env globally to avoid passing through multiple call levels
             _current_env = self.env
             # Call handler - it will access _current_env as needed
-            return await handle_request(request, self.env)
+            response = await handle_request(request, self.env)
+            return _attach_security_headers(response)
         except Exception as e:
             # Report error to Sentry
             try:
@@ -4492,11 +4609,7 @@ class Default(WorkerEntrypoint):
 
             # API/webhook callers still expect JSON responses.
             if path.startswith("/api/") or path == "/webhook":
-                h = Headers.new()
-                h.set("Content-Type", "application/json")
-                return Response.new(
-                    json.dumps({"error": "Internal server error"}),
-                    {"status": 500, "headers": h},
+                return _attach_security_headers(
+                    _json_response({"error": "Internal server error"}, 500)
                 )
-
-            return _html_response(get_500_html(), status=500)
+            return _attach_security_headers(_html_response(get_500_html(), 500))
