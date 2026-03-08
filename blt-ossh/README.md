@@ -195,7 +195,7 @@ BLT-OSSH/
 ### 3. Profile Discovery
 - `update-profiles.yml` fetches all open issues with the `profile` label
 - The workflow parses issue bodies and generates `data/profiles.json`
-- Community page reads `data/profiles.json` to render profiles
+- Community page loads profiles from `data/profiles.json`
 - Displays profiles with rich cards showing:
   - Experience level badge
   - Skills and interests
@@ -213,15 +213,15 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 |----------|---------|
 | `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
 | `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
-| `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (used by workflow) |
-| `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues) |
+| `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (used by workflow to generate `data/profiles.json`) |
+| `data/profiles.json` | Community profiles (static file; Community page loads this) |
 
 ### Data Fetched
 
 - **User profile** — Avatar, bio, public repos count, followers, following
 - **Repositories** — Names, descriptions, languages, stars, fork status
 - **Languages used** — Extracted from repository metadata and weighted by frequency
-- **Community profiles** — The workflow generates `data/profiles.json` from GitHub Issues; the Community page reads profiles from this file.
+- **Community profiles** — Loaded from `data/profiles.json` (workflow populates it from GitHub Issues)
 
 ### Rate Limits
 
