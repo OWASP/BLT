@@ -48,11 +48,18 @@
       <div class="mt-4 space-y-2">
         {{ WS_TABS }}
       </div>
-      <a href="/workspace/add"
-         class="mt-4 inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-red-600 text-white
-                rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
-        <i class="fas fa-plus"></i> Add Workspace
-      </a>
+      <div class="mt-4 space-y-2">
+        <a href="/workspace/add"
+           class="inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-red-600 text-white
+                  rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm">
+          <i class="fas fa-plus"></i> Add via OAuth
+        </a>
+        <button onclick="openManualAddModal()"
+           class="inline-flex w-full justify-center items-center gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-200
+                  rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+          <i class="fas fa-key"></i> Add Manually
+        </button>
+      </div>
       {{ DELETE_WORKSPACE_BTN }}
     </aside>
 
@@ -569,6 +576,166 @@ async function deleteWorkspace(wsId) {
     alert('Request failed: ' + e.message);
   }
 }
+
+// Manual workspace addition
+function openManualAddModal() {
+  document.getElementById('manualAddModal').classList.remove('hidden');
+  document.getElementById('manualAddForm').reset();
+  document.getElementById('manualAddStatus').classList.add('hidden');
+}
+
+function closeManualAddModal() {
+  document.getElementById('manualAddModal').classList.add('hidden');
+}
+
+async function submitManualAdd(event) {
+  event.preventDefault();
+  
+  const statusEl = document.getElementById('manualAddStatus');
+  const submitBtn = document.getElementById('manualAddSubmitBtn');
+  const token = document.getElementById('botToken').value.trim();
+  const teamName = document.getElementById('teamName').value.trim();
+  
+  if (!token) {
+    statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Bot token is required</span>';
+    statusEl.classList.remove('hidden');
+    return;
+  }
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
+  statusEl.classList.add('hidden');
+  
+  try {
+    const response = await fetch('/api/workspace/manual-add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, team_name: teamName })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-green-50 text-green-800 border border-green-200';
+      statusEl.innerHTML = '<i class="fas fa-check-circle"></i><span>Workspace added successfully! Redirecting...</span>';
+      statusEl.classList.remove('hidden');
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        window.location.href = '/dashboard?ws=' + data.workspace.id;
+      }, 1500);
+    } else {
+      statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+      statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + (data.error || 'Failed to add workspace') + '</span>';
+      statusEl.classList.remove('hidden');
+      
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Workspace';
+    }
+  } catch (error) {
+    statusEl.className = 'mb-4 p-3 rounded-lg flex items-center gap-2 bg-red-50 text-red-800 border border-red-200';
+    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Network error: ' + error.message + '</span>';
+    statusEl.classList.remove('hidden');
+    
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Workspace';
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('manualAddModal');
+  if (event.target === modal) {
+    closeManualAddModal();
+  }
+});
 </script>
+
+<!-- Manual Add Workspace Modal -->
+<div id="manualAddModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-gray-900">Add Workspace Manually</h2>
+      <button onclick="closeManualAddModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    
+    <form id="manualAddForm" onsubmit="submitManualAdd(event)" class="p-6 space-y-4">
+      <div id="manualAddStatus" class="hidden"></div>
+      
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <div class="flex items-start gap-2">
+          <i class="fas fa-info-circle mt-0.5"></i>
+          <div>
+            <p class="font-medium mb-1">Before you begin:</p>
+            <ol class="list-decimal ml-4 space-y-1 text-xs">
+              <li>Go to <a href="https://api.slack.com/apps" target="_blank" class="underline hover:text-blue-900">api.slack.com/apps</a></li>
+              <li>Select your app or create a new one</li>
+              <li>Install it to your workspace if not already installed</li>
+              <li>Copy the <strong>Bot User OAuth Token</strong> (starts with <code class="bg-blue-100 px-1 rounded">xoxb-</code>)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <label for="botToken" class="block text-sm font-medium text-gray-700 mb-2">
+          Bot Token <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="botToken"
+          name="token"
+          placeholder="xoxb-..."
+          required
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm"
+        />
+        <p class="mt-1 text-xs text-gray-500">Your Bot User OAuth Token from Slack</p>
+      </div>
+      
+      <div>
+        <label for="teamName" class="block text-sm font-medium text-gray-700 mb-2">
+          Workspace Name <span class="text-gray-400">(optional)</span>
+        </label>
+        <input
+          type="text"
+          id="teamName"
+          name="team_name"
+          placeholder="My Workspace"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+        />
+        <p class="mt-1 text-xs text-gray-500">Leave blank to auto-detect from Slack</p>
+      </div>
+      
+      <div class="flex items-center gap-3 pt-4">
+        <button
+          type="submit"
+          id="manualAddSubmitBtn"
+          class="flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+        >
+          <i class="fas fa-plus"></i> Add Workspace
+        </button>
+        <button
+          type="button"
+          onclick="closeManualAddModal()"
+          class="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+    
+    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+      <div class="flex items-start gap-2 text-xs text-gray-600">
+        <i class="fas fa-shield-alt mt-0.5"></i>
+        <p><strong>Security:</strong> Your bot token is stored securely in the database and never exposed in logs or to other users.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
