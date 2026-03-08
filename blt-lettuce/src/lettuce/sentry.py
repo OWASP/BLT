@@ -87,6 +87,25 @@ class SentryClient:
             # Silently fail - don't break the worker
             pass
 
+    def capture_exception_nowait(self, exc=None, level="error", extra=None):
+        """Capture exception without awaiting, safe for worker hot paths."""
+        if not self.enabled:
+            return
+
+        try:
+            if exc is None:
+                exc_info = sys.exc_info()
+                if exc_info[0] is None:
+                    return
+                exc = exc_info[1]
+            else:
+                exc_info = (type(exc), exc, exc.__traceback__)
+
+            payload = self._build_payload(exc, exc_info, level, extra)
+            self._send_payload(payload)
+        except Exception:
+            pass
+
     def _build_payload(self, exc, exc_info, level, extra):
         """Build Sentry event payload."""
         exc_type, exc_value, exc_traceback = exc_info

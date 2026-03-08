@@ -316,7 +316,7 @@ async def ensure_d1_schema(env):
                 )
                 try:
                     sentry = get_sentry()
-                    await sentry.capture_exception(
+                    sentry.capture_exception_nowait(
                         migration_error,
                         level="error",
                         extra={
@@ -335,7 +335,7 @@ async def ensure_d1_schema(env):
         print(f"[ensure_d1_schema] ERROR: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "schema_initialization"}
             )
         except Exception:
@@ -397,7 +397,7 @@ async def db_get_workspace_by_team(env, team_id):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_workspace_by_team", "team_id": team_id}
             )
         except Exception:
@@ -442,7 +442,7 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
         print(f"[db_upsert_workspace] ERROR: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"team_id": team_id, "team_name": team_name}
             )
         except Exception:
@@ -460,7 +460,7 @@ async def db_get_workspace_by_id(env, workspace_id):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_workspace_by_id", "workspace_id": workspace_id}
             )
         except Exception:
@@ -498,7 +498,7 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
         )
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e,
                 level="error",
                 extra={"user_id": user_id, "workspace_id": workspace_id},
@@ -535,7 +535,7 @@ async def db_get_user_workspaces(env, user_id):
         print(f"[db_get_user_workspaces] ERROR: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(e, level="error", extra={"user_id": user_id})
+            sentry.capture_exception_nowait(e, level="error", extra={"user_id": user_id})
         except Exception:
             pass
         return []
@@ -606,7 +606,7 @@ async def db_upsert_channel(
         print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e,
                 level="error",
                 extra={"workspace_id": workspace_id, "channel_id": channel_id},
@@ -709,7 +709,7 @@ async def db_get_or_create_user(
         print(f"[db_get_or_create_user] ERROR: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"slack_user_id": slack_user_id}
             )
         except Exception:
@@ -736,7 +736,7 @@ async def db_create_session(env, user_id, token):
         print(f"[db_create_session] ERROR: {e}")
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(e, level="error", extra={"user_id": user_id})
+            sentry.capture_exception_nowait(e, level="error", extra={"user_id": user_id})
         except Exception:
             pass
         return None
@@ -758,7 +758,7 @@ async def db_get_session(env, token):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_session"}
             )
         except Exception:
@@ -773,7 +773,7 @@ async def db_delete_session(env, token):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_delete_session"}
             )
         except Exception:
@@ -807,7 +807,7 @@ async def db_add_repository(
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_add_repository", "workspace_id": workspace_id, "repo_url": repo_url}
             )
         except Exception:
@@ -827,7 +827,7 @@ async def db_delete_repository(env, repo_id, workspace_id):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_delete_repository", "repo_id": repo_id, "workspace_id": workspace_id}
             )
         except Exception:
@@ -847,7 +847,7 @@ async def db_get_repositories(env, workspace_id):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_repositories", "workspace_id": workspace_id}
             )
         except Exception:
@@ -877,7 +877,7 @@ async def db_log_event(
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_log_event", "workspace_id": workspace_id, "event_type": event_type}
             )
         except Exception:
@@ -898,7 +898,7 @@ async def db_get_events(env, workspace_id, limit=20):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_events", "workspace_id": workspace_id}
             )
         except Exception:
@@ -922,7 +922,7 @@ async def db_get_daily_stats(env, workspace_id, days=30):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_daily_stats", "workspace_id": workspace_id}
             )
         except Exception:
@@ -1005,7 +1005,7 @@ async def db_get_workspace_stats(env, workspace_id):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "db_get_workspace_stats", "workspace_id": workspace_id}
             )
         except Exception:
@@ -1038,7 +1038,7 @@ async def get_current_user(env, request):
     except Exception as e:
         try:
             sentry = get_sentry()
-            await sentry.capture_exception(
+            sentry.capture_exception_nowait(
                 e, level="error", extra={"context": "get_current_user"}
             )
         except Exception:
@@ -1178,7 +1178,7 @@ async def get_db_table_counts(env):
             print(f"[get_db_table_counts] ERROR querying table {table}: {e}")
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e,
                     level="error",
                     extra={"table": table, "context": "get_db_table_counts"},
@@ -1295,7 +1295,7 @@ async def scan_workspace_channels(env, workspace_id, access_token):
             print(f"[scan_workspace_channels] ERROR during scan: {e}")
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e, level="error", extra={"workspace_id": workspace_id}
                 )
             except Exception:
@@ -1356,7 +1356,7 @@ async def import_workspace_history(env, workspace_id, access_token):
             print(f"[import_workspace_history] ERROR importing from {channel_id}: {e}")
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e,
                     level="error",
                     extra={
@@ -1716,7 +1716,7 @@ async def report_404_to_sentry(env, path, method, detail=""):
     """Capture 404 responses in Sentry with request context."""
     try:
         sentry = get_sentry()
-        await sentry.capture_exception(
+        sentry.capture_exception_nowait(
             RuntimeError(f"404 Not Found: {path}"),
             level="warning",
             extra={
@@ -1998,7 +1998,7 @@ async def handle_request(request, env):
         except Exception as e:
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e,
                     level="error",
                     extra={
@@ -2574,7 +2574,7 @@ async def handle_request(request, env):
         except Exception as e:
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e,
                     level="error",
                     extra={
@@ -2624,7 +2624,7 @@ async def handle_request(request, env):
             print(f"[/api/db-stats] ERROR: {e}")
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e, level="error", extra={"path": "/api/db-stats"}
                 )
             except Exception:
@@ -2680,7 +2680,7 @@ async def handle_request(request, env):
             print(f"[/api/debug/db] ERROR: {e}")
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e, level="error", extra={"path": "/api/debug/db"}
                 )
             except Exception:
@@ -2726,7 +2726,7 @@ class Default(WorkerEntrypoint):
             # Report error to Sentry
             try:
                 sentry = get_sentry()
-                await sentry.capture_exception(
+                sentry.capture_exception_nowait(
                     e,
                     level="error",
                     extra={
