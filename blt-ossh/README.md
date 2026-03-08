@@ -67,16 +67,17 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 - **Profile Cards**: Rich cards with avatar, bio, skills, interests
 - **Experience Badges**: Visual indicators (Beginner, Intermediate, Advanced, Expert)
-- **Search & Filters**: Find developers by name, username, skills, or experience level
+- **Search & Filter**: Find developers by name, username, skills, or experience level
 - **Real-time Stats**: Community statistics (member count, languages, countries)
-- **Social Integrations**: Connect via GitHub, website, Twitter, LinkedIn
-- **GitHub-Powered**: Uses GitHub Issues as a database for profiles
+- **Social Integration**: Connect via GitHub, website, Twitter, LinkedIn
+- **GitHub-Powered**: Uses GitHub Issues as data source for profiles and projects
 
 ### Recommendation Categories
 
-- **Projects**: Open source repositories matching your tech stack
+- **Projects**: Open source repositories matching your skills and interests
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
+- **Discussions**: Forums, Discord servers, and other platforms
 
 ## How Profiles Work
 
@@ -209,6 +210,22 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - **Authenticated requests**: 5,000 requests/hour (if you add a token — not required for basic use)
 - The app typically makes 2–4 requests per profile analysis (profile, repos, optionally events), so casual use stays within limits
 - If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
+
+## Community Profile Template
+
+Profiles are created as GitHub Issues using a structured template with these fields:
+
+- **GitHub Username** (required) - Your GitHub handle
+- **Display Name** (required) - How you want to be known
+- **Bio** (required) - Brief description about yourself
+- **Experience Level** (required) - Beginner, Intermediate, Advanced, or Expert
+- **Areas of Interest** (checkboxes) - Web Dev, Mobile Dev, AI/ML, Cybersecurity, DevOps, etc.
+- **Skills & Technologies** (required) - Comma-separated list (e.g., Python, JavaScript, React)
+- **Looking For** (required) - Your goals (e.g., collaboration, mentorship)
+- **Location** (optional) - Your geographical location
+- **Website/Portfolio** (optional) - Your personal website or portfolio link
+- **Twitter** (optional) - Handle without @
+- **LinkedIn** (optional) - LinkedIn username
 
 ## Contributing
 
