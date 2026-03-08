@@ -233,6 +233,7 @@ async def ensure_d1_schema(env):
             "is_private INTEGER DEFAULT 0,"
             "send_join_message INTEGER DEFAULT 0,"
             "join_message_id INTEGER DEFAULT NULL,"
+            "join_delivery_mode TEXT DEFAULT 'dm',"
             "created_at TEXT NOT NULL,"
             "updated_at TEXT NOT NULL,"
             "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
@@ -354,6 +355,11 @@ async def ensure_d1_schema(env):
             "table": "channels",
             "column": "join_message_id",
             "sql": "ALTER TABLE channels ADD COLUMN join_message_id INTEGER DEFAULT NULL",
+        },
+        {
+            "table": "channels",
+            "column": "join_delivery_mode",
+            "sql": "ALTER TABLE channels ADD COLUMN join_delivery_mode TEXT DEFAULT 'dm'",
         },
     ]
 
@@ -818,7 +824,9 @@ async def db_get_channel_by_slack_id(env, workspace_id, channel_id):
         return None
 
 
-async def db_update_channel_join_config(env, workspace_id, channel_id, join_message_id):
+async def db_update_channel_join_config(
+    env, workspace_id, channel_id, join_message_id, join_delivery_mode="dm"
+):
     """Update per-channel join message template selection.
 
     Sending is enabled whenever join_message_id is set, disabled when NULL.
@@ -828,12 +836,13 @@ async def db_update_channel_join_config(env, workspace_id, channel_id, join_mess
         send_join_message = 1 if join_message_id else 0
         await (
             env.DB.prepare(
-                "UPDATE channels SET send_join_message = ?, join_message_id = ?, updated_at = ? "
+                "UPDATE channels SET send_join_message = ?, join_message_id = ?, join_delivery_mode = ?, updated_at = ? "
                 "WHERE workspace_id = ? AND channel_id = ?"
             )
             .bind(
                 1 if send_join_message else 0,
                 join_message_id,
+                join_delivery_mode,
                 get_utc_now(),
                 workspace_id,
                 channel_id,
@@ -852,6 +861,7 @@ async def db_update_channel_join_config(env, workspace_id, channel_id, join_mess
                     "workspace_id": workspace_id,
                     "channel_id": channel_id,
                     "join_message_id": join_message_id,
+                    "join_delivery_mode": join_delivery_mode,
                 },
             )
         except Exception:
@@ -2354,6 +2364,35 @@ async def send_slack_message(env, channel, text, blocks=None, token=None):
     )
 
 
+async def send_slack_ephemeral_message(
+    env, channel, user_id, text, blocks=None, token=None
+):
+    """Send an ephemeral message visible only to one user in a channel."""
+    slack_token = token or getattr(env, "SLACK_TOKEN", None)
+    if not slack_token:
+        return {"ok": False, "error": "SLACK_TOKEN not configured"}
+    payload = {"channel": channel, "user": user_id, "text": text}
+    if blocks:
+        payload["blocks"] = blocks
+    headers = Headers.new()
+    headers.set("Content-Type", "application/json")
+    headers.set("Authorization", f"Bearer {slack_token}")
+    resp = await js_fetch(
+        "https://slack.com/api/chat.postEphemeral",
+        {
+            "method": "POST",
+            "headers": headers,
+            "body": json.dumps(payload),
+        },
+    )
+    result = _js_to_python(await resp.json())
+    return (
+        result
+        if isinstance(result, dict)
+        else {"ok": False, "error": "invalid_response"}
+    )
+
+
 async def send_interactive_response(response_url, text, blocks=None):
     """Send a response to Slack interactivity response_url."""
     if not response_url:
@@ -2627,15 +2666,45 @@ async def handle_message_event(env, event, team_id=None):
                                 "user_id": user or "",
                                 "logo_url": logo_url,
                                 "image_loaded": bool(image_loaded),
+                                "delivery_mode": str(
+                                    channel_row.get("join_delivery_mode") or "dm"
+                                ).lower(),
                             }
                             try:
-                                send_result = await send_slack_message(
-                                    env,
-                                    channel,
-                                    rendered,
-                                    blocks=join_blocks,
-                                    token=ws_token,
+                                delivery_mode = (
+                                    str(channel_row.get("join_delivery_mode") or "dm")
+                                    .strip()
+                                    .lower()
                                 )
+                                if delivery_mode == "ephemeral":
+                                    send_result = await send_slack_ephemeral_message(
+                                        env,
+                                        channel,
+                                        user,
+                                        rendered,
+                                        blocks=join_blocks,
+                                        token=ws_token,
+                                    )
+                                else:
+                                    dm_response = await open_conversation(
+                                        env, user, token=ws_token
+                                    )
+                                    dm_channel = (
+                                        (dm_response.get("channel") or {}).get("id")
+                                        if isinstance(dm_response.get("channel"), dict)
+                                        else dm_response.get("channel")
+                                    )
+                                    if not dm_response.get("ok") or not dm_channel:
+                                        raise ValueError(
+                                            f"Failed to open DM channel: {dm_response.get('error', 'unknown')}"
+                                        )
+                                    send_result = await send_slack_message(
+                                        env,
+                                        dm_channel,
+                                        rendered,
+                                        blocks=join_blocks,
+                                        token=ws_token,
+                                    )
                                 await db_log_event(
                                     env,
                                     ws["id"],
@@ -3880,6 +3949,104 @@ async def handle_request(request, env):
         return _json_response({"ok": True}, 200)
 
     # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/join-messages/<msg_id>/test  →  test template  #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and "/join-messages/" in pathname
+        and pathname.endswith("/test")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            after = pathname.split("/api/ws/")[1]
+            ws_id_val = int(after.split("/")[0])
+            msg_id_val = int(after.split("/join-messages/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid ids"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can test join messages.",
+                },
+                403,
+            )
+
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            await report_404_to_sentry(env, pathname, method, "workspace_not_found")
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+
+        template = await db_get_join_message_by_id(env, ws_id_val, msg_id_val)
+        if not template:
+            return _json_response(
+                {"ok": False, "error": "Join message template not found"}, 404
+            )
+
+        user_slack_id = user.get("slack_user_id")
+        if not user_slack_id:
+            return _json_response(
+                {"ok": False, "error": "User Slack ID not found"}, 400
+            )
+
+        ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
+        dm_response = await open_conversation(env, user_slack_id, token=ws_token)
+        dm_channel = (
+            (dm_response.get("channel") or {}).get("id")
+            if isinstance(dm_response.get("channel"), dict)
+            else dm_response.get("channel")
+        )
+        if not dm_response.get("ok") or not dm_channel:
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": f"Failed to open DM: {dm_response.get('error', 'unknown')}",
+                },
+                500,
+            )
+
+        rendered = render_join_message_template(
+            template.get("message_text") or "",
+            {
+                "user_id": user_slack_id,
+                "user_mention": f"<@{user_slack_id}>",
+                "channel_id": "test-channel",
+                "channel_name": "test-channel",
+                "workspace_id": ws.get("id") or "",
+                "workspace_name": ws.get("team_name") or "",
+                "event_type": "join_message_test",
+                "timestamp": get_utc_now(),
+            },
+        )
+        test_text = (
+            f":test_tube: Join message test for *{template.get('name') or 'Template'}*\n\n"
+            f"{rendered}"
+        )
+        send_result = await send_slack_message(
+            env,
+            dm_channel,
+            test_text,
+            token=ws_token,
+        )
+        if not send_result.get("ok"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": f"Failed to send test: {send_result.get('error', 'unknown')}",
+                },
+                500,
+            )
+        return _json_response({"ok": True, "message": "Test message sent"}, 200)
+
+    # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/channels/join-config  →  update per-channel cfg #
     # ------------------------------------------------------------------ #
     if (
@@ -3915,6 +4082,11 @@ async def handle_request(request, env):
 
         channel_id = str((body or {}).get("channel_id") or "").strip()
         join_message_id_raw = (body or {}).get("join_message_id")
+        join_delivery_mode = str((body or {}).get("join_delivery_mode") or "dm").lower()
+        if join_delivery_mode not in ("dm", "ephemeral"):
+            return _json_response(
+                {"ok": False, "error": "Invalid join_delivery_mode"}, 400
+            )
         join_message_id = None
         try:
             if join_message_id_raw not in (None, "", 0, "0"):
@@ -3955,6 +4127,7 @@ async def handle_request(request, env):
             ws_id_val,
             channel_id,
             join_message_id,
+            join_delivery_mode,
         )
         if not ok:
             return _json_response(

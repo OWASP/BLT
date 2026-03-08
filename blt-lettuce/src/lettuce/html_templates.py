@@ -391,6 +391,9 @@ def get_dashboard_html(
         for idx, ch in enumerate(channels, start=1):
             ch_id = html_escape(ch.get("channel_id", ""))
             current_join_id = str(ch.get("join_message_id") or "")
+            delivery_mode = str(ch.get("join_delivery_mode") or "dm").strip().lower()
+            if delivery_mode not in ("dm", "ephemeral"):
+                delivery_mode = "dm"
             is_configured = bool(current_join_id)
             status_badge = (
                 '<span class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-semibold">'
@@ -407,6 +410,14 @@ def get_dashboard_html(
                     f'value="{current_join_id}"',
                     f'value="{current_join_id}" selected',
                 )
+            delivery_options = (
+                '<option value="dm">Direct Message</option>'
+                '<option value="ephemeral">Channel Ephemeral</option>'
+            )
+            delivery_options = delivery_options.replace(
+                f'value="{delivery_mode}"',
+                f'value="{delivery_mode}" selected',
+            )
             all_channels_rows += (
                 '<tr class="border-b border-gray-100 hover:bg-gray-50">'
                 f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
@@ -416,6 +427,9 @@ def get_dashboard_html(
                 '<td class="py-3 px-4 text-sm text-gray-600">'
                 f'<select id="join-template-{ch_id}" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm">{options_html}</select>'
                 "</td>"
+                '<td class="py-3 px-4 text-sm text-gray-600">'
+                f'<select id="join-delivery-{ch_id}" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm">{delivery_options}</select>'
+                "</td>"
                 f'<td class="py-3 px-4 text-sm text-gray-600 font-semibold">{sent_count:,}</td>'
                 '<td class="py-3 px-4 text-sm text-gray-600">'
                 f'<button onclick="saveChannelJoinConfig({ws_id_js}, &quot;{ch_id}&quot;)" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium">Save</button>'
@@ -424,7 +438,7 @@ def get_dashboard_html(
             )
         if not all_channels_rows:
             all_channels_rows = (
-                '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
+                '<tr><td colspan="8" class="py-6 text-center text-sm text-gray-400">'
                 "No channels scanned yet. Use Scan Channels to fetch workspace channels."
                 "</td></tr>"
             )
@@ -444,6 +458,7 @@ def get_dashboard_html(
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Join Message</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivery</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Messages Sent</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Action</th>'
             "</tr></thead><tbody>"
@@ -555,6 +570,7 @@ def get_dashboard_html(
                     f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{jm_name}</td>'
                     f'<td class="py-3 px-4 text-sm text-gray-600 whitespace-pre-wrap">{jm_text}</td>'
                     '<td class="py-3 px-4 text-sm text-gray-600">'
+                    f'<button onclick="testJoinMessage({ws_id_js}, {jm_id})" class="mr-2 px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 text-xs font-medium">Test</button>'
                     f'<button onclick="deleteJoinMessage({ws_id_js}, {jm_id})" class="px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 text-xs font-medium">Delete</button>'
                     "</td>"
                     "</tr>"

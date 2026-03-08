@@ -360,11 +360,27 @@ async function deleteJoinMessage(wsId, messageId) {
   }
 }
 
+async function testJoinMessage(wsId, messageId) {
+  try {
+    const r = await fetch(`/api/ws/${wsId}/join-messages/${messageId}/test`, { method: 'POST' });
+    const d = await r.json();
+    if (!d.ok) {
+      showStatus('join-messages-status', 'error', 'Failed: ' + (d.error || 'unknown'));
+      return;
+    }
+    showStatus('join-messages-status', 'success', 'Test join message sent to your DM.');
+  } catch (e) {
+    showStatus('join-messages-status', 'error', 'Request failed: ' + e.message);
+  }
+}
+
 async function saveChannelJoinConfig(wsId, channelId) {
   const templateEl = document.getElementById(`join-template-${channelId}`);
-  if (!templateEl) return;
+  const deliveryEl = document.getElementById(`join-delivery-${channelId}`);
+  if (!templateEl || !deliveryEl) return;
 
   const joinMessageId = templateEl.value ? Number(templateEl.value) : null;
+  const joinDeliveryMode = deliveryEl.value || 'dm';
 
   try {
     const r = await fetch(`/api/ws/${wsId}/channels/join-config`, {
@@ -373,6 +389,7 @@ async function saveChannelJoinConfig(wsId, channelId) {
       body: JSON.stringify({
         channel_id: channelId,
         join_message_id: joinMessageId,
+        join_delivery_mode: joinDeliveryMode,
       }),
     });
     const d = await r.json();
