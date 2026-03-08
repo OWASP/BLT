@@ -58,7 +58,11 @@
 
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Activities</h3>
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h3 class="text-lg font-bold text-gray-800">Recent Activities</h3>
+      {{ PURGE_EVENTS_BTN }}
+    </div>
+    <div id="purge-status" class="hidden mb-4 p-3 rounded-lg"></div>
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>

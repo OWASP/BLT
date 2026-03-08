@@ -320,6 +320,34 @@ async function deleteRepo(repoId, wsId) {
     alert('Request failed');
   }
 }
+
+async function purgeRecentActivities(wsId) {
+  if (!confirm('Purge all recent activities for this workspace? This cannot be undone.')) return;
+
+  const btn = document.getElementById('purge-events-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Purging...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/events/purge`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('purge-status', 'success', `Purged ${d.deleted || 0} activity record(s).`);
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showStatus('purge-status', 'error', 'Purge failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('purge-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-trash"></i> Purge Activities';
+    }
+  }
+}
 </script>
 </body>
 </html>

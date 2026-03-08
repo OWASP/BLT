@@ -248,6 +248,7 @@ async def ensure_d1_schema(env):
             "workspace_id INTEGER,"
             "event_type TEXT NOT NULL,"
             "user_slack_id TEXT DEFAULT '',"
+            "channel_name TEXT DEFAULT '',"
             "status TEXT DEFAULT 'success',"
             "created_at TEXT NOT NULL"
             ")"
@@ -282,6 +283,11 @@ async def ensure_d1_schema(env):
             "table": "workspaces",
             "column": "app_id",
             "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
+        },
+        {
+            "table": "events",
+            "column": "channel_name",
+            "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
         },
     ]
 
@@ -941,16 +947,21 @@ async def db_get_repositories(env, workspace_id):
 
 
 async def db_log_event(
-    env, workspace_id, event_type, user_slack_id="", status="success"
+    env,
+    workspace_id,
+    event_type,
+    user_slack_id="",
+    status="success",
+    channel_name="",
 ):
     now = get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)"
             )
-            .bind(workspace_id, event_type, user_slack_id, status, now)
+            .bind(workspace_id, event_type, user_slack_id, channel_name, status, now)
             .run()
         )
         return True
@@ -978,16 +989,24 @@ async def db_insert_event(
     user_slack_id="",
     status="success",
     created_at=None,
+    channel_name="",
 ):
     """Insert a single event row with an explicit timestamp when provided."""
     event_time = created_at or get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)"
             )
-            .bind(workspace_id, event_type, user_slack_id, status, event_time)
+            .bind(
+                workspace_id,
+                event_type,
+                user_slack_id,
+                channel_name,
+                status,
+                event_time,
+            )
             .run()
         )
         return True
@@ -1088,6 +1107,7 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
             user_slack_id=user_slack_id,
             status=status,
             created_at=created_at,
+            channel_name=(normalized_row.get("channel_name") or "").strip(),
         )
         if ok:
             imported += 1
@@ -1108,8 +1128,11 @@ async def db_get_events(env, workspace_id, limit=20):
     try:
         return _rows(
             await env.DB.prepare(
-                "SELECT * FROM events WHERE workspace_id = ? "
-                "ORDER BY created_at DESC LIMIT ?"
+                "SELECT e.*, u.name AS user_name "
+                "FROM events e "
+                "LEFT JOIN users u ON u.slack_user_id = e.user_slack_id "
+                "WHERE e.workspace_id = ? "
+                "ORDER BY e.created_at DESC LIMIT ?"
             )
             .bind(workspace_id, limit)
             .all()
@@ -1125,6 +1148,47 @@ async def db_get_events(env, workspace_id, limit=20):
         except Exception:
             pass
         return []
+
+
+async def db_purge_events(env, workspace_id):
+    """Delete all events for a workspace and return the number of deleted rows."""
+    try:
+        result = await (
+            env.DB.prepare("DELETE FROM events WHERE workspace_id = ?")
+            .bind(workspace_id)
+            .run()
+        )
+        meta = _js_to_python(getattr(result, "meta", None)) or {}
+        changes = int(meta.get("changes") or 0)
+        return {"ok": True, "deleted": changes}
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={"context": "db_purge_events", "workspace_id": workspace_id},
+            )
+        except Exception:
+            pass
+        return {"ok": False, "deleted": 0, "error": "Failed to purge events"}
+
+
+async def db_get_channel_name(env, workspace_id, channel_id):
+    """Resolve a Slack channel ID to a stored channel name when available."""
+    if not channel_id:
+        return ""
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT channel_name FROM channels WHERE workspace_id = ? AND channel_id = ?"
+            )
+            .bind(workspace_id, channel_id)
+            .first()
+        )
+        return (row or {}).get("channel_name") or ""
+    except Exception:
+        return ""
 
 
 async def db_get_daily_stats(env, workspace_id, days=30):
@@ -1576,7 +1640,12 @@ async def import_workspace_history(env, workspace_id, access_token):
                 user_id = _obj_get(msg, "user", "")
                 msg_type = _obj_get(msg, "type", "message")
                 await db_log_event(
-                    env, workspace_id, f"message_{msg_type}", user_id, "success"
+                    env,
+                    workspace_id,
+                    f"message_{msg_type}",
+                    user_id,
+                    "success",
+                    channel_name=ch.get("channel_name", "") or "",
                 )
                 total_events += 1
 
@@ -1932,10 +2001,18 @@ async def handle_message_event(env, event, team_id=None):
     # Look up workspace-specific bot token
     ws_token = getattr(env, "SLACK_TOKEN", None)
     ws = None
+    resolved_channel_name = ""
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
         if ws and ws.get("access_token"):
             ws_token = ws["access_token"]
+        if ws:
+            if channel_type == "im":
+                resolved_channel_name = "Direct Message"
+            else:
+                resolved_channel_name = await db_get_channel_name(
+                    env, ws["id"], channel
+                )
 
     bot_user_id = await get_bot_user_id(env)
     if user == bot_user_id:
@@ -1947,7 +2024,14 @@ async def handle_message_event(env, event, team_id=None):
     # Track channel joins in activities and notify contribute channel.
     if subtype == "channel_join":
         if ws:
-            await db_log_event(env, ws["id"], "Channel_Join", user or "", "success")
+            await db_log_event(
+                env,
+                ws["id"],
+                "Channel_Join",
+                user or "",
+                "success",
+                channel_name=resolved_channel_name,
+            )
         return {"ok": True, "action": "channel_join_logged"}
 
     if (
@@ -2030,10 +2114,21 @@ async def handle_message_event(env, event, team_id=None):
 
 async def handle_command(env, event, team_id=None):
     user_id = event.get("user") or event.get("user_id") or ""
+    channel_id = event.get("channel") or event.get("channel_id") or ""
+    channel_name = event.get("channel_name") or ""
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
         if ws:
-            await db_log_event(env, ws["id"], "Command", user_id, "success")
+            if not channel_name and channel_id:
+                channel_name = await db_get_channel_name(env, ws["id"], channel_id)
+            await db_log_event(
+                env,
+                ws["id"],
+                "Command",
+                user_id,
+                "success",
+                channel_name=channel_name,
+            )
     return {"ok": True, "message": "Command tracked"}
 
 
@@ -3017,6 +3112,50 @@ async def handle_request(request, env):
 
         events = await db_get_events(env, ws_id_val, limit=50)
         return Response.json({"ok": True, "events": events})
+
+    # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/events/purge  →  purge workspace events         #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/events/purge")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can purge recent activities.",
+                },
+                403,
+            )
+
+        purge_result = await db_purge_events(env, ws_id_val)
+        if not purge_result.get("ok"):
+            return _json_response(
+                {"ok": False, "error": purge_result.get("error") or "Purge failed"},
+                500,
+            )
+
+        return Response.json(
+            {
+                "ok": True,
+                "deleted": int(purge_result.get("deleted") or 0),
+                "message": "Recent activities purged.",
+            }
+        )
 
     # ------------------------------------------------------------------ #
     #  POST /webhook  →  Slack events                                    #

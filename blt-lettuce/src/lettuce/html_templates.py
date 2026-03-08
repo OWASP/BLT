@@ -139,12 +139,21 @@ def get_dashboard_html(
             "Success" if raw_status == "success" else (raw_status.title() or "Unknown")
         )
         ev_type = html_escape(ev.get("event_type", ""))
-        user_name = html_escape(
-            ev.get("user_name", "") or ev.get("user_slack_id", "") or "-"
-        )
+        raw_user_name = (ev.get("user_name") or "").strip()
+        user_name = html_escape(raw_user_name or "Unknown User")
         ev_time = html_escape(ev.get("created_at", "") or "-")
-        # For channel, we currently don't track it in events table
-        channel_name = "-"
+        raw_channel_name = (ev.get("channel_name") or "").strip()
+        if not raw_channel_name:
+            event_type_raw = str(ev.get("event_type") or "").strip().lower()
+            if event_type_raw == "team_join":
+                raw_channel_name = "Workspace"
+            elif event_type_raw.startswith("message_"):
+                raw_channel_name = "Direct Message"
+            elif event_type_raw == "command":
+                raw_channel_name = "Slack Command"
+            else:
+                raw_channel_name = "Unknown Channel"
+        channel_name = html_escape(raw_channel_name)
         events_html += (
             '<tr class="border-b border-gray-100 hover:bg-gray-50">'
             f'<td class="py-3 px-4 text-sm text-gray-700">{ev_type}</td>'
@@ -426,6 +435,16 @@ def get_dashboard_html(
                 "</tbody></table></div></section>"
             )
     elif current_ws:
+        purge_events_btn = ""
+        if can_manage_manifest:
+            purge_events_btn = (
+                f'<button onclick="purgeRecentActivities({ws_id_js})" '
+                '        id="purge-events-btn" '
+                '        class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 '
+                '               text-red-700 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">'
+                '<i class="fas fa-trash"></i> Purge Activities</button>'
+            )
+
         scan_btn = (
             f'<button onclick="scanChannels({ws_id_js})" '
             '        id="scan-btn" '
@@ -461,6 +480,7 @@ def get_dashboard_html(
                 "JOINS": f"{joins:,}",
                 "COMMANDS": f"{commands:,}",
                 "EVENTS_HTML": events_html,
+                "PURGE_EVENTS_BTN": purge_events_btn,
                 "CHANNELS_HTML": channels_html,
                 "REPOS_HTML": repos_html,
             },
