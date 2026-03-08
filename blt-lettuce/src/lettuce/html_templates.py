@@ -167,6 +167,16 @@ def get_dashboard_html(
         raw_user_name = (ev.get("user_name") or "").strip()
         user_name = html_escape(raw_user_name or "Unknown User")
         ev_time = html_escape(ev.get("created_at", "") or "-")
+        request_data_raw = str(ev.get("request_data") or "").strip()
+        request_data = html_escape(request_data_raw or "-")
+        if request_data_raw and len(request_data) > 120:
+            request_data = f"{request_data[:117]}..."
+        is_verified = int(ev.get("verified") or 0) == 1
+        verified_badge = (
+            '<span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-green-100 text-green-800">Verified</span>'
+            if is_verified
+            else '<span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-600">Unverified</span>'
+        )
         raw_channel_name = (ev.get("channel_name") or "").strip()
         if not raw_channel_name:
             event_type_raw = str(ev.get("event_type") or "").strip().lower()
@@ -185,12 +195,14 @@ def get_dashboard_html(
             f'<td class="py-3 px-4 text-sm text-gray-700">{user_name}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500">{channel_name}</td>'
             f'<td class="py-3 px-4 text-sm">{status_dot}{status_label}</td>'
+            f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{request_data}</td>'
+            f'<td class="py-3 px-4 text-sm">{verified_badge}</td>'
             f'<td class="py-3 px-4 text-sm text-gray-500" data-timestamp="{ev_time}"><span class="timeago">{ev_time}</span></td>'
             "</tr>"
         )
     if not events_html:
         events_html = (
-            '<tr><td colspan="5" class="py-6 text-center text-sm text-gray-400">'
+            '<tr><td colspan="7" class="py-6 text-center text-sm text-gray-400">'
             "No events recorded yet.</td></tr>"
         )
 
@@ -257,6 +269,11 @@ def get_dashboard_html(
         channels_href = (
             f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
         )
+        repositories_href = (
+            f"/dashboard?{ws_q}&tab=repositories"
+            if ws_q
+            else "/dashboard?tab=repositories"
+        )
         apps_href = f"/dashboard?{ws_q}&tab=apps" if ws_q else "/dashboard?tab=apps"
         manifest_href = (
             f"/dashboard?{ws_q}&tab=manifest" if ws_q else "/dashboard?tab=manifest"
@@ -274,6 +291,11 @@ def get_dashboard_html(
         channels_active = (
             "bg-red-600 text-white border-red-600"
             if active_tab == "channels"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
+        repositories_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "repositories"
             else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
         )
         apps_active = (
@@ -310,6 +332,8 @@ def get_dashboard_html(
             '<i class="fas fa-chart-line"></i> Overview</a>'
             f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
             '<i class="fas fa-hashtag"></i> Channels</a>'
+            f'<a href="{repositories_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {repositories_active}">'
+            '<i class="fas fa-code-branch"></i> Repositories</a>'
             f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
             '<i class="fas fa-puzzle-piece"></i> Apps</a>'
             f"{manifest_tab_html}"
@@ -348,7 +372,7 @@ def get_dashboard_html(
                 f'<select id="join-template-{ch_id}" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm">{options_html}</select>'
                 "</td>"
                 '<td class="py-3 px-4 text-sm text-gray-600">'
-                f'<button onclick="saveChannelJoinConfig({ws_id_js}, "{ch_id}")" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium">Save</button>'
+                f'<button onclick="saveChannelJoinConfig({ws_id_js}, &quot;{ch_id}&quot;)" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium">Save</button>'
                 "</td>"
                 '</tr>'
             )
@@ -378,6 +402,23 @@ def get_dashboard_html(
             "</tr></thead><tbody>"
             f"{all_channels_rows}"
             "</tbody></table></div></section>"
+        )
+    elif current_ws and active_tab == "repositories":
+        workspace_section = (
+            '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+            '<h2 class="text-xl font-bold text-gray-800 mb-4">'
+            f"Repositories - {ws_name}"
+            "</h2>"
+            '<p class="text-sm text-gray-500 mb-4">Add a GitHub repository or organization URL. Organization URLs import metadata across repos.</p>'
+            '<div id="import-status" class="hidden mb-4 p-3 rounded-lg"></div>'
+            '<form id="repo-form" class="flex gap-2 mb-5" onsubmit="addRepo(event)">'
+            '<input id="repo-url" type="url" placeholder="https://github.com/owner/repo or https://github.com/org" '
+            'class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"/>'
+            '<button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">Add</button>'
+            "</form>"
+            '<p class="text-xs text-gray-400 mb-4">Organization URLs import all repos and metadata (language, stars, topics, visibility, activity).</p>'
+            f'<div id="repos-list">{repos_html}</div>'
+            "</section>"
         )
     elif current_ws and active_tab == "apps":
         apps_rows = ""

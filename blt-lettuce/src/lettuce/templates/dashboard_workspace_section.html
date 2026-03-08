@@ -71,6 +71,8 @@
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">User</th>
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Request Data</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Verified</th>
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Time</th>
           </tr>
         </thead>
@@ -89,20 +91,3 @@
     <div id="channels-list">{{ CHANNELS_HTML }}</div>
   </div>
 </div>
-
-<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-  <h3 class="text-lg font-bold text-gray-800 mb-4">
-    Repositories
-    <span class="text-sm font-normal text-gray-400 ml-1">- add a repo or a GitHub organization</span>
-  </h3>
-  <form id="repo-form" class="flex gap-2 mb-5" onsubmit="addRepo(event)">
-    <input id="repo-url" type="url" placeholder="https://github.com/owner/repo or https://github.com/org"
-           class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-red-300"/>
-    <button type="submit"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700
-                   transition-colors text-sm font-medium">Add</button>
-  </form>
-  <p class="text-xs text-gray-400 mb-4">Organization URLs import all repos and metadata (language, stars, topics, visibility, activity).</p>
-  <div id="repos-list">{{ REPOS_HTML }}</div>
-</section>

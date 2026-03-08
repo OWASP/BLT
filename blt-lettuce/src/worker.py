@@ -45,7 +45,14 @@ from lettuce.sentry import get_sentry, init_sentry
 DEFAULT_DEPLOYS_CHANNEL = None
 DEFAULT_JOINS_CHANNEL_ID = None
 DEFAULT_CONTRIBUTE_ID = None
-BLT_LOGO_URL = "https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
+
+
+def get_blt_logo_url(env):
+    """Build logo URL from BASE_URL so verification is tied to deployment domain."""
+    base_url = str(getattr(env, "BASE_URL", "") or "").strip().rstrip("/")
+    if not base_url:
+        base_url = "https://lettuce.owaspblt.org"
+    return f"{base_url}/docs/static/logo.png"
 
 
 def get_utc_now():
@@ -2551,15 +2558,61 @@ async def handle_message_event(env, event, team_id=None):
                             },
                         )
                         if rendered.strip():
+                            logo_url = get_blt_logo_url(env)
+                            image_loaded = await is_image_url_reachable(logo_url)
+                            join_blocks = [
+                                {
+                                    "type": "section",
+                                    "text": {"type": "mrkdwn", "text": rendered},
+                                }
+                            ]
+                            if image_loaded:
+                                join_blocks.append(
+                                    {
+                                        "type": "image",
+                                        "image_url": logo_url,
+                                        "alt_text": "BLT Logo",
+                                    }
+                                )
+
+                            request_payload = {
+                                "channel": channel,
+                                "channel_name": resolved_channel_name,
+                                "template_id": message_id,
+                                "template_name": template.get("name") or "",
+                                "user_id": user or "",
+                                "logo_url": logo_url,
+                                "image_loaded": bool(image_loaded),
+                            }
                             try:
-                                await send_slack_message(
+                                send_result = await send_slack_message(
                                     env,
                                     channel,
                                     rendered,
+                                    blocks=join_blocks,
                                     token=ws_token,
                                 )
+                                await db_log_event(
+                                    env,
+                                    ws["id"],
+                                    "Channel_Join_Message",
+                                    user or "",
+                                    "success" if send_result.get("ok") else "failed",
+                                    channel_name=resolved_channel_name,
+                                    request_data=json.dumps(request_payload),
+                                    verified=bool(image_loaded),
+                                )
                             except Exception:
-                                pass
+                                await db_log_event(
+                                    env,
+                                    ws["id"],
+                                    "Channel_Join_Message",
+                                    user or "",
+                                    "failed",
+                                    channel_name=resolved_channel_name,
+                                    request_data=json.dumps(request_payload),
+                                    verified=False,
+                                )
         return {"ok": True, "action": "channel_join_logged"}
 
     if (
@@ -3307,6 +3360,7 @@ async def handle_request(request, env):
         if selected_tab not in (
             "overview",
             "channels",
+            "repositories",
             "apps",
             "manifest",
             "join-messages",
