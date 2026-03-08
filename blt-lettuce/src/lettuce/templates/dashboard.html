@@ -198,6 +198,31 @@ async function sendTestMessage(wsId) {
   }
 }
 
+async function importHistory(wsId) {
+  const btn = document.getElementById('import-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Importing...';
+  }
+  try {
+    const r = await fetch(`/api/ws/${wsId}/import-history`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('import-status', 'success', `Import complete! ${d.events_imported || 0} events added from ${d.channels_processed || 0} channels.`);
+      setTimeout(() => location.reload(), 2000);
+    } else {
+      showStatus('import-status', 'error', 'Import failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('import-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-database mr-2"></i>Import History';
+    }
+  }
+}
+
 async function addRepo(e) {
   e.preventDefault();
   const url = document.getElementById('repo-url').value.trim();

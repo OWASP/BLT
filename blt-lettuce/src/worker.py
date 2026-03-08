@@ -277,7 +277,6 @@ async def ensure_d1_schema(env):
         return True
     except Exception as e:
         print(f"[ensure_d1_schema] ERROR: {e}")
-        capture_exception_to_sentry(env, e, {"context": "schema_initialization"})
         return False
 
 
@@ -367,7 +366,6 @@ async def db_upsert_workspace(env, team_id, team_name, access_token, bot_user_id
         return ws
     except Exception as e:
         print(f"[db_upsert_workspace] ERROR: {e}")
-        capture_exception_to_sentry(env, e, {"team_id": team_id, "team_name": team_name})
         return None
 
 
@@ -406,7 +404,6 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
         return True
     except Exception as e:
         print(f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}")
-        capture_exception_to_sentry(env, e, {"user_id": user_id, "workspace_id": workspace_id})
         return False
 async def db_get_user_workspaces(env, user_id):
     """Return all workspaces accessible by this user."""
@@ -429,7 +426,6 @@ async def db_get_user_workspaces(env, user_id):
         return workspaces
     except Exception as e:
         print(f"[db_get_user_workspaces] ERROR: {e}")
-        capture_exception_to_sentry(env, e, {"user_id": user_id})
         return []
 
 
@@ -494,7 +490,6 @@ async def db_upsert_channel(
         return True
     except Exception as e:
         print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
-        capture_exception_to_sentry(env, e, {"workspace_id": workspace_id, "channel_id": channel_id})
         return False
 
 
@@ -572,7 +567,6 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
         return user
     except Exception as e:
         print(f"[db_get_or_create_user] ERROR: {e}")
-        capture_exception_to_sentry(env, e, {"slack_user_id": slack_user_id})
         return None
 
 
@@ -590,11 +584,10 @@ async def db_create_session(env, user_id, token):
             .run()
         )
         print(f"[db_create_session] Session created successfully, result: {result}")
-        return True
+        return token
     except Exception as e:
         print(f"[db_create_session] ERROR: {e}")
-        capture_exception_to_sentry(env, e, {"user_id": user_id})
-        return False
+        return None
 
 
 async def db_get_session(env, token):
@@ -603,7 +596,7 @@ async def db_get_session(env, token):
         return _row(
             await env.DB.prepare(
                 "SELECT s.id as session_id, s.user_id, s.expires_at, "
-                "u.slack_user_id, u.team_id, u.name, u.email "
+                "u.slack_user_id, u.team_id, u.name, u.email, u.avatar_url "
                 "FROM sessions s JOIN users u ON s.user_id = u.id "
                 "WHERE s.id = ? AND s.expires_at > ?"
             )
@@ -1033,10 +1026,58 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                 break
         except Exception as e:
             print(f"[scan_workspace_channels] ERROR during scan: {e}")
-            capture_exception_to_sentry(env, e, {"workspace_id": workspace_id})
             break
     print(f"[scan_workspace_channels] Scan complete: {scanned} channels saved")
     return scanned
+
+
+async def import_workspace_history(env, workspace_id, access_token):
+    """Import historical channel activity from Slack to populate events table."""
+    print(f"[import_workspace_history] Starting import for workspace {workspace_id}")
+    
+    # Get all channels for this workspace
+    channels = await db_get_channels(env, workspace_id)
+    if not channels:
+        print(f"[import_workspace_history] No channels found. Run scan first.")
+        return {"ok": False, "error": "No channels found. Please scan channels first."}
+    
+    total_events = 0
+    # Get last 7 days of history from each channel
+    import time
+    oldest = str(int(time.time()) - (7 * 24 * 60 * 60))  # 7 days ago
+    
+    for ch in channels[:10]:  # Limit to first 10 channels to avoid timeout
+        channel_id = ch.get("channel_id")
+        print(f"[import_workspace_history] Importing history from #{ch.get('channel_name')}")
+        
+        try:
+            headers = Headers.new()
+            headers.set("Authorization", f"Bearer {access_token}")
+            headers.set("Content-Type", "application/json")
+            
+            url = f"https://slack.com/api/conversations.history?channel={channel_id}&oldest={oldest}&limit=100"
+            resp = await js_fetch(url, {"method": "GET", "headers": headers})
+            data = await resp.json()
+            data = _js_to_python(data)
+            
+            if not data.get("ok"):
+                print(f"[import_workspace_history] Error fetching history: {data.get('error')}")
+                continue
+            
+            messages = _js_to_python(data.get("messages") or [])
+            for msg in messages:
+                user_id = _obj_get(msg, "user", "")
+                msg_type = _obj_get(msg, "type", "message")
+                await db_log_event(env, workspace_id, f"message_{msg_type}", user_id, "success")
+                total_events += 1
+                
+        except Exception as e:
+            print(f"[import_workspace_history] ERROR importing from {channel_id}: {e}")
+            continue
+    
+    print(f"[import_workspace_history] Import complete: {total_events} events added")
+    return {"ok": True, "events_imported": total_events, "channels_processed": min(len(channels), 10)}
+
 
 
 # ===========================================================================
@@ -1804,6 +1845,32 @@ async def handle_request(request, env):
             )
 
     # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/import-history  →  import historical activities#
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/import-history")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+
+        result = await import_workspace_history(env, ws_id_val, ws["access_token"])
+        return _json_response(result)
+
+    # ------------------------------------------------------------------ #
     #  GET  /api/ws/<id>/repos  →  list repos                            #
     #  POST /api/ws/<id>/repos  →  add repo                              #
     # ------------------------------------------------------------------ #
@@ -2071,7 +2138,6 @@ async def handle_request(request, env):
             })
         except Exception as e:
             print(f"[/api/debug/db] ERROR: {e}")
-            capture_exception_to_sentry(env, e, {"path": "/api/debug/db"})
             return Response.json({
                 "ok": False,
                 "error": str(e)
