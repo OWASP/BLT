@@ -1,5 +1,18 @@
 # BLT-OSSH 🎩✨
-**Open Source Sorting Hat** - AI-powered GitHub profile analyzer that recommends perfect open source projects
+
+**Open Source Sorting Hat** — AI-powered GitHub profile analyzer that recommends perfect open source projects for contributors.
+
+[![OWASP BLT](https://img.shields.io/badge/OWASP-BLT-blue)](https://github.com/OWASP-BLT/BLT) [![GitHub Pages](https://img.shields.io/badge/Live-Demo-green)](https://owasp-blt.github.io/BLT-OSSH/)
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture-overview)
+- [Getting Started](#getting-started)
+- [How It Works](#how-it-works)
+- [Usage](#usage)
+- [Contributing](#contributing)
 
 ## Overview
 OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profile and recommends personalized open source projects, communities, learning resources, and discussion channels based on your skills, interests, and activity.
@@ -39,7 +52,7 @@ OSSH (Open Source Sorting Hat) is a magical tool that analyzes your GitHub profi
 
 BLT-OSSH (Open Source Sorting Hat) is a **magical recommendation engine with special powers** that helps contributors discover open-source projects that match their skills and interests by analyzing GitHub profiles and repository metadata.
 
-Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs and educational pathways integrating with **BLT University**. Like the Sorting Hat, OSSH is designed to eventually sort contributors into four houses:
+Within the **BLT (Bug Logging Tool) ecosystem**, OSSH acts as a **discovery layer** that helps users find relevant repositories, communities, and learning resources. It goes beyond project matching to suggest information such as blogs, educational pathways, and integration with **BLT University** (educational resources for contributors). Like the Sorting Hat, OSSH is designed to eventually sort contributors into four houses:
 
 | House | Focus |
 |-------|-------|
@@ -124,6 +137,14 @@ npm run dev
 **3. Open in browser**
 
 Visit `http://localhost:8000` to load the main analysis page. Visit `http://localhost:8000/community.html` for the Community profiles page.
+
+### Testing Workflow
+
+1. Run the local server as above
+2. Enter a GitHub username and click "Find My Projects"
+3. Verify recommendations display correctly
+4. Test the "Create My Community Profile" flow (redirects to GitHub Issues)
+5. Open `community.html` and verify profile fetching works
 
 ### Deployment
 
@@ -227,9 +248,55 @@ Profiles are created as GitHub Issues using a structured template with these fie
 - **Twitter** (optional) - Handle without @
 - **LinkedIn** (optional) - LinkedIn username
 
+### Pre-filled Profile Creation
+
+After analyzing your GitHub profile, the system automatically pre-fills:
+- Your GitHub username
+- Display name from your GitHub profile
+- Bio from GitHub (or primary language as fallback)
+- Skills extracted from your most-used languages
+- Looking for section with smart suggestions
+
+## Usage
+
+### For Users
+
+1. **Analyze Your Profile**
+   - Visit OSSH homepage
+   - Enter your GitHub username
+   - Click "Find My Projects"
+   - Explore personalized recommendations
+
+2. **Join the Community**
+   - After analysis, click "Create My Community Profile"
+   - Review pre-filled data (username, bio, skills)
+   - Add additional information (interests, looking for, social links)
+   - Submit to create your profile
+
+3. **Discover Developers**
+   - Visit the Community page
+   - Browse developer profiles
+   - Filter by experience level
+   - Search by name, skills, or location
+   - Connect via GitHub, website, or social media
+
+### For Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Adding new project recommendations
+- Improving the matching algorithm
+- Enhancing the UI/UX
+- Adding new features
+
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, and more.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
