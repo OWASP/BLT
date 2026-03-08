@@ -71,6 +71,9 @@ def get_dashboard_html(
     daily_stats,
     repos,
     installed_apps,
+    apps_permission_warning,
+    manifest_result,
+    can_manage_manifest,
     active_tab="overview",
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
@@ -209,6 +212,9 @@ def get_dashboard_html(
             f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
         )
         apps_href = f"/dashboard?{ws_q}&tab=apps" if ws_q else "/dashboard?tab=apps"
+        manifest_href = (
+            f"/dashboard?{ws_q}&tab=manifest" if ws_q else "/dashboard?tab=manifest"
+        )
         overview_active = (
             "bg-red-600 text-white border-red-600"
             if active_tab == "overview"
@@ -224,6 +230,17 @@ def get_dashboard_html(
             if active_tab == "apps"
             else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
         )
+        manifest_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "manifest"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
+        manifest_tab_html = ""
+        if can_manage_manifest:
+            manifest_tab_html = (
+                f'<a href="{manifest_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {manifest_active}">'
+                '<i class="fas fa-clipboard-check"></i> Manifest</a>'
+            )
         dashboard_tabs = (
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
             '<div class="flex flex-wrap gap-2">'
@@ -233,6 +250,7 @@ def get_dashboard_html(
             '<i class="fas fa-hashtag"></i> Channels</a>'
             f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
             '<i class="fas fa-puzzle-piece"></i> Apps</a>'
+            f"{manifest_tab_html}"
             "</div></section>"
         )
 
@@ -276,6 +294,7 @@ def get_dashboard_html(
             app_id = html_escape(app.get("app_id") or "")
             source = html_escape(app.get("source") or "unknown")
             scopes = html_escape(app.get("scopes") or "-")
+            distribution = html_escape(app.get("distribution") or "-")
             installed_by = html_escape(app.get("installed_by") or "Unknown")
             status = "Installed" if app.get("is_installed") else "Unknown"
             app_manage_url = (
@@ -288,14 +307,24 @@ def get_dashboard_html(
                 f'<td class="py-3 px-4 text-sm text-gray-600">{status}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-600">{installed_by}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500">{source}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-500">{distribution}</td>'
                 f'<td class="py-3 px-4 text-sm text-gray-500">{scopes}</td>'
                 "</tr>"
             )
         if not apps_rows:
             apps_rows = (
-                '<tr><td colspan="6" class="py-6 text-center text-sm text-gray-400">'
+                '<tr><td colspan="7" class="py-6 text-center text-sm text-gray-400">'
                 "No app details available for this workspace token."
                 "</td></tr>"
+            )
+
+        apps_warning_html = ""
+        if apps_permission_warning:
+            apps_warning_html = (
+                '<div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800 text-sm">'
+                '<div class="font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-2"></i>More apps may be hidden</div>'
+                f'<div>{html_escape(apps_permission_warning)}</div>'
+                '</div>'
             )
 
         workspace_section = (
@@ -307,6 +336,7 @@ def get_dashboard_html(
             '<p class="text-sm text-gray-500 mb-4">'
             "This tab shows apps visible to your current Slack token. Some workspaces require admin scopes for full app listings."
             "</p>"
+            f"{apps_warning_html}"
             '<div class="overflow-x-auto">'
             '<table class="w-full text-left">'
             '<thead><tr class="border-b border-gray-200">'
@@ -315,11 +345,71 @@ def get_dashboard_html(
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Installed By</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Source</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Distribution</th>'
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Scopes</th>'
             "</tr></thead><tbody>"
             f"{apps_rows}"
             "</tbody></table></div></section>"
         )
+    elif current_ws and active_tab == "manifest":
+        if not can_manage_manifest:
+            workspace_section = (
+                '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+                '<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 text-sm">'
+                '<div class="font-semibold mb-1"><i class="fas fa-lock mr-2"></i>Admin Access Required</div>'
+                "Only workspace admins/owners can check the app manifest."
+                "</div></section>"
+            )
+        else:
+            checks = (manifest_result or {}).get("checks") or []
+            check_rows = ""
+            for idx, check in enumerate(checks, start=1):
+                ok = bool(check.get("ok"))
+                badge_class = "bg-green-100 text-green-800" if ok else "bg-red-100 text-red-800"
+                label = "PASS" if ok else "FAIL"
+                check_rows += (
+                    '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                    f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
+                    f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{html_escape(check.get("name") or "")}</td>'
+                    f'<td class="py-3 px-4 text-sm"><span class="inline-flex px-2 py-1 rounded-md text-xs font-semibold {badge_class}">{label}</span></td>'
+                    f'<td class="py-3 px-4 text-sm text-gray-600">{html_escape(check.get("detail") or "")}</td>'
+                    "</tr>"
+                )
+            if not check_rows:
+                check_rows = (
+                    '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">'
+                    "No manifest checks available."
+                    "</td></tr>"
+                )
+
+            summary = html_escape((manifest_result or {}).get("summary") or "No summary")
+            manifest_path = html_escape((manifest_result or {}).get("manifest_path") or "manifest.yaml")
+            ok = bool((manifest_result or {}).get("ok"))
+            summary_class = "text-green-700 bg-green-50 border-green-200" if ok else "text-red-700 bg-red-50 border-red-200"
+            summary_label = "Manifest is valid" if ok else "Manifest has required fixes"
+
+            workspace_section = (
+                '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+                '<div class="flex items-center justify-between mb-4">'
+                f'<h2 class="text-xl font-bold text-gray-800">Manifest Checker - {ws_name}</h2>'
+                f'<span class="text-xs text-gray-400 font-mono">{manifest_path}</span>'
+                "</div>"
+                f'<div class="rounded-lg border p-3 mb-4 {summary_class}">'
+                '<div class="flex items-center justify-between gap-3">'
+                f'<p class="text-sm font-semibold">{summary_label}</p>'
+                f'<p class="text-xs font-mono">{summary}</p>'
+                "</div></div>"
+                '<div class="overflow-x-auto">'
+                '<table class="w-full text-left">'
+                '<thead><tr class="border-b border-gray-200">'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">#</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Requirement</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
+                '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Details</th>'
+                "</tr></thead><tbody>"
+                f"{check_rows}"
+                "</tbody></table></div></section>"
+            )
     elif current_ws:
         scan_btn = (
             f'<button onclick="scanChannels({ws_id_js})" '
@@ -399,7 +489,6 @@ def get_homepage_html(user=None):
         {
             "AUTH_BUTTON_HREF": auth_button_href,
             "AUTH_BUTTON_TEXT": auth_button_text,
-            "MANIFEST_CHECKER_HREF": "/manifest-checker",
         },
     )
 

@@ -34,7 +34,6 @@ from lettuce.html_templates import (
     get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
-    get_manifest_checker_html,
     get_status_html,
     html_escape,
 )
@@ -566,6 +565,21 @@ async def db_user_owns_workspace(env, user_id, workspace_id):
         return row is not None
     except Exception:
         return False
+
+
+async def db_get_user_workspace_role(env, user_id, workspace_id):
+    """Return role for a user's workspace membership, or empty string."""
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT role FROM user_workspaces WHERE user_id = ? AND workspace_id = ?"
+            )
+            .bind(user_id, workspace_id)
+            .first()
+        )
+        return str((row or {}).get("role") or "")
+    except Exception:
+        return ""
 
 
 async def db_get_workspace_installers(env, workspace_id):
@@ -1541,9 +1555,14 @@ async def get_workspace_installed_apps(env, workspace):
     ws = workspace or {}
     token = ws.get("access_token") or ""
     if not token:
-        return []
+        return {
+            "apps": [],
+            "permission_warning": "No workspace token found. Reinstall the app to fetch installed apps.",
+        }
 
     apps = []
+    admin_list_success = False
+    admin_errors = []
 
     def _append_app(item):
         app_id = str(item.get("app_id") or "").strip()
@@ -1554,28 +1573,46 @@ async def get_workspace_installed_apps(env, workspace):
                 return
         apps.append(item)
 
-    try:
-        headers = Headers.new()
-        headers.set("Authorization", f"Bearer {token}")
+    async def _fetch_admin_apps(endpoint, source_label, distribution_label):
+        nonlocal admin_list_success
+        try:
+            headers = Headers.new()
+            headers.set("Authorization", f"Bearer {token}")
+            resp = await js_fetch(
+                f"https://slack.com/api/{endpoint}?limit=200",
+                {"method": "GET", "headers": headers},
+            )
+            data = _js_to_python(await resp.json())
+            if isinstance(data, dict) and data.get("ok"):
+                admin_list_success = True
+                for app in _js_to_python(data.get("apps") or []):
+                    if not isinstance(app, dict):
+                        continue
+                    _append_app(
+                        {
+                            "app_id": app.get("app_id") or app.get("id") or "",
+                            "app_name": app.get("name") or app.get("app_name") or "Unknown App",
+                            "is_installed": True,
+                            "source": source_label,
+                            "distribution": distribution_label,
+                        }
+                    )
+            elif isinstance(data, dict):
+                admin_errors.append(str(data.get("error") or "unknown_error"))
+        except Exception:
+            admin_errors.append("request_failed")
 
-        # Admin API can list approved apps, but often requires elevated scopes.
-        admin_url = "https://slack.com/api/admin.apps.approved.list?limit=200"
-        admin_resp = await js_fetch(admin_url, {"method": "GET", "headers": headers})
-        admin_data = _js_to_python(await admin_resp.json())
-        if isinstance(admin_data, dict) and admin_data.get("ok"):
-            for app in _js_to_python(admin_data.get("apps") or []):
-                if not isinstance(app, dict):
-                    continue
-                _append_app(
-                    {
-                        "app_id": app.get("app_id") or app.get("id") or "",
-                        "app_name": app.get("name") or app.get("app_name") or "Unknown App",
-                        "is_installed": True,
-                        "source": "admin.apps.approved.list",
-                    }
-                )
-    except Exception:
-        pass
+    # Admin APIs can list more than one app in a workspace when permissions allow it.
+    await _fetch_admin_apps(
+        "admin.apps.approved.list",
+        "admin.apps.approved.list",
+        "Publicly Distributed",
+    )
+    await _fetch_admin_apps(
+        "admin.apps.restricted.list",
+        "admin.apps.restricted.list",
+        "Not distributed",
+    )
 
     try:
         headers = Headers.new()
@@ -1603,6 +1640,7 @@ async def get_workspace_installed_apps(env, workspace):
                     "is_installed": True,
                     "source": "apps.permissions.info",
                     "scopes": bot_scopes_text,
+                    "distribution": "Modern",
                 }
             )
     except Exception:
@@ -1616,10 +1654,32 @@ async def get_workspace_installed_apps(env, workspace):
             "is_installed": True,
             "source": "workspace_record",
             "scopes": "",
+            "distribution": "Modern",
         }
     )
 
-    return [a for a in apps if a.get("app_id")]
+    permission_warning = ""
+    if not admin_list_success:
+        unique_errors = sorted({e for e in admin_errors if e})
+        hint = ""
+        if any(e in ("missing_scope", "not_allowed_token_type", "not_authed", "invalid_auth") for e in unique_errors):
+            hint = (
+                "To list all workspace apps, reinstall with an admin token that has "
+                "`admin.apps:read` scope (and org/workspace admin privileges)."
+            )
+        elif unique_errors:
+            hint = f"Admin app listing failed with: {', '.join(unique_errors)}"
+        else:
+            hint = (
+                "Admin app listing is unavailable for this token. "
+                "Use an admin token with `admin.apps:read` to see all installed apps."
+            )
+        permission_warning = hint
+
+    return {
+        "apps": [a for a in apps if a.get("app_id")],
+        "permission_warning": permission_warning,
+    }
 
 
 # ===========================================================================
@@ -2512,7 +2572,7 @@ async def handle_request(request, env):
         current_ws = None
         selected_ws_id = qs_params.get("ws")
         selected_tab = (qs_params.get("tab") or "overview").lower()
-        if selected_tab not in ("overview", "channels", "apps"):
+        if selected_tab not in ("overview", "channels", "apps", "manifest"):
             selected_tab = "overview"
         if selected_ws_id:
             try:
@@ -2533,17 +2593,26 @@ async def handle_request(request, env):
         daily_stats = []
         repos = []
         installed_apps = []
+        apps_permission_warning = ""
         workspace_installers = []
+        manifest_result = None
+        can_manage_manifest = False
 
         if current_ws:
             ws_id_val = current_ws["id"]
+            user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+            can_manage_manifest = user_role in ("owner", "admin")
             ws_stats = await db_get_workspace_stats(env, ws_id_val)
             channels = await db_get_channels(env, ws_id_val)
             events = await db_get_events(env, ws_id_val, limit=20)
             daily_stats = await db_get_daily_stats(env, ws_id_val, days=30)
             repos = await db_get_repositories(env, ws_id_val)
             if selected_tab == "apps":
-                installed_apps = await get_workspace_installed_apps(env, current_ws)
+                apps_payload = await get_workspace_installed_apps(env, current_ws)
+                installed_apps = (apps_payload or {}).get("apps") or []
+                apps_permission_warning = (
+                    (apps_payload or {}).get("permission_warning") or ""
+                )
                 workspace_installers = await db_get_workspace_installers(env, ws_id_val)
 
                 # Attach best-effort installer attribution to each app row.
@@ -2557,6 +2626,19 @@ async def handle_request(request, env):
                     )
                 for app in installed_apps:
                     app["installed_by"] = installer_name or "Unknown"
+            elif selected_tab == "manifest":
+                if not can_manage_manifest:
+                    manifest_result = {
+                        "ok": False,
+                        "summary": "Access denied",
+                        "manifest_path": "manifest.yaml",
+                        "checks": [],
+                        "error": "Only workspace admins/owners can access Manifest Checker.",
+                    }
+                else:
+                    base_dir = Path(__file__).resolve().parents[1]
+                    manifest_path = base_dir / "manifest.yaml"
+                    manifest_result = check_manifest_requirements(manifest_path)
 
         html = get_dashboard_html(
             user,
@@ -2568,6 +2650,9 @@ async def handle_request(request, env):
             daily_stats,
             repos,
             installed_apps,
+            apps_permission_warning,
+            manifest_result,
+            can_manage_manifest,
             active_tab=selected_tab,
         )
         return _html_response(html)
@@ -3126,13 +3211,7 @@ async def handle_request(request, env):
     #  GET /manifest-checker  →  validate Slack app manifest             #
     # ------------------------------------------------------------------ #
     if pathname == "/manifest-checker" and method == "GET":
-        base_dir = Path(__file__).resolve().parents[1]
-        manifest_path = base_dir / "manifest.yaml"
-        result = check_manifest_requirements(manifest_path)
-        return _html_response(
-            get_manifest_checker_html(result),
-            extra_headers={"Cache-Control": "no-cache"},
-        )
+        return _redirect("/dashboard?tab=manifest")
 
     # ------------------------------------------------------------------ #
     #  GET /api/db-stats  →  database table counts                       #
