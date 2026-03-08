@@ -14,6 +14,7 @@ import json
 import secrets
 import csv
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from urllib.parse import unquote_plus, urlencode, urlparse
 
 from js import Headers, Response
@@ -33,6 +34,7 @@ from lettuce.html_templates import (
     get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
+    get_manifest_checker_html,
     get_status_html,
     html_escape,
 )
@@ -1506,6 +1508,92 @@ async def import_workspace_history(env, workspace_id, access_token):
     }
 
 
+async def get_workspace_installed_apps(env, workspace):
+    """Best-effort list of installed apps visible to the workspace token."""
+    ws = workspace or {}
+    token = ws.get("access_token") or ""
+    if not token:
+        return []
+
+    apps = []
+
+    def _append_app(item):
+        app_id = str(item.get("app_id") or "").strip()
+        if not app_id:
+            return
+        for existing in apps:
+            if existing.get("app_id") == app_id:
+                return
+        apps.append(item)
+
+    try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {token}")
+
+        # Admin API can list approved apps, but often requires elevated scopes.
+        admin_url = "https://slack.com/api/admin.apps.approved.list?limit=200"
+        admin_resp = await js_fetch(admin_url, {"method": "GET", "headers": headers})
+        admin_data = _js_to_python(await admin_resp.json())
+        if isinstance(admin_data, dict) and admin_data.get("ok"):
+            for app in _js_to_python(admin_data.get("apps") or []):
+                if not isinstance(app, dict):
+                    continue
+                _append_app(
+                    {
+                        "app_id": app.get("app_id") or app.get("id") or "",
+                        "app_name": app.get("name") or app.get("app_name") or "Unknown App",
+                        "is_installed": True,
+                        "source": "admin.apps.approved.list",
+                    }
+                )
+    except Exception:
+        pass
+
+    try:
+        headers = Headers.new()
+        headers.set("Authorization", f"Bearer {token}")
+
+        # Fallback to metadata for the currently installed app.
+        app_info_resp = await js_fetch(
+            "https://slack.com/api/apps.permissions.info",
+            {"method": "GET", "headers": headers},
+        )
+        app_info = _js_to_python(await app_info_resp.json())
+        if isinstance(app_info, dict) and app_info.get("ok"):
+            info = _js_to_python(app_info.get("info") or {})
+            app_obj = _js_to_python(info.get("app") or app_info.get("app") or {})
+            scopes_obj = _js_to_python(info.get("scopes") or {})
+            bot_scopes = _js_to_python(scopes_obj.get("bot") or [])
+            if isinstance(bot_scopes, list):
+                bot_scopes_text = ", ".join(str(s) for s in bot_scopes[:12])
+            else:
+                bot_scopes_text = ""
+            _append_app(
+                {
+                    "app_id": ws.get("app_id") or app_obj.get("id") or "",
+                    "app_name": app_obj.get("name") or "BLT Lettuce",
+                    "is_installed": True,
+                    "source": "apps.permissions.info",
+                    "scopes": bot_scopes_text,
+                }
+            )
+    except Exception:
+        pass
+
+    # Final fallback: always show the app currently linked in our workspace table.
+    _append_app(
+        {
+            "app_id": ws.get("app_id") or "",
+            "app_name": "BLT Lettuce",
+            "is_installed": True,
+            "source": "workspace_record",
+            "scopes": "",
+        }
+    )
+
+    return [a for a in apps if a.get("app_id")]
+
+
 # ===========================================================================
 # Slack API helpers
 # ===========================================================================
@@ -1869,6 +1957,162 @@ def _json_response(data, status=200):
         json.dumps(data),
         {"status": status, "headers": h},
     )
+
+
+def _manifest_get(data, path):
+    """Safely read nested dict values by path list."""
+    cur = data
+    for key in path:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(key)
+    return cur
+
+
+def _manifest_read_data(manifest_path):
+    """Read YAML manifest content and parse to dict when possible."""
+    text = manifest_path.read_text(encoding="utf-8")
+    parsed = None
+    try:
+        import yaml  # type: ignore
+
+        parsed = yaml.safe_load(text)
+    except Exception:
+        parsed = None
+    return text, parsed if isinstance(parsed, dict) else None
+
+
+def _contains_manifest_line(text, snippet):
+    return snippet in text
+
+
+def check_manifest_requirements(manifest_path):
+    """Validate manifest.yaml against required BLT-Lettuce settings."""
+    if not manifest_path.exists():
+        return {
+            "ok": False,
+            "manifest_path": str(manifest_path),
+            "summary": "manifest.yaml not found",
+            "checks": [
+                {
+                    "name": "Manifest file exists",
+                    "ok": False,
+                    "detail": f"Could not find: {manifest_path}",
+                }
+            ],
+        }
+
+    text, parsed = _manifest_read_data(manifest_path)
+
+    checks = []
+
+    def add_check(name, ok, detail):
+        checks.append({"name": name, "ok": bool(ok), "detail": detail})
+
+    if parsed is not None:
+        add_check(
+            "display_information.name",
+            bool(_manifest_get(parsed, ["display_information", "name"])),
+            "App display name is required.",
+        )
+        add_check(
+            "display_information.description",
+            bool(_manifest_get(parsed, ["display_information", "description"])),
+            "App description is required.",
+        )
+        add_check(
+            "features.bot_user.display_name",
+            bool(_manifest_get(parsed, ["features", "bot_user", "display_name"])),
+            "Bot display name is required.",
+        )
+
+        request_url = _manifest_get(
+            parsed, ["settings", "event_subscriptions", "request_url"]
+        )
+        add_check(
+            "settings.event_subscriptions.request_url",
+            bool(request_url)
+            and "<YOUR_WORKER_URL>" not in str(request_url)
+            and str(request_url).endswith("/webhook"),
+            "Must be a real webhook URL ending in /webhook.",
+        )
+
+        interactivity_url = _manifest_get(
+            parsed, ["settings", "interactivity", "request_url"]
+        )
+        interactivity_enabled = _manifest_get(
+            parsed, ["settings", "interactivity", "is_enabled"]
+        )
+        add_check(
+            "settings.interactivity",
+            bool(interactivity_enabled)
+            and bool(interactivity_url)
+            and "<YOUR_WORKER_URL>" not in str(interactivity_url)
+            and str(interactivity_url).endswith("/webhook"),
+            "Interactivity must be enabled and point to /webhook.",
+        )
+
+        bot_events = _manifest_get(parsed, ["settings", "event_subscriptions", "bot_events"])
+        bot_events = bot_events if isinstance(bot_events, list) else []
+        required_events = ["team_join", "message.im"]
+        for evt in required_events:
+            add_check(
+                f"bot_event:{evt}",
+                evt in bot_events,
+                f"Required event subscription: {evt}",
+            )
+
+        bot_scopes = _manifest_get(parsed, ["oauth_config", "scopes", "bot"])
+        bot_scopes = bot_scopes if isinstance(bot_scopes, list) else []
+        required_scopes = [
+            "channels:read",
+            "chat:write",
+            "commands",
+            "im:history",
+            "im:read",
+            "im:write",
+            "users:read",
+            "team:read",
+        ]
+        for scope in required_scopes:
+            add_check(
+                f"scope:{scope}",
+                scope in bot_scopes,
+                f"Required bot scope: {scope}",
+            )
+    else:
+        # Fallback text checks when YAML parser is unavailable.
+        add_check(
+            "Manifest YAML parse",
+            False,
+            "Could not parse YAML with local parser; using text checks only.",
+        )
+        fallback_snippets = [
+            "display_information:",
+            "oauth_config:",
+            "settings:",
+            "request_url:",
+            "bot_events:",
+            "commands",
+            "chat:write",
+            "users:read",
+        ]
+        for snippet in fallback_snippets:
+            add_check(
+                f"contains:{snippet}",
+                _contains_manifest_line(text, snippet),
+                f"Manifest should include: {snippet}",
+            )
+
+    passed = len([c for c in checks if c["ok"]])
+    failed = len(checks) - passed
+    summary = f"{passed} passed, {failed} failed"
+    return {
+        "ok": failed == 0,
+        "manifest_path": str(manifest_path),
+        "summary": summary,
+        "checks": checks,
+    }
 
 
 async def report_404_to_sentry(env, path, method, detail=""):
@@ -2240,7 +2484,7 @@ async def handle_request(request, env):
         current_ws = None
         selected_ws_id = qs_params.get("ws")
         selected_tab = (qs_params.get("tab") or "overview").lower()
-        if selected_tab not in ("overview", "channels"):
+        if selected_tab not in ("overview", "channels", "apps"):
             selected_tab = "overview"
         if selected_ws_id:
             try:
@@ -2260,6 +2504,7 @@ async def handle_request(request, env):
         events = []
         daily_stats = []
         repos = []
+        installed_apps = []
 
         if current_ws:
             ws_id_val = current_ws["id"]
@@ -2268,6 +2513,8 @@ async def handle_request(request, env):
             events = await db_get_events(env, ws_id_val, limit=20)
             daily_stats = await db_get_daily_stats(env, ws_id_val, days=30)
             repos = await db_get_repositories(env, ws_id_val)
+            if selected_tab == "apps":
+                installed_apps = await get_workspace_installed_apps(env, current_ws)
 
         html = get_dashboard_html(
             user,
@@ -2278,6 +2525,7 @@ async def handle_request(request, env):
             events,
             daily_stats,
             repos,
+            installed_apps,
             active_tab=selected_tab,
         )
         return _html_response(html)
@@ -2829,6 +3077,18 @@ async def handle_request(request, env):
     if pathname == "/status":
         return _html_response(
             get_status_html(env),
+            extra_headers={"Cache-Control": "no-cache"},
+        )
+
+    # ------------------------------------------------------------------ #
+    #  GET /manifest-checker  →  validate Slack app manifest             #
+    # ------------------------------------------------------------------ #
+    if pathname == "/manifest-checker" and method == "GET":
+        base_dir = Path(__file__).resolve().parents[1]
+        manifest_path = base_dir / "manifest.yaml"
+        result = check_manifest_requirements(manifest_path)
+        return _html_response(
+            get_manifest_checker_html(result),
             extra_headers={"Cache-Control": "no-cache"},
         )
 

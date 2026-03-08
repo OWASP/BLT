@@ -70,6 +70,7 @@ def get_dashboard_html(
     events,
     daily_stats,
     repos,
+    installed_apps,
     active_tab="overview",
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
@@ -207,6 +208,7 @@ def get_dashboard_html(
         channels_href = (
             f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
         )
+        apps_href = f"/dashboard?{ws_q}&tab=apps" if ws_q else "/dashboard?tab=apps"
         overview_active = (
             "bg-red-600 text-white border-red-600"
             if active_tab == "overview"
@@ -217,6 +219,11 @@ def get_dashboard_html(
             if active_tab == "channels"
             else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
         )
+        apps_active = (
+            "bg-red-600 text-white border-red-600"
+            if active_tab == "apps"
+            else "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        )
         dashboard_tabs = (
             '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
             '<div class="flex flex-wrap gap-2">'
@@ -224,6 +231,8 @@ def get_dashboard_html(
             '<i class="fas fa-chart-line"></i> Overview</a>'
             f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
             '<i class="fas fa-hashtag"></i> Channels</a>'
+            f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
+            '<i class="fas fa-puzzle-piece"></i> Apps</a>'
             "</div></section>"
         )
 
@@ -257,6 +266,51 @@ def get_dashboard_html(
             '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Users</th>'
             "</tr></thead><tbody>"
             f"{all_channels_rows}"
+            "</tbody></table></div></section>"
+        )
+    elif current_ws and active_tab == "apps":
+        apps_rows = ""
+        for app in installed_apps or []:
+            app_name = html_escape(app.get("app_name") or "Unknown App")
+            app_id = html_escape(app.get("app_id") or "")
+            source = html_escape(app.get("source") or "unknown")
+            scopes = html_escape(app.get("scopes") or "-")
+            status = "Installed" if app.get("is_installed") else "Unknown"
+            apps_rows += (
+                '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+                f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{app_name}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-500 font-mono">{app_id}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-600">{status}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-500">{source}</td>'
+                f'<td class="py-3 px-4 text-sm text-gray-500">{scopes}</td>'
+                "</tr>"
+            )
+        if not apps_rows:
+            apps_rows = (
+                '<tr><td colspan="5" class="py-6 text-center text-sm text-gray-400">'
+                "No app details available for this workspace token."
+                "</td></tr>"
+            )
+
+        workspace_section = (
+            '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">'
+            '<div class="flex items-center justify-between mb-4">'
+            f'<h2 class="text-xl font-bold text-gray-800">Installed Apps - {ws_name}</h2>'
+            '<span class="text-xs text-gray-400">best effort from Slack APIs</span>'
+            "</div>"
+            '<p class="text-sm text-gray-500 mb-4">'
+            "This tab shows apps visible to your current Slack token. Some workspaces require admin scopes for full app listings."
+            "</p>"
+            '<div class="overflow-x-auto">'
+            '<table class="w-full text-left">'
+            '<thead><tr class="border-b border-gray-200">'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">App</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">App ID</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Source</th>'
+            '<th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Scopes</th>'
+            "</tr></thead><tbody>"
+            f"{apps_rows}"
             "</tbody></table></div></section>"
         )
     elif current_ws:
@@ -338,6 +392,50 @@ def get_homepage_html(user=None):
         {
             "AUTH_BUTTON_HREF": auth_button_href,
             "AUTH_BUTTON_TEXT": auth_button_text,
+            "MANIFEST_CHECKER_HREF": "/manifest-checker",
+        },
+    )
+
+
+def get_manifest_checker_html(result):
+    """Generate HTML page showing manifest requirement validation results."""
+    checks = result.get("checks") or []
+    rows_html = ""
+    for idx, check in enumerate(checks, start=1):
+        ok = bool(check.get("ok"))
+        badge_class = "bg-green-100 text-green-800" if ok else "bg-red-100 text-red-800"
+        status_text = "PASS" if ok else "FAIL"
+        icon = "fa-check-circle text-green-600" if ok else "fa-times-circle text-red-600"
+        rows_html += (
+            '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+            f'<td class="py-3 px-4 text-sm text-gray-400 font-mono">{idx}</td>'
+            f'<td class="py-3 px-4 text-sm font-medium text-gray-800">{html_escape(check.get("name") or "")}</td>'
+            f'<td class="py-3 px-4 text-sm"><span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold {badge_class}"><i class="fas {icon}"></i>{status_text}</span></td>'
+            f'<td class="py-3 px-4 text-sm text-gray-600">{html_escape(check.get("detail") or "")}</td>'
+            '</tr>'
+        )
+
+    if not rows_html:
+        rows_html = (
+            '<tr><td colspan="4" class="py-6 text-center text-sm text-gray-400">'
+            "No checks were generated."
+            "</td></tr>"
+        )
+
+    all_ok = bool(result.get("ok"))
+    summary = html_escape(result.get("summary") or "No summary")
+    manifest_path = html_escape(result.get("manifest_path") or "manifest.yaml")
+    status_class = "text-green-700 bg-green-50 border-green-200" if all_ok else "text-red-700 bg-red-50 border-red-200"
+    status_label = "Manifest is valid" if all_ok else "Manifest has required fixes"
+
+    return _render_template(
+        "manifest_checker.html",
+        {
+            "SUMMARY": summary,
+            "MANIFEST_PATH": manifest_path,
+            "STATUS_CLASS": status_class,
+            "STATUS_LABEL": status_label,
+            "CHECK_ROWS": rows_html,
         },
     )
 
