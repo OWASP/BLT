@@ -171,6 +171,7 @@ async def ensure_d1_schema(env):
             "name TEXT DEFAULT '',"
             "email TEXT DEFAULT '',"
             "access_token TEXT DEFAULT '',"
+            "avatar_url TEXT DEFAULT '',"
             "created_at TEXT NOT NULL,"
             "updated_at TEXT NOT NULL"
             ")"
@@ -516,7 +517,7 @@ async def db_get_channels(env, workspace_id):
 # ===========================================================================
 
 
-async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token):
+async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access_token, avatar_url=""):
     now = get_utc_now()
     print(f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}")
     try:
@@ -528,6 +529,7 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
         name = name or ""
         email = email or ""
         access_token = access_token or ""
+        avatar_url = avatar_url or ""
 
         if not slack_user_id:
             print(f"[db_get_or_create_user] ERROR: slack_user_id is empty, returning None")
@@ -542,10 +544,10 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
             print(f"[db_get_or_create_user] User exists, updating...")
             result = await (
                 env.DB.prepare(
-                    "UPDATE users SET name=?, email=?, access_token=?, team_id=?, updated_at=? "
+                    "UPDATE users SET name=?, email=?, access_token=?, avatar_url=?, team_id=?, updated_at=? "
                     "WHERE slack_user_id=?"
                 )
-                .bind(name, email, access_token, team_id, now, slack_user_id)
+                .bind(name, email, access_token, avatar_url, team_id, now, slack_user_id)
                 .run()
             )
             print(f"[db_get_or_create_user] Update result: {result}")
@@ -554,10 +556,10 @@ async def db_get_or_create_user(env, slack_user_id, team_id, name, email, access
             result = await (
                 env.DB.prepare(
                     "INSERT INTO users "
-                    "(slack_user_id, team_id, name, email, access_token, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    "(slack_user_id, team_id, name, email, access_token, avatar_url, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 )
-                .bind(slack_user_id, team_id, name, email, access_token, now, now)
+                .bind(slack_user_id, team_id, name, email, access_token, avatar_url, now, now)
                 .run()
             )
             print(f"[db_get_or_create_user] Insert result: {result}")
@@ -1462,6 +1464,7 @@ async def handle_request(request, env):
 
             user_name = ""
             user_email = ""
+            user_avatar = ""
             team_obj = _js_to_python(token_data.get("team") or {})
             user_team_id = _obj_get(team_obj, "id", "")
 
@@ -1472,6 +1475,7 @@ async def handle_request(request, env):
                     team_info = _js_to_python(identity.get("team") or {})
                     user_name = _obj_get(profile, "name", "")
                     user_email = _obj_get(profile, "email", "")
+                    user_avatar = _obj_get(profile, "image_192", "") or _obj_get(profile, "image_72", "") or _obj_get(profile, "image_48", "")
                     if not user_team_id:
                         user_team_id = _obj_get(team_info, "id", "")
                     if not user_slack_id:
@@ -1492,6 +1496,7 @@ async def handle_request(request, env):
                 user_name,
                 user_email,
                 user_token or "",
+                user_avatar,
             )
             print(f"[OAuth callback] User object returned: {user}")
             if not user:

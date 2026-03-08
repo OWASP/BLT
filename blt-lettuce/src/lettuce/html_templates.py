@@ -74,6 +74,13 @@ def get_dashboard_html(
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
     user_name = html_escape((user or {}).get("name") or "User")
+    user_avatar_url = (user or {}).get("avatar_url") or ""
+    
+    # Generate avatar HTML - either image or fallback icon
+    if user_avatar_url:
+        user_avatar_html = f'<img src="{html_escape(user_avatar_url)}" alt="{user_name}" class="w-8 h-8 rounded-full border border-gray-200"/>'
+    else:
+        user_avatar_html = '<i class="fas fa-user-circle text-red-500 text-2xl"></i>'
     ws_id = (current_ws or {}).get("id", "")
     ws_name = html_escape((current_ws or {}).get("team_name", "No workspace selected"))
     ws_count = len(workspaces)
@@ -278,6 +285,7 @@ def get_dashboard_html(
         "dashboard.html",
         {
             "USER_NAME": user_name,
+            "USER_AVATAR": user_avatar_html,
             "WS_COUNT": ws_count,
             "WS_TABS": ws_tabs,
             "DASHBOARD_TABS": dashboard_tabs,
