@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-08T00:20:01.924Z",
-  "commit_sha": "c299be02d56e8d892daf4ab81903aefa8c1ac61b",
+  "updated_at": "2026-03-08T18:05:56.729Z",
+  "commit_sha": "421add7cc55c96cef4be1336abce70c75ee0fbd9",
   "total_bugs": 14,
   "open_bugs": 3,
   "closed_bugs": 11,
@@ -53,24 +53,24 @@
     },
     {
       "rank": 2,
+      "login": "Nachiket-Roy",
+      "count": 2,
+      "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "profile_url": "https://github.com/Nachiket-Roy"
+    },
+    {
+      "rank": 3,
       "login": "ananya-09",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4",
       "profile_url": "https://github.com/ananya-09"
     },
     {
-      "rank": 3,
+      "rank": 4,
       "login": "azizrebhi",
       "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4",
       "profile_url": "https://github.com/azizrebhi"
-    },
-    {
-      "rank": 4,
-      "login": "Nachiket-Roy",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
-      "profile_url": "https://github.com/Nachiket-Roy"
     },
     {
       "rank": 5,
