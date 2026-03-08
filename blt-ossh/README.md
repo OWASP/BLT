@@ -89,7 +89,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Projects**: Open-source repositories matching your skills and interests
 - **Communities**: Developer communities and organizations
 - **Articles**: Learning resources and documentation
-- **Discussions**: Forums, Discord servers, and other platforms
+- **Discussions**: Forums, Discord servers, and chat platforms
 
 ## How Profiles Work
 
@@ -284,6 +284,14 @@ After analyzing your GitHub profile, the system automatically pre-fills:
 - See [Community Features](#community-features)
 - See [Recommendation Categories](#recommendation-categories)
 
+### For Contributors
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Adding new project recommendations
+- Improving the matching algorithm
+- Enhancing the UI/UX
+- Adding new features
+
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, enhancing the UI/UX, and more.
@@ -304,23 +312,6 @@ Part of OWASP BLT; follows its licensing terms.
 - [Report Issues](https://github.com/OWASP-BLT/BLT-OSSH/issues)
 - [Create Your Profile](https://github.com/OWASP-BLT/BLT-OSSH/issues/new?template=user_profile.yml)
 - [Browse Community](https://owasp-blt.github.io/BLT-OSSH/community.html)
-
-## Roadmap
-
-- [ ] AI-powered project recommendations using ML
-- [ ] Profile verification badges
-- [ ] Direct messaging between community members
-- [ ] Project collaboration matching
-- [ ] Mentorship program integration
-- [ ] Event calendar for community meetups
-- [ ] Skill endorsements
-- [ ] Advanced search with tags
-
-## Acknowledgments
-
-- OWASP Foundation
-- BLT Community
-- All contributors
 
 ## Roadmap
 
