@@ -687,6 +687,7 @@ def get_dashboard_html(
             )
     elif current_ws:
         purge_events_btn = ""
+        test_inactivity_alert_btn = ""
         if can_manage_manifest:
             purge_events_btn = (
                 f'<button onclick="purgeRecentActivities({ws_id_js})" '
@@ -694,6 +695,13 @@ def get_dashboard_html(
                 '        class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-red-200 '
                 '               text-red-700 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">'
                 '<i class="fas fa-trash"></i> Purge Activities</button>'
+            )
+            test_inactivity_alert_btn = (
+                f'<button onclick="testInactivityAlert({ws_id_js})" '
+                '        id="test-inactivity-alert-btn" '
+                '        class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-amber-200 '
+                '               text-amber-700 rounded-lg hover:bg-amber-50 transition-colors text-sm font-medium">'
+                '<i class="fas fa-triangle-exclamation"></i> Test Inactivity Alert</button>'
             )
 
         scan_btn = (
@@ -732,6 +740,7 @@ def get_dashboard_html(
                 "COMMANDS": f"{commands:,}",
                 "EVENTS_HTML": events_html,
                 "PURGE_EVENTS_BTN": purge_events_btn,
+                "TEST_INACTIVITY_ALERT_BTN": test_inactivity_alert_btn,
                 "CHANNELS_HTML": channels_html,
                 "REPOS_HTML": repos_html,
             },

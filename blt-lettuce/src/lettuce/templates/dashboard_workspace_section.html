@@ -59,9 +59,13 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex items-center justify-between gap-3 mb-4">
       <h3 class="text-lg font-bold text-gray-800">Recent Activities</h3>
-      {{ PURGE_EVENTS_BTN }}
+      <div class="flex items-center gap-2">
+        {{ TEST_INACTIVITY_ALERT_BTN }}
+        {{ PURGE_EVENTS_BTN }}
+      </div>
     </div>
     <div id="purge-status" class="hidden mb-4 p-3 rounded-lg"></div>
+    <div id="inactivity-alert-status" class="hidden mb-4 p-3 rounded-lg"></div>
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>

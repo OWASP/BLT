@@ -446,6 +446,31 @@ async function purgeRecentActivities(wsId) {
   }
 }
 
+async function testInactivityAlert(wsId) {
+  const btn = document.getElementById('test-inactivity-alert-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+  }
+
+  try {
+    const r = await fetch(`/api/ws/${wsId}/inactivity-alert/test`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      showStatus('inactivity-alert-status', 'success', d.message || 'Test inactivity alert sent.');
+    } else {
+      showStatus('inactivity-alert-status', 'error', 'Failed: ' + (d.error || 'unknown error'));
+    }
+  } catch (e) {
+    showStatus('inactivity-alert-status', 'error', 'Request failed: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Test Inactivity Alert';
+    }
+  }
+}
+
 function escapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')

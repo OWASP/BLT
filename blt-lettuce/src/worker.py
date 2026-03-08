@@ -60,21 +60,23 @@ def get_blt_logo_url(env):
     return f"{get_blt_base_url(env)}/docs/static/logo.png"
 
 
-def build_blt_branding_block(env, channel="", user_id=""):
+def build_blt_branding_block(env, channel="", user_id="", tracking_id=""):
     """Build a footer block that includes the BLT logo and homepage link.
 
     The logo URL includes cache-busting/tracking query params so image loads
     register a hit in the deployment logs.
     """
+    tid = str(tracking_id or "").strip() or secrets.token_hex(12)
     tracking_query = urlencode(
         {
             "src": "slack",
+            "tid": tid,
             "ts": int(datetime.now(timezone.utc).timestamp()),
             "ch": str(channel or "")[:80],
             "u": str(user_id or "")[:80],
         }
     )
-    logo_url = f"{get_blt_logo_url(env)}?{tracking_query}"
+    logo_url = f"{get_blt_base_url(env)}/logo-hit?{tracking_query}"
     return {
         "type": "context",
         "elements": [
@@ -835,74 +837,98 @@ async def run_inactivity_monitor(env):
         if last_alert_dt and last_activity_dt and last_alert_dt >= last_activity_dt:
             continue
 
-        installers = await db_get_workspace_installers(env, ws_id)
-        target_user = next(
-            (row for row in installers if str(row.get("slack_user_id") or "").strip()),
-            None,
+        alert_result = await send_inactivity_alert_for_workspace(
+            env,
+            ws,
+            last_activity_at=(ws.get("last_activity_at") or ws.get("created_at")),
+            is_test=False,
         )
-        if not target_user:
-            continue
-
-        slack_user_id = str(target_user.get("slack_user_id") or "").strip()
-        ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
-        if not ws_token:
-            continue
-
-        conv_result = await open_conversation(env, slack_user_id, token=ws_token)
-        dm_channel = (
-            (conv_result.get("channel") or {}).get("id")
-            if isinstance(conv_result.get("channel"), dict)
-            else conv_result.get("channel")
-        )
-        if not conv_result.get("ok") or not dm_channel:
-            continue
-
-        dashboard_link = f"{get_blt_base_url(env)}/dashboard?ws={ws_id}&tab=overview"
-        ws_name = ws.get("team_name") or f"Workspace {ws_id}"
-        msg = (
-            f":warning: No activity received in one day for *{ws_name}*.\n"
-            f"Open dashboard: {dashboard_link}"
-        )
-        send_result = await send_slack_message(env, dm_channel, msg, token=ws_token)
-        if send_result.get("ok"):
+        if alert_result.get("ok"):
             alerted += 1
-            await db_log_event(
-                env,
-                ws_id,
-                "Inactivity_Alert",
-                slack_user_id,
-                "success",
-                channel_name="Direct Message",
-                request_data=json.dumps(
-                    {
-                        "workspace_id": ws_id,
-                        "workspace_name": ws_name,
-                        "last_activity_at": ws.get("last_activity_at")
-                        or ws.get("created_at"),
-                        "dashboard_link": dashboard_link,
-                    }
-                ),
-                verified=True,
-            )
-        else:
-            await db_log_event(
-                env,
-                ws_id,
-                "Inactivity_Alert",
-                slack_user_id,
-                "failed",
-                channel_name="Direct Message",
-                request_data=json.dumps(
-                    {
-                        "workspace_id": ws_id,
-                        "workspace_name": ws_name,
-                        "error": send_result.get("error") or "send_failed",
-                    }
-                ),
-                verified=False,
-            )
 
     return {"checked": checked, "alerted": alerted}
+
+
+async def send_inactivity_alert_for_workspace(
+    env, ws, last_activity_at="", is_test=False
+):
+    """Send inactivity alert DM to installer/admin for a workspace."""
+    ws_id = ws.get("id")
+    if not ws_id:
+        return {"ok": False, "error": "missing_workspace_id"}
+
+    installers = await db_get_workspace_installers(env, ws_id)
+    target_user = next(
+        (row for row in installers if str(row.get("slack_user_id") or "").strip()),
+        None,
+    )
+    if not target_user:
+        return {"ok": False, "error": "no_workspace_installer"}
+
+    slack_user_id = str(target_user.get("slack_user_id") or "").strip()
+    ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
+    if not ws_token:
+        return {"ok": False, "error": "missing_workspace_token"}
+
+    conv_result = await open_conversation(env, slack_user_id, token=ws_token)
+    dm_channel = (
+        (conv_result.get("channel") or {}).get("id")
+        if isinstance(conv_result.get("channel"), dict)
+        else conv_result.get("channel")
+    )
+    if not conv_result.get("ok") or not dm_channel:
+        return {
+            "ok": False,
+            "error": conv_result.get("error") or "dm_open_failed",
+        }
+
+    dashboard_link = f"{get_blt_base_url(env)}/dashboard?ws={ws_id}&tab=overview"
+    ws_name = ws.get("team_name") or f"Workspace {ws_id}"
+    prefix = ":test_tube: *Test Inactivity Alert*\n" if is_test else ""
+    msg = (
+        f"{prefix}:warning: No activity received in one day for *{ws_name}*.\n"
+        f"Open dashboard: {dashboard_link}"
+    )
+    send_result = await send_slack_message(env, dm_channel, msg, token=ws_token)
+    if send_result.get("ok"):
+        await db_log_event(
+            env,
+            ws_id,
+            "Inactivity_Alert",
+            slack_user_id,
+            "success",
+            channel_name="Direct Message",
+            request_data=json.dumps(
+                {
+                    "workspace_id": ws_id,
+                    "workspace_name": ws_name,
+                    "last_activity_at": last_activity_at,
+                    "dashboard_link": dashboard_link,
+                    "is_test": bool(is_test),
+                }
+            ),
+            verified=True,
+        )
+        return {"ok": True}
+
+    await db_log_event(
+        env,
+        ws_id,
+        "Inactivity_Alert",
+        slack_user_id,
+        "failed",
+        channel_name="Direct Message",
+        request_data=json.dumps(
+            {
+                "workspace_id": ws_id,
+                "workspace_name": ws_name,
+                "error": send_result.get("error") or "send_failed",
+                "is_test": bool(is_test),
+            }
+        ),
+        verified=False,
+    )
+    return {"ok": False, "error": send_result.get("error") or "send_failed"}
 
 
 # ===========================================================================
@@ -1063,6 +1089,51 @@ async def db_get_channel_join_message_sent_counts(env, workspace_id):
         return counts
     except Exception:
         return {}
+
+
+async def db_mark_join_message_verified_by_tracking(
+    env, tracking_id, ip_address, user_agent
+):
+    """Mark the latest tracked Channel_Join_Message event as verified with hit metadata."""
+    tid = str(tracking_id or "").strip()
+    if not tid:
+        return False
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT id, request_data FROM events "
+                "WHERE event_type = 'Channel_Join_Message' "
+                "AND request_data LIKE ? "
+                "ORDER BY id DESC LIMIT 1"
+            )
+            .bind(f'%"logo_tracking_id": "{tid}"%')
+            .first()
+        )
+        if not row:
+            return False
+
+        payload = {}
+        try:
+            payload = json.loads(row.get("request_data") or "{}")
+            if not isinstance(payload, dict):
+                payload = {}
+        except Exception:
+            payload = {}
+
+        payload["verification_ip"] = str(ip_address or "")
+        payload["verification_user_agent"] = str(user_agent or "")[:512]
+        payload["verified_at"] = get_utc_now()
+
+        await (
+            env.DB.prepare(
+                "UPDATE events SET request_data = ?, verified = 1 WHERE id = ?"
+            )
+            .bind(json.dumps(payload), int(row.get("id") or 0))
+            .run()
+        )
+        return True
+    except Exception:
+        return False
 
 
 async def db_get_join_messages(env, workspace_id):
@@ -2508,7 +2579,13 @@ async def get_bot_user_id(env):
 
 
 async def send_slack_message(
-    env, channel, text, blocks=None, token=None, include_branding=True
+    env,
+    channel,
+    text,
+    blocks=None,
+    token=None,
+    include_branding=True,
+    branding_tracking_id="",
 ):
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
     if not slack_token:
@@ -2516,7 +2593,13 @@ async def send_slack_message(
     payload = {"channel": channel, "text": text}
     payload_blocks = list(blocks) if isinstance(blocks, list) else []
     if include_branding and len(payload_blocks) < 50:
-        payload_blocks.append(build_blt_branding_block(env, channel=channel))
+        payload_blocks.append(
+            build_blt_branding_block(
+                env,
+                channel=channel,
+                tracking_id=branding_tracking_id,
+            )
+        )
     if payload_blocks:
         payload["blocks"] = payload_blocks
     headers = Headers.new()
@@ -2546,6 +2629,7 @@ async def send_slack_ephemeral_message(
     blocks=None,
     token=None,
     include_branding=True,
+    branding_tracking_id="",
 ):
     """Send an ephemeral message visible only to one user in a channel."""
     slack_token = token or getattr(env, "SLACK_TOKEN", None)
@@ -2555,7 +2639,12 @@ async def send_slack_ephemeral_message(
     payload_blocks = list(blocks) if isinstance(blocks, list) else []
     if include_branding and len(payload_blocks) < 50:
         payload_blocks.append(
-            build_blt_branding_block(env, channel=channel, user_id=user_id)
+            build_blt_branding_block(
+                env,
+                channel=channel,
+                user_id=user_id,
+                tracking_id=branding_tracking_id,
+            )
         )
     if payload_blocks:
         payload["blocks"] = payload_blocks
@@ -2826,6 +2915,7 @@ async def handle_message_event(env, event, team_id=None):
                             },
                         )
                         if rendered.strip():
+                            logo_tracking_id = secrets.token_hex(12)
                             join_blocks = [
                                 {
                                     "type": "section",
@@ -2840,6 +2930,7 @@ async def handle_message_event(env, event, team_id=None):
                                 "template_name": template.get("name") or "",
                                 "user_id": user or "",
                                 "logo_url": get_blt_logo_url(env),
+                                "logo_tracking_id": logo_tracking_id,
                                 "delivery_mode": str(
                                     channel_row.get("join_delivery_mode") or "dm"
                                 ).lower(),
@@ -2858,6 +2949,7 @@ async def handle_message_event(env, event, team_id=None):
                                         rendered,
                                         blocks=join_blocks,
                                         token=ws_token,
+                                        branding_tracking_id=logo_tracking_id,
                                     )
                                 else:
                                     dm_response = await open_conversation(
@@ -2878,6 +2970,7 @@ async def handle_message_event(env, event, team_id=None):
                                         rendered,
                                         blocks=join_blocks,
                                         token=ws_token,
+                                        branding_tracking_id=logo_tracking_id,
                                     )
                                 await db_log_event(
                                     env,
@@ -2887,7 +2980,7 @@ async def handle_message_event(env, event, team_id=None):
                                     "success" if send_result.get("ok") else "failed",
                                     channel_name=resolved_channel_name,
                                     request_data=json.dumps(request_payload),
-                                    verified=bool(send_result.get("ok")),
+                                    verified=False,
                                 )
                             except Exception:
                                 await db_log_event(
@@ -4574,6 +4667,71 @@ async def handle_request(request, env):
         )
 
     # ------------------------------------------------------------------ #
+    #  POST /api/ws/<id>/inactivity-alert/test  →  send test alert       #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/inactivity-alert/test")
+        and method == "POST"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        user_role = await db_get_user_workspace_role(env, user["user_id"], ws_id_val)
+        if user_role not in ("owner", "admin"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": "Only workspace admins/owners can trigger inactivity alerts.",
+                },
+                403,
+            )
+
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            await report_404_to_sentry(env, pathname, method, "workspace_not_found")
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+
+        last_event_row = _row(
+            await env.DB.prepare(
+                "SELECT created_at FROM events WHERE workspace_id = ? AND event_type != 'Inactivity_Alert' ORDER BY created_at DESC LIMIT 1"
+            )
+            .bind(ws_id_val)
+            .first()
+        )
+        last_activity_at = (last_event_row or {}).get("created_at") or ws.get(
+            "created_at"
+        )
+
+        test_result = await send_inactivity_alert_for_workspace(
+            env,
+            ws,
+            last_activity_at=last_activity_at,
+            is_test=True,
+        )
+        if not test_result.get("ok"):
+            return _json_response(
+                {
+                    "ok": False,
+                    "error": test_result.get("error")
+                    or "Failed to send inactivity alert test",
+                },
+                500,
+            )
+
+        return _json_response(
+            {"ok": True, "message": "Test inactivity alert sent."}, 200
+        )
+
+    # ------------------------------------------------------------------ #
     #  POST /webhook  →  Slack events                                    #
     # ------------------------------------------------------------------ #
     if pathname == "/webhook" and method == "POST":
@@ -4801,6 +4959,37 @@ async def handle_request(request, env):
             except Exception:
                 pass
             return _json_response({"error": "Internal server error"}, 500)
+
+    # ------------------------------------------------------------------ #
+    #  GET /logo-hit  →  track logo image loads for verification         #
+    # ------------------------------------------------------------------ #
+    if pathname == "/logo-hit" and method == "GET":
+        qs = _parsed.query or ""
+        tid = ""
+        for part in qs.split("&"):
+            kv = part.split("=", 1)
+            if len(kv) == 2 and kv[0] == "tid":
+                tid = unquote_plus(kv[1] or "").strip()
+                break
+
+        ip_address = (request.headers.get("CF-Connecting-IP") or "").strip() or (
+            request.headers.get("X-Forwarded-For") or ""
+        ).split(",")[0].strip()
+        user_agent = (request.headers.get("User-Agent") or "").strip()
+
+        if tid:
+            await db_mark_join_message_verified_by_tracking(
+                env,
+                tid,
+                ip_address,
+                user_agent,
+            )
+
+        # Redirect to the actual logo asset after recording the hit.
+        h = Headers.new()
+        h.set("Location", get_blt_logo_url(env))
+        h.set("Cache-Control", "no-store")
+        return Response.new("", {"status": 302, "headers": h})
 
     # ------------------------------------------------------------------ #
     #  GET /health                                                        #
