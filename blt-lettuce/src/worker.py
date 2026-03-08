@@ -267,9 +267,13 @@ async def ensure_d1_schema(env):
         ),
     ]
 
-    # Migration statements to add new columns to existing tables
+    # Migration metadata for conditional, idempotent schema changes.
     migrations = [
-        "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
+        {
+            "table": "users",
+            "column": "avatar_url",
+            "sql": "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
+        },
     ]
 
     try:
@@ -280,24 +284,41 @@ async def ensure_d1_schema(env):
             await env.DB.prepare(sql).run()
             print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
 
-        # Run migrations - these may fail if columns already exist, which is fine
+        # Run migrations only when the target column is missing.
         print(f"[ensure_d1_schema] Running {len(migrations)} migration(s)...")
-        for idx, migration_sql in enumerate(migrations, 1):
+        for idx, migration in enumerate(migrations, 1):
             try:
+                table_name = migration["table"]
+                column_name = migration["column"]
+                migration_sql = migration["sql"]
+
+                pragma_result = await env.DB.prepare(
+                    f"PRAGMA table_info({table_name})"
+                ).all()
+                columns = _rows(pragma_result)
+                existing_column_names = {
+                    (col.get("name") or "") for col in columns if isinstance(col, dict)
+                }
+
+                if column_name in existing_column_names:
+                    print(
+                        f"[ensure_d1_schema] Migration {idx}/{len(migrations)} skipped: column {table_name}.{column_name} already exists"
+                    )
+                    continue
+
                 await env.DB.prepare(migration_sql).run()
                 print(
                     f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully"
                 )
             except Exception as migration_error:
-                # Column may already exist, which is fine
                 print(
-                    f"[ensure_d1_schema] Migration {idx} skipped (likely already applied): {migration_error}"
+                    f"[ensure_d1_schema] Migration {idx} failed: {migration_error}"
                 )
                 try:
                     sentry = get_sentry()
                     await sentry.capture_exception(
                         migration_error,
-                        level="warning",
+                        level="error",
                         extra={
                             "context": "schema_migration",
                             "migration_index": idx,
