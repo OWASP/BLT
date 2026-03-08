@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-03-08T23:24:38.119Z",
-  "commit_sha": "6d75eb57b3e741350c355e53aa9874d6f058d428",
-  "total_bugs": 14,
-  "open_bugs": 2,
+  "updated_at": "2026-03-08T23:32:05.574Z",
+  "commit_sha": "a7d53277675376a5e03cbe9f852cbdf64a3a85e5",
+  "total_bugs": 15,
+  "open_bugs": 3,
   "closed_bugs": 12,
   "total_domains": 3,
   "total_orgs": 0,
@@ -10,7 +10,7 @@
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 8,
+      "count": 9,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -117,7 +117,7 @@
     {
       "rank": 2,
       "domain": "www.owasp.community",
-      "count": 2
+      "count": 3
     },
     {
       "rank": 3,
@@ -126,6 +126,31 @@
     }
   ],
   "recent_bugs": [
+    {
+      "number": 81,
+      "title": "[BUG] whole div should be clickable and remove test data",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
+      "created_at": "2026-03-08T23:31:51Z",
+      "comment_count": 1,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/90330d80-7329-4058-941a-4b50b831d9cf",
+      "domain": "www.owasp.community",
+      "reactions": {},
+      "latest_comment": {
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n",
+        "created_at": "2026-03-08T23:31:54Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4020254478",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
     {
       "number": 17,
       "title": "[BUG] video bugs are not showing up",
