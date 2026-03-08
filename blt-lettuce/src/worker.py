@@ -768,6 +768,143 @@ async def db_get_workspace_installers(env, workspace_id):
         return []
 
 
+def _parse_iso_datetime(value):
+    """Parse ISO timestamp strings into UTC-aware datetime values."""
+    if not value:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    normalized = raw.replace(" ", "T")
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt
+
+
+async def db_get_workspaces_with_activity_markers(env):
+    """Return workspaces with last non-alert activity and last inactivity alert time."""
+    try:
+        rows = _rows(
+            await env.DB.prepare(
+                "SELECT "
+                "w.id, w.team_name, w.access_token, w.created_at, "
+                "(SELECT MAX(e.created_at) FROM events e "
+                " WHERE e.workspace_id = w.id AND e.event_type != 'Inactivity_Alert') AS last_activity_at, "
+                "(SELECT MAX(e2.created_at) FROM events e2 "
+                " WHERE e2.workspace_id = w.id AND e2.event_type = 'Inactivity_Alert') AS last_alert_at "
+                "FROM workspaces w"
+            ).all()
+        )
+        return rows
+    except Exception:
+        return []
+
+
+async def run_inactivity_monitor(env):
+    """Notify workspace installer/admin when no activity has been received for 1 day."""
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=1)
+    checked = 0
+    alerted = 0
+
+    workspaces = await db_get_workspaces_with_activity_markers(env)
+    for ws in workspaces:
+        ws_id = ws.get("id")
+        if not ws_id:
+            continue
+        checked += 1
+
+        last_activity_dt = _parse_iso_datetime(
+            ws.get("last_activity_at") or ws.get("created_at")
+        )
+        last_alert_dt = _parse_iso_datetime(ws.get("last_alert_at"))
+
+        # Skip active workspaces.
+        if last_activity_dt and last_activity_dt > cutoff:
+            continue
+
+        # Deduplicate: only one alert per inactivity period.
+        if last_alert_dt and last_activity_dt and last_alert_dt >= last_activity_dt:
+            continue
+
+        installers = await db_get_workspace_installers(env, ws_id)
+        target_user = next(
+            (row for row in installers if str(row.get("slack_user_id") or "").strip()),
+            None,
+        )
+        if not target_user:
+            continue
+
+        slack_user_id = str(target_user.get("slack_user_id") or "").strip()
+        ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
+        if not ws_token:
+            continue
+
+        conv_result = await open_conversation(env, slack_user_id, token=ws_token)
+        dm_channel = (
+            (conv_result.get("channel") or {}).get("id")
+            if isinstance(conv_result.get("channel"), dict)
+            else conv_result.get("channel")
+        )
+        if not conv_result.get("ok") or not dm_channel:
+            continue
+
+        dashboard_link = f"{get_blt_base_url(env)}/dashboard?ws={ws_id}&tab=overview"
+        ws_name = ws.get("team_name") or f"Workspace {ws_id}"
+        msg = (
+            f":warning: No activity received in one day for *{ws_name}*.\n"
+            f"Open dashboard: {dashboard_link}"
+        )
+        send_result = await send_slack_message(env, dm_channel, msg, token=ws_token)
+        if send_result.get("ok"):
+            alerted += 1
+            await db_log_event(
+                env,
+                ws_id,
+                "Inactivity_Alert",
+                slack_user_id,
+                "success",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "workspace_id": ws_id,
+                        "workspace_name": ws_name,
+                        "last_activity_at": ws.get("last_activity_at")
+                        or ws.get("created_at"),
+                        "dashboard_link": dashboard_link,
+                    }
+                ),
+                verified=True,
+            )
+        else:
+            await db_log_event(
+                env,
+                ws_id,
+                "Inactivity_Alert",
+                slack_user_id,
+                "failed",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "workspace_id": ws_id,
+                        "workspace_name": ws_name,
+                        "error": send_result.get("error") or "send_failed",
+                    }
+                ),
+                verified=False,
+            )
+
+    return {"checked": checked, "alerted": alerted}
+
+
 # ===========================================================================
 # D1 — Channel helpers
 # ===========================================================================
@@ -4845,3 +4982,22 @@ class Default(WorkerEntrypoint):
                     _json_response({"error": "Internal server error"}, 500)
                 )
             return _attach_security_headers(_html_response(get_500_html(), 500))
+
+    async def scheduled(self, controller):
+        """Cloudflare Cron trigger entrypoint."""
+        try:
+            result = await run_inactivity_monitor(self.env)
+            print(
+                f"[cron inactivity monitor] checked={result.get('checked', 0)} alerted={result.get('alerted', 0)}"
+            )
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                sentry.capture_exception_nowait(
+                    e,
+                    level="error",
+                    extra={"context": "cron_inactivity_monitor"},
+                )
+            except Exception:
+                pass
+            print(f"[cron inactivity monitor] ERROR: {e}")

@@ -22,6 +22,9 @@ database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
 [vars]
 VERSION = "2.0.0"
 
+[triggers]
+crons = ["*/10 * * * *"]
+
 [observability]
 enabled = false
 head_sampling_rate = 1
