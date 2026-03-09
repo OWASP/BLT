@@ -3597,6 +3597,7 @@
                             // New PRs were discovered — reload lists before batch refresh
                             await loadRepos(true);
                             await loadPrs(true);
+                            await loadAuthors(true);
                         }
                     }
 

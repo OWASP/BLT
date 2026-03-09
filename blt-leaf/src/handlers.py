@@ -758,6 +758,7 @@ async def handle_refresh_org(request, env):
 
         MAX_PRS_PER_REFRESH = _MAX_PRS_PER_BULK_OP
         imported_count = 0
+        repos_attempted = 0
         truncated = False
         ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
@@ -769,6 +770,8 @@ async def handle_refresh_org(request, env):
             if remaining <= 0:
                 truncated = True
                 break
+
+            repos_attempted += 1
 
             list_url = (
                 f"https://api.github.com/repos/{owner}/{repo_name}"
@@ -818,7 +821,8 @@ async def handle_refresh_org(request, env):
         return Response.new(json.dumps({
             'success': True,
             'imported_count': imported_count,
-            'repos_scanned': len(org_repos),
+            'repos_scanned': repos_attempted,
+            'repos_total': len(org_repos),
             'truncated': truncated
         }), {'headers': {'Content-Type': 'application/json'}})
 
