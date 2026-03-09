@@ -251,14 +251,14 @@
         }
 
         // Send message
-        async function sendMessage(message) {
+        async function sendMessage(message, history) {
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: message,
-                        history: conversationHistory.slice(-10)
+                        history: history
                     })
                 });
 
@@ -284,7 +284,7 @@
 
             hideWelcomeCard();
             addMessage(message, true);
-            conversationHistory.push({ role: 'user', content: message });
+            const requestHistory = conversationHistory.slice(-10);
 
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -293,7 +293,8 @@
             loadingIndicator.classList.remove('hidden');
 
             try {
-                const response = await sendMessage(message);
+                const response = await sendMessage(message, requestHistory);
+                conversationHistory.push({ role: 'user', content: message });
                 addMessage(response, false);
                 conversationHistory.push({ role: 'assistant', content: response });
             } catch (error) {
@@ -316,6 +317,7 @@
 
         // Focus input on load
         window.addEventListener('load', () => {
+            BLT.initThemeToggle('dark-toggle');
             messageInput.focus();
         });
     </script>

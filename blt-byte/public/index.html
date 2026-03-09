@@ -56,7 +56,7 @@
           </svg>
         </button>
         <a class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-blt-red text-white text-sm font-bold rounded-lg hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950"
-          href="https://github.com/OWASP-BLT/BLT" target="_blank">
+          href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
       </div>
@@ -247,6 +247,7 @@
               categories</button>
           </div>
           <form id="chat-form" class="flex gap-2">
+            <label for="chat-input" class="sr-only">Ask Byte a question</label>
             <input type="text" id="chat-input" placeholder="Ask Byte anything..."
               class="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/30 outline-none transition"
               autocomplete="off">
@@ -359,9 +360,12 @@
   <footer class="py-12 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center">
       <div class="flex gap-6 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
-        <a href="https://owasp.org" target="_blank" class="hover:text-blt-red transition">OWASP Org</a>
-        <a href="https://bugheist.com" target="_blank" class="hover:text-blt-red transition">BugHeist</a>
-        <a href="https://owasp.org/slack/invite" target="_blank" class="hover:text-blt-red transition">Slack</a>
+        <a href="https://owasp.org" target="_blank" rel="noopener noreferrer"
+          class="hover:text-blt-red transition">OWASP Org</a>
+        <a href="https://bugheist.com" target="_blank" rel="noopener noreferrer"
+          class="hover:text-blt-red transition">BugHeist</a>
+        <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+          class="hover:text-blt-red transition">Slack</a>
       </div>
       <p class="text-xs text-gray-400 dark:text-gray-500">
         &copy; <span id="year"></span> OWASP BLT Project. Licensed under AGPL-3.0.
@@ -429,6 +433,7 @@
 
         conversationHistory.push({ role: 'user', content: message });
         conversationHistory.push({ role: 'assistant', content: reply });
+        conversationHistory = conversationHistory.slice(-10);
       } catch (err) {
         appendMessage(`⚠️ Error: ${err.message || "Check network connection."}`);
       } finally {

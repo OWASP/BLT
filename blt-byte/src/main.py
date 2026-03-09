@@ -10,6 +10,7 @@ Routes:
 """
 
 import json
+import hashlib
 import traceback
 import pyodide
 import js
@@ -165,6 +166,8 @@ async def handle_chat(request, env) -> Response:
         body = json.loads(body_text) if body_text else {}
     except Exception:
         return error_response("Invalid JSON body")
+    if not isinstance(body, dict):
+        return error_response("JSON body must be an object")
 
     user_message = body.get("message", "").strip()
     if not user_message:
@@ -174,7 +177,7 @@ async def handle_chat(request, env) -> Response:
     result = await _run_chat(env, user_message, history)
     
     if "error" in result:
-        return error_response(result["error"])
+        return error_response(result["error"], int(result.get("status", 502)))
         
     return json_response({**result, "model": CLOUDFLARE_AI_MODEL})
 
@@ -189,18 +192,16 @@ async def handle_scan(request, env) -> Response:
         body = json.loads(body_text) if body_text else {}
     except Exception:
         return error_response("Invalid JSON body")
+    if not isinstance(body, dict):
+        return error_response("JSON body must be an object")
 
     target = body.get("url", "").strip()
     if not target:
         return error_response("'url' field is required")
 
     scan_type = body.get("scan_type", "quick")
-
-    depth_note = (
-        "Provide a comprehensive deep-dive analysis."
-        if scan_type == "full"
-        else "Provide a concise quick-scan checklist."
-    )
+    if scan_type not in ("quick", "full"):
+        return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
 
     result = await _run_scan(env, target, scan_type)
     if "error" in result:
@@ -225,9 +226,13 @@ async def handle_mcp(request, env) -> Response:
             body = json.loads(body_text) if body_text else {}
         except Exception:
             return error_response("Invalid JSON body")
+        if not isinstance(body, dict):
+            return error_response("JSON body must be an object")
 
         tool_name = body.get("tool")
         params = body.get("params", {})
+        if not isinstance(params, dict):
+            return error_response("'params' must be an object", 400)
 
         if tool_name == "chat":
             message = params.get("message", "")
@@ -239,6 +244,8 @@ async def handle_mcp(request, env) -> Response:
         if tool_name == "scan_url":
             url = params.get("url", "")
             scan_type = params.get("scan_type", "quick")
+            if scan_type not in ("quick", "full"):
+                return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
             result = await _run_scan(env, url, scan_type)
             return json_response({"tool": tool_name, "result": result})
 
@@ -257,11 +264,11 @@ async def handle_mcp(request, env) -> Response:
 # ---------------------------------------------------------------------------
 async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
-        return {"error": "'message' is required"}
+        return {"error": "'message' is required", "status": 400}
     if history is None:
         history = []
     if not isinstance(history, list):
-        return {"error": "'history' must be an array"}
+        return {"error": "'history' must be an array", "status": 400}
     
     # Build message array for better model performance
     messages = [
@@ -340,13 +347,33 @@ async def _run_chat(env, message: str, history: list) -> dict:
                 )
             
         if reply is None:
-            print(f"AI Fallback extraction needed. Full response: {ai_response}")
+            if isinstance(ai_response, dict):
+                response_keys = list(ai_response.keys())
+            else:
+                response_keys = []
+
+            try:
+                response_dump = json.dumps(ai_response, sort_keys=True, default=str)
+            except Exception:
+                response_dump = str(type(ai_response))
+
+            response_hash = hashlib.sha256(response_dump.encode("utf-8")).hexdigest()
+            print(
+                "AI fallback extraction needed. "
+                f"response_type={type(ai_response).__name__} "
+                f"response_len={len(response_dump)} "
+                f"response_keys={response_keys[:10]} "
+                f"response_sha256={response_hash}"
+            )
             reply = "I received a response but couldn't parse the text. Please check the logs."
             
     except Exception as ai_error:
         print(f"AI call crash: {ai_error!s}")
         traceback.print_exc()
-        return {"error": "The AI service is temporarily unavailable. Please try again."}
+        return {
+            "error": "The AI service is temporarily unavailable. Please try again.",
+            "status": 502,
+        }
     
     return {"reply": reply}
 
