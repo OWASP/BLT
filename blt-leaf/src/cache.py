@@ -403,7 +403,11 @@ def should_send_dedupe(key: str, ttl_seconds: int):
     """
     now = time.time()
 
-    # cleanup expired keys opportunistically
+    # Opportunistic cleanup: remove a few expired keys each call
+    expired_keys = [k for k, exp in list(_client_error_dedupe.items())[:50] if exp <= now]
+    for k in expired_keys:
+        _client_error_dedupe.pop(k, None)
+
     expiry = _client_error_dedupe.get(key)
     if expiry and expiry > now:
         return False

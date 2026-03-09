@@ -3,7 +3,6 @@ import json
 from js import Response, URL, Object
 from pyodide.ffi import to_js
 from slack_notifier import notify_slack_exception, notify_slack_error
-import json
 from cache import check_rate_limit_bucket,should_send_dedupe, slack_budget_allow
 # Import all handlers
 from handlers import (
@@ -173,17 +172,17 @@ async def on_fetch(request, env):
                     response.headers.set(k, v)
                 return response
 
-            try:
-                await notify_slack_error(
-                    slack_webhook,
-                    error_type='ErrorTest',
-                    error_message='Slack error-test triggered',
-                    context={'source': '/api/error-test', 'url': str(request.url), 'ip': ip},
-                    stack_trace=None,
-                )
+            slack_ok = await notify_slack_error(
+                slack_webhook,
+                error_type='ErrorTest',
+                error_message='Slack error-test triggered',
+                context={'source': '/api/error-test', 'url': str(request.url), 'ip': ip},
+                stack_trace=None,
+            )
+            if slack_ok:
                 response = json_response({'ok': True, 'sent_to_slack': True}, 200)
-            except Exception as e:
-                print(f'Error-test Slack send failed: {type(e).__name__}: {e}')
+            else:
+                print('Error-test Slack send failed')
                 response = json_response({'ok': False, 'reason': 'Slack send failed (check worker logs)'}, 502)
 
             for k, v in cors_headers.items():
@@ -255,19 +254,16 @@ async def on_fetch(request, env):
 
             slack_sent = False
             if should_slack and slack_allowed:
-                try:
-                    await notify_slack_error(
-                        slack_webhook,
-                        error_type=error_type,
-                        error_message=error_message,
-                        context=ctx,
-                        stack_trace=stack_trace,
-                    )
-                    slack_sent = True
-                except Exception as slack_err:
-                    print(f'Slack: failed to report frontend error: {slack_err}')
+                slack_sent = await notify_slack_error(
+                    slack_webhook,
+                    error_type=error_type,
+                    error_message=error_message,
+                    context=ctx,
+                    stack_trace=stack_trace,
+                )
+                if not slack_sent:
+                    print('Slack: failed to report frontend error')
             else:
-                # Optional: log why we skipped Slack
                 if not should_slack:
                     print("Slack: deduped client-error")
                 elif not slack_allowed:
