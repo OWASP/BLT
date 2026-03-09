@@ -364,15 +364,20 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         {"role": "user", "content": f"Analyse this target: {url}\n{depth_note}"},
     ]
     # Call Cloudflare AI using JS serialization to avoid proxy issues
-    ai_options = js.JSON.parse(json.dumps({"messages": messages, "max_tokens": 768}))
-    
-    raw_ai_response = await env.AI.run(
-        CLOUDFLARE_AI_MODEL,
-        ai_options
-    )
-    
-    # Nuclear conversion
-    ai_response = json.loads(js.JSON.stringify(raw_ai_response))
+    try:
+        ai_options = js.JSON.parse(json.dumps({"messages": messages, "max_tokens": 768}))
+        
+        raw_ai_response = await env.AI.run(
+            CLOUDFLARE_AI_MODEL,
+            ai_options
+        )
+        
+        # Nuclear conversion
+        ai_response = json.loads(js.JSON.stringify(raw_ai_response))
+    except Exception as ai_error:
+        print(f"AI scan call crash: {ai_error!s}")
+        traceback.print_exc()
+        return {"error": "The AI service is temporarily unavailable. Please try again."}
 
     reply = None
     # 1. OpenAI-style

@@ -36,8 +36,6 @@ if (window.marked) {
     marked.setOptions({
         breaks: true,
         gfm: true,
-        headerIds: false,
-        mangle: false
     });
 }
 
@@ -61,7 +59,8 @@ window.BLT = {
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 };
 
