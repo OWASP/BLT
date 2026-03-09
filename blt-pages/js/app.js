@@ -46,10 +46,24 @@ function initMobileMenu() {
   const menu = document.getElementById("mobile-menu");
   if (!toggle || !menu) return;
 
+  const desktopBreakpoint = window.matchMedia("(min-width: 1024px)");
+  const syncMenuState = () => {
+    if (desktopBreakpoint.matches) {
+      menu.classList.add("hidden");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  };
+
   toggle.addEventListener("click", () => {
     const open = menu.classList.toggle("hidden");
     toggle.setAttribute("aria-expanded", String(!open));
   });
+
+  if (typeof desktopBreakpoint.addEventListener === "function") {
+    desktopBreakpoint.addEventListener("change", syncMenuState);
+  } else {
+    desktopBreakpoint.addListener(syncMenuState);
+  }
 
   // Close when a nav link is clicked
   menu.querySelectorAll("a").forEach((link) => {
@@ -58,6 +72,8 @@ function initMobileMenu() {
       toggle.setAttribute("aria-expanded", "false");
     });
   });
+
+  syncMenuState();
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -881,7 +897,7 @@ function renderTopDomains(container, data, limit = 0, filter = "") {
       return `<tr class="${rowClass} transition-colors">
         <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
         <td class="px-3 py-2">
-          <a href="https://${escapeHtml(entry.domain)}"
+        <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?q=is:issue+label:%22domain:%20${encodeURIComponent(entry.domain)}%22"
              target="_blank" rel="noopener noreferrer"
              class="flex items-center gap-2 group min-w-0">
             <img src="${faviconUrl}"
