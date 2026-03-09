@@ -54,14 +54,14 @@
 | Field | Count |
 |---|---|
 | audience | 293 |
-| code_repositories | 178 |
-| download_links | 264 |
+| code_repositories | 180 |
+| download_links | 263 |
 | leaders_list | 763 |
 | license | 60 |
 | project_classification | 301 |
 | sidebar_type | 108 |
 | social_facebook | 75 |
-| social_linkedin | 148 |
+| social_linkedin | 150 |
 | social_meetup | 320 |
-| social_twitter | 155 |
+| social_twitter | 154 |
 | social_youtube | 73 |
