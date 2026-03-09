@@ -544,7 +544,7 @@ async function loadRecentBugsFromAPI(grid) {
         if (issue.comments > 0) {
           try {
             const commentsRes = await fetch(
-              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
+              `${baseUrl}/issues/${issue.number}/comments?per_page=1&page=${issue.comments}`,
               { headers: { Accept: "application/vnd.github+json" } }
             );
 
