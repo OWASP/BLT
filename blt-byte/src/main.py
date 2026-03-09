@@ -13,7 +13,6 @@ import json
 import traceback
 import pyodide
 import js
-from pathlib import Path
 
 from workers import Response, WorkerEntrypoint
 from pyodide.ffi import JsProxy
@@ -203,39 +202,10 @@ async def handle_scan(request, env) -> Response:
         else "Provide a concise quick-scan checklist."
     )
 
-    messages = [
-        {"role": "system", "content": SCAN_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": f"Analyse this target: {target}\n{depth_note}",
-        },
-    ]
-
-    ai_response = await env.AI.run(
-        CLOUDFLARE_AI_MODEL,
-        {"messages": messages, "max_tokens": 768},
-    )
-    
-    # Explicit type checking for Pyodide proxies
-    if isinstance(ai_response, JsProxy):
-        ai_response = ai_response.to_py()
-
-    # Extract response safely
-    output = ai_response.get("response") if isinstance(ai_response, dict) else ai_response
-    if isinstance(output, JsProxy):
-        output = output.to_py()
-        
-    raw = str(output) if output is not None else ""
-
-    # Attempt to parse AI JSON output; fall back to plain text wrapper
-    try:
-        parsed = json.loads(raw)
-    except (json.JSONDecodeError, ValueError):
-        parsed = {"analysis": raw}
-
-    return json_response(
-        {"target": target, "scan_type": scan_type, "result": parsed}
-    )
+    result = await _run_scan(env, target, scan_type)
+    if "error" in result:
+        return error_response(result["error"], 502)
+    return json_response({"target": target, "scan_type": scan_type, "result": result})
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +258,10 @@ async def handle_mcp(request, env) -> Response:
 async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
         return {"error": "'message' is required"}
+    if history is None:
+        history = []
+    if not isinstance(history, list):
+        return {"error": "'history' must be an array"}
     
     # Build message array for better model performance
     messages = [
@@ -297,6 +271,8 @@ async def _run_chat(env, message: str, history: list) -> dict:
     # Add conversation history
     history_list = list(history[-10:]) if history else []
     for turn in history_list:
+        if not isinstance(turn, dict):
+            continue
         role = str(turn.get("role", ""))
         content = str(turn.get("content", ""))
         if role in ("user", "assistant") and content:
@@ -368,9 +344,9 @@ async def _run_chat(env, message: str, history: list) -> dict:
             reply = "I received a response but couldn't parse the text. Please check the logs."
             
     except Exception as ai_error:
-        print(f"AI call crash: {str(ai_error)}")
+        print(f"AI call crash: {ai_error!s}")
         traceback.print_exc()
-        reply = f"AI Error: {str(ai_error)}. Traceback enabled in logs."
+        return {"error": "The AI service is temporarily unavailable. Please try again."}
     
     return {"reply": reply}
 
@@ -521,13 +497,17 @@ class Default(WorkerEntrypoint):
 
         # HTML serving routes (GET requests)
         if method == "GET":
-            # Landing page
+            # Serve top-level HTML through the static assets binding.
             if path in ("/", "/index.html"):
-                return self._serve_html()
+                request_url = str(request.url)
+                if path == "/":
+                    request_url = request_url.rstrip("/") + "/index.html"
+                return await self.env.ASSETS.fetch(request_url)
             
             # Chat page
             if path == "/chat":
-                return self._serve_chat_html()
+                request_url = str(request.url).rstrip("/") + "/chat.html"
+                return await self.env.ASSETS.fetch(request_url)
         
         # 404 for unknown API paths
         if path.startswith("/api/"):
@@ -535,37 +515,3 @@ class Default(WorkerEntrypoint):
 
         # All other routes: let Assets binding serve static files (logo, etc.)
         return await self.env.ASSETS.fetch(request)
-    
-    def _serve_html(self) -> Response:
-        """Serve the landing page HTML"""
-        try:
-            html_file = Path(__file__).parent / 'pages' / "index.html"
-            html_content = html_file.read_text()
-            return Response(
-                html_content,
-                status=200,
-                headers={
-                    "Content-Type": "text/html; charset=utf-8",
-                    "Cache-Control": "public, max-age=300",
-                    **cors_headers()
-                }
-            )
-        except FileNotFoundError:
-            return error_response("HTML file not found", 404)
-    
-    def _serve_chat_html(self) -> Response:
-        """Serve the chat page HTML"""
-        try:
-            html_file = Path(__file__).parent / 'pages' / "chat.html"
-            html_content = html_file.read_text()
-            return Response(
-                html_content,
-                status=200,
-                headers={
-                    "Content-Type": "text/html; charset=utf-8",
-                    "Cache-Control": "public, max-age=300",
-                    **cors_headers()
-                }
-            )
-        except FileNotFoundError:
-            return error_response("Chat HTML file not found", 404)

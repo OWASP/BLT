@@ -9,12 +9,12 @@
     --blt-red-h: #c00000;
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeOut {
+@keyframes fade-out {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(-10px); }
 }
@@ -22,6 +22,13 @@
 @keyframes bounce-dot {
     0%, 100% { transform: translateY(0); opacity: 0.5; }
     50% { transform: translateY(-5px); opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out both;
+}
+.animate-fade-out {
+    animation: fade-out 0.3s ease-in both;
 }
 
 .animate-bounce-dot {

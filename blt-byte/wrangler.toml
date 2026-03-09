@@ -9,7 +9,7 @@ binding = "AI"
 
 # Static assets configuration
 [assets]
-directory = "src"
+directory = "public"
 binding = "ASSETS"
 
 [[rules]]

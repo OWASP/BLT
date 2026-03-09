@@ -9,6 +9,7 @@
     content="Byte is the AI-powered assistant for OWASP BLT. Get answers, onboarding guides, and security scans.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   <link rel="stylesheet" href="/static/common.css">
   <script src="/static/common.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -386,7 +387,11 @@
 
       const inner = document.createElement('div');
       inner.className = `p-4 rounded-2xl text-sm shadow-sm max-w-[85%] prose dark:prose-invert ${isUser ? 'bg-blt-red text-white prose-invert rounded-tr-none' : 'bg-gray-100 dark:bg-gray-700 rounded-tl-none'}`;
-      inner.innerHTML = isUser ? BLT.escHtml(content) : marked.parse(content);
+      if (isUser) {
+        inner.textContent = content;
+      } else {
+        inner.innerHTML = DOMPurify.sanitize(marked.parse(content));
+      }
 
       msgDiv.appendChild(avatar);
       msgDiv.appendChild(inner);

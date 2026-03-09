@@ -221,7 +221,11 @@
                 }`;
 
             // Render markdown or escape text
-            messageContent.innerHTML = isUser ? BLT.escHtml(content) : marked.parse(content);
+           if (isUser) {
+                messageContent.innerHTML = BLT.escHtml(content);
+            } else {
+                messageContent.textContent = content;
+            }
 
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(messageContent);
@@ -315,13 +319,6 @@
         });
     </script>
 
-    // Handle quick prompt buttons
-    document.getElementById('welcomeQuickPrompts').addEventListener('click', (e) => {
-    if (e.target.classList.contains('quick-prompt-btn')) {
-    messageInput.value = e.target.textContent;
-    sendButton.click();
-    }
-    });
 </body>
 
 </html>
