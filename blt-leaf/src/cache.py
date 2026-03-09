@@ -365,6 +365,12 @@ def check_rate_limit_bucket(bucket: str, ip_address: str, limit: int, window_sec
 
     now = time.time()
     key = f"{bucket}:{ip_address}"
+    expired_keys = [
+        k for k, v in list(_generic_rate_limit.items())[:50]
+        if (now - v["window_start"]) >= window_seconds
+    ]
+    for k in expired_keys:
+        _generic_rate_limit.pop(k, None)
     entry = _generic_rate_limit.get(key)
 
     if not entry:
