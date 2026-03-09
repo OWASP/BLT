@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-08T23:34:37.755Z",
-  "commit_sha": "d3ae630cbc18034da62a51d809d41c507c4baf1f",
+  "updated_at": "2026-03-09T00:19:58.826Z",
+  "commit_sha": "3679a7d86dad5c8eeb1011cef13e532860d68880",
   "total_bugs": 16,
   "open_bugs": 4,
   "closed_bugs": 12,
@@ -144,7 +144,9 @@
       },
       "image_url": "https://github.com/user-attachments/assets/45b5d21b-8024-4db5-8f85-029e83bcd82d",
       "domain": "www.owaspblt.org",
-      "reactions": {},
+      "reactions": {
+        "eyes": 1
+      },
       "latest_comment": {
         "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n",
         "created_at": "2026-03-08T23:34:27Z",
