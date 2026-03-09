@@ -72,8 +72,8 @@ const HACKATHON_CONFIG = {
         // Show repository statistics
         showRepoStats: true,
         
-        // Maximum number of leaderboard entries to display
-        maxLeaderboardEntries: 10,
+        // Maximum number of leaderboard entries to display (Infinity = show all)
+        maxLeaderboardEntries: Infinity,
         
         // Show participant pull requests in leaderboard
         showPRsInLeaderboard: true,

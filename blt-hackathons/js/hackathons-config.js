@@ -58,7 +58,7 @@ const HACKATHONS_CONFIG = {
             // Display Options
             display: {
                 showRepoStats: true,
-                maxLeaderboardEntries: 10,
+                maxLeaderboardEntries: Infinity,
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
             },
@@ -106,7 +106,7 @@ const HACKATHONS_CONFIG = {
             sponsors: [],
             display: {
                 showRepoStats: true,
-                maxLeaderboardEntries: 10,
+                maxLeaderboardEntries: Infinity,
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
             },
@@ -157,7 +157,7 @@ const HACKATHONS_CONFIG = {
             sponsors: [],
             display: {
                 showRepoStats: true,
-                maxLeaderboardEntries: 10,
+                maxLeaderboardEntries: Infinity,
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
             },
