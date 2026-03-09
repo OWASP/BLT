@@ -1550,13 +1550,6 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
         already_done: whether the repo is already marked done in leaderboard_backfill_repo_done
         """
         mock_db = MagicMock()
-        mock_stmt = AsyncMock()
-        mock_stmt.bind = MagicMock(return_value=mock_stmt)
-        mock_stmt.run = AsyncMock(return_value={"success": True})
-
-        def _stmt_all_side_effect():
-            # Each call to .all() returns empty schema check results
-            return asyncio.coroutine(lambda: {"results": []})()
 
         # Track which SQL is being prepared so we can route responses.
         prepare_calls = []
@@ -1675,8 +1668,6 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
         """New PRs discovered during backfill should be inserted into leaderboard_pr_state."""
         mock_db = self._make_mock_db(pr_state_rows=[])
         pr_state_inserts = []
-
-        original_d1_run = _worker._d1_run
 
         async def _capture_d1_run(db, sql, params=()):
             if "leaderboard_pr_state" in sql and "INSERT" in sql:

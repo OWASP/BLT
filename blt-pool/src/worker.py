@@ -1073,6 +1073,9 @@ async def _backfill_repo_month_if_needed(
                     found_in_window = True
                     merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
+                    # Use closed_at for the stored timestamp to match the idempotency check
+                    # in _track_pr_closed_in_d1, falling back to merged_ts if absent.
+                    pr_closed_ts = _parse_github_timestamp(closed_at) if closed_at else merged_ts
                     await _d1_run(
                         db,
                         """
@@ -1080,7 +1083,7 @@ async def _backfill_repo_month_if_needed(
                         VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
                         ON CONFLICT(org, repo, pr_number) DO NOTHING
                         """,
-                        (owner, repo_name, pr_number, login, merged_ts, now_ts),
+                        (owner, repo_name, pr_number, login, pr_closed_ts, now_ts),
                     )
                     already_tracked.add(pr_number)
             elif closed_at:
@@ -1100,8 +1103,8 @@ async def _backfill_repo_month_if_needed(
                         (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
                     )
                     already_tracked.add(pr_number)
-        # Stop paginating if fewer than 100 results (last page) or no new in-window PRs found.
-        if len(closed_prs) < 100 or not found_in_window:
+        # Stop paginating if fewer than 100 results (last page).
+        if len(closed_prs) < 100:
             break
         closed_page += 1
     console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
