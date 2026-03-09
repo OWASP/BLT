@@ -202,13 +202,23 @@ class HackathonDashboard {
             stats.participantCount !== undefined
                 ? stats.participantCount
                 : stats.participants.size;
-        document.getElementById('participant-count').textContent = participantCount;
-        document.getElementById('pr-count').textContent = stats.totalPRs;
-        document.getElementById('merged-pr-count').textContent = stats.mergedPRs;
-        document.getElementById('issue-count').textContent = stats.totalIssues || 0;
+        document.getElementById('participant-count').textContent = participantCount.toLocaleString();
+        document.getElementById('pr-count').textContent = (stats.totalPRs || 0).toLocaleString();
+        document.getElementById('merged-pr-count').textContent = (stats.mergedPRs || 0).toLocaleString();
+        document.getElementById('issue-count').textContent = (stats.totalIssues || 0).toLocaleString();
         // Use resolved repositories count if available, otherwise fall back to config
         const repoCount = this.repositories ? this.repositories.length : (this.config.github.repositories || []).length;
-        document.getElementById('repo-count').textContent = repoCount;
+        document.getElementById('repo-count').textContent = repoCount.toLocaleString();
+
+        // Calculate days active: days elapsed from start up to today (capped at end date)
+        const startDate = new Date(this.config.startTime);
+        const endDate = new Date(this.config.endTime);
+        const now = new Date();
+        const effectiveEnd = now < endDate ? now : endDate;
+        const daysActive = now < startDate
+            ? 0
+            : Math.floor((effectiveEnd - startDate) / (1000 * 60 * 60 * 24));
+        document.getElementById('days-active-count').textContent = daysActive.toLocaleString();
     }
 
     /**

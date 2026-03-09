@@ -42,6 +42,16 @@ class HackathonIndex {
                 const response = await fetch(`hackathon-data/${hackathon.slug}-summary.json`);
                 if (response.ok) {
                     const summary = await response.json();
+
+                    // Calculate days active: elapsed days from start up to today (capped at end date)
+                    const startDate = new Date(hackathon.startTime);
+                    const endDate = new Date(hackathon.endTime);
+                    const now = new Date();
+                    const effectiveEnd = now < endDate ? now : endDate;
+                    const daysActive = now < startDate
+                        ? 0
+                        : Math.floor((effectiveEnd - startDate) / (1000 * 60 * 60 * 24));
+
                     this.hackathonStats[hackathon.slug] = {
                         participantCount: summary.participantCount || 0,
                         totalPRs: summary.totalPRs || 0,
@@ -49,6 +59,7 @@ class HackathonIndex {
                         totalIssues: summary.totalIssues || 0,
                         repositories: summary.repositories || 0,
                         topContributors: summary.topContributors || [],
+                        daysActive,
                     };
                 }
             } catch (e) {
@@ -186,24 +197,28 @@ class HackathonIndex {
             const statsHtml = stats ? `
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.participantCount}</div>
+                                <div class="text-lg font-bold text-red-600">${stats.participantCount.toLocaleString()}</div>
                                 <div class="text-xs text-gray-500">Participants</div>
                             </div>
                             <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.totalPRs}</div>
+                                <div class="text-lg font-bold text-red-600">${stats.totalPRs.toLocaleString()}</div>
                                 <div class="text-xs text-gray-500">Pull Requests</div>
                             </div>
                             <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.mergedPRs}</div>
+                                <div class="text-lg font-bold text-red-600">${stats.mergedPRs.toLocaleString()}</div>
                                 <div class="text-xs text-gray-500">Merged PRs</div>
                             </div>
                             <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.totalIssues}</div>
+                                <div class="text-lg font-bold text-red-600">${stats.totalIssues.toLocaleString()}</div>
                                 <div class="text-xs text-gray-500">Issues</div>
                             </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg col-span-2">
-                                <div class="text-lg font-bold text-red-600">${stats.repositories}</div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.repositories.toLocaleString()}</div>
                                 <div class="text-xs text-gray-500">Repositories</div>
+                            </div>
+                            <div class="text-center p-2 bg-gray-50 rounded-lg">
+                                <div class="text-lg font-bold text-red-600">${stats.daysActive.toLocaleString()}</div>
+                                <div class="text-xs text-gray-500">Days Active</div>
                             </div>
                         </div>
                         ${stats.topContributors && stats.topContributors.length > 0 ? `
