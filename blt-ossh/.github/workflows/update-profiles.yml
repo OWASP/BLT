@@ -1,0 +1,135 @@
+name: Update Profiles
+
+on:
+  # Regenerate every 6 hours
+  schedule:
+    - cron: "0 */6 * * *"
+
+  # Regenerate whenever a profile issue is created/updated
+  issues:
+    types:
+      - opened
+      - labeled
+      - closed
+      - reopened
+      - edited
+
+  # Allow manual runs from the Actions UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  update-profiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate profiles data
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Fetch all issues labelled "profile" (paginate through all pages)
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                labels: 'profile',
+                state:  'open',
+                per_page: 100,
+              }
+            );
+
+            // Filter out PRs (GitHub returns PRs in the issues endpoint)
+            const profileIssues = issues.filter(i => !i.pull_request);
+
+            // Helper to extract field from issue body
+            function extractField(body, fieldName) {
+              const regex = new RegExp(`### ${fieldName}\\s*\\n\\s*(.+?)(?=\\n###|$)`, 's');
+              const match = body.match(regex);
+              if (!match) return null;
+              const value = match[1].trim();
+              // GitHub Forms puts "_No response_" for empty optional fields
+              return (value === '_No response_' || value === '') ? null : value;
+            }
+
+            // Helper to extract checkboxes
+            function extractCheckboxes(body, fieldName) {
+              const regex = new RegExp(`### ${fieldName}[\\s\\S]*?(?=\\n###|$)`, 's');
+              const section = body.match(regex);
+              if (!section) return [];
+              
+              const checkedItems = [];
+              const lines = section[0].split('\\n');
+              for (const line of lines) {
+                const match = line.match(/- \[x\]\s*(.+)/i);
+                if (match) checkedItems.push(match[1].trim());
+              }
+              return checkedItems;
+            }
+
+            // Parse each profile issue
+            const profiles = profileIssues.map(issue => {
+              const body = issue.body || '';
+              
+              // Extract GitHub username
+              const githubUsername = extractField(body, 'GitHub Username');
+              const displayName = extractField(body, 'Display Name') || githubUsername;
+              
+              return {
+                id: issue.number,
+                github_username: githubUsername,
+                display_name: displayName,
+                bio: extractField(body, 'Bio'),
+                avatar_url: `https://github.com/${githubUsername}.png`,
+                experience_level: extractField(body, 'Experience Level'),
+                interests: extractCheckboxes(body, 'Areas of Interest'),
+                skills: (extractField(body, 'Skills & Technologies') || '')
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean),
+                looking_for: extractField(body, 'What are you looking for\\?'),
+                location: extractField(body, 'Location \\(Optional\\)'),
+                website: extractField(body, 'Website/Portfolio \\(Optional\\)'),
+                twitter: extractField(body, 'Twitter/X Handle \\(Optional\\)'),
+                linkedin: extractField(body, 'LinkedIn Profile \\(Optional\\)'),
+                recommended_projects: extractField(body, 'Recommended Projects \\(Optional\\)'),
+                recommended_communities: extractField(body, 'Recommended Communities \\(Optional\\)'),
+                recommended_reading: extractField(body, 'Recommended Reading \\(Optional\\)'),
+                created_at: issue.created_at,
+                updated_at: issue.updated_at,
+                url: issue.html_url
+              };
+            }).filter(profile => profile.github_username); // Only include valid profiles
+
+            const payload = {
+              updated_at: new Date().toISOString(),
+              total_profiles: profiles.length,
+              profiles: profiles
+            };
+
+            fs.mkdirSync('data', { recursive: true });
+            fs.writeFileSync(
+              'data/profiles.json',
+              JSON.stringify(payload, null, 2) + '\\n'
+            );
+
+            console.log(`Profiles updated: ${profiles.length} developer profiles`);
+
+      - name: Commit updated profiles
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "github-actions[bot]"
+          git add data/profiles.json
+          # Only commit if there are actual changes
+          git diff --staged --quiet || \
+            git commit -m "chore: update profiles data [skip ci]"
+          git push
