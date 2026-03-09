@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initDarkMode();
   initMobileMenu();
   initAnonymousToggle();
-  initPricing();
   loadLeaderboard();
   loadRecentBugs();
   initSmoothScroll();
@@ -92,97 +91,6 @@ function initAnonymousToggle() {
       btn.href = "https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml";
       btn.querySelector(".btn-label").textContent = "Report a Bug";
     }
-  });
-}
-
-/* ────────────────────────────────────────────────────────────
-   Pricing Section
-──────────────────────────────────────────────────────────── */
-function initPricing() {
-  const section = document.getElementById("pricing");
-  const navLink = document.getElementById("pricing-nav-link");
-  const navLinkMobile = document.getElementById("pricing-nav-link-mobile");
-
-  if (!section) return;
-
-  if (!BLT_CONFIG.SHOW_PRICING) {
-    section.classList.add("hidden");
-    section.style.display = "none";
-    if (navLink) { navLink.classList.add("hidden"); navLink.style.display = "none"; }
-    if (navLinkMobile) { navLinkMobile.classList.add("hidden"); navLinkMobile.style.display = "none"; }
-    return;
-  }
-
-  section.classList.remove("hidden");
-  section.style.display = "";
-  if (navLink) { navLink.classList.remove("hidden"); navLink.style.display = ""; }
-  if (navLinkMobile) { navLinkMobile.classList.remove("hidden"); navLinkMobile.style.display = ""; }
-
-  // If the page was loaded with #pricing in the URL, scroll to the
-  // now-visible pricing section so deep links keep working.
-  if (location.hash === "#pricing") {
-    section.scrollIntoView();
-  }
-
-  // Render pricing plans dynamically
-  const grid = document.getElementById("pricing-grid");
-  if (!grid) return;
-
-  BLT_CONFIG.PRICING_PLANS.forEach((plan) => {
-    const priceText =
-      plan.price === null
-        ? "Custom"
-        : plan.price === 0
-          ? "Free"
-          : `$${plan.price}`;
-
-    const featuresHtml = plan.features
-      .map(
-        (f) =>
-          `<li class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-             <svg class="fa-icon text-primary mt-0.5 flex-shrink-0" aria-hidden="true"><use href="#fa-check"></use></svg>
-             <span>${f}</span>
-           </li>`
-      )
-      .join("");
-
-    const highlightClasses = plan.highlighted
-      ? "border-primary shadow-lg ring-2 ring-primary"
-      : "border-neutral-border dark:border-gray-700";
-
-    const badgeHtml = plan.highlighted
-      ? `<span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>`
-      : "";
-
-    const ctaClasses = plan.highlighted
-      ? "bg-primary hover:bg-primary-hover text-white"
-      : "border-2 border-primary text-primary hover:bg-primary hover:text-white";
-
-    const shareHtml =
-      plan.id === "pro"
-        ? `<p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
-             <svg class="fa-icon text-primary mr-1" aria-hidden="true"><use href="#fa-hand-holding-dollar"></use></svg>
-             Reporters earn <strong class="text-primary">${BLT_CONFIG.REVENUE_SHARE_PERCENT}%</strong> of your subscription
-           </p>`
-        : "";
-
-    grid.insertAdjacentHTML(
-      "beforeend",
-      `<div class="relative bg-white dark:bg-dark-surface border ${highlightClasses} rounded-2xl p-8">
-         ${badgeHtml}
-         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">${plan.name}</h3>
-         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${plan.description}</p>
-         <div class="mb-6">
-           <span class="text-4xl font-bold text-gray-900 dark:text-white">${priceText}</span>
-           <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">${plan.period}</span>
-         </div>
-         <ul class="space-y-3 mb-8">${featuresHtml}</ul>
-         <a href="${plan.cta_href}" class="flex items-center justify-center w-full font-semibold px-6 py-3 rounded-xl transition-colors ${ctaClasses}">
-           ${plan.cta}
-         </a>
-         ${shareHtml}
-       </div>`
-    );
   });
 }
 

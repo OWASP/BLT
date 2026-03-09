@@ -38,19 +38,3 @@ test('homepage renders the main heading', async ({ page }) => {
   await expect(h1).toBeVisible();
 });
 
-test('pricing section and nav links are hidden when SHOW_PRICING is false', async ({ page }) => {
-  await page.goto('/');
-  await page.waitForLoadState('load');
-
-  // Pricing section should not be visible (SHOW_PRICING defaults to false for OWASP instance)
-  const pricingSection = page.locator('#pricing');
-  await expect(pricingSection).toBeHidden();
-
-  // Pricing nav links (desktop and mobile) should not be visible
-  const pricingNavLink = page.locator('#pricing-nav-link');
-  await expect(pricingNavLink).toBeHidden();
-
-  const pricingNavLinkMobile = page.locator('#pricing-nav-link-mobile');
-  await expect(pricingNavLinkMobile).toBeHidden();
-});
-
