@@ -21,7 +21,7 @@ from pyodide.ffi import JsProxy
 try:
     pyodide.setDebug(True)
 except Exception:
-    pass
+    pass # Debug mode not available in this Pyodide build
 
 # ---------------------------------------------------------------------------
 # BLT FAQ knowledge base
