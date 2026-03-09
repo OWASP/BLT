@@ -3568,7 +3568,7 @@
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
 
-                if (allPrs.length === 0) {
+                if (allPrs.length === 0 && !currentOrg) {
                     showWarning('No PRs to refresh.');
                     return;
                 }
@@ -3579,7 +3579,35 @@
                 btn.classList.add('opacity-70', 'cursor-not-allowed');
 
                 try {
-                    // Step 1: Batch refresh PR data from GitHub
+                    // Step 1: If an org filter is active, discover new repositories and PRs
+                    if (currentOrg) {
+                        btn.title = 'Scanning org for new repositories and PRs...';
+                        const orgResp = await fetch('/api/refresh-org', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ org: currentOrg })
+                        });
+                        if (!orgResp.ok) {
+                            const errData = await orgResp.json().catch(() => ({}));
+                            throw new Error(errData.error || `Org scan failed (${orgResp.status})`);
+                        }
+                        const orgData = await orgResp.json();
+                        if (orgData.error) throw new Error(orgData.error);
+                        if (orgData.imported_count > 0) {
+                            // New PRs were discovered — reload lists before batch refresh
+                            await loadRepos(true);
+                            await loadPrs(true);
+                            await loadAuthors(true);
+                        }
+                    }
+
+                    // If there are still no PRs after the org scan, nothing more to do
+                    if (allPrs.length === 0) {
+                        showWarning('No PRs to refresh.');
+                        return;
+                    }
+
+                    // Step 2: Batch refresh PR data from GitHub
                     const prIds = allPrs.map(pr => pr.id);
                     const batchSize = 100;
                     for (let i = 0; i < prIds.length; i += batchSize) {
@@ -3598,7 +3626,7 @@
                     await loadPrs(true);
                     invalidateApiCache();
 
-                    // Step 2: Analyze readiness for all PRs
+                    // Step 3: Analyze readiness for all PRs
                     const total = allPrs.length;
                     let done = 0;
                     const failures = [];
