@@ -609,28 +609,30 @@ async def handle_batch_refresh_prs(request, env):
             return Response.new(json.dumps({'error': 'Maximum 100 PRs can be refreshed at once'}), 
                               {'status': 400, 'headers': {'Content-Type': 'application/json'}})
         
-        # Get PR details from database
+        # Get PR details from database in a single query instead of N separate queries
         db = get_db(env)
         prs_to_fetch = []
         pr_lookup = {}  # Maps (owner, repo, pr_number) -> (pr_id, pr_url, etag)
-        
-        for pr_id in pr_ids:
-            stmt = db.prepare('SELECT pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id = ?').bind(pr_id)
-            result = await stmt.first()
-            
-            if not result:
-                print(f"PR ID {pr_id} not found, skipping")
-                continue
-            
-            result = result.to_py()
+        placeholders = ','.join('?' * len(pr_ids))
+        stmt = db.prepare(
+            f'SELECT id, pr_url, repo_owner, repo_name, pr_number, etag FROM prs WHERE id IN ({placeholders})'
+        ).bind(*pr_ids)
+        all_results = await stmt.all()
+        rows = all_results.results.to_py() if hasattr(all_results, 'results') else []
+        found_ids = set()
+        for result in rows:
             owner = result['repo_owner']
             repo = result['repo_name']
             pr_number = result['pr_number']
             pr_url = result['pr_url']
             etag = result.get('etag')
-            
+            pr_id = result['id']
+            found_ids.add(pr_id)
             prs_to_fetch.append((owner, repo, pr_number))
             pr_lookup[(owner, repo, pr_number)] = (pr_id, pr_url, etag)
+        for pr_id in pr_ids:
+            if pr_id not in found_ids:
+                print(f"PR ID {pr_id} not found, skipping")
         
         if not prs_to_fetch:
             return Response.new(json.dumps({'error': 'No valid PRs found'}), 
