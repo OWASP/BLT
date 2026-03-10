@@ -1347,151 +1347,148 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
     )
 
     return f"""<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="All BLT Design Contest submissions in one place." />
-  <title>All Entries - BLT Design Contests</title>
+    <html lang="en" class="scroll-smooth">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="description" content="All BLT Design Contest submissions in one place." />
+    <title>All Entries - BLT Design Contests</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
     tailwind.config = {{
       darkMode: 'class',
       theme: {{
-        extend: {{
-          colors: {{
-            brand: '#E10101',
-          }},
-        }},
+      extend: {{
+      colors: {{
+      brand: '#E10101',
+      }},
+      }},
       }},
     }};
-  </script>
+    </script>
 
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <style>
+    <style>
     :root {{ --brand: #E10101; }}
     *:focus-visible {{
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }}
-  </style>
-</head>
+    </style>
+    </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
-  <a href="#all-entries"
+    <body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <a href="#all-entries"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white focus:rounded-md focus:font-medium">
     Skip to content
-  </a>
+    </a>
 
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
+    <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
-          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
-        </a>
+      <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
+      </a>
 
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[`#E10101`] transition-colors inline-flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-          </a>
-          <a href="show-all-entries.html"
-             class="text-[`#E10101`] font-semibold inline-flex items-center gap-1.5"
-             aria-current="page">
-            <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
-          </a>
-            <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
-          </a>
-          <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-        <a href="index.html#contests"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[`#E10101`] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Choose Contest</span>
-        </a>
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Submit Design</span>
-        </a>
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="show-all-entries.html"
+       class="text-[#E10101] font-semibold inline-flex items-center gap-1.5"
+       aria-current="page">
+      <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
+      </a>
+      <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
+       class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+      </a>
+      </div>
 
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
+      <a href="index.html#contests"
+       class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span>Choose Contest</span>
+      </a>
+
+      <button id="theme-toggle" type="button"
+      class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Toggle dark mode">
+      <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+      <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+      </button>
       </nav>
     </div>
-  </header>
+    </header>
 
-  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
       <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-        Unified Showcase
+      Unified Showcase
       </span>
       <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-3">
-        All Contest Entries
+      All Contest Entries
       </h1>
       <p class="max-w-2xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-300">
-        Browse every current submission from all BLT design contests in one page.
+      Browse every current submission from all BLT design contests in one page.
       </p>
       <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">Last updated {last_updated}</p>
     </div>
-  </section>
+    </section>
 
-  <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
-        <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
+      <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2 mb-8" id="contest-filters" aria-label="Contest filters">
-        {filter_buttons_html}
+      {filter_buttons_html}
       </div>
 
       <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
-        {cards_html}
-        <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
+      {cards_html}
+      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
       </div>
     </div>
-  </main>
+    </main>
 
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
       <p>
-        &copy; {datetime.now(timezone.utc).year}
-        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
-        Content licensed under
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      &copy; {datetime.now(timezone.utc).year}
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+      Content licensed under
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
-        <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-        </a>
-        <a href="https://github.com/{REPO}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-github" aria-hidden="true"></i> Source
-        </a>
+      <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="https://github.com/{REPO}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+      </a>
       </div>
     </div>
-  </footer>
+    </footer>
 
-  <script>
+    <script>
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     if (localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) &&
-         window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      (!('theme' in localStorage) &&
+       window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
       html.classList.add('dark');
     }}
 
@@ -1511,48 +1508,48 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
     function setButtonState(button, active) {{
       button.classList.remove(...baseBtn, ...activeBtn);
       if (active) {{
-        button.classList.add(...activeBtn);
+      button.classList.add(...activeBtn);
       }} else {{
-        button.classList.add(...baseBtn);
+      button.classList.add(...baseBtn);
       }}
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }}
 
     function updateFilterButtons() {{
       document.querySelectorAll('.filter-btn').forEach((btn) => {{
-        setButtonState(btn, btn.dataset.filter === activeFilter);
+      setButtonState(btn, btn.dataset.filter === activeFilter);
       }});
     }}
 
     function formatDates() {{
       const now = new Date();
       document.querySelectorAll('time.sub-date').forEach((el) => {{
-        const raw = el.getAttribute('datetime');
-        if (!raw) return;
-        let d = new Date(raw);
-        if (isNaN(d.getTime())) return;
-        if (d > now) d = now;
-        el.textContent = d.toLocaleDateString(undefined, {{
-          year: 'numeric', month: 'short', day: 'numeric'
-        }});
+      const raw = el.getAttribute('datetime');
+      if (!raw) return;
+      let d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      if (d > now) d = now;
+      el.textContent = d.toLocaleDateString(undefined, {{
+      year: 'numeric', month: 'short', day: 'numeric'
+      }});
       }});
     }}
 
     function applyFilter() {{
       if (!allCards.length) {{
-        statusEl.textContent = 'No entries available right now.';
-        return;
+      statusEl.textContent = 'No entries available right now.';
+      return;
       }}
 
       let visibleCount = 0;
       allCards.forEach((card) => {{
-        const show = activeFilter === 'all' || card.dataset.contest === activeFilter;
-        card.classList.toggle('hidden', !show);
-        if (show) visibleCount += 1;
+      const show = activeFilter === 'all' || card.dataset.contest === activeFilter;
+      card.classList.toggle('hidden', !show);
+      if (show) visibleCount += 1;
       }});
 
       if (noFilterResults) {{
-        noFilterResults.classList.toggle('hidden', visibleCount !== 0);
+      noFilterResults.classList.toggle('hidden', visibleCount !== 0);
       }}
 
       statusEl.textContent = 'Showing ' + visibleCount + ' entr' + (visibleCount === 1 ? 'y' : 'ies') + ' from all contests.';
@@ -1561,17 +1558,17 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
 
     document.querySelectorAll('.filter-btn').forEach((btn) => {{
       btn.addEventListener('click', () => {{
-        activeFilter = btn.dataset.filter;
-        updateFilterButtons();
-        applyFilter();
+      activeFilter = btn.dataset.filter;
+      updateFilterButtons();
+      applyFilter();
       }});
     }});
 
     updateFilterButtons();
     applyFilter();
-  </script>
-</body>
-</html>"""
+    </script>
+    </body>
+    </html>"""
 
 
 def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
