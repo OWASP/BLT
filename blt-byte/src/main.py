@@ -330,10 +330,13 @@ def _extract_ai_text(ai_response) -> str | None:
             if isinstance(content, list):
                 parts = []
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "output_text":
-                        text = part.get("text")
-                        if isinstance(text, str) and text:
-                            parts.append(text)
+                    if not isinstance(part, dict):
+                        continue
+                    if part.get("type") not in ("text", "output_text"):
+                        continue
+                    text = part.get("text")
+                    if isinstance(text, str) and text:
+                        parts.append(text)
                 if parts:
                     return "\n".join(parts)
         return None
