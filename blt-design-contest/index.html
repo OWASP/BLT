@@ -319,7 +319,15 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div class="flex items-center justify-between gap-4 mb-8">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
+            <span class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</span>
+            <a href="show-all-entries.html"
+               class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                      self-start sm:self-auto whitespace-nowrap
+                      hover:gap-2.5 transition-all duration-200">
+              View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>           
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Latest 3 entries sorted by submitted time.
           </p>
