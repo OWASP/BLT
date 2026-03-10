@@ -125,7 +125,6 @@ MCP_MANIFEST = {
                         "description": "User role",
                     }
                 },
-                "required": ["role"],
             },
         },
     ],
@@ -159,11 +158,11 @@ def error_response(message: str, status: int = 400) -> Response:
 # Chat handler
 # ---------------------------------------------------------------------------
 async def handle_chat(request, env) -> Response:
+    # Avoid JsProxy for inputs by using text() + native json.loads()
+    body_text = await request.text()
     try:
-        # Avoid JsProxy for inputs by using text() + native json.loads()
-        body_text = await request.text()
         body = json.loads(body_text) if body_text else {}
-    except Exception:
+    except json.JSONDecodeError:
         return error_response("Invalid JSON body")
     if not isinstance(body, dict):
         return error_response("JSON body must be an object")
@@ -188,11 +187,11 @@ async def handle_chat(request, env) -> Response:
 # Security scan handler
 # ---------------------------------------------------------------------------
 async def handle_scan(request, env) -> Response:
+    # Avoid JsProxy for inputs by using text() + native json.loads()
+    body_text = await request.text()
     try:
-        # Avoid JsProxy for inputs by using text() + native json.loads()
-        body_text = await request.text()
         body = json.loads(body_text) if body_text else {}
-    except Exception:
+    except json.JSONDecodeError:
         return error_response("Invalid JSON body")
     if not isinstance(body, dict):
         return error_response("JSON body must be an object")
@@ -226,15 +225,18 @@ async def handle_mcp(request, env) -> Response:
 
     # Tool invocation
     if method == "POST":
+        body_text = await request.text()
         try:
-            body_text = await request.text()
             body = json.loads(body_text) if body_text else {}
-        except Exception:
+        except json.JSONDecodeError:
             return error_response("Invalid JSON body")
         if not isinstance(body, dict):
             return error_response("JSON body must be an object")
 
         tool_name = body.get("tool")
+        if not isinstance(tool_name, str) or not tool_name.strip():
+            return error_response("'tool' must be a non-empty string", 400)
+        tool_name = tool_name.strip()
         params = body.get("params", {})
         if not isinstance(params, dict):
             return error_response("'params' must be an object", 400)
@@ -294,6 +296,18 @@ def _extract_ai_text(ai_response) -> str | None:
                 message = first_choice.get("message")
                 if isinstance(message, dict):
                     content = message.get("content")
+                    if isinstance(content, list):
+                        parts = []
+                        for item in content:
+                            if not isinstance(item, dict):
+                                continue
+                            if item.get("type") not in ("text", "output_text"):
+                                continue
+                            text = item.get("text")
+                            if isinstance(text, str) and text:
+                                parts.append(text)
+                        if parts:
+                            return "\n".join(parts)
                     if isinstance(content, str):
                         return content
 
